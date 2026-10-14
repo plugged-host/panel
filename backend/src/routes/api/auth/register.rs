@@ -69,7 +69,8 @@ mod post {
         }
 
         let settings = state.settings.get().await?;
-        if !settings.app.registration_enabled {
+        // plugged.host: with noprofit.space sign-in, accounts are made there.
+        if !settings.app.registration_enabled || shared::noprofit::enabled() {
             return ApiResponse::error("registration is disabled")
                 .with_status(StatusCode::BAD_REQUEST)
                 .ok();

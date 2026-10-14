@@ -37,6 +37,7 @@ pub mod jwt;
 pub mod mail;
 pub mod models;
 pub mod net;
+pub mod noprofit;
 pub mod ntp;
 pub mod payload;
 pub mod permissions;
@@ -57,6 +58,11 @@ pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 pub const GIT_COMMIT: &str = env!("CARGO_GIT_COMMIT");
 pub const GIT_BRANCH: &str = env!("CARGO_GIT_BRANCH");
 pub const TARGET: &str = env!("CARGO_TARGET");
+
+/// plugged.host's version, the `VERSION` file at the repository root (e.g. `3.0.0`).
+pub const PLUGGED_HOST_VERSION: &str = env!("PLUGGED_HOST_VERSION");
+/// plugged.host's release, `v{VERSION}.{commit}` (e.g. `v3.0.0.7bc33d4`), shown in the footer.
+pub const PLUGGED_HOST_RELEASE: &str = env!("PLUGGED_HOST_RELEASE");
 
 pub fn full_version() -> String {
     if GIT_BRANCH == "unknown" {

@@ -1,12 +1,12 @@
 {
-  "name": "Calagopus Panel",
-  "short_name": "Calagopus",
-  "description": "Calagopus Panel - Game Server Management",
+  "name": "plugged.host",
+  "short_name": "plugged.host",
+  "description": "plugged.host - free game server hosting",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#222222",
-  "theme_color": "#ffffff",
+  "background_color": "#0b0d10",
+  "theme_color": "#101319",
   "orientation": "any",
   "icons": [
     {

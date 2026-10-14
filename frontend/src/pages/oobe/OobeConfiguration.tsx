@@ -89,7 +89,7 @@ export default function OobeConfiguration({ onNext }: OobeComponentProps) {
 
     updateApplicationSettings({
       name: form.values.applicationName,
-      icon: '/icon.svg',
+      icon: '/plugged.host.png',
       iconLight: null,
       banner: null,
       bannerLight: null,

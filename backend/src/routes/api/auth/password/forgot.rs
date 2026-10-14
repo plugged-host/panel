@@ -89,6 +89,12 @@ mod post {
             None => return ApiResponse::new_serialized(Response {}).ok(),
         };
 
+        // plugged.host: noprofit.space accounts have no password here, and with noprofit.space
+        // sign-in only admins sign in with one. Same answer as an unknown email.
+        if user.password_login_disabled || (shared::noprofit::enabled() && !user.admin) {
+            return ApiResponse::new_serialized(Response {}).ok();
+        }
+
         tokio::spawn(async move {
             let token = match UserPasswordReset::create(&state.database, user.uuid).await {
                 Ok(token) => token,

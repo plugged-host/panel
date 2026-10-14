@@ -1150,6 +1150,18 @@ const baseTranslations = defineTranslations({
               'This account requires two-factor authentication, sign in with a security key instead.',
             passwordLoginDisabled:
               'Password sign-in is turned off on this panel, use one of the options below instead.',
+            noprofitFailed: 'Signing in with noprofit.space did not work. Please try again.',
+            noprofitExpired: 'That sign-in took too long or was already used. Please try again.',
+            noprofitAdminsOnly: 'This panel is not open yet: only noprofit.space admins can sign in for now.',
+            noprofitEmailTaken:
+              'A panel account with your noprofit.space email already exists. Ask an administrator to link it.',
+          },
+          noprofit: {
+            title: 'Sign in',
+            subtitle: 'Use your noprofit.space account to continue',
+            button: 'Continue with noprofit.space',
+            localLink: 'Administrator sign-in',
+            backLink: 'Back to noprofit.space sign-in',
           },
           passkey: {
             error: {
@@ -1411,6 +1423,19 @@ const baseTranslations = defineTranslations({
             },
           },
           containers: {
+            noprofit: {
+              title: 'noprofit.space',
+              description:
+                'You sign in with your noprofit.space account **{email}**. Your email, password and two-factor authentication are managed there.',
+              credits: 'Credits',
+              plan: 'Plan',
+              planValue: '{cpu}% CPU, {memory} memory, {disk} disk',
+              discord: 'Discord',
+              discordNotLinked: 'Not linked',
+              button: {
+                manage: 'Manage on noprofit.space',
+              },
+            },
             password: {
               title: 'Password',
               button: {

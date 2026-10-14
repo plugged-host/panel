@@ -120,6 +120,7 @@ export default function App({
         theme={theme}
         cssVariablesResolver={cssVariablesResolver || undefined}
         defaultColorScheme='dark'
+        forceColorScheme='dark'
         deduplicateInlineStyles
       >
         <QueryClientProvider client={queryClient}>
@@ -153,7 +154,7 @@ export default function App({
     </ErrorBoundary>
   ) : (
     <>
-      <MantineProvider theme={theme} defaultColorScheme='dark' deduplicateInlineStyles>
+      <MantineProvider theme={theme} defaultColorScheme='dark' forceColorScheme='dark' deduplicateInlineStyles>
         <Spinner.Centered />
         {loadWarning && (
           <p className='text-center text-sm text-slate-400 -mt-4'>

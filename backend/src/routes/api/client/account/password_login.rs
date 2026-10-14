@@ -55,6 +55,16 @@ mod put {
                 .ok();
         }
 
+        // plugged.host: a noprofit.space account's email and password live there.
+        if shared::noprofit::Link::by_user_uuid(&state.database, user.uuid)
+            .await?
+            .is_some()
+        {
+            return ApiResponse::error("managed on noprofit.space")
+                .with_status(StatusCode::CONFLICT)
+                .ok();
+        }
+
         if data.disabled {
             let webauthn_enabled = state.settings.get_as(|s| s.webauthn.enabled).await?;
 

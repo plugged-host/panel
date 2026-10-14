@@ -867,7 +867,10 @@ impl User {
     }
 
     pub fn can_login_with_password(&self, settings: &crate::settings::AppSettings) -> bool {
-        settings.app.password_login_enabled && !self.password_login_disabled
+        settings.app.password_login_enabled
+            && !self.password_login_disabled
+            // plugged.host: with noprofit.space sign-in, passwords are for admins only.
+            && (!crate::noprofit::enabled() || self.admin)
     }
 
     pub fn require_email_verification(&self, settings: &crate::settings::AppSettings) -> bool {

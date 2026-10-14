@@ -403,6 +403,30 @@ export const userOauthLinksTable = pgTable(
   ],
 );
 
+// plugged.host: the noprofit.space account a user signs in with, and its latest snapshot
+// (shared/src/noprofit.rs). `deleted` is set when noprofit.space no longer has the account.
+export const userNoprofitAccountsTable = pgTable(
+  'user_noprofit_accounts',
+  {
+    user_uuid: uuid()
+      .references(() => usersTable.uuid, { onDelete: 'cascade' })
+      .primaryKey()
+      .notNull(),
+    account_id: bigint({ mode: 'number' }).notNull(),
+    email: varchar({ length: 255 }).notNull(),
+    username: varchar({ length: 255 }).notNull(),
+    is_admin: boolean().default(false).notNull(),
+    avatar: text(),
+    credits: bigint({ mode: 'number' }).default(0).notNull(),
+    plan: jsonb(),
+    discord: jsonb(),
+    deleted: timestamp(),
+    synced: timestamp().defaultNow().notNull(),
+    created: timestamp().defaultNow().notNull(),
+  },
+  (cols) => [uniqueIndex('user_noprofit_accounts_account_id_idx').on(cols.account_id)],
+);
+
 export const userCommandSnippetsTable = pgTable(
   'user_command_snippets',
   {

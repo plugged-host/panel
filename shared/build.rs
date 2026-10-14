@@ -55,4 +55,38 @@ fn main() {
 
     println!("cargo:rustc-env=CARGO_GIT_COMMIT={git_hash}");
     println!("cargo:rustc-env=CARGO_TARGET={target_arch}-{target_env}");
+
+    plugged_host_release(is_git_repo);
+}
+
+/// plugged.host's release, `v{VERSION}.{commit}` (e.g. `v3.0.0.7bc33d4`): the `VERSION` file at
+/// the repository root plus the 7-character commit the build was made from.
+/// `PLUGGED_HOST_RELEASE` at build time overrides it.
+fn plugged_host_release(is_git_repo: bool) {
+    println!("cargo:rerun-if-changed=../VERSION");
+    println!("cargo:rerun-if-env-changed=PLUGGED_HOST_RELEASE");
+
+    let version = std::fs::read_to_string("../VERSION")
+        .map(|version| version.trim().to_string())
+        .unwrap_or_else(|_| "0.0.0".to_string());
+
+    let mut commit = "unknown".to_string();
+
+    if is_git_repo
+        && let Ok(output) = Command::new("git")
+            .args(["rev-parse", "--short=7", "HEAD"])
+            .output()
+        && output.status.success()
+        && let Ok(hash) = String::from_utf8(output.stdout)
+    {
+        commit = hash.trim().to_string();
+    }
+
+    let release = std::env::var("PLUGGED_HOST_RELEASE")
+        .ok()
+        .filter(|release| !release.trim().is_empty())
+        .unwrap_or_else(|| format!("v{version}.{commit}"));
+
+    println!("cargo:rustc-env=PLUGGED_HOST_VERSION={version}");
+    println!("cargo:rustc-env=PLUGGED_HOST_RELEASE={release}");
 }

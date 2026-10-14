@@ -48,6 +48,8 @@ export default function Login() {
   const captcha = useCaptcha();
 
   const webauthnEnabled = settings.webauthn?.enabled !== false && window.isSecureContext;
+  // plugged.host: with noprofit.space sign-in, the password form is for the emergency admin only.
+  const noprofitLogin = Boolean(settings.noprofit?.enabled) && searchParams.get('local') !== '1';
 
   const usernameForm = useForm({
     initialValues: {
@@ -83,6 +85,18 @@ export default function Login() {
           break;
         case 'security_key_required':
           setError(t('pages.auth.login.error.securityKeyRequired', {}));
+          break;
+        case 'noprofit_failed':
+          setError(t('pages.auth.login.error.noprofitFailed', {}));
+          break;
+        case 'noprofit_expired':
+          setError(t('pages.auth.login.error.noprofitExpired', {}));
+          break;
+        case 'noprofit_admins_only':
+          setError(t('pages.auth.login.error.noprofitAdminsOnly', {}));
+          break;
+        case 'noprofit_email_taken':
+          setError(t('pages.auth.login.error.noprofitEmailTaken', {}));
           break;
       }
 
@@ -274,7 +288,34 @@ export default function Login() {
       </div>
 
       <Stack className='w-full'>
-        {step === 'username' ? (
+        {step === 'username' && noprofitLogin ? (
+          <>
+            <div>
+              <Title order={2}>{t('pages.auth.login.noprofit.title', {})}</Title>
+              <Text className='text-neutral-400!'>{t('pages.auth.login.noprofit.subtitle', {})}</Text>
+            </div>
+            <Card>
+              <Stack>
+                <Button
+                  size='md'
+                  fullWidth
+                  loading={loading}
+                  onClick={() => {
+                    setLoading(true);
+                    window.location.href = '/api/auth/noprofit/redirect';
+                  }}
+                >
+                  {t('pages.auth.login.noprofit.button', {})}
+                </Button>
+                {settings.app.passwordLoginEnabled && (
+                  <NavLink to='/auth/login?local=1' className='text-neutral-400 text-sm'>
+                    {t('pages.auth.login.noprofit.localLink', {})}
+                  </NavLink>
+                )}
+              </Stack>
+            </Card>
+          </>
+        ) : step === 'username' ? (
           <>
             <div>
               <Title order={2}>{t('pages.auth.login.step.username.title', {})}</Title>
@@ -359,6 +400,11 @@ export default function Login() {
                         ))}
                       </>
                     )
+                  )}
+                  {settings.noprofit?.enabled && (
+                    <NavLink to='/auth/login' className='text-neutral-400 text-sm'>
+                      {t('pages.auth.login.noprofit.backLink', {})}
+                    </NavLink>
                   )}
                   {settings.app.registrationEnabled && settings.app.passwordLoginEnabled && (
                     <NavLink to='/auth/register' className='text-neutral-400 flex gap-1 items-center'>

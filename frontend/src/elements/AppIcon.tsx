@@ -12,7 +12,7 @@ function AppIcon({ className }: { className?: string }) {
       <img
         src={isLight ? (settings.app.bannerLight ?? settings.app.banner) : settings.app.banner}
         className='w-full h-auto'
-        alt='Calagopus Banner'
+        alt={settings.app.name}
       />
     </div>
   ) : (
@@ -20,7 +20,7 @@ function AppIcon({ className }: { className?: string }) {
       <img
         src={isLight ? (settings.app.iconLight ?? settings.app.icon) : settings.app.icon}
         className='h-12 w-12'
-        alt='Calagopus Icon'
+        alt={settings.app.name}
       />
       <h1 className='grow text-md font-bold! ml-2'>{settings.app.name}</h1>
     </div>

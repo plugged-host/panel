@@ -7,7 +7,7 @@ const Avatar = forwardRef<HTMLDivElement, PolymorphicComponentProps<'div', Avata
     return (
       <MantineAvatar
         ref={ref}
-        src={src ?? (name ? null : '/icon.svg')}
+        src={src ?? (name ? null : '/plugged.host.png')}
         name={name}
         alt={name}
         color='initials'

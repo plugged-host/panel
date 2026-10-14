@@ -28,7 +28,7 @@ const Card = forwardRef<HTMLDivElement, CardProps & ComponentProps<'div'>>(
           hoverable && 'transition-all! duration-190 hover:bg-white/2! hover:light:bg-black/3! cursor-pointer',
         )}
         pl={typeof pl === 'number' && leftStripeClassName ? pl + 4 : leftStripeClassName ? 20 : pl}
-        radius='md'
+        radius='lg'
         withBorder
         {...rest}
       >

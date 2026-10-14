@@ -7637,6 +7637,7 @@ dependencies = [
  "gix",
  "hex",
  "hickory-resolver",
+ "hmac 0.13.0",
  "ignore",
  "image",
  "include_dir",

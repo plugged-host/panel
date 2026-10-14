@@ -1,0 +1,26 @@
+# plugged.host panel (Calagopus), installed by plugged-host/README.md › Install.
+# /etc/systemd/system/calagopus.service
+[Unit]
+Description=plugged.host panel (Calagopus)
+After=network-online.target postgresql.service redis-server.service
+Wants=network-online.target
+
+[Service]
+User=calagopus
+Group=calagopus
+WorkingDirectory=/var/lib/calagopus
+EnvironmentFile=/etc/calagopus/panel.env
+ExecStart=/opt/calagopus/current/panel-rs
+Restart=always
+RestartSec=5
+LimitNOFILE=65536
+# It runs at well under 100 MB; the cap keeps a runaway from taking the box with it.
+MemoryMax=1G
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/calagopus /var/log/calagopus
+
+[Install]
+WantedBy=multi-user.target

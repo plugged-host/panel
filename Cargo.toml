@@ -120,6 +120,21 @@ lto = "fat"
 codegen-units = 1
 strip = true
 
+# plugged-host (plugged-host/build.sh): optimised like release, with thin LTO and parallel
+# codegen so a build takes minutes instead of an hour on the build VM.
+[profile.plugged-host.package."*"]
+opt-level = 2
+codegen-units = 16
+strip = true
+
+[profile.plugged-host]
+inherits = "release"
+opt-level = 2
+lto = "thin"
+codegen-units = 16
+incremental = true
+strip = true
+
 # heavy-release (mainly for extension builds)
 [profile.heavy-release.package."*"]
 opt-level = 2

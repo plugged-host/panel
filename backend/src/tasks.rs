@@ -899,6 +899,14 @@ pub async fn define_background_tasks(
             }
         })
         .await;
+    // plugged.host: keep noprofit.space users in step (shared::noprofit; a no-op without it).
+    background_task_builder
+        .add_cron_task(
+            "sync_noprofit_accounts",
+            croner::Cron::from_str("0 * * * * *").unwrap(),
+            async |state| shared::noprofit::sync_all(&state).await,
+        )
+        .await;
     background_task_builder
         .add_cron_task(
             "prune_system_backups",

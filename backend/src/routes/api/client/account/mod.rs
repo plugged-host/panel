@@ -7,6 +7,7 @@ mod avatar;
 mod command_snippets;
 mod email;
 mod logout;
+mod noprofit;
 mod oauth_links;
 mod password;
 mod password_login;
@@ -166,6 +167,7 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         .nest("/two-factor", two_factor::router(state))
         .nest("/security-keys", security_keys::router(state))
         .nest("/oauth-links", oauth_links::router(state))
+        .nest("/noprofit", noprofit::router(state))
         .nest("/command-snippets", command_snippets::router(state))
         .nest("/api-keys", api_keys::router(state))
         .nest("/ssh-keys", ssh_keys::router(state))

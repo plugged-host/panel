@@ -28,7 +28,7 @@ function TitleCard({
   rightSection,
 }: TitleCardProps) {
   return (
-    <Card withBorder radius='md' p={0} className={className}>
+    <Card withBorder p={0} className={className}>
       <Group
         id='title-card-header'
         className={classNames('bg-(--mantine-color-default) light:bg-(--mantine-color-gray-0)', titleClassName)}

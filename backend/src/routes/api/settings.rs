@@ -25,6 +25,7 @@ mod get {
         email_verification_required: bool,
         two_factor_accepted_methods: &'a [shared::settings::app::TwoFactorMethod],
         debug: bool,
+        release: &'a str,
     }
 
     #[derive(ToSchema, Serialize)]
@@ -68,6 +69,14 @@ mod get {
         route_order: Option<&'a [shared::settings::RouteOrderItem]>,
     }
 
+    /// plugged.host: noprofit.space sign-in, when it is set up.
+    #[derive(ToSchema, Serialize)]
+    struct ResponseNoprofit<'a> {
+        enabled: bool,
+        accounts_url: Option<&'a str>,
+        admins_only: bool,
+    }
+
     #[derive(ToSchema, Serialize)]
     struct Response<'a> {
         time: chrono::DateTime<chrono::Utc>,
@@ -84,6 +93,8 @@ mod get {
         server: ResponseServer<'a>,
         #[schema(inline)]
         user: ResponseUser<'a>,
+        #[schema(inline)]
+        noprofit: ResponseNoprofit<'a>,
     }
 
     #[utoipa::path(get, path = "/", responses(
@@ -106,12 +117,14 @@ mod get {
                 banner_light: settings.app.banner_light.as_deref(),
                 name: &settings.app.name,
                 language: &settings.app.language,
-                registration_enabled: settings.app.registration_enabled,
+                registration_enabled: settings.app.registration_enabled
+                    && !shared::noprofit::enabled(),
                 password_login_enabled: settings.app.password_login_enabled,
                 email_two_factor_enabled: settings.app.email_two_factor_enabled,
                 email_verification_required: settings.app.email_verification_required,
                 two_factor_accepted_methods: &settings.app.two_factor_accepted_methods,
                 debug: state.env.is_debug(),
+                release: shared::PLUGGED_HOST_RELEASE,
             },
             webauthn: ResponseWebauthn {
                 enabled: settings.webauthn.enabled,
@@ -154,6 +167,18 @@ mod get {
                 allow_changing_avatar: settings.user.allow_changing_avatar,
 
                 route_order: settings.user.route_order.as_deref(),
+            },
+            noprofit: match shared::noprofit::config() {
+                Some(noprofit) => ResponseNoprofit {
+                    enabled: true,
+                    accounts_url: Some(&noprofit.accounts_url),
+                    admins_only: noprofit.admins_only,
+                },
+                None => ResponseNoprofit {
+                    enabled: false,
+                    accounts_url: None,
+                    admins_only: false,
+                },
             },
         })
         .ok()

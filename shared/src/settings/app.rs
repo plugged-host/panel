@@ -177,10 +177,10 @@ impl SettingsDeserializeExt for AppSettingsAppDeserializer {
         Ok(Box::new(AppSettingsApp {
             name: deserializer
                 .take_raw_setting("name")
-                .unwrap_or_else(|| "Calagopus".into()),
+                .unwrap_or_else(|| "plugged.host".into()),
             icon: deserializer
                 .take_raw_setting("icon")
-                .unwrap_or_else(|| "/icon.svg".into()),
+                .unwrap_or_else(|| "/plugged.host.png".into()),
             icon_light: deserializer
                 .take_raw_setting("icon_light")
                 .and_then(|s| s.into_optional()),

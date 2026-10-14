@@ -3,6 +3,7 @@ use utoipa_axum::router::OpenApiRouter;
 
 mod email;
 mod login;
+mod noprofit;
 mod oauth;
 mod password;
 mod register;
@@ -14,5 +15,6 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         .nest("/register", register::router(state))
         .nest("/password", password::router(state))
         .nest("/oauth", oauth::router(state))
+        .nest("/noprofit", noprofit::router(state))
         .with_state(state.clone())
 }

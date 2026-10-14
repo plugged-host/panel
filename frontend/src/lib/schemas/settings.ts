@@ -63,6 +63,7 @@ export const publicSettingsSchema = z.object({
     emailVerificationRequired: z.boolean(),
     twoFactorAcceptedMethods: z.array(twoFactorMethod),
     debug: z.boolean(),
+    release: z.string(),
   }),
   webauthn: z.object({
     enabled: z.boolean(),
@@ -96,5 +97,11 @@ export const publicSettingsSchema = z.object({
     allowChangingAvatar: z.boolean(),
 
     routeOrder: z.array(eggConfigurationRouteItemSchema).nullable(),
+  }),
+  // plugged.host: noprofit.space sign-in, when it is set up.
+  noprofit: z.object({
+    enabled: z.boolean(),
+    accountsUrl: z.string().nullable(),
+    adminsOnly: z.boolean(),
   }),
 });

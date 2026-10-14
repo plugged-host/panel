@@ -106,7 +106,7 @@ impl SettingsDeserializeExt for AppSettingsMetadataDeserializer {
                 .and_then(|s| s.into_optional()),
             theme_color: deserializer
                 .take_raw_setting("theme_color")
-                .unwrap_or_else(|| "#6c5ce7".into()),
+                .unwrap_or_else(|| "#101319".into()),
             og_image: deserializer
                 .take_raw_setting("og_image")
                 .and_then(|s| s.into_optional()),

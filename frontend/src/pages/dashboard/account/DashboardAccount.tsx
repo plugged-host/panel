@@ -1,19 +1,23 @@
 import { faEnvelopeCircleCheck, faLock, faShieldAlt } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { z } from 'zod';
 import { httpErrorToHuman } from '@/api/axios.ts';
+import getNoprofitAccount from '@/api/me/account/getNoprofitAccount.ts';
 import resendEmailVerification from '@/api/me/account/resendEmailVerification.ts';
 import Button from '@/elements/buttons/Button.tsx';
 import AccountContentContainer from '@/elements/containers/AccountContentContainer.tsx';
 import ExtensionSlot from '@/elements/ExtensionSlot.tsx';
 import Alert from '@/elements/feedback/Alert.tsx';
 import Stack from '@/elements/layout/Stack.tsx';
+import { noprofitAccountResponseSchema } from '@/lib/schemas/noprofit.ts';
 import { useAuth } from '@/providers/AuthProvider.tsx';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import AccountContainer from './AccountContainer.tsx';
 import AvatarContainer from './AvatarContainer.tsx';
 import EmailContainer from './EmailContainer.tsx';
+import NoprofitContainer from './NoprofitContainer.tsx';
 import PasswordContainer from './PasswordContainer.tsx';
 import PasswordLoginContainer from './PasswordLoginContainer.tsx';
 import PreferencesContainer from './PreferencesContainer.tsx';
@@ -29,6 +33,17 @@ export default function DashboardAccount() {
   const { addToast } = useToast();
 
   const [resending, setResending] = useState(false);
+  // plugged.host: a noprofit.space account's email, password and two-factor live there.
+  // undefined while loading, so the cards do not swap once it arrives.
+  const [noprofit, setNoprofit] = useState<z.infer<typeof noprofitAccountResponseSchema> | null>();
+
+  useEffect(() => {
+    getNoprofitAccount()
+      .then(setNoprofit)
+      .catch(() => setNoprofit(null));
+  }, []);
+
+  const noprofitAccount = noprofit?.account ?? null;
 
   const requireTwoFactorActivation = Boolean(user?.requireTwoFactor && !user?.twoFactorSatisfied);
   const requireEmailVerification = Boolean(user?.requireEmailVerification && !user?.emailVerified);
@@ -100,10 +115,16 @@ export default function DashboardAccount() {
           props={{ requireTwoFactorActivation }}
         />
 
-        <PasswordContainer requireTwoFactorActivation={requireTwoFactorActivation} />
-        <EmailContainer requireTwoFactorActivation={requireTwoFactorActivation} />
-        <TwoFactorContainer />
-        <PasswordLoginContainer requireTwoFactorActivation={requireTwoFactorActivation} />
+        {noprofit === undefined ? null : noprofitAccount ? (
+          <NoprofitContainer account={noprofitAccount} accountsUrl={noprofit?.accountsUrl ?? null} />
+        ) : (
+          <>
+            <PasswordContainer requireTwoFactorActivation={requireTwoFactorActivation} />
+            <EmailContainer requireTwoFactorActivation={requireTwoFactorActivation} />
+            <TwoFactorContainer />
+            <PasswordLoginContainer requireTwoFactorActivation={requireTwoFactorActivation} />
+          </>
+        )}
         <AccountContainer requireTwoFactorActivation={requireTwoFactorActivation} />
         <PreferencesContainer requireTwoFactorActivation={requireTwoFactorActivation} />
         <AvatarContainer requireTwoFactorActivation={requireTwoFactorActivation} />

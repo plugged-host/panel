@@ -2,22 +2,18 @@ import {
   faArrowRightFromBracket,
   faBars,
   faCheck,
-  faCircleHalfStroke,
   faEllipsisVertical,
   faEyeSlash,
   faGraduationCap,
-  faMoon,
   faRotateLeft,
-  faSun,
   faUserCog,
   faWindowRestore,
   IconDefinition,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Text, Title, useComputedColorScheme, useMantineColorScheme } from '@mantine/core';
+import { Text, Title } from '@mantine/core';
 import classNames from 'classnames';
 import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from 'react';
-import { flushSync } from 'react-dom';
 import { MemoryRouter, matchPath, NavLink, useLocation, useNavigate } from 'react-router';
 import { makeComponentHookable } from 'shared';
 import ActionIcon from '@/elements/buttons/ActionIcon.tsx';
@@ -116,8 +112,9 @@ function Sidebar({ children, header, footer }: SidebarProps) {
       </Drawer>
 
       <Card
-        className='my-2 ml-2 top-2 sticky! hidden! lg:block! h-[calc(100vh-16px)] w-64! overflow-hidden transition-[width] duration-200 ease-in-out'
+        className='top-0 sticky! hidden! lg:block! h-screen w-64! shrink-0 overflow-hidden transition-[width] duration-200 ease-in-out'
         p='sm'
+        radius={0}
         id='sidebar-desktop'
       >
         <div id='sidebar-content' className='h-full flex flex-col'>
@@ -145,7 +142,6 @@ function Link({ to, end, icon, name, title = name, className, activeMatches }: L
   const { addWindow } = useWindows();
   const closeMobileMenu = useContext(CloseMobileMenuContext);
   const { pathname } = useLocation();
-  const isLight = useComputedColorScheme('dark') === 'light';
   const extraActive = activeMatches?.some((pattern) => matchPath({ path: pattern, end: false }, pathname)) ?? false;
 
   if (to.endsWith('/*')) to = to.slice(0, to.length - 2);
@@ -207,8 +203,9 @@ function Link({ to, end, icon, name, title = name, className, activeMatches }: L
             return (
               <Button
                 color={isActive ? 'blue' : 'gray'}
-                className={classNames(isActive && 'cursor-default! active', className)}
-                variant={isLight && isActive ? 'outline' : 'subtle'}
+                className={classNames('sidebar-link', isActive && 'cursor-default! active', className)}
+                variant='subtle'
+                radius={12}
                 fullWidth
                 styles={{ label: { width: '100%' } }}
               >
@@ -230,8 +227,6 @@ function Footer() {
   const { t } = useTranslations();
   const { impersonating, user } = useAuth();
   const navigate = useNavigate();
-  const { colorScheme, setColorScheme } = useMantineColorScheme();
-  const computedColorScheme = useComputedColorScheme('dark');
   const deviceOverrideCount = useDeviceOverrideCount();
   const [redactAddresses, setRedactAddresses] = useRedactAddresses();
   const routeOrder = useGlobalStore((state) => state.settings.user?.routeOrder);
@@ -243,44 +238,6 @@ function Footer() {
   const suspended = Boolean(user?.suspended);
   const accountHidden = suspended || accountRouteDisabled;
   const adminHidden = suspended || !user || !isAdmin(user);
-
-  const changeTheme = async (event: React.MouseEvent, nextTheme: 'auto' | 'dark' | 'light') => {
-    if (nextTheme === colorScheme) {
-      return;
-    }
-
-    const nextComputed =
-      nextTheme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : nextTheme;
-
-    if (nextComputed === computedColorScheme || !document.startViewTransition) {
-      setColorScheme(nextTheme);
-      return;
-    }
-
-    const x = event.clientX;
-    const y = event.clientY;
-
-    const endRadius = Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y));
-
-    const transition = document.startViewTransition(() => {
-      flushSync(() => {
-        setColorScheme(nextTheme);
-      });
-    });
-
-    transition.ready.then(() => {
-      const clipPath = [`circle(0px at ${x}px ${y}px)`, `circle(${endRadius}px at ${x}px ${y}px)`];
-
-      document.documentElement.animate(
-        { clipPath },
-        {
-          duration: 500,
-          easing: 'ease-in-out',
-          pseudoElement: '::view-transition-new(root)',
-        },
-      );
-    });
-  };
 
   const items: ContextMenuItem[] = useMemo(
     () => [
@@ -305,34 +262,6 @@ function Footer() {
       {
         type: 'divider' as const,
         hidden: accountHidden && adminHidden,
-      },
-      {
-        type: 'action' as const,
-        icon: faCircleHalfStroke,
-        label: t('elements.sidebar.button.theme', {}),
-        items: [
-          {
-            type: 'action' as const,
-            icon: faCircleHalfStroke,
-            label: t('elements.sidebar.button.themeAuto', {}),
-            rightSection: colorScheme === 'auto' && <FontAwesomeIcon icon={faCheck} size='sm' />,
-            onClick: (e: React.MouseEvent) => changeTheme(e, 'auto'),
-          },
-          {
-            type: 'action' as const,
-            icon: faMoon,
-            label: t('elements.sidebar.button.themeDark', {}),
-            rightSection: colorScheme === 'dark' && <FontAwesomeIcon icon={faCheck} size='sm' />,
-            onClick: (e: React.MouseEvent) => changeTheme(e, 'dark'),
-          },
-          {
-            type: 'action' as const,
-            icon: faSun,
-            label: t('elements.sidebar.button.themeLight', {}),
-            rightSection: colorScheme === 'light' && <FontAwesomeIcon icon={faCheck} size='sm' />,
-            onClick: (e: React.MouseEvent) => changeTheme(e, 'light'),
-          },
-        ],
       },
       {
         type: 'action' as const,
@@ -364,11 +293,9 @@ function Footer() {
     [
       t,
       navigate,
-      changeTheme,
       confirmLogout,
       accountHidden,
       adminHidden,
-      colorScheme,
       deviceOverrideCount,
       redactAddresses,
       setRedactAddresses,

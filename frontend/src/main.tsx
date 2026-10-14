@@ -5,6 +5,7 @@ import App from '@/App.tsx';
 import getSettings from '@/api/getSettings.ts';
 import { preloadRouterForPath } from '@/routers/routerImports.ts';
 import { useGlobalStore } from '@/stores/global.ts';
+import { pluggedHostTheme } from '@/theme.ts';
 
 import.meta.glob('../extensions/*/src/app.css', { eager: true });
 
@@ -26,7 +27,7 @@ for (const [path, module] of Object.entries({ ...extensionModulesTs, ...extensio
   }
 }
 
-const baseTheme = {
+const baseTheme = mergeThemeOverrides(pluggedHostTheme, {
   components: {
     InputWrapper: InputWrapper.extend({
       styles: (_theme, props) =>
@@ -36,7 +37,7 @@ const baseTheme = {
       styles: { tooltip: { '--code-bg': 'color-mix(in srgb, currentColor 15%, transparent)' } },
     }),
   },
-};
+});
 
 const CHUNK_RELOAD_ATTEMPTS_KEY = 'chunkReloadAttempts';
 const MAX_CHUNK_RELOAD_ATTEMPTS = 3;

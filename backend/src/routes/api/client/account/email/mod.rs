@@ -63,6 +63,16 @@ mod put {
                 .ok();
         }
 
+        // plugged.host: a noprofit.space account's email and password live there.
+        if shared::noprofit::Link::by_user_uuid(&state.database, user.uuid)
+            .await?
+            .is_some()
+        {
+            return ApiResponse::error("managed on noprofit.space")
+                .with_status(StatusCode::CONFLICT)
+                .ok();
+        }
+
         if !user
             .validate_password(&state.database, &data.password)
             .await?

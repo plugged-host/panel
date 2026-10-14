@@ -121,6 +121,14 @@ mod post {
                 .ok();
         }
 
+        // plugged.host: with noprofit.space sign-in, passwords are for admins without a
+        // noprofit.space account (the emergency admin); everyone else signs in there.
+        if shared::noprofit::enabled() && !user.admin {
+            return ApiResponse::error("sign in with noprofit.space")
+                .with_status(StatusCode::BAD_REQUEST)
+                .ok();
+        }
+
         let settings = state.settings.get().await?;
         let methods = available_methods(&user, &settings);
 
