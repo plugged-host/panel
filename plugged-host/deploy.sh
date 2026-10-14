@@ -9,6 +9,12 @@
 # (DATABASE_MIGRATE=true in /etc/calagopus/panel.env).
 set -euo pipefail
 
+# `panel-rs version` parses the environment first; it needs these set but connects to nothing.
+release_of() {
+  env -i PATH=/usr/bin:/bin APP_ENCRYPTION_KEY=version-check DATABASE_URL=postgresql://version@127.0.0.1:1/version \
+    "$1" version | awk '/^plugged.host /{print $2}'
+}
+
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 BINARY=${1:-$ROOT/target/plugged-host/panel-rs}
 BASE=/opt/calagopus
@@ -16,7 +22,7 @@ UNIT=calagopus
 KEEP=${KEEP:-3}
 HEALTH_URL=${HEALTH_URL:-http://127.0.0.1:8730/api/settings}
 
-release=$("$BINARY" version | awk '/^plugged.host /{print $2}')
+release=$(release_of "$BINARY")
 [ -n "$release" ] || { echo "cannot read the release of $BINARY" >&2; exit 1; }
 
 dir="$BASE/releases/$release"

@@ -65,6 +65,12 @@ fn main() {
 fn plugged_host_release(is_git_repo: bool) {
     println!("cargo:rerun-if-changed=../VERSION");
     println!("cargo:rerun-if-env-changed=PLUGGED_HOST_RELEASE");
+    // Any new commit: HEAD, a loose branch ref (a directory is watched recursively) or packed refs.
+    // Watching only the ref HEAD names misses a branch that was packed at clone time and is
+    // loose after the next commit.
+    println!("cargo:rerun-if-changed=../.git/HEAD");
+    println!("cargo:rerun-if-changed=../.git/refs/heads");
+    println!("cargo:rerun-if-changed=../.git/packed-refs");
 
     let version = std::fs::read_to_string("../VERSION")
         .map(|version| version.trim().to_string())

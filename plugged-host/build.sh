@@ -10,6 +10,12 @@
 # working tree.
 set -euo pipefail
 
+# `panel-rs version` parses the environment first; it needs these set but connects to nothing.
+release_of() {
+  env -i PATH=/usr/bin:/bin APP_ENCRYPTION_KEY=version-check DATABASE_URL=postgresql://version@127.0.0.1:1/version \
+    "$1" version | awk '/^plugged.host /{print $2}'
+}
+
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 BUILD_HOST=${BUILD_HOST:-calagopus-build}
 BUILD_DIR=${BUILD_DIR:-/root/panel}
@@ -37,4 +43,4 @@ mkdir -p "$OUT"
 rsync -a "$BUILD_HOST:$BUILD_DIR/target/$PROFILE/panel-rs" "$OUT/panel-rs.new"
 mv -f "$OUT/panel-rs.new" "$OUT/panel-rs"
 
-echo "==> built $("$OUT/panel-rs" version | head -1)"
+echo "==> built $(release_of "$OUT/panel-rs")"
