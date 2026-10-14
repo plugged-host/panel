@@ -26,6 +26,8 @@ mod get {
         two_factor_accepted_methods: &'a [shared::settings::app::TwoFactorMethod],
         debug: bool,
         release: &'a str,
+        /// plugged.host: the theme colour, Theme v2's accent (frontend lib/accent.ts).
+        theme_color: &'a str,
     }
 
     #[derive(ToSchema, Serialize)]
@@ -125,6 +127,7 @@ mod get {
                 two_factor_accepted_methods: &settings.app.two_factor_accepted_methods,
                 debug: state.env.is_debug(),
                 release: shared::PLUGGED_HOST_RELEASE,
+                theme_color: &settings.metadata.theme_color,
             },
             webauthn: ResponseWebauthn {
                 enabled: settings.webauthn.enabled,

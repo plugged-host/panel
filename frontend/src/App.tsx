@@ -1,8 +1,8 @@
-import { CSSVariablesResolver, MantineProvider, type MantineThemeOverride } from '@mantine/core';
+import { CSSVariablesResolver, MantineProvider, type MantineThemeOverride, mergeThemeOverrides } from '@mantine/core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { createBrowserHistory } from 'history';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { unstable_HistoryRouter as HistoryRouter } from 'react-router';
 import { useShallow } from 'zustand/react/shallow';
 import Spinner from '@/elements/feedback/Spinner.tsx';
@@ -11,6 +11,7 @@ import getLanguages from './api/getLanguages.ts';
 import getSettings from './api/getSettings.ts';
 import ErrorBoundary from './elements/ErrorBoundary.tsx';
 import ExtensionSlot from './elements/ExtensionSlot.tsx';
+import { accentFor } from './lib/accent.ts';
 import { CurrentWindowProvider } from './providers/CurrentWindowProvider.tsx';
 import { HistoryContext } from './providers/contexts/historyContext.ts';
 import { ToastProvider } from './providers/ToastProvider.tsx';
@@ -104,6 +105,28 @@ export default function App({
     };
   }, []);
 
+  // plugged.host: Theme v2's accent from the theme colour: Mantine's blue palette and the
+  // --phv2-accent* tokens (lib/accent.ts). Theme v2's own blue changes nothing.
+  const accent = useMemo(() => accentFor(settings?.app?.themeColor), [settings?.app?.themeColor]);
+  const accentedTheme = useMemo(
+    () => (accent ? mergeThemeOverrides(theme, { colors: { blue: accent.palette } }) : theme),
+    [theme, accent],
+  );
+
+  useLayoutEffect(() => {
+    const tokens = Object.entries(accent?.tokens ?? {});
+
+    for (const [name, value] of tokens) {
+      document.documentElement.style.setProperty(name, value);
+    }
+
+    return () => {
+      for (const [name] of tokens) {
+        document.documentElement.style.removeProperty(name);
+      }
+    };
+  }, [accent]);
+
   useEffect(() => {
     if (settings?.app?.icon) {
       const icons = document.getElementsByClassName('app-icon');
@@ -117,7 +140,7 @@ export default function App({
   return Object.keys(settings).length > 0 ? (
     <ErrorBoundary>
       <MantineProvider
-        theme={theme}
+        theme={accentedTheme}
         cssVariablesResolver={cssVariablesResolver || undefined}
         defaultColorScheme='dark'
         forceColorScheme='dark'
@@ -154,7 +177,7 @@ export default function App({
     </ErrorBoundary>
   ) : (
     <>
-      <MantineProvider theme={theme} defaultColorScheme='dark' forceColorScheme='dark' deduplicateInlineStyles>
+      <MantineProvider theme={accentedTheme} defaultColorScheme='dark' forceColorScheme='dark' deduplicateInlineStyles>
         <Spinner.Centered />
         {loadWarning && (
           <p className='text-center text-sm text-slate-400 -mt-4'>

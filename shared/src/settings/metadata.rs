@@ -104,9 +104,10 @@ impl SettingsDeserializeExt for AppSettingsMetadataDeserializer {
             description: deserializer
                 .take_raw_setting("description")
                 .and_then(|s| s.into_optional()),
+            // plugged.host: the theme colour is Theme v2's accent; its blue fill by default.
             theme_color: deserializer
                 .take_raw_setting("theme_color")
-                .unwrap_or_else(|| "#101319".into()),
+                .unwrap_or_else(|| "#1d4ed8".into()),
             og_image: deserializer
                 .take_raw_setting("og_image")
                 .and_then(|s| s.into_optional()),

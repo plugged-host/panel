@@ -14,6 +14,7 @@ import { useSearchableResource } from '@/plugins/resource/useSearchableResource.
 import { useAdminCan } from '@/plugins/usePermissions.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useAdminStore } from '@/stores/admin.tsx';
+import { useGlobalStore } from '@/stores/global.ts';
 import SettingsSaveButton from '../SettingsSaveButton.tsx';
 import { useSettingsSection } from '../useSettingsSection.ts';
 import { metadataEmptyFormValues, metadataToFormValues, useMetadataFormFields } from './metadataFormValues.tsx';
@@ -44,7 +45,13 @@ export default function MetadataContainer() {
     form,
     schema: adminSettingsMetadataSchema,
     storeKey: 'metadata',
-    update: updateMetadataSettings,
+    // plugged.host: the theme colour is the panel's accent; apply it as soon as it is saved.
+    update: async (values) => {
+      await updateMetadataSettings(values);
+
+      const { settings, updateSettings } = useGlobalStore.getState();
+      updateSettings({ app: { ...settings.app, themeColor: values.themeColor } });
+    },
     successMessage: t('pages.admin.settings.tabs.metadata.page.toast.updated', {}),
   });
 

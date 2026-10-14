@@ -1,5 +1,7 @@
+import { ColorInput } from '@mantine/core';
 import { z } from 'zod';
 import type { FieldDef } from '@/elements/form-engine/index.ts';
+import { ACCENT_PRESETS, accentSwatch, DEFAULT_ACCENT } from '@/lib/accent.ts';
 import { adminSettingsMetadataSchema } from '@/lib/schemas/admin/settings.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 
@@ -7,7 +9,7 @@ type MetadataFormValues = z.infer<typeof adminSettingsMetadataSchema>;
 
 export const metadataEmptyFormValues: MetadataFormValues = {
   description: null,
-  themeColor: '#6c5ce7',
+  themeColor: DEFAULT_ACCENT,
   ogImage: null,
   twitterCard: 'summary_large_image',
   indexable: true,
@@ -59,12 +61,22 @@ export function useMetadataFormFields({
         },
       ],
     },
+    // plugged.host: the theme colour is Theme v2's accent; the swatches are its presets (Tailwind's
+    // palettes), like the Pelican panel's Theme v2 settings.
     {
-      type: 'text',
+      type: 'custom',
       name: 'themeColor',
-      label: t('pages.admin.settings.tabs.metadata.page.form.themeColor', {}),
-      description: t('pages.admin.settings.tabs.metadata.page.form.themeColorDescription', {}),
-      required: true,
+      render: (form) => (
+        <ColorInput
+          label={t('pages.admin.settings.tabs.metadata.page.form.themeColor', {})}
+          description={t('pages.admin.settings.tabs.metadata.page.form.themeColorDescription', {})}
+          withAsterisk
+          format='hex'
+          swatches={ACCENT_PRESETS.map(accentSwatch)}
+          swatchesPerRow={9}
+          {...form.getInputProps('themeColor')}
+        />
+      ),
     },
     {
       type: 'switch',

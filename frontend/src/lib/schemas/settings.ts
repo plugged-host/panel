@@ -64,6 +64,8 @@ export const publicSettingsSchema = z.object({
     twoFactorAcceptedMethods: z.array(twoFactorMethod),
     debug: z.boolean(),
     release: z.string(),
+    // plugged.host: Theme v2's accent (lib/accent.ts).
+    themeColor: z.string(),
   }),
   webauthn: z.object({
     enabled: z.boolean(),

@@ -9,6 +9,7 @@ the build and deploy scripts, the service and nginx configuration, and this guid
 | Area | Where |
 |---|---|
 | **Theme v2** (the Pelican panel's theme: royal-blue accent, obsidian surfaces, Space Grotesk + JetBrains Mono, flat sidebar), dark only | `frontend/src/theme.ts` (Mantine palette), `frontend/src/app.css` (the `--phv2-*` tokens and the "plugged.host Theme v2" section), `elements/navigation/Sidebar.tsx`, `App.tsx` |
+| **Accent colour** (Theme v2's 2.2 setting): Admin › Settings › Metadata › Theme Color recolours the panel, a Tailwind preset (the swatches) or any colour, kept readable | `frontend/src/lib/accent.ts` (port of the Pelican theme's `Support\Accent`), `App.tsx`, the metadata settings form; public settings `app.theme_color` |
 | **Branding**: name, logo, favicons, manifest, footer | `frontend/public/`, `elements/Copyright.tsx`, `elements/AppIcon.tsx`, defaults in `shared/src/settings/{app,metadata}.rs` |
 | **Release** `v{VERSION}.{commit}` (e.g. `v3.0.0.7bc33d4`) | `VERSION`, `shared/build.rs` → `shared::PLUGGED_HOST_RELEASE`; public settings `app.release`; `panel-rs version`. Cargo's own version stays upstream's |
 | **noprofit.space** sign-in and account sync (optional) | `shared/src/noprofit.rs`, `backend/src/routes/api/auth/noprofit.rs`, `backend/src/routes/api/client/account/noprofit.rs`, table `user_noprofit_accounts`, login page, account page |

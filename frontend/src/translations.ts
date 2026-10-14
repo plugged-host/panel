@@ -2173,7 +2173,8 @@ const baseTranslations = defineTranslations({
                   ogImage: 'Preview Image',
                   ogImageDescription: 'Shown in link previews. Must be a PNG or JPEG, not SVG.',
                   themeColor: 'Theme Color',
-                  themeColorDescription: 'Tints the browser UI on mobile and link previews.',
+                  themeColorDescription:
+                    "The panel's accent: buttons, links, active items and focus rings. The swatches are the presets; blue is the theme's own. A light colour is darkened until white text on it stays readable. Also tints the browser UI on mobile and link previews.",
                   indexable: 'Allow Search Engine Indexing',
                   twitterCard: 'Twitter Card Type',
                 },
