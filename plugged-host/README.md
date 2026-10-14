@@ -57,8 +57,9 @@ vectors in `shared/src/noprofit.rs`):
 ## Build and deploy
 
 Never build on the panel box: it has neither the disk nor the memory. `build.sh` copies the tree to
-the build VM (ssh alias `calagopus-build`), builds the frontend and the `plugged-host` profile, and
-fetches the binary. The frontend is embedded in it.
+the build host (ssh alias `plugged-build`, a Ryzen 5 PRO 3600), builds the frontend when its sources
+changed and the `plugged-host` profile (no LTO, incremental), and fetches the binary. The frontend is
+embedded in it. The build VM (`calagopus-build`) keeps the test setup (PostgreSQL, Redis, Chromium).
 
 ```bash
 git commit … && git push            # the release names the commit
@@ -67,7 +68,7 @@ plugged-host/deploy.sh              # -> /opt/calagopus/releases/<release>, rest
 ```
 
 Migrations run on start. New tables and columns go into `database/src/schema.ts`; generate the
-migration on the build VM with `cd database && pnpm install && DATABASE_URL=postgresql://x pnpm kit:generate --name <name>`,
+migration on the build host with `cd database && pnpm install && DATABASE_URL=postgresql://x pnpm kit:generate --name <name>`,
 then commit `database/migrations/<timestamp>_<name>/`. New queries use runtime `sqlx::query*`, not
 the `query!` macros: those need `cargo sqlx prepare` against a database.
 
