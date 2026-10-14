@@ -34,6 +34,28 @@ mod post {
         ignored_files: &'a [compact_str::CompactString],
     }
 
+    /// plugged.host: the user behind an SFTP username when it signs in with noprofit.space, and its
+    /// account. `None` without noprofit.space's account API, for unknown usernames and for the
+    /// panel's own users (the emergency admin), which keep the panel's password check.
+    async fn noprofit_user(
+        state: &shared::State,
+        username: &str,
+    ) -> Result<Option<(&'static shared::noprofit::Config, User, i64)>, anyhow::Error> {
+        let Some(noprofit) = shared::noprofit::config().filter(|noprofit| noprofit.sync_enabled())
+        else {
+            return Ok(None);
+        };
+        let Some(user) = User::by_username(&state.database, username).await? else {
+            return Ok(None);
+        };
+        let Some(link) = shared::noprofit::Link::by_user_uuid(&state.database, user.uuid).await?
+        else {
+            return Ok(None);
+        };
+
+        Ok(Some((noprofit, user, link.account_id)))
+    }
+
     #[utoipa::path(post, path = "/", responses(
         (status = OK, body = inline(Response)),
         (status = EXPECTATION_FAILED, body = ApiError),
@@ -75,17 +97,42 @@ mod post {
                         .ok();
                 }
 
-                match User::by_username_password(&state.database, user, &data.password).await? {
-                    Some(user) if user.password_login_disabled => {
-                        return ApiResponse::error("password login is disabled for this account")
+                // plugged.host: a user that signs in with noprofit.space has no panel password;
+                // noprofit.space checks its account's password instead.
+                if let Some((noprofit, linked, account_id)) = noprofit_user(&state, user).await? {
+                    match noprofit
+                        .verify_password(&state.client, account_id, &data.password)
+                        .await
+                    {
+                        Some(true) => linked,
+                        Some(false) => {
+                            return ApiResponse::error("invalid password")
+                                .with_status(StatusCode::EXPECTATION_FAILED)
+                                .ok();
+                        }
+                        None => {
+                            return ApiResponse::error(
+                                "noprofit.space could not check the password",
+                            )
                             .with_status(StatusCode::EXPECTATION_FAILED)
                             .ok();
+                        }
                     }
-                    Some(user) => user,
-                    None => {
-                        return ApiResponse::error("user not found")
+                } else {
+                    match User::by_username_password(&state.database, user, &data.password).await? {
+                        Some(user) if user.password_login_disabled => {
+                            return ApiResponse::error(
+                                "password login is disabled for this account",
+                            )
                             .with_status(StatusCode::EXPECTATION_FAILED)
                             .ok();
+                        }
+                        Some(user) => user,
+                        None => {
+                            return ApiResponse::error("user not found")
+                                .with_status(StatusCode::EXPECTATION_FAILED)
+                                .ok();
+                        }
                     }
                 }
             }

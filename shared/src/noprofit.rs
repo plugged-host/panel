@@ -10,8 +10,9 @@
 //! - registration is off and password sign-in is left to admins without a noprofit.space account
 //!   (the emergency admin made with `panel-rs users create`),
 //! - with `NOPROFIT_API_SECRET` the panel keeps its users in step by pulling their snapshots
-//!   (profile, admin flag, plan, credits, Discord; [`Config::pull`], every minute), and suspends
-//!   the users whose account noprofit.space no longer has,
+//!   (profile, admin flag, plan, credits, Discord; [`Config::pull`], every minute), suspends
+//!   the users whose account noprofit.space no longer has, and lets noprofit.space check the SFTP
+//!   passwords of its users, who have none on the panel ([`Config::verify_password`]),
 //! - with `NOPROFIT_ADMINS_ONLY=true` only noprofit.space admins may sign in (while the panel is
 //!   not open to everyone yet).
 //!
@@ -67,7 +68,12 @@ pub fn enabled() -> bool {
 
 fn env_flag(key: &str) -> bool {
     std::env::var(key)
-        .map(|value| matches!(value.trim().to_ascii_lowercase().as_str(), "1" | "true" | "yes" | "on"))
+        .map(|value| {
+            matches!(
+                value.trim().to_ascii_lowercase().as_str(),
+                "1" | "true" | "yes" | "on"
+            )
+        })
         .unwrap_or(false)
 }
 
@@ -92,8 +98,10 @@ impl Config {
             return None;
         }
 
-        let client = env_string("NOPROFIT_SSO_CLIENT").unwrap_or_else(|| "plugged-host-calagopus".into());
-        let audience = env_string("NOPROFIT_SSO_AUDIENCE").unwrap_or_else(|| format!("{client}:sso"));
+        let client =
+            env_string("NOPROFIT_SSO_CLIENT").unwrap_or_else(|| "plugged-host-calagopus".into());
+        let audience =
+            env_string("NOPROFIT_SSO_AUDIENCE").unwrap_or_else(|| format!("{client}:sso"));
         let api_secret = env_string("NOPROFIT_API_SECRET");
 
         if api_secret
@@ -153,7 +161,8 @@ impl Config {
         let json = base64::engine::general_purpose::URL_SAFE_NO_PAD
             .decode(payload.trim_end_matches('='))
             .map_err(|_| TokenError::Malformed)?;
-        let mut claims: RawClaims = serde_json::from_slice(&json).map_err(|_| TokenError::Malformed)?;
+        let mut claims: RawClaims =
+            serde_json::from_slice(&json).map_err(|_| TokenError::Malformed)?;
 
         if claims.snapshot.account_id == 0 {
             claims.snapshot.account_id = claims.account_user_id;
@@ -182,7 +191,12 @@ impl Config {
     }
 
     /// The `X-NP-*` headers for a request to noprofit.space, or `None` without an API secret.
-    pub fn sign_request(&self, method: &str, path: &str, body: &[u8]) -> Option<[(&'static str, String); 3]> {
+    pub fn sign_request(
+        &self,
+        method: &str,
+        path: &str,
+        body: &[u8],
+    ) -> Option<[(&'static str, String); 3]> {
         let secret = self.api_secret.as_ref()?;
         let timestamp = chrono::Utc::now().timestamp().to_string();
         let nonce = rand::distr::Alphanumeric.sample_string(&mut rand::rng(), 32);
@@ -197,22 +211,20 @@ impl Config {
         ])
     }
 
-    /// The current snapshots of these accounts. An account noprofit.space no longer has is left
-    /// out of the answer; that is how a deletion shows.
-    pub async fn pull(&self, client: &reqwest::Client, account_ids: &[i64]) -> Result<Vec<Snapshot>, anyhow::Error> {
-        const PATH: &str = "/api/v1/internal/calagopus/accounts";
-
-        if account_ids.is_empty() {
-            return Ok(Vec::new());
-        }
-
-        let body = serde_json::to_vec(&serde_json::json!({ "account_ids": account_ids }))?;
+    /// A signed POST to noprofit.space's internal API.
+    async fn post(
+        &self,
+        client: &reqwest::Client,
+        path: &str,
+        body: &serde_json::Value,
+    ) -> Result<reqwest::Response, anyhow::Error> {
+        let body = serde_json::to_vec(body)?;
         let headers = self
-            .sign_request("POST", PATH, &body)
-            .ok_or_else(|| anyhow::anyhow!("noprofit.space account sync is not configured"))?;
+            .sign_request("POST", path, &body)
+            .ok_or_else(|| anyhow::anyhow!("NOPROFIT_API_SECRET is not set"))?;
 
         let mut request = client
-            .post(format!("{}{PATH}", self.accounts_url))
+            .post(format!("{}{path}", self.accounts_url))
             .timeout(std::time::Duration::from_secs(8))
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
@@ -222,7 +234,29 @@ impl Config {
             request = request.header(name, value);
         }
 
-        let response = request.send().await?;
+        Ok(request.send().await?)
+    }
+
+    /// The current snapshots of these accounts. An account noprofit.space no longer has is left
+    /// out of the answer; that is how a deletion shows.
+    pub async fn pull(
+        &self,
+        client: &reqwest::Client,
+        account_ids: &[i64],
+    ) -> Result<Vec<Snapshot>, anyhow::Error> {
+        const PATH: &str = "/api/v1/internal/calagopus/accounts";
+
+        if account_ids.is_empty() {
+            return Ok(Vec::new());
+        }
+
+        let response = self
+            .post(
+                client,
+                PATH,
+                &serde_json::json!({ "account_ids": account_ids }),
+            )
+            .await?;
         let status = response.status();
 
         if !status.is_success() {
@@ -236,10 +270,75 @@ impl Config {
 
         Ok(response.json::<PullResponse>().await?.accounts)
     }
+
+    /// Whether `password` is this account's noprofit.space password, for SFTP password logins:
+    /// the account's panel user has no password of its own. `None` when noprofit.space could not
+    /// say (unreachable, throttled, no `NOPROFIT_API_SECRET`), which is no verdict on the password.
+    /// noprofit.space allows 10 wrong guesses per account and minute, across all panels.
+    pub async fn verify_password(
+        &self,
+        client: &reqwest::Client,
+        account_id: i64,
+        password: &str,
+    ) -> Option<bool> {
+        const PATH: &str = "/api/v1/internal/calagopus/verify-password";
+
+        if password.is_empty() || password.len() > 1024 {
+            return Some(false);
+        }
+
+        let response = match self
+            .post(
+                client,
+                PATH,
+                &serde_json::json!({ "account_id": account_id, "password": password }),
+            )
+            .await
+        {
+            Ok(response) => response,
+            Err(err) => {
+                tracing::warn!("noprofit.space could not check an SFTP password: {err:#}");
+                return None;
+            }
+        };
+
+        match response.status() {
+            status if status.is_success() => {}
+            reqwest::StatusCode::UNPROCESSABLE_ENTITY => return Some(false),
+            reqwest::StatusCode::TOO_MANY_REQUESTS => return None,
+            status => {
+                tracing::warn!("noprofit.space answered {status} to an SFTP password check");
+                return None;
+            }
+        }
+
+        #[derive(Deserialize)]
+        struct VerifyResponse {
+            #[serde(default)]
+            valid: bool,
+        }
+
+        match response.json::<VerifyResponse>().await {
+            Ok(answer) => Some(answer.valid),
+            Err(err) => {
+                tracing::warn!(
+                    "noprofit.space answered an SFTP password check with something else: {err:#}"
+                );
+                None
+            }
+        }
+    }
 }
 
 /// `hex(hmac_sha256(secret, METHOD\npath\ntimestamp\nnonce\nhex(sha256(body))))`.
-pub fn request_signature(secret: &str, method: &str, path: &str, timestamp: &str, nonce: &str, body: &[u8]) -> String {
+pub fn request_signature(
+    secret: &str,
+    method: &str,
+    path: &str,
+    timestamp: &str,
+    nonce: &str,
+    body: &[u8],
+) -> String {
     let canonical = format!(
         "{}\n/{}\n{timestamp}\n{nonce}\n{}",
         method.to_ascii_uppercase(),
@@ -247,7 +346,8 @@ pub fn request_signature(secret: &str, method: &str, path: &str, timestamp: &str
         hex::encode(Sha256::digest(body)),
     );
 
-    let mut mac = Hmac::<Sha256>::new_from_slice(secret.as_bytes()).expect("hmac accepts keys of any length");
+    let mut mac =
+        Hmac::<Sha256>::new_from_slice(secret.as_bytes()).expect("hmac accepts keys of any length");
     mac.update(canonical.as_bytes());
 
     hex::encode(mac.finalize().into_bytes())
@@ -342,7 +442,10 @@ pub struct Link {
 const LINK_COLUMNS: &str = "user_uuid, account_id, email, username, is_admin, avatar, credits, plan, discord, deleted, synced, created";
 
 impl Link {
-    pub async fn by_user_uuid(database: &crate::database::Database, user_uuid: uuid::Uuid) -> Result<Option<Self>, sqlx::Error> {
+    pub async fn by_user_uuid(
+        database: &crate::database::Database,
+        user_uuid: uuid::Uuid,
+    ) -> Result<Option<Self>, sqlx::Error> {
         sqlx::query_as::<_, Self>(sqlx::AssertSqlSafe(format!(
             "SELECT {LINK_COLUMNS} FROM user_noprofit_accounts WHERE user_uuid = $1"
         )))
@@ -351,7 +454,10 @@ impl Link {
         .await
     }
 
-    pub async fn by_account_id(database: &crate::database::Database, account_id: i64) -> Result<Option<Self>, sqlx::Error> {
+    pub async fn by_account_id(
+        database: &crate::database::Database,
+        account_id: i64,
+    ) -> Result<Option<Self>, sqlx::Error> {
         sqlx::query_as::<_, Self>(sqlx::AssertSqlSafe(format!(
             "SELECT {LINK_COLUMNS} FROM user_noprofit_accounts WHERE account_id = $1"
         )))
@@ -361,7 +467,9 @@ impl Link {
     }
 
     /// Every account the panel still knows on noprofit.space, oldest sync first.
-    pub async fn live_account_ids(database: &crate::database::Database) -> Result<Vec<i64>, sqlx::Error> {
+    pub async fn live_account_ids(
+        database: &crate::database::Database,
+    ) -> Result<Vec<i64>, sqlx::Error> {
         sqlx::query_scalar::<_, i64>(
             "SELECT account_id FROM user_noprofit_accounts WHERE deleted IS NULL ORDER BY synced ASC",
         )
@@ -370,7 +478,11 @@ impl Link {
     }
 
     /// Links a user to an account, or refreshes the link, with the account's snapshot.
-    pub async fn store(database: &crate::database::Database, user_uuid: uuid::Uuid, snapshot: &Snapshot) -> Result<(), sqlx::Error> {
+    pub async fn store(
+        database: &crate::database::Database,
+        user_uuid: uuid::Uuid,
+        snapshot: &Snapshot,
+    ) -> Result<(), sqlx::Error> {
         sqlx::query(
             "INSERT INTO user_noprofit_accounts
                 (user_uuid, account_id, email, username, is_admin, avatar, credits, plan, discord, deleted, synced)
@@ -403,7 +515,10 @@ impl Link {
     }
 
     /// Marks accounts noprofit.space no longer has; returns their users.
-    pub async fn mark_deleted(database: &crate::database::Database, account_ids: &[i64]) -> Result<Vec<uuid::Uuid>, sqlx::Error> {
+    pub async fn mark_deleted(
+        database: &crate::database::Database,
+        account_ids: &[i64],
+    ) -> Result<Vec<uuid::Uuid>, sqlx::Error> {
         if account_ids.is_empty() {
             return Ok(Vec::new());
         }
@@ -420,11 +535,18 @@ impl Link {
 }
 
 /// Splits an account's display name into Calagopus's first and last name.
-pub fn split_name(display_name: &str) -> (Option<compact_str::CompactString>, Option<compact_str::CompactString>) {
+pub fn split_name(
+    display_name: &str,
+) -> (
+    Option<compact_str::CompactString>,
+    Option<compact_str::CompactString>,
+) {
     let display_name = display_name.trim();
 
     match display_name.split_once(char::is_whitespace) {
-        Some((first, last)) if !last.trim().is_empty() => (Some(first.into()), Some(last.trim().into())),
+        Some((first, last)) if !last.trim().is_empty() => {
+            (Some(first.into()), Some(last.trim().into()))
+        }
         _ if display_name.is_empty() => (None, None),
         _ => (Some(display_name.into()), None),
     }
@@ -435,7 +557,13 @@ pub fn username_base(display_name: &str) -> String {
     let mut base: String = display_name
         .trim()
         .chars()
-        .map(|c| if c.is_whitespace() || c == '-' || c == '.' { '_' } else { c })
+        .map(|c| {
+            if c.is_whitespace() || c == '-' || c == '.' {
+                '_'
+            } else {
+                c
+            }
+        })
         .filter(|c| c.is_ascii_alphanumeric() || *c == '_')
         .collect();
 
@@ -449,7 +577,10 @@ pub fn username_base(display_name: &str) -> String {
 }
 
 /// The first free username for a display name: `name`, `name_2`, `name_3`, …
-pub async fn unique_username(database: &crate::database::Database, display_name: &str) -> Result<String, anyhow::Error> {
+pub async fn unique_username(
+    database: &crate::database::Database,
+    display_name: &str,
+) -> Result<String, anyhow::Error> {
     let base = username_base(display_name);
 
     for n in 1..100u32 {
@@ -460,7 +591,10 @@ pub async fn unique_username(database: &crate::database::Database, display_name:
             format!("{}{suffix}", &base[..base.len().min(15 - suffix.len())])
         };
 
-        if crate::models::user::User::by_username(database, &candidate).await?.is_none() {
+        if crate::models::user::User::by_username(database, &candidate)
+            .await?
+            .is_none()
+        {
             return Ok(candidate);
         }
     }
@@ -560,13 +694,20 @@ pub async fn sync_all(state: &crate::State) -> Result<(), anyhow::Error> {
 
     for batch in account_ids.chunks(PULL_BATCH) {
         let snapshots = noprofit.pull(&state.client, batch).await?;
-        let found: std::collections::HashSet<i64> = snapshots.iter().map(|snapshot| snapshot.account_id).collect();
+        let found: std::collections::HashSet<i64> = snapshots
+            .iter()
+            .map(|snapshot| snapshot.account_id)
+            .collect();
 
         for snapshot in &snapshots {
-            let Some(link) = Link::by_account_id(&state.database, snapshot.account_id).await? else {
+            let Some(link) = Link::by_account_id(&state.database, snapshot.account_id).await?
+            else {
                 continue;
             };
-            let Some(mut user) = crate::models::user::User::by_uuid_optional(&state.database, link.user_uuid).await? else {
+            let Some(mut user) =
+                crate::models::user::User::by_uuid_optional(&state.database, link.user_uuid)
+                    .await?
+            else {
                 continue;
             };
 
@@ -575,10 +716,16 @@ pub async fn sync_all(state: &crate::State) -> Result<(), anyhow::Error> {
             }
         }
 
-        let missing: Vec<i64> = batch.iter().copied().filter(|id| !found.contains(id)).collect();
+        let missing: Vec<i64> = batch
+            .iter()
+            .copied()
+            .filter(|id| !found.contains(id))
+            .collect();
 
         for user_uuid in Link::mark_deleted(&state.database, &missing).await? {
-            let Some(mut user) = crate::models::user::User::by_uuid_optional(&state.database, user_uuid).await? else {
+            let Some(mut user) =
+                crate::models::user::User::by_uuid_optional(&state.database, user_uuid).await?
+            else {
                 continue;
             };
 
@@ -644,7 +791,10 @@ mod tests {
 
     #[test]
     fn names_and_usernames_from_display_names() {
-        assert_eq!(split_name("Cala Gopus"), (Some("Cala".into()), Some("Gopus".into())));
+        assert_eq!(
+            split_name("Cala Gopus"),
+            (Some("Cala".into()), Some("Gopus".into()))
+        );
         assert_eq!(split_name("cloudy"), (Some("cloudy".into()), None));
         assert_eq!(username_base("Cala Gopus"), "Cala_Gopus");
         assert_eq!(username_base("Alice B/é"), "Alice_B");
@@ -658,14 +808,20 @@ mod tests {
         let token = "eyJhY2NvdW50X3VzZXJfaWQiOjQyLCJlbWFpbCI6ImFsaWNlQGV4YW1wbGUuY29tIiwidXNlcm5hbWUiOiJBbGljZSBCXC9cdTAwZTkiLCJpc19hZG1pbiI6ZmFsc2UsInN0YXRlIjoiQWJDZEVmR2hJaktsTW5PcFFyU3RVdld4WXowMTIzNDU2Nzg5YWJjZCIsImF1ZCI6InBsdWdnZWQtaG9zdC1jYWxhZ29wdXM6c3NvIiwiaWF0IjoxNzYwMDAwMDAwLCJleHAiOjE3NjAwMDAzMDAsIm5vbmNlIjoiMDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWYifQ.d7967cf6992909d06af9d2e9ed9a27ff51567e8f6df075d8d83a3ea79b9f879c";
 
         // Long expired, but everything before the lifetime check passes.
-        assert!(matches!(config().decode_token(token), Err(TokenError::Expired)));
+        assert!(matches!(
+            config().decode_token(token),
+            Err(TokenError::Expired)
+        ));
     }
 
     #[test]
     fn decodes_a_fresh_token() {
         let now = chrono::Utc::now().timestamp();
         let claims = config()
-            .decode_token(&token(claims(now), "test-secret-0123456789abcdef0123456789abcdef"))
+            .decode_token(&token(
+                claims(now),
+                "test-secret-0123456789abcdef0123456789abcdef",
+            ))
             .unwrap();
 
         assert_eq!(claims.snapshot.account_id, 42);
@@ -680,23 +836,35 @@ mod tests {
         let now = chrono::Utc::now().timestamp();
 
         assert!(matches!(
-            config().decode_token(&token(claims(now), "another-secret-0123456789abcdef0123456789")),
+            config().decode_token(&token(
+                claims(now),
+                "another-secret-0123456789abcdef0123456789"
+            )),
             Err(TokenError::BadSignature)
         ));
 
         let mut other = claims(now);
         other["aud"] = "plugged-host:sso".into();
         assert!(matches!(
-            config().decode_token(&token(other, "test-secret-0123456789abcdef0123456789abcdef")),
+            config().decode_token(&token(
+                other,
+                "test-secret-0123456789abcdef0123456789abcdef"
+            )),
             Err(TokenError::WrongAudience)
         ));
 
         assert!(matches!(
-            config().decode_token(&token(claims(now - 1000), "test-secret-0123456789abcdef0123456789abcdef")),
+            config().decode_token(&token(
+                claims(now - 1000),
+                "test-secret-0123456789abcdef0123456789abcdef"
+            )),
             Err(TokenError::Expired)
         ));
 
-        assert!(matches!(config().decode_token("nope"), Err(TokenError::Malformed)));
+        assert!(matches!(
+            config().decode_token("nope"),
+            Err(TokenError::Malformed)
+        ));
     }
 
     /// noprofit.space's own request-signature test vector.

@@ -195,7 +195,9 @@ async fn callback_route(
 
     let fail = |code: &str| redirect(format!("{app_url}/auth/login?error={code}"));
 
-    let state_cookie = cookies.get(STATE_COOKIE).map(|cookie| cookie.value().to_owned());
+    let state_cookie = cookies
+        .get(STATE_COOKIE)
+        .map(|cookie| cookie.value().to_owned());
     cookies.remove(Cookie::build(STATE_COOKIE).path(COOKIE_PATH).build());
 
     let Some(token) = params.token else {
@@ -212,7 +214,9 @@ async fn callback_route(
 
     // The token must carry the state this browser started with, once.
     let state_key = format!("noprofit_sso::{}", claims.state);
-    if state_cookie.as_deref() != Some(claims.state.as_str()) || !state.cache.exists(&state_key).await? {
+    if state_cookie.as_deref() != Some(claims.state.as_str())
+        || !state.cache.exists(&state_key).await?
+    {
         return fail("noprofit_expired");
     }
     state.cache.invalidate(&state_key).await?;

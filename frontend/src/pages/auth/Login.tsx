@@ -48,8 +48,12 @@ export default function Login() {
   const captcha = useCaptcha();
 
   const webauthnEnabled = settings.webauthn?.enabled !== false && window.isSecureContext;
-  // plugged.host: with noprofit.space sign-in, the password form is for the emergency admin only.
+  // plugged.host: with noprofit.space sign-in everyone signs in there, straight away like on the
+  // Pelican panel; the password form is for the emergency admin only (?local=1). A sign-in that came
+  // back with an error stays here with it, so it cannot loop.
   const noprofitLogin = Boolean(settings.noprofit?.enabled) && searchParams.get('local') !== '1';
+  const [noprofitHalted] = useState(() => searchParams.has('error'));
+  const toNoprofit = () => window.location.replace('/api/auth/noprofit/redirect');
 
   const usernameForm = useForm({
     initialValues: {
@@ -66,6 +70,12 @@ export default function Login() {
     ...liveValidation,
     validate: zod4Resolver(authPasswordSchema),
   });
+
+  useEffect(() => {
+    if (noprofitLogin && !noprofitHalted) {
+      toNoprofit();
+    }
+  }, [noprofitLogin, noprofitHalted]);
 
   useEffect(() => {
     getOAuthProviders().then((oAuthProviders) => {
@@ -288,24 +298,18 @@ export default function Login() {
       </div>
 
       <Stack className='w-full'>
-        {step === 'username' && noprofitLogin ? (
+        {noprofitLogin && !noprofitHalted ? (
+          <div>
+            <Title order={2}>{t('pages.auth.login.noprofit.title', {})}</Title>
+            <Text className='text-neutral-400!'>{t('pages.auth.login.noprofit.redirecting', {})}</Text>
+          </div>
+        ) : noprofitLogin ? (
           <>
-            <div>
-              <Title order={2}>{t('pages.auth.login.noprofit.title', {})}</Title>
-              <Text className='text-neutral-400!'>{t('pages.auth.login.noprofit.subtitle', {})}</Text>
-            </div>
+            <Title order={2}>{t('pages.auth.login.noprofit.title', {})}</Title>
             <Card>
               <Stack>
-                <Button
-                  size='md'
-                  fullWidth
-                  loading={loading}
-                  onClick={() => {
-                    setLoading(true);
-                    window.location.href = '/api/auth/noprofit/redirect';
-                  }}
-                >
-                  {t('pages.auth.login.noprofit.button', {})}
+                <Button size='md' fullWidth onClick={toNoprofit}>
+                  {t('pages.auth.login.noprofit.retry', {})}
                 </Button>
                 {settings.app.passwordLoginEnabled && (
                   <NavLink to='/auth/login?local=1' className='text-neutral-400 text-sm'>

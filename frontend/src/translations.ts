@@ -1158,8 +1158,8 @@ const baseTranslations = defineTranslations({
           },
           noprofit: {
             title: 'Sign in',
-            subtitle: 'Use your noprofit.space account to continue',
-            button: 'Continue with noprofit.space',
+            redirecting: 'Taking you to noprofit.space…',
+            retry: 'Try again',
             localLink: 'Administrator sign-in',
             backLink: 'Back to noprofit.space sign-in',
           },

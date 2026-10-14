@@ -23,7 +23,8 @@ Optional, like the noprofit plugin on the Pelican panel (2.2):
 - **Not configured** (no `NOPROFIT_ACCOUNTS_URL` / `NOPROFIT_SSO_SECRET`): stock Calagopus sign-in
   and registration.
 - **Configured**: noprofit.space owns sign-in.
-  - The login page leads with *Continue with noprofit.space* (client `plugged-host-calagopus`).
+  - The login page goes straight to noprofit.space (client `plugged-host-calagopus`), like the
+    Pelican panel's `/login`. A sign-in that comes back with an error stops on it, with *Try again*.
     The first sign-in makes the account's panel user: admin = noprofit.space admin, no password,
     email verified, username from the display name.
   - Registration is off. Password sign-in is only for admins without a noprofit.space account:
@@ -32,6 +33,9 @@ Optional, like the noprofit plugin on the Pelican panel (2.2):
   - With `NOPROFIT_API_SECRET` the panel pulls every linked account's snapshot each minute:
     admin flag, email, name, avatar, plan, credits and Discord. A user whose account
     noprofit.space no longer has is suspended.
+  - SFTP: those users have no panel password, so with `NOPROFIT_API_SECRET` their SFTP password
+    logins are checked by noprofit.space (the account's noprofit.space password; 10 wrong guesses
+    per account and minute, shared with the other panels). SSH keys work as on stock Calagopus.
   - `NOPROFIT_ADMINS_ONLY=true` lets only noprofit.space admins in.
 
 **Wire format** (the accounts app's `SignedToken` and `RequestSignature`; tested against its
@@ -44,7 +48,8 @@ vectors in `shared/src/noprofit.rs`):
 
 - Client `plugged-host-calagopus` in `config/noprofit.php`, with its claims arm in
   `AuthController::sso`.
-- `POST /api/v1/internal/calagopus/accounts`.
+- `POST /api/v1/internal/calagopus/accounts` (snapshots) and
+  `POST /api/v1/internal/calagopus/verify-password` (SFTP passwords, `{account_id, password}`).
 - Env `NOPROFIT_CALAGOPUS_SSO_SECRET`, `NOPROFIT_CALAGOPUS_SECRET` and `NOPROFIT_CALAGOPUS_URL`.
   Each one's value is the same as the panel's matching `NOPROFIT_SSO_SECRET` / `NOPROFIT_API_SECRET`.
 
