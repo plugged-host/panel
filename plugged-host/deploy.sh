@@ -38,7 +38,7 @@ echo "==> $release (was ${previous##*/})"
 systemctl restart "$UNIT"
 
 for _ in $(seq 1 60); do
-  if curl -fsS -o /dev/null "$HEALTH_URL"; then
+  if curl -fs -o /dev/null "$HEALTH_URL"; then
     echo "==> up"
 
     # Keep the newest releases (and whatever is running).
