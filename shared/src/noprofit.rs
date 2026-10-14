@@ -46,8 +46,8 @@ pub struct Config {
     pub callback_url: Option<String>,
     /// Only noprofit.space admins may sign in.
     pub admins_only: bool,
-    /// A first sign-in takes over a panel user with the same email instead of refusing. Off by
-    /// default: noprofit.space does not verify emails.
+    /// A first sign-in takes over the panel user with the same email (unless that one is linked to
+    /// another account already). On by default; `NOPROFIT_LINK_BY_EMAIL=false` refuses instead.
     pub link_by_email: bool,
     sso_secret: String,
     api_secret: Option<String>,
@@ -66,15 +66,15 @@ pub fn enabled() -> bool {
     CONFIG.is_some()
 }
 
-fn env_flag(key: &str) -> bool {
-    std::env::var(key)
+fn env_flag(key: &str, default: bool) -> bool {
+    env_string(key)
         .map(|value| {
             matches!(
-                value.trim().to_ascii_lowercase().as_str(),
+                value.to_ascii_lowercase().as_str(),
                 "1" | "true" | "yes" | "on"
             )
         })
-        .unwrap_or(false)
+        .unwrap_or(default)
 }
 
 fn env_string(key: &str) -> Option<String> {
@@ -118,8 +118,8 @@ impl Config {
             client,
             audience,
             callback_url: env_string("NOPROFIT_SSO_CALLBACK"),
-            admins_only: env_flag("NOPROFIT_ADMINS_ONLY"),
-            link_by_email: env_flag("NOPROFIT_LINK_BY_EMAIL"),
+            admins_only: env_flag("NOPROFIT_ADMINS_ONLY", false),
+            link_by_email: env_flag("NOPROFIT_LINK_BY_EMAIL", true),
             sso_secret,
             api_secret: api_secret.filter(|secret| secret.len() >= MIN_SECRET_LENGTH),
         })

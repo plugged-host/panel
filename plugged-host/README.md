@@ -25,8 +25,9 @@ Optional, like the noprofit plugin on the Pelican panel (2.2):
 - **Configured**: noprofit.space owns sign-in.
   - The login page goes straight to noprofit.space (client `plugged-host-calagopus`), like the
     Pelican panel's `/login`. A sign-in that comes back with an error stops on it, with *Try again*.
-    The first sign-in makes the account's panel user: admin = noprofit.space admin, no password,
-    email verified, username from the display name.
+    The first sign-in links the panel user with the account's email, or makes one: admin =
+    noprofit.space admin, no password, email verified, username from the display name.
+    `NOPROFIT_LINK_BY_EMAIL=false` refuses an existing email instead of linking it.
   - Registration is off. Password sign-in is only for admins without a noprofit.space account:
     the emergency admin, made with `panel-rs users create … --admin true` and signing in via
     *Administrator sign-in* (`/auth/login?local=1`).
