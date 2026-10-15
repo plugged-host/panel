@@ -60,7 +60,7 @@ vectors in `shared/src/noprofit.rs`):
 Never build on the panel box: it has neither the disk nor the memory. `build.sh` copies the tree to
 the build host (ssh alias `plugged-build`, a Ryzen 5 PRO 3600), builds the frontend when its sources
 changed and the `plugged-host` profile (no LTO, incremental), and fetches the binary. The frontend is
-embedded in it. The build VM (`calagopus-build`) keeps the test setup (PostgreSQL, Redis, Chromium).
+embedded in it.
 
 ```bash
 git commit … && git push            # the release names the commit
