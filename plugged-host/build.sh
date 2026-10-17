@@ -34,6 +34,8 @@ rsync -a --delete --exclude target --exclude node_modules --exclude frontend/dis
 
 echo "==> building (profile $PROFILE)"
 ssh "$BUILD_HOST" "set -euo pipefail
+  # The build host is also the prod panel box (since 2026-10-17): builds yield CPU and disk to it.
+  renice -n 15 -p \$\$ >/dev/null; ionice -c 3 -p \$\$
   export PATH=/opt/node/bin:\$PATH
   . \$HOME/.cargo/env
   cd '$BUILD_DIR/frontend'
