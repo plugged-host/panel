@@ -47,6 +47,9 @@ export const pluggedHostTheme: MantineThemeOverride = {
   primaryShade: 6,
   colors: { blue, dark },
   fontFamily: sans,
+  // Filament's copy is "text-sm" almost everywhere: Mantine's default text size (md) follows it,
+  // so Text, paragraphs and inputs agree with the 14px body (app.css).
+  fontSizes: { md: '0.875rem' },
   fontFamilyMonospace: "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
   // Filament's type scale: page titles "text-xl font-semibold", section and modal headings
   // "text-base font-semibold", nothing bigger.
