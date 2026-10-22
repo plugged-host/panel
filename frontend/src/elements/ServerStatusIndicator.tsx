@@ -131,8 +131,9 @@ export default function ServerStatusIndicator() {
 
   return (
     <>
+      {/* plugged.host: a sunken card like Theme v2's sidebar usage card ("phv2-resources-card") */}
       <NavLink to={`/server/${params.id}`} className='block'>
-        <Card p='xs' className='min-h-fit' hoverable>
+        <Card p='xs' className='ph-sidebar-server min-h-fit'>
           <div className='h-5 flex items-center min-w-0'>
             <span className='text-sm font-medium min-w-0 flex-1'>
               <ScrollingText>{server.name}</ScrollingText>
@@ -158,7 +159,7 @@ export default function ServerStatusIndicator() {
               {hasPower && (
                 <Button
                   size='xs'
-                  color={startPrimary ? 'green' : 'red'}
+                  color={startPrimary ? 'blue' : 'red'}
                   disabled={powerBlocked || (startPrimary ? !isOffline : isOffline)}
                   onClick={() => onPowerAction(buttonAction)}
                   className='flex-1 min-w-0'
@@ -172,10 +173,11 @@ export default function ServerStatusIndicator() {
                   <Tooltip label={t('common.enum.serverPowerAction.restart', {})}>
                     <Button
                       size='xs'
-                      color='gray'
+                      variant='default'
                       disabled={powerBlocked}
                       onClick={() => onPowerAction('restart')}
                       className='px-2.5!'
+                      aria-label={t('common.enum.serverPowerAction.restart', {})}
                     >
                       <FontAwesomeIcon icon={faRotateRight} size='xs' />
                     </Button>
@@ -183,7 +185,7 @@ export default function ServerStatusIndicator() {
                 ) : (
                   <Button
                     size='xs'
-                    color='gray'
+                    variant='default'
                     disabled={powerBlocked}
                     onClick={() => onPowerAction('restart')}
                     fullWidth

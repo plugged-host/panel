@@ -46,6 +46,7 @@ type SidebarProps = {
 };
 
 function Sidebar({ children, header, footer }: SidebarProps) {
+  const { t } = useTranslations();
   const { pathname } = useLocation();
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -68,16 +69,24 @@ function Sidebar({ children, header, footer }: SidebarProps) {
 
   return (
     <>
+      {/* plugged.host: Filament's sidebar toggle without a topbar, a square button in the top
+          corner ("p-4"), on the sidebar's colour */}
       <Card
-        className='lg:hidden! sticky! top-5 z-50 flex-row! items-center justify-end -ml-1 mt-5 h-12 w-16 rounded-l-none!'
-        p='xs'
+        className='lg:hidden! sticky! top-4 z-50 flex-row! items-center justify-center ml-4 mt-4 h-11 w-11 rounded-xl! bg-(--phv2-sidebar)!'
+        p={0}
       >
-        <ActionIcon onClick={() => setIsMobileMenuOpen(true)} variant='subtle'>
+        <ActionIcon
+          onClick={() => setIsMobileMenuOpen(true)}
+          variant='subtle'
+          color='gray'
+          size='input-md'
+          aria-label={t('elements.sidebar.button.openMenu', {})}
+        >
           <FontAwesomeIcon size='lg' icon={faBars} />
         </ActionIcon>
       </Card>
 
-      <div className='lg:hidden -mt-12 mb-4 ml-20 mr-4 h-12 flex flex-col justify-center min-w-0'>
+      <div className='lg:hidden -mt-11 mb-2 ml-20 mr-4 h-11 flex flex-col justify-center min-w-0'>
         {pageHeader && (
           <>
             <Title order={3} lineClamp={1}>

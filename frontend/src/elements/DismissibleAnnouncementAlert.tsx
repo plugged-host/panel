@@ -56,17 +56,19 @@ export default function DismissibleAnnouncementAlert({ announcement }: { announc
     setDismissed(true);
   };
 
+  // plugged.host: in the page column, over the page's header
   return (
-    <Alert
-      icon={<FontAwesomeIcon icon={announcementTypeIconMapping[announcement.type]} />}
-      key={announcement.uuid}
-      title={announcement.titleTranslations[language] ?? announcement.title}
-      color={announcementTypeColorMapping[announcement.type]}
-      className='mt-2 mx-4 lg:mx-6'
-      withCloseButton={canShowDismissButton(announcement)}
-      onClose={handleDismiss}
-    >
-      {(announcement.contentTranslations[language] ?? announcement.content).md()}
-    </Alert>
+    <div className='ph-main ph-main-banner'>
+      <Alert
+        icon={<FontAwesomeIcon icon={announcementTypeIconMapping[announcement.type]} />}
+        key={announcement.uuid}
+        title={announcement.titleTranslations[language] ?? announcement.title}
+        color={announcementTypeColorMapping[announcement.type]}
+        withCloseButton={canShowDismissButton(announcement)}
+        onClose={handleDismiss}
+      >
+        {(announcement.contentTranslations[language] ?? announcement.content).md()}
+      </Alert>
+    </div>
   );
 }

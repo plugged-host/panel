@@ -876,7 +876,8 @@
           "themeDark": "Dark",
           "themeLight": "Light",
           "redactAddresses": "Hide Addresses",
-          "resetDeviceOverrides": "Reset Device Overrides ({count})"
+          "resetDeviceOverrides": "Reset Device Overrides ({count})",
+          "openMenu": "Open Menu"
         },
         "modal": {
           "logout": {
@@ -1308,7 +1309,18 @@
             "registrationDisabled": "No matching Account could be found and registration is currently disabled.",
             "userAlreadyExists": "An account with this username or email already exists.",
             "securityKeyRequired": "This account requires two-factor authentication, sign in with a security key instead.",
-            "passwordLoginDisabled": "Password sign-in is turned off on this panel, use one of the options below instead."
+            "passwordLoginDisabled": "Password sign-in is turned off on this panel, use one of the options below instead.",
+            "noprofitFailed": "Signing in with noprofit.space did not work. Please try again.",
+            "noprofitExpired": "That sign-in took too long or was already used. Please try again.",
+            "noprofitAdminsOnly": "This panel is not open yet: only noprofit.space admins can sign in for now.",
+            "noprofitEmailTaken": "A panel account with your noprofit.space email already exists. Ask an administrator to link it."
+          },
+          "noprofit": {
+            "title": "Sign in",
+            "redirecting": "Taking you to noprofit.space…",
+            "retry": "Try again",
+            "localLink": "Administrator sign-in",
+            "backLink": "Back to noprofit.space sign-in"
           },
           "passkey": {
             "error": {
@@ -1565,6 +1577,18 @@
             }
           },
           "containers": {
+            "noprofit": {
+              "title": "noprofit.space",
+              "description": "You sign in with your noprofit.space account **{email}**. Your email, password and two-factor authentication are managed there.",
+              "credits": "Credits",
+              "plan": "Plan",
+              "planValue": "{cpu}% CPU, {memory} memory, {disk} disk",
+              "discord": "Discord",
+              "discordNotLinked": "Not linked",
+              "button": {
+                "manage": "Manage on noprofit.space"
+              }
+            },
             "password": {
               "title": "Password",
               "button": {
@@ -2274,7 +2298,7 @@
                   "ogImage": "Preview Image",
                   "ogImageDescription": "Shown in link previews. Must be a PNG or JPEG, not SVG.",
                   "themeColor": "Theme Color",
-                  "themeColorDescription": "Tints the browser UI on mobile and link previews.",
+                  "themeColorDescription": "The panel's accent: buttons, links, active items and focus rings. The swatches are the presets; blue is the theme's own. A light colour is darkened until white text on it stays readable. Also tints the browser UI on mobile and link previews.",
                   "indexable": "Allow Search Engine Indexing",
                   "twitterCard": "Twitter Card Type"
                 },

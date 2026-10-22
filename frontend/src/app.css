@@ -1741,3 +1741,16 @@ strong {
     gap: 0;
   }
 }
+
+/* The server card in the server sidebar: Theme v2's sunken usage card, "rounded-xl", a link. */
+:root[data-mantine-color-scheme="dark"] .ph-sidebar-server.mantine-Card-root {
+  margin-block-end: 0.5rem;
+  padding: 0.625rem 0.75rem !important;
+  border-radius: 0.75rem;
+  background-color: var(--phv2-sunken);
+  transition: background-color 150ms ease;
+}
+
+:root[data-mantine-color-scheme="dark"] a:hover > .ph-sidebar-server.mantine-Card-root {
+  background-color: var(--phv2-raise);
+}

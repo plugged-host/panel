@@ -702,6 +702,7 @@ const baseTranslations = defineTranslations({
           themeLight: 'Light',
           redactAddresses: 'Hide Addresses',
           resetDeviceOverrides: 'Reset Device Overrides ({count})',
+          openMenu: 'Open Menu',
         },
         modal: {
           logout: {

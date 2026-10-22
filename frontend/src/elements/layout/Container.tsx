@@ -32,9 +32,11 @@ function Container({ children, isNormal }: LayoutProps) {
     >
       <div>
         {impersonating && (
-          <Alert icon={<FontAwesomeIcon icon={faUserCheck} />} color='yellow' className='mt-2 mx-4 lg:mx-6'>
-            {t('elements.container.alert.impersonating', {})}
-          </Alert>
+          <div className='ph-main ph-main-banner'>
+            <Alert icon={<FontAwesomeIcon icon={faUserCheck} />} color='yellow'>
+              {t('elements.container.alert.impersonating', {})}
+            </Alert>
+          </div>
         )}
         {!id &&
           announcements.map((announcement) => (
@@ -43,7 +45,8 @@ function Container({ children, isNormal }: LayoutProps) {
 
         {children}
       </div>
-      <div className='my-2 ml-auto mr-4 lg:mr-6 flex flex-col items-end'>
+      {/* plugged.host: the footer at the end of the page column, not the window */}
+      <div className='w-full max-w-384 mx-auto px-4 md:px-6 lg:px-8 pb-4 flex flex-col items-end'>
         {serverName && (
           <span className='text-xs text-(--mantine-color-dimmed)'>
             {t('elements.container.connectedTo', { name: serverName })}
