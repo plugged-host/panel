@@ -1,7 +1,6 @@
 import { faArrowUpRightFromSquare, faGraduationCap, faServer } from '@fortawesome/free-solid-svg-icons';
 import { Suspense, useMemo } from 'react';
-import { NavLink, Route, Routes } from 'react-router';
-import AppIcon from '@/elements/AppIcon.tsx';
+import { Route, Routes } from 'react-router';
 import AccountContentContainer from '@/elements/containers/AccountContentContainer.tsx';
 import ExtensionSlot from '@/elements/ExtensionSlot.tsx';
 import ScreenBlock from '@/elements/feedback/ScreenBlock.tsx';
@@ -78,9 +77,7 @@ export default function DashboardRouter({ isNormal }: { isNormal: boolean }) {
         <Sidebar
           header={
             <>
-              <NavLink to='/' className='w-full'>
-                <AppIcon />
-              </NavLink>
+              <Sidebar.Logo />
               {!user?.suspended && (
                 <>
                   <QuickActionsTrigger />

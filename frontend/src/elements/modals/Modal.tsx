@@ -7,9 +7,10 @@ export const Modal = makeComponentHookable(
     return (
       <MantineModal
         centered
+        // plugged.host: Filament's overlay, "bg-gray-950/75" without a blur.
         overlayProps={{
-          backgroundOpacity: 0.55,
-          blur: 3,
+          backgroundOpacity: 0.75,
+          color: '#0b0d10',
         }}
         removeScrollProps={{ removeScrollBar: false }}
         ref={ref}
@@ -27,7 +28,7 @@ export const Modal = makeComponentHookable(
 
 export const ModalFooter = makeComponentHookable(({ children }: { children: React.ReactNode }) => {
   return (
-    <Group mt='md' justify='flex-end'>
+    <Group mt='lg' justify='flex-end'>
       {children}
     </Group>
   );

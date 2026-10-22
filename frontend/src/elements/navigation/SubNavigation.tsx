@@ -145,7 +145,8 @@ function SubNavigation<P>({
   return (
     <SubNavigationDepthContext.Provider value={depth}>
       {tabsShown && (
-        <Tabs my='xs' value={resolveString(activeItem?.name) ?? resolveString(items[0].name)}>
+        // plugged.host: Filament's page tabs under Theme v2 (".ph-tabs" in app.css)
+        <Tabs className='ph-tabs' mb='lg' value={resolveString(activeItem?.name) ?? resolveString(items[0].name)}>
           <Tabs.List>
             {visibleItems.map((item) => (
               <SubNavigationItem key={resolveString(item.name)} baseUrl={baseUrl} item={item} />

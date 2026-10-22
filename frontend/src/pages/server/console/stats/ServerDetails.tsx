@@ -95,7 +95,8 @@ export default function ServerDetails() {
   }, [stats]);
 
   return (
-    <div className='grid gap-4 sm:grid-cols-2 xl:grid-cols-1'>
+    // plugged.host: one row of stat blocks over the console, as many to a row as fit
+    <div className='grid gap-3 grid-cols-2 sm:grid-cols-[repeat(auto-fit,minmax(11rem,1fr))]'>
       <StatCard
         icon={faEthernet}
         label={t('pages.server.console.details.address', {})}

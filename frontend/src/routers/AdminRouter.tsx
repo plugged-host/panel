@@ -1,9 +1,8 @@
 import { faReply } from '@fortawesome/free-solid-svg-icons';
 import { Fragment, Suspense, useEffect, useMemo } from 'react';
-import { NavLink, Route, Routes } from 'react-router';
+import { Route, Routes } from 'react-router';
 import type { AdminRouteDefinition } from 'shared';
 import getUpdates from '@/api/admin/system/updates/getUpdates.ts';
-import AppIcon from '@/elements/AppIcon.tsx';
 import AdminContentContainer from '@/elements/containers/AdminContentContainer.tsx';
 import ExtensionSlot from '@/elements/ExtensionSlot.tsx';
 import ScreenBlock from '@/elements/feedback/ScreenBlock.tsx';
@@ -80,9 +79,7 @@ export default function AdminRouter({ isNormal }: { isNormal: boolean }) {
         <Sidebar
           header={
             <>
-              <NavLink to='/' className='w-full'>
-                <AppIcon />
-              </NavLink>
+              <Sidebar.Logo />
               {!user?.suspended && (
                 <>
                   <QuickActionsTrigger />

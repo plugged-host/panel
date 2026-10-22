@@ -384,7 +384,8 @@ export default function Terminal({ popout = false }: { popout?: boolean }) {
       <CommandHistoryDrawer opened={openModal === 'commandHistory'} onClose={() => setOpenModal(null)} />
       <SshDetailsModal opened={openModal === 'sshDetails'} onClose={() => setOpenModal(null)} />
 
-      <Card className='h-full flex flex-col font-mono text-sm relative isolate p-2!'>
+      {/* plugged.host: the Pelican console's terminal colour (".ph-console" in app.css) */}
+      <Card className='ph-console h-full flex flex-col font-mono text-sm relative isolate p-2!'>
         <TerminalHeader
           websocketPing={websocketPing}
           openModal={openModal}

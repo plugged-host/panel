@@ -324,7 +324,8 @@
   --mantine-color-dark-text: var(--mantine-color-dark-4);
   /* Theme v2 gray buttons: "bg-white/10 hover:bg-white/15" */
   --mantine-color-default: var(--phv2-raise-2);
-  --mantine-color-default-border: var(--mantine-color-dark-4);
+  /* Filament's dark edges: "border-white/10", "ring-white/10" */
+  --mantine-color-default-border: rgb(255 255 255 / 0.1);
   --mantine-color-default-color: var(--mantine-color-white);
   --mantine-color-default-hover: var(--phv2-raise-3);
   --mantine-color-dimmed: var(--mantine-color-dark-2);
@@ -342,9 +343,10 @@
   --mantine-color-grape-text: var(--mantine-color-grape-4);
   --mantine-color-gray-filled: var(--mantine-color-gray-8);
   --mantine-color-gray-filled-hover: var(--mantine-color-gray-9);
-  --mantine-color-gray-light: rgba(134, 142, 150, 0.15);
-  --mantine-color-gray-light-color: var(--mantine-color-gray-3);
-  --mantine-color-gray-light-hover: rgba(134, 142, 150, 0.2);
+  /* Theme v2 neutral badges and gray buttons: "bg-white/10 text-gray-100", "hover:bg-white/15" */
+  --mantine-color-gray-light: var(--phv2-raise-2);
+  --mantine-color-gray-light-color: #f3f4f6;
+  --mantine-color-gray-light-hover: var(--phv2-raise-3);
   --mantine-color-gray-outline: var(--mantine-color-gray-4);
   --mantine-color-gray-outline-hover: rgba(206, 212, 218, 0.05);
   --mantine-color-gray-text: var(--mantine-color-gray-4);
@@ -446,6 +448,8 @@ html {
 
 body {
   @apply font-sans;
+  /* plugged.host: Filament's text-sm body copy, as on the Pelican panel */
+  font-size: 0.875rem;
   background-color: transparent;
   color: var(--mantine-color-text);
   container-type: inline-size;
@@ -671,5 +675,1069 @@ strong {
 
   #sidebar-account-card:hover {
     background-color: var(--phv2-raise);
+  }
+}
+
+/* =============================================================================
+ * plugged.host: Tabler icons
+ *
+ * lib/icons/FontAwesomeIcon.tsx draws Tabler's outline icons (the Pelican panel's set) in place of
+ * Font Awesome's solid ones, in Font Awesome's own box: 1.25em wide, centred on the text. The
+ * Tabler glyph has a 2px margin in its 24px square, so the box is 1.25em tall too and the
+ * stroke lands on the 1em the solid glyph covered. Unlayered, like Font Awesome's sheet.
+ * ============================================================================= */
+
+.ph-icon {
+  display: inline-block;
+  box-sizing: content-box;
+  flex-shrink: 0;
+  width: 1.25em;
+  height: 1.25em;
+  overflow: visible;
+  vertical-align: -0.25em;
+}
+
+.ph-icon-2xs {
+  font-size: 0.625em;
+}
+
+.ph-icon-xs {
+  font-size: 0.75em;
+}
+
+.ph-icon-sm {
+  font-size: 0.875em;
+}
+
+.ph-icon-lg {
+  font-size: 1.25em;
+  vertical-align: -0.3em;
+}
+
+.ph-icon-xl {
+  font-size: 1.5em;
+  vertical-align: -0.35em;
+}
+
+.ph-icon-2xl {
+  font-size: 2em;
+  vertical-align: -0.4em;
+}
+
+.ph-icon-1x {
+  font-size: 1em;
+}
+
+.ph-icon-2x {
+  font-size: 2em;
+}
+
+.ph-icon-3x {
+  font-size: 3em;
+}
+
+.ph-icon-4x {
+  font-size: 4em;
+}
+
+.ph-icon-5x {
+  font-size: 5em;
+}
+
+.ph-icon-6x {
+  font-size: 6em;
+}
+
+.ph-icon-7x {
+  font-size: 7em;
+}
+
+.ph-icon-8x {
+  font-size: 8em;
+}
+
+.ph-icon-9x {
+  font-size: 9em;
+}
+
+.ph-icon-10x {
+  font-size: 10em;
+}
+
+.ph-icon-pull-left,
+.ph-icon-pull-start {
+  float: inline-start;
+  margin-inline-end: 0.3em;
+}
+
+.ph-icon-pull-right,
+.ph-icon-pull-end {
+  float: inline-end;
+  margin-inline-start: 0.3em;
+}
+
+.ph-icon-rotate-90 {
+  transform: rotate(90deg);
+}
+
+.ph-icon-rotate-180 {
+  transform: rotate(180deg);
+}
+
+.ph-icon-rotate-270 {
+  transform: rotate(270deg);
+}
+
+.ph-icon-flip-horizontal {
+  transform: scaleX(-1);
+}
+
+.ph-icon-flip-vertical {
+  transform: scaleY(-1);
+}
+
+.ph-icon-flip-both {
+  transform: scale(-1);
+}
+
+.ph-icon-spin {
+  animation: ph-icon-spin 2s linear infinite;
+}
+
+.ph-icon-spin-reverse {
+  animation-direction: reverse;
+}
+
+@keyframes ph-icon-spin {
+  to {
+    rotate: 360deg;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ph-icon-spin {
+    animation-duration: 6s;
+  }
+}
+
+/* =============================================================================
+ * plugged.host: the Pelican panel's shapes
+ *
+ * "A familiar frontend": Theme v2's colours were already here; this is the rest of what makes
+ * the Pelican panel (Filament + Theme v2) look like itself, in Mantine's terms. Each rule quotes
+ * the Filament or Theme v2 class it copies. The page shell, the section card, the table, the
+ * server card and the console are components (ContentContainerHeader, TitleCard, Table,
+ * ServerItem, ServerConsole); what follows is the CSS they and Mantine's own parts share.
+ * ============================================================================= */
+
+:root[data-mantine-color-scheme="dark"] {
+  /* -- Buttons: "rounded-full h-11 px-5 font-semibold" (fi-btn under Theme v2). Only the default
+     size grows to Theme v2's 2.75rem; an explicit size (compact table actions) keeps its own. */
+  .mantine-Button-root {
+    transition:
+      background-color 150ms ease,
+      color 150ms ease,
+      filter 150ms ease,
+      transform 100ms ease;
+  }
+
+  .mantine-Button-root:not([data-size]) {
+    --button-height: 2.75rem;
+    --button-padding-x: 1.25rem;
+  }
+
+  .mantine-Button-root:not(:disabled, [data-disabled], [data-loading]):active {
+    transform: scale(0.97);
+  }
+
+  .mantine-Button-root[data-variant="filled"]:not(:disabled, [data-disabled]):hover {
+    filter: brightness(1.08);
+  }
+
+  /* Gray buttons: "bg-white/10 hover:bg-white/15", no edge. */
+  .mantine-Button-root[data-variant="default"],
+  .mantine-ActionIcon-root[data-variant="default"] {
+    border-color: transparent;
+  }
+
+  /* Icon buttons: "rounded-lg text-gray-400 hover:bg-white/5 hover:text-white" (fi-icon-btn). */
+  .mantine-ActionIcon-root[data-variant="subtle"] {
+    --ai-hover: var(--phv2-raise);
+  }
+
+  .mantine-ActionIcon-root:not(:disabled, [data-disabled], [data-loading]):active {
+    transform: scale(0.95);
+  }
+
+  /* -- Badges: "px-2 py-1 text-xs font-semibold rounded-lg", in sentence case (Filament never
+     shouts). The light variant is the default (theme.ts), like Filament's tinted badges. */
+  .mantine-Badge-root {
+    text-transform: none;
+    letter-spacing: normal;
+  }
+
+  .mantine-Badge-root:not([data-size]) {
+    --badge-height: 1.5rem;
+    --badge-padding-x: 0.5rem;
+    --badge-fz: 0.75rem;
+  }
+
+  /* -- Inputs: labels "text-sm font-medium text-white", hints "text-gray-400". */
+  .mantine-InputWrapper-label {
+    color: var(--phv2-text);
+    font-weight: 500;
+  }
+
+  .mantine-InputWrapper-description {
+    color: var(--phv2-text-muted);
+  }
+
+  .mantine-Input-input::placeholder {
+    color: var(--phv2-text-faint);
+  }
+
+  /* Toggles: off "bg-white/15 border-white/12", on the accent fill. */
+  .mantine-Switch-track {
+    --switch-bg: rgb(255 255 255 / 0.15);
+    border-color: rgb(255 255 255 / 0.12);
+  }
+
+  .mantine-Switch-input:checked + .mantine-Switch-track {
+    --switch-bg: var(--phv2-accent);
+    border-color: transparent;
+  }
+
+  .mantine-Checkbox-input:not(:checked) {
+    background-color: var(--phv2-raise);
+  }
+
+  /* -- Dividers and table edges: the hairline. */
+  .mantine-Divider-root {
+    --divider-color: var(--phv2-hairline);
+  }
+
+  /* -- Tabs (SubNavigation): "bg-gradient-to-r from-white/5 to-transparent rounded-2xl p-2",
+     items "rounded-xl px-3 py-2 text-sm text-gray-300 hover:bg-white/10", the active one
+     "bg-white/10 text-white", not accent-coloured (fi-tabs under Theme v2). */
+  .ph-tabs .mantine-Tabs-list {
+    gap: 0.25rem;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding: 0.5rem;
+    border-radius: 1rem;
+    background-image: linear-gradient(to right, var(--phv2-raise), transparent);
+  }
+
+  .ph-tabs .mantine-Tabs-list::before {
+    display: none;
+  }
+
+  .ph-tabs .mantine-Tabs-tab {
+    min-height: 2.5rem;
+    padding: 0.5rem 0.75rem;
+    border: 0;
+    border-radius: 0.75rem;
+    color: var(--phv2-text-nav);
+    font-weight: 500;
+    transition:
+      background-color 150ms ease,
+      color 150ms ease;
+  }
+
+  .ph-tabs .mantine-Tabs-tab:hover,
+  .ph-tabs .mantine-Tabs-tab[data-active] {
+    background-color: var(--phv2-raise-2);
+    color: var(--phv2-text);
+  }
+
+  .ph-tabs .mantine-Tabs-tabSection {
+    color: var(--phv2-text-faint);
+  }
+
+  .ph-tabs .mantine-Tabs-tab[data-active] .mantine-Tabs-tabSection {
+    color: var(--phv2-text);
+  }
+
+  /* -- Tables (elements/data-display/Table): Filament's on Theme v2's transparent container.
+     Head "bg-white/5", cells "px-3 py-3.5 text-sm font-semibold text-white" with "ps-6" at the
+     edges, rows "divide-y divide-white/5 hover:bg-white/5", cells "py-4" in Filament, a little
+     less here because Calagopus rows carry buttons. */
+  .mantine-Table-table {
+    --table-border-color: var(--phv2-hairline);
+    --table-hover-color: var(--phv2-raise);
+    --table-striped-color: var(--phv2-raise);
+  }
+
+  .mantine-Table-th {
+    padding: 0.875rem 0.75rem;
+    color: var(--phv2-text);
+    font-weight: 600;
+  }
+
+  .mantine-Table-td {
+    padding-block: max(var(--table-vertical-spacing, 0px), 0.75rem);
+    padding-inline: 0.75rem;
+  }
+
+  @media (min-width: 40rem) {
+    .ph-table .mantine-Table-th:first-child,
+    .ph-table .mantine-Table-td:first-child {
+      padding-inline-start: 1.5rem;
+    }
+
+    .ph-table .mantine-Table-th:last-child,
+    .ph-table .mantine-Table-td:last-child {
+      padding-inline-end: 1.5rem;
+    }
+  }
+
+  /* The head's white/5 band; sticky, so it needs a solid colour: white/5 on the page floor. */
+  .ph-table .mantine-Table-thead .mantine-Table-th {
+    background-color: #191b1f;
+  }
+
+  /* -- Pagination: "rounded-lg ring-1 ring-white/20" items, the current one "bg-white/5" with
+     the accent as its label, never a filled blue square. */
+  .mantine-Pagination-control {
+    border-color: var(--mantine-color-default-border);
+    background-color: transparent;
+    color: var(--phv2-text-nav);
+  }
+
+  .mantine-Pagination-control[data-active] {
+    border-color: var(--mantine-color-default-border);
+    background-color: var(--phv2-raise);
+    color: var(--phv2-accent-bright);
+  }
+
+  .mantine-Pagination-control:not([data-active], :disabled, [data-disabled]):hover {
+    background-color: var(--phv2-raise);
+    color: var(--phv2-text);
+  }
+
+  /* -- Progress: Theme v2's thin bars, "bg-white/10" track. */
+  .mantine-Progress-root {
+    background-color: var(--phv2-raise-2);
+  }
+
+  /* -- Callouts (Alert, and the server banners in ServerContentContainer): "rounded-2xl p-4",
+     one 10% tint of the status colour, no edge and no side bar; the heading "text-sm
+     font-semibold text-white", the text "text-gray-400", the icon in the status colour. */
+  .mantine-Alert-root {
+    border-radius: 1rem;
+    border-color: transparent;
+  }
+
+  .mantine-Alert-title {
+    color: var(--phv2-text);
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  .mantine-Alert-message {
+    color: var(--phv2-text-nav);
+  }
+
+  .ph-callout.mantine-Notification-root {
+    border-radius: 1rem;
+    padding: 1rem;
+    box-shadow: none;
+    background-color: color-mix(in srgb, var(--notification-color) 10%, transparent);
+  }
+
+  .ph-callout.mantine-Notification-root::before {
+    display: none;
+  }
+
+  /* Toasts: Filament's notification, "rounded-xl bg-gray-900 shadow-lg ring-1 ring-white/10". */
+  .mantine-Notification-root:not(.ph-callout) {
+    border-radius: 0.75rem;
+    background-color: var(--phv2-modal);
+    box-shadow:
+      0 10px 15px -3px rgb(0 0 0 / 0.3),
+      0 0 0 1px var(--mantine-color-default-border);
+  }
+
+  .mantine-Notification-title {
+    color: var(--phv2-text);
+    font-weight: 600;
+  }
+
+  .mantine-Notification-description {
+    color: var(--phv2-text-nav);
+  }
+
+  /* -- Modals: "bg-[#1a1c20] rounded-xl", Filament's p-6 and "text-base font-semibold" heading. */
+  .mantine-Modal-content {
+    border-radius: 0.75rem;
+    box-shadow:
+      0 25px 50px -12px rgb(0 0 0 / 0.5),
+      0 0 0 1px var(--phv2-hairline);
+  }
+
+  .mantine-Modal-header {
+    background-color: var(--phv2-modal);
+    padding: 1.5rem 1.5rem 1rem;
+  }
+
+  .mantine-Modal-body {
+    padding: 0 1.5rem 1.5rem;
+  }
+
+  .mantine-Modal-title {
+    color: var(--phv2-text);
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .mantine-Drawer-header {
+    background-color: var(--phv2-modal);
+  }
+
+  /* -- Menus: "rounded-md shadow-xl bg-[#181a1e]", items "px-4 py-2 text-sm text-gray-300
+     hover:bg-white/5 hover:text-white", icons size-5 in zinc-500. */
+  .mantine-Menu-dropdown,
+  .mantine-Popover-dropdown,
+  .mantine-Combobox-dropdown {
+    box-shadow:
+      0 20px 25px -5px rgb(0 0 0 / 0.25),
+      0 8px 10px -6px rgb(0 0 0 / 0.25);
+  }
+
+  .mantine-Menu-dropdown {
+    padding: 0.25rem;
+    border-radius: 0.5rem;
+  }
+
+  .mantine-Menu-item {
+    min-height: 2.25rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.375rem;
+    color: var(--menu-item-color, var(--phv2-text-nav));
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+
+  .mantine-Menu-item:where(:hover, :focus, [data-menu-active]):where(:not(:disabled, [data-disabled])) {
+    background-color: var(--phv2-raise);
+    color: var(--menu-item-color, var(--phv2-text));
+  }
+
+  /* Plain items' icons in zinc-500 until hovered; coloured ones (logout, stop: Mantine sets
+     --menu-item-color inline) keep their colour. */
+  .mantine-Menu-item:not([style*="--menu-item-color"]) .mantine-Menu-itemSection {
+    color: var(--phv2-text-faint);
+  }
+
+  .mantine-Menu-item:not([style*="--menu-item-color"]):where(:hover, :focus, [data-menu-active])
+    .mantine-Menu-itemSection {
+    color: var(--phv2-text);
+  }
+
+  .mantine-Menu-label {
+    color: var(--phv2-text-faint);
+  }
+
+  .mantine-Menu-divider {
+    border-color: var(--phv2-hairline);
+  }
+
+  /* Combobox options: the same rows. */
+  .mantine-Combobox-option {
+    border-radius: 0.375rem;
+  }
+
+  /* -- Tooltips: Filament's dark tooltip, "bg-gray-900 text-white ring-1 ring-white/10 text-xs". */
+  .mantine-Tooltip-tooltip {
+    background-color: var(--phv2-dropdown);
+    color: var(--phv2-text);
+    box-shadow: 0 0 0 1px var(--mantine-color-default-border);
+    font-size: 0.75rem;
+  }
+
+  .mantine-Tooltip-arrow {
+    background-color: var(--phv2-dropdown);
+  }
+
+  /* -- Code and kbd on the sunken surface. */
+  .mantine-Code-root {
+    background-color: var(--phv2-raise-2);
+    color: var(--phv2-text-nav);
+  }
+
+  .mantine-Kbd-root {
+    background-color: var(--phv2-sunken);
+    border-color: var(--mantine-color-default-border);
+    color: var(--phv2-text-muted);
+  }
+}
+
+/* =============================================================================
+ * plugged.host: the page shell (ContentContainerHeader, the content containers)
+ *
+ * ".fi-main": "mx-auto px-8", max-w-screen-2xl, 0.5rem / 2rem block padding;
+ * ".fi-page-header-main-ctn": "gap-y-8 py-8";
+ * ".fi-header-heading": "text-xl font-semibold", ".fi-header-subheading": "text-gray-400";
+ * ".fi-header-actions": the page's actions at the end of the title row, "gap-3".
+ * ============================================================================= */
+
+.ph-main {
+  width: 100%;
+  max-width: 96rem;
+  margin-inline: auto;
+  padding: 0.5rem 1rem 2rem;
+}
+
+@media (min-width: 48rem) {
+  .ph-main {
+    padding-inline: 1.5rem;
+  }
+}
+
+@media (min-width: 64rem) {
+  .ph-main {
+    padding: 2rem 2rem 2rem;
+  }
+}
+
+/* The server's state banners above a page's header: the same column, no foot. */
+.ph-main.ph-main-banner {
+  padding-block-end: 0;
+}
+
+.ph-header {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-block-end: 1.5rem;
+}
+
+@media (min-width: 40rem) {
+  .ph-header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.ph-header-heading {
+  margin: 0;
+  color: var(--phv2-text);
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.75rem;
+  letter-spacing: normal;
+}
+
+/* A page inside a page (a tab's own list): Filament's table heading, "text-base font-semibold". */
+.ph-header :is(h2, h3, h4, h5, h6).ph-header-heading {
+  font-size: 1rem;
+  line-height: 1.5rem;
+}
+
+.ph-header-subheading {
+  margin-block-start: 0.125rem;
+  color: var(--phv2-text-muted);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.ph-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* The table toolbar's search: "fi-ta-search-field", at the end of the row, 36px tall. */
+.ph-header-search {
+  width: 100%;
+}
+
+@media (min-width: 40rem) {
+  .ph-header-search {
+    width: 16rem;
+  }
+}
+
+/* =============================================================================
+ * plugged.host: Theme v2's sidebar (elements/navigation/Sidebar.tsx)
+ * ============================================================================= */
+
+:root[data-mantine-color-scheme="dark"] {
+  /* "w-64", the logo "mt-8 h-10" centred over the rows. */
+  #sidebar-desktop {
+    padding: 0 0.5rem 0.5rem !important;
+  }
+
+  .ph-sidebar-logo {
+    display: flex;
+    justify-content: center;
+    padding: 2rem 0.5rem 1rem;
+  }
+
+  .ph-sidebar-logo img {
+    width: auto;
+    height: 2.5rem;
+  }
+
+  /* Every row: "min-h-11 px-3.5 py-2 gap-2.5 rounded-xl text-sm font-medium text-gray-300",
+     icons size-6 in zinc-500; the active one "bg-blue-700/10 text-blue-500", its icon at half. */
+  .sidebar-link.mantine-Button-root {
+    --button-padding-x: 0.875rem !important;
+    margin-block-end: 0.25rem;
+    font-size: 0.875rem;
+  }
+
+  .sidebar-link .mantine-Button-label {
+    gap: 0.625rem;
+  }
+
+  .sidebar-link .ph-icon,
+  .sidebar-link .svg-inline--fa {
+    width: 1.5rem;
+    height: 1.5rem;
+    margin: 0 !important;
+    vertical-align: middle;
+  }
+
+  /* The quick search row: one of the rows, "transparent until hover" like Theme v2's bell. */
+  .ph-sidebar-search.mantine-Button-root {
+    --button-height: 2.75rem !important;
+    --button-padding-x: 0.875rem !important;
+    --button-bg: transparent !important;
+    --button-hover: var(--phv2-raise) !important;
+    margin-block-end: 0.25rem;
+    font-weight: 500 !important;
+  }
+
+  .ph-sidebar-search .mantine-Button-section[data-position="left"] {
+    margin-inline-end: 0.625rem;
+    color: var(--phv2-text-faint);
+  }
+
+  .ph-sidebar-search .mantine-Button-section[data-position="left"] .ph-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+    vertical-align: middle;
+  }
+
+  /* Group labels: Filament's "fi-sidebar-group-label", a caption over its rows. */
+  .ph-sidebar-group-label {
+    padding: 1rem 0.875rem 0.375rem;
+    color: var(--phv2-text-faint);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .ph-sidebar-divider {
+    margin: 0.5rem 0.875rem;
+    border-top: 1px solid var(--phv2-hairline);
+  }
+
+  /* The avatar row: "py-2 px-3 rounded-xl hover:bg-white/5", avatar, name, chevron. */
+  .ph-sidebar-user {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.5rem 0.75rem;
+    border: 0;
+    border-radius: 0.75rem;
+    background-color: transparent;
+    color: var(--phv2-text);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    text-align: start;
+    cursor: pointer;
+    transition:
+      background-color 150ms ease,
+      transform 100ms ease;
+  }
+
+  .ph-sidebar-user:hover {
+    background-color: var(--phv2-raise);
+  }
+
+  .ph-sidebar-user:active {
+    transform: scale(0.98);
+  }
+
+  .ph-sidebar-user:focus-visible {
+    outline: 2px solid var(--phv2-accent-bright);
+    outline-offset: 2px;
+  }
+
+  .ph-sidebar-user-name {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .ph-sidebar-user-chevron {
+    flex: none;
+    color: var(--phv2-text-muted);
+  }
+}
+
+/* =============================================================================
+ * plugged.host: stat blocks (elements/data-display/StatCard), the Pelican console's
+ * "fi-small-stat-block" on Theme v2's card: label "text-gray-400 font-medium", value
+ * "font-semibold text-white", the usage bar "h-1 bg-white/10" with the bright accent.
+ * ============================================================================= */
+
+.ph-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+  padding: 0.875rem 1rem !important;
+}
+
+.ph-stat-head {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.ph-stat-label {
+  flex: none;
+  color: var(--phv2-text-muted);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.25rem;
+}
+
+.ph-stat-details {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--phv2-text-faint);
+  font-size: 0.75rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ph-stat-popover {
+  margin-inline-start: auto;
+  color: var(--phv2-text-muted);
+}
+
+.ph-stat-value {
+  max-width: 100%;
+  color: var(--phv2-text);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.5rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.ph-stat-limit {
+  color: var(--phv2-text-muted);
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.ph-stat-track {
+  height: 4px;
+  margin-block-start: 0.375rem;
+  overflow: hidden;
+  border-radius: 9999px;
+  background-color: var(--phv2-raise-2);
+}
+
+.ph-stat-bar {
+  display: block;
+  height: 100%;
+  border-radius: 9999px;
+  background-color: var(--phv2-accent-bright);
+  transition: width 300ms ease;
+}
+
+/* Phones: the console's power buttons as icons, square pills (Theme v2's console under `sm`). */
+@media (max-width: 39.99rem) {
+  .ph-power .ph-power-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .ph-power .mantine-Button-section[data-position="left"] {
+    margin-inline-end: 0;
+  }
+}
+
+/* The console: the Pelican panel's terminal, "rgb(19 26 32)" (its xterm theme), opaque. */
+:root[data-mantine-color-scheme="dark"] .ph-console.mantine-Card-root {
+  background-color: rgb(19 26 32);
+}
+
+/* =============================================================================
+ * plugged.host: the server list and its cards (pages/dashboard/home/ServerItem), Theme v2's
+ * "phv2-server" (server-entry.blade.php and theme.css on the Pelican panel).
+ *
+ * The grid fits as many cards per row as it has room for, at least 22rem each: one server fills
+ * the row, two share it, more wrap. Each card is a size container, so its layout follows its own
+ * width: narrow (< 21rem) one line per resource then the address; medium three compact columns
+ * with the address on a line of its own; wide (>= 34rem) CPU, memory, disk and address side by side.
+ * ============================================================================= */
+
+.ph-server-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+}
+
+/* the card: "bg-white/5 rounded-2xl", hover "bg-white/10", no lift */
+.ph-server-card {
+  display: block;
+  min-width: 0;
+  height: 100%;
+  container: phv2-server / inline-size;
+  padding: 1.125rem 1.25rem;
+  border-radius: 1rem;
+  background-color: var(--phv2-raise);
+  color: inherit;
+  text-decoration: none;
+  transition: background-color 150ms ease;
+}
+
+.ph-server-card:hover {
+  background-color: var(--phv2-raise-2);
+}
+
+.ph-server-card:focus-visible {
+  outline: 2px solid var(--phv2-accent-bright);
+  outline-offset: 2px;
+}
+
+.ph-server-card[data-selected] {
+  background-color: var(--phv2-accent-soft);
+}
+
+.phv2-server {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  width: 100%;
+  padding-left: 0.875rem;
+}
+
+.phv2-server-status-bar {
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  width: 3px;
+  border-radius: 9999px;
+}
+
+.phv2-server-head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.phv2-server-title {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.phv2-server-name {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  color: var(--phv2-text);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.5rem;
+  white-space: nowrap;
+}
+
+.phv2-server-state {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--phv2-text-muted);
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+  white-space: nowrap;
+}
+
+.phv2-server-actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* The bulk-select box: shown on hover, and on every card once one is selected; always on touch. */
+.phv2-server-select {
+  display: flex;
+  flex: none;
+}
+
+@media (hover: hover) {
+  .ph-server-grid:not(:has(.ph-server-card[data-selected]))
+    .ph-server-card:not(:hover, :focus-within)
+    .phv2-server-select {
+    display: none;
+  }
+}
+
+.phv2-server-description {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  color: var(--phv2-text-muted);
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+}
+
+/* Narrow: one line per resource (name left, value right, bar under it). */
+.phv2-server-stats {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.625rem 1rem;
+}
+
+.phv2-server-stat {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.3125rem;
+}
+
+.phv2-server-stat-info,
+.phv2-server-address {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+}
+
+.phv2-server-stat-name {
+  flex: none;
+  color: var(--phv2-text-muted);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.phv2-server-stat-value {
+  min-width: 0;
+  overflow: hidden;
+  font-variant-numeric: tabular-nums;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.phv2-server-stat-used {
+  color: var(--phv2-text);
+  font-weight: 600;
+}
+
+.phv2-server-stat-warning {
+  color: var(--mantine-color-yellow-4);
+}
+
+.phv2-server-stat-danger {
+  color: var(--mantine-color-red-4);
+}
+
+.phv2-server-stat-limit {
+  color: var(--phv2-text-muted);
+}
+
+.phv2-server-track {
+  height: 4px;
+  overflow: hidden;
+  border-radius: 9999px;
+  background-color: var(--phv2-raise-2);
+}
+
+.phv2-server-bar {
+  display: block;
+  height: 100%;
+  border-radius: 9999px;
+  background-color: var(--phv2-accent-bright);
+  transition: width 300ms ease;
+}
+
+.phv2-server-bar-warning {
+  background-color: var(--mantine-color-yellow-4);
+}
+
+.phv2-server-bar-danger {
+  background-color: var(--mantine-color-red-4);
+}
+
+.phv2-server-address {
+  cursor: text;
+}
+
+.phv2-server-address-value {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--phv2-text-nav);
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Medium: CPU, memory and disk as three columns, each name over its value; the address on a
+   line of its own underneath. */
+@container phv2-server (min-width: 21rem) {
+  .phv2-server-stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .phv2-server-stat-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+  }
+
+  .phv2-server-address {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+}
+
+/* Wide: the address becomes a fourth column. */
+@container phv2-server (min-width: 34rem) {
+  .phv2-server-stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(0, 1.25fr);
+  }
+
+  .phv2-server-address {
+    grid-column: auto;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
   }
 }

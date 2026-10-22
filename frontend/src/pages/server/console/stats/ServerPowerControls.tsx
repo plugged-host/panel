@@ -1,3 +1,5 @@
+import { faPlay, faRotateRight, faSkull, faStop } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useEffect, useState } from 'react';
 import { z } from 'zod';
 import { useShallow } from 'zustand/react/shallow';
@@ -42,7 +44,10 @@ export default function ServerPowerControls() {
   }, [state]);
 
   return (
-    <div className='flex w-full md:w-fit gap-2'>
+    // plugged.host: the Pelican console's power actions, separate pills at the end of the title row
+    // (Start in the accent, Restart gray, Stop and Kill red, each with its Tabler icon); on phones
+    // only the icons, as Theme v2 has them.
+    <div className='ph-power flex w-full md:w-fit gap-2'>
       <ConfirmationModal
         opened={open}
         onClose={() => setOpen(false)}
@@ -62,25 +67,29 @@ export default function ServerPowerControls() {
 
       <ServerCan action='control.start'>
         <Button
-          color='green'
+          color='blue'
           disabled={
             !socketConnected || state !== 'offline' || !!server.status || server.isSuspended || server.isTransferring
           }
           loading={state === 'starting'}
           onClick={() => onButtonClick('start')}
           className='flex-1 min-w-fit'
+          leftSection={<FontAwesomeIcon icon={faPlay} />}
+          aria-label={t('common.enum.serverPowerAction.start', {})}
         >
-          {t('common.enum.serverPowerAction.start', {})}
+          <span className='ph-power-label'>{t('common.enum.serverPowerAction.start', {})}</span>
         </Button>
       </ServerCan>
       <ServerCan action='control.restart'>
         <Button
-          color='gray'
+          variant='default'
           disabled={!socketConnected || !state || !!server.status || server.isSuspended || server.isTransferring}
           onClick={() => onButtonClick('restart')}
           className='flex-1 min-w-fit'
+          leftSection={<FontAwesomeIcon icon={faRotateRight} />}
+          aria-label={t('common.enum.serverPowerAction.restart', {})}
         >
-          {t('common.enum.serverPowerAction.restart', {})}
+          <span className='ph-power-label'>{t('common.enum.serverPowerAction.restart', {})}</span>
         </Button>
       </ServerCan>
       <ServerCan action='control.stop'>
@@ -91,8 +100,14 @@ export default function ServerPowerControls() {
           }
           onClick={() => onButtonClick(killable ? 'kill' : 'stop')}
           className='flex-1 min-w-fit'
+          leftSection={<FontAwesomeIcon icon={killable ? faSkull : faStop} />}
+          aria-label={
+            killable ? t('common.enum.serverPowerAction.kill', {}) : t('common.enum.serverPowerAction.stop', {})
+          }
         >
-          {killable ? t('common.enum.serverPowerAction.kill', {}) : t('common.enum.serverPowerAction.stop', {})}
+          <span className='ph-power-label'>
+            {killable ? t('common.enum.serverPowerAction.kill', {}) : t('common.enum.serverPowerAction.stop', {})}
+          </span>
         </Button>
       </ServerCan>
 

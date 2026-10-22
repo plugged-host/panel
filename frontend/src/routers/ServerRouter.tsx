@@ -1,12 +1,11 @@
 import { faArrowUpRightFromSquare, faGraduationCap, faServer } from '@fortawesome/free-solid-svg-icons';
 import { Suspense, useEffect, useMemo, useState } from 'react';
-import { NavLink, Route, Routes, useParams } from 'react-router';
+import { Route, Routes, useParams } from 'react-router';
 import { useShallow } from 'zustand/react/shallow';
 import { httpErrorToHuman } from '@/api/axios.ts';
 import getEggCommandSnippets from '@/api/me/servers/eggs/getEggCommandSnippets.ts';
 import getServerAnnouncements from '@/api/server/announcements/getAnnouncements.ts';
 import getServer from '@/api/server/getServer.ts';
-import AppIcon from '@/elements/AppIcon.tsx';
 import { ServerCan } from '@/elements/Can.tsx';
 import ServerContentContainer from '@/elements/containers/ServerContentContainer.tsx';
 import ExtensionSlot from '@/elements/ExtensionSlot.tsx';
@@ -173,9 +172,7 @@ export default function ServerRouter({ isNormal }: { isNormal: boolean }) {
         <Sidebar
           header={
             <>
-              <NavLink to='/' className='w-full'>
-                <AppIcon />
-              </NavLink>
+              <Sidebar.Logo />
               {!user?.suspended && (
                 <>
                   <QuickActionsTrigger />

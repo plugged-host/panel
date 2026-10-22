@@ -42,14 +42,16 @@ export default function QuickActionsTrigger() {
   const hint = binding ? formatBindingCompact(binding, isMac) : null;
 
   return (
+    // plugged.host: a sidebar row like Theme v2's notification button, "transparent until hover"
     <Button
-      variant='default'
+      variant='subtle'
+      color='gray'
       fullWidth
-      className='mt-2'
-      leftSection={<FontAwesomeIcon icon={faMagnifyingGlass} size='sm' />}
+      className='ph-sidebar-search'
+      leftSection={<FontAwesomeIcon icon={faMagnifyingGlass} />}
       rightSection={hint ? <Kbd size='xs'>{hint}</Kbd> : undefined}
       onClick={() => setOpen(true)}
-      styles={{ label: { width: '100%', color: 'var(--mantine-color-dimmed)' } }}
+      styles={{ label: { width: '100%', color: 'var(--phv2-text-nav)' } }}
     >
       {t('elements.quickActions.trigger', {})}
     </Button>

@@ -2,7 +2,7 @@ import {
   faArrowRightFromBracket,
   faBars,
   faCheck,
-  faEllipsisVertical,
+  faChevronUp,
   faEyeSlash,
   faGraduationCap,
   faRotateLeft,
@@ -21,7 +21,6 @@ import Button from '@/elements/buttons/Button.tsx';
 import CloseButton from '@/elements/buttons/CloseButton.tsx';
 import Avatar from '@/elements/data-display/Avatar.tsx';
 import Card from '@/elements/data-display/Card.tsx';
-import MantineDivider from '@/elements/layout/Divider.tsx';
 import ContextMenu, { ContextMenuItem } from '@/elements/overlays/ContextMenu.tsx';
 import Drawer from '@/elements/overlays/Drawer.tsx';
 import { useLogoutConfirmation } from '@/elements/useLogoutConfirmation.tsx';
@@ -219,8 +218,23 @@ function Link({ to, end, icon, name, title = name, className, activeMatches }: L
   );
 }
 
+// plugged.host: Filament's sidebar groups. A labelled divider is the group's caption over its
+// rows ("fi-sidebar-group-label"), an unlabelled one a hairline between groups.
 function Divider({ label }: { label?: string }) {
-  return <MantineDivider className='my-2' label={label} />;
+  return label ? <div className='ph-sidebar-group-label'>{label}</div> : <div className='ph-sidebar-divider' />;
+}
+
+// plugged.host: Theme v2's logo block, the panel's logo centred at the top of the sidebar
+// ("flex justify-center mt-8", "h-10"), leading home. The banner when one is set, else the icon.
+function Logo() {
+  const settings = useGlobalStore((state) => state.settings);
+  const closeMobileMenu = useContext(CloseMobileMenuContext);
+
+  return (
+    <NavLink to='/' className='ph-sidebar-logo' aria-label={settings.app.name} onClick={() => closeMobileMenu?.()}>
+      <img src={settings.app.banner ?? settings.app.icon} alt={settings.app.name} />
+    </NavLink>
+  );
 }
 
 function Footer() {
@@ -307,54 +321,32 @@ function Footer() {
     return null;
   }
 
+  const displayName = user.nameFirst && user.nameLast ? `${user.nameFirst} ${user.nameLast}` : user.username;
+
+  // plugged.host: Theme v2's avatar row at the foot of the sidebar, Filament's user menu: the
+  // whole row opens the menu (account, admin, sign out) above it.
   return (
     <>
-      <ContextMenu items={items}>
+      <ContextMenu items={items} menuProps={{ position: 'top-start', offset: 8 }}>
         {({ openMenu }) => (
-          <Card
-            className='flex flex-row! justify-between items-center min-h-fit'
-            p='xs'
-            hoverable={!accountHidden}
+          <button
+            type='button'
+            className='ph-sidebar-user'
             id='sidebar-account-card'
+            aria-haspopup='menu'
+            onClick={(e) => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              openMenu(rect.left, rect.top);
+            }}
             onContextMenu={(e) => {
               e.preventDefault();
               openMenu(e.clientX, e.clientY);
             }}
           >
-            {accountHidden ? (
-              <div className='flex items-center flex-1 min-w-0'>
-                <Avatar size={40} className='select-none shrink-0' src={user.avatar} name={user.username} />
-                <span className='font-sans font-normal text-sm whitespace-nowrap leading-tight ml-3 overflow-hidden text-ellipsis'>
-                  {user.nameFirst && user.nameLast ? `${user.nameFirst} ${user.nameLast}` : user.username}
-                </span>
-              </div>
-            ) : (
-              <NavLink
-                to='/account'
-                className='flex items-center flex-1 min-w-0'
-                onClick={(e) => {
-                  e.preventDefault();
-                  navigate('/account');
-                }}
-              >
-                <Avatar size={40} className='select-none shrink-0' src={user.avatar} name={user.username} />
-                <span className='font-sans font-normal text-sm whitespace-nowrap leading-tight ml-3 overflow-hidden text-ellipsis'>
-                  {user.nameFirst && user.nameLast ? `${user.nameFirst} ${user.nameLast}` : user.username}
-                </span>
-              </NavLink>
-            )}
-
-            <ActionIcon
-              variant='subtle'
-              className='shrink-0'
-              onClick={(e) => {
-                e.preventDefault();
-                openMenu(e.clientX, e.clientY);
-              }}
-            >
-              <FontAwesomeIcon icon={faEllipsisVertical} />
-            </ActionIcon>
-          </Card>
+            <Avatar size={32} className='select-none shrink-0' src={user.avatar} name={user.username} />
+            <span className='ph-sidebar-user-name'>{displayName}</span>
+            <FontAwesomeIcon icon={faChevronUp} className='ph-sidebar-user-chevron' />
+          </button>
         )}
       </ContextMenu>
 
@@ -366,5 +358,6 @@ function Footer() {
 export default makeComponentHookable(Sidebar, {
   Link: makeComponentHookable(Link),
   Divider: makeComponentHookable(Divider),
+  Logo: makeComponentHookable(Logo),
   Footer: makeComponentHookable(Footer),
 });

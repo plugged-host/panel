@@ -28,14 +28,14 @@ function TitleCard({
   rightSection,
 }: TitleCardProps) {
   return (
+    // plugged.host: Filament's section, "bg-white/5 rounded-2xl": the heading "px-6 py-4 text-base
+    // font-semibold" over a hairline, the content "p-6".
     <Card withBorder p={0} className={className}>
       <Group
         id='title-card-header'
-        className={classNames('bg-(--mantine-color-default) light:bg-(--mantine-color-gray-0)', titleClassName)}
-        style={{ borderBottom: '1px solid var(--mantine-color-default-border)' }}
+        className={classNames('px-4 py-3 md:px-6 md:py-4', titleClassName)}
+        style={{ borderBottom: '1px solid var(--phv2-hairline)' }}
         gap='sm'
-        px='md'
-        py='sm'
       >
         {leftSection}
         {icon && (
@@ -62,7 +62,7 @@ function TitleCard({
         </Title>
         {rightSection}
       </Group>
-      <div className={classNames('p-4 h-full', wrapperClassName)}>{children}</div>
+      <div className={classNames('p-4 md:p-6 h-full', wrapperClassName)}>{children}</div>
     </Card>
   );
 }

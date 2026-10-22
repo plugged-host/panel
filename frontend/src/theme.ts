@@ -1,4 +1,4 @@
-import { Badge, Button, MantineColorsTuple, MantineThemeOverride, ThemeIcon } from '@mantine/core';
+import { Badge, Button, MantineColorsTuple, MantineThemeOverride, Modal, Tabs, ThemeIcon } from '@mantine/core';
 
 /*
  * plugged.host Theme v2 on Mantine. The values are the ones the Pelican panel's theme uses
@@ -48,14 +48,32 @@ export const pluggedHostTheme: MantineThemeOverride = {
   colors: { blue, dark },
   fontFamily: sans,
   fontFamilyMonospace: "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
-  // Page titles: "text-xl font-semibold".
-  headings: { fontFamily: sans, fontWeight: '600', sizes: { h1: { fontSize: '1.25rem', lineHeight: '1.75rem' } } },
+  // Filament's type scale: page titles "text-xl font-semibold", section and modal headings
+  // "text-base font-semibold", nothing bigger.
+  headings: {
+    fontFamily: sans,
+    fontWeight: '600',
+    sizes: {
+      h1: { fontSize: '1.25rem', lineHeight: '1.75rem' },
+      h2: { fontSize: '1.125rem', lineHeight: '1.75rem' },
+      h3: { fontSize: '1.125rem', lineHeight: '1.75rem' },
+      h4: { fontSize: '1rem', lineHeight: '1.5rem' },
+      h5: { fontSize: '1rem', lineHeight: '1.5rem' },
+      h6: { fontSize: '0.875rem', lineHeight: '1.25rem' },
+    },
+  },
   defaultRadius: 'md',
   cursorType: 'pointer',
   components: {
-    // Theme v2 buttons are pills ("rounded-full"); badges are rounded-lg.
+    // Theme v2 buttons are pills ("rounded-full"); badges are rounded-lg and tinted, never solid
+    // (Filament's "bg-custom-400/10 text-custom-400").
     Button: Button.extend({ defaultProps: { radius: 'xl' } }),
-    Badge: Badge.extend({ defaultProps: { radius: 'md' } }),
+    Badge: Badge.extend({ defaultProps: { radius: 'md', variant: 'light' } }),
+    // Filament's modal overlay: "bg-gray-950/75", no blur.
+    Modal: Modal.extend({ defaultProps: { overlayProps: { backgroundOpacity: 0.75, color: '#0b0d10', blur: 0 } } }),
+    // Underlined tabs (inside cards and modals): the bright accent as the line, like Filament's
+    // contained tabs ("border-primary-500 text-primary-500").
+    Tabs: Tabs.extend({ defaultProps: { color: 'blue.4' } }),
     // Icon tiles (stat cards) stay flat: a tint, not a second filled accent next to the buttons.
     ThemeIcon: ThemeIcon.extend({ defaultProps: { variant: 'light' } }),
   },

@@ -21,8 +21,8 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         {...rest}
         style={{
           cursor: loading ? 'wait' : undefined,
-          fontWeight: 'normal',
-          border: disabled ? '1px solid var(--mantine-color-default-border)' : undefined,
+          // plugged.host: Filament's buttons are "font-semibold"; a disabled one only fades.
+          fontWeight: 600,
           color: disabled ? 'var(--mantine-color-dimmed)' : undefined,
           ...rest.style,
         }}

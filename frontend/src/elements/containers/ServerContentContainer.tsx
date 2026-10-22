@@ -142,8 +142,8 @@ function ServerContentContainer(props: Props) {
         ))}
 
       {fullscreen || id ? null : server.isTransferring ? (
-        <div className='mt-2 px-4 lg:px-6 mb-4'>
-          <Notification>
+        <div className='ph-main ph-main-banner'>
+          <Notification className='ph-callout'>
             <div className='flex flex-col md:flex-row items-center gap-2'>
               <div className='flex flex-col w-full gap-2 md:gap-0'>
                 <span className='flex flex-col md:flex-row md:items-center gap-1'>
@@ -177,16 +177,16 @@ function ServerContentContainer(props: Props) {
           </Notification>
         </div>
       ) : server.isSuspended ? (
-        <div className='mt-2 px-4 lg:px-6 mb-4'>
-          <Notification color='red'>
+        <div className='ph-main ph-main-banner'>
+          <Notification className='ph-callout' color='red'>
             {user?.admin
               ? t('pages.server.console.notification.suspendedAdmin', {})
               : t('pages.server.console.notification.suspended', {})}
           </Notification>
         </div>
       ) : server.status === 'restoring_backup' ? (
-        <div className='mt-2 px-4 lg:px-6 mb-4'>
-          <Notification loading>
+        <div className='ph-main ph-main-banner'>
+          <Notification className='ph-callout' loading>
             <span className='flex flex-row items-center'>
               {t('pages.server.console.notification.restoringBackup', {})}
               <EstimatedTimeArrival className='ml-1' progress={backupRestoreProgress} total={backupRestoreTotal} />
@@ -204,8 +204,8 @@ function ServerContentContainer(props: Props) {
           </Notification>
         </div>
       ) : server.status === 'installing' ? (
-        <div className='mt-2 px-4 lg:px-6 mb-4'>
-          <Notification loading>
+        <div className='ph-main ph-main-banner'>
+          <Notification className='ph-callout' loading>
             <div className='flex flex-row items-center justify-between'>
               <span className='flex flex-col md:flex-row md:items-center gap-1'>
                 {t('pages.server.console.notification.installing', {})}
@@ -242,16 +242,21 @@ function ServerContentContainer(props: Props) {
           </Notification>
         </div>
       ) : server.nodeMaintenanceEnabled ? (
-        <div className='mt-2 px-4 lg:px-6 mb-4'>
-          <Notification color='yellow'>{t('pages.server.console.notification.nodeMaintenance', {})}</Notification>
+        <div className='ph-main ph-main-banner'>
+          <Notification className='ph-callout' color='yellow'>
+            {t('pages.server.console.notification.nodeMaintenance', {})}
+          </Notification>
         </div>
       ) : pendingRestart ? (
-        <div className='mt-2 px-4 lg:px-6 mb-4'>
-          <Notification color='yellow'>{t('pages.server.console.notification.pendingRestart', {})}</Notification>
+        <div className='ph-main ph-main-banner'>
+          <Notification className='ph-callout' color='yellow'>
+            {t('pages.server.console.notification.pendingRestart', {})}
+          </Notification>
         </div>
       ) : null}
 
-      <div className={`${fullscreen || id ? 'mb-4' : 'px-4 lg:px-6 mb-4 lg:mt-6 mt-2'}`}>
+      {/* plugged.host: the Pelican panel's page column (".ph-main" in app.css) */}
+      <div className={fullscreen || id ? 'mb-4' : 'ph-main'}>
         <ExtensionSlot components={registry?.prependedComponents ?? []} name='prepended' props={modifiedProps} />
 
         <ContentContainerHeader

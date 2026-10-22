@@ -1,5 +1,3 @@
-import { faCubesStacked, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   Center,
   Group,
@@ -46,7 +44,7 @@ export const TableHeader = ({ name, hint, content, className, rightSection, onCl
   const resolvedHint = resolveString(hint);
 
   return (
-    <MantineTable.Th className={classNames('font-normal! text-nowrap', className)} onClick={onClick}>
+    <MantineTable.Th className={classNames('text-nowrap', className)} onClick={onClick}>
       <div className='flex flex-row items-center gap-2'>
         {resolvedHint ? (
           <div className='flex flex-col'>
@@ -175,15 +173,16 @@ export function Pagination<T>({
   );
 }
 
+// plugged.host: Filament's empty state ("fi-ta-empty-state"), a "text-base font-semibold" heading
+// in the middle of the table, without the illustration.
 export const NoItems = () => {
   const { t } = useTranslations();
 
   return (
-    <Center py='lg'>
-      <Stack align='center' c='dimmed'>
-        <FontAwesomeIcon icon={faCubesStacked} size='3x' className='-mb-2' />
-        <Text>{t('common.table.pagination.empty', {})}</Text>
-      </Stack>
+    <Center py='xl'>
+      <Text fw={600} size='md'>
+        {t('common.table.pagination.empty', {})}
+      </Text>
     </Center>
   );
 };
@@ -192,10 +191,11 @@ export const ErrorItems = ({ error }: { error: string }) => {
   const { t } = useTranslations();
 
   return (
-    <Center py='lg'>
-      <Stack align='center' c='red' gap='xs'>
-        <FontAwesomeIcon icon={faTriangleExclamation} size='3x' className='-mb-2' />
-        <Text fw={500}>{t('common.alert.error', {})}</Text>
+    <Center py='xl'>
+      <Stack align='center' gap={4}>
+        <Text fw={600} size='md' c='red.4'>
+          {t('common.alert.error', {})}
+        </Text>
         <Text c='dimmed' size='sm'>
           {error}
         </Text>
@@ -230,20 +230,11 @@ export default function Table({
   children,
 }: TableProps) {
   return (
-    <div
-      style={
-        flush
-          ? undefined
-          : {
-              borderRadius: 'var(--mantine-radius-md)',
-              border: '1px solid var(--mantine-color-default-border)',
-              background: 'var(--mantine-color-default)',
-              overflow: 'hidden',
-            }
-      }
-    >
+    // plugged.host: Filament's table on Theme v2's transparent container ("fi-ta-ctn"): no box of its
+    // own, the head a white/5 band with rounded corners, hairlines between the rows (app.css).
+    <div className='ph-table-ctn' style={flush ? undefined : { borderRadius: '0.75rem', overflow: 'hidden' }}>
       {!error && pagination && onPageSelect && pagination.total > pagination.perPage && (
-        <Pagination data={pagination} m='xs' onPageSelect={onPageSelect} withShortcuts={false} />
+        <Pagination data={pagination} pb='sm' onPageSelect={onPageSelect} withShortcuts={false} />
       )}
 
       <MantineTable.ScrollContainer minWidth={0} type='native'>
@@ -253,6 +244,7 @@ export default function Table({
             verticalSpacing={verticalSpacing}
             highlightOnHover={(pagination?.total ?? 0) > 0 && !loading}
             className={classNames(
+              'ph-table',
               allowSelect ? undefined : 'select-none',
               loading && 'opacity-50 pointer-events-none transition-opacity',
             )}
@@ -281,7 +273,7 @@ export default function Table({
         pagination?.total === 0 && !loading && <div className='p-2.5'>{empty ?? <NoItems />}</div>
       )}
 
-      {!error && pagination && onPageSelect && <Pagination data={pagination} m='xs' onPageSelect={onPageSelect} />}
+      {!error && pagination && onPageSelect && <Pagination data={pagination} pt='sm' onPageSelect={onPageSelect} />}
     </div>
   );
 }

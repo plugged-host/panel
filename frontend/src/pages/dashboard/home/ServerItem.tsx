@@ -1,13 +1,7 @@
 import {
   faAdd,
-  faBan,
-  faCheckCircle,
-  faCircleXmark,
   faEllipsisVertical,
-  faHardDrive,
   faInfoCircle,
-  faMemory,
-  faMicrochip,
   faMinus,
   faPlay,
   faRotateRight,
@@ -17,14 +11,14 @@ import {
   faUsers,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import classNames from 'classnames';
 import { useCallback, useMemo, useState } from 'react';
 import { NavLink } from 'react-router';
 import { z } from 'zod';
 import ActionIcon from '@/elements/buttons/ActionIcon.tsx';
 import CopyOnClick from '@/elements/CopyOnClick.tsx';
-import Card from '@/elements/data-display/Card.tsx';
 import Spinner from '@/elements/feedback/Spinner.tsx';
-import Divider from '@/elements/layout/Divider.tsx';
+import Checkbox from '@/elements/input/Checkbox.tsx';
 import ConfirmationModal from '@/elements/modals/ConfirmationModal.tsx';
 import ContextMenu, { ContextMenuItem } from '@/elements/overlays/ContextMenu.tsx';
 import Tooltip from '@/elements/overlays/Tooltip.tsx';
@@ -104,6 +98,57 @@ export default function ServerItem({
     server.limits.memory !== 0 ? bytesToString(mbToBytes(server.limits.memory)) : t('common.unlimited', {});
   const cpuLimit = server.limits.cpu !== 0 ? `${server.limits.cpu}%` : t('common.unlimited', {});
 
+  // plugged.host: the card's state line and meters (Theme v2's ThemeV2ServerEntry).
+  const stateLabel = server.isSuspended
+    ? t('common.server.state.suspended', {})
+    : server.isTransferring
+      ? t('common.server.state.transferring', {})
+      : server.nodeMaintenanceEnabled
+        ? t('common.server.state.nodeMaintenance', {})
+        : server.status
+          ? serverStatusInfo[server.status].label()
+          : stats
+            ? t(`common.enum.serverState.${stats.state}`, {})
+            : statsUnavailable
+              ? t('common.server.state.resourcesUnavailable', {})
+              : t('common.enum.serverState.unknown', {});
+  const stateFailed =
+    server.isSuspended ||
+    server.nodeMaintenanceEnabled ||
+    (!!server.status && serverStatusInfo[server.status].failed) ||
+    (!server.status && !stats && statsUnavailable);
+  const stateBusy = !stateFailed && (server.isTransferring || !!server.status || (!stats && !statsUnavailable));
+
+  const showUsage = !!stats && !server.isSuspended && !server.isTransferring && !server.status;
+  const meter = (label: string, used: number, limit: number, format: (value: number) => string, unlimited: string) => {
+    const percent = showUsage && limit > 0 ? Math.min(100, Math.max(0, (used / limit) * 100)) : 0;
+
+    return {
+      label,
+      used: showUsage ? format(used) : null,
+      limit: limit > 0 ? format(limit) : unlimited,
+      percent,
+      level: percent >= 95 ? 'danger' : percent >= 80 ? 'warning' : 'normal',
+    };
+  };
+  const meters = [
+    meter(t('common.stat.cpu', {}), stats?.cpuAbsolute ?? 0, server.limits.cpu, (v) => `${v.toFixed(2)}%`, cpuLimit),
+    meter(
+      t('common.stat.memoryUsage', {}),
+      stats?.memoryBytes ?? 0,
+      mbToBytes(server.limits.memory),
+      bytesToString,
+      memoryLimit,
+    ),
+    meter(
+      t('common.stat.diskUsage', {}),
+      stats?.diskBytes ?? 0,
+      mbToBytes(server.limits.disk),
+      bytesToString,
+      diskLimit,
+    ),
+  ];
+
   const contextMenuItems: ContextMenuItem[] = useMemo(
     () => [
       {
@@ -160,248 +205,202 @@ export default function ServerItem({
         {t('pages.server.console.power.modal.forceStop.content', {}).md()}
       </ConfirmationModal>
 
+      {/* plugged.host: Theme v2's server card ("phv2-server", server-entry.blade.php on the Pelican
+          panel): a status bar down its left edge, the name over the state, the power menu at the end
+          of that row, then CPU, memory and disk as used / limit over a thin bar, and the address.
+          Its layout follows its own width (a container query in app.css). */}
       <ContextMenu enabled={showContextMenu} items={contextMenuItems}>
         {({ items, openMenu }) => (
-          <div className='min-w-0'>
-            <div
-              onClick={onClick}
-              onContextMenu={(e) => {
-                e.preventDefault();
-                openMenu(e.clientX, e.clientY);
+          <div
+            className='min-w-0'
+            onClick={onClick}
+            onContextMenu={(e) => {
+              e.preventDefault();
+              openMenu(e.clientX, e.clientY);
+            }}
+          >
+            <NavLink
+              to={to ?? `/server/${server.uuidShort}`}
+              className='ph-server-card'
+              data-selected={isSelected || undefined}
+              onClick={(e) => {
+                if (sKeyPressedRef?.current) {
+                  e.preventDefault();
+                }
               }}
-              className='min-w-0'
             >
-              <NavLink
-                to={to ?? `/server/${server.uuidShort}`}
-                className='block min-w-0'
-                onClick={(e) => {
-                  if (sKeyPressedRef?.current) {
-                    e.preventDefault();
-                  }
-                }}
-              >
-                <Card
-                  className='@container duration-200 h-full flex flex-col justify-between rounded-xl! overflow-hidden min-w-0'
-                  leftStripeClassName={statusToColor(stats?.state)}
-                  hoverable
-                >
-                  <div className='flex flex-col @md:flex-row @md:items-center gap-2 justify-between overflow-hidden min-w-0'>
-                    <div className='flex gap-2 items-center min-w-0 flex-1'>
-                      {showSelection && (
-                        <Tooltip
-                          label={
-                            isSelected
-                              ? t('pages.account.home.bulkActions.deselect', {})
-                              : t('pages.account.home.bulkActions.select', {})
-                          }
-                        >
-                          <ActionIcon
-                            size='input-sm'
-                            variant={isSelected ? undefined : 'light'}
-                            color={isSelected ? 'green' : 'gray'}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              onSelectionChange?.(!isSelected);
-                            }}
-                          >
-                            <FontAwesomeIcon icon={isSelected ? faCheckCircle : faCircleXmark} />
-                          </ActionIcon>
+              <div className='phv2-server'>
+                <span className={classNames('phv2-server-status-bar', statusToColor(stats?.state))} />
+
+                <div className='phv2-server-head'>
+                  {showSelection && (
+                    <span
+                      className='phv2-server-select'
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        onSelectionChange?.(!isSelected);
+                      }}
+                    >
+                      <Checkbox
+                        checked={isSelected}
+                        readOnly
+                        aria-label={
+                          isSelected
+                            ? t('pages.account.home.bulkActions.deselect', {})
+                            : t('pages.account.home.bulkActions.select', {})
+                        }
+                        classNames={{ input: 'cursor-pointer!' }}
+                      />
+                    </span>
+                  )}
+
+                  <div className='phv2-server-title'>
+                    <h2 className='phv2-server-name'>
+                      <ScrollingText className='min-w-0 flex-1'>{server.name}</ScrollingText>
+                      {showForeignServerBadge && !server.isOwner && (
+                        <Tooltip label={t('pages.account.home.tooltip.foreign', {})}>
+                          <FontAwesomeIcon
+                            size='sm'
+                            icon={faUsers}
+                            className='shrink-0 text-(--mantine-color-yellow-text)'
+                          />
                         </Tooltip>
                       )}
-                      <span className='text-xl font-medium flex items-center gap-2 min-w-0 flex-1'>
-                        <ScrollingText className='flex-1'>{server.name}</ScrollingText>
-                        {showForeignServerBadge && !server.isOwner && (
-                          <Tooltip label={t('pages.account.home.tooltip.foreign', {})}>
-                            <FontAwesomeIcon
-                              size='sm'
-                              icon={faUsers}
-                              className='shrink-0 text-(--mantine-color-yellow-filled)'
-                            />
-                          </Tooltip>
-                        )}
-                        {!serverListShowOthers && serverGroups.every((g) => !g.serverOrder.includes(server.uuid)) && (
-                          <Tooltip label={t('pages.account.home.tooltip.noGroup', {})}>
-                            <FontAwesomeIcon size='sm' icon={faInfoCircle} className='shrink-0' />
-                          </Tooltip>
-                        )}
-                      </span>
-                    </div>
-                    <div className='flex flex-row items-center min-w-0 @md:justify-end @md:max-w-none'>
-                      {server.allocation ? (
-                        server.egg.separatePort ? (
-                          <div className='flex flex-row gap-2 min-w-0'>
-                            <CopyOnClick
-                              content={server.allocation.ipAlias ?? server.allocation.ip}
-                              className='min-w-0'
-                            >
-                              <Card p='xs' hoverable className='leading-[100%] min-w-0 rounded-lg!'>
-                                <p className='text-sm text-(--mantine-color-dimmed)'>
-                                  <ScrollingText>
-                                    <RedactedText value={server.allocation.ipAlias ?? server.allocation.ip} />
-                                  </ScrollingText>
-                                </p>
-                              </Card>
-                            </CopyOnClick>
-                            <CopyOnClick content={server.allocation.port.toString()} className='shrink-0'>
-                              <Card p='xs' hoverable className='leading-[100%] text-nowrap rounded-lg!'>
-                                <p className='text-sm text-(--mantine-color-dimmed)'>
-                                  {server.allocation.port.toString()}
-                                </p>
-                              </Card>
-                            </CopyOnClick>
-                          </div>
-                        ) : (
-                          <CopyOnClick content={formatAllocation(server.allocation)} className='min-w-0'>
-                            <Card p='xs' hoverable className='leading-[100%] min-w-0 rounded-lg!'>
-                              <p className='text-sm text-(--mantine-color-dimmed)'>
-                                <ScrollingText>
-                                  <RedactedText value={formatAllocation(server.allocation)} />
-                                </ScrollingText>
-                              </p>
-                            </Card>
-                          </CopyOnClick>
-                        )
-                      ) : (
-                        <Card p='xs' className='leading-[100%] min-w-0 rounded-lg! max-w-full'>
-                          <p className='text-sm text-(--mantine-color-dimmed) truncate'>
-                            {t('common.server.noAllocation', {})}
-                          </p>
-                        </Card>
-                      )}
-                      {showGroupAddButton && (
-                        <Tooltip
-                          label={
-                            availableServerGroups.length === 0
-                              ? t('pages.account.home.tooltip.noGroups', {})
-                              : t('pages.account.home.tooltip.addToGroup', {})
-                          }
-                          className='ml-2'
-                        >
-                          <ActionIcon
-                            size='input-sm'
-                            variant='light'
-                            disabled={availableServerGroups.length === 0}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              setOpenModal('add-group');
-                            }}
-                          >
-                            <FontAwesomeIcon icon={faAdd} />
-                          </ActionIcon>
+                      {!serverListShowOthers && serverGroups.every((g) => !g.serverOrder.includes(server.uuid)) && (
+                        <Tooltip label={t('pages.account.home.tooltip.noGroup', {})}>
+                          <FontAwesomeIcon
+                            size='sm'
+                            icon={faInfoCircle}
+                            className='shrink-0 text-(--phv2-text-faint)'
+                          />
                         </Tooltip>
                       )}
-                      {onGroupRemove && (
-                        <Tooltip label={t('pages.account.home.tooltip.removeFromGroup', {})} className='ml-2'>
-                          <ActionIcon
-                            size='input-sm'
-                            color='red'
-                            variant='light'
-                            onClick={(e) => {
-                              e.preventDefault();
-                              onGroupRemove();
-                            }}
-                          >
-                            <FontAwesomeIcon icon={faMinus} />
-                          </ActionIcon>
-                        </Tooltip>
+                    </h2>
+                    <p className='phv2-server-state'>
+                      {stateBusy && <Spinner size={12} />}
+                      {stateFailed && (
+                        <FontAwesomeIcon icon={faTriangleExclamation} className='text-(--mantine-color-yellow-text)' />
                       )}
-                      {showContextMenu && items.some((item) => !item.hidden && item.canAccess !== false) && (
-                        <Tooltip label={t('common.form.powerAction', {})} className='ml-2'>
-                          <ActionIcon
-                            size='input-sm'
-                            variant='light'
-                            color='gray'
-                            loading={bulkActionLoading !== null}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              const rect = e.currentTarget.getBoundingClientRect();
-                              openMenu(rect.left, rect.bottom);
-                            }}
-                          >
-                            <FontAwesomeIcon icon={faEllipsisVertical} />
-                          </ActionIcon>
-                        </Tooltip>
-                      )}
-                    </div>
+                      <span className='truncate'>{stateLabel}</span>
+                    </p>
                   </div>
 
-                  <div className='flex flex-col justify-between'>
-                    <Divider my='md' />
-
-                    {server.isSuspended ? (
-                      <div className='col-span-3 flex flex-row items-center justify-center'>
-                        <FontAwesomeIcon size='1x' icon={faBan} color='red' />
-                        <p className='ml-2 text-sm'>{t('common.server.state.suspended', {})}</p>
-                      </div>
-                    ) : server.isTransferring ? (
-                      <div className='col-span-3 flex flex-row items-center justify-center'>
-                        <Spinner size={16} />
-                        <p className='ml-2 text-sm'>{t('common.server.state.transferring', {})}</p>
-                      </div>
-                    ) : server.nodeMaintenanceEnabled ? (
-                      <div className='col-span-3 flex flex-row items-center justify-center'>
-                        <FontAwesomeIcon size='1x' icon={faBan} color='red' />
-                        <p className='ml-2 text-sm'>{t('common.server.state.nodeMaintenance', {})}</p>
-                      </div>
-                    ) : server.status ? (
-                      <div className='col-span-3 flex flex-row items-center justify-center'>
-                        {serverStatusInfo[server.status].failed ? (
-                          <FontAwesomeIcon size='1x' icon={faTriangleExclamation} color='yellow' />
-                        ) : (
-                          <Spinner size={16} />
-                        )}
-                        <p className='ml-2 text-sm'>{serverStatusInfo[server.status].label()}</p>
-                      </div>
-                    ) : !stats ? (
-                      <div className='col-span-3 flex flex-row items-center justify-center'>
-                        {statsUnavailable ? (
-                          <>
-                            <FontAwesomeIcon size='1x' icon={faTriangleExclamation} color='yellow' />
-                            <p className='ml-2 text-sm'>{t('common.server.state.resourcesUnavailable', {})}</p>
-                          </>
-                        ) : (
-                          <Spinner size={16} />
-                        )}
-                      </div>
-                    ) : (
-                      <div className='flex flex-col sm:flex-row justify-center'>
-                        <div className='flex gap-2 text-sm justify-start sm:justify-center items-center'>
-                          <FontAwesomeIcon icon={faMicrochip} className='size-5 flex-none' />
-                          <div>
-                            <span className='mr-1'>{stats.cpuAbsolute.toFixed(2)}%</span>
-                            <span className='inline-block text-xs text-(--mantine-color-dimmed)'>/ {cpuLimit}</span>
-                          </div>
-                        </div>
-
-                        <Divider mx='sm' orientation='vertical' className='hidden sm:block' />
-                        <Divider my='xs' className='sm:hidden' />
-
-                        <div className='flex gap-2 text-sm justify-start sm:justify-center items-center'>
-                          <FontAwesomeIcon icon={faMemory} className='size-5 flex-none' />
-                          <div>
-                            <span className='mr-1'>{bytesToString(stats.memoryBytes)}</span>
-                            <span className='inline-block text-xs text-(--mantine-color-dimmed)'>/ {memoryLimit}</span>
-                          </div>
-                        </div>
-
-                        <Divider mx='sm' orientation='vertical' className='hidden sm:block' />
-                        <Divider my='xs' className='sm:hidden' />
-
-                        <div className='flex gap-2 text-sm justify-start sm:justify-center items-center'>
-                          <FontAwesomeIcon icon={faHardDrive} className='size-5 flex-none' />
-                          <div>
-                            <span className='mr-1'>{bytesToString(stats.diskBytes)}</span>
-                            <span className='inline-block text-xs text-(--mantine-color-dimmed)'>/ {diskLimit}</span>
-                          </div>
-                        </div>
-                      </div>
+                  <div className='phv2-server-actions'>
+                    {showGroupAddButton && (
+                      <Tooltip
+                        label={
+                          availableServerGroups.length === 0
+                            ? t('pages.account.home.tooltip.noGroups', {})
+                            : t('pages.account.home.tooltip.addToGroup', {})
+                        }
+                      >
+                        <ActionIcon
+                          size='input-sm'
+                          variant='subtle'
+                          color='gray'
+                          aria-label={t('pages.account.home.tooltip.addToGroup', {})}
+                          disabled={availableServerGroups.length === 0}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setOpenModal('add-group');
+                          }}
+                        >
+                          <FontAwesomeIcon icon={faAdd} />
+                        </ActionIcon>
+                      </Tooltip>
+                    )}
+                    {onGroupRemove && (
+                      <Tooltip label={t('pages.account.home.tooltip.removeFromGroup', {})}>
+                        <ActionIcon
+                          size='input-sm'
+                          color='red'
+                          variant='subtle'
+                          aria-label={t('pages.account.home.tooltip.removeFromGroup', {})}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            onGroupRemove();
+                          }}
+                        >
+                          <FontAwesomeIcon icon={faMinus} />
+                        </ActionIcon>
+                      </Tooltip>
+                    )}
+                    {showContextMenu && items.some((item) => !item.hidden && item.canAccess !== false) && (
+                      <Tooltip label={t('common.form.powerAction', {})}>
+                        <ActionIcon
+                          size='input-sm'
+                          variant='subtle'
+                          color='gray'
+                          aria-label={t('common.form.powerAction', {})}
+                          loading={bulkActionLoading !== null}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const rect = e.currentTarget.getBoundingClientRect();
+                            openMenu(rect.left, rect.bottom);
+                          }}
+                        >
+                          <FontAwesomeIcon icon={faEllipsisVertical} />
+                        </ActionIcon>
+                      </Tooltip>
                     )}
                   </div>
-                </Card>
-              </NavLink>
-            </div>
+                </div>
+
+                {server.description && <p className='phv2-server-description'>{server.description}</p>}
+
+                <div className='phv2-server-stats'>
+                  {meters.map((meter) => (
+                    <div key={meter.label} className='phv2-server-stat'>
+                      <div className='phv2-server-stat-info'>
+                        <span className='phv2-server-stat-name'>{meter.label}</span>
+                        <span className='phv2-server-stat-value'>
+                          {meter.used === null ? (
+                            <span className='phv2-server-stat-limit'>—</span>
+                          ) : (
+                            <>
+                              <span className={classNames('phv2-server-stat-used', `phv2-server-stat-${meter.level}`)}>
+                                {meter.used}
+                              </span>{' '}
+                              <span className='phv2-server-stat-limit'>/ {meter.limit}</span>
+                            </>
+                          )}
+                        </span>
+                      </div>
+                      <div
+                        className='phv2-server-track'
+                        role='progressbar'
+                        aria-label={`${meter.label}: ${meter.used ?? '—'} / ${meter.limit}`}
+                        aria-valuenow={Math.round(meter.percent)}
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                      >
+                        <span
+                          className={classNames('phv2-server-bar', `phv2-server-bar-${meter.level}`)}
+                          style={{ width: `${meter.percent}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+
+                  <div className='phv2-server-address'>
+                    <span className='phv2-server-stat-name'>{t('common.stat.network', {})}</span>
+                    {server.allocation ? (
+                      <CopyOnClick content={formatAllocation(server.allocation)} className='min-w-0'>
+                        <span className='phv2-server-address-value'>
+                          <RedactedText value={formatAllocation(server.allocation)} />
+                        </span>
+                      </CopyOnClick>
+                    ) : (
+                      <span className='phv2-server-address-value'>{t('common.server.noAllocation', {})}</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </NavLink>
           </div>
         )}
       </ContextMenu>

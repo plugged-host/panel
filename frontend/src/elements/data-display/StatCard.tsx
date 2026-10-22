@@ -6,13 +6,17 @@ import { ReactNode } from 'react';
 import Button from '@/elements/buttons/Button.tsx';
 import CopyOnClick from '@/elements/CopyOnClick.tsx';
 import Card from '@/elements/data-display/Card.tsx';
-import ThemeIcon from '@/elements/data-display/ThemeIcon.tsx';
 import ScrollingText from '@/elements/ScrollingText.tsx';
 import RedactedText from '@/elements/typography/RedactedText.tsx';
-import { usageColor } from '@/lib/format/usage.ts';
+import { usageColor, usagePercent } from '@/lib/format/usage.ts';
 
+/*
+ * plugged.host: the Pelican console's stat block ("fi-small-stat-block") on Theme v2's card: the
+ * label in gray-400 over the value in white, no icon tile (Theme v2 drops glyph boxes), and the
+ * usage as Theme v2's thin bar under it ("phv2-server-track"). `icon` is still accepted, for the
+ * callers and extensions that pass one.
+ */
 export default function StatCard({
-  icon,
   label,
   value,
   order,
@@ -44,48 +48,59 @@ export default function StatCard({
 }) {
   const displayValue = redact ? <RedactedText value={value} /> : value;
   const color = usageColor(progress, total);
+  const percent = usagePercent(progress, total);
+
+  const valueContent = (
+    <>
+      {displayValue} {limit && <span className='ph-stat-limit'>/ {limit}</span>}
+    </>
+  );
 
   return (
-    <Card className={className} style={{ order }} progress={progress} total={total} progressColor={color}>
-      <div className='flex flex-row items-center'>
-        {icon && (
-          <ThemeIcon size='xl' radius='md' color={color}>
-            <FontAwesomeIcon size='xl' icon={icon} />
-          </ThemeIcon>
+    <Card className={classNames('ph-stat', className)} style={{ order }} p={0}>
+      <div className='ph-stat-head'>
+        <span className='ph-stat-label'>{label}</span>
+        {details && <span className='ph-stat-details'>{details}</span>}
+        {popover && (
+          <Popover position='bottom' withArrow shadow='md'>
+            <Popover.Target>
+              <Button variant='transparent' size='compact-xs' className='ph-stat-popover' aria-label={label}>
+                <FontAwesomeIcon icon={popoverIcon} />
+              </Button>
+            </Popover.Target>
+            <Popover.Dropdown>{popover}</Popover.Dropdown>
+          </Popover>
         )}
-        <div className={classNames('flex flex-col w-full min-w-0', icon && 'ml-4')}>
-          <div className='w-full flex justify-between items-baseline gap-2'>
-            <span className='text-sm text-left text-(--mantine-color-dimmed) font-bold shrink-0'>{label}</span>
-            {details && <span className='text-xs text-(--mantine-color-dimmed) truncate'>{details}</span>}
-            {popover && (
-              <Popover position='bottom' withArrow shadow='md'>
-                <Popover.Target>
-                  <Button variant='transparent' size='compact-xs'>
-                    <FontAwesomeIcon size='lg' icon={popoverIcon} />
-                  </Button>
-                </Popover.Target>
-                <Popover.Dropdown>{popover}</Popover.Dropdown>
-              </Popover>
-            )}
-          </div>
-          <span
-            className='text-lg font-bold max-w-full'
-            style={valueColor ? { color: `var(--mantine-color-${valueColor}-text)` } : undefined}
-          >
-            {copyOnClick ? (
-              <ScrollingText>
-                <CopyOnClick content={value} className='text-left block'>
-                  {displayValue} {limit && <span className='text-sm text-(--mantine-color-dimmed)'>/ {limit}</span>}
-                </CopyOnClick>
-              </ScrollingText>
-            ) : (
-              <ScrollingText>
-                {displayValue} {limit && <span className='text-sm text-(--mantine-color-dimmed)'>/ {limit}</span>}
-              </ScrollingText>
-            )}
-          </span>
-        </div>
       </div>
+      <span
+        className='ph-stat-value'
+        style={valueColor ? { color: `var(--mantine-color-${valueColor}-text)` } : undefined}
+      >
+        {copyOnClick ? (
+          <ScrollingText>
+            <CopyOnClick content={value} className='text-left block'>
+              {valueContent}
+            </CopyOnClick>
+          </ScrollingText>
+        ) : (
+          <ScrollingText>{valueContent}</ScrollingText>
+        )}
+      </span>
+      {percent !== null && (
+        <div
+          className='ph-stat-track'
+          role='progressbar'
+          aria-label={label}
+          aria-valuenow={Math.round(percent)}
+          aria-valuemin={0}
+          aria-valuemax={100}
+        >
+          <span
+            className='ph-stat-bar'
+            style={{ width: `${percent}%`, backgroundColor: color === 'red' ? 'var(--mantine-color-red-4)' : color }}
+          />
+        </div>
+      )}
     </Card>
   );
 }

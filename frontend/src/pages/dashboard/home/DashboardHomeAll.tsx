@@ -182,7 +182,7 @@ export default function DashboardHomeAll() {
       ) : (servers?.total ?? 0) === 0 ? (
         <p className='text-(--mantine-color-dimmed)'>{t('pages.account.home.noServers', {})}</p>
       ) : (
-        <div className='gap-4 grid md:grid-cols-2'>
+        <div className='ph-server-grid'>
           {servers?.data.map((server) => (
             <ServerItem
               key={server.uuid}

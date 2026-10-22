@@ -51,7 +51,8 @@ function AccountContentContainer(props: Props) {
 
   return (
     <ContentContainer title={`${title} | ${settings.app.name}`}>
-      <div className={`${fullscreen || id ? 'mb-4' : 'px-4 lg:px-6 mb-4 lg:mt-6 mt-2'}`}>
+      {/* plugged.host: the Pelican panel's page column (".ph-main" in app.css) */}
+      <div className={fullscreen || id ? 'mb-4' : 'ph-main'}>
         <ExtensionSlot components={registry?.prependedComponents ?? []} name='prepended' props={modifiedProps} />
 
         <ContentContainerHeader

@@ -34,7 +34,8 @@ function AdminSubContentContainer<P>(props: Props<P>) {
     title,
     subtitle,
     hideTitleComponent = false,
-    titleOrder = 1,
+    // plugged.host: a page inside a page has Filament's table heading, not a second page title
+    titleOrder = 2,
     search,
     setSearch,
     contentRight,
