@@ -23,7 +23,7 @@
     "cross-env": "^10.1.0",
     "module-alias": "^2.3.4",
     "pg": "^8.23.0",
-    "zod": "^4.4.3"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.8",
