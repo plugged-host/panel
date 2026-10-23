@@ -122,7 +122,7 @@ mod get {
 mod delete {
     use crate::routes::api::admin::users::_user_::GetParamUser;
     use axum::http::StatusCode;
-    use serde::Serialize;
+    use serde::{Deserialize, Serialize}; // plugged.host: Deserialize
     use shared::{
         ApiError, GetState,
         models::{
@@ -136,6 +136,16 @@ mod delete {
     #[derive(ToSchema, Serialize)]
     struct Response {}
 
+    // plugged.host: `?delete_servers=true` deletes the user's servers first, `&force=true` even when
+    // their node cannot be reached (docs/features/admin-users.md)
+    #[derive(Deserialize, Default)]
+    pub struct Params {
+        #[serde(default)]
+        delete_servers: bool,
+        #[serde(default)]
+        force: bool,
+    }
+
     #[utoipa::path(delete, path = "/", responses(
         (status = OK, body = inline(Response)),
         (status = NOT_FOUND, body = ApiError),
@@ -145,15 +155,67 @@ mod delete {
             description = "The user ID",
             example = "123e4567-e89b-12d3-a456-426614174000",
         ),
+        // plugged.host
+        (
+            "delete_servers" = Option<bool>, Query,
+            description = "Delete the user's servers first (needs servers.delete)",
+        ),
+        (
+            "force" = Option<bool>, Query,
+            description = "With delete_servers: delete them even when their node cannot be reached",
+        ),
     ))]
     pub async fn route(
         state: GetState,
         permissions: GetPermissionManager,
         user: GetParamUser,
         activity_logger: GetAdminActivityLogger,
+        axum::extract::Query(params): axum::extract::Query<Params>, // plugged.host
     ) -> ApiResponseResult {
         permissions.has_admin_permission("users.delete")?;
         permissions.can_modify_user(&user)?;
+
+        // plugged.host: the user's servers go first when asked
+        let deleted_servers = if params.delete_servers {
+            permissions.has_admin_permission("servers.delete")?;
+
+            let mut deleted = Vec::new();
+            loop {
+                let servers =
+                    Server::by_owner_uuid_with_pagination(&state.database, user.uuid, 1, 50, None)
+                        .await?;
+                if servers.data.is_empty() {
+                    break;
+                }
+
+                for server in servers.data {
+                    let (uuid, name) = (server.uuid, server.name.clone());
+                    if let Err(err) = server
+                        .delete(
+                            &state,
+                            shared::models::server::DeleteServerOptions {
+                                force: params.force,
+                            },
+                        )
+                        .await
+                    {
+                        tracing::error!(server = %uuid, "failed to delete a server of a deleted user: {:?}", err);
+
+                        return ApiResponse::error(format!(
+                            "failed to delete server {name}: {err}"
+                        ))
+                        .with_status(StatusCode::EXPECTATION_FAILED)
+                        .ok();
+                    }
+
+                    deleted.push(serde_json::json!({ "uuid": uuid, "name": name }));
+                }
+            }
+
+            deleted
+        } else {
+            Vec::new()
+        };
 
         let servers = Server::count_by_user_uuid(&state.database, user.uuid).await?;
         if servers > 0 {
@@ -174,6 +236,7 @@ mod delete {
                     "name_first": user.name_first,
                     "name_last": user.name_last,
                     "admin": user.admin,
+                    "deleted_servers": deleted_servers, // plugged.host
                 }),
             )
             .await;

@@ -307,6 +307,29 @@ mod put {
         api_secret: Option<Option<compact_str::CompactString>>,
     }
 
+    // plugged.host: the status page (shared/src/settings/status.rs)
+    #[derive(ToSchema, Validate, Deserialize)]
+    pub struct PayloadStatus {
+        #[garde(skip)]
+        enabled: Option<bool>,
+        #[garde(url)]
+        #[serde(default, with = "::serde_with::rust::double_option")]
+        site_url: Option<Option<compact_str::CompactString>>,
+        #[garde(length(chars, min = 1, max = 255))]
+        #[serde(default, with = "::serde_with::rust::double_option")]
+        site_host: Option<Option<compact_str::CompactString>>,
+        #[garde(url)]
+        #[serde(default, with = "::serde_with::rust::double_option")]
+        panel_url: Option<Option<compact_str::CompactString>>,
+        #[garde(url)]
+        #[serde(default, with = "::serde_with::rust::double_option")]
+        page_url: Option<Option<compact_str::CompactString>>,
+        #[garde(range(min = 1, max = 365))]
+        history_days: Option<i32>,
+        #[garde(range(min = 1, max = 100))]
+        cpu_threshold: Option<i32>,
+    }
+
     #[derive(ToSchema, Validate, Deserialize)]
     pub struct Payload {
         #[garde(skip)]
@@ -345,6 +368,10 @@ mod put {
         #[schema(inline)]
         #[garde(dive)]
         noprofit: Option<PayloadNoprofit>,
+        // plugged.host
+        #[schema(inline)]
+        #[garde(dive)]
+        status: Option<PayloadStatus>,
     }
 
     #[derive(ToSchema, Serialize)]
@@ -758,6 +785,32 @@ mod put {
                 )
                 .with_status(StatusCode::BAD_REQUEST)
                 .ok();
+            }
+        }
+
+        // plugged.host: the status page
+        if let Some(status) = data.status {
+            if let Some(enabled) = status.enabled {
+                settings.status.enabled = enabled;
+            }
+            let stored_status = &mut settings.status;
+            for (value, stored) in [
+                (status.site_url, &mut stored_status.site_url),
+                (status.site_host, &mut stored_status.site_host),
+                (status.panel_url, &mut stored_status.panel_url),
+                (status.page_url, &mut stored_status.page_url),
+            ] {
+                if let Some(value) = value {
+                    *stored = value
+                        .map(|value| value.trim().into())
+                        .filter(|value: &compact_str::CompactString| !value.is_empty());
+                }
+            }
+            if let Some(history_days) = status.history_days {
+                settings.status.history_days = history_days;
+            }
+            if let Some(cpu_threshold) = status.cpu_threshold {
+                settings.status.cpu_threshold = cpu_threshold;
             }
         }
 

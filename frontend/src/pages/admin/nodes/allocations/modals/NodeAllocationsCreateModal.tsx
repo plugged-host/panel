@@ -12,6 +12,7 @@ import TextInput from '@/elements/input/TextInput.tsx';
 import Stack from '@/elements/layout/Stack.tsx';
 import FormModal from '@/elements/modals/FormModal.tsx';
 import { ModalFooter } from '@/elements/modals/Modal.tsx';
+import { DEFAULT_ALLOCATION_IP, defaultAllocationAlias } from '@/lib/domain/allocation.ts'; // plugged.host
 import { resolvePorts } from '@/lib/network/ip.ts';
 import { adminNodeAllocationsSchema, adminNodeSchema } from '@/lib/schemas/admin/nodes.ts';
 import { liveValidation } from '@/plugins/form/liveValidation.ts';
@@ -31,8 +32,8 @@ export default function NodeAllocationsCreateModal({
 
   const form = useForm<z.infer<typeof adminNodeAllocationsSchema>>({
     initialValues: {
-      ip: '',
-      ipAlias: null,
+      ip: DEFAULT_ALLOCATION_IP, // plugged.host
+      ipAlias: defaultAllocationAlias(node), // plugged.host
       ports: [],
     },
     ...liveValidation,

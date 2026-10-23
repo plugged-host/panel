@@ -26,6 +26,7 @@ import { formatTrashSettings, serverStatusInfo } from '@/lib/domain/server.ts';
 import { bytesToString, mbToBytes } from '@/lib/format/size.ts';
 import { formatDateTime } from '@/lib/format/time.ts';
 import { AdminServer } from '@/lib/schemas/admin/servers.ts';
+import ServerSuspensionCard from '@/pages/admin/servers/ServerSuspensionCard.tsx'; // plugged.host
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 
 type Server = AdminServer;
@@ -86,6 +87,8 @@ export default function ServerOverview({ server }: { server: Server }) {
       )}
 
       <Stack gap='md'>
+        {/* plugged.host */}
+        <ServerSuspensionCard server={server} />
         <div className='grid grid-cols-1 lg:grid-cols-2 gap-4'>
           <TitleCard
             title={t('pages.admin.servers.tabs.overview.page.card.owner', {})}

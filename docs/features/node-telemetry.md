@@ -54,6 +54,14 @@ The fields are part of the native node and location models (`shared/src/models/n
 `shared/src/models/node/placement.rs`, `shared/src/models/location.rs`), so the admin API, the
 `nodes create` command, import and duplicate carry them too.
 
+## Allocations
+
+New allocations default to the IP `0.0.0.0` (every address of the node) with the node's name as
+their alias: the SRV target, else the host of the public URL, else of the URL
+(`frontend/src/lib/domain/allocation.ts`), in the "Create allocations" dialog and when a paired
+node's allocations are made. Players see the alias, which keeps working when the node's address
+changes. Both stay editable.
+
 ## Routes and permissions
 
 | Route | Permission | Gives |

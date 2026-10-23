@@ -29,6 +29,7 @@ pub mod metadata;
 pub mod noprofit; // plugged.host
 pub mod ratelimits;
 pub mod server;
+pub mod status; // plugged.host
 pub mod user;
 pub mod webauthn;
 
@@ -378,6 +379,9 @@ pub struct AppSettings {
     // plugged.host: noprofit.space (optional)
     #[schema(inline)]
     pub noprofit: noprofit::AppSettingsNoprofit,
+    // plugged.host: the public status page
+    #[schema(inline)]
+    pub status: status::AppSettingsStatus,
 
     #[serde(skip)]
     pub disabled_extensions: Vec<compact_str::CompactString>,
@@ -664,6 +668,8 @@ impl SettingsSerializeExt for AppSettings {
             .nest("ratelimits", &self.ratelimits)
             .await?
             .nest("noprofit", &self.noprofit) // plugged.host
+            .await?
+            .nest("status", &self.status) // plugged.host
             .await?;
 
         for (ext_identifier, ext_settings) in self.extensions.iter() {
@@ -944,6 +950,9 @@ impl SettingsDeserializeExt for AppSettingsDeserializer {
             // plugged.host
             noprofit: deserializer
                 .nest("noprofit", &noprofit::AppSettingsNoprofitDeserializer)
+                .await?,
+            status: deserializer
+                .nest("status", &status::AppSettingsStatusDeserializer)
                 .await?,
             disabled_extensions: deserializer
                 .take_raw_setting("disabled_extensions")

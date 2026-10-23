@@ -926,6 +926,40 @@ pub async fn define_background_tasks(
             },
         )
         .await;
+    // plugged.host: suspended servers whose deletion time passed (docs/features/suspension.md)
+    background_task_builder
+        .add_cron_task(
+            "purge_suspended_servers",
+            croner::Cron::from_str("0 */5 * * * *").unwrap(),
+            async |state| {
+                shared::models::server::suspension::purge_due(&state).await?;
+
+                Ok(())
+            },
+        )
+        .await;
+    // plugged.host: the public status page (shared::status): a check a minute, after the nodes' sample.
+    background_task_builder
+        .add_cron_task(
+            "collect_status",
+            croner::Cron::from_str("45 * * * * *").unwrap(),
+            async |state| shared::status::collect(&state).await,
+        )
+        .await;
+    background_task_builder
+        .add_cron_task(
+            "prune_status",
+            croner::Cron::from_str("0 20 4 * * *").unwrap(),
+            async |state| {
+                let pruned = shared::status::prune(&state).await?;
+                if pruned > 0 {
+                    tracing::info!("pruned {} days of status uptime", pruned);
+                }
+
+                Ok(())
+            },
+        )
+        .await;
     background_task_builder
         .add_cron_task(
             "prune_system_backups",

@@ -13,7 +13,7 @@ import { serverBackupRetentionStatusSchema } from '@/lib/schemas/backupRetention
 import { databaseAgentType, databaseType } from '@/lib/schemas/generic.ts';
 import { serverAllocationSchema } from '@/lib/schemas/server/allocations.ts';
 import { serverBackupKind } from '@/lib/schemas/server/backups.ts';
-import { serverAutostartBehavior, serverStatus } from '@/lib/schemas/server/server.ts';
+import { serverAutostartBehavior, serverStatus, serverSuspensionSchema } from '@/lib/schemas/server/server.ts';
 import { serverTrashSettingsSchema } from '@/lib/schemas/server/settings.ts';
 import { nullableNumber, nullableString } from '@/lib/serialization/transformers.ts';
 
@@ -34,6 +34,11 @@ export const adminServerFeatureLimitsSchema = z.looseObject({
   schedules: z.number().min(0),
 });
 
+// plugged.host: the suspension as admins see it (shared/src/models/server/suspension.rs)
+export const adminServerSuspensionSchema = serverSuspensionSchema.extend({
+  suspendedBy: z.string().nullable(),
+});
+
 export const adminServerSchema = z.looseObject({
   uuid: z.string(),
   uuidShort: z.string(),
@@ -46,6 +51,7 @@ export const adminServerSchema = z.looseObject({
   nest: z.lazy(() => adminNestSchema),
   status: z.lazy(() => serverStatus).nullable(),
   isSuspended: z.boolean(),
+  suspension: adminServerSuspensionSchema.nullable(), // plugged.host
   isTransferring: z.boolean(),
   name: z.string().min(1).max(255),
   description: z.preprocess(nullableString, z.string().max(1024).nullable()),
@@ -79,6 +85,7 @@ const adminServerBaseOmit = adminServerSchema.omit({
   nest: true,
   status: true,
   isSuspended: true,
+  suspension: true, // plugged.host
   isTransferring: true,
   autoKill: true,
   autoStartBehavior: true,
@@ -112,6 +119,8 @@ export const adminServerUpdateSchema = z.lazy(() =>
     eggUuid: z.uuid(),
     backupConfigurationUuid: z.uuid().nullable(),
     suspended: z.boolean().optional(),
+    suspensionReason: z.string().max(1000).nullable().optional(), // plugged.host
+    suspensionDeleteAt: z.date().nullable().optional(), // plugged.host
     trash: serverTrashSettingsSchema.nullable().optional(),
   }),
 );

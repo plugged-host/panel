@@ -6,6 +6,7 @@ import { CORE_QUICK_ACTION_CATEGORIES } from '@/lib/quickActions/coreQuickAction
 import { AdminServer } from '@/lib/schemas/admin/servers.ts';
 import ServerConfirmActionModal from '@/pages/admin/servers/management/modals/ServerConfirmActionModal.tsx';
 import ServerDeleteModal from '@/pages/admin/servers/management/modals/ServerDeleteModal.tsx';
+import ServerSuspendModal from '@/pages/admin/servers/management/modals/ServerSuspendModal.tsx'; // plugged.host
 import ServerTransferModal from '@/pages/admin/servers/management/modals/ServerTransferModal.tsx';
 import { useServerManagementActions } from '@/pages/admin/servers/management/serverManagementActions.tsx';
 import { useQuickActions } from '@/plugins/quick-actions/useQuickActions.ts';
@@ -52,12 +53,8 @@ export default function AdminServerActions({ server }: { server: AdminServer }) 
   return (
     <>
       {canTransfer && <ServerTransferModal server={server} opened={openModal === 'transfer'} onClose={doCloseModal} />}
-      <ServerConfirmActionModal
-        server={server}
-        action='suspend'
-        opened={openModal === 'suspend'}
-        onClose={doCloseModal}
-      />
+      {/* plugged.host: suspending asks for a reason and a deletion time */}
+      <ServerSuspendModal server={server} opened={openModal === 'suspend'} onClose={doCloseModal} />
       <ServerConfirmActionModal
         server={server}
         action='unsuspend'

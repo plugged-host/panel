@@ -19,6 +19,7 @@ mod events;
 pub use events::ServerEvent;
 
 pub mod firewall;
+pub mod suspension; // plugged.host
 
 pub type GetServer = crate::extract::ConsumingExtension<Server>;
 pub type GetServerActivityLogger = crate::extract::ConsumingExtension<ServerActivityLogger>;
@@ -172,6 +173,7 @@ pub struct Server {
 
     pub status: Option<ServerStatus>,
     pub suspended: bool,
+    pub suspension: Option<suspension::ServerSuspension>, // plugged.host
 
     pub name: compact_str::CompactString,
     pub description: Option<compact_str::CompactString>,
@@ -360,6 +362,7 @@ impl BaseModel for Server {
         columns.extend(super::user::User::base_columns(Some("owner_")));
         columns.extend(super::nest_egg::NestEgg::base_columns(Some("egg_")));
         columns.extend(super::nest::Nest::base_columns(Some("nest_")));
+        columns.extend(suspension::base_columns(prefix)); // plugged.host
 
         columns
     }
@@ -408,6 +411,7 @@ impl BaseModel for Server {
                 ),
             status: row.try_get(compact_str::format_compact!("{prefix}status").as_str())?,
             suspended: row.try_get(compact_str::format_compact!("{prefix}suspended").as_str())?,
+            suspension: suspension::ServerSuspension::map(prefix, row)?, // plugged.host
             name: row.try_get(compact_str::format_compact!("{prefix}name").as_str())?,
             description: row
                 .try_get(compact_str::format_compact!("{prefix}description").as_str())?,
@@ -2146,6 +2150,9 @@ impl super::IntoAdminApiObject for Server {
                 backup_configuration,
                 status: self.status,
                 is_suspended: self.suspended,
+                suspension: self
+                    .suspension
+                    .map(suspension::ServerSuspension::into_admin_api_object), // plugged.host
                 is_transferring: self.destination_node.is_some(),
                 name: self.name,
                 description: self.description,
@@ -2251,6 +2258,9 @@ impl super::IntoApiObject for Server {
                 sftp_port: node.sftp_port,
                 status: self.status,
                 is_suspended: self.suspended,
+                suspension: self
+                    .suspension
+                    .map(suspension::ServerSuspension::into_api_object), // plugged.host
                 is_owner: self.owner.uuid == user.uuid,
                 is_transferring: self.destination_node.is_some(),
                 name: self.name,
@@ -2704,6 +2714,29 @@ pub struct UpdateServerOptions {
 
     #[garde(skip)]
     pub suspended: Option<bool>,
+    // plugged.host: the suspension's details (suspension.rs, docs/features/suspension.md)
+    #[garde(length(chars, min = 1, max = 1000))]
+    #[schema(min_length = 1, max_length = 1000)]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        with = "::serde_with::rust::double_option"
+    )]
+    pub suspension_reason: Option<Option<compact_str::CompactString>>,
+    #[garde(skip)]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        with = "::serde_with::rust::double_option"
+    )]
+    pub suspension_delete_at: Option<Option<chrono::DateTime<chrono::Utc>>>,
+    /// Set by the panel (the handler or the feature suspending), never by the request.
+    #[garde(skip)]
+    #[serde(skip)]
+    pub suspension_kind: Option<suspension::SuspensionKind>,
+    #[garde(skip)]
+    #[serde(skip)]
+    pub suspended_by: Option<uuid::Uuid>,
 
     #[garde(length(chars, min = 1, max = 255))]
     #[schema(min_length = 1, max_length = 255)]
@@ -2972,6 +3005,8 @@ impl UpdatableModel for Server {
                 .set("schedule_limit", Some(feature_limits.schedules));
         }
 
+        suspension::apply_update(&mut query_builder, self.suspended, &options); // plugged.host
+
         query_builder.where_eq("uuid", self.uuid);
 
         query_builder.execute(&mut **transaction).await?;
@@ -2989,6 +3024,9 @@ impl UpdatableModel for Server {
         if let Some(backup_configuration) = backup_configuration {
             self.backup_configuration = backup_configuration;
         }
+        // plugged.host
+        self.suspension =
+            suspension::after_update(self.suspension.take(), self.suspended, &options);
         if let Some(suspended) = options.suspended {
             self.suspended = suspended;
         }
@@ -3324,6 +3362,7 @@ pub struct AdminApiServer {
     pub status: Option<ServerStatus>,
 
     pub is_suspended: bool,
+    pub suspension: Option<suspension::AdminApiServerSuspension>, // plugged.host
     pub is_transferring: bool,
 
     pub name: compact_str::CompactString,
@@ -3369,6 +3408,7 @@ pub struct ApiServer {
 
     pub is_owner: bool,
     pub is_suspended: bool,
+    pub suspension: Option<suspension::ApiServerSuspension>, // plugged.host
     pub is_transferring: bool,
     pub permissions: Vec<compact_str::CompactString>,
     pub ignored_files: Vec<compact_str::CompactString>,

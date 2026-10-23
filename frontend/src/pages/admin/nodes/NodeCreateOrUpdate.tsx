@@ -25,6 +25,7 @@ import Group from '@/elements/layout/Group.tsx';
 import SegmentedControl from '@/elements/layout/SegmentedControl.tsx';
 import Stack from '@/elements/layout/Stack.tsx';
 import ConfirmationModal from '@/elements/modals/ConfirmationModal.tsx';
+import { DEFAULT_ALLOCATION_IP, defaultAllocationAlias } from '@/lib/domain/allocation.ts'; // plugged.host
 import { isNodeAIO } from '@/lib/domain/node.ts';
 import { resolvePorts } from '@/lib/network/ip.ts';
 import { queryKeys } from '@/lib/queryKeys.ts';
@@ -58,7 +59,7 @@ export default function NodeCreateOrUpdate({ contextNode }: { contextNode?: z.in
 
   const [mode, setMode] = useState<'pair' | 'manual'>('pair');
   const [pairingTarget, setPairingTarget] = useState<NodePairingTarget | null>(null);
-  const [allocationIp, setAllocationIp] = useState('');
+  const [allocationIp, setAllocationIp] = useState(DEFAULT_ALLOCATION_IP); // plugged.host
   const [allocationPorts, setAllocationPorts] = useState<string[]>([]);
   const [remote, setRemote] = useState('');
   const [pairedNodeUuid, setPairedNodeUuid] = useState<string | null>(null);
@@ -152,7 +153,7 @@ export default function NodeCreateOrUpdate({ contextNode }: { contextNode?: z.in
 
       const ports = resolvePorts(allocationPorts).resolved;
       if (allocationIp && ports.length > 0) {
-        await createNodeAllocations(node.uuid, { ip: allocationIp, ipAlias: null, ports });
+        await createNodeAllocations(node.uuid, { ip: allocationIp, ipAlias: defaultAllocationAlias(node), ports }); // plugged.host: alias
       }
 
       try {

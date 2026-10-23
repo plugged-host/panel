@@ -4,6 +4,7 @@ import {
   boolean,
   char,
   check,
+  date,
   customType,
   foreignKey,
   index,
@@ -805,6 +806,99 @@ export const nodeTelemetrySamplesTable = pgTable(
   ],
 );
 
+// plugged.host: the public status page (shared/src/status.rs). One component per probed endpoint
+// (`site`, `panel`) and per node; its uuid is the public key the status files use.
+export const statusComponentsTable = pgTable(
+  'status_components',
+  {
+    uuid: uuid().default(sql`gen_random_uuid()`).primaryKey().notNull(),
+    kind: varchar({ length: 16 }).notNull(),
+    node_uuid: uuid().references(() => nodesTable.uuid, { onDelete: 'cascade' }),
+    label: varchar({ length: 255 * UTF8_MAX_SCALAR_SIZE }).notNull(),
+    published: boolean().default(true).notNull(),
+    sort: integer().default(0).notNull(),
+    status: varchar({ length: 32 }).default('unknown').notNull(),
+    failure_count: integer().default(0).notNull(),
+    healthy_count: integer().default(0).notNull(),
+    pressure_count: integer().default(0).notNull(),
+    last_metrics: jsonb(),
+    last_reported: timestamp(),
+    checked: timestamp(),
+    created: timestamp().defaultNow().notNull(),
+  },
+  (cols) => [
+    uniqueIndex('status_components_node_uuid_idx').on(cols.node_uuid),
+    uniqueIndex('status_components_endpoint_kind_idx').on(cols.kind).where(sql`node_uuid IS NULL`),
+    index('status_components_published_sort_idx').on(cols.published, cols.sort),
+  ],
+);
+
+// plugged.host: per component and day, how many checks there were and how many were operational.
+export const statusDailyUptimeTable = pgTable(
+  'status_daily_uptime',
+  {
+    component_uuid: uuid()
+      .references(() => statusComponentsTable.uuid, { onDelete: 'cascade' })
+      .notNull(),
+    date: date({ mode: 'string' }).notNull(),
+    total_checks: integer().default(0).notNull(),
+    operational_checks: integer().default(0).notNull(),
+    worst_status: varchar({ length: 32 }).default('unknown').notNull(),
+  },
+  (cols) => [
+    primaryKey({ name: 'status_daily_uptime_pk', columns: [cols.component_uuid, cols.date] }),
+    index('status_daily_uptime_date_idx').on(cols.date),
+  ],
+);
+
+// plugged.host: incidents posted by admins. Empty `components` means every component.
+export const statusIncidentsTable = pgTable(
+  'status_incidents',
+  {
+    uuid: uuid().default(sql`gen_random_uuid()`).primaryKey().notNull(),
+    title: varchar({ length: 255 * UTF8_MAX_SCALAR_SIZE }).notNull(),
+    impact: varchar({ length: 32 }).default('minor').notNull(),
+    status: varchar({ length: 32 }).default('investigating').notNull(),
+    components: uuid().array().default([]).notNull(),
+    created_by: uuid().references(() => usersTable.uuid, { onDelete: 'set null' }),
+    started: timestamp().defaultNow().notNull(),
+    resolved: timestamp(),
+    created: timestamp().defaultNow().notNull(),
+  },
+  (cols) => [index('status_incidents_status_started_idx').on(cols.status, cols.started)],
+);
+
+export const statusIncidentUpdatesTable = pgTable(
+  'status_incident_updates',
+  {
+    uuid: uuid().default(sql`gen_random_uuid()`).primaryKey().notNull(),
+    incident_uuid: uuid()
+      .references(() => statusIncidentsTable.uuid, { onDelete: 'cascade' })
+      .notNull(),
+    status: varchar({ length: 32 }).notNull(),
+    message: text().notNull(),
+    created_by: uuid().references(() => usersTable.uuid, { onDelete: 'set null' }),
+    published: timestamp().defaultNow().notNull(),
+  },
+  (cols) => [index('status_incident_updates_incident_uuid_published_idx').on(cols.incident_uuid, cols.published)],
+);
+
+// plugged.host: an admin forcing a component's status (no component: all of them) for a while.
+export const statusOverridesTable = pgTable(
+  'status_overrides',
+  {
+    uuid: uuid().default(sql`gen_random_uuid()`).primaryKey().notNull(),
+    component_uuid: uuid().references(() => statusComponentsTable.uuid, { onDelete: 'cascade' }),
+    status: varchar({ length: 32 }).notNull(),
+    note: text(),
+    starts: timestamp(),
+    ends: timestamp(),
+    created_by: uuid().references(() => usersTable.uuid, { onDelete: 'set null' }),
+    created: timestamp().defaultNow().notNull(),
+  },
+  (cols) => [index('status_overrides_component_uuid_idx').on(cols.component_uuid)],
+);
+
 export const nodeMountsTable = pgTable(
   'node_mounts',
   {
@@ -1175,6 +1269,12 @@ export const serversTable = pgTable(
     description: text(),
     status: serverStatusEnum(),
     suspended: boolean().default(false).notNull(),
+    // plugged.host: why, since when, by whom and until when it is suspended (shared/src/models/server/suspension.rs)
+    suspension_kind: varchar({ length: 16 }),
+    suspension_reason: text(),
+    suspended_at: timestamp(),
+    suspended_by: uuid().references((): PgColumn => usersTable.uuid, { onDelete: 'set null' }),
+    suspension_delete_at: timestamp(),
     memory: bigint({ mode: 'number' }).notNull(),
     memory_overhead: bigint({ mode: 'number' }).default(0).notNull(),
     swap: bigint({ mode: 'number' }).notNull(),
@@ -1209,6 +1309,7 @@ export const serversTable = pgTable(
     index('servers_backup_configuration_uuid_idx').on(cols.backup_configuration_uuid),
     uniqueIndex('servers_uuid_short_idx').on(cols.uuid_short),
     index('servers_created_idx').on(cols.created),
+    index('servers_suspension_delete_at_idx').on(cols.suspension_delete_at), // plugged.host
   ],
 );
 

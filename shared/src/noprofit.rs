@@ -719,6 +719,14 @@ pub async fn sync_all(state: &crate::State) -> Result<(), anyhow::Error> {
             if let Err(err) = user.update(state, options).await {
                 tracing::warn!(user = %user.uuid, "failed to suspend the user of a deleted noprofit.space account: {err:#?}");
             }
+
+            // plugged.host: its servers stop too (docs/features/suspension.md)
+            if let Err(err) =
+                crate::models::server::suspension::suspend_owned_for_noprofit(state, user.uuid)
+                    .await
+            {
+                tracing::warn!(user = %user.uuid, "failed to suspend the servers of a deleted noprofit.space account: {err:#?}");
+            }
         }
     }
 

@@ -5,7 +5,10 @@ import { formExtensionSchemas, serializeForApi } from '@/lib/serialization/api-t
 
 export default async (
   serverUuid: string,
-  data: z.infer<typeof adminServerUpdateSchema> | { suspended: boolean } | z.infer<typeof adminServerTrashSchema>,
+  data:
+    | z.infer<typeof adminServerUpdateSchema>
+    | { suspended: boolean; suspensionReason?: string | null; suspensionDeleteAt?: Date | null } // plugged.host: suspension details
+    | z.infer<typeof adminServerTrashSchema>,
 ): Promise<void> => {
   await axiosInstance.patch(
     `/api/admin/servers/${serverUuid}`,

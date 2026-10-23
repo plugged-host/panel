@@ -195,6 +195,14 @@ const admin = {
     detail: (uuid: string) => ['admin', 'announcements', { uuid }] as const,
   },
 
+  // plugged.host: Admin › Status
+  status: {
+    all: () => ['admin', 'status'] as const,
+    components: () => ['admin', 'status', 'components'] as const,
+    incidents: () => ['admin', 'status', 'incidents'] as const,
+    overrides: () => ['admin', 'status', 'overrides'] as const,
+  },
+
   activity: {
     all: (userUuid: string | null) => ['admin', 'activity', { uuid: userUuid }] as const,
   },

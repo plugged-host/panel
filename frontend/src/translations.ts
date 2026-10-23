@@ -844,6 +844,16 @@ const baseTranslations = defineTranslations({
         serverConflict: {
           title: 'Conflicting Server State',
           contentSuspended: 'This server is suspended and cannot be accessed.',
+          suspension: {
+            by: {
+              manual: 'This server was suspended by an administrator on {date}.',
+              abuse: 'This server was suspended by the automated abuse checks on {date}.',
+              noprofit: "This server was suspended on {date} because its owner's noprofit.space account was deleted.",
+            },
+            reason: 'Reason: {reason}',
+            deleteAt: 'It will be deleted with its files on {date}, unless the suspension is lifted before then.',
+            help: "If you think this is a mistake, contact the panel's administrators and include the server's name.",
+          },
           contentNodeMaintenance:
             'This server is on a node that is currently under maintenance and cannot be accessed.',
           contentTransferring:
@@ -2655,6 +2665,36 @@ const baseTranslations = defineTranslations({
                 },
               },
             },
+            // plugged.host
+            status: {
+              title: 'Status Page',
+              page: {
+                title: 'Status Page Settings',
+                form: {
+                  enabled: 'Enable the Status Page',
+                  enabledDescription:
+                    'Checks the website, the panel and every node each minute and publishes the results at /data/*.json and /data/feed.xml for a status page.',
+                  siteUrl: 'Website URL',
+                  siteUrlDescription:
+                    'Checked each minute; any 2xx answer counts as up. Empty: the website is not listed.',
+                  panelUrl: 'Panel URL',
+                  panelUrlDescription:
+                    "Checked each minute, for example the panel's /api/settings. Empty: the panel is not listed.",
+                  pageUrl: 'Status Page URL',
+                  pageUrlDescription: 'Where the status page is, linked from the feed.',
+                  cpuThreshold: 'CPU Threshold',
+                  cpuThresholdDescription:
+                    'A node at or above this CPU use for five checks in a row is shown as degraded.',
+                  historyDays: 'History',
+                  historyDaysDescription: 'Days of daily uptime kept. The status page shows up to 90.',
+                  siteHost: 'Website Host Header',
+                  siteHostDescription: 'Sent with the website check when its URL is an address instead of a host name.',
+                },
+                toast: {
+                  updated: 'Status page settings updated.',
+                },
+              },
+            },
           },
         },
         announcements: {
@@ -2696,6 +2736,133 @@ const baseTranslations = defineTranslations({
               success: 'Success',
               warning: 'Warning',
               error: 'Error',
+            },
+          },
+        },
+        // plugged.host
+        status: {
+          title: 'Status',
+          label: {
+            allComponents: 'All components',
+          },
+          tabs: {
+            incidents: {
+              title: 'Incidents',
+              page: {
+                column: {
+                  impact: 'Impact',
+                  components: 'Components',
+                  started: 'Started',
+                  resolved: 'Resolved',
+                },
+                button: {
+                  postUpdate: 'Post Update',
+                },
+                form: {
+                  componentsDescription: 'Leave empty for all components.',
+                  message: 'Message',
+                  messageDescription: 'The first update, shown on the status page.',
+                  statusDescription: 'Resolved closes the incident.',
+                },
+                modal: {
+                  create: {
+                    title: 'Create Incident',
+                  },
+                  update: {
+                    title: 'Post Update',
+                  },
+                  delete: {
+                    title: 'Confirm Incident Deletion',
+                    content: 'Are you sure you want to delete **{title}**? It disappears from the status page.',
+                  },
+                },
+                toast: {
+                  created: 'Incident created.',
+                  updated: 'Update posted.',
+                  deleted: 'Incident deleted.',
+                },
+              },
+            },
+            components: {
+              title: 'Components',
+              page: {
+                column: {
+                  published: 'Published',
+                  sort: 'Sort Order',
+                  checked: 'Last Checked',
+                },
+                empty: 'No components yet. Turn on the status page in Admin › Settings › Status Page.',
+                form: {
+                  labelNode: "A node's name is its name on the status page.",
+                  publishedDescription: 'Listed on the status page. Checks keep running either way.',
+                  sortDescription: 'Lowest first, after the website and the panel.',
+                },
+                modal: {
+                  edit: {
+                    title: 'Edit {label}',
+                  },
+                },
+                toast: {
+                  updated: 'Component updated.',
+                },
+              },
+            },
+            overrides: {
+              title: 'Overrides',
+              page: {
+                column: {
+                  component: 'Component',
+                  starts: 'Starts',
+                  ends: 'Ends',
+                  active: 'Active',
+                },
+                form: {
+                  noteDescription: 'Shown on the status page next to the component.',
+                  startsDescription: 'Empty: from now.',
+                  endsDescription: 'Empty: until it is deleted.',
+                },
+                modal: {
+                  create: {
+                    title: 'Create Override',
+                  },
+                  delete: {
+                    title: 'Confirm Override Deletion',
+                    content: 'Are you sure you want to delete the override of **{component}**?',
+                  },
+                },
+                toast: {
+                  created: 'Override created.',
+                  deleted: 'Override deleted.',
+                },
+              },
+            },
+          },
+          enum: {
+            componentKind: {
+              site: 'Website',
+              panel: 'Panel',
+              node: 'Node',
+            },
+            componentStatus: {
+              operational: 'Operational',
+              degraded: 'Degraded',
+              maintenance: 'Maintenance',
+              partialOutage: 'Partial Outage',
+              majorOutage: 'Major Outage',
+              offline: 'Offline',
+              unknown: 'Unknown',
+            },
+            incidentImpact: {
+              minor: 'Minor',
+              major: 'Major',
+              critical: 'Critical',
+              maintenance: 'Maintenance',
+            },
+            incidentStatus: {
+              investigating: 'Investigating',
+              identified: 'Identified',
+              monitoring: 'Monitoring',
+              resolved: 'Resolved',
             },
           },
         },
@@ -2924,6 +3091,10 @@ const baseTranslations = defineTranslations({
                   delete: {
                     title: 'Confirm User Deletion',
                     content: 'Are you sure you want to delete **{username}**?',
+                    deleteServers: 'Delete their servers too',
+                    deleteServersDescription:
+                      'Deletes every server this user owns, with its files, before the user. Without this, a user who owns servers cannot be deleted.',
+                    forceDescription: "Delete the servers from the panel even when their node can't be reached.",
                   },
                   grantAdmin: {
                     title: 'Confirm Admin Access',
@@ -3837,6 +4008,23 @@ const baseTranslations = defineTranslations({
                   transferring: 'Transferring',
                   admin: 'Admin',
                 },
+                suspension: {
+                  title: 'Suspension',
+                  kind: {
+                    manual: 'An admin',
+                    abuse: 'Abuse checks',
+                    noprofit: 'noprofit.space (account deleted)',
+                  },
+                  label: {
+                    kind: 'Suspended By',
+                    suspendedBy: 'Admin',
+                    viewUser: 'View user',
+                    since: 'Since',
+                    reason: 'Reason',
+                    deleteAt: 'Deleted On',
+                    notDeleted: 'Not scheduled',
+                  },
+                },
               },
             },
             general: {
@@ -4102,6 +4290,20 @@ const baseTranslations = defineTranslations({
                     title: 'Confirm Server Suspension',
                     content:
                       'Are you sure you want to suspend **{name}**? This will stop the server and prevent it from starting. All running processes will be stopped and the user will not be able to access their files or otherwise manage the server through the panel or API.',
+                    form: {
+                      reason: 'Reason',
+                      reasonDescription: "Shown to the server's owner and subusers.",
+                      deleteAfter: 'Delete the Server',
+                      deleteAfterDescription:
+                        'Deletes the server with its files after this time, unless it is unsuspended first. Its backups stay.',
+                      deleteOptions: {
+                        never: 'Never',
+                        oneDay: 'After 1 day',
+                        threeDays: 'After 3 days',
+                        sevenDays: 'After 7 days',
+                        thirtyDays: 'After 30 days',
+                      },
+                    },
                   },
                 },
                 unsuspend: {

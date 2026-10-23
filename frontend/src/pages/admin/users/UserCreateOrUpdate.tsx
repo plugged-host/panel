@@ -13,7 +13,9 @@ import Button from '@/elements/buttons/Button.tsx';
 import { AdminCan, CantSaveTooltip } from '@/elements/Can.tsx';
 import AdminContentContainer from '@/elements/containers/AdminContentContainer.tsx';
 import { FormEngine, useFormEngine } from '@/elements/form-engine/index.ts';
+import Switch from '@/elements/input/Switch.tsx'; // plugged.host
 import Group from '@/elements/layout/Group.tsx';
+import Stack from '@/elements/layout/Stack.tsx'; // plugged.host
 import ConfirmationModal from '@/elements/modals/ConfirmationModal.tsx';
 import ConditionalTooltip from '@/elements/overlays/ConditionalTooltip.tsx';
 import { queryKeys } from '@/lib/queryKeys.ts';
@@ -46,6 +48,10 @@ export default function UserCreateOrUpdate({ contextUser }: { contextUser?: z.in
     'grant_admin' | 'delete' | 'disable_two_factor' | 'send_password_reset_email' | 'verify_email' | null
   >(null);
   const [confirmStay, setConfirmStay] = useState(false);
+  // plugged.host: deleting a user can take their servers along (docs/features/admin-users.md)
+  const canDeleteServers = useAdminCan('servers.delete');
+  const [deleteServers, setDeleteServers] = useState(false);
+  const [deleteForce, setDeleteForce] = useState(false);
 
   const form = useFormEngine<UserFormValues>('admin.users.createOrUpdate', {
     schema: adminUserUpdateSchema.unwrap(),
@@ -56,7 +62,9 @@ export default function UserCreateOrUpdate({ contextUser }: { contextUser?: z.in
     form,
     createFn: () => createUser(form.getTransformedValues()),
     updateFn: contextUser ? () => updateUser(contextUser.uuid, form.getTransformedValues()) : undefined,
-    deleteFn: contextUser ? () => deleteUser(contextUser.uuid) : undefined,
+    deleteFn: contextUser
+      ? () => deleteUser(contextUser.uuid, { deleteServers, force: deleteForce }) // plugged.host: options
+      : undefined,
     doUpdate: !!contextUser,
     basePath: '/admin/users',
     resourceName: t('pages.admin.users.resourceName', {}),
@@ -171,7 +179,31 @@ export default function UserCreateOrUpdate({ contextUser }: { contextUser?: z.in
         confirm={t('common.button.delete', {})}
         onConfirmed={doDelete}
       >
-        {t('pages.admin.users.tabs.general.page.modal.delete.content', { username: form.getValues().username }).md()}
+        {/* plugged.host: the user's servers can go too */}
+        <Stack>
+          <div>
+            {t('pages.admin.users.tabs.general.page.modal.delete.content', {
+              username: form.getValues().username,
+            }).md()}
+          </div>
+          {canDeleteServers && (
+            <Switch
+              label={t('pages.admin.users.tabs.general.page.modal.delete.deleteServers', {})}
+              description={t('pages.admin.users.tabs.general.page.modal.delete.deleteServersDescription', {})}
+              checked={deleteServers}
+              onChange={(e) => setDeleteServers(e.target.checked)}
+            />
+          )}
+          {canDeleteServers && deleteServers && (
+            <Switch
+              label={t('common.form.force', {})}
+              description={t('pages.admin.users.tabs.general.page.modal.delete.forceDescription', {})}
+              color='red'
+              checked={deleteForce}
+              onChange={(e) => setDeleteForce(e.target.checked)}
+            />
+          )}
+        </Stack>
       </ConfirmationModal>
       <ConfirmationModal
         opened={openModal === 'disable_two_factor'}

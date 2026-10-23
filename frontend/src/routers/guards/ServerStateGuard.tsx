@@ -13,6 +13,7 @@ import { useAdminCan } from '@/plugins/usePermissions.ts';
 import { useAuth } from '@/providers/AuthProvider.tsx';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
+import SuspensionNotice from '@/routers/guards/SuspensionNotice.tsx'; // plugged.host
 import { useGlobalStore } from '@/stores/global.ts';
 import { useServerStore } from '@/stores/server.ts';
 
@@ -96,15 +97,17 @@ export default function ServerStateGuard() {
         <ScreenBlock
           title={t('elements.screenBlock.serverConflict.title', {})}
           content={
-            server.isSuspended
-              ? t('elements.screenBlock.serverConflict.contentSuspended', {})
-              : server.nodeMaintenanceEnabled
-                ? t('elements.screenBlock.serverConflict.contentNodeMaintenance', {})
-                : server.isTransferring
-                  ? t('elements.screenBlock.serverConflict.contentTransferring', {})
-                  : server.status
-                    ? serverStatusInfo[server.status].blockContent()
-                    : ''
+            server.isSuspended ? (
+              <SuspensionNotice server={server} /> // plugged.host: why, since when, until when
+            ) : server.nodeMaintenanceEnabled ? (
+              t('elements.screenBlock.serverConflict.contentNodeMaintenance', {})
+            ) : server.isTransferring ? (
+              t('elements.screenBlock.serverConflict.contentTransferring', {})
+            ) : server.status ? (
+              serverStatusInfo[server.status].blockContent()
+            ) : (
+              ''
+            )
           }
         >
           {canReadInstallationLogs && server.status === 'install_failed' && (

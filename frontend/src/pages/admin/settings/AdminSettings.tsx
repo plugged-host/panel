@@ -4,6 +4,7 @@ import {
   faDatabase,
   faEnvelopesBulk,
   faHandshake,
+  faHeartPulse,
   faLayerGroup,
   faRobot,
   faServer,
@@ -32,6 +33,7 @@ import MetadataContainer from './metadata/MetadataContainer.tsx';
 import NoprofitContainer from './noprofit/NoprofitContainer.tsx';
 import RatelimitsContainer from './ratelimits/RatelimitsContainer.tsx';
 import ServerContainer from './server/ServerContainer.tsx';
+import StatusContainer from './status/StatusContainer.tsx';
 import StorageContainer from './storage/StorageContainer.tsx';
 import UserContainer from './user/UserContainer.tsx';
 import WebauthnContainer from './webauthn/WebauthnContainer.tsx';
@@ -133,6 +135,13 @@ export default function AdminSettings() {
               icon: faBan,
               path: '/ratelimits',
               element: <RatelimitsContainer />,
+            },
+            // plugged.host: the public status page
+            {
+              name: t('pages.admin.settings.tabs.status.title', {}),
+              icon: faHeartPulse,
+              path: '/status',
+              element: <StatusContainer />,
             },
           ]}
         />

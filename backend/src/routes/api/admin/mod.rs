@@ -42,6 +42,7 @@ mod roles;
 mod servers;
 mod settings;
 mod stats;
+mod status; // plugged.host
 mod system;
 mod system_backup_policies;
 mod users;
@@ -112,6 +113,7 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         // .nest("/extensions", extensions::router(state))
         .nest("/activity", activity::router(state))
         .nest("/announcements", announcements::router(state))
+        .nest("/status", status::router(state)) // plugged.host
         .route_layer(axum::middleware::from_fn_with_state(state.clone(), auth))
         .route_layer(axum::middleware::from_fn_with_state(
             state.clone(),

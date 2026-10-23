@@ -331,6 +331,35 @@ export const adminSettingsNoprofitSchema = z.object({
   apiSecret: z.string().max(512).nullable(),
 });
 
+// plugged.host: the status page (shared/src/settings/status.rs, docs/features/status.md)
+export const adminSettingsStatusSchema = z.object({
+  enabled: z.boolean(),
+  siteUrl: z.preprocess(
+    nullableString,
+    z
+      .url({ protocol: /^https?$/ })
+      .max(255)
+      .nullable(),
+  ),
+  siteHost: z.preprocess(nullableString, z.string().min(1).max(255).nullable()),
+  panelUrl: z.preprocess(
+    nullableString,
+    z
+      .url({ protocol: /^https?$/ })
+      .max(255)
+      .nullable(),
+  ),
+  pageUrl: z.preprocess(
+    nullableString,
+    z
+      .url({ protocol: /^https?$/ })
+      .max(255)
+      .nullable(),
+  ),
+  historyDays: z.number().int().min(1).max(365),
+  cpuThreshold: z.number().int().min(1).max(100),
+});
+
 export const twoFactorRequirement = z.enum(['admins', 'all_users', 'none']);
 
 export const adminSettingsSchema = z.object({
@@ -348,4 +377,5 @@ export const adminSettingsSchema = z.object({
   activity: adminSettingsActivitySchema,
   ratelimits: adminSettingsRatelimitsSchema,
   noprofit: adminSettingsNoprofitSchema, // plugged.host
+  status: adminSettingsStatusSchema, // plugged.host
 });

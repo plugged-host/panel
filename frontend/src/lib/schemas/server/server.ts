@@ -6,6 +6,16 @@ import { eggConfigurationRouteItemSchema } from '../generic.ts';
 
 export const serverStatus = z.enum(['installing', 'install_failed', 'restoring_backup', 'backup_restore_failed']);
 
+// plugged.host: why and until when a server is suspended (shared/src/models/server/suspension.rs)
+export const serverSuspensionKind = z.enum(['manual', 'abuse', 'noprofit']);
+
+export const serverSuspensionSchema = z.object({
+  kind: serverSuspensionKind,
+  reason: z.string().nullable(),
+  suspended: z.coerce.date().nullable(),
+  deleteAt: z.coerce.date().nullable(),
+});
+
 export const serverAutostartBehavior = z.enum(['always', 'unless_stopped', 'never']);
 
 export const serverPowerState = z.enum(['offline', 'starting', 'stopping', 'running']);
@@ -50,6 +60,7 @@ export const serverSchema = z.looseObject({
   eggConfiguration: z.lazy(() => serverEggConfigurationSchema).nullable(),
   status: serverStatus.nullable(),
   isSuspended: z.boolean(),
+  suspension: serverSuspensionSchema.nullable(), // plugged.host
   isOwner: z.boolean(),
   isTransferring: z.boolean(),
   permissions: z.array(z.string()),

@@ -1017,6 +1017,16 @@
         "serverConflict": {
           "title": "Konflikt mit dem Server-Status",
           "contentSuspended": "Dieser Server ist suspendiert und kann nicht aufgerufen werden.",
+          "suspension": {
+            "by": {
+              "manual": "Dieser Server wurde am {date} von einem Administrator suspendiert.",
+              "abuse": "Dieser Server wurde am {date} von der automatischen Missbrauchsprüfung suspendiert.",
+              "noprofit": "Dieser Server wurde am {date} suspendiert, weil das noprofit.space-Konto seines Besitzers gelöscht wurde."
+            },
+            "reason": "Grund: {reason}",
+            "deleteAt": "Er wird am {date} mit seinen Dateien gelöscht, sofern die Suspendierung nicht vorher aufgehoben wird.",
+            "help": "Wenn du denkst, dass das ein Fehler ist, wende dich an die Administratoren des Panels und nenne den Namen des Servers."
+          },
           "contentNodeMaintenance": "Dieser Server befindet sich auf einer Node, die derzeit gewartet wird, und ist nicht zugänglich.",
           "contentTransferring": "Dieser Server wird derzeit übertragen und kann erst nach Abschluss der Übertragung aufgerufen werden.",
           "contentInstallFailed": "Die Installation dieses Servers ist fehlgeschlagen und er kann erst nach Bestätigung aufgerufen werden.",
@@ -2744,6 +2754,31 @@
                   "updated": "Ratenbegrenzungs-Einstellungen aktualisiert."
                 }
               }
+            },
+            "status": {
+              "title": "Statusseite",
+              "page": {
+                "title": "Einstellungen der Statusseite",
+                "form": {
+                  "enabled": "Statusseite aktivieren",
+                  "enabledDescription": "Prüft jede Minute die Website, das Panel und jeden Node und veröffentlicht die Ergebnisse unter /data/*.json und /data/feed.xml für eine Statusseite.",
+                  "siteUrl": "Website-URL",
+                  "siteUrlDescription": "Wird jede Minute geprüft; jede 2xx-Antwort zählt als erreichbar. Leer: Die Website wird nicht aufgeführt.",
+                  "panelUrl": "Panel-URL",
+                  "panelUrlDescription": "Wird jede Minute geprüft, zum Beispiel /api/settings des Panels. Leer: Das Panel wird nicht aufgeführt.",
+                  "pageUrl": "URL der Statusseite",
+                  "pageUrlDescription": "Wo die Statusseite liegt, im Feed verlinkt.",
+                  "cpuThreshold": "CPU-Schwelle",
+                  "cpuThresholdDescription": "Ein Node mit mindestens dieser CPU-Auslastung bei fünf Prüfungen in Folge wird als beeinträchtigt angezeigt.",
+                  "historyDays": "Verlauf",
+                  "historyDaysDescription": "Tage, für die die tägliche Verfügbarkeit aufbewahrt wird. Die Statusseite zeigt bis zu 90.",
+                  "siteHost": "Host-Header der Website",
+                  "siteHostDescription": "Wird bei der Website-Prüfung mitgesendet, wenn ihre URL eine Adresse statt eines Hostnamens ist."
+                },
+                "toast": {
+                  "updated": "Einstellungen der Statusseite aktualisiert."
+                }
+              }
             }
           }
         },
@@ -2786,6 +2821,132 @@
               "success": "Erfolg",
               "warning": "Warnung",
               "error": "Fehler"
+            }
+          }
+        },
+        "status": {
+          "title": "Status",
+          "label": {
+            "allComponents": "Alle Komponenten"
+          },
+          "tabs": {
+            "incidents": {
+              "title": "Vorfälle",
+              "page": {
+                "column": {
+                  "impact": "Auswirkung",
+                  "components": "Komponenten",
+                  "started": "Begonnen",
+                  "resolved": "Behoben"
+                },
+                "button": {
+                  "postUpdate": "Update veröffentlichen"
+                },
+                "form": {
+                  "componentsDescription": "Leer lassen für alle Komponenten.",
+                  "message": "Nachricht",
+                  "messageDescription": "Das erste Update, auf der Statusseite angezeigt.",
+                  "statusDescription": "Behoben schließt den Vorfall."
+                },
+                "modal": {
+                  "create": {
+                    "title": "Vorfall erstellen"
+                  },
+                  "update": {
+                    "title": "Update veröffentlichen"
+                  },
+                  "delete": {
+                    "title": "Löschen des Vorfalls bestätigen",
+                    "content": "Bist du sicher, dass du **{title}** löschen möchtest? Er verschwindet von der Statusseite."
+                  }
+                },
+                "toast": {
+                  "created": "Vorfall erstellt.",
+                  "updated": "Update veröffentlicht.",
+                  "deleted": "Vorfall gelöscht."
+                }
+              }
+            },
+            "components": {
+              "title": "Komponenten",
+              "page": {
+                "column": {
+                  "published": "Veröffentlicht",
+                  "sort": "Reihenfolge",
+                  "checked": "Zuletzt geprüft"
+                },
+                "empty": "Noch keine Komponenten. Aktiviere die Statusseite unter Admin › Einstellungen › Statusseite.",
+                "form": {
+                  "labelNode": "Der Name eines Nodes ist sein Name auf der Statusseite.",
+                  "publishedDescription": "Auf der Statusseite aufgeführt. Die Prüfungen laufen in beiden Fällen weiter.",
+                  "sortDescription": "Niedrigste zuerst, nach der Website und dem Panel."
+                },
+                "modal": {
+                  "edit": {
+                    "title": "{label} bearbeiten"
+                  }
+                },
+                "toast": {
+                  "updated": "Komponente aktualisiert."
+                }
+              }
+            },
+            "overrides": {
+              "title": "Übersteuerungen",
+              "page": {
+                "column": {
+                  "component": "Komponente",
+                  "starts": "Beginnt",
+                  "ends": "Endet",
+                  "active": "Aktiv"
+                },
+                "form": {
+                  "noteDescription": "Auf der Statusseite neben der Komponente angezeigt.",
+                  "startsDescription": "Leer: ab jetzt.",
+                  "endsDescription": "Leer: bis sie gelöscht wird."
+                },
+                "modal": {
+                  "create": {
+                    "title": "Übersteuerung erstellen"
+                  },
+                  "delete": {
+                    "title": "Löschen der Übersteuerung bestätigen",
+                    "content": "Bist du sicher, dass du die Übersteuerung von **{component}** löschen möchtest?"
+                  }
+                },
+                "toast": {
+                  "created": "Übersteuerung erstellt.",
+                  "deleted": "Übersteuerung gelöscht."
+                }
+              }
+            }
+          },
+          "enum": {
+            "componentKind": {
+              "site": "Website",
+              "panel": "Panel",
+              "node": "Node"
+            },
+            "componentStatus": {
+              "operational": "Betriebsbereit",
+              "degraded": "Beeinträchtigt",
+              "maintenance": "Wartung",
+              "partialOutage": "Teilausfall",
+              "majorOutage": "Großer Ausfall",
+              "offline": "Offline",
+              "unknown": "Unbekannt"
+            },
+            "incidentImpact": {
+              "minor": "Gering",
+              "major": "Erheblich",
+              "critical": "Kritisch",
+              "maintenance": "Wartung"
+            },
+            "incidentStatus": {
+              "investigating": "Wird untersucht",
+              "identified": "Ursache gefunden",
+              "monitoring": "Wird beobachtet",
+              "resolved": "Behoben"
             }
           }
         },
@@ -3005,7 +3166,10 @@
                 "modal": {
                   "delete": {
                     "title": "Benutzerlöschung bestätigen",
-                    "content": "Bist du sicher, dass du **{username}** löschen möchtest?"
+                    "content": "Bist du sicher, dass du **{username}** löschen möchtest?",
+                    "deleteServers": "Auch die Server löschen",
+                    "deleteServersDescription": "Löscht vor dem Benutzer jeden Server, der ihm gehört, mit seinen Dateien. Ohne diese Option kann ein Benutzer mit Servern nicht gelöscht werden.",
+                    "forceDescription": "Löscht die Server aus dem Panel, auch wenn ihr Node nicht erreichbar ist."
                   },
                   "grantAdmin": {
                     "title": "Administratorzugriff bestätigen",
@@ -3883,6 +4047,23 @@
                   "suspended": "Suspendiert",
                   "transferring": "Server wird übertragen",
                   "admin": "Admin"
+                },
+                "suspension": {
+                  "title": "Suspendierung",
+                  "kind": {
+                    "manual": "Ein Admin",
+                    "abuse": "Missbrauchsprüfung",
+                    "noprofit": "noprofit.space (Konto gelöscht)"
+                  },
+                  "label": {
+                    "kind": "Suspendiert von",
+                    "suspendedBy": "Admin",
+                    "viewUser": "Benutzer anzeigen",
+                    "since": "Seit",
+                    "reason": "Grund",
+                    "deleteAt": "Gelöscht am",
+                    "notDeleted": "Nicht geplant"
+                  }
                 }
               }
             },
@@ -4139,7 +4320,20 @@
                   },
                   "modal": {
                     "title": "Server-Suspendierung bestätigen",
-                    "content": "Bist du sicher, dass du **{name}** suspendieren möchtest? Dies stoppt den Server und verhindert seinen Start. Alle laufenden Prozesse werden gestoppt und der Benutzer kann nicht mehr auf seine Dateien zugreifen oder den Server über das Panel oder die API verwalten."
+                    "content": "Bist du sicher, dass du **{name}** suspendieren möchtest? Dies stoppt den Server und verhindert seinen Start. Alle laufenden Prozesse werden gestoppt und der Benutzer kann nicht mehr auf seine Dateien zugreifen oder den Server über das Panel oder die API verwalten.",
+                    "form": {
+                      "reason": "Grund",
+                      "reasonDescription": "Wird dem Besitzer und den Unterbenutzern des Servers angezeigt.",
+                      "deleteAfter": "Server löschen",
+                      "deleteAfterDescription": "Löscht den Server mit seinen Dateien nach dieser Zeit, sofern die Suspendierung nicht vorher aufgehoben wird. Seine Backups bleiben erhalten.",
+                      "deleteOptions": {
+                        "never": "Nie",
+                        "oneDay": "Nach 1 Tag",
+                        "threeDays": "Nach 3 Tagen",
+                        "sevenDays": "Nach 7 Tagen",
+                        "thirtyDays": "Nach 30 Tagen"
+                      }
+                    }
                   }
                 },
                 "unsuspend": {

@@ -12,6 +12,7 @@ import {
   faFileZipper,
   faFingerprint,
   faFolderOpen,
+  faHeartPulse,
   faScroll,
   faServer,
   faUsers,
@@ -36,6 +37,7 @@ import AdminOAuthProviders from '@/pages/admin/oauth-providers/AdminOAuthProvide
 import AdminRoles from '@/pages/admin/roles/AdminRoles.tsx';
 import AdminServers from '@/pages/admin/servers/AdminServers.tsx';
 import AdminSettings from '@/pages/admin/settings/AdminSettings.tsx';
+import AdminStatus from '@/pages/admin/status/AdminStatus.tsx';
 import AdminSystemBackupPolicies from '@/pages/admin/system-backup-policies/AdminSystemBackupPolicies.tsx';
 import AdminUsers from '@/pages/admin/users/AdminUsers.tsx';
 import { getTranslations } from '@/providers/TranslationProvider.tsx';
@@ -193,6 +195,15 @@ const routes: AdminRouteDefinition[] = [
     path: '/announcements/*',
     element: AdminAnnouncements,
     permission: ['announcements.*'],
+    category: 'system',
+  },
+  // plugged.host: the public status page (docs/features/status.md)
+  {
+    name: () => getTranslations().t('pages.admin.status.title', {}),
+    icon: faHeartPulse,
+    path: '/status/*',
+    element: AdminStatus,
+    permission: ['status.*'],
     category: 'system',
   },
   {

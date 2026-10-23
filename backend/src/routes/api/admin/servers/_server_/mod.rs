@@ -201,7 +201,7 @@ mod patch {
             UpdatableModel,
             admin_activity::GetAdminActivityLogger,
             server::{GetServer, UpdateServerOptions},
-            user::GetPermissionManager,
+            user::{GetPermissionManager, GetUser},
         },
         response::{ApiResponse, ApiResponseResult},
     };
@@ -225,11 +225,14 @@ mod patch {
     pub async fn route(
         state: GetState,
         permissions: GetPermissionManager,
+        user: GetUser, // plugged.host
         mut server: GetServer,
         activity_logger: GetAdminActivityLogger,
-        shared::Payload(data): shared::Payload<UpdateServerOptions>,
+        shared::Payload(mut data): shared::Payload<UpdateServerOptions>, // plugged.host: mut
     ) -> ApiResponseResult {
         permissions.has_admin_permission("servers.update")?;
+
+        data.suspended_by = Some(user.uuid); // plugged.host: who suspended it, if this suspends it
 
         let limits = data.limits;
         let feature_limits = data.feature_limits.clone();
@@ -269,6 +272,11 @@ mod patch {
                     "kvm_passthrough_enabled": server.kvm_passthrough_enabled,
 
                     "feature_limits": feature_limits,
+
+                    // plugged.host: the suspension and its reason
+                    "suspended": server.suspended,
+                    "suspension_reason": server.suspension.as_ref().and_then(|suspension| suspension.reason.as_ref()),
+                    "suspension_delete_at": server.suspension.as_ref().and_then(|suspension| suspension.delete_at),
                 }),
             )
             .await;

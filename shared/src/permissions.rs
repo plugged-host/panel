@@ -288,6 +288,23 @@ pub(crate) static BASE_ADMIN_PERMISSIONS: LazyLock<IndexMap<&'static str, Permis
                     ]),
                 },
             ),
+            // plugged.host: the public status page (docs/features/status.md)
+            (
+                "status",
+                PermissionGroup {
+                    description: "Permissions that control the ability to manage the public status page.",
+                    permissions: IndexMap::from([
+                        (
+                            "read",
+                            "Allows viewing status components, incidents and overrides.",
+                        ),
+                        (
+                            "manage",
+                            "Allows posting incidents and overrides and changing which components are published.",
+                        ),
+                    ]),
+                },
+            ),
             (
                 "assets",
                 PermissionGroup {
