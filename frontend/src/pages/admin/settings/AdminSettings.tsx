@@ -2,6 +2,7 @@ import {
   faAt,
   faBan,
   faCircleQuestion, // plugged.host
+  faClockRotateLeft, // plugged.host
   faDatabase,
   faEnvelopesBulk,
   faGamepad,
@@ -39,6 +40,7 @@ import MetadataContainer from './metadata/MetadataContainer.tsx';
 import NoprofitContainer from './noprofit/NoprofitContainer.tsx';
 import PlacementContainer from './placement/PlacementContainer.tsx'; // plugged.host
 import RatelimitsContainer from './ratelimits/RatelimitsContainer.tsx';
+import RecoveryContainer from './recovery/RecoveryContainer.tsx'; // plugged.host
 import ServerContainer from './server/ServerContainer.tsx';
 import StatusContainer from './status/StatusContainer.tsx';
 import StorageContainer from './storage/StorageContainer.tsx';
@@ -177,6 +179,13 @@ export default function AdminSettings() {
               icon: faCircleQuestion,
               path: '/tour',
               element: <TourContainer />,
+            },
+            // plugged.host: deleted servers' copies
+            {
+              name: t('pages.admin.settings.tabs.recovery.title', {}),
+              icon: faClockRotateLeft,
+              path: '/recovery',
+              element: <RecoveryContainer />,
             },
           ]}
         />

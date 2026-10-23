@@ -27,6 +27,7 @@ pub mod captcha;
 pub mod censor;
 pub mod crypt;
 pub mod database;
+pub mod deleted_servers; // plugged.host
 pub mod deserialize;
 pub mod env;
 pub mod events;

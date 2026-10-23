@@ -405,6 +405,10 @@ mod put {
         #[schema(inline)]
         #[garde(dive)]
         tour: Option<shared::settings::tour::PayloadTour>,
+        // plugged.host
+        #[schema(inline)]
+        #[garde(dive)]
+        recovery: Option<shared::settings::recovery::PayloadRecovery>,
     }
 
     #[derive(ToSchema, Serialize)]
@@ -896,6 +900,10 @@ mod put {
         // plugged.host: welcome tour
         if let Some(tour) = data.tour {
             tour.apply(&mut settings.tour);
+        }
+        // plugged.host: deleted servers' copies
+        if let Some(recovery) = data.recovery {
+            recovery.apply(&mut settings.recovery);
         }
 
         if !settings.app.password_login_enabled {

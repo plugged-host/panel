@@ -1,4 +1,5 @@
 import {
+  faBoxArchive, // plugged.host
   faBriefcase,
   faClipboard,
   faCloud,
@@ -15,6 +16,7 @@ import DashboardActivity from '@/pages/dashboard/activity/DashboardActivity.tsx'
 import DashboardApiKeys from '@/pages/dashboard/api-keys/DashboardApiKeys.tsx';
 import DashboardApiKeysCreate from '@/pages/dashboard/api-keys/DashboardApiKeysCreate.tsx';
 import DashboardApiKeysUpdate from '@/pages/dashboard/api-keys/DashboardApiKeysUpdate.tsx';
+import DashboardBackups from '@/pages/dashboard/backups/DashboardBackups.tsx'; // plugged.host
 import DashboardCommandSnippets from '@/pages/dashboard/command-snippets/DashboardCommandSnippets.tsx';
 import DashboardOAuthLinks from '@/pages/dashboard/oauth-links/DashboardOAuthLinks.tsx';
 import DashboardSecurityKeys from '@/pages/dashboard/security-keys/DashboardSecurityKeys.tsx';
@@ -88,6 +90,13 @@ const routes: RouteDefinition[] = [
     icon: faKeyboard,
     path: '/shortcuts',
     element: DashboardShortcuts,
+  },
+  // plugged.host: the newest copy of each server, deleted ones included (docs/features/backups-page.md)
+  {
+    name: () => getTranslations().t('pages.account.backups.title', {}),
+    icon: faBoxArchive,
+    path: '/backups',
+    element: DashboardBackups,
   },
   {
     name: () => getTranslations().t('pages.account.activity.title', {}),

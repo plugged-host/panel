@@ -415,6 +415,11 @@ export const adminSettingsPlacementSchema = z.object({
   unreachableAfter: z.number().int().min(1).max(60),
 });
 
+// plugged.host: deleted servers' copies (shared/src/settings/recovery.rs, docs/features/backups-page.md)
+export const adminSettingsRecoverySchema = z.object({
+  deletedHoldDays: z.number().int().min(0).max(90),
+});
+
 // plugged.host: the welcome tour (shared/src/settings/tour.rs, docs/features/welcome-tour.md)
 export const adminSettingsTourSchema = z.object({
   enabled: z.boolean(),
@@ -443,4 +448,5 @@ export const adminSettingsSchema = z.object({
   games: adminSettingsGamesSchema, // plugged.host
   placement: adminSettingsPlacementSchema, // plugged.host
   tour: adminSettingsTourSchema, // plugged.host
+  recovery: adminSettingsRecoverySchema, // plugged.host
 });

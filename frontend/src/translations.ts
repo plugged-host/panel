@@ -2118,6 +2118,20 @@ const baseTranslations = defineTranslations({
             keyUpdated: 'The permissions of your API key have been updated.',
           },
         },
+        // plugged.host
+        backups: {
+          title: 'Backups',
+          description:
+            'The newest backup of each of your servers, and of servers you deleted in the last days. Download one to keep a copy of your files outside the panel.',
+          empty: 'You have no servers, and no deleted server has a backup kept.',
+          deleted: 'Deleted',
+          noCopy: 'No backup yet',
+          table: {
+            server: 'Server',
+            copy: 'Newest Backup',
+            keptUntil: 'Kept Until',
+          },
+        },
         activity: {
           title: 'Activity',
         },
@@ -2992,6 +3006,21 @@ const baseTranslations = defineTranslations({
                 },
                 toast: {
                   updated: 'Welcome tour settings updated.',
+                },
+              },
+            },
+            // plugged.host
+            recovery: {
+              title: 'Recovery',
+              page: {
+                title: 'Recovery Settings',
+                form: {
+                  deletedHoldDays: 'Keep Deleted Servers’ Backups (Days)',
+                  deletedHoldDaysDescription:
+                    'How long the newest system backup of a deleted server stays downloadable from its owner’s Backups page. Older system backups of it are removed at once. 0 deletes them with the server.',
+                },
+                toast: {
+                  updated: 'Recovery settings updated.',
                 },
               },
             },

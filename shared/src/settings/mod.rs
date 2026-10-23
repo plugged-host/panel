@@ -31,6 +31,7 @@ pub mod metadata;
 pub mod noprofit; // plugged.host
 pub mod placement; // plugged.host
 pub mod ratelimits;
+pub mod recovery; // plugged.host
 pub mod server;
 pub mod status; // plugged.host
 pub mod tour; // plugged.host
@@ -398,6 +399,9 @@ pub struct AppSettings {
     // plugged.host: the welcome tour
     #[schema(inline)]
     pub tour: tour::AppSettingsTour,
+    // plugged.host: deleted servers' copies (and, later, node failover)
+    #[schema(inline)]
+    pub recovery: recovery::AppSettingsRecovery,
 
     #[serde(skip)]
     pub disabled_extensions: Vec<compact_str::CompactString>,
@@ -694,6 +698,8 @@ impl SettingsSerializeExt for AppSettings {
             .nest("placement", &self.placement) // plugged.host
             .await?
             .nest("tour", &self.tour) // plugged.host
+            .await?
+            .nest("recovery", &self.recovery) // plugged.host
             .await?;
 
         for (ext_identifier, ext_settings) in self.extensions.iter() {
@@ -989,6 +995,9 @@ impl SettingsDeserializeExt for AppSettingsDeserializer {
                 .await?,
             tour: deserializer // plugged.host
                 .nest("tour", &tour::AppSettingsTourDeserializer)
+                .await?,
+            recovery: deserializer // plugged.host
+                .nest("recovery", &recovery::AppSettingsRecoveryDeserializer)
                 .await?,
             disabled_extensions: deserializer
                 .take_raw_setting("disabled_extensions")

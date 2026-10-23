@@ -53,7 +53,9 @@ The activity log gets `server:settings.software`.
 
 `DELETE /api/client/servers/{server}`. The player types the server's name to confirm. The server is
 deleted like an admin deletes it (not forced: when Wings refuses, nothing is deleted), then its
-backups, since nobody could reach them afterwards. A suspended or installing server cannot be
+backups, except its system backups while deleted servers are held: the newest one stays
+downloadable from the owner's Backups page ([backups-page.md](backups-page.md)). A suspended or
+installing server cannot be
 deleted from here. The account's activity log gets `server:delete` (the server's own log goes with
 it).
 

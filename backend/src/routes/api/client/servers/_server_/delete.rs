@@ -47,8 +47,14 @@ pub mod delete {
                 .ok();
         }
 
-        // the backups go with the server: nobody could reach them afterwards
-        let backups = ServerBackup::all_by_server_uuid(&state.database, server.uuid).await?;
+        // the backups go with the server, but for its system backups while deleted servers are held:
+        // the owner downloads those from the Backups page (docs/features/backups-page.md)
+        let holding = shared::deleted_servers::holding(&state).await?;
+        let backups = ServerBackup::all_by_server_uuid(&state.database, server.uuid)
+            .await?
+            .into_iter()
+            .filter(|backup| !holding || backup.system_backup_policy_uuid.is_none())
+            .collect::<Vec<_>>();
 
         if let Err(err) = server
             .delete(

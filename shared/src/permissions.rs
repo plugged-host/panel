@@ -209,6 +209,20 @@ pub(crate) static BASE_USER_PERMISSIONS: LazyLock<IndexMap<&'static str, Permiss
                     ]),
                 },
             ),
+            // plugged.host: the account's Backups page (docs/features/backups-page.md)
+            (
+                "backups",
+                PermissionGroup {
+                    description: "Permissions that control the ability to see and download the newest backup of the account's servers, deleted ones included.",
+                    permissions: IndexMap::from([
+                        (
+                            "read",
+                            "Allows listing the account's servers and their newest backup.",
+                        ),
+                        ("download", "Allows downloading those backups."),
+                    ]),
+                },
+            ),
             (
                 "activity",
                 PermissionGroup {

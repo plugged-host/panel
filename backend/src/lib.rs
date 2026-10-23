@@ -770,6 +770,7 @@ pub async fn handle_startup() -> Result<
         .await;
 
     tasks::define_background_tasks(&background_task_builder).await;
+    shared::deleted_servers::register(); // plugged.host: docs/features/backups-page.md
 
     background_tasks
         .merge_builder(background_task_builder)

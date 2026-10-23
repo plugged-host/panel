@@ -1384,6 +1384,29 @@ export const userAllowanceCutsTable = pgTable(
   (cols) => [index('user_allowance_cuts_settled_user_uuid_idx').on(cols.settled, cols.user_uuid)],
 );
 
+// plugged.host: deleted servers whose system backups stay downloadable for their owner a while
+// (shared/src/deleted_servers.rs, docs/features/backups-page.md)
+export const deletedServersTable = pgTable(
+  'deleted_servers',
+  {
+    uuid: uuid().primaryKey().notNull(),
+    owner_uuid: uuid()
+      .references(() => usersTable.uuid, { onDelete: 'cascade' })
+      .notNull(),
+    name: varchar({ length: 255 * UTF8_MAX_SCALAR_SIZE }).notNull(),
+    suspended: boolean().default(false).notNull(),
+    backups: uuid().array().notNull(),
+    deleted: timestamp().defaultNow().notNull(),
+    hold_until: timestamp().notNull(),
+    trimmed: timestamp(),
+    purged: timestamp(),
+  },
+  (cols) => [
+    index('deleted_servers_owner_uuid_idx').on(cols.owner_uuid),
+    index('deleted_servers_purged_hold_until_idx').on(cols.purged, cols.hold_until),
+  ],
+);
+
 // plugged.host: where each user is in the welcome tour (shared/src/welcome_tour.rs,
 // docs/features/welcome-tour.md)
 export const userWelcomeToursTable = pgTable('user_welcome_tours', {

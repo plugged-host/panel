@@ -387,6 +387,7 @@ const user = {
     all: () => ['user', 'ssh-keys'] as const,
   },
   welcomeTour: () => ['user', 'welcome-tour'] as const, // plugged.host
+  backups: () => ['user', 'backups'] as const, // plugged.host
 };
 
 const global = {

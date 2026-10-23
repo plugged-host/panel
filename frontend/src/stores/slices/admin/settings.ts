@@ -239,6 +239,9 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
     enabled: false,
     version: 1,
   },
+  recovery: {
+    deletedHoldDays: 7,
+  },
 
   updateInformation: null,
   updateInformationError: null,
@@ -261,6 +264,7 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
       games: value.games, // plugged.host
       placement: value.placement, // plugged.host
       tour: value.tour, // plugged.host
+      recovery: value.recovery, // plugged.host
     })),
   updateSettings: (value) =>
     set((state) => ({
@@ -280,6 +284,7 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
       ...(value.games ? { games: { ...state.games, ...value.games } } : {}), // plugged.host
       ...(value.placement ? { placement: { ...state.placement, ...value.placement } } : {}), // plugged.host
       ...(value.tour ? { tour: { ...state.tour, ...value.tour } } : {}), // plugged.host
+      ...(value.recovery ? { recovery: { ...state.recovery, ...value.recovery } } : {}), // plugged.host
     })),
   setUpdateInformation: (value) => set((state) => ({ ...state, updateInformation: value })),
   loadUpdateInformation: async () => {

@@ -946,6 +946,15 @@ pub async fn define_background_tasks(
             },
         )
         .await;
+    // plugged.host: deleted servers' held copies: the older ones at once, the newest when the hold
+    // ends (shared::deleted_servers)
+    background_task_builder
+        .add_cron_task(
+            "purge_deleted_servers",
+            croner::Cron::from_str("30 */10 * * * *").unwrap(),
+            async |state| shared::deleted_servers::purge(&state).await,
+        )
+        .await;
     // plugged.host: suspended servers whose deletion time passed (docs/features/suspension.md)
     background_task_builder
         .add_cron_task(

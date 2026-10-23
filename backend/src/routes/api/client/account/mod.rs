@@ -4,6 +4,7 @@ use utoipa_axum::{router::OpenApiRouter, routes};
 mod activity;
 mod api_keys;
 mod avatar;
+mod backups; // plugged.host
 mod command_snippets;
 mod email;
 mod logout;
@@ -189,5 +190,6 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         .nest("/settings", settings::router(state))
         .nest("/activity", activity::router(state))
         .nest("/tour", tour::router(state)) // plugged.host
+        .nest("/backups", backups::router(state)) // plugged.host
         .with_state(state.clone())
 }

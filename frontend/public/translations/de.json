@@ -2250,6 +2250,18 @@
             "keyUpdated": "Die Berechtigungen deines API-Schlüssels wurden aktualisiert."
           }
         },
+        "backups": {
+          "title": "Backups",
+          "description": "Das neueste Backup jedes deiner Server und der Server, die du in den letzten Tagen gelöscht hast. Lade eines herunter, um eine Kopie deiner Dateien außerhalb des Panels zu behalten.",
+          "empty": "Du hast keine Server, und für keinen gelöschten Server wird ein Backup aufbewahrt.",
+          "deleted": "Gelöscht",
+          "noCopy": "Noch kein Backup",
+          "table": {
+            "server": "Server",
+            "copy": "Neuestes Backup",
+            "keptUntil": "Aufbewahrt bis"
+          }
+        },
         "activity": {
           "title": "Aktivität"
         }
@@ -3046,6 +3058,19 @@
                 },
                 "toast": {
                   "updated": "Einstellungen der Willkommenstour aktualisiert."
+                }
+              }
+            },
+            "recovery": {
+              "title": "Wiederherstellung",
+              "page": {
+                "title": "Einstellungen der Wiederherstellung",
+                "form": {
+                  "deletedHoldDays": "Backups gelöschter Server aufbewahren (Tage)",
+                  "deletedHoldDaysDescription": "Wie lange das neueste System-Backup eines gelöschten Servers auf der Backup-Seite seines Besitzers herunterladbar bleibt. Ältere System-Backups davon werden sofort entfernt. 0 löscht sie mit dem Server."
+                },
+                "toast": {
+                  "updated": "Einstellungen der Wiederherstellung aktualisiert."
                 }
               }
             }
