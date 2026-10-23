@@ -39,7 +39,8 @@ mod schedules;
 mod settings;
 mod startup;
 mod subusers;
-mod transfer; // plugged.host
+mod transfer;
+mod waiting_room; // plugged.host // plugged.host
 // plugged.host: the private network removed (docs/upstream.md)
 // mod tunnel;
 mod websocket;
@@ -171,6 +172,7 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         .nest("/limbo", limbo::router(state)) // plugged.host
         .nest("/power", power::router(state))
         .nest("/queue", queue::router(state)) // plugged.host
+        .nest("/waiting-room", waiting_room::router(state)) // plugged.host
         .nest("/files", files::router(state))
         .nest("/settings", settings::router(state))
         .nest("/startup", startup::router(state))

@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { getEmptyPaginationSet, httpErrorToHuman } from '@/api/axios.ts';
 import getServerGroups from '@/api/me/servers/groups/getServerGroups.ts';
 import getServers from '@/api/server/getServers.ts';
+import { AdPageSlot } from '@/elements/ads/AdPlacements.tsx'; // plugged.host
 import { AdminCan } from '@/elements/Can.tsx';
 import AccountContentContainer from '@/elements/containers/AccountContentContainer.tsx';
 import { NoItems, Pagination } from '@/elements/data-display/Table.tsx';
@@ -128,7 +129,6 @@ export default function DashboardHomeAll() {
       registry={window.extensionContext.extensionRegistry.pages.dashboard.home.containerAll}
     >
       <DashboardHomeTitle />
-
       <Group mb='md' justify='space-between'>
         <Group wrap='nowrap' className='w-full md:w-auto'>
           <Checkbox
@@ -227,6 +227,7 @@ export default function DashboardHomeAll() {
           <Pagination data={servers ?? getEmptyPaginationSet()} onPageSelect={setPage} />
         </>
       )}
+      <AdPageSlot /> {/* plugged.host: docs/features/ads.md */}
     </AccountContentContainer>
   );
 }

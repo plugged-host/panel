@@ -43,6 +43,52 @@ export const publicSettingsCaptchaProviderSchema = z.discriminatedUnion('type', 
   publicSettingsCaptchaProviderCapSchema,
 ]);
 
+// plugged.host: the public part of the ad settings (docs/features/ads.md)
+const adsMonetagTagSchema = z.object({ zone: z.string(), src: z.string() });
+
+export const adsZoneSchema = z.object({
+  key: z.string(),
+  width: z.number(),
+  height: z.number(),
+  host: z.string(),
+});
+
+export const adsSettingsSchema = z.object({
+  enabled: z.boolean(),
+  showAccount: z.boolean(),
+  showServer: z.boolean(),
+  slotTop: z.boolean(),
+  slotServerTools: z.boolean(),
+  slotPages: z.boolean(),
+  slotFoot: z.boolean(),
+  refreshSeconds: z.number(),
+  refreshMemberSeconds: z.number(),
+  zones: z.array(adsZoneSchema),
+  frameOrigin: z.string().nullable(),
+  native: z.boolean(),
+  nativeHeight: z.number(),
+  socialBarScript: z.string().nullable(),
+  socialBarEverywhere: z.boolean(),
+  popunderScript: z.string().nullable(),
+  roomScript: z.string().nullable(),
+  monetagPush: adsMonetagTagSchema.nullable(),
+  monetagVignette: adsMonetagTagSchema.nullable(),
+  monetagVignetteMinutes: z.number(),
+  monetagVignetteMembers: z.boolean(),
+  roomBanner: z.boolean(),
+  roomNative: z.boolean(),
+  roomSocialBar: z.boolean(),
+  roomPopunder: z.boolean(),
+  roomInterstitial: z.boolean(),
+  adblockEnabled: z.boolean(),
+  adblockMode: z.enum(['notice', 'modal', 'block']),
+  adblockGrace: z.number(),
+  adblockDismissHours: z.number(),
+  adblockProbe: z.boolean(),
+  adblockSkipConsole: z.boolean(),
+  adblockMessage: z.string().nullable(),
+});
+
 export const publicSettingsSchema = z.object({
   time: z.string(),
   oobeStep: oobeStepKey.nullable(),
@@ -127,4 +173,6 @@ export const publicSettingsSchema = z.object({
     plusName: z.string(),
     plusplusName: z.string(),
   }),
+  // plugged.host: what pages need to show ads (docs/features/ads.md)
+  ads: adsSettingsSchema,
 });

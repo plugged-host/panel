@@ -9,6 +9,7 @@ import {
   faCubes, // plugged.host
   faDatabase,
   faEnvelopesBulk,
+  faEyeSlash, // plugged.host
   faGamepad,
   faHandshake,
   faHeartPulse,
@@ -16,16 +17,19 @@ import {
   faLayerGroup,
   faLock, // plugged.host
   faMedal, // plugged.host
+  faRectangleAd, // plugged.host
   faRobot,
   faScaleBalanced,
   faServer,
   faShareNodes,
   faShieldHalved,
   faStore, // plugged.host
+  faTableColumns, // plugged.host
   faToolbox,
   faUser,
   faUserCheck,
   faUserGear, // plugged.host
+  faWindowMaximize, // plugged.host
   faWrench, // plugged.host
   IconDefinition, // plugged.host
 } from '@fortawesome/free-solid-svg-icons';
@@ -45,6 +49,7 @@ import { trackActivity } from '@/stores/activity.ts';
 import { useAdminStore } from '@/stores/admin.tsx';
 import AbuseContainer from './abuse/AbuseContainer.tsx';
 import ActivityContainer from './activity/ActivityContainer.tsx';
+import AdsContainer from './ads/AdsContainer.tsx'; // plugged.host
 import ApplicationContainer from './application/ApplicationContainer.tsx';
 import CaptchaContainer from './captcha/CaptchaContainer.tsx';
 import EconomyContainer from './economy/EconomyContainer.tsx'; // plugged.host
@@ -67,7 +72,7 @@ import WebauthnContainer from './webauthn/WebauthnContainer.tsx';
 
 // plugged.host: the settings are split into a few pages, each its own entry under "Settings" in the
 // admin sidebar (docs/upstream.md), instead of one page with every tab.
-export type SettingsGroupKey = 'general' | 'mail' | 'accounts' | 'hosting' | 'security' | 'economy';
+export type SettingsGroupKey = 'general' | 'mail' | 'accounts' | 'hosting' | 'security' | 'economy' | 'ads';
 
 type Translate = ReturnType<typeof useTranslations>['t'];
 
@@ -265,6 +270,49 @@ export const settingsGroups: SettingsGroup[] = [
         icon: faMedal,
         path: '/memberships',
         element: <EconomyContainer part='memberships' />,
+      },
+    ],
+  },
+  {
+    key: 'ads',
+    icon: faRectangleAd,
+    name: () => getTranslations().t('pages.admin.settings.groups.ads', {}),
+    tabs: (t) => [
+      {
+        name: t('pages.admin.settings.tabs.ads.placement', {}),
+        icon: faTableColumns,
+        path: '/',
+        element: <AdsContainer part='placement' />,
+      },
+      {
+        name: t('pages.admin.settings.tabs.ads.adsterra', {}),
+        icon: faRectangleAd,
+        path: '/adsterra',
+        element: <AdsContainer part='adsterra' />,
+      },
+      {
+        name: t('pages.admin.settings.tabs.ads.monetag', {}),
+        icon: faWindowMaximize,
+        path: '/monetag',
+        element: <AdsContainer part='monetag' />,
+      },
+      {
+        name: t('pages.admin.settings.tabs.ads.room', {}),
+        icon: faHourglassHalf,
+        path: '/waiting-room',
+        element: <AdsContainer part='room' />,
+      },
+      {
+        name: t('pages.admin.settings.tabs.ads.adblock', {}),
+        icon: faEyeSlash,
+        path: '/ad-blockers',
+        element: <AdsContainer part='adblock' />,
+      },
+      {
+        name: t('pages.admin.settings.tabs.ads.inGame', {}),
+        icon: faGamepad,
+        path: '/in-game',
+        element: <AdsContainer part='inGame' />,
       },
     ],
   },

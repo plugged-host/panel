@@ -25,6 +25,7 @@ use utoipa::ToSchema;
 
 pub mod abuse; // plugged.host
 pub mod activity;
+pub mod ads; // plugged.host
 pub mod app;
 pub mod economy; // plugged.host
 pub mod games; // plugged.host
@@ -444,6 +445,9 @@ pub struct AppSettings {
     // plugged.host: idle servers stopped, parked and restored
     #[schema(inline)]
     pub limbo: limbo::AppSettingsLimbo,
+    // plugged.host: ads, the start waiting room, the ad-block notice, the in-game message
+    #[schema(inline)]
+    pub ads: ads::AppSettingsAds,
     #[schema(inline)]
     pub updates: updates::AppSettingsUpdates,
 
@@ -750,6 +754,8 @@ impl SettingsSerializeExt for AppSettings {
             .nest("queue", &self.queue) // plugged.host
             .await?
             .nest("limbo", &self.limbo) // plugged.host
+            .await?
+            .nest("ads", &self.ads) // plugged.host
             .await?
             .nest("updates", &self.updates)
             .await?;
@@ -1059,6 +1065,9 @@ impl SettingsDeserializeExt for AppSettingsDeserializer {
                 .await?,
             limbo: deserializer // plugged.host
                 .nest("limbo", &limbo::AppSettingsLimboDeserializer)
+                .await?,
+            ads: deserializer // plugged.host
+                .nest("ads", &ads::AppSettingsAdsDeserializer)
                 .await?,
             updates: deserializer
                 .nest("updates", &updates::AppSettingsUpdatesDeserializer)

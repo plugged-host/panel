@@ -45,6 +45,7 @@ For AI agents: [`AGENTS.md`](../AGENTS.md) at the root has the hard rules in sho
 | **Node failover**: a down node's servers restored on the other nodes of its location from their newest off-node backup, by hand, automatically or as a drill; old copies removed when the node is back | [features/failover.md](features/failover.md) |
 | **Credits, tokens and memberships**: the Resource Store (CPU, memory and disk for credits, on noprofit.space's curve), tokens from sponsored links (Linkvertise, Vylo), two memberships that open location tiers and add CPU, admin view per user | [features/economy.md](features/economy.md) |
 | **Limbo**: servers nobody used for 48 hours are stopped, after 72 hours backed up off their node and removed from it; the owner restores them from the server page for a few tokens, home or to a location with room; Admin › Settings › Hosting › Limbo | [features/limbo.md](features/limbo.md) |
+| **Ads**: Adsterra units in sandboxed frames that fold when empty, Monetag's tags, the owner's own sponsored banners (Admin › Sponsored Banners), an ad-funded waiting room on start, a note for ad blockers and a chat line on Minecraft servers; the second membership sees none; Admin › Settings › Ads | [features/ads.md](features/ads.md) |
 | **Start queue**: starts on a busy node take turns, members first, at most one per node every 20 seconds and none waiting longer than 10 minutes; the queue page offers a membership or a move; Admin › Settings › Hosting › Start Queue | [features/start-queue.md](features/start-queue.md) |
 | **Suspension details**: why, since when, by whom and until when a server is suspended, shown to its owner; servers past their deletion time are purged | [features/suspension.md](features/suspension.md) |
 | **Delete a user with their servers** from the user's delete dialog | [features/admin-users.md](features/admin-users.md) |
@@ -54,7 +55,7 @@ For AI agents: [`AGENTS.md`](../AGENTS.md) at the root has the hard rules in sho
 | **Removed features**: devices, mounts, the extension manager, the update checker, Tundra's private network, the server firewall, managed database instances, backup groups; telemetry is opt-in | [upstream.md](upstream.md#removed-features) |
 | **German stays complete**: a build fails while a German string is missing | [development.md](development.md#strings) |
 
-More features arrive in phases (ads, Minecraft and FiveM tools, subdomains,
+More features arrive in phases (Minecraft and FiveM tools, subdomains,
 an AI assistant, Discord rewards). Each one gets its page in [features/](features/) in the same
 commit as its code.
 

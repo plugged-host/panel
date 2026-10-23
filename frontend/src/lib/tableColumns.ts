@@ -204,6 +204,20 @@ export const locationTableColumns = (): string[] => {
   ];
 };
 
+// plugged.host: Admin › Sponsored Banners
+export const adBannerTableColumns = (): string[] => {
+  const { t } = getTranslations();
+  return [
+    t('common.table.columns.id', {}),
+    t('pages.admin.adBanners.table.advertiser', {}),
+    t('pages.admin.adBanners.table.placement', {}),
+    t('pages.admin.adBanners.table.size', {}),
+    t('pages.admin.adBanners.table.live', {}),
+    t('pages.admin.adBanners.table.clicks', {}),
+    t('common.table.columns.created', {}),
+  ];
+};
+
 // plugged.host: Admin › Plans
 export const planTableColumns = (): string[] => {
   const { t } = getTranslations();

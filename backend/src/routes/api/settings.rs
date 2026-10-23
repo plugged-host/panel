@@ -131,6 +131,8 @@ mod get {
         tour: ResponseTour, // plugged.host
         #[schema(inline)]
         economy: ResponseEconomy<'a>, // plugged.host
+        #[schema(inline)]
+        ads: shared::ads::ApiAdsSettings, // plugged.host
     }
 
     #[utoipa::path(get, path = "/", responses(
@@ -235,6 +237,7 @@ mod get {
                 plus_name: &settings.economy.plus_name,
                 plusplus_name: &settings.economy.plusplus_name,
             },
+            ads: shared::ads::ApiAdsSettings::new(&settings.ads),
         })
         .ok()
     }

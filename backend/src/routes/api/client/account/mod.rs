@@ -2,6 +2,7 @@ use super::State;
 use utoipa_axum::{router::OpenApiRouter, routes};
 
 mod activity;
+mod ads; // plugged.host
 mod api_keys;
 mod avatar;
 mod backups; // plugged.host
@@ -196,6 +197,7 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         .nest("/tour", tour::router(state)) // plugged.host
         .nest("/backups", backups::router(state)) // plugged.host
         .nest("/balance", balance::router(state)) // plugged.host
+        .nest("/ads", ads::router(state)) // plugged.host
         .nest("/credits", credits::router(state)) // plugged.host
         .nest("/tokens", tokens::router(state)) // plugged.host
         .nest("/membership", membership::router(state)) // plugged.host

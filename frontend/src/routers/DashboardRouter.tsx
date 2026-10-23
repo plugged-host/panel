@@ -1,6 +1,7 @@
 import { faArrowUpRightFromSquare, faGraduationCap, faServer } from '@fortawesome/free-solid-svg-icons';
 import { Suspense, useMemo } from 'react';
 import { Route, Routes } from 'react-router';
+import { AdLayoutFoot, AdLayoutTop } from '@/elements/ads/AdLayout.tsx'; // plugged.host
 import AccountContentContainer from '@/elements/containers/AccountContentContainer.tsx';
 import ExtensionSlot from '@/elements/ExtensionSlot.tsx';
 import ScreenBlock from '@/elements/feedback/ScreenBlock.tsx';
@@ -162,6 +163,7 @@ export default function DashboardRouter({ isNormal }: { isNormal: boolean }) {
                 components={window.extensionContext.extensionRegistry.pages.dashboard.prependedComponents}
                 name='dashboard-prepended-component'
               />
+              <AdLayoutTop area='account' /> {/* plugged.host: docs/features/ads.md */}
               <Suspense fallback={<Spinner.Centered />}>
                 <Routes>
                   {startOnGroupedServers ? (
@@ -195,6 +197,7 @@ export default function DashboardRouter({ isNormal }: { isNormal: boolean }) {
                   />
                 </Routes>
               </Suspense>
+              <AdLayoutFoot area='account' /> {/* plugged.host */}
               <WelcomeTourPanel /> {/* plugged.host: on the server list */}
               <ExtensionSlot
                 components={window.extensionContext.extensionRegistry.pages.dashboard.appendedComponents}

@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { httpErrorToHuman } from '@/api/axios.ts';
 import getServerLimbo from '@/api/server/limbo/getServerLimbo.ts';
 import restoreServer from '@/api/server/limbo/restoreServer.ts';
+import { AdStack } from '@/elements/ads/AdSlot.tsx';
 import Button from '@/elements/buttons/Button.tsx';
 import ServerContentContainer from '@/elements/containers/ServerContentContainer.tsx';
 import Spinner from '@/elements/feedback/Spinner.tsx';
@@ -194,14 +195,18 @@ export default function ServerLimbo() {
               </Button>
             </Stack>
           ) : limbo.state === 'restoring' || limbo.state === 'unpacking' ? (
-            <Group gap='sm'>
-              <Spinner size={20} />
-              <Text>
-                {limbo.state === 'restoring'
-                  ? t('pages.server.limbo.restoring', {})
-                  : t('pages.server.limbo.unpacking', {})}
-              </Text>
-            </Group>
+            <Stack gap='lg'>
+              <Group gap='sm'>
+                <Spinner size={20} />
+                <Text>
+                  {limbo.state === 'restoring'
+                    ? t('pages.server.limbo.restoring', {})
+                    : t('pages.server.limbo.unpacking', {})}
+                </Text>
+              </Group>
+              {/* a restore takes a while: the waiting rooms' ads (docs/features/ads.md) */}
+              <AdStack />
+            </Stack>
           ) : (
             <Stack gap='xs' align='flex-start'>
               <Text c='dimmed'>{t('pages.server.limbo.notParked', {})}</Text>

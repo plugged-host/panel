@@ -119,8 +119,9 @@ to copy), never gathered in a folder of their own.
   groups by topic, each its own entry under "Settings" in the admin sidebar (`settingsGroups` in
   `AdminSettings.tsx`): General (application, metadata, storage, status page, updates), Mail,
   Accounts (users, noprofit.space, passkeys, welcome tour), Hosting (servers, games, placement,
-  start queue, limbo, recovery), Security (captcha, rate limits, abuse, activity) and Economy (store, tokens,
-  memberships: one section in three tabs). A new section joins the group its topic belongs to;
+  start queue, limbo, recovery), Security (captcha, rate limits, abuse, activity), Economy (store, tokens,
+  memberships: one section in three tabs) and Ads (placement, Adsterra, Monetag, waiting room, ad
+  blockers, in-game: one section in six tabs). A new section joins the group its topic belongs to;
   a big section is split into tabs that each save their own fields. Every setting is editable
   there; the environment holds only what must exist before the database does.
 

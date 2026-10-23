@@ -5,8 +5,8 @@
 //! handler on `ServerActivity` keeps it, since the activity log itself is pruned). The
 //! `settle_limbo` task, once a minute:
 //!
-//! 1. A running server idle for `stop_hours` is stopped (`stopped`).
-//! 2. A server that is off and idle for `park_hours` gets a final backup (`parking`), locked, on
+//! 1. A running server idle for `stop_minutes` is stopped (`stopped`).
+//! 2. A server that is off and idle for `park_minutes` gets a final backup (`parking`), locked, on
 //!    storage off its node (S3, restic off the nodes); a server whose backups stay on its node is
 //!    never parked. Once the backup is done, Wings deletes the server (`parked`): its row,
 //!    allocations and backups stay, the node's disk is freed, and the node's room no longer
@@ -132,15 +132,15 @@ pub enum Action {
     Nothing,
 }
 
-/// A candidate's fate from its idle hours and whether Wings says it is running.
-pub fn action(settings: &AppSettingsLimbo, idle_hours: i64, running: bool) -> Action {
+/// A candidate's fate from its idle minutes and whether Wings says it is running.
+pub fn action(settings: &AppSettingsLimbo, idle_minutes: i64, running: bool) -> Action {
     if running {
-        if idle_hours >= settings.stop_hours as i64 {
+        if idle_minutes >= settings.stop_minutes as i64 {
             Action::Stop
         } else {
             Action::Nothing
         }
-    } else if idle_hours >= settings.park_hours as i64 {
+    } else if idle_minutes >= settings.park_minutes as i64 {
         Action::Park
     } else {
         Action::Nothing
@@ -684,7 +684,7 @@ async fn breaker_open(state: &crate::State) -> Result<bool, sqlx::Error> {
 struct Candidate {
     uuid: uuid::Uuid,
     node_uuid: uuid::Uuid,
-    idle_hours: i64,
+    idle_minutes: i64,
 }
 
 async fn candidates(
@@ -694,7 +694,7 @@ async fn candidates(
 ) -> Result<Vec<Candidate>, sqlx::Error> {
     let rows = sqlx::query(
         "SELECT servers.uuid, servers.node_uuid,
-            (EXTRACT(EPOCH FROM NOW() - servers.last_activity) / 3600)::BIGINT AS idle_hours
+            (EXTRACT(EPOCH FROM NOW() - servers.last_activity) / 60)::BIGINT AS idle_minutes
         FROM servers
         JOIN users ON users.uuid = servers.owner_uuid
         LEFT JOIN server_limbo ON server_limbo.server_uuid = servers.uuid
@@ -703,7 +703,7 @@ async fn candidates(
             AND servers.destination_node_uuid IS NULL
             AND (servers.limbo_state IS NULL OR servers.limbo_state = 'stopped')
             AND NOT users.admin
-            AND servers.last_activity < NOW() - make_interval(hours => $1)
+            AND servers.last_activity < NOW() - make_interval(mins => $1)
             AND (server_limbo.failed IS NULL OR server_limbo.failed < NOW() - make_interval(hours => $2))
             AND NOT ($3 AND EXISTS (
                 SELECT 1 FROM user_memberships
@@ -714,7 +714,7 @@ async fn candidates(
         ORDER BY servers.last_activity
         LIMIT 500",
     )
-    .bind(settings.stop_hours.min(settings.park_hours))
+    .bind(settings.stop_minutes.min(settings.park_minutes))
     .bind(RETRY_HOURS as i32)
     .bind(exempt_members)
     .fetch_all(state.database.read())
@@ -725,7 +725,7 @@ async fn candidates(
             Ok(Candidate {
                 uuid: row.try_get("uuid")?,
                 node_uuid: row.try_get("node_uuid")?,
-                idle_hours: row.try_get("idle_hours")?,
+                idle_minutes: row.try_get("idle_minutes")?,
             })
         })
         .collect()
@@ -736,7 +736,7 @@ async fn stop(
     state: &crate::State,
     node: &Node,
     server_uuid: uuid::Uuid,
-    idle_hours: i64,
+    idle_minutes: i64,
 ) -> Result<(), anyhow::Error> {
     node.api_client(&state.database)
         .await?
@@ -761,7 +761,7 @@ async fn stop(
         server_uuid,
         None,
         "server:limbo.stop",
-        serde_json::json!({ "idle_hours": idle_hours }),
+        serde_json::json!({ "idle_minutes": idle_minutes }),
     )
     .await;
 
@@ -773,7 +773,7 @@ async fn stop(
 async fn park(
     state: &crate::State,
     server: &Server,
-    idle_hours: i64,
+    idle_minutes: i64,
 ) -> Result<bool, anyhow::Error> {
     let Some(configuration) = server.backup_configuration(&state.database).await else {
         return Ok(false);
@@ -821,7 +821,7 @@ async fn park(
         server.uuid,
         None,
         "server:limbo.parking",
-        serde_json::json!({ "idle_hours": idle_hours, "backup": backup.uuid }),
+        serde_json::json!({ "idle_minutes": idle_minutes, "backup": backup.uuid }),
     )
     .await;
 
@@ -893,10 +893,11 @@ pub async fn settle(state: &crate::State) -> Result<(), anyhow::Error> {
                 .get(&candidate.uuid)
                 .is_some_and(|usage| !matches!(usage.state, wings_api::ServerState::Offline));
 
-            match action(&limbo, candidate.idle_hours, running) {
+            match action(&limbo, candidate.idle_minutes, running) {
                 Action::Stop if stops > 0 => {
                     stops -= 1;
-                    if let Err(err) = stop(state, &node, candidate.uuid, candidate.idle_hours).await
+                    if let Err(err) =
+                        stop(state, &node, candidate.uuid, candidate.idle_minutes).await
                     {
                         tracing::warn!(server = %candidate.uuid, "failed to stop an idle server: {err:#}");
                     }
@@ -907,7 +908,7 @@ pub async fn settle(state: &crate::State) -> Result<(), anyhow::Error> {
                     else {
                         continue;
                     };
-                    match park(state, &server, candidate.idle_hours).await {
+                    match park(state, &server, candidate.idle_minutes).await {
                         Ok(true) => parks -= 1,
                         Ok(false) => {}
                         Err(err) => {
@@ -1279,11 +1280,11 @@ mod tests {
     fn running_servers_stop_and_stopped_ones_park() {
         let settings = AppSettingsLimbo::default();
 
-        assert_eq!(action(&settings, 47, true), Action::Nothing);
-        assert_eq!(action(&settings, 48, true), Action::Stop);
-        assert_eq!(action(&settings, 500, true), Action::Stop);
-        assert_eq!(action(&settings, 71, false), Action::Nothing);
-        assert_eq!(action(&settings, 72, false), Action::Park);
+        assert_eq!(action(&settings, 48 * 60 - 1, true), Action::Nothing);
+        assert_eq!(action(&settings, 48 * 60, true), Action::Stop);
+        assert_eq!(action(&settings, 500 * 60, true), Action::Stop);
+        assert_eq!(action(&settings, 72 * 60 - 1, false), Action::Nothing);
+        assert_eq!(action(&settings, 72 * 60, false), Action::Park);
     }
 
     #[test]

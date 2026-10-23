@@ -55,6 +55,7 @@ export default function DashboardMembership() {
     queryClient.invalidateQueries({ queryKey: queryKeys.user.store() });
     queryClient.invalidateQueries({ queryKey: queryKeys.user.balance() });
     queryClient.invalidateQueries({ queryKey: queryKeys.user.servers.createOptions() });
+    queryClient.invalidateQueries({ queryKey: queryKeys.user.ads() }); // a membership changes the ads
     setBuying(null);
   };
 

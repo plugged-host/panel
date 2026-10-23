@@ -14,6 +14,7 @@ import {
   faFolderOpen,
   faHeartPulse,
   faLayerGroup,
+  faRectangleAd, // plugged.host
   faScroll,
   faServer,
   faShieldHalved,
@@ -25,6 +26,7 @@ import type { AdminRouteDefinition } from 'shared';
 import type { LazyString } from '@/lib/lazy.ts';
 import AdminAbuse from '@/pages/admin/abuse/AdminAbuse.tsx';
 import AdminActivity from '@/pages/admin/activity/AdminActivity.tsx';
+import AdminAdBanners from '@/pages/admin/ad-banners/AdminAdBanners.tsx'; // plugged.host
 import AdminAnnouncements from '@/pages/admin/announcements/AdminAnnouncements.tsx';
 import AdminAssets from '@/pages/admin/assets/AdminAssets.tsx';
 import AdminBackupConfigurations from '@/pages/admin/backup-configurations/AdminBackupConfigurations.tsx';
@@ -92,7 +94,6 @@ const routes: AdminRouteDefinition[] = [
     permission: ['servers.*'],
     category: 'infrastructure',
   },
-  // plugged.host: abuse protection (docs/features/abuse.md)
   // plugged.host: the resource presets players create servers with
   {
     name: () => getTranslations().t('pages.admin.plans.title', {}),
@@ -102,6 +103,7 @@ const routes: AdminRouteDefinition[] = [
     permission: ['plans.*'],
     category: 'infrastructure',
   },
+  // plugged.host: abuse protection (docs/features/abuse.md)
   {
     name: () => getTranslations().t('pages.admin.abuse.title', {}),
     icon: faShieldHalved,
@@ -210,6 +212,15 @@ const routes: AdminRouteDefinition[] = [
     path: '/announcements/*',
     element: AdminAnnouncements,
     permission: ['announcements.*'],
+    category: 'system',
+  },
+  // plugged.host: the banners the panel's owner sells (docs/features/ads.md#sponsored-banners)
+  {
+    name: () => getTranslations().t('pages.admin.adBanners.title', {}),
+    icon: faRectangleAd,
+    path: '/ad-banners/*',
+    element: AdminAdBanners,
+    permission: ['ad-banners.*'],
     category: 'system',
   },
   // plugged.host: the public status page (docs/features/status.md)

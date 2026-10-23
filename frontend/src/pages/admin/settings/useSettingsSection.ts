@@ -33,7 +33,8 @@ type SettingsStoreKey =
   | 'recovery' // plugged.host
   | 'economy' // plugged.host
   | 'queue' // plugged.host
-  | 'limbo'; // plugged.host
+  | 'limbo' // plugged.host
+  | 'ads'; // plugged.host
 
 /** Admin store keys whose public projection lives under the same-named global settings key. */
 type GlobalSyncKey = 'app' | 'webauthn' | 'server' | 'user';

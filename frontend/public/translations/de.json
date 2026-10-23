@@ -1306,6 +1306,18 @@
           "progressAssets": "Lade {files} in die Admin-Assets hoch...",
           "showFiles": "Dateien anzeigen"
         }
+      },
+      "ads": {
+        "frameTitle": "Werbung",
+        "sponsored": "Gesponsert",
+        "adblock": {
+          "title": "Werbeblocker erkannt",
+          "message": "Die Werbung in diesem Panel bezahlt seine kostenlosen Server. Bitte erlaube Werbung auf dieser Seite und lade sie dann neu.",
+          "button": {
+            "reload": "Neu laden",
+            "closeIn": "Schließen ({seconds})"
+          }
+        }
       }
     },
     "pages": {
@@ -2604,7 +2616,8 @@
             "accounts": "Konten",
             "hosting": "Hosting",
             "security": "Sicherheit",
-            "economy": "Wirtschaft"
+            "economy": "Wirtschaft",
+            "ads": "Werbung"
           },
           "tabs": {
             "application": {
@@ -3229,10 +3242,10 @@
                 "form": {
                   "enabled": "Ungenutzte Server parken",
                   "enabledDescription": "Ein Server, den eine Weile niemand benutzt hat, wird gestoppt, später außerhalb seines Nodes gesichert und von ihm entfernt. Der Besitzer stellt ihn auf der Serverseite wieder her. Server von Admins bleiben unberührt.",
-                  "stopHours": "Stoppen nach (Stunden)",
-                  "stopHoursDescription": "Ein laufender Server, den so lange niemand benutzt hat, wird gestoppt.",
-                  "parkHours": "Parken nach (Stunden)",
-                  "parkHoursDescription": "Ein gestoppter Server, den so lange niemand benutzt hat, wird gesichert und von seinem Node entfernt.",
+                  "stopMinutes": "Stoppen nach (Minuten)",
+                  "stopMinutesDescription": "Ein laufender Server, den so lange niemand benutzt hat, wird gestoppt.",
+                  "parkMinutes": "Parken nach (Minuten)",
+                  "parkMinutesDescription": "Ein gestoppter Server, den so lange niemand benutzt hat, wird gesichert und von seinem Node entfernt.",
                   "maxPerRun": "Server pro Minute",
                   "maxPerRunDescription": "Wie viele Server pro Minute höchstens gestoppt und wie viele geparkt werden.",
                   "exemptMembers": "Mitglieder verschonen",
@@ -3247,6 +3260,137 @@
                 },
                 "toast": {
                   "updated": "Limbo-Einstellungen aktualisiert."
+                }
+              }
+            },
+            "ads": {
+              "placement": "Platzierung",
+              "adsterra": "Adsterra",
+              "monetag": "Monetag",
+              "room": "Warteraum",
+              "adblock": "Werbeblocker",
+              "inGame": "Im Spiel",
+              "page": {
+                "titles": {
+                  "placement": "Werbeplatzierung",
+                  "adsterra": "Adsterra",
+                  "monetag": "Monetag",
+                  "room": "Start-Warteraum",
+                  "adblock": "Werbeblocker",
+                  "inGame": "Nachrichten im Spiel"
+                },
+                "form": {
+                  "enabled": "Werbung anzeigen",
+                  "enabledDescription": "Es erscheint nichts, bis es eine Zone, ein Tag oder ein gesponsertes Banner gibt. Admin-Seiten zeigen nie Werbung.",
+                  "showAccount": "Im Dashboard",
+                  "showAccountDescription": "Die Serverliste, die Kontoseiten, Server erstellen und der Shop.",
+                  "showServer": "Auf Serverseiten",
+                  "showServerDescription": "Die Konsole eines Servers und seine anderen Seiten.",
+                  "memberFree": "Weniger Werbung für Mitglieder",
+                  "memberFreeDescription": "Konten mit der zweiten Mitgliedschaft sehen keine Werbung; bei der ersten Mitgliedschaft lädt sie langsamer neu.",
+                  "slots": "Plätze",
+                  "slotTop": "Banner oben",
+                  "slotTopDescription": "Ein 728×90-Banner oder ein kleineres über jeder Seite.",
+                  "slotServerTools": "Leiste auf Serverseiten",
+                  "slotServerToolsDescription": "Ein 468×60- oder 320×50-Banner unter dem Kopf der Serverseiten, nicht auf der Konsole.",
+                  "slotPages": "Rechtecke auf Seiten",
+                  "slotPagesDescription": "Ein 300×250-Banner bei Server erstellen, im Shop und in der Serverliste.",
+                  "slotFoot": "Seitenfuß",
+                  "slotFootDescription": "Ein Leaderboard, ein Rechteck und die Native-Einheit am Fuß jeder Seite.",
+                  "refresh": "Neu laden",
+                  "refreshSeconds": "Neu laden nach (Sekunden)",
+                  "refreshSecondsDescription": "Eine Einheit mit Anzeige lädt nach so langer Sichtbarkeit neu. 0 nie.",
+                  "refreshMemberSeconds": "Neu laden für Mitglieder (Sekunden)",
+                  "refreshMemberSecondsDescription": "Dasselbe für die erste Mitgliedschaft, nie kürzer als oben. 0 nie.",
+                  "zones": "Banner-Zonen",
+                  "zonesDescription": "Füge die Banner-Snippets von Adsterra unverändert ein oder pro Zeile key:BREITExHÖHE:host. Größen: 728x90, 468x60, 320x50, 300x250, 160x600 und 160x300. Jeder Platz bekommt die breiteste Zone, die hineinpasst, und keine Zone erscheint zweimal auf einer Seite.",
+                  "frameOrigin": "Adresse der Werbeframes",
+                  "frameOriginDescription": "Eine weitere Adresse dieses Panels, am besten auf einer anderen Domain (https://ads.example.net), die nur /api/ads/unit ausliefert. Die Werbeframes laden dann von dort mit eigenem Origin, den manche Netzwerke zum Ausliefern brauchen. Leer: Sie laden isoliert von der Adresse des Panels.",
+                  "native": "Native-Banner",
+                  "nativeScript": "Native-Banner-Skript",
+                  "nativeScriptDescription": "Die Skript-URL oder das ganze Snippet. Leer: keine Native-Einheit.",
+                  "nativeContainer": "Native-Banner-Container",
+                  "nativeContainerDescription": "Die ID des leeren div aus dem Snippet. Leer: aus der Skript-URL übernommen.",
+                  "nativeHeight": "Höhe des Native-Banners",
+                  "nativeHeightDescription": "Pixel, die für die Native-Einheit freigehalten werden.",
+                  "pageScripts": "Seitenskripte",
+                  "socialBarScript": "Social-Bar-Skript",
+                  "socialBarScriptDescription": "Die Skript-URL oder das ganze Snippet. Es läuft in der Seite selbst, nicht in einem Frame.",
+                  "socialBarEverywhere": "Social Bar auf jeder Seite",
+                  "socialBarEverywhereDescription": "Aus: nur in den Warteräumen, wenn sie sie zeigen. Nie auf der Konsole.",
+                  "popunderScript": "Popunder-Skript",
+                  "popunderScriptDescription": "Läuft nur in den Warteräumen, wo den Spielern gesagt wurde, dass die Werbung ihren Server bezahlt.",
+                  "roomScript": "Warteraum-Zone",
+                  "roomScriptDescription": "Eine eigene Social-Bar- oder Vignette-Zone der Warteräume, damit ihre Einnahmen getrennt sichtbar sind.",
+                  "cspHosts": "Weitere Skript-Hosts",
+                  "cspHostsDescription": "Hosts, von denen die Seitenskripte weitere Skripte laden, einer pro Zeile. Die eigenen Hosts der Skripte sind schon erlaubt.",
+                  "monetagPushZone": "In-Page-Push-Zone",
+                  "monetagPushZoneDescription": "Die Zonen-ID aus dem In-Page-Push-Tag von Monetag. Leer: aus.",
+                  "monetagPushSrc": "In-Page-Push-Skript",
+                  "monetagPushSrcDescription": "Die Skript-URL aus demselben Tag.",
+                  "monetagVignetteZone": "Vignette-Zone",
+                  "monetagVignetteZoneDescription": "Die Zonen-ID aus dem Vignette-Tag von Monetag. Leer: aus.",
+                  "monetagVignetteSrc": "Vignette-Skript",
+                  "monetagVignetteSrcDescription": "Die Skript-URL aus demselben Tag.",
+                  "monetagVignetteMinutes": "Minuten zwischen Vignetten",
+                  "monetagVignetteMinutesDescription": "Pro Browser. 0: bei jedem Seitenaufruf.",
+                  "monetagVignetteMembers": "Vignette für die erste Mitgliedschaft",
+                  "monetagVignetteMembersDescription": "Aus: Mitglieder bekommen nie die Vignette. Monetag lädt nie auf der Konsole oder in den Warteräumen.",
+                  "monetagVerification": "Seitenverifizierung",
+                  "monetagVerificationDescription": "Der Verifizierungscode von Monetag, der in den Kopf jeder Seite kommt.",
+                  "roomEnabled": "Start-Warteraum",
+                  "roomEnabledDescription": "Der Start eines Spielers geht sofort raus, und der Spieler wartet auf einer Seite mit Werbung, während der Server hochfährt. Admins und Konten ohne Werbung warten nie.",
+                  "roomCpu": "CPU-Grenze (%)",
+                  "roomCpuDescription": "Server mit einem höheren CPU-Limit warten. 0: jeder Server.",
+                  "roomMemory": "Arbeitsspeicher-Grenze",
+                  "roomMemoryDescription": "Server mit mehr Arbeitsspeicher warten. 0: jeder Server.",
+                  "roomDisk": "Speicher-Grenze",
+                  "roomDiskDescription": "Server mit mehr Speicherplatz warten. 0: jeder Server.",
+                  "roomMinSeconds": "Kürzester Aufenthalt (Sekunden)",
+                  "roomMinSecondsDescription": "Der Raum lässt den Spieler weiter, sobald der Server läuft und so viel Zeit vergangen ist.",
+                  "roomMaxSeconds": "Längster Aufenthalt (Sekunden)",
+                  "roomMaxSecondsDescription": "Danach lässt der Raum den Spieler weiter, egal wie weit der Server ist.",
+                  "roomPassMinutes": "Freipass (Minuten)",
+                  "roomPassMinutesDescription": "Nach einem Warteraum warten Starts desselben Servers durch denselben Spieler in dieser Zeit nicht.",
+                  "carries": "Was die Räume zeigen",
+                  "roomBanner": "Banner",
+                  "roomBannerDescription": "Die Zonen, die die Seite übrig hat, auch die 160×600- und 160×300-Zonen. Die Startwarteschlange zeigt sie ebenfalls.",
+                  "roomNative": "Native-Banner",
+                  "roomNativeDescription": "Die Native-Einheit, einmal pro Seite.",
+                  "roomSocialBar": "Social Bar",
+                  "roomSocialBarDescription": "Die Social Bar aus dem Adsterra-Tab.",
+                  "roomPopunder": "Popunder",
+                  "roomPopunderDescription": "Der Popunder aus dem Adsterra-Tab.",
+                  "roomInterstitial": "Warteraum-Zone",
+                  "roomInterstitialDescription": "Die Warteraum-Zone aus dem Adsterra-Tab.",
+                  "adblockEnabled": "Bitten, Werbung zu erlauben",
+                  "adblockEnabledDescription": "Auf Seiten mit Werbung wird ein Besucher mit Werbeblocker gebeten, sie zu erlauben.",
+                  "adblockMode": "Wie",
+                  "adblockModeDescription": "Hinweis: eine schließbare Notiz oben. Dialog: ein Fenster, das nach ein paar Sekunden geschlossen werden kann. Sperre: ein Fenster, das bleibt, bis der Blocker aus ist.",
+                  "adblockModes": {
+                    "notice": "Hinweis",
+                    "modal": "Dialog",
+                    "block": "Sperre"
+                  },
+                  "adblockGrace": "Sekunden bis zum Schließen",
+                  "adblockGraceDescription": "Wie lange der Dialog bleibt, bevor er geschlossen werden kann.",
+                  "adblockDismissHours": "Stunden Ruhe nach dem Schließen",
+                  "adblockDismissHoursDescription": "Ein geschlossener Hinweis oder Dialog bleibt so lange weg. 0: beim nächsten Seitenaufruf ist er wieder da.",
+                  "adblockProbe": "Werbe-Hosts testen",
+                  "adblockProbeDescription": "Auch als blockiert zählen, wenn der Werbe-Host dem Browser nicht antwortet.",
+                  "adblockSkipConsole": "Nicht auf der Konsole",
+                  "adblockSkipConsoleDescription": "Die Konsole fragt nie.",
+                  "adblockMessage": "Nachricht",
+                  "adblockMessageDescription": "Ersetzt den Standardtext.",
+                  "inGameEnabled": "Nachrichten im Spiel",
+                  "inGameEnabledDescription": "Laufende Minecraft-Server von Konten ohne Mitgliedschaft bekommen ab und zu eine Chatnachricht.",
+                  "inGameMessage": "Nachricht",
+                  "inGameMessageDescription": "Eine Zeile. Leer: „This server is hosted on\" und der Name des Panels.",
+                  "inGameInterval": "Alle (Minuten)",
+                  "inGameIntervalDescription": "Wie oft jeder Server sie bekommt."
+                },
+                "toast": {
+                  "updated": "Werbeeinstellungen aktualisiert."
                 }
               }
             },
@@ -4018,6 +4162,54 @@
           "modal": {
             "delete": {
               "title": "Paket löschen"
+            }
+          }
+        },
+        "adBanners": {
+          "title": "Gesponserte Banner",
+          "resourceName": "Gesponsertes Banner",
+          "titleCreate": "Gesponsertes Banner erstellen",
+          "titleUpdate": "{name} bearbeiten",
+          "table": {
+            "advertiser": "Werbepartner",
+            "placement": "Platzierung",
+            "size": "Bild",
+            "live": "Sichtbar",
+            "clicks": "Klicks"
+          },
+          "placement": {
+            "slot": "Werbeplätze",
+            "top": "Über jeder Seite"
+          },
+          "form": {
+            "advertiser": "Werbepartner",
+            "link": "Link",
+            "linkDescription": "Wohin ein Klick führt. Nur HTTPS.",
+            "placement": "Platzierung",
+            "placementDescription": "Werbeplätze: anstelle einer Anzeige in der Größe des Bildes. Oben: über jeder Seite mit Werbung, so breit wie die Seite erlaubt.",
+            "active": "Aktiv",
+            "activeDescription": "Ein inaktives Banner wird nie angezeigt.",
+            "starts": "Beginnt",
+            "ends": "Endet",
+            "endsDescription": "Leer: Es läuft, bis es ausgeschaltet wird."
+          },
+          "modal": {
+            "delete": {
+              "title": "Gesponsertes Banner löschen"
+            }
+          },
+          "image": {
+            "title": "Bild",
+            "slotSizes": "Für Werbeplätze: 728×90, 468×60, 320×50, 300×250, 160×600 oder 160×300 Pixel oder das Doppelte davon für scharfe Bildschirme. PNG, JPEG, WebP oder GIF, bis 4 MB.",
+            "topSizes": "Jede Größe: Es wird so breit angezeigt, wie die Seite erlaubt, höchstens in seiner eigenen Breite. PNG, JPEG, WebP oder GIF, bis 4 MB.",
+            "size": "{width}×{height} Pixel.",
+            "shownAt": "Angezeigt in {width}×{height}.",
+            "noSlot": "Diese Größe passt in keinen Werbeplatz, daher wird das Banner nicht angezeigt.",
+            "none": "Noch kein Bild: Das Banner wird angezeigt, sobald es eines hat.",
+            "upload": "Bild hochladen",
+            "afterCreate": "Das Bild wird hinzugefügt, nachdem das Banner erstellt ist.",
+            "toast": {
+              "updated": "Bild aktualisiert."
             }
           }
         },
@@ -9250,6 +9442,19 @@
           "toast": {
             "left": "Der Server hat die Startwarteschlange verlassen.",
             "released": "Dein Server startet."
+          }
+        },
+        "waitingRoom": {
+          "title": "Dein Server startet",
+          "description": "Dein Server startet. Die Werbung auf dieser Seite bezahlt sein Hosting; sobald er läuft, geht es weiter zur Konsole.",
+          "starting": "Der Server startet. Spätestens in {remaining} geht es weiter.",
+          "running": "Der Server läuft. In {remaining} geht es weiter.",
+          "ready": "Der Server läuft.",
+          "notWaiting": "Dieser Server ist nicht im Warteraum.",
+          "button": {
+            "continue": "Weiter zur Konsole",
+            "membership": "Ohne Werbung mit {name}",
+            "console": "Zur Konsole"
           }
         },
         "limbo": {

@@ -443,6 +443,22 @@ pub(crate) static BASE_ADMIN_PERMISSIONS: LazyLock<IndexMap<&'static str, Permis
                     ]),
                 },
             ),
+            // plugged.host: sponsored banners (docs/features/ads.md)
+            (
+                "ad-banners",
+                PermissionGroup {
+                    description: "Permissions that control the ability to manage the sponsored banners shown in the ad slots.",
+                    permissions: IndexMap::from([
+                        ("create", "Allows creating new sponsored banners."),
+                        ("read", "Allows viewing sponsored banners and their clicks."),
+                        (
+                            "update",
+                            "Allows modifying sponsored banners and their images.",
+                        ),
+                        ("delete", "Allows deleting sponsored banners."),
+                    ]),
+                },
+            ),
             (
                 "backup-configurations",
                 PermissionGroup {

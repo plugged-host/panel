@@ -14,10 +14,10 @@ use utoipa::ToSchema;
 #[derive(Clone, ToSchema, Serialize, Deserialize)]
 pub struct AppSettingsLimbo {
     pub enabled: bool,
-    /// Hours without activity after which a running server is stopped.
-    pub stop_hours: i32,
-    /// Hours without activity after which a stopped server is parked.
-    pub park_hours: i32,
+    /// Minutes without activity after which a running server is stopped.
+    pub stop_minutes: i32,
+    /// Minutes without activity after which a stopped server is parked.
+    pub park_minutes: i32,
     /// Stops and parks each started per run (once a minute).
     pub max_per_run: i32,
     /// Tokens a restore costs within `cost_window_hours` of parking, and after.
@@ -32,8 +32,8 @@ impl Default for AppSettingsLimbo {
     fn default() -> Self {
         Self {
             enabled: false,
-            stop_hours: 48,
-            park_hours: 72,
+            stop_minutes: 48 * 60,
+            park_minutes: 72 * 60,
             max_per_run: 3,
             cost_early: 5,
             cost_late: 10,
@@ -48,10 +48,10 @@ impl Default for AppSettingsLimbo {
 pub struct PayloadLimbo {
     #[garde(skip)]
     enabled: Option<bool>,
-    #[garde(inner(range(min = 1, max = 8760)))]
-    stop_hours: Option<i32>,
-    #[garde(inner(range(min = 1, max = 8760)))]
-    park_hours: Option<i32>,
+    #[garde(inner(range(min = 1, max = 525_600)))]
+    stop_minutes: Option<i32>,
+    #[garde(inner(range(min = 1, max = 525_600)))]
+    park_minutes: Option<i32>,
     #[garde(inner(range(min = 1, max = 100)))]
     max_per_run: Option<i32>,
     #[garde(inner(range(min = 0, max = 100000)))]
@@ -76,8 +76,8 @@ impl PayloadLimbo {
 
         set!(
             enabled,
-            stop_hours,
-            park_hours,
+            stop_minutes,
+            park_minutes,
             max_per_run,
             cost_early,
             cost_late,
@@ -95,8 +95,8 @@ impl SettingsSerializeExt for AppSettingsLimbo {
     ) -> Result<SettingsSerializer, anyhow::Error> {
         Ok(serializer
             .write_raw_setting("enabled", self.enabled.to_compact_string())
-            .write_raw_setting("stop_hours", self.stop_hours.to_compact_string())
-            .write_raw_setting("park_hours", self.park_hours.to_compact_string())
+            .write_raw_setting("stop_minutes", self.stop_minutes.to_compact_string())
+            .write_raw_setting("park_minutes", self.park_minutes.to_compact_string())
             .write_raw_setting("max_per_run", self.max_per_run.to_compact_string())
             .write_raw_setting("cost_early", self.cost_early.to_compact_string())
             .write_raw_setting("cost_late", self.cost_late.to_compact_string())
@@ -127,10 +127,25 @@ impl SettingsDeserializeExt for AppSettingsLimboDeserializer {
             };
         }
 
+        // the windows were hours until 2026-10-24: a stored hour value still counts
+        macro_rules! minutes {
+            ($field:ident, $hours:ident) => {{
+                let minutes = deserializer
+                    .take_raw_setting(stringify!($field))
+                    .and_then(|s| s.parse::<i32>().ok());
+                let hours = deserializer
+                    .take_raw_setting(stringify!($hours))
+                    .and_then(|s| s.parse::<i32>().ok());
+                minutes
+                    .or(hours.map(|hours| hours.saturating_mul(60)))
+                    .unwrap_or(defaults.$field)
+            }};
+        }
+
         Ok(Box::new(AppSettingsLimbo {
             enabled: read!(enabled),
-            stop_hours: read!(stop_hours),
-            park_hours: read!(park_hours),
+            stop_minutes: minutes!(stop_minutes, stop_hours),
+            park_minutes: minutes!(park_minutes, park_hours),
             max_per_run: read!(max_per_run),
             cost_early: read!(cost_early),
             cost_late: read!(cost_late),

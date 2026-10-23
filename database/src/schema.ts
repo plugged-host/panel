@@ -808,6 +808,26 @@ export const plansTable = pgTable(
   (cols) => [uniqueIndex('plans_name_idx').on(cols.name)],
 );
 
+// plugged.host: sponsored banners shown in the ad slots (shared/src/models/ad_banner.rs)
+export const adBannersTable = pgTable(
+  'ad_banners',
+  {
+    uuid: uuid().default(sql`gen_random_uuid()`).primaryKey().notNull(),
+    advertiser: varchar({ length: 255 * UTF8_MAX_SCALAR_SIZE }).notNull(),
+    link: varchar({ length: 1024 }).notNull(),
+    placement: varchar({ length: 16 }).notNull(),
+    image: varchar({ length: 255 }),
+    width: integer().default(0).notNull(),
+    height: integer().default(0).notNull(),
+    starts: timestamp(),
+    ends: timestamp(),
+    active: boolean().default(true).notNull(),
+    clicks: bigint({ mode: 'number' }).default(0).notNull(),
+    created: timestamp().defaultNow().notNull(),
+  },
+  (cols) => [index('ad_banners_created_idx').on(cols.created)],
+);
+
 export const locationDatabaseHostsTable = pgTable(
   'location_database_hosts',
   {
@@ -1637,6 +1657,28 @@ export const serverLimboTable = pgTable('server_limbo', {
   failed: timestamp(),
   updated: timestamp().defaultNow().notNull(),
 });
+
+// plugged.host: one user's start waiting room for one server, and the pass it leaves
+// (shared/src/waiting_room.rs)
+export const serverWaitingRoomsTable = pgTable(
+  'server_waiting_rooms',
+  {
+    server_uuid: uuid()
+      .references(() => serversTable.uuid, { onDelete: 'cascade' })
+      .notNull(),
+    user_uuid: uuid()
+      .references(() => usersTable.uuid, { onDelete: 'cascade' })
+      .notNull(),
+    action: varchar({ length: 16 }).notNull(),
+    opened: timestamp().defaultNow().notNull(),
+    dispatched: boolean().default(false).notNull(),
+    released: timestamp(),
+    blocked: boolean(),
+  },
+  (cols) => [
+    primaryKey({ name: 'server_waiting_rooms_server_uuid_user_uuid_pk', columns: [cols.server_uuid, cols.user_uuid] }),
+  ],
+);
 
 export const serverAllocationsTable = pgTable(
   'server_allocations',

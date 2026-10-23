@@ -8,6 +8,7 @@ import cancelTransfer from '@/api/admin/servers/cancelTransfer.ts';
 import { httpErrorToHuman } from '@/api/axios.ts';
 import cancelServerInstall from '@/api/server/settings/cancelServerInstall.ts';
 import cancelServerTransfer from '@/api/server/transfer/cancelServerTransfer.ts'; // plugged.host
+import { AdTools } from '@/elements/ads/AdPlacements.tsx'; // plugged.host
 import Button from '@/elements/buttons/Button.tsx';
 import DismissibleAnnouncementAlert from '@/elements/DismissibleAnnouncementAlert.tsx';
 import Notification from '@/elements/feedback/Notification.tsx';
@@ -263,7 +264,6 @@ function ServerContentContainer(props: Props) {
       {/* plugged.host: the Pelican panel's page column (".theme-main" in app.css) */}
       <div className={fullscreen || id ? 'mb-4' : 'theme-main'}>
         <ExtensionSlot components={registry?.prependedComponents ?? []} name='prepended' props={modifiedProps} />
-
         <ContentContainerHeader
           title={title}
           subtitle={subtitle}
@@ -274,14 +274,13 @@ function ServerContentContainer(props: Props) {
           contentRight={contentRight}
           hoistToNavbar={!fullscreen}
         />
+        {!fullscreen && <AdTools />} {/* plugged.host: docs/features/ads.md */}
         <ExtensionSlot
           components={registry?.prependedContentComponents ?? []}
           name='prepended-content'
           props={modifiedProps}
         />
-
         {children}
-
         <ExtensionSlot
           components={registry?.appendedContentComponents ?? []}
           name='appended-content'

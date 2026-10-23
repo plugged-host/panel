@@ -24,8 +24,12 @@ off by default) and looks at servers that are:
 
 | Idle for | Running | Does |
 |---|---|---|
-| `stop_hours` (48) | yes | Stops it (`stopped`, `server:limbo.stop`) |
-| `park_hours` (72) | no | Parks it (below) |
+| `stop_minutes` (2880, two days) | yes | Stops it (`stopped`, `server:limbo.stop`) |
+| `park_minutes` (4320, three days) | no | Parks it (below) |
+
+The windows are minutes so a test panel can park a server within the hour; until 2026-10-24 they
+were hours (`stop_hours`, `park_hours`), and a stored hour value still counts (times 60) until the
+tab is saved again.
 
 A node that does not answer is skipped: it says nothing about its servers. At most `max_per_run`
 servers are stopped per run, and at most `max_per_run` parks run at once. Any activity by a person

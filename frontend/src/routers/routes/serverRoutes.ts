@@ -30,6 +30,7 @@ import ServerSettings from '@/pages/server/settings/ServerSettings.tsx';
 import ServerStartup from '@/pages/server/startup/ServerStartup.tsx';
 import ServerSubusers from '@/pages/server/subusers/ServerSubusers.tsx';
 import ServerTransfer from '@/pages/server/transfer/ServerTransfer.tsx'; // plugged.host
+import ServerWaitingRoom from '@/pages/server/waiting/ServerWaitingRoom.tsx'; // plugged.host
 import { getTranslations } from '@/providers/TranslationProvider.tsx';
 import { useGlobalStore } from '@/stores/global.ts';
 
@@ -167,6 +168,13 @@ const routes: ServerRouteDefinition[] = [
     name: undefined,
     path: '/queue',
     element: ServerQueue,
+    permission: ['control.start', 'control.restart'],
+  },
+  // plugged.host: a start in the waiting room (docs/features/ads.md#waiting-room)
+  {
+    name: undefined,
+    path: '/waiting',
+    element: ServerWaitingRoom,
     permission: ['control.start', 'control.restart'],
   },
   // plugged.host: a parked server and its restore (docs/features/limbo.md)

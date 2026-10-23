@@ -6,6 +6,7 @@
  * brands and anything not listed stay Font Awesome.
  */
 import {
+  IconAd,
   IconAdjustmentsHorizontal,
   IconAlertCircle,
   IconAlertTriangle,
@@ -358,6 +359,7 @@ export const tablerIcons: Record<string, TablerIcon> = {
   'power-off': IconPower,
   'puzzle-piece': IconPuzzle,
   rainbow: IconRainbow,
+  'rectangle-ad': IconAd,
   reply: IconArrowBackUp,
   'right-from-bracket': IconLogout,
   'right-left': IconArrowsLeftRight,

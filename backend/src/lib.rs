@@ -1130,11 +1130,14 @@ pub async fn handle_startup() -> Result<
 
                     let is_index = asset.is_none();
                     let mut script_nonce = None;
+                    let mut verification_meta = None; // plugged.host: docs/features/ads.md
                     let content_security_policy = if is_index {
                         let settings = state.settings.get().await?;
                         let script_csp = settings.captcha_provider.to_csp_script_src();
                         let style_csp = settings.captcha_provider.to_csp_style_src();
                         let economy_csp = settings.economy.to_csp_script_src(); // plugged.host
+                        let ads_csp = settings.ads.to_csp_script_src(); // plugged.host
+                        verification_meta = shared::ads::verification_meta(&settings.ads); // plugged.host
                         if matches!(
                             settings.captcha_provider,
                             shared::settings::CaptchaProvider::Cap { .. }
@@ -1148,7 +1151,7 @@ pub async fn handle_startup() -> Result<
 
                         Some(format!(
                             "default-src 'self'; \
-                                script-src 'self' blob: {script_csp}{nonce_csp}{economy_csp}; \
+                                script-src 'self' blob: {script_csp}{nonce_csp}{economy_csp}{ads_csp}; \
                                 frame-src *; \
                                 style-src 'self' 'unsafe-inline' {style_csp}; \
                                 connect-src * blob:; \
@@ -1191,13 +1194,15 @@ pub async fn handle_startup() -> Result<
                     let (body, content_type, content_encoding) = match asset {
                         None => {
                             let html = state.settings.get_rendered_index_html();
-                            let body = if let Some(nonce) = script_nonce {
+                            // plugged.host: the ad networks' site verification next to the nonce
+                            let head = script_nonce
+                                .map(|nonce| format!("<meta name=\"cap-script-nonce\" content=\"{nonce}\">"))
+                                .into_iter()
+                                .chain(verification_meta)
+                                .collect::<String>();
+                            let body = if !head.is_empty() {
                                 let html: &str = html.as_ref();
-                                Body::from(html.replacen(
-                                    "</head>",
-                                    &format!("<meta name=\"cap-script-nonce\" content=\"{nonce}\"></head>"),
-                                    1,
-                                ))
+                                Body::from(html.replacen("</head>", &format!("{head}</head>"), 1))
                             } else {
                                 Body::from(axum::body::Bytes::from_owner(html))
                             };

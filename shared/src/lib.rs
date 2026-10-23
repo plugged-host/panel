@@ -19,6 +19,7 @@ use tower::util::ServiceExt;
 use utoipa::ToSchema;
 
 pub mod abuse; // plugged.host
+pub mod ads; // plugged.host
 pub mod allowance; // plugged.host
 pub mod allowance_cuts; // plugged.host
 pub mod cache;
@@ -68,6 +69,7 @@ pub mod telemetry;
 pub mod tunnel;
 pub mod updates;
 pub mod utils;
+pub mod waiting_room; // plugged.host
 pub mod welcome_tour; // plugged.host
 
 pub use payload::Payload;

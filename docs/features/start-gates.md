@@ -28,8 +28,9 @@ none of them needs to know about the others.
 4. A gate that fails is logged and skipped: a bug in a waiting room must never be why someone cannot
    start a server.
 
-Limbo ([limbo.md](limbo.md)) and the start queue ([start-queue.md](start-queue.md)) are in; the ad
-waiting room follows.
+Limbo ([limbo.md](limbo.md)), the start queue ([start-queue.md](start-queue.md)) and the ad
+waiting room ([ads.md](ads.md#waiting-room)) are in. The waiting room sends the start to Wings
+itself on the click, past the gates, and only holds the user on its page.
 
 ## Closing the other ways to start a server
 

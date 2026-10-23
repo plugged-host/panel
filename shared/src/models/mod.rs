@@ -19,6 +19,7 @@ use std::{
 };
 use utoipa::ToSchema;
 
+pub mod ad_banner; // plugged.host
 pub mod admin_activity;
 pub mod announcement;
 pub mod backup_configuration;

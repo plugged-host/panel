@@ -431,6 +431,10 @@ mod put {
         #[schema(inline)]
         #[garde(dive)]
         limbo: Option<shared::settings::limbo::PayloadLimbo>,
+        // plugged.host: docs/features/ads.md
+        #[schema(inline)]
+        #[garde(dive)]
+        ads: Option<shared::settings::ads::PayloadAds>,
         #[schema(inline)]
         #[garde(dive)]
         updates: Option<PayloadUpdates>,
@@ -953,6 +957,14 @@ mod put {
         // plugged.host: limbo
         if let Some(limbo) = data.limbo {
             limbo.apply(&mut settings.limbo);
+        }
+        // plugged.host: ads
+        if let Some(ads) = data.ads
+            && let Err(error) = ads.apply(&mut settings.ads)
+        {
+            return ApiResponse::error(&error)
+                .with_status(StatusCode::BAD_REQUEST)
+                .ok();
         }
 
         if !settings.app.password_login_enabled {

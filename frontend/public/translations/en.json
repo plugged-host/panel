@@ -1306,6 +1306,18 @@
           "progressAssets": "Uploading {files} to the admin assets...",
           "showFiles": "Show files"
         }
+      },
+      "ads": {
+        "frameTitle": "Advertisement",
+        "sponsored": "Sponsored",
+        "adblock": {
+          "title": "Ad Blocker Found",
+          "message": "The ads on this panel pay for its free servers. Please allow ads on this site, then reload the page.",
+          "button": {
+            "reload": "Reload",
+            "closeIn": "Close ({seconds})"
+          }
+        }
       }
     },
     "pages": {
@@ -2604,7 +2616,8 @@
             "accounts": "Accounts",
             "hosting": "Hosting",
             "security": "Security",
-            "economy": "Economy"
+            "economy": "Economy",
+            "ads": "Ads"
           },
           "tabs": {
             "application": {
@@ -3229,10 +3242,10 @@
                 "form": {
                   "enabled": "Park Idle Servers",
                   "enabledDescription": "A server nobody used for a while is stopped, later backed up off its node and removed from it. Its owner restores it from the server page. Admins' servers are never touched.",
-                  "stopHours": "Stop After (Hours)",
-                  "stopHoursDescription": "A running server nobody used for this long is stopped.",
-                  "parkHours": "Park After (Hours)",
-                  "parkHoursDescription": "A stopped server nobody used for this long is backed up and removed from its node.",
+                  "stopMinutes": "Stop After (Minutes)",
+                  "stopMinutesDescription": "A running server nobody used for this long is stopped.",
+                  "parkMinutes": "Park After (Minutes)",
+                  "parkMinutesDescription": "A stopped server nobody used for this long is backed up and removed from its node.",
                   "maxPerRun": "Servers per Minute",
                   "maxPerRunDescription": "How many servers are stopped and how many are parked each minute, at most.",
                   "exemptMembers": "Spare Members",
@@ -3247,6 +3260,137 @@
                 },
                 "toast": {
                   "updated": "Limbo settings updated."
+                }
+              }
+            },
+            "ads": {
+              "placement": "Placement",
+              "adsterra": "Adsterra",
+              "monetag": "Monetag",
+              "room": "Waiting Room",
+              "adblock": "Ad Blockers",
+              "inGame": "In-Game",
+              "page": {
+                "titles": {
+                  "placement": "Ad Placement",
+                  "adsterra": "Adsterra",
+                  "monetag": "Monetag",
+                  "room": "Start Waiting Room",
+                  "adblock": "Ad Blockers",
+                  "inGame": "In-Game Messages"
+                },
+                "form": {
+                  "enabled": "Show Ads",
+                  "enabledDescription": "Nothing shows until a zone, a tag or a sponsored banner exists. Admin pages never show ads.",
+                  "showAccount": "On the Dashboard",
+                  "showAccountDescription": "The server list, the account pages, Create Server and the store.",
+                  "showServer": "On Server Pages",
+                  "showServerDescription": "A server's console and its other pages.",
+                  "memberFree": "Fewer Ads for Members",
+                  "memberFreeDescription": "Accounts with the second membership see no ads; the first membership's ads refresh slower.",
+                  "slots": "Slots",
+                  "slotTop": "Top Banner",
+                  "slotTopDescription": "A 728×90 banner, or a smaller one, above every page.",
+                  "slotServerTools": "Server Pages Strip",
+                  "slotServerToolsDescription": "A 468×60 or 320×50 banner under the header of a server's pages, not on the console.",
+                  "slotPages": "Page Rectangles",
+                  "slotPagesDescription": "A 300×250 banner on Create Server, the store and the server list.",
+                  "slotFoot": "Page Foot",
+                  "slotFootDescription": "A leaderboard, a rectangle and the native unit at the foot of every page.",
+                  "refresh": "Refresh",
+                  "refreshSeconds": "Refresh After (Seconds)",
+                  "refreshSecondsDescription": "A unit that holds an ad reloads after this long in view. 0 never.",
+                  "refreshMemberSeconds": "Refresh for Members (Seconds)",
+                  "refreshMemberSecondsDescription": "The same for the first membership, never shorter than the above. 0 never.",
+                  "zones": "Banner Zones",
+                  "zonesDescription": "Paste Adsterra's Banner snippets as they are, or one key:WIDTHxHEIGHT:host per line. Sizes: 728x90, 468x60, 320x50, 300x250, 160x600 and 160x300. Each slot gets the widest zone that fits it, and no zone shows twice on a page.",
+                  "frameOrigin": "Ad Frame Address",
+                  "frameOriginDescription": "Another address of this panel, best on another domain (https://ads.example.net), that serves only /api/ads/unit. The ad frames then load from it with an origin of their own, which some networks need to fill. Empty: they load from the panel's address, isolated.",
+                  "native": "Native Banner",
+                  "nativeScript": "Native Banner Script",
+                  "nativeScriptDescription": "The script URL or the whole snippet. Empty: no native unit.",
+                  "nativeContainer": "Native Banner Container",
+                  "nativeContainerDescription": "The id of the snippet's empty div. Empty: taken from the script URL.",
+                  "nativeHeight": "Native Banner Height",
+                  "nativeHeightDescription": "Pixels kept for the native unit.",
+                  "pageScripts": "Page Scripts",
+                  "socialBarScript": "Social Bar Script",
+                  "socialBarScriptDescription": "The script URL or the whole snippet. It runs in the page itself, not in a frame.",
+                  "socialBarEverywhere": "Social Bar on Every Page",
+                  "socialBarEverywhereDescription": "Off: only in the waiting rooms, when they carry it. Never on the console.",
+                  "popunderScript": "Popunder Script",
+                  "popunderScriptDescription": "Runs only in the waiting rooms, where players were told the ads pay for their server.",
+                  "roomScript": "Waiting Room Zone",
+                  "roomScriptDescription": "A Social Bar or Vignette zone of the waiting rooms' own, so what they earn shows separately.",
+                  "cspHosts": "More Script Hosts",
+                  "cspHostsDescription": "Hosts the page scripts load further scripts from, one per line. The scripts' own hosts are allowed already.",
+                  "monetagPushZone": "In-Page Push Zone",
+                  "monetagPushZoneDescription": "The zone id from Monetag's In-Page Push tag. Empty: off.",
+                  "monetagPushSrc": "In-Page Push Script",
+                  "monetagPushSrcDescription": "The script URL from the same tag.",
+                  "monetagVignetteZone": "Vignette Zone",
+                  "monetagVignetteZoneDescription": "The zone id from Monetag's Vignette tag. Empty: off.",
+                  "monetagVignetteSrc": "Vignette Script",
+                  "monetagVignetteSrcDescription": "The script URL from the same tag.",
+                  "monetagVignetteMinutes": "Minutes Between Vignettes",
+                  "monetagVignetteMinutesDescription": "Per browser. 0: on every page load.",
+                  "monetagVignetteMembers": "Vignette for the First Membership",
+                  "monetagVignetteMembersDescription": "Off: members never get the Vignette. Monetag never loads on the console or in the waiting rooms.",
+                  "monetagVerification": "Site Verification",
+                  "monetagVerificationDescription": "Monetag's verification code, put into the head of every page.",
+                  "roomEnabled": "Start Waiting Room",
+                  "roomEnabledDescription": "A player's start goes out at once, and the player waits on a page with ads while the server comes up. Admins and accounts without ads never wait.",
+                  "roomCpu": "CPU Line (%)",
+                  "roomCpuDescription": "Servers with a CPU limit above this wait. 0: every server.",
+                  "roomMemory": "Memory Line",
+                  "roomMemoryDescription": "Servers with more memory than this wait. 0: every server.",
+                  "roomDisk": "Disk Line",
+                  "roomDiskDescription": "Servers with more disk than this wait. 0: every server.",
+                  "roomMinSeconds": "Shortest Stay (Seconds)",
+                  "roomMinSecondsDescription": "The room lets the player through once the server runs and this much time has passed.",
+                  "roomMaxSeconds": "Longest Stay (Seconds)",
+                  "roomMaxSecondsDescription": "After this the room lets the player through however far the server is.",
+                  "roomPassMinutes": "Free Pass (Minutes)",
+                  "roomPassMinutesDescription": "After a room, the same player's starts of that server within this time do not wait.",
+                  "carries": "What the Rooms Show",
+                  "roomBanner": "Banners",
+                  "roomBannerDescription": "The zones the page has left, the 160×600 and 160×300 ones too. The start queue shows them as well.",
+                  "roomNative": "Native Banner",
+                  "roomNativeDescription": "The native unit, once per page.",
+                  "roomSocialBar": "Social Bar",
+                  "roomSocialBarDescription": "The Social Bar from the Adsterra tab.",
+                  "roomPopunder": "Popunder",
+                  "roomPopunderDescription": "The Popunder from the Adsterra tab.",
+                  "roomInterstitial": "Waiting Room Zone",
+                  "roomInterstitialDescription": "The waiting room zone from the Adsterra tab.",
+                  "adblockEnabled": "Ask to Allow Ads",
+                  "adblockEnabledDescription": "On pages with ads, a visitor with an ad blocker is asked to allow them.",
+                  "adblockMode": "How",
+                  "adblockModeDescription": "Notice: a note at the top that can be closed. Modal: a dialog that can be closed after a few seconds. Block: a dialog that stays until the blocker is off.",
+                  "adblockModes": {
+                    "notice": "Notice",
+                    "modal": "Modal",
+                    "block": "Block"
+                  },
+                  "adblockGrace": "Seconds Before Closing",
+                  "adblockGraceDescription": "How long the dialog stays before it can be closed.",
+                  "adblockDismissHours": "Hours Away After Closing",
+                  "adblockDismissHoursDescription": "A closed notice or dialog stays away this long. 0: it is back on the next page load.",
+                  "adblockProbe": "Test the Ad Hosts",
+                  "adblockProbeDescription": "Also count it as blocked when the ad host does not answer the browser.",
+                  "adblockSkipConsole": "Not on the Console",
+                  "adblockSkipConsoleDescription": "The console never asks.",
+                  "adblockMessage": "Message",
+                  "adblockMessageDescription": "Replaces the default text.",
+                  "inGameEnabled": "In-Game Messages",
+                  "inGameEnabledDescription": "Running Minecraft servers of accounts without a membership get a chat message now and then.",
+                  "inGameMessage": "Message",
+                  "inGameMessageDescription": "One line. Empty: \"This server is hosted on\" and the panel's name.",
+                  "inGameInterval": "Every (Minutes)",
+                  "inGameIntervalDescription": "How often each server gets it."
+                },
+                "toast": {
+                  "updated": "Ad settings updated."
                 }
               }
             },
@@ -4018,6 +4162,54 @@
           "modal": {
             "delete": {
               "title": "Delete Plan"
+            }
+          }
+        },
+        "adBanners": {
+          "title": "Sponsored Banners",
+          "resourceName": "Sponsored Banner",
+          "titleCreate": "Create Sponsored Banner",
+          "titleUpdate": "Update {name}",
+          "table": {
+            "advertiser": "Advertiser",
+            "placement": "Placement",
+            "size": "Image",
+            "live": "Showing",
+            "clicks": "Clicks"
+          },
+          "placement": {
+            "slot": "Ad Slots",
+            "top": "Top of Every Page"
+          },
+          "form": {
+            "advertiser": "Advertiser",
+            "link": "Link",
+            "linkDescription": "Where a click goes. HTTPS only.",
+            "placement": "Placement",
+            "placementDescription": "Ad slots: in place of an ad of the image's size. Top: above every page that shows ads, as wide as the page allows.",
+            "active": "Active",
+            "activeDescription": "An inactive banner never shows.",
+            "starts": "Starts",
+            "ends": "Ends",
+            "endsDescription": "Empty: it runs until it is turned off."
+          },
+          "modal": {
+            "delete": {
+              "title": "Delete Sponsored Banner"
+            }
+          },
+          "image": {
+            "title": "Image",
+            "slotSizes": "For ad slots: 728×90, 468×60, 320×50, 300×250, 160×600 or 160×300 pixels, or twice one of them for sharp screens. PNG, JPEG, WebP or GIF, up to 4 MB.",
+            "topSizes": "Any size: it shows as wide as the page allows, up to its own width. PNG, JPEG, WebP or GIF, up to 4 MB.",
+            "size": "{width}×{height} pixels.",
+            "shownAt": "Shown at {width}×{height}.",
+            "noSlot": "This size fits no ad slot, so the banner does not show.",
+            "none": "No image yet: the banner shows once it has one.",
+            "upload": "Upload an Image",
+            "afterCreate": "The image is added after the banner is created.",
+            "toast": {
+              "updated": "Image updated."
             }
           }
         },
@@ -9250,6 +9442,19 @@
           "toast": {
             "left": "The server left the start queue.",
             "released": "Your server is starting."
+          }
+        },
+        "waitingRoom": {
+          "title": "Starting Your Server",
+          "description": "Your server is starting. The ads on this page pay for its hosting; you go through to the console as soon as it is up.",
+          "starting": "The server is starting. You go through in {remaining} at the latest.",
+          "running": "The server is up. You go through in {remaining}.",
+          "ready": "The server is up.",
+          "notWaiting": "This server is not in the waiting room.",
+          "button": {
+            "continue": "Continue to Console",
+            "membership": "No Ads with {name}",
+            "console": "To the Console"
           }
         },
         "limbo": {

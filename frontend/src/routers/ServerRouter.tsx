@@ -6,6 +6,7 @@ import { httpErrorToHuman } from '@/api/axios.ts';
 import getEggCommandSnippets from '@/api/me/servers/eggs/getEggCommandSnippets.ts';
 import getServerAnnouncements from '@/api/server/announcements/getAnnouncements.ts';
 import getServer from '@/api/server/getServer.ts';
+import { AdLayoutFoot, AdLayoutTop } from '@/elements/ads/AdLayout.tsx'; // plugged.host
 import { ServerCan } from '@/elements/Can.tsx';
 import ServerContentContainer from '@/elements/containers/ServerContentContainer.tsx';
 import ExtensionSlot from '@/elements/ExtensionSlot.tsx';
@@ -303,9 +304,8 @@ export default function ServerRouter({ isNormal }: { isNormal: boolean }) {
                 components={window.extensionContext.extensionRegistry.pages.server.prependedComponents}
                 name='server-prepended-component'
               />
-
               {!isInLimbo(server.limboState) && <WebsocketStatusBanner />}
-
+              <AdLayoutTop area='server' limbo={isInLimbo(server.limboState)} /> {/* plugged.host */}
               <Suspense fallback={<Spinner.Centered />}>
                 <Routes>
                   <Route element={<ServerStateGuard />}>
@@ -335,7 +335,7 @@ export default function ServerRouter({ isNormal }: { isNormal: boolean }) {
                   />
                 </Routes>
               </Suspense>
-
+              <AdLayoutFoot area='server' limbo={isInLimbo(server.limboState)} /> {/* plugged.host */}
               <ExtensionSlot
                 components={window.extensionContext.extensionRegistry.pages.server.appendedComponents}
                 name='server-appended-component'

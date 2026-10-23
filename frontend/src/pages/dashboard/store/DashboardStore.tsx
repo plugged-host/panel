@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { getHttpStatus } from '@/api/axios.ts';
 import getStore from '@/api/me/economy/getStore.ts';
 import purchaseResource from '@/api/me/economy/purchaseResource.ts';
+import { AdPageSlot } from '@/elements/ads/AdPlacements.tsx';
 import Button from '@/elements/buttons/Button.tsx';
 import AccountContentContainer from '@/elements/containers/AccountContentContainer.tsx';
 import TransactionsTable from '@/elements/economy/TransactionsTable.tsx';
@@ -160,6 +161,7 @@ export default function DashboardStore() {
           </Stack>
         )}
       </ResourceView>
+      <AdPageSlot />
     </AccountContentContainer>
   );
 }

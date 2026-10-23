@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { httpErrorToHuman } from '@/api/axios.ts';
 import getServerGroups from '@/api/me/servers/groups/getServerGroups.ts';
 import updateServerGroupsOrder from '@/api/me/servers/groups/updateServerGroupsOrder.ts';
+import { AdPageSlot } from '@/elements/ads/AdPlacements.tsx'; // plugged.host
 import Button from '@/elements/buttons/Button.tsx';
 import AccountContentContainer from '@/elements/containers/AccountContentContainer.tsx';
 import { DndBoard, DndSortableList, SortableItem } from '@/elements/dnd/DragAndDrop.tsx';
@@ -173,16 +174,13 @@ export default function DashboardHomeGrouped() {
       registry={window.extensionContext.extensionRegistry.pages.dashboard.home.containerGrouped}
     >
       <ServerGroupCreateModal opened={openModal === 'create'} onClose={() => setOpenModal(null)} />
-
       <DashboardHomeTitle />
-
       <BulkActionBar
         selectedCount={selectedServers.size}
         onClear={() => setSelectedServers(new ObjectSet('uuid'))}
         onAction={onBulkAction}
         loading={bulkActionLoading}
       />
-
       {loading ? (
         <Spinner.Centered />
       ) : error ? (
@@ -258,7 +256,6 @@ export default function DashboardHomeGrouped() {
           </DndSortableList>
         </DndBoard>
       )}
-
       {serverGroups.length > 0 && (
         <div className='flex justify-center mt-4'>
           <Button onClick={() => setOpenModal('create')} color='blue' leftSection={<FontAwesomeIcon icon={faPlus} />}>
@@ -266,6 +263,7 @@ export default function DashboardHomeGrouped() {
           </Button>
         </div>
       )}
+      <AdPageSlot /> {/* plugged.host: docs/features/ads.md */}
     </AccountContentContainer>
   );
 }

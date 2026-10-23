@@ -36,6 +36,7 @@ mod eggs;
 mod locations;
 // plugged.host: mounts removed (docs/upstream.md)
 // mod mounts;
+mod ad_banners; // plugged.host
 mod nests;
 mod nodes;
 mod oauth_providers;
@@ -91,6 +92,7 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         .nest("/assets", assets::router(state))
         .nest("/locations", locations::router(state))
         .nest("/plans", plans::router(state)) // plugged.host
+        .nest("/ad-banners", ad_banners::router(state)) // plugged.host
         .nest("/servers", servers::router(state))
         .nest("/nodes", nodes::router(state))
         .nest("/nests", nests::router(state))

@@ -959,6 +959,14 @@ pub async fn define_background_tasks(
             async |state| shared::limbo::settle(&state).await,
         )
         .await;
+    // plugged.host: the in-game ad (shared::ads)
+    background_task_builder
+        .add_cron_task(
+            "send_in_game_ads",
+            croner::Cron::from_str("30 * * * * *").unwrap(),
+            async |state| shared::ads::send_in_game(&state).await,
+        )
+        .await;
     // plugged.host: PlusPlus that ran out (shared::economy)
     background_task_builder
         .add_cron_task(

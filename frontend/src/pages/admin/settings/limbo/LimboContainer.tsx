@@ -19,8 +19,8 @@ type LimboValues = z.infer<typeof adminSettingsLimboSchema>;
 
 const limboEmptyFormValues: LimboValues = {
   enabled: false,
-  stopHours: 48,
-  parkHours: 72,
+  stopMinutes: 2880,
+  parkMinutes: 4320,
   maxPerRun: 3,
   costEarly: 5,
   costLate: 10,
@@ -59,19 +59,19 @@ export default function LimboContainer() {
     },
     {
       type: 'number',
-      name: 'stopHours',
-      label: t(`${page}.stopHours`, {}),
-      description: t(`${page}.stopHoursDescription`, {}),
+      name: 'stopMinutes',
+      label: t(`${page}.stopMinutes`, {}),
+      description: t(`${page}.stopMinutesDescription`, {}),
       required: true,
-      props: { min: 1, max: 8760 },
+      props: { min: 1, max: 525_600 },
     },
     {
       type: 'number',
-      name: 'parkHours',
-      label: t(`${page}.parkHours`, {}),
-      description: t(`${page}.parkHoursDescription`, {}),
+      name: 'parkMinutes',
+      label: t(`${page}.parkMinutes`, {}),
+      description: t(`${page}.parkMinutesDescription`, {}),
       required: true,
-      props: { min: 1, max: 8760 },
+      props: { min: 1, max: 525_600 },
     },
     {
       type: 'number',

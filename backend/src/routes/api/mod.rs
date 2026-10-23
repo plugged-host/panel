@@ -4,6 +4,7 @@ use shared::response::ApiResponse;
 use utoipa_axum::router::OpenApiRouter;
 
 pub mod admin;
+mod ads; // plugged.host
 mod announcements;
 pub mod auth;
 pub mod client;
@@ -39,6 +40,7 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
             }),
         )
         .nest("/settings", settings::router(state))
+        .nest("/ads", ads::router(state)) // plugged.host: docs/features/ads.md
         .nest("/announcements", announcements::router(state))
         .nest("/icons", icons::router(state))
         .nest("/languages", languages::router(state))

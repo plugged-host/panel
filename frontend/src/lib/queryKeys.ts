@@ -91,6 +91,11 @@ const admin = {
     all: () => ['admin', 'plans'] as const,
     detail: (uuid: string) => ['admin', 'plans', { uuid }] as const,
   },
+  // plugged.host
+  adBanners: {
+    all: () => ['admin', 'adBanners'] as const,
+    detail: (uuid: string) => ['admin', 'adBanners', { uuid }] as const,
+  },
 
   mounts: {
     all: () => ['admin', 'mounts'] as const,
@@ -267,6 +272,7 @@ const server = (serverUuid: string) => ({
   transfer: () => ['server', serverUuid, 'transfer'] as const, // plugged.host
   queue: () => ['server', serverUuid, 'queue'] as const, // plugged.host
   limbo: () => ['server', serverUuid, 'limbo'] as const, // plugged.host
+  waitingRoom: () => ['server', serverUuid, 'waiting-room'] as const, // plugged.host
   activity: {
     all: (userUuid: string | null) => ['server', serverUuid, 'activity', { uuid: userUuid }] as const,
     byEvent: (userUuid: string | null, event: string) =>
@@ -399,6 +405,7 @@ const user = {
   tokens: () => ['user', 'tokens'] as const,
   membership: () => ['user', 'membership'] as const,
   balance: () => ['user', 'balance'] as const,
+  ads: () => ['user', 'ads'] as const, // plugged.host: docs/features/ads.md
 };
 
 const global = {

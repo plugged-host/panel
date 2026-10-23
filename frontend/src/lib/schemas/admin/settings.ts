@@ -430,13 +430,66 @@ export const adminSettingsQueueSchema = z.object({
 // plugged.host: idle servers stopped and parked (shared/src/settings/limbo.rs, docs/features/limbo.md)
 export const adminSettingsLimboSchema = z.object({
   enabled: z.boolean(),
-  stopHours: z.number().int().min(1).max(8760),
-  parkHours: z.number().int().min(1).max(8760),
+  stopMinutes: z.number().int().min(1).max(525_600),
+  parkMinutes: z.number().int().min(1).max(525_600),
   maxPerRun: z.number().int().min(1).max(100),
   costEarly: z.number().int().min(0).max(100000),
   costLate: z.number().int().min(0).max(100000),
   costWindowHours: z.number().int().min(0).max(8760),
   exemptMembers: z.boolean(),
+});
+
+// plugged.host: ads, the waiting room, the ad-block notice, in-game messages (shared/src/settings/ads.rs, docs/features/ads.md)
+export const adminSettingsAdsSchema = z.object({
+  enabled: z.boolean(),
+  showAccount: z.boolean(),
+  showServer: z.boolean(),
+  memberFree: z.boolean(),
+  slotTop: z.boolean(),
+  slotServerTools: z.boolean(),
+  slotPages: z.boolean(),
+  slotFoot: z.boolean(),
+  refreshSeconds: z.number().int().min(0).max(3600),
+  refreshMemberSeconds: z.number().int().min(0).max(3600),
+  zones: z.string().max(20000),
+  frameOrigin: z.string().trim().max(255),
+  nativeScript: z.string().max(2000),
+  nativeContainer: z.string().max(128),
+  nativeHeight: z.number().int().min(50).max(2000),
+  socialBarScript: z.string().max(2000),
+  socialBarEverywhere: z.boolean(),
+  popunderScript: z.string().max(2000),
+  roomScript: z.string().max(2000),
+  monetagPushZone: z.string().trim().regex(/^\d*$/).max(12),
+  monetagPushSrc: z.string().max(2000),
+  monetagVignetteZone: z.string().trim().regex(/^\d*$/).max(12),
+  monetagVignetteSrc: z.string().max(2000),
+  monetagVignetteMinutes: z.number().int().min(0).max(1440),
+  monetagVignetteMembers: z.boolean(),
+  monetagVerification: z.string().trim().max(128),
+  cspHosts: z.string().max(4000),
+  roomEnabled: z.boolean(),
+  roomCpu: z.number().int().min(0).max(1_000_000),
+  roomMemory: z.number().int().min(0).max(100_000_000),
+  roomDisk: z.number().int().min(0).max(100_000_000),
+  roomMinSeconds: z.number().int().min(0).max(600),
+  roomMaxSeconds: z.number().int().min(1).max(600),
+  roomPassMinutes: z.number().int().min(0).max(1440),
+  roomBanner: z.boolean(),
+  roomNative: z.boolean(),
+  roomSocialBar: z.boolean(),
+  roomPopunder: z.boolean(),
+  roomInterstitial: z.boolean(),
+  adblockEnabled: z.boolean(),
+  adblockMode: z.enum(['notice', 'modal', 'block']),
+  adblockGrace: z.number().int().min(0).max(60),
+  adblockDismissHours: z.number().int().min(0).max(720),
+  adblockProbe: z.boolean(),
+  adblockSkipConsole: z.boolean(),
+  adblockMessage: z.string().max(1000),
+  inGameEnabled: z.boolean(),
+  inGameMessage: z.string().max(200),
+  inGameInterval: z.number().int().min(5).max(1440),
 });
 
 // plugged.host: deleted servers' copies and node failover (shared/src/settings/recovery.rs, docs/features/backups-page.md, failover.md)
@@ -542,5 +595,6 @@ export const adminSettingsSchema = z.object({
   economy: adminSettingsEconomySchema, // plugged.host
   queue: adminSettingsQueueSchema, // plugged.host
   limbo: adminSettingsLimboSchema, // plugged.host
+  ads: adminSettingsAdsSchema, // plugged.host
   updates: adminSettingsUpdatesSchema,
 });

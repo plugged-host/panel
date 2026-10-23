@@ -229,6 +229,7 @@ export interface RegisteredFormIds {
   'admin.servers.update': true;
   'admin.locations.createOrUpdate': true;
   'admin.plans.createOrUpdate': true; // plugged.host
+  'admin.adBanners.createOrUpdate': true; // plugged.host
   'admin.eggRepositories.createOrUpdate': true;
   'admin.eggRepositories.credentialPassword': true;
   'admin.eggRepositories.credentialPrivateKey': true;

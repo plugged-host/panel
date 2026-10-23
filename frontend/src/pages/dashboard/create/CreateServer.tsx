@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { httpErrorToHuman } from '@/api/axios.ts';
 import createServer from '@/api/server/createServer.ts';
 import getServerCreateOptions from '@/api/server/getServerCreateOptions.ts';
+import { AdPageSlot } from '@/elements/ads/AdPlacements.tsx';
 import Button from '@/elements/buttons/Button.tsx';
 import AccountContentContainer from '@/elements/containers/AccountContentContainer.tsx';
 import Checkbox from '@/elements/input/Checkbox.tsx';
@@ -279,6 +280,7 @@ export default function CreateServer() {
   return (
     <AccountContentContainer title={t('pages.account.createServer.title', {})}>
       <ResourceView resource={resource}>{(options) => <CreateServerForm options={options} />}</ResourceView>
+      <AdPageSlot />
     </AccountContentContainer>
   );
 }

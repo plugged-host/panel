@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { httpErrorToHuman } from '@/api/axios.ts';
 import getStartQueue from '@/api/server/queue/getStartQueue.ts';
 import leaveStartQueue from '@/api/server/queue/leaveStartQueue.ts';
+import { AdStack } from '@/elements/ads/AdSlot.tsx';
 import Button from '@/elements/buttons/Button.tsx';
 import ServerContentContainer from '@/elements/containers/ServerContentContainer.tsx';
 import Group from '@/elements/layout/Group.tsx';
@@ -90,6 +91,8 @@ function Waiting({ queue, refresh }: { queue: Queue; refresh: () => void }) {
           {t('pages.server.queue.button.leave', {})}
         </Button>
       </Group>
+
+      <AdStack />
     </Stack>
   );
 }
