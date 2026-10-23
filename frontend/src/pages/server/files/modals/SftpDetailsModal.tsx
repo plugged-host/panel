@@ -8,6 +8,7 @@ import TextInput from '@/elements/input/TextInput.tsx';
 import { Modal, ModalFooter } from '@/elements/modals/Modal.tsx';
 import Anchor from '@/elements/typography/Anchor.tsx';
 import { useRedactedAddress } from '@/plugins/privacy/useRedactAddresses.ts';
+import { useSftpPassword } from '@/plugins/useSftpPassword.ts'; // plugged.host
 import { useAuth } from '@/providers/AuthProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useGlobalStore } from '@/stores/global.ts';
@@ -19,6 +20,7 @@ export default function SftpDetailsModal({ ...props }: ModalProps) {
   const passwordLoginEnabled = useGlobalStore((state) => state.settings.app.passwordLoginEnabled);
   const server = useServerStore((state) => state.server);
   const displayHost = useRedactedAddress(server.sftpHost);
+  const sftpPassword = useSftpPassword(); // plugged.host
 
   return (
     <Modal title={t('pages.server.files.modal.sftpDetails.title', {})} {...props}>
@@ -47,7 +49,15 @@ export default function SftpDetailsModal({ ...props }: ModalProps) {
           />
         </CopyOnClick>
 
-        {user!.hasPassword && passwordLoginEnabled && !user!.passwordLoginDisabled ? (
+        {/* plugged.host: noprofit.space checks SFTP passwords when it is connected */}
+        {sftpPassword === 'noprofit' ? (
+          <TextInput
+            label={t('common.form.password', {})}
+            value={t('pages.server.settings.sftp.noprofitPassword', {})}
+            className='col-span-4 pointer-events-none'
+            readOnly
+          />
+        ) : user!.hasPassword && passwordLoginEnabled && !user!.passwordLoginDisabled ? (
           <TextInput
             label={t('common.form.password', {})}
             value={t('common.form.yourControlPanelPassword', {})}

@@ -106,10 +106,12 @@ export const publicSettingsSchema = z.object({
     enabled: z.boolean(),
     accountsUrl: z.string().nullable(),
     adminsOnly: z.boolean(),
+    sftpPasswords: z.boolean(),
   }),
   // plugged.host: what players may do with servers themselves
   games: z.object({
     createEnabled: z.boolean(),
+    allowResizing: z.boolean(),
     allowDeleting: z.boolean(),
   }),
 });

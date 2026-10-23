@@ -254,6 +254,11 @@ const admin = {
 
 const server = (serverUuid: string) => ({
   detail: () => ['server', serverUuid, 'detail'] as const,
+  // plugged.host: docs/features/server-settings.md
+  settings: {
+    resize: () => ['server', serverUuid, 'settings', 'resize'] as const,
+    software: () => ['server', serverUuid, 'settings', 'software'] as const,
+  },
   activity: {
     all: (userUuid: string | null) => ['server', serverUuid, 'activity', { uuid: userUuid }] as const,
     byEvent: (userUuid: string | null, event: string) =>

@@ -107,9 +107,10 @@ impl Allowance {
     }
 
     /// Whether a server of size `from` may become `to`. Shrinking always fits, so an account over
-    /// its limit (its plan got smaller) can still make room.
+    /// its limit (its plan got smaller, or it has none any more) can still make room.
     pub fn check_change(&self, from: Resources, to: Resources) -> Result<(), Refusal> {
-        if !self.has_plan {
+        let grows = to.cpu > from.cpu || to.memory > from.memory || to.disk > from.disk;
+        if !self.has_plan && (grows || from == Resources::default()) {
             return Err(Refusal::NoPlan);
         }
 
@@ -280,6 +281,16 @@ mod tests {
         allowance.has_plan = false;
         assert_eq!(
             allowance.check_new(Resources::new(1, 1, 1)),
+            Err(Refusal::NoPlan)
+        );
+        // without a plan a server can still shrink, never grow
+        let from = Resources::new(200, 2048, 4096);
+        assert_eq!(
+            allowance.check_change(from, Resources::new(100, 2048, 4096)),
+            Ok(())
+        );
+        assert_eq!(
+            allowance.check_change(from, Resources::new(100, 4096, 1024)),
             Err(Refusal::NoPlan)
         );
     }

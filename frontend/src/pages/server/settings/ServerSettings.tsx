@@ -5,8 +5,12 @@ import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import AutokillContainer from './AutokillContainer.tsx';
 import AutostartContainer from './AutostartContainer.tsx';
 import DebugInformationContainer from './DebugInformationContainer.tsx';
+import DeleteContainer from './DeleteContainer.tsx'; // plugged.host
 import ReinstallContainer from './ReinstallContainer.tsx';
 import RenameContainer from './RenameContainer.tsx';
+import ResizeContainer from './ResizeContainer.tsx'; // plugged.host
+import SftpContainer from './SftpContainer.tsx'; // plugged.host
+import SoftwareContainer from './SoftwareContainer.tsx'; // plugged.host
 import TimezoneContainer from './TimezoneContainer.tsx';
 import TrashContainer from './TrashContainer.tsx';
 
@@ -44,6 +48,19 @@ export default function ServerSettings() {
         </ServerCan>
         <ServerCan action='settings.install'>
           <ReinstallContainer />
+        </ServerCan>
+        {/* plugged.host: docs/features/server-settings.md */}
+        <ServerCan action='files.sftp'>
+          <SftpContainer />
+        </ServerCan>
+        <ServerCan action='settings.resize'>
+          <ResizeContainer />
+        </ServerCan>
+        <ServerCan action='settings.software'>
+          <SoftwareContainer />
+        </ServerCan>
+        <ServerCan action='settings.delete'>
+          <DeleteContainer />
         </ServerCan>
 
         <ExtensionSlot

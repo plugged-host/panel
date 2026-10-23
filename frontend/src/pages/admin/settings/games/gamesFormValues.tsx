@@ -15,6 +15,7 @@ export const gamesEmptyFormValues: GamesFormValues = {
   limitDatabases: 0,
   limitBackups: 0,
   limitSchedules: 0,
+  allowResizing: false,
   allowDeleting: false,
   maxServers: 0,
   allowanceCpu: 0,
@@ -37,6 +38,12 @@ export function useGamesFormFields(
       name: 'createEnabled',
       label: t(`${page}.createEnabled`, {}),
       description: t(`${page}.createEnabledDescription`, {}),
+    },
+    {
+      type: 'switch',
+      name: 'allowResizing',
+      label: t(`${page}.allowResizing`, {}),
+      description: t(`${page}.allowResizingDescription`, {}),
     },
     {
       type: 'switch',

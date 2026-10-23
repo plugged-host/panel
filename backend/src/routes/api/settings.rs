@@ -78,12 +78,15 @@ mod get {
         enabled: bool,
         accounts_url: Option<&'a str>,
         admins_only: bool,
+        /// SFTP passwords are checked by noprofit.space (its account API is set up).
+        sftp_passwords: bool,
     }
 
     /// plugged.host: what players may do with servers themselves.
     #[derive(ToSchema, Serialize)]
     struct ResponseGames {
         create_enabled: bool,
+        allow_resizing: bool,
         allow_deleting: bool,
     }
 
@@ -189,10 +192,15 @@ mod get {
                 accounts_url: noprofit_connected
                     .then(|| settings.noprofit.accounts_url.trim_end_matches('/')),
                 admins_only: noprofit_connected && settings.noprofit.admins_only,
+                sftp_passwords: settings
+                    .noprofit
+                    .config()
+                    .is_some_and(|noprofit| noprofit.sync_enabled()),
             },
             // plugged.host
             games: ResponseGames {
                 create_enabled: settings.games.create_enabled,
+                allow_resizing: settings.games.allow_resizing,
                 allow_deleting: settings.games.allow_deleting,
             },
         })

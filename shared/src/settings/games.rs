@@ -77,6 +77,8 @@ pub struct AppSettingsGames {
     pub limit_databases: i32,
     pub limit_backups: i32,
     pub limit_schedules: i32,
+    /// Owners may change their servers' CPU, memory and disk within their allowance.
+    pub allow_resizing: bool,
     /// Players may delete their own servers.
     pub allow_deleting: bool,
     /// Servers an account may have; 0 is no limit.
@@ -97,6 +99,7 @@ impl Default for AppSettingsGames {
             limit_databases: 0,
             limit_backups: 0,
             limit_schedules: 0,
+            allow_resizing: false,
             allow_deleting: false,
             max_servers: 0,
             allowance_cpu: 0,
@@ -128,6 +131,8 @@ pub struct PayloadGames {
     limit_backups: Option<i32>,
     #[garde(inner(range(min = 0, max = 100)))]
     limit_schedules: Option<i32>,
+    #[garde(skip)]
+    allow_resizing: Option<bool>,
     #[garde(skip)]
     allow_deleting: Option<bool>,
     #[garde(inner(range(min = 0, max = 1000)))]
@@ -197,6 +202,7 @@ impl PayloadGames {
             limit_databases,
             limit_backups,
             limit_schedules,
+            allow_resizing,
             allow_deleting,
             max_servers,
             allowance_cpu,
@@ -230,6 +236,7 @@ impl SettingsSerializeExt for AppSettingsGames {
             .write_raw_setting("limit_databases", self.limit_databases.to_compact_string())
             .write_raw_setting("limit_backups", self.limit_backups.to_compact_string())
             .write_raw_setting("limit_schedules", self.limit_schedules.to_compact_string())
+            .write_raw_setting("allow_resizing", self.allow_resizing.to_compact_string())
             .write_raw_setting("allow_deleting", self.allow_deleting.to_compact_string())
             .write_raw_setting("max_servers", self.max_servers.to_compact_string())
             .write_raw_setting("allowance_cpu", self.allowance_cpu.to_compact_string())
@@ -270,6 +277,7 @@ impl SettingsDeserializeExt for AppSettingsGamesDeserializer {
             limit_databases: parsed!(limit_databases),
             limit_backups: parsed!(limit_backups),
             limit_schedules: parsed!(limit_schedules),
+            allow_resizing: parsed!(allow_resizing),
             allow_deleting: parsed!(allow_deleting),
             max_servers: parsed!(max_servers),
             allowance_cpu: parsed!(allowance_cpu),
@@ -309,6 +317,7 @@ mod tests {
             limit_databases: None,
             limit_backups: None,
             limit_schedules: None,
+            allow_resizing: None,
             allow_deleting: None,
             max_servers: Some(3),
             allowance_cpu: None,

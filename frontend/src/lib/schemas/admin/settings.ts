@@ -393,6 +393,7 @@ export const adminSettingsGamesSchema = z.object({
   limitDatabases: z.number().int().min(0).max(100),
   limitBackups: z.number().int().min(0).max(100),
   limitSchedules: z.number().int().min(0).max(100),
+  allowResizing: z.boolean(),
   allowDeleting: z.boolean(),
   maxServers: z.number().int().min(0).max(1000),
   allowanceCpu: z.number().int().min(0),

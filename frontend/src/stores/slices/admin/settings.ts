@@ -216,6 +216,7 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
     limitDatabases: 0,
     limitBackups: 0,
     limitSchedules: 0,
+    allowResizing: false,
     allowDeleting: false,
     maxServers: 0,
     allowanceCpu: 0,

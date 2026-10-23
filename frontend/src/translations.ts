@@ -2778,6 +2778,9 @@ const baseTranslations = defineTranslations({
                   createEnabled: 'Players Create Servers',
                   createEnabledDescription:
                     'Players can create servers themselves from the games, locations and plans offered, within their allowance.',
+                  allowResizing: 'Players Resize Servers',
+                  allowResizingDescription:
+                    "Owners can change their servers' CPU, memory and disk within their allowance, from the server settings.",
                   allowDeleting: 'Players Delete Servers',
                   allowDeletingDescription: 'Players can delete the servers they own from the server settings.',
                   maxServers: 'Servers per Account',
@@ -8720,6 +8723,51 @@ const baseTranslations = defineTranslations({
               toast: {
                 reinstalling: 'Reinstalling server...',
               },
+            },
+          },
+          // plugged.host
+          sftp: {
+            title: 'SFTP',
+            noprofitPassword: 'Your noprofit.space Password',
+            sshKeyOnly: 'An SSH key from your account (Account › SSH Keys)',
+          },
+          resize: {
+            title: 'Resources',
+            cpu: 'CPU (%)',
+            upTo: 'Up to {max}',
+            noLimit: 'No limit from your account',
+            atLeastOne: 'Every value must be at least 1.',
+            overMax: 'More than your account has left.',
+            toast: {
+              resized: 'Server resized.',
+            },
+          },
+          software: {
+            title: 'Software',
+            label: 'Software',
+            description: 'Switching reinstalls the server with the new software. Your worlds and files stay.',
+            button: 'Switch Software',
+            modal: {
+              title: 'Switch Software',
+              content:
+                'The server stops and is reinstalled with **{software}**. Plugins or mods made for the old software may not work with the new one.',
+              button: 'Switch and Reinstall',
+            },
+            toast: {
+              switching: 'Switching software. The server is being reinstalled.',
+            },
+          },
+          delete: {
+            title: 'Delete Server',
+            content: 'Deletes the server, its files, databases and backups. **This cannot be undone.**',
+            button: 'Delete Server',
+            modal: {
+              title: 'Delete Server',
+              content: 'Delete **{name}** with all its files, databases and backups?',
+              typeName: "Type the server's name to confirm",
+            },
+            toast: {
+              deleted: 'Server deleted.',
             },
           },
         },

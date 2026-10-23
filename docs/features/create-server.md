@@ -22,7 +22,8 @@ Admin › Settings › Games (`shared/src/settings/games.rs`):
 | Setting | Means |
 |---|---|
 | Players Create Servers | Turns the create page on |
-| Players Delete Servers | Owners may delete their own servers (from the server's settings, Phase 2B) |
+| Players Resize Servers | Owners may change their servers' CPU, memory and disk within their allowance ([server-settings.md](server-settings.md)) |
+| Players Delete Servers | Owners may delete their own servers ([server-settings.md](server-settings.md)) |
 | Games | The catalog, in order: an egg, the name and description players see (empty uses the egg's), the egg variable the software choice is written to, and the software choices |
 | Allocations, databases, backups, schedules | What every new server may have; allocations is at least 1 plus the ports its deployment needs |
 | Servers per Account | 0 is no limit |
@@ -44,9 +45,9 @@ a variable.
 - without it, the games settings' CPU, memory and disk per account (the same for every account).
 
 What is used is the sum of the servers the account owns, read from the primary database, so a server
-created a moment before is counted. A new server must fit what is left; a resize (Phase 2B) counts
-the old size, and shrinking always fits, so an account over its limit after its plan got smaller can
-still make room. Create and resize hold a lock per account (`allowance::{user}` in the cache) for
+created a moment before is counted. A new server must fit what is left; a resize ([server-settings.md](server-settings.md))
+counts the old size, and shrinking always fits, so an account over its limit after its plan got
+smaller (or without a plan any more) can still make room. Create and resize hold a lock per account (`allowance::{user}` in the cache) for
 the check and the write, so two requests at once cannot both spend the same room.
 
 ## What happens on create
@@ -81,7 +82,7 @@ The account's activity log gets `server:create`.
 | `GET/POST /api/admin/plans`, `GET/PATCH/DELETE /api/admin/plans/{plan}` | `plans.read`, `plans.create`, `plans.update`, `plans.delete` | The plans |
 
 `servers.deploy` is a user permission (an API key or a role can lack it). The settings for players
-(`games.create_enabled`, `games.allow_deleting`) are in the public settings.
+(`games.create_enabled`, `games.allow_resizing`, `games.allow_deleting`) are in the public settings.
 
 ## The page
 

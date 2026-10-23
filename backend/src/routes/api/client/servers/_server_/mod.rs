@@ -22,6 +22,7 @@ mod announcements;
 mod backups;
 mod command;
 mod databases;
+mod delete; // plugged.host
 // plugged.host: devices removed (docs/upstream.md)
 // mod devices;
 mod files;
@@ -137,6 +138,7 @@ mod get {
 pub fn router(state: &State) -> OpenApiRouter<State> {
     OpenApiRouter::new()
         .routes(routes!(get::route))
+        .routes(routes!(delete::delete::route)) // plugged.host
         .nest("/activity", activity::router(state))
         .nest("/announcements", announcements::router(state))
         .nest("/resources", resources::router(state))

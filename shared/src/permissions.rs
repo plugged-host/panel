@@ -1027,6 +1027,19 @@ pub(crate) static BASE_SERVER_PERMISSIONS: LazyLock<IndexMap<&'static str, Permi
                             "cancel-install",
                             "Allows canceling the server's installation process.",
                         ),
+                        // plugged.host: docs/features/server-settings.md
+                        (
+                            "resize",
+                            "Allows changing the server's CPU, memory and disk within its owner's allowance.",
+                        ),
+                        (
+                            "software",
+                            "Allows switching the server's software, which reinstalls it.",
+                        ),
+                        (
+                            "delete",
+                            "Allows deleting the server, when the panel lets players delete their servers.",
+                        ),
                     ]),
                 },
             ),

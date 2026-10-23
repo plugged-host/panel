@@ -2850,6 +2850,8 @@
                 "form": {
                   "createEnabled": "Spieler erstellen Server",
                   "createEnabledDescription": "Spieler können selbst Server aus den angebotenen Spielen, Standorten und Paketen erstellen, im Rahmen ihres Kontingents.",
+                  "allowResizing": "Spieler ändern Servergrößen",
+                  "allowResizingDescription": "Besitzer können CPU, Arbeitsspeicher und Speicherplatz ihrer Server in den Servereinstellungen ändern, innerhalb ihres Kontingents.",
                   "allowDeleting": "Spieler löschen Server",
                   "allowDeletingDescription": "Spieler können ihre eigenen Server in den Servereinstellungen löschen.",
                   "maxServers": "Server pro Konto",
@@ -8574,6 +8576,49 @@
               "toast": {
                 "reinstalling": "Server wird neu installiert..."
               }
+            }
+          },
+          "sftp": {
+            "title": "SFTP",
+            "noprofitPassword": "Dein noprofit.space-Passwort",
+            "sshKeyOnly": "Ein SSH-Schlüssel aus deinem Konto (Konto › SSH-Schlüssel)"
+          },
+          "resize": {
+            "title": "Ressourcen",
+            "cpu": "CPU (%)",
+            "upTo": "Bis zu {max}",
+            "noLimit": "Keine Grenze durch dein Konto",
+            "atLeastOne": "Jeder Wert muss mindestens 1 sein.",
+            "overMax": "Mehr, als dein Konto noch übrig hat.",
+            "toast": {
+              "resized": "Servergröße geändert."
+            }
+          },
+          "software": {
+            "title": "Software",
+            "label": "Software",
+            "description": "Ein Wechsel installiert den Server mit der neuen Software neu. Deine Welten und Dateien bleiben.",
+            "button": "Software wechseln",
+            "modal": {
+              "title": "Software wechseln",
+              "content": "Der Server wird gestoppt und mit **{software}** neu installiert. Plugins oder Mods für die alte Software laufen eventuell nicht mit der neuen.",
+              "button": "Wechseln und neu installieren"
+            },
+            "toast": {
+              "switching": "Software wird gewechselt. Der Server wird neu installiert."
+            }
+          },
+          "delete": {
+            "title": "Server löschen",
+            "content": "Löscht den Server, seine Dateien, Datenbanken und Backups. **Das lässt sich nicht rückgängig machen.**",
+            "button": "Server löschen",
+            "modal": {
+              "title": "Server löschen",
+              "content": "**{name}** mit allen Dateien, Datenbanken und Backups löschen?",
+              "typeName": "Gib zur Bestätigung den Namen des Servers ein"
+            },
+            "toast": {
+              "deleted": "Server gelöscht."
             }
           }
         },
