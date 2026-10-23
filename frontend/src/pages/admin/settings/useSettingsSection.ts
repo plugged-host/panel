@@ -24,7 +24,8 @@ type SettingsStoreKey =
   | 'mailMode'
   | 'captchaProvider'
   | 'noprofit' // plugged.host
-  | 'status'; // plugged.host
+  | 'status' // plugged.host
+  | 'abuse'; // plugged.host
 
 /** Admin store keys whose public projection lives under the same-named global settings key. */
 type GlobalSyncKey = 'app' | 'webauthn' | 'server' | 'user';

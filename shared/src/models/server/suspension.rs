@@ -311,6 +311,14 @@ pub async fn purge_due(state: &crate::State) -> Result<usize, anyhow::Error> {
             Ok(()) => {
                 tracing::info!(server = %server_uuid, name = %server.name, "deleted a suspended server whose deletion time passed");
                 deleted += 1;
+
+                if server
+                    .suspension
+                    .as_ref()
+                    .is_some_and(|suspension| suspension.kind == SuspensionKind::Abuse)
+                {
+                    crate::abuse::alert_deleted(state, &server).await;
+                }
             }
             Err(err) => {
                 tracing::warn!(server = %server_uuid, "failed to delete a suspended server: {err:#}");

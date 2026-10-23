@@ -38,6 +38,8 @@ For AI agents: [`AGENTS.md`](../AGENTS.md) at the root has the hard rules in sho
 | **Suspension details**: why, since when, by whom and until when a server is suspended, shown to its owner; servers past their deletion time are purged | [features/suspension.md](features/suspension.md) |
 | **Delete a user with their servers** from the user's delete dialog | [features/admin-users.md](features/admin-users.md) |
 | **Status page**: the website, the panel and every node checked each minute, incidents with updates, overrides, 90 days of uptime, served as `/data/*.json` and an RSS feed for a public status page; Admin › Status and Admin › Settings › Status Page | [features/status.md](features/status.md) |
+| **Abuse protection**: every server's startup, files and console scanned every three hours, CPU watched every minute and, with the Wings fork, what runs in each container and what it connects to; critical findings suspend (then delete) or only report, Discord alerts; Admin › Abuse and Admin › Settings › Abuse | [features/abuse.md](features/abuse.md) |
+| **Health checks**: background task heartbeats and node telemetry age on Admin › Overview › Health | [features/health.md](features/health.md) |
 | **Removed features**: devices, mounts, the extension manager, the update checker, Tundra's private network, the server firewall, managed database instances, backup groups; telemetry is opt-in | [upstream.md](upstream.md#removed-features) |
 | **German stays complete**: a build fails while a German string is missing | [development.md](development.md#strings) |
 

@@ -18,6 +18,7 @@ use tokio::sync::RwLock;
 use tower::util::ServiceExt;
 use utoipa::ToSchema;
 
+pub mod abuse; // plugged.host
 pub mod cache;
 pub mod cap;
 pub mod captcha;

@@ -2136,6 +2136,9 @@ const baseTranslations = defineTranslations({
                   extensionMigrationHealth: 'Extension Migration Health',
                   desyncNodes: 'Desync Nodes',
                   debugMode: 'Debug Mode',
+                  // plugged.host
+                  tasks: 'Background Tasks',
+                  telemetry: 'Node Telemetry',
                 },
                 appliedMigrations: 'Applied Migrations ({percent}%)',
                 migrationsValue: '{applied} / {total}',
@@ -2148,6 +2151,12 @@ const baseTranslations = defineTranslations({
                 debugEnabled: 'Debug mode is currently enabled.',
                 debugDisabled: 'Debug mode is currently disabled.',
                 debugResetNote: 'This setting will be reset to the default ({default}) when the application restarts.',
+                // plugged.host
+                tasksNotPrimary: 'Background tasks run on the primary instance only, and this is not it.',
+                taskOk: 'OK',
+                telemetryFresh: 'All {total} nodes have a recent telemetry sample.',
+                telemetryStale:
+                  '{stale} of {total} nodes have no telemetry sample from the last {seconds} seconds. The sampler may have stopped.',
 
                 table: {
                   packageName: 'Package Name',
@@ -2156,6 +2165,9 @@ const baseTranslations = defineTranslations({
                   id: 'ID',
                   desync: 'Desync',
                   appliedValue: '{applied} ({percent}%)',
+                  // plugged.host
+                  lastRun: 'Last Run',
+                  lastSample: 'Last Sample',
                 },
                 button: {
                   enableDebug: 'Enable Debug Mode',
@@ -2695,6 +2707,41 @@ const baseTranslations = defineTranslations({
                 },
               },
             },
+            // plugged.host
+            abuse: {
+              title: 'Abuse',
+              page: {
+                title: 'Abuse Protection Settings',
+                form: {
+                  mode: 'Mode',
+                  modeDescription:
+                    'Suspend: a critical finding suspends the server. Report only: findings are recorded and alerted, nothing is suspended. Off: nothing is checked.',
+                  modeSuspend: 'Suspend',
+                  modeReport: 'Report only',
+                  modeOff: 'Off',
+                  deleteAfterHours: 'Delete After (Hours)',
+                  deleteAfterHoursDescription:
+                    'Hours after an abuse suspension until the server is deleted, unless it is unsuspended or a finding on it is dismissed first. 0 never deletes.',
+                  alertWebhook: 'Alert Webhook',
+                  alertWebhookDescription:
+                    'A Discord webhook URL for suspensions, deletions and new critical findings. Empty: no alerts.',
+                  alertWebhookStored: 'A webhook is stored. Leave this empty to keep it.',
+                  cpuPercent: 'CPU Threshold',
+                  cpuPercentDescription:
+                    'Percent of its CPU limit a server must hold to have its console read and, after the minutes below, the full check.',
+                  cpuMinutes: 'CPU Minutes',
+                  cpuMinutesDescription:
+                    'Minutes at the threshold before the full check runs. Full CPU alone never suspends.',
+                },
+                button: {
+                  removeWebhook: 'Remove Webhook',
+                },
+                toast: {
+                  updated: 'Abuse settings updated.',
+                  webhookRemoved: 'Alert webhook removed.',
+                },
+              },
+            },
           },
         },
         announcements: {
@@ -2736,6 +2783,66 @@ const baseTranslations = defineTranslations({
               success: 'Success',
               warning: 'Warning',
               error: 'Error',
+            },
+          },
+        },
+        // plugged.host
+        abuse: {
+          title: 'Abuse',
+          enum: {
+            status: {
+              open: 'Open',
+              actioned: 'Suspended',
+              dismissed: 'Dismissed',
+              resolved: 'Resolved',
+            },
+            severity: {
+              critical: 'Critical',
+              review: 'Review',
+            },
+          },
+          page: {
+            allStatuses: 'All statuses',
+            column: {
+              target: 'Server / Node',
+              category: 'Category',
+              severity: 'Severity',
+              summary: 'Summary',
+              lastSeen: 'Last Seen',
+            },
+            detail: {
+              egg: 'Egg',
+              rule: 'Rule',
+              hits: 'Times Seen',
+              firstSeen: 'First Seen',
+              action: 'Action',
+              evidence: 'Evidence',
+            },
+            button: {
+              scan: 'Scan a Server',
+              resolve: 'Resolve',
+              dismiss: 'Dismiss',
+            },
+            modal: {
+              dismiss: {
+                title: 'Dismiss Finding',
+                content:
+                  'Dismiss this finding as a false positive? It stays dismissed when it is seen again, and a server suspended for abuse is no longer deleted. Unsuspend the server if it should run again.',
+              },
+              scan: {
+                title: 'Scan a Server',
+                content:
+                  'Runs the full check on one server now: its startup values, its files and its console. What it finds is recorded like the scheduled scan, but nothing is suspended.',
+                run: 'Scan',
+                running:
+                  'The scan is taking longer and keeps running. Its findings appear in the list when it is done.',
+                clean: 'Nothing found.',
+                unreachable: "The server's node did not answer, so only its startup values were checked.",
+              },
+            },
+            toast: {
+              dismissed: 'Finding dismissed.',
+              resolved: 'Finding resolved.',
             },
           },
         },

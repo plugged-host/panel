@@ -33,6 +33,8 @@ import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import NodeRow from '../../nodes/NodeRow.tsx';
 import OutdatedResourceCard from '../updates/OutdatedResourceCard.tsx';
+import TasksHealthCard from './TasksHealthCard.tsx'; // plugged.host
+import TelemetryHealthCard from './TelemetryHealthCard.tsx'; // plugged.host
 
 export default function AdminOverviewHealth() {
   const { addToast } = useToast();
@@ -241,6 +243,12 @@ export default function AdminOverviewHealth() {
             />
           ))}
         </OutdatedResourceCard>
+      </AdminCan>
+
+      {/* plugged.host: task heartbeats and telemetry age (docs/features/health.md) */}
+      <TasksHealthCard />
+      <AdminCan action='nodes.read'>
+        <TelemetryHealthCard />
       </AdminCan>
 
       <ExtensionSlot

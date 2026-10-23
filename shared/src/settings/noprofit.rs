@@ -44,7 +44,7 @@ pub struct AppSettingsNoprofit {
 }
 
 /// A set secret is shown as [`crate::censor::CENSORED_PLACEHOLDER`], an unset one as `null`.
-fn serialize_secret<S: Serializer>(
+pub(crate) fn serialize_secret<S: Serializer>(
     secret: &Option<compact_str::CompactString>,
     serializer: S,
 ) -> Result<S::Ok, S::Error> {

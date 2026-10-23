@@ -960,6 +960,22 @@ pub async fn define_background_tasks(
             },
         )
         .await;
+    // plugged.host: abuse protection (shared::abuse): the CPU and process watch every minute, the
+    // full scan of every server every three hours.
+    background_task_builder
+        .add_cron_task(
+            "watch_abuse",
+            croner::Cron::from_str("15 * * * * *").unwrap(),
+            async |state| shared::abuse::watch(&state).await,
+        )
+        .await;
+    background_task_builder
+        .add_cron_task(
+            "scan_abuse",
+            croner::Cron::from_str("0 7 */3 * * *").unwrap(),
+            async |state| shared::abuse::scan_all(&state).await,
+        )
+        .await;
     background_task_builder
         .add_cron_task(
             "prune_system_backups",

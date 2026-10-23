@@ -9,6 +9,7 @@ import {
   faRobot,
   faServer,
   faShareNodes,
+  faShieldHalved,
   faToolbox,
   faUser,
   faUserCheck,
@@ -25,6 +26,7 @@ import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { trackActivity } from '@/stores/activity.ts';
 import { useAdminStore } from '@/stores/admin.tsx';
+import AbuseContainer from './abuse/AbuseContainer.tsx';
 import ActivityContainer from './activity/ActivityContainer.tsx';
 import ApplicationContainer from './application/ApplicationContainer.tsx';
 import CaptchaContainer from './captcha/CaptchaContainer.tsx';
@@ -142,6 +144,13 @@ export default function AdminSettings() {
               icon: faHeartPulse,
               path: '/status',
               element: <StatusContainer />,
+            },
+            // plugged.host: abuse protection
+            {
+              name: t('pages.admin.settings.tabs.abuse.title', {}),
+              icon: faShieldHalved,
+              path: '/abuse',
+              element: <AbuseContainer />,
             },
           ]}
         />

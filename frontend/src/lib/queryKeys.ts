@@ -195,6 +195,11 @@ const admin = {
     detail: (uuid: string) => ['admin', 'announcements', { uuid }] as const,
   },
 
+  // plugged.host: Admin › Abuse
+  abuse: {
+    findings: () => ['admin', 'abuse', 'findings'] as const,
+  },
+
   // plugged.host: Admin › Status
   status: {
     all: () => ['admin', 'status'] as const,
@@ -230,6 +235,8 @@ const admin = {
   health: {
     nodes: () => ['admin', 'health', 'nodes'] as const,
     general: () => ['admin', 'health', 'general'] as const,
+    tasks: () => ['admin', 'health', 'tasks'] as const, // plugged.host
+    telemetry: () => ['admin', 'health', 'telemetry'] as const, // plugged.host
   },
 
   emailTemplates: {

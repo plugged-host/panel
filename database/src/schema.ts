@@ -1313,6 +1313,38 @@ export const serversTable = pgTable(
   ],
 );
 
+// plugged.host: what the abuse checks found (shared/src/abuse.rs). One row per server (or node, for
+// what runs on the node itself) and rule, updated on every hit rather than appended.
+export const abuseFindingsTable = pgTable(
+  'abuse_findings',
+  {
+    uuid: uuid().default(sql`gen_random_uuid()`).primaryKey().notNull(),
+    fingerprint: varchar({ length: 160 }).notNull(),
+    server_uuid: uuid().references(() => serversTable.uuid, { onDelete: 'cascade' }),
+    node_uuid: uuid().references(() => nodesTable.uuid, { onDelete: 'cascade' }),
+    rule: varchar({ length: 64 }).notNull(),
+    category: varchar({ length: 32 }).notNull(),
+    severity: varchar({ length: 16 }).notNull(),
+    source: varchar({ length: 16 }).notNull(),
+    status: varchar({ length: 16 }).default('open').notNull(),
+    summary: varchar({ length: 500 * UTF8_MAX_SCALAR_SIZE }).notNull(),
+    evidence: jsonb().default({}).notNull(),
+    hits: integer().default(0).notNull(),
+    first_seen: timestamp().defaultNow().notNull(),
+    last_seen: timestamp().defaultNow().notNull(),
+    action: varchar({ length: 32 }),
+    actioned: timestamp(),
+    resolved_by: uuid().references(() => usersTable.uuid, { onDelete: 'set null' }),
+    resolved: timestamp(),
+    created: timestamp().defaultNow().notNull(),
+  },
+  (cols) => [
+    uniqueIndex('abuse_findings_fingerprint_idx').on(cols.fingerprint),
+    index('abuse_findings_status_last_seen_idx').on(cols.status, cols.last_seen),
+    index('abuse_findings_server_uuid_idx').on(cols.server_uuid),
+  ],
+);
+
 export const serverAllocationsTable = pgTable(
   'server_allocations',
   {

@@ -15,12 +15,14 @@ import {
   faHeartPulse,
   faScroll,
   faServer,
+  faShieldHalved,
   faUsers,
   faWrench,
 } from '@fortawesome/free-solid-svg-icons';
 import { faComputer } from '@fortawesome/free-solid-svg-icons/faComputer';
 import type { AdminRouteDefinition } from 'shared';
 import type { LazyString } from '@/lib/lazy.ts';
+import AdminAbuse from '@/pages/admin/abuse/AdminAbuse.tsx';
 import AdminActivity from '@/pages/admin/activity/AdminActivity.tsx';
 import AdminAnnouncements from '@/pages/admin/announcements/AdminAnnouncements.tsx';
 import AdminAssets from '@/pages/admin/assets/AdminAssets.tsx';
@@ -85,6 +87,15 @@ const routes: AdminRouteDefinition[] = [
     path: '/servers/*',
     element: AdminServers,
     permission: ['servers.*'],
+    category: 'infrastructure',
+  },
+  // plugged.host: abuse protection (docs/features/abuse.md)
+  {
+    name: () => getTranslations().t('pages.admin.abuse.title', {}),
+    icon: faShieldHalved,
+    path: '/abuse',
+    element: AdminAbuse,
+    permission: ['abuse.*'],
     category: 'infrastructure',
   },
 

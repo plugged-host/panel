@@ -200,6 +200,14 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
     historyDays: 90,
     cpuThreshold: 95,
   },
+  // plugged.host: abuse protection
+  abuse: {
+    mode: 'report',
+    alertWebhook: null,
+    cpuPercent: 90,
+    cpuMinutes: 20,
+    deleteAfterHours: 24,
+  },
 
   updateInformation: null,
   updateInformationError: null,
@@ -218,6 +226,7 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
       ratelimits: value.ratelimits,
       noprofit: value.noprofit, // plugged.host
       status: value.status, // plugged.host
+      abuse: value.abuse, // plugged.host
     })),
   updateSettings: (value) =>
     set((state) => ({
@@ -233,6 +242,7 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
       ...(value.ratelimits ? { ratelimits: { ...state.ratelimits, ...value.ratelimits } } : {}),
       ...(value.noprofit ? { noprofit: { ...state.noprofit, ...value.noprofit } } : {}), // plugged.host
       ...(value.status ? { status: { ...state.status, ...value.status } } : {}), // plugged.host
+      ...(value.abuse ? { abuse: { ...state.abuse, ...value.abuse } } : {}), // plugged.host
     })),
   setUpdateInformation: (value) => set((state) => ({ ...state, updateInformation: value })),
   loadUpdateInformation: async () => {

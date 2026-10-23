@@ -2267,7 +2267,9 @@
                   "generalHealth": "Allgemeiner Zustand",
                   "extensionMigrationHealth": "Erweiterungsmigrations-Zustand",
                   "desyncNodes": "Asynchrone Nodes",
-                  "debugMode": "Debug-Modus"
+                  "debugMode": "Debug-Modus",
+                  "tasks": "Hintergrundaufgaben",
+                  "telemetry": "Node-Telemetrie"
                 },
                 "appliedMigrations": "Angewendete Migrationen ({percent}%)",
                 "migrationsValue": "{applied} / {total}",
@@ -2278,13 +2280,19 @@
                 "debugEnabled": "Der Debug-Modus ist derzeit aktiviert. Im Debug-Modus werden zusätzliche Informationen protokolliert, die bei der Fehlersuche helfen können. Du solltest den Debug-Modus in der Produktion nicht aktiviert lassen.",
                 "debugDisabled": "Der Debug-Modus ist derzeit deaktiviert. Aktiviere den Debug-Modus nur, wenn du Probleme untersuchst.",
                 "debugResetNote": "Hinweis: Diese Einstellung wird beim nächsten Neustart der Anwendung auf den Standardwert ({default}) zurückgesetzt.",
+                "tasksNotPrimary": "Hintergrundaufgaben laufen nur auf der primären Instanz, und das ist nicht diese.",
+                "taskOk": "OK",
+                "telemetryFresh": "Alle {total} Nodes haben eine aktuelle Telemetrie-Messung.",
+                "telemetryStale": "{stale} von {total} Nodes haben keine Telemetrie-Messung aus den letzten {seconds} Sekunden. Die Messung ist womöglich stehen geblieben.",
                 "table": {
                   "packageName": "Paketname",
                   "applied": "Angewendet",
                   "total": "Gesamt",
                   "id": "ID",
                   "desync": "Asynchron",
-                  "appliedValue": "{applied} ({percent}%)"
+                  "appliedValue": "{applied} ({percent}%)",
+                  "lastRun": "Zuletzt ausgeführt",
+                  "lastSample": "Letzte Messung"
                 },
                 "button": {
                   "enableDebug": "Debug-Modus aktivieren",
@@ -2779,6 +2787,35 @@
                   "updated": "Einstellungen der Statusseite aktualisiert."
                 }
               }
+            },
+            "abuse": {
+              "title": "Missbrauch",
+              "page": {
+                "title": "Einstellungen zum Missbrauchsschutz",
+                "form": {
+                  "mode": "Modus",
+                  "modeDescription": "Suspendieren: Ein kritischer Fund suspendiert den Server. Nur melden: Funde werden gespeichert und gemeldet, suspendiert wird nichts. Aus: Es wird nichts geprüft.",
+                  "modeSuspend": "Suspendieren",
+                  "modeReport": "Nur melden",
+                  "modeOff": "Aus",
+                  "deleteAfterHours": "Löschen nach (Stunden)",
+                  "deleteAfterHoursDescription": "Stunden nach einer Suspendierung wegen Missbrauchs, bis der Server gelöscht wird, außer er wird vorher entsuspendiert oder ein Fund zu ihm verworfen. 0 löscht nie.",
+                  "alertWebhook": "Alarm-Webhook",
+                  "alertWebhookDescription": "Eine Discord-Webhook-URL für Suspendierungen, Löschungen und neue kritische Funde. Leer: keine Alarme.",
+                  "alertWebhookStored": "Ein Webhook ist gespeichert. Lass das Feld leer, um ihn zu behalten.",
+                  "cpuPercent": "CPU-Schwelle",
+                  "cpuPercentDescription": "Prozent seines CPU-Limits, die ein Server halten muss, damit seine Konsole gelesen wird und nach den Minuten unten die vollständige Prüfung läuft.",
+                  "cpuMinutes": "CPU-Minuten",
+                  "cpuMinutesDescription": "Minuten an der Schwelle, bevor die vollständige Prüfung läuft. Volle CPU allein suspendiert nie."
+                },
+                "button": {
+                  "removeWebhook": "Webhook entfernen"
+                },
+                "toast": {
+                  "updated": "Missbrauchseinstellungen aktualisiert.",
+                  "webhookRemoved": "Alarm-Webhook entfernt."
+                }
+              }
             }
           }
         },
@@ -2821,6 +2858,62 @@
               "success": "Erfolg",
               "warning": "Warnung",
               "error": "Fehler"
+            }
+          }
+        },
+        "abuse": {
+          "title": "Missbrauch",
+          "enum": {
+            "status": {
+              "open": "Offen",
+              "actioned": "Suspendiert",
+              "dismissed": "Verworfen",
+              "resolved": "Erledigt"
+            },
+            "severity": {
+              "critical": "Kritisch",
+              "review": "Prüfen"
+            }
+          },
+          "page": {
+            "allStatuses": "Alle Status",
+            "column": {
+              "target": "Server / Node",
+              "category": "Kategorie",
+              "severity": "Schwere",
+              "summary": "Zusammenfassung",
+              "lastSeen": "Zuletzt gesehen"
+            },
+            "detail": {
+              "egg": "Egg",
+              "rule": "Regel",
+              "hits": "Gesehen",
+              "firstSeen": "Zuerst gesehen",
+              "action": "Aktion",
+              "evidence": "Belege"
+            },
+            "button": {
+              "scan": "Server prüfen",
+              "resolve": "Erledigen",
+              "dismiss": "Verwerfen"
+            },
+            "modal": {
+              "dismiss": {
+                "title": "Fund verwerfen",
+                "content": "Bist du sicher, dass du diesen Fund als Fehlalarm verwerfen möchtest? Er bleibt verworfen, wenn er wieder gesehen wird, und ein wegen Missbrauchs suspendierter Server wird nicht mehr gelöscht. Entsuspendiere den Server, wenn er wieder laufen soll."
+              },
+              "scan": {
+                "title": "Server prüfen",
+                "content": "Führt die vollständige Prüfung jetzt für einen Server aus: Startwerte, Dateien und Konsole. Funde werden wie bei der geplanten Prüfung gespeichert, suspendiert wird aber nichts.",
+                "run": "Prüfen",
+                "running": "Die Prüfung dauert länger und läuft weiter. Ihre Funde erscheinen in der Liste, sobald sie fertig ist.",
+                "clean": "Nichts gefunden.",
+                "unreachable": "Die Node des Servers hat nicht geantwortet, daher wurden nur seine Startwerte geprüft."
+              }
+            },
+            "toast": {
+              "dismissed": "Fund verworfen.",
+              "resolved": "Fund erledigt."
             }
           }
         },

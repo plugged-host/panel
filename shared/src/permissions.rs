@@ -305,6 +305,20 @@ pub(crate) static BASE_ADMIN_PERMISSIONS: LazyLock<IndexMap<&'static str, Permis
                     ]),
                 },
             ),
+            // plugged.host: abuse protection (docs/features/abuse.md)
+            (
+                "abuse",
+                PermissionGroup {
+                    description: "Permissions that control the ability to review abuse findings.",
+                    permissions: IndexMap::from([
+                        ("read", "Allows viewing abuse findings and their evidence."),
+                        (
+                            "manage",
+                            "Allows dismissing and resolving findings and scanning a server on demand.",
+                        ),
+                    ]),
+                },
+            ),
             (
                 "assets",
                 PermissionGroup {

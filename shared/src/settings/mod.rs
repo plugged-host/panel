@@ -23,6 +23,7 @@ use std::{
 use tokio::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard, Semaphore, SemaphorePermit};
 use utoipa::ToSchema;
 
+pub mod abuse; // plugged.host
 pub mod activity;
 pub mod app;
 pub mod metadata;
@@ -382,6 +383,9 @@ pub struct AppSettings {
     // plugged.host: the public status page
     #[schema(inline)]
     pub status: status::AppSettingsStatus,
+    // plugged.host: abuse protection
+    #[schema(inline)]
+    pub abuse: abuse::AppSettingsAbuse,
 
     #[serde(skip)]
     pub disabled_extensions: Vec<compact_str::CompactString>,
@@ -670,6 +674,8 @@ impl SettingsSerializeExt for AppSettings {
             .nest("noprofit", &self.noprofit) // plugged.host
             .await?
             .nest("status", &self.status) // plugged.host
+            .await?
+            .nest("abuse", &self.abuse) // plugged.host
             .await?;
 
         for (ext_identifier, ext_settings) in self.extensions.iter() {
@@ -953,6 +959,9 @@ impl SettingsDeserializeExt for AppSettingsDeserializer {
                 .await?,
             status: deserializer
                 .nest("status", &status::AppSettingsStatusDeserializer)
+                .await?,
+            abuse: deserializer
+                .nest("abuse", &abuse::AppSettingsAbuseDeserializer)
                 .await?,
             disabled_extensions: deserializer
                 .take_raw_setting("disabled_extensions")

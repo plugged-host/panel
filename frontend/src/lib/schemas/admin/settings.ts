@@ -360,6 +360,16 @@ export const adminSettingsStatusSchema = z.object({
   cpuThreshold: z.number().int().min(1).max(100),
 });
 
+// plugged.host: abuse protection (shared/src/settings/abuse.rs, docs/features/abuse.md). A stored
+// webhook comes back as an empty string and is kept when sent back empty.
+export const adminSettingsAbuseSchema = z.object({
+  mode: z.enum(['suspend', 'report', 'off']),
+  alertWebhook: z.union([z.literal(''), z.url({ protocol: /^https$/ }).max(512)]).nullable(),
+  cpuPercent: z.number().int().min(50).max(100),
+  cpuMinutes: z.number().int().min(5).max(1440),
+  deleteAfterHours: z.number().int().min(0).max(8760),
+});
+
 export const twoFactorRequirement = z.enum(['admins', 'all_users', 'none']);
 
 export const adminSettingsSchema = z.object({
@@ -378,4 +388,5 @@ export const adminSettingsSchema = z.object({
   ratelimits: adminSettingsRatelimitsSchema,
   noprofit: adminSettingsNoprofitSchema, // plugged.host
   status: adminSettingsStatusSchema, // plugged.host
+  abuse: adminSettingsAbuseSchema, // plugged.host
 });

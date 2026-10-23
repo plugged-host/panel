@@ -16,6 +16,7 @@ use shared::{
 use std::sync::Arc;
 use utoipa_axum::router::OpenApiRouter;
 
+mod abuse; // plugged.host
 mod activity;
 mod announcements;
 mod assets;
@@ -114,6 +115,7 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         .nest("/activity", activity::router(state))
         .nest("/announcements", announcements::router(state))
         .nest("/status", status::router(state)) // plugged.host
+        .nest("/abuse", abuse::router(state)) // plugged.host
         .route_layer(axum::middleware::from_fn_with_state(state.clone(), auth))
         .route_layer(axum::middleware::from_fn_with_state(
             state.clone(),

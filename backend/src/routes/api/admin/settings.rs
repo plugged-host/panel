@@ -330,6 +330,23 @@ mod put {
         cpu_threshold: Option<i32>,
     }
 
+    // plugged.host: abuse protection (shared/src/settings/abuse.rs)
+    #[derive(ToSchema, Validate, Deserialize)]
+    pub struct PayloadAbuse {
+        #[garde(skip)]
+        mode: Option<shared::settings::abuse::AbuseMode>,
+        /// A Discord webhook URL. The placeholder keeps the stored one, `null` removes it.
+        #[garde(length(chars, max = 512))]
+        #[serde(default, with = "::serde_with::rust::double_option")]
+        alert_webhook: Option<Option<compact_str::CompactString>>,
+        #[garde(range(min = 50, max = 100))]
+        cpu_percent: Option<i32>,
+        #[garde(range(min = 5, max = 1440))]
+        cpu_minutes: Option<i32>,
+        #[garde(range(min = 0, max = 8760))]
+        delete_after_hours: Option<i32>,
+    }
+
     #[derive(ToSchema, Validate, Deserialize)]
     pub struct Payload {
         #[garde(skip)]
@@ -372,6 +389,10 @@ mod put {
         #[schema(inline)]
         #[garde(dive)]
         status: Option<PayloadStatus>,
+        // plugged.host
+        #[schema(inline)]
+        #[garde(dive)]
+        abuse: Option<PayloadAbuse>,
     }
 
     #[derive(ToSchema, Serialize)]
@@ -811,6 +832,40 @@ mod put {
             }
             if let Some(cpu_threshold) = status.cpu_threshold {
                 settings.status.cpu_threshold = cpu_threshold;
+            }
+        }
+
+        // plugged.host: abuse protection
+        if let Some(abuse) = data.abuse {
+            if let Some(mode) = abuse.mode {
+                settings.abuse.mode = mode;
+            }
+            match abuse.alert_webhook {
+                // empty (the placeholder the API shows a stored secret as) keeps it
+                Some(Some(webhook))
+                    if webhook.trim().is_empty()
+                        || webhook == shared::censor::CENSORED_PLACEHOLDER => {}
+                Some(Some(webhook)) => {
+                    if !reqwest::Url::parse(webhook.trim())
+                        .is_ok_and(|url| url.scheme() == "https" && url.host().is_some())
+                    {
+                        return ApiResponse::error("the alert webhook must be an https url")
+                            .with_status(StatusCode::BAD_REQUEST)
+                            .ok();
+                    }
+                    settings.abuse.alert_webhook = Some(webhook.trim().into());
+                }
+                Some(None) => settings.abuse.alert_webhook = None,
+                None => {}
+            }
+            if let Some(cpu_percent) = abuse.cpu_percent {
+                settings.abuse.cpu_percent = cpu_percent;
+            }
+            if let Some(cpu_minutes) = abuse.cpu_minutes {
+                settings.abuse.cpu_minutes = cpu_minutes;
+            }
+            if let Some(delete_after_hours) = abuse.delete_after_hours {
+                settings.abuse.delete_after_hours = delete_after_hours;
             }
         }
 
