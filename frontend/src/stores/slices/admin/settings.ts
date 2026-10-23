@@ -235,6 +235,10 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
     smallThreads: 9,
     unreachableAfter: 3,
   },
+  tour: {
+    enabled: false,
+    version: 1,
+  },
 
   updateInformation: null,
   updateInformationError: null,
@@ -256,6 +260,7 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
       abuse: value.abuse, // plugged.host
       games: value.games, // plugged.host
       placement: value.placement, // plugged.host
+      tour: value.tour, // plugged.host
     })),
   updateSettings: (value) =>
     set((state) => ({
@@ -274,6 +279,7 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
       ...(value.abuse ? { abuse: { ...state.abuse, ...value.abuse } } : {}), // plugged.host
       ...(value.games ? { games: { ...state.games, ...value.games } } : {}), // plugged.host
       ...(value.placement ? { placement: { ...state.placement, ...value.placement } } : {}), // plugged.host
+      ...(value.tour ? { tour: { ...state.tour, ...value.tour } } : {}), // plugged.host
     })),
   setUpdateInformation: (value) => set((state) => ({ ...state, updateInformation: value })),
   loadUpdateInformation: async () => {

@@ -401,6 +401,10 @@ mod put {
         #[schema(inline)]
         #[garde(dive)]
         placement: Option<shared::settings::placement::PayloadPlacement>,
+        // plugged.host
+        #[schema(inline)]
+        #[garde(dive)]
+        tour: Option<shared::settings::tour::PayloadTour>,
     }
 
     #[derive(ToSchema, Serialize)]
@@ -888,6 +892,10 @@ mod put {
         }
         if let Some(placement) = data.placement {
             placement.apply(&mut settings.placement);
+        }
+        // plugged.host: welcome tour
+        if let Some(tour) = data.tour {
+            tour.apply(&mut settings.tour);
         }
 
         if !settings.app.password_login_enabled {

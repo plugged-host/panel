@@ -27,7 +27,8 @@ type SettingsStoreKey =
   | 'status' // plugged.host
   | 'abuse' // plugged.host
   | 'games' // plugged.host
-  | 'placement'; // plugged.host
+  | 'placement' // plugged.host
+  | 'tour'; // plugged.host
 
 /** Admin store keys whose public projection lives under the same-named global settings key. */
 type GlobalSyncKey = 'app' | 'webauthn' | 'server' | 'user';

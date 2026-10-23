@@ -13,5 +13,9 @@ export default function CreateServerButton() {
     return null;
   }
 
-  return <Button onClick={() => navigate('/create')}>{t('pages.account.createServer.button', {})}</Button>;
+  return (
+    <Button data-tour='create-server' onClick={() => navigate('/create')}>
+      {t('pages.account.createServer.button', {})}
+    </Button>
+  );
 }

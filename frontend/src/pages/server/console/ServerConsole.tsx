@@ -11,6 +11,7 @@ import ServerDetails from './stats/ServerDetails.tsx';
 import ServerPowerControls from './stats/ServerPowerControls.tsx';
 import ServerStats from './stats/ServerStats.tsx';
 import Console from './terminal/Console.tsx';
+import WelcomeTourServer from './WelcomeTourServer.tsx'; // plugged.host
 
 export default function ServerConsole() {
   const { t } = useTranslations();
@@ -57,23 +58,25 @@ export default function ServerConsole() {
           </ServerCan>
         </Group>
       </div>
-
       {/* plugged.host: the Pelican console's order: the stat blocks, the console the full width under
           them, then the CPU, memory and network charts. */}
-      <div className='mb-4 min-w-0'>
+      <div
+        className='mb-4 min-w-0'
+        data-tour='details' // plugged.host: the welcome tour's targets
+      >
         <ServerDetails />
       </div>
-
       <div
         className='mb-4 flex flex-col h-[60vh]'
+        data-tour='console' // plugged.host: the welcome tour's targets
         style={
           keyboardInset > 0 ? { height: `max(8rem, min(60vh, calc(100dvh - ${keyboardInset}px - 7rem)))` } : undefined
         }
       >
         <Console />
       </div>
-
       <ServerStats />
+      <WelcomeTourServer /> {/* plugged.host */}
     </ServerContentContainer>
   );
 }

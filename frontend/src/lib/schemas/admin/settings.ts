@@ -415,6 +415,12 @@ export const adminSettingsPlacementSchema = z.object({
   unreachableAfter: z.number().int().min(1).max(60),
 });
 
+// plugged.host: the welcome tour (shared/src/settings/tour.rs, docs/features/welcome-tour.md)
+export const adminSettingsTourSchema = z.object({
+  enabled: z.boolean(),
+  version: z.number().int().min(1).max(1000),
+});
+
 export const twoFactorRequirement = z.enum(['admins', 'all_users', 'none']);
 
 export const adminSettingsSchema = z.object({
@@ -436,4 +442,5 @@ export const adminSettingsSchema = z.object({
   abuse: adminSettingsAbuseSchema, // plugged.host
   games: adminSettingsGamesSchema, // plugged.host
   placement: adminSettingsPlacementSchema, // plugged.host
+  tour: adminSettingsTourSchema, // plugged.host
 });

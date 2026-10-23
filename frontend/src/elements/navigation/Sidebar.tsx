@@ -3,6 +3,7 @@ import {
   faBars,
   faCheck,
   faChevronUp,
+  faCircleQuestion, // plugged.host
   faEyeSlash,
   faGraduationCap,
   faRotateLeft,
@@ -29,6 +30,7 @@ import { openUrl } from '@/lib/network/url.ts';
 import { isNamedRoutePathAccessible } from '@/lib/routes.ts';
 import { resetAllDeviceOverrides, useDeviceOverrideCount } from '@/lib/userSettings.ts';
 import { useRedactAddresses } from '@/plugins/privacy/useRedactAddresses.ts';
+import { useWelcomeTour } from '@/plugins/useWelcomeTour.ts'; // plugged.host
 import { useAuth } from '@/providers/AuthProvider.tsx';
 import { usePendingPathname } from '@/providers/contexts/pendingNavigationContext.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
@@ -264,6 +266,7 @@ function Footer() {
   const routeOrder = useGlobalStore((state) => state.settings.user?.routeOrder);
 
   const { confirmLogout, logoutModal } = useLogoutConfirmation();
+  const { enabled: tourEnabled, update: updateTour } = useWelcomeTour(); // plugged.host
 
   const accountRouteDisabled = !isNamedRoutePathAccessible(routeOrder, '/');
 
@@ -309,6 +312,17 @@ function Footer() {
         hidden: deviceOverrideCount === 0,
         onClick: () => resetAllDeviceOverrides(),
       },
+      // plugged.host: the welcome tour again, from the server list (docs/features/welcome-tour.md)
+      {
+        type: 'action' as const,
+        icon: faCircleQuestion,
+        label: t('elements.welcomeTour.replay', {}),
+        hidden: !tourEnabled || suspended,
+        onClick: () => {
+          updateTour({ action: 'restart' });
+          navigate('/');
+        },
+      },
       {
         type: 'divider' as const,
       },
@@ -332,6 +346,9 @@ function Footer() {
       redactAddresses,
       setRedactAddresses,
       impersonating,
+      tourEnabled, // plugged.host
+      updateTour, // plugged.host
+      suspended,
     ],
   );
 

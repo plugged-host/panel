@@ -33,6 +33,7 @@ pub mod placement; // plugged.host
 pub mod ratelimits;
 pub mod server;
 pub mod status; // plugged.host
+pub mod tour; // plugged.host
 pub mod user;
 pub mod webauthn;
 
@@ -394,6 +395,9 @@ pub struct AppSettings {
     // plugged.host: the automatic deployment pause
     #[schema(inline)]
     pub placement: placement::AppSettingsPlacement,
+    // plugged.host: the welcome tour
+    #[schema(inline)]
+    pub tour: tour::AppSettingsTour,
 
     #[serde(skip)]
     pub disabled_extensions: Vec<compact_str::CompactString>,
@@ -688,6 +692,8 @@ impl SettingsSerializeExt for AppSettings {
             .nest("games", &self.games) // plugged.host
             .await?
             .nest("placement", &self.placement) // plugged.host
+            .await?
+            .nest("tour", &self.tour) // plugged.host
             .await?;
 
         for (ext_identifier, ext_settings) in self.extensions.iter() {
@@ -980,6 +986,9 @@ impl SettingsDeserializeExt for AppSettingsDeserializer {
                 .await?,
             placement: deserializer
                 .nest("placement", &placement::AppSettingsPlacementDeserializer)
+                .await?,
+            tour: deserializer // plugged.host
+                .nest("tour", &tour::AppSettingsTourDeserializer)
                 .await?,
             disabled_extensions: deserializer
                 .take_raw_setting("disabled_extensions")

@@ -15,6 +15,7 @@ mod security_keys;
 mod sessions;
 mod settings;
 mod ssh_keys;
+mod tour; // plugged.host
 mod two_factor;
 
 mod get {
@@ -187,5 +188,6 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         .nest("/sessions", sessions::router(state))
         .nest("/settings", settings::router(state))
         .nest("/activity", activity::router(state))
+        .nest("/tour", tour::router(state)) // plugged.host
         .with_state(state.clone())
 }

@@ -1,6 +1,7 @@
 import {
   faAt,
   faBan,
+  faCircleQuestion, // plugged.host
   faDatabase,
   faEnvelopesBulk,
   faGamepad,
@@ -41,6 +42,7 @@ import RatelimitsContainer from './ratelimits/RatelimitsContainer.tsx';
 import ServerContainer from './server/ServerContainer.tsx';
 import StatusContainer from './status/StatusContainer.tsx';
 import StorageContainer from './storage/StorageContainer.tsx';
+import TourContainer from './tour/TourContainer.tsx'; // plugged.host
 import UserContainer from './user/UserContainer.tsx';
 import WebauthnContainer from './webauthn/WebauthnContainer.tsx';
 
@@ -168,6 +170,13 @@ export default function AdminSettings() {
               icon: faScaleBalanced,
               path: '/placement',
               element: <PlacementContainer />,
+            },
+            // plugged.host: the welcome tour
+            {
+              name: t('pages.admin.settings.tabs.tour.title', {}),
+              icon: faCircleQuestion,
+              path: '/tour',
+              element: <TourContainer />,
             },
           ]}
         />

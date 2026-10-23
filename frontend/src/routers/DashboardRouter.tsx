@@ -15,6 +15,7 @@ import { getAccessibleRoutePaths, to } from '@/lib/routes.ts';
 import CreateServer from '@/pages/dashboard/create/CreateServer.tsx'; // plugged.host
 import DashboardHomeAll from '@/pages/dashboard/home/DashboardHomeAll.tsx';
 import DashboardHomeGrouped from '@/pages/dashboard/home/DashboardHomeGrouped.tsx';
+import WelcomeTourPanel from '@/pages/dashboard/home/WelcomeTourPanel.tsx'; // plugged.host
 import { useStartOnGroupedServers } from '@/plugins/server/useStartOnGroupedServers.ts';
 import { useAuth } from '@/providers/AuthProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
@@ -156,7 +157,6 @@ export default function DashboardRouter({ isNormal }: { isNormal: boolean }) {
                 components={window.extensionContext.extensionRegistry.pages.dashboard.prependedComponents}
                 name='dashboard-prepended-component'
               />
-
               <Suspense fallback={<Spinner.Centered />}>
                 <Routes>
                   {startOnGroupedServers ? (
@@ -190,7 +190,7 @@ export default function DashboardRouter({ isNormal }: { isNormal: boolean }) {
                   />
                 </Routes>
               </Suspense>
-
+              <WelcomeTourPanel /> {/* plugged.host: on the server list */}
               <ExtensionSlot
                 components={window.extensionContext.extensionRegistry.pages.dashboard.appendedComponents}
                 name='dashboard-appended-component'

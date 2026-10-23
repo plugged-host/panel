@@ -91,6 +91,12 @@ mod get {
         transfer_enabled: bool,
     }
 
+    /// plugged.host: whether the welcome tour runs (docs/features/welcome-tour.md).
+    #[derive(ToSchema, Serialize)]
+    struct ResponseTour {
+        enabled: bool,
+    }
+
     #[derive(ToSchema, Serialize)]
     struct Response<'a> {
         time: chrono::DateTime<chrono::Utc>,
@@ -111,6 +117,8 @@ mod get {
         noprofit: ResponseNoprofit<'a>,
         #[schema(inline)]
         games: ResponseGames, // plugged.host
+        #[schema(inline)]
+        tour: ResponseTour, // plugged.host
     }
 
     #[utoipa::path(get, path = "/", responses(
@@ -204,6 +212,9 @@ mod get {
                 allow_resizing: settings.games.allow_resizing,
                 allow_deleting: settings.games.allow_deleting,
                 transfer_enabled: settings.games.transfer_enabled,
+            },
+            tour: ResponseTour {
+                enabled: settings.tour.enabled,
             },
         })
         .ok()

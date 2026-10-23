@@ -921,6 +921,85 @@
           }
         }
       },
+      "welcomeTour": {
+        "progress": "Step {step} of {total}",
+        "next": "Next",
+        "back": "Back",
+        "skip": "Skip Tour",
+        "notNow": "Not Now",
+        "finish": "Finish",
+        "openServer": "Show Me {name}",
+        "createServer": "Create My First Server",
+        "replay": "Replay Welcome Tour",
+        "panel": {
+          "welcome": {
+            "heading": "Welcome to {app}",
+            "body": "This is your game server panel: everything you run with us lives here. The tour lights up each part of it and says what it does. It takes about a minute."
+          },
+          "navigation": {
+            "heading": "The Sidebar",
+            "body": "Every page of your account is one click away here.",
+            "bullets": {
+              "servers": "Servers: your servers. You are on this page now.",
+              "account": "Account: your name, email, password and language.",
+              "keys": "API Keys and SSH Keys: for tools and SFTP clients that work with your servers.",
+              "activity": "Activity: everything done on your account, and when."
+            }
+          },
+          "account": {
+            "heading": "Your Account",
+            "body": "Your name opens the account menu: your account, signing out, and this tour if you want to see it again."
+          },
+          "create": {
+            "heading": "Create Server",
+            "body": "This makes a new server. Pick a game, a location and a size, and it is ready a minute later."
+          },
+          "servers": {
+            "heading": "Your Servers",
+            "body": "Every server you have is a card like this one, with whether it is running and what it uses right now. Click a card to open that server. Next, the tour opens {name} with you."
+          },
+          "empty": {
+            "heading": "Your Servers",
+            "body": "Your servers show up here, one card each, with whether they are running and what they use. You do not have one yet."
+          },
+          "createFirst": {
+            "heading": "Create Your First Server",
+            "body": "Start here: pick a game, a location and a size. The first time you open your new server, the tour shows you around inside it."
+          }
+        },
+        "server": {
+          "console": {
+            "heading": "The Console",
+            "body": "Your server's live output: everything it prints shows up here as it happens. Type a command in the line underneath and press Enter to run it."
+          },
+          "power": {
+            "heading": "Start, Restart, Stop",
+            "body": "The power buttons of this server. Stop lets the game save and shut down cleanly; if it hangs while stopping, Stop turns into Kill."
+          },
+          "details": {
+            "heading": "Address and Usage",
+            "body": "The address is what players type to join. Click it to copy it, then send it to your friends. Uptime, CPU, memory and disk are live."
+          },
+          "sidebar": {
+            "heading": "Everything About This Server",
+            "body": "While a server is open, the sidebar belongs to it.",
+            "bullets": {
+              "files": "Files: upload, edit and delete anything on the server.",
+              "backups": "Backups: take one before you change something, restore it if something breaks.",
+              "network": "Network: the ports your server listens on.",
+              "more": "Databases, Schedules, Subusers, Startup and Activity: the pages you need less often."
+            }
+          },
+          "settings": {
+            "heading": "Settings",
+            "body": "One page for everything about this server: rename it, give it more memory, change the software it runs, or reinstall it."
+          },
+          "home": {
+            "heading": "Back to Your Servers",
+            "body": "The logo takes you back to your server list. That was the tour: replay it any time from the menu under your name."
+          }
+        }
+      },
       "quickActions": {
         "trigger": "Quick actions...",
         "placeholder": "Search for actions and pages...",
@@ -2952,6 +3031,21 @@
                 },
                 "toast": {
                   "updated": "Placement settings updated."
+                }
+              }
+            },
+            "tour": {
+              "title": "Welcome Tour",
+              "page": {
+                "title": "Welcome Tour Settings",
+                "form": {
+                  "enabled": "Show the Welcome Tour",
+                  "enabledDescription": "Users who have not finished or skipped it see a short guide over the server list, then over the first console they open. Turning it off hides it for everyone at once.",
+                  "version": "Tour Version",
+                  "versionDescription": "Raise it to show the tour again to everyone who already saw or skipped it, for example after the panel changed."
+                },
+                "toast": {
+                  "updated": "Welcome tour settings updated."
                 }
               }
             }

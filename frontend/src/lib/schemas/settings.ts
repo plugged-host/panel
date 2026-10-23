@@ -115,4 +115,8 @@ export const publicSettingsSchema = z.object({
     allowDeleting: z.boolean(),
     transferEnabled: z.boolean(),
   }),
+  // plugged.host: the welcome tour runs
+  tour: z.object({
+    enabled: z.boolean(),
+  }),
 });

@@ -1365,8 +1365,6 @@ export const abuseFindingsTable = pgTable(
   ],
 );
 
-// plugged.host: moves of a server to another node, asked for by its owner or an admin's "Lighten
-// load" (shared/src/server_transfers.rs, docs/features/transfers.md)
 // plugged.host: decreases of an account's allowance its servers give back (docs/features/allowance-cuts.md)
 export const userAllowanceCutsTable = pgTable(
   'user_allowance_cuts',
@@ -1386,6 +1384,24 @@ export const userAllowanceCutsTable = pgTable(
   (cols) => [index('user_allowance_cuts_settled_user_uuid_idx').on(cols.settled, cols.user_uuid)],
 );
 
+// plugged.host: where each user is in the welcome tour (shared/src/welcome_tour.rs,
+// docs/features/welcome-tour.md)
+export const userWelcomeToursTable = pgTable('user_welcome_tours', {
+  user_uuid: uuid()
+    .references(() => usersTable.uuid, { onDelete: 'cascade' })
+    .primaryKey()
+    .notNull(),
+  version: integer().notNull(),
+  step: integer().default(1).notNull(),
+  server_step: integer().default(1).notNull(),
+  completed: timestamp(),
+  skipped: timestamp(),
+  server_done: timestamp(),
+  updated: timestamp().defaultNow().notNull(),
+});
+
+// plugged.host: moves of a server to another node, asked for by its owner or an admin's "Lighten
+// load" (shared/src/server_transfers.rs, docs/features/transfers.md)
 export const serverTransferRequestsTable = pgTable(
   'server_transfer_requests',
   {
