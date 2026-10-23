@@ -48,7 +48,8 @@ a variable.
 What is used is the sum of the servers the account owns, read from the primary database, so a server
 created a moment before is counted. A new server must fit what is left; a resize ([server-settings.md](server-settings.md))
 counts the old size, and shrinking always fits, so an account over its limit after its plan got
-smaller (or without a plan any more) can still make room. Create and resize hold a lock per account (`allowance::{user}` in the cache) for
+smaller (or without a plan any more) can still make room. When the limit goes down, the servers give
+back what is over by themselves ([allowance-cuts.md](allowance-cuts.md)). Create and resize hold a lock per account (`allowance::{user}` in the cache) for
 the check and the write, so two requests at once cannot both spend the same room.
 
 ## What happens on create

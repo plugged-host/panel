@@ -1367,6 +1367,25 @@ export const abuseFindingsTable = pgTable(
 
 // plugged.host: moves of a server to another node, asked for by its owner or an admin's "Lighten
 // load" (shared/src/server_transfers.rs, docs/features/transfers.md)
+// plugged.host: decreases of an account's allowance its servers give back (docs/features/allowance-cuts.md)
+export const userAllowanceCutsTable = pgTable(
+  'user_allowance_cuts',
+  {
+    uuid: uuid().default(sql`gen_random_uuid()`).primaryKey().notNull(),
+    user_uuid: uuid()
+      .references(() => usersTable.uuid, { onDelete: 'cascade' })
+      .notNull(),
+    reason: varchar({ length: 64 }).notNull(),
+    cpu: bigint({ mode: 'number' }).default(0).notNull(),
+    memory: bigint({ mode: 'number' }).default(0).notNull(),
+    disk: bigint({ mode: 'number' }).default(0).notNull(),
+    result: jsonb(),
+    created: timestamp().defaultNow().notNull(),
+    settled: timestamp(),
+  },
+  (cols) => [index('user_allowance_cuts_settled_user_uuid_idx').on(cols.settled, cols.user_uuid)],
+);
+
 export const serverTransferRequestsTable = pgTable(
   'server_transfer_requests',
   {

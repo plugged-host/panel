@@ -878,6 +878,7 @@ mod put {
         }
 
         // plugged.host: what players may create, the deployment pause
+        let allowance_before = settings.games.allowance();
         if let Some(games) = data.games
             && let Err(error) = games.apply(&mut settings.games)
         {
@@ -930,8 +931,23 @@ mod put {
             .ok();
         }
 
+        // plugged.host: a smaller allowance is given back by the servers over it
+        // (docs/features/allowance-cuts.md)
+        let allowance_decrease = (!settings.noprofit.connected()).then(|| {
+            shared::allowance_cuts::decrease(allowance_before, settings.games.allowance())
+        });
+
         let settings_json = settings.censored();
         settings.save().await?;
+
+        if let Some(decrease) = allowance_decrease {
+            shared::allowance_cuts::record_for_everyone(
+                &state.database,
+                decrease,
+                shared::allowance_cuts::REASON_SETTINGS,
+            )
+            .await?;
+        }
 
         activity_logger.log("settings:update", settings_json).await;
 

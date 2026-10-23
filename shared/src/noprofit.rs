@@ -450,14 +450,18 @@ impl Link {
         .await
     }
 
-    /// Links a user to an account, or refreshes the link, with the account's snapshot.
+    /// Links a user to an account, or refreshes the link, with the account's snapshot. A smaller
+    /// plan than before is written down for the servers to give back
+    /// ([`crate::allowance_cuts`]).
     pub async fn store(
         database: &crate::database::Database,
         user_uuid: uuid::Uuid,
         snapshot: &Snapshot,
     ) -> Result<(), sqlx::Error> {
-        sqlx::query(
-            "INSERT INTO user_noprofit_accounts
+        // the CTE reads the row as it was before this statement changes it
+        let old_plan: Option<serde_json::Value> = sqlx::query_scalar(
+            "WITH old AS (SELECT plan FROM user_noprofit_accounts WHERE user_uuid = $1)
+            INSERT INTO user_noprofit_accounts
                 (user_uuid, account_id, email, username, is_admin, avatar, credits, plan, discord, deleted, synced)
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NULL, NOW())
             ON CONFLICT (user_uuid) DO UPDATE SET
@@ -470,7 +474,8 @@ impl Link {
                 plan = EXCLUDED.plan,
                 discord = EXCLUDED.discord,
                 deleted = NULL,
-                synced = NOW()",
+                synced = NOW()
+            RETURNING (SELECT plan FROM old)",
         )
         .bind(user_uuid)
         .bind(snapshot.account_id)
@@ -481,8 +486,22 @@ impl Link {
         .bind(snapshot.credits)
         .bind(&snapshot.plan)
         .bind(&snapshot.discord)
-        .execute(database.write())
+        .fetch_one(database.write())
         .await?;
+
+        if let (Some(old), Some(new)) = (&old_plan, &snapshot.plan) {
+            let decrease = crate::allowance_cuts::decrease(
+                crate::allowance::Resources::from_plan(old),
+                crate::allowance::Resources::from_plan(new),
+            );
+            crate::allowance_cuts::record(
+                database,
+                user_uuid,
+                decrease,
+                crate::allowance_cuts::REASON_PLAN,
+            )
+            .await?;
+        }
 
         Ok(())
     }

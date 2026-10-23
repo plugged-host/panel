@@ -2905,7 +2905,7 @@
                   "limitSchedules": "Zeitpläne",
                   "allowance": "Kontingent pro Konto",
                   "allowanceCpu": "CPU (%)",
-                  "allowanceDescription": "Was alle Server eines Kontos zusammen nutzen dürfen. 0 begrenzt diese Ressource nicht.",
+                  "allowanceDescription": "Was alle Server eines Kontos zusammen nutzen dürfen. 0 begrenzt diese Ressource nicht. Eine Senkung verkleinert die Server der Konten, die danach darüber liegen, gleichmäßig.",
                   "allowanceNoprofit": "noprofit.space ist verbunden: Jedes Konto bekommt sein Paket von dort, diese Werte werden nicht genutzt.",
                   "catalog": "Spiele"
                 },

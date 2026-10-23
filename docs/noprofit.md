@@ -56,7 +56,8 @@ admins who have no panel password, since everyone noprofit.space created has non
   Turned off again, everything is as before.
 - **Account sync** (with the API secret): every minute (`sync_noprofit_accounts`), the panel pulls
   the snapshots of its linked accounts and updates admin flag, email, name, avatar, plan, credits
-  and Discord. A user whose account noprofit.space no longer has is suspended.
+  and Discord. A user whose account noprofit.space no longer has is suspended. A smaller plan
+  shrinks the account's servers that are then over it ([features/allowance-cuts.md](features/allowance-cuts.md)).
 - **SFTP**: users made by noprofit.space have no panel password, so their SFTP password logins are
   checked by noprofit.space (the account's password; 10 wrong guesses per account and minute,
   shared with every panel). SSH keys work as usual.

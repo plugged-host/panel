@@ -125,6 +125,15 @@ impl AppSettingsGames {
     pub fn game(&self, egg_uuid: uuid::Uuid) -> Option<&Game> {
         self.catalog.iter().find(|game| game.egg_uuid == egg_uuid)
     }
+
+    /// The allowance of every account without noprofit.space.
+    pub fn allowance(&self) -> crate::allowance::Resources {
+        crate::allowance::Resources::new(
+            self.allowance_cpu as i64,
+            self.allowance_memory,
+            self.allowance_disk,
+        )
+    }
 }
 
 /// The games tab of Admin › Settings: every field optional, `null` leaves it alone.

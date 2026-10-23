@@ -2841,7 +2841,7 @@ const baseTranslations = defineTranslations({
                   allowance: 'Allowance per Account',
                   allowanceCpu: 'CPU (%)',
                   allowanceDescription:
-                    'What all servers of an account may use together. 0 puts no limit on that resource.',
+                    'What all servers of an account may use together. 0 puts no limit on that resource. Lowering it shrinks the servers of accounts that are then over it, evenly.',
                   allowanceNoprofit:
                     'noprofit.space is connected: every account gets its plan from there, these values are not used.',
                   catalog: 'Games',

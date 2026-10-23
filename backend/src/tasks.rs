@@ -924,6 +924,14 @@ pub async fn define_background_tasks(
             async |state| shared::server_transfers::settle(&state).await,
         )
         .await;
+    // plugged.host: servers giving back a lowered allowance (shared::allowance_cuts)
+    background_task_builder
+        .add_cron_task(
+            "settle_allowance_cuts",
+            croner::Cron::from_str("45 * * * * *").unwrap(),
+            async |state| shared::allowance_cuts::settle(&state).await,
+        )
+        .await;
     background_task_builder
         .add_cron_task(
             "prune_node_telemetry",

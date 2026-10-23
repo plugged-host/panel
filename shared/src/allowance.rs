@@ -171,11 +171,7 @@ pub async fn for_user(
 
         (
             settings.noprofit.connected(),
-            Resources::new(
-                settings.games.allowance_cpu as i64,
-                settings.games.allowance_memory,
-                settings.games.allowance_disk,
-            ),
+            settings.games.allowance(),
             settings.games.max_servers as i64,
         )
     };
