@@ -74,6 +74,9 @@ mod post {
 
         Server::invalidate_cached(&state.database, server.uuid).await;
 
+        // plugged.host: the EULA a player accepted, before Wings starts the server
+        shared::server_creation::after_install(&state, &server, data.successful).await;
+
         let settings = state.settings.get().await?;
         state
             .mail

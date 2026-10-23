@@ -370,6 +370,46 @@ export const adminSettingsAbuseSchema = z.object({
   deleteAfterHours: z.number().int().min(0).max(8760),
 });
 
+// plugged.host: what players may create (shared/src/settings/games.rs, docs/features/create-server.md)
+export const adminSettingsGameVariantSchema = z.object({
+  value: z.string().min(1).max(64),
+  label: z.string().min(1).max(64),
+  startup: z.preprocess(nullableString, z.string().max(8192).nullable()),
+  image: z.preprocess(nullableString, z.string().max(255).nullable()),
+});
+
+export const adminSettingsGameSchema = z.object({
+  eggUuid: z.uuid(),
+  name: z.preprocess(nullableString, z.string().max(64).nullable()),
+  description: z.preprocess(nullableString, z.string().max(255).nullable()),
+  variable: z.preprocess(nullableString, z.string().max(255).nullable()),
+  variants: z.array(adminSettingsGameVariantSchema).max(32),
+});
+
+export const adminSettingsGamesSchema = z.object({
+  createEnabled: z.boolean(),
+  catalog: z.array(adminSettingsGameSchema).max(100),
+  limitAllocations: z.number().int().min(1).max(100),
+  limitDatabases: z.number().int().min(0).max(100),
+  limitBackups: z.number().int().min(0).max(100),
+  limitSchedules: z.number().int().min(0).max(100),
+  allowDeleting: z.boolean(),
+  maxServers: z.number().int().min(0).max(1000),
+  allowanceCpu: z.number().int().min(0),
+  allowanceMemory: z.number().int().min(0),
+  allowanceDisk: z.number().int().min(0),
+});
+
+// plugged.host: the automatic deployment pause (shared/src/settings/placement.rs, docs/features/placement.md)
+export const adminSettingsPlacementSchema = z.object({
+  pauseEnabled: z.boolean(),
+  pausePercent: z.number().int().min(10).max(100),
+  smallOffset: z.number().int().min(0).max(50),
+  smallMemoryGb: z.number().int().min(0).max(4096),
+  smallThreads: z.number().int().min(0).max(1024),
+  unreachableAfter: z.number().int().min(1).max(60),
+});
+
 export const twoFactorRequirement = z.enum(['admins', 'all_users', 'none']);
 
 export const adminSettingsSchema = z.object({
@@ -389,4 +429,6 @@ export const adminSettingsSchema = z.object({
   noprofit: adminSettingsNoprofitSchema, // plugged.host
   status: adminSettingsStatusSchema, // plugged.host
   abuse: adminSettingsAbuseSchema, // plugged.host
+  games: adminSettingsGamesSchema, // plugged.host
+  placement: adminSettingsPlacementSchema, // plugged.host
 });

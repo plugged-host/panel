@@ -3,10 +3,12 @@ import {
   faBan,
   faDatabase,
   faEnvelopesBulk,
+  faGamepad,
   faHandshake,
   faHeartPulse,
   faLayerGroup,
   faRobot,
+  faScaleBalanced,
   faServer,
   faShareNodes,
   faShieldHalved,
@@ -31,8 +33,10 @@ import ActivityContainer from './activity/ActivityContainer.tsx';
 import ApplicationContainer from './application/ApplicationContainer.tsx';
 import CaptchaContainer from './captcha/CaptchaContainer.tsx';
 import EmailContainer from './email/EmailContainer.tsx';
+import GamesContainer from './games/GamesContainer.tsx'; // plugged.host
 import MetadataContainer from './metadata/MetadataContainer.tsx';
 import NoprofitContainer from './noprofit/NoprofitContainer.tsx';
+import PlacementContainer from './placement/PlacementContainer.tsx'; // plugged.host
 import RatelimitsContainer from './ratelimits/RatelimitsContainer.tsx';
 import ServerContainer from './server/ServerContainer.tsx';
 import StatusContainer from './status/StatusContainer.tsx';
@@ -151,6 +155,19 @@ export default function AdminSettings() {
               icon: faShieldHalved,
               path: '/abuse',
               element: <AbuseContainer />,
+            },
+            // plugged.host: what players may create, the deployment pause
+            {
+              name: t('pages.admin.settings.tabs.games.title', {}),
+              icon: faGamepad,
+              path: '/games',
+              element: <GamesContainer />,
+            },
+            {
+              name: t('pages.admin.settings.tabs.placement.title', {}),
+              icon: faScaleBalanced,
+              path: '/placement',
+              element: <PlacementContainer />,
             },
           ]}
         />

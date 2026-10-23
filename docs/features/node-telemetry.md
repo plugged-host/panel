@@ -45,7 +45,7 @@ Both tables go when their node is deleted.
 | `nodes.role` | Node form | `game` takes players' servers; `internal` is for admins only (tests, builds, a node being set up) and is never picked for players |
 | `nodes.tags` | Node form | Short labels (`nvme`, `ddos-protected`), stored lower case, sorted, without duplicates; at most 32 of 1 to 64 letters, digits, `-`, `_`, `.` |
 | `nodes.srv_target` | Node form | The host name server subdomains' SRV records point to; empty uses the node's address |
-| `nodes.deployment_paused` | Node form | A paused node takes no new servers. Unlike the native "deployment enabled", the panel sets and clears it itself from `pressure` once placement is ported (Phase 2); an admin can set it by hand |
+| `nodes.deployment_paused` | Node form | A paused node takes no new servers. Unlike the native "deployment enabled", the panel sets and clears it itself from the telemetry, with why in `nodes.deployment_paused_reason` ([placement.md](placement.md)); a node an admin paused by hand stays paused |
 | `locations.tier` | Location form | The plan tier a player needs to put servers there (`plus`, `premium`); empty for every player |
 | `locations.sort` | Location form | Order in the location picker, lowest first |
 | `locations.public` | Location form | Players can pick it; admins can always use every location |
@@ -71,7 +71,8 @@ changes. Both stay editable.
 The node's **Statistics** tab shows it under the live graphs: the state now (answering, Wings not
 listening, unreachable), response time, pressure, load, running servers, and charts of CPU, memory,
 disk, response time and running servers for 1 hour, 24 hours or 7 days. It refreshes every minute.
-The node's **Overview** shows the role, the tags, the SRV target and a "Deployment Paused" badge.
+The node's **Overview** shows the role, the tags, the SRV target and a "Deployment Paused" badge,
+with the reason when the panel paused it.
 
 ## Without noprofit.space
 

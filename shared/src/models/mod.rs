@@ -47,6 +47,7 @@ pub mod node_mount;
 pub mod node_tunnel;
 pub mod oauth_provider;
 pub mod oauth_provider_mapping;
+pub mod plan; // plugged.host
 pub mod role;
 pub mod server;
 pub mod server_activity;

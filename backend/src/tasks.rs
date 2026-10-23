@@ -909,7 +909,11 @@ pub async fn define_background_tasks(
         .add_cron_task(
             "sample_nodes",
             croner::Cron::from_str("30 * * * * *").unwrap(),
-            async |state| shared::node_telemetry::sample_all(&state).await,
+            async |state| {
+                shared::node_telemetry::sample_all(&state).await?;
+                // the deployment pause goes by the samples just taken
+                shared::models::node::placement::pause_overloaded(&state).await
+            },
         )
         .await;
     background_task_builder

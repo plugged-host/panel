@@ -12,6 +12,7 @@ import QuickActionsTrigger from '@/elements/quickActions/QuickActionsTrigger.tsx
 import { isAdmin } from '@/lib/auth/permissions.ts';
 import { resolveString } from '@/lib/lazy.ts';
 import { getAccessibleRoutePaths, to } from '@/lib/routes.ts';
+import CreateServer from '@/pages/dashboard/create/CreateServer.tsx'; // plugged.host
 import DashboardHomeAll from '@/pages/dashboard/home/DashboardHomeAll.tsx';
 import DashboardHomeGrouped from '@/pages/dashboard/home/DashboardHomeGrouped.tsx';
 import { useStartOnGroupedServers } from '@/plugins/server/useStartOnGroupedServers.ts';
@@ -169,6 +170,7 @@ export default function DashboardRouter({ isNormal }: { isNormal: boolean }) {
                       <Route path='/grouped' element={<DashboardHomeGrouped />} />
                     </>
                   )}
+                  <Route path='/create' element={<CreateServer />} /> {/* plugged.host */}
                   {allAccountRoutes
                     .filter((route) => !route.filter || route.filter())
                     .filter((route) => !accessibleRoutePaths || accessibleRoutePaths.has(route.path))

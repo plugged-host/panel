@@ -393,6 +393,14 @@ mod put {
         #[schema(inline)]
         #[garde(dive)]
         abuse: Option<PayloadAbuse>,
+        // plugged.host
+        #[schema(inline)]
+        #[garde(dive)]
+        games: Option<shared::settings::games::PayloadGames>,
+        // plugged.host
+        #[schema(inline)]
+        #[garde(dive)]
+        placement: Option<shared::settings::placement::PayloadPlacement>,
     }
 
     #[derive(ToSchema, Serialize)]
@@ -867,6 +875,18 @@ mod put {
             if let Some(delete_after_hours) = abuse.delete_after_hours {
                 settings.abuse.delete_after_hours = delete_after_hours;
             }
+        }
+
+        // plugged.host: what players may create, the deployment pause
+        if let Some(games) = data.games
+            && let Err(error) = games.apply(&mut settings.games)
+        {
+            return ApiResponse::error(&error)
+                .with_status(StatusCode::BAD_REQUEST)
+                .ok();
+        }
+        if let Some(placement) = data.placement {
+            placement.apply(&mut settings.placement);
         }
 
         if !settings.app.password_login_enabled {

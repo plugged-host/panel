@@ -36,6 +36,8 @@ pub enum NodeDeploymentBlocker {
     DeploymentDisabled,
     /// Deployment is enabled somewhere, but every such node is under maintenance.
     MaintenanceEnabled,
+    /// plugged.host: every node left is paused while it is overloaded.
+    DeploymentPaused,
     /// No node has enough unallocated memory.
     InsufficientMemory,
     /// No node has enough unallocated disk.
@@ -56,6 +58,10 @@ impl NodeDeploymentBlocker {
             }
             Self::MaintenanceEnabled => {
                 "every deployable node in the selected location(s) is under maintenance"
+            }
+            // plugged.host
+            Self::DeploymentPaused => {
+                "every node in the selected location(s) is too busy for new servers right now"
             }
             Self::InsufficientMemory => {
                 "no node in the selected location(s) has enough unallocated memory"
@@ -123,6 +129,8 @@ pub struct Node {
     pub tags: Vec<compact_str::CompactString>,
     pub srv_target: Option<compact_str::CompactString>,
     pub deployment_paused: bool,
+    /// Why the panel paused it (`memory`, `cpu`, `unreachable`); `None` when an admin did.
+    pub deployment_paused_reason: Option<compact_str::CompactString>,
 
     pub created: chrono::NaiveDateTime,
 
@@ -201,6 +209,10 @@ impl BaseModel for Node {
                 compact_str::format_compact!("{prefix}deployment_paused"),
             ),
             (
+                "nodes.deployment_paused_reason",
+                compact_str::format_compact!("{prefix}deployment_paused_reason"),
+            ),
+            (
                 "nodes.created",
                 compact_str::format_compact!("{prefix}created"),
             ),
@@ -256,6 +268,9 @@ impl BaseModel for Node {
             srv_target: row.try_get(compact_str::format_compact!("{prefix}srv_target").as_str())?,
             deployment_paused: row
                 .try_get(compact_str::format_compact!("{prefix}deployment_paused").as_str())?,
+            deployment_paused_reason: row.try_get(
+                compact_str::format_compact!("{prefix}deployment_paused_reason").as_str(),
+            )?,
             created: row.try_get(compact_str::format_compact!("{prefix}created").as_str())?,
             extension_data: Self::map_extensions(prefix, row)?,
         })
@@ -412,13 +427,16 @@ impl Node {
                 FROM servers
                 GROUP BY node_uuid
             )
-            SELECT {}, COALESCE(u.used_memory, 0) AS used_memory, COALESCE(u.used_disk, 0) AS used_disk
+            SELECT {}, COALESCE(u.used_memory, 0) AS used_memory, COALESCE(u.used_disk, 0) AS used_disk,
+                {} AS pressure
             FROM nodes
             JOIN locations ON locations.uuid = nodes.location_uuid
             LEFT JOIN server_usage u ON nodes.uuid = u.node_uuid
+            LEFT JOIN node_telemetry telemetry ON telemetry.node_uuid = nodes.uuid
             WHERE nodes.location_uuid = ANY($1)
             AND nodes.deployment_enabled
             AND NOT nodes.maintenance_enabled
+            AND NOT nodes.deployment_paused
             AND (
                 $4 OR (
                     (nodes.memory = 0 OR COALESCE(u.used_memory, 0) + $2 <= nodes.memory)
@@ -432,10 +450,13 @@ impl Node {
                 ),
                 GREATEST(
                     CASE WHEN nodes.memory = 0 THEN 0 ELSE (COALESCE(u.used_memory, 0) + $2)::FLOAT / nodes.memory END,
-                    CASE WHEN nodes.disk = 0 THEN 0 ELSE (COALESCE(u.used_disk, 0) + $3)::FLOAT / nodes.disk END
+                    CASE WHEN nodes.disk = 0 THEN 0 ELSE (COALESCE(u.used_disk, 0) + $3)::FLOAT / nodes.disk END,
+                    COALESCE({}, 0)::FLOAT / 100.0
                 )
             "#,
             Self::columns_sql(None),
+            crate::node_telemetry::PRESSURE_SQL, // plugged.host
+            crate::node_telemetry::PRESSURE_SQL, // plugged.host
         )))
         .bind(location_uuids)
         .bind(limits.memory)
@@ -452,6 +473,7 @@ impl Node {
                     Self::map(None, &row)?,
                     row.try_get::<i64, _>("used_memory")?,
                     row.try_get::<i64, _>("used_disk")?,
+                    row.try_get::<Option<f32>, _>("pressure")?, // plugged.host
                 ))
             })
             .collect::<Result<Vec<_>, crate::database::DatabaseError>>()?;
@@ -461,7 +483,7 @@ impl Node {
 
             let mut keyed = nodes
                 .into_iter()
-                .map(|(node, used_memory, used_disk)| {
+                .map(|(node, used_memory, used_disk, pressure)| {
                     let memory_free = if node.memory == 0 {
                         1.0
                     } else {
@@ -473,7 +495,11 @@ impl Node {
                         1.0 - (used_disk + limits.disk) as f64 / node.disk as f64
                     };
 
-                    let free_ratio = f64::min(memory_free, disk_free).clamp(0.0001, 1.0);
+                    // plugged.host: a busy node is as full as its real load says
+                    let load_free = 1.0 - pressure.map_or(0.0, |p| p as f64 / 100.0);
+                    let free_ratio = f64::min(memory_free, disk_free)
+                        .min(load_free)
+                        .clamp(0.0001, 1.0);
 
                     let weight = free_ratio.powf(1.0 / randomness);
                     let key = rng.random::<f64>().powf(1.0 / weight);
@@ -487,7 +513,7 @@ impl Node {
             return Ok(keyed.into_iter().map(|(_, node)| node).collect());
         }
 
-        Ok(nodes.into_iter().map(|(node, _, _)| node).collect())
+        Ok(nodes.into_iter().map(|(node, _, _, _)| node).collect())
     }
 
     pub async fn by_name(
@@ -550,16 +576,24 @@ impl Node {
                 COUNT(*) FILTER (
                     WHERE nodes.deployment_enabled
                     AND NOT nodes.maintenance_enabled
+                    AND NOT nodes.deployment_paused
+                ) AS unpaused,
+                COUNT(*) FILTER (
+                    WHERE nodes.deployment_enabled
+                    AND NOT nodes.maintenance_enabled
+                    AND NOT nodes.deployment_paused
                     AND ($4 OR nodes.memory = 0 OR COALESCE(u.used_memory, 0) + $2 <= nodes.memory)
                 ) AS memory_ok,
                 COUNT(*) FILTER (
                     WHERE nodes.deployment_enabled
                     AND NOT nodes.maintenance_enabled
+                    AND NOT nodes.deployment_paused
                     AND ($4 OR nodes.disk = 0 OR COALESCE(u.used_disk, 0) + $3 <= nodes.disk)
                 ) AS disk_ok,
                 COUNT(*) FILTER (
                     WHERE nodes.deployment_enabled
                     AND NOT nodes.maintenance_enabled
+                    AND NOT nodes.deployment_paused
                     AND ($4 OR nodes.memory = 0 OR COALESCE(u.used_memory, 0) + $2 <= nodes.memory)
                     AND ($4 OR nodes.disk = 0 OR COALESCE(u.used_disk, 0) + $3 <= nodes.disk)
                 ) AS resource_ok
@@ -579,6 +613,7 @@ impl Node {
         let total: i64 = row.try_get("total")?;
         let deployable: i64 = row.try_get("deployable")?;
         let available: i64 = row.try_get("available")?;
+        let unpaused: i64 = row.try_get("unpaused")?; // plugged.host
         let memory_ok: i64 = row.try_get("memory_ok")?;
         let disk_ok: i64 = row.try_get("disk_ok")?;
         let resource_ok: i64 = row.try_get("resource_ok")?;
@@ -589,6 +624,8 @@ impl Node {
             NodeDeploymentBlocker::DeploymentDisabled
         } else if available == 0 {
             NodeDeploymentBlocker::MaintenanceEnabled
+        } else if unpaused == 0 {
+            NodeDeploymentBlocker::DeploymentPaused // plugged.host
         } else if resource_ok > 0 {
             return Ok(None);
         } else if memory_ok == 0 && disk_ok == 0 {
@@ -1191,6 +1228,7 @@ impl IntoAdminApiObject for Node {
                 tags: self.tags,                           // plugged.host
                 srv_target: self.srv_target,               // plugged.host
                 deployment_paused: self.deployment_paused, // plugged.host
+                deployment_paused_reason: self.deployment_paused_reason, // plugged.host
                 created: self.created.and_utc(),
             },
             api_object,
@@ -1531,6 +1569,13 @@ impl UpdatableModel for Node {
                 options.srv_target.as_ref().map(|t| t.as_ref()),
             ) // plugged.host
             .set("deployment_paused", options.deployment_paused) // plugged.host
+            .set(
+                "deployment_paused_reason",
+                options
+                    .deployment_paused
+                    .filter(|paused| *paused != self.deployment_paused)
+                    .map(|_| None::<&str>),
+            ) // plugged.host: a pause or reopening an admin changes is theirs
             .where_eq("uuid", self.uuid);
 
         query_builder.execute(&mut **transaction).await?;
@@ -1586,8 +1631,11 @@ impl UpdatableModel for Node {
         if let Some(srv_target) = options.srv_target {
             self.srv_target = srv_target;
         }
-        if let Some(deployment_paused) = options.deployment_paused {
+        if let Some(deployment_paused) = options.deployment_paused
+            && deployment_paused != self.deployment_paused
+        {
             self.deployment_paused = deployment_paused;
+            self.deployment_paused_reason = None;
         }
 
         self.run_after_update_handlers(state, transaction).await?;
@@ -1791,6 +1839,8 @@ pub struct AdminApiNode {
     pub srv_target: Option<compact_str::CompactString>,
     /// Set while the node is overloaded: no new servers go to it.
     pub deployment_paused: bool,
+    /// Why the panel paused it (`memory`, `cpu`, `unreachable`); `None` when an admin did.
+    pub deployment_paused_reason: Option<compact_str::CompactString>,
 
     pub created: chrono::DateTime<chrono::Utc>,
 }

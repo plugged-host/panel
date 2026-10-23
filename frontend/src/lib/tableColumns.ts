@@ -204,6 +204,20 @@ export const locationTableColumns = (): string[] => {
   ];
 };
 
+// plugged.host: Admin › Plans
+export const planTableColumns = (): string[] => {
+  const { t } = getTranslations();
+  return [
+    t('common.table.columns.id', {}),
+    t('common.table.columns.name', {}),
+    t('pages.admin.plans.table.cpu', {}),
+    t('common.form.memory', {}),
+    t('common.form.disk', {}),
+    t('pages.admin.plans.table.public', {}),
+    t('common.table.columns.created', {}),
+  ];
+};
+
 export const eggRepositoryTableColumns = (): string[] => {
   const { t } = getTranslations();
   return [

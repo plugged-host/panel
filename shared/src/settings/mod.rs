@@ -26,8 +26,10 @@ use utoipa::ToSchema;
 pub mod abuse; // plugged.host
 pub mod activity;
 pub mod app;
+pub mod games; // plugged.host
 pub mod metadata;
 pub mod noprofit; // plugged.host
+pub mod placement; // plugged.host
 pub mod ratelimits;
 pub mod server;
 pub mod status; // plugged.host
@@ -386,6 +388,12 @@ pub struct AppSettings {
     // plugged.host: abuse protection
     #[schema(inline)]
     pub abuse: abuse::AppSettingsAbuse,
+    // plugged.host: what players may create
+    #[schema(inline)]
+    pub games: games::AppSettingsGames,
+    // plugged.host: the automatic deployment pause
+    #[schema(inline)]
+    pub placement: placement::AppSettingsPlacement,
 
     #[serde(skip)]
     pub disabled_extensions: Vec<compact_str::CompactString>,
@@ -676,6 +684,10 @@ impl SettingsSerializeExt for AppSettings {
             .nest("status", &self.status) // plugged.host
             .await?
             .nest("abuse", &self.abuse) // plugged.host
+            .await?
+            .nest("games", &self.games) // plugged.host
+            .await?
+            .nest("placement", &self.placement) // plugged.host
             .await?;
 
         for (ext_identifier, ext_settings) in self.extensions.iter() {
@@ -962,6 +974,12 @@ impl SettingsDeserializeExt for AppSettingsDeserializer {
                 .await?,
             abuse: deserializer
                 .nest("abuse", &abuse::AppSettingsAbuseDeserializer)
+                .await?,
+            games: deserializer
+                .nest("games", &games::AppSettingsGamesDeserializer)
+                .await?,
+            placement: deserializer
+                .nest("placement", &placement::AppSettingsPlacementDeserializer)
                 .await?,
             disabled_extensions: deserializer
                 .take_raw_setting("disabled_extensions")

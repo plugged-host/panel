@@ -118,6 +118,11 @@ pub(crate) static BASE_USER_PERMISSIONS: LazyLock<IndexMap<&'static str, Permiss
                         ("read", "Allows viewing servers and server groups."),
                         ("update", "Allows modifying server groups."),
                         ("delete", "Allows deleting server groups."),
+                        // plugged.host: players creating their own servers
+                        (
+                            "deploy",
+                            "Allows creating new servers within the account's allowance.",
+                        ),
                     ]),
                 },
             ),
@@ -385,6 +390,19 @@ pub(crate) static BASE_ADMIN_PERMISSIONS: LazyLock<IndexMap<&'static str, Permis
                             "database-agent-hosts",
                             "Allows viewing and managing a location's database agent hosts.",
                         ),
+                    ]),
+                },
+            ),
+            // plugged.host: the resource presets players create servers with
+            (
+                "plans",
+                PermissionGroup {
+                    description: "Permissions that control the ability to manage the plans players create servers with.",
+                    permissions: IndexMap::from([
+                        ("create", "Allows creating new plans."),
+                        ("read", "Allows viewing plans."),
+                        ("update", "Allows modifying plans."),
+                        ("delete", "Allows deleting plans."),
                     ]),
                 },
             ),

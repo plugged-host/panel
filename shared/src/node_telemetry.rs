@@ -19,6 +19,12 @@ use utoipa::ToSchema;
 pub const RETENTION_DAYS: i32 = 7;
 /// Minutes `pressure` is averaged over.
 pub const PRESSURE_MINUTES: i32 = 5;
+/// A node's `pressure` for placement, in a query that joins `node_telemetry` as `telemetry`:
+/// 100 while it does not answer, unknown (NULL) without a sample from the last 5 minutes.
+pub const PRESSURE_SQL: &str = "(CASE WHEN telemetry.node_uuid IS NULL \
+    OR telemetry.sampled < NOW() - INTERVAL '5 minutes' THEN NULL \
+    WHEN NOT telemetry.reachable THEN 100 ELSE telemetry.pressure END)::REAL";
+
 /// Nodes probed at once.
 const CONCURRENCY: usize = 16;
 /// How long a node has to answer.

@@ -26,6 +26,7 @@ import { useServerListShowOthers } from '@/plugins/server/useServerListShowOther
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useUserStore } from '@/stores/user.ts';
+import CreateServerButton from '../create/CreateServerButton.tsx'; // plugged.host
 import BulkActionBar from './BulkActionBar.tsx';
 import DashboardHomeTitle from './DashboardHomeTitle.tsx';
 import ServerItem from './ServerItem.tsx';
@@ -123,6 +124,7 @@ export default function DashboardHomeAll() {
   return (
     <AccountContentContainer
       title={t('pages.account.home.title', {})}
+      contentRight={<CreateServerButton />} // plugged.host
       registry={window.extensionContext.extensionRegistry.pages.dashboard.home.containerAll}
     >
       <DashboardHomeTitle />

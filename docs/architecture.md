@@ -77,7 +77,7 @@ to copy), never gathered in a folder of their own.
 | Model | `shared/src/models/<name>.rs` (or `<name>/mod.rs`), registered in `shared/src/models/mod.rs`, with its event handlers |
 | Shared logic | A file at `shared/src/` root, like `captcha.rs` or `mail.rs` |
 | Settings section | `shared/src/settings/<section>.rs` + its field and (de)serializer in `settings/mod.rs` |
-| Admin settings API | `backend/src/routes/api/admin/settings.rs` (one payload struct per section) |
+| Admin settings API | `backend/src/routes/api/admin/settings.rs` (one payload struct per section, or the section file's own with `apply()`) |
 | Public settings | `backend/src/routes/api/settings.rs` (what the frontend may read before sign-in) |
 | Routes | The existing tree: `client/servers/_server_/<feature>/`, `client/account/<feature>/`, `admin/<feature>/`, `admin/nodes/_node_/<feature>/` … mounted by the parent's `mod.rs` |
 | Background task | `backend/src/tasks.rs`, `define_background_tasks`, next to upstream's |

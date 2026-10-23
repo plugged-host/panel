@@ -1515,6 +1515,32 @@
         }
       },
       "account": {
+        "createServer": {
+          "title": "Server erstellen",
+          "button": "Server erstellen",
+          "allowance": "Übrig in deinem Konto: {cpu} CPU, {memory} Arbeitsspeicher, {disk} Speicher.",
+          "disabled": "Das Erstellen von Servern ist ausgeschaltet.",
+          "noPlan": "Dein Konto hat kein Paket, um Server zu erstellen.",
+          "nothingOffered": "Noch gibt es nichts zu erstellen: Es werden keine Spiele, Standorte oder Pakete angeboten.",
+          "tooMany": "Du hast {max} Server, so viele wie dein Konto erlaubt.",
+          "game": "Spiel",
+          "software": "Software",
+          "location": "Standort",
+          "locationLocked": "Braucht {tier}",
+          "locationFull": "Gerade voll",
+          "latency": "{ms} ms",
+          "plan": "Paket",
+          "planResources": "{cpu} % CPU, {memory} Arbeitsspeicher, {disk} Speicher",
+          "planTooBig": "Mehr als du übrig hast",
+          "details": "Server",
+          "namePlaceholder": "Mein Server",
+          "eula": "Ich akzeptiere die",
+          "eulaLink": "Minecraft-EULA",
+          "submit": "Server erstellen",
+          "toast": {
+            "created": "Server erstellt. Er wird gerade installiert."
+          }
+        },
         "home": {
           "title": "Servers",
           "tooltip": {
@@ -2816,6 +2842,74 @@
                   "webhookRemoved": "Alarm-Webhook entfernt."
                 }
               }
+            },
+            "games": {
+              "title": "Spiele",
+              "page": {
+                "title": "Spieleinstellungen",
+                "form": {
+                  "createEnabled": "Spieler erstellen Server",
+                  "createEnabledDescription": "Spieler können selbst Server aus den angebotenen Spielen, Standorten und Paketen erstellen, im Rahmen ihres Kontingents.",
+                  "allowDeleting": "Spieler löschen Server",
+                  "allowDeletingDescription": "Spieler können ihre eigenen Server in den Servereinstellungen löschen.",
+                  "maxServers": "Server pro Konto",
+                  "maxServersDescription": "Wie viele Server ein Konto haben darf. 0 ist unbegrenzt.",
+                  "limits": "Jeder neue Server",
+                  "limitAllocations": "Zuweisungen",
+                  "limitDatabases": "Datenbanken",
+                  "limitBackups": "Backups",
+                  "limitSchedules": "Zeitpläne",
+                  "allowance": "Kontingent pro Konto",
+                  "allowanceCpu": "CPU (%)",
+                  "allowanceDescription": "Was alle Server eines Kontos zusammen nutzen dürfen. 0 begrenzt diese Ressource nicht.",
+                  "allowanceNoprofit": "noprofit.space ist verbunden: Jedes Konto bekommt sein Paket von dort, diese Werte werden nicht genutzt.",
+                  "catalog": "Spiele"
+                },
+                "catalog": {
+                  "description": "Die Spiele, die Spieler wählen können, in dieser Reihenfolge. Ohne Software-Variable oder Varianten läuft ein Server mit dem, was sein Egg einrichtet. Die Ports kommen aus den Egg-Konfigurationen (Admin › Egg-Konfigurationen); ohne eine wird eine beliebige freie Zuweisung der Node genutzt.",
+                  "egg": "Egg",
+                  "eggPlaceholder": "Egg wählen",
+                  "removeGame": "Spiel entfernen",
+                  "name": "Name",
+                  "namePlaceholder": "Der Name des Eggs",
+                  "variable": "Software-Variable",
+                  "variableDescription": "Die Egg-Variable, in die die gewählte Software geschrieben wird.",
+                  "variants": "Software",
+                  "noVariants": "Keine Auswahl: Das Egg entscheidet.",
+                  "variantValue": "Wert",
+                  "variantLabel": "Bezeichnung",
+                  "variantStartup": "Startbefehl",
+                  "variantImage": "Image",
+                  "eggDefault": "Standard des Eggs",
+                  "addVariant": "Software hinzufügen",
+                  "addGame": "Spiel hinzufügen"
+                },
+                "toast": {
+                  "updated": "Spieleinstellungen aktualisiert."
+                }
+              }
+            },
+            "placement": {
+              "title": "Platzierung",
+              "page": {
+                "title": "Platzierungseinstellungen",
+                "form": {
+                  "pauseEnabled": "Ausgelastete Nodes pausieren",
+                  "pauseEnabledDescription": "Eine Node über der Grenze nimmt keine neuen Server an, auch nicht von Admins, bis sie fünf Minuten unter der Grenze war. Eine von Hand pausierte Node bleibt pausiert.",
+                  "pausePercent": "Grenze (%)",
+                  "pausePercentDescription": "Arbeitsspeicher- oder CPU-Auslastung, ab der eine Node pausiert wird.",
+                  "unreachableAfter": "Verpasste Prüfungen",
+                  "unreachableAfterDescription": "Prüfungen in Folge, die eine Node verpassen darf, bevor sie pausiert wird. Das Panel prüft jede Node einmal pro Minute.",
+                  "small": "Kleine Nodes",
+                  "smallOffset": "Grenze senken um (Punkte)",
+                  "smallOffsetDescription": "Auf einer kleinen Node liegt die Grenze so viel tiefer, weil ein ausgelasteter Server dort mehr ausmacht.",
+                  "smallMemoryGb": "Arbeitsspeicher unter (GiB)",
+                  "smallThreads": "Threads unter"
+                },
+                "toast": {
+                  "updated": "Platzierungseinstellungen aktualisiert."
+                }
+              }
             }
           }
         },
@@ -3401,6 +3495,29 @@
             }
           }
         },
+        "plans": {
+          "title": "Pakete",
+          "resourceName": "Paket",
+          "titleCreate": "Paket erstellen",
+          "titleUpdate": "{name} bearbeiten",
+          "table": {
+            "cpu": "CPU",
+            "public": "Öffentlich"
+          },
+          "form": {
+            "cpu": "CPU (%)",
+            "cpuDescription": "Prozent eines CPU-Threads: 100 ist ein Thread, 200 zwei.",
+            "sort": "Reihenfolge",
+            "sortDescription": "Reihenfolge auf der Erstellen-Seite, die niedrigste zuerst.",
+            "public": "Öffentlich",
+            "publicDescription": "Spieler können dieses Paket wählen, wenn sie einen Server erstellen."
+          },
+          "modal": {
+            "delete": {
+              "title": "Paket löschen"
+            }
+          }
+        },
         "nodes": {
           "title": "Nodes",
           "resourceName": "Node",
@@ -3645,6 +3762,12 @@
                   "deploymentDisabled": "Deployment deaktiviert",
                   "maintenanceEnabled": "In Wartung",
                   "deploymentPaused": "Bereitstellung pausiert",
+                  "deploymentPausedAuto": "Bereitstellung pausiert ({reason})",
+                  "pauseReason": {
+                    "memory": "Arbeitsspeicher",
+                    "cpu": "CPU",
+                    "unreachable": "antwortet nicht"
+                  },
                   "maintenanceDisabled": "Nicht in Wartung"
                 },
                 "label": {

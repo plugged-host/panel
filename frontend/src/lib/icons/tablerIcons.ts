@@ -68,6 +68,7 @@ import {
   IconDeviceDesktop,
   IconDeviceDesktopAnalytics,
   IconDeviceFloppy,
+  IconDeviceGamepad2,
   IconDeviceSdCard,
   IconDoorEnter,
   IconDots,
@@ -157,6 +158,7 @@ import {
   IconRotate,
   IconRulerMeasure,
   IconSatellite,
+  IconScale,
   IconScript,
   IconSearch,
   IconSend,
@@ -299,6 +301,7 @@ export const tablerIcons: Record<string, TablerIcon> = {
   'folder-plus': IconFolderPlus,
   'folder-tree': IconFolders,
   font: IconTypography,
+  gamepad: IconDeviceGamepad2, // plugged.host
   gear: IconSettings,
   gears: IconSettings2,
   globe: IconWorld,
@@ -360,6 +363,7 @@ export const tablerIcons: Record<string, TablerIcon> = {
   'rotate-left': IconRotate,
   'rotate-right': IconReload,
   satellite: IconSatellite,
+  'scale-balanced': IconScale, // plugged.host
   'screwdriver-wrench': IconTools,
   scroll: IconScript,
   server: IconServer2,

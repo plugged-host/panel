@@ -1515,6 +1515,32 @@
         }
       },
       "account": {
+        "createServer": {
+          "title": "Create Server",
+          "button": "Create Server",
+          "allowance": "Left in your account: {cpu} CPU, {memory} memory, {disk} disk.",
+          "disabled": "Creating servers is turned off.",
+          "noPlan": "Your account has no plan to create servers with.",
+          "nothingOffered": "There is nothing to create yet: no games, locations or plans are offered.",
+          "tooMany": "You have {max} servers, as many as your account allows.",
+          "game": "Game",
+          "software": "Software",
+          "location": "Location",
+          "locationLocked": "Needs {tier}",
+          "locationFull": "Full right now",
+          "latency": "{ms} ms",
+          "plan": "Plan",
+          "planResources": "{cpu}% CPU, {memory} memory, {disk} disk",
+          "planTooBig": "More than you have left",
+          "details": "Server",
+          "namePlaceholder": "My Server",
+          "eula": "I accept the",
+          "eulaLink": "Minecraft EULA",
+          "submit": "Create Server",
+          "toast": {
+            "created": "Server created. It is being installed."
+          }
+        },
         "home": {
           "empty": {
             "title": "No Servers",
@@ -2816,6 +2842,74 @@
                   "webhookRemoved": "Alert webhook removed."
                 }
               }
+            },
+            "games": {
+              "title": "Games",
+              "page": {
+                "title": "Game Settings",
+                "form": {
+                  "createEnabled": "Players Create Servers",
+                  "createEnabledDescription": "Players can create servers themselves from the games, locations and plans offered, within their allowance.",
+                  "allowDeleting": "Players Delete Servers",
+                  "allowDeletingDescription": "Players can delete the servers they own from the server settings.",
+                  "maxServers": "Servers per Account",
+                  "maxServersDescription": "How many servers an account may have. 0 is no limit.",
+                  "limits": "Every New Server",
+                  "limitAllocations": "Allocations",
+                  "limitDatabases": "Databases",
+                  "limitBackups": "Backups",
+                  "limitSchedules": "Schedules",
+                  "allowance": "Allowance per Account",
+                  "allowanceCpu": "CPU (%)",
+                  "allowanceDescription": "What all servers of an account may use together. 0 puts no limit on that resource.",
+                  "allowanceNoprofit": "noprofit.space is connected: every account gets its plan from there, these values are not used.",
+                  "catalog": "Games"
+                },
+                "catalog": {
+                  "description": "The games players can pick, in this order. Without a software variable or variants, a server runs what its egg sets up. The ports come from the egg configurations (Admin › Egg Configurations); without one, any free allocation of the node is used.",
+                  "egg": "Egg",
+                  "eggPlaceholder": "Pick an egg",
+                  "removeGame": "Remove Game",
+                  "name": "Name",
+                  "namePlaceholder": "The egg's name",
+                  "variable": "Software Variable",
+                  "variableDescription": "The egg variable the chosen software is written to.",
+                  "variants": "Software",
+                  "noVariants": "No choices: the egg decides.",
+                  "variantValue": "Value",
+                  "variantLabel": "Label",
+                  "variantStartup": "Startup Command",
+                  "variantImage": "Image",
+                  "eggDefault": "The egg's default",
+                  "addVariant": "Add Software",
+                  "addGame": "Add Game"
+                },
+                "toast": {
+                  "updated": "Game settings updated."
+                }
+              }
+            },
+            "placement": {
+              "title": "Placement",
+              "page": {
+                "title": "Placement Settings",
+                "form": {
+                  "pauseEnabled": "Pause Busy Nodes",
+                  "pauseEnabledDescription": "A node over the line takes no new servers, for admins either, until it has been under the line for five minutes. A node paused by hand stays paused.",
+                  "pausePercent": "Line (%)",
+                  "pausePercentDescription": "Memory or CPU use above which a node is paused.",
+                  "unreachableAfter": "Missed Checks",
+                  "unreachableAfterDescription": "Checks in a row a node may miss before it is paused. The panel checks every node once a minute.",
+                  "small": "Small Nodes",
+                  "smallOffset": "Lower Line by (Points)",
+                  "smallOffsetDescription": "On a small node the line is this much lower, as one busy server weighs more there.",
+                  "smallMemoryGb": "Memory Under (GiB)",
+                  "smallThreads": "Threads Under"
+                },
+                "toast": {
+                  "updated": "Placement settings updated."
+                }
+              }
             }
           }
         },
@@ -3401,6 +3495,29 @@
             }
           }
         },
+        "plans": {
+          "title": "Plans",
+          "resourceName": "Plan",
+          "titleCreate": "Create Plan",
+          "titleUpdate": "Update {name}",
+          "table": {
+            "cpu": "CPU",
+            "public": "Public"
+          },
+          "form": {
+            "cpu": "CPU (%)",
+            "cpuDescription": "Percent of one CPU thread: 100 is one thread, 200 two.",
+            "sort": "Sort Order",
+            "sortDescription": "Order on the create page, lowest first.",
+            "public": "Public",
+            "publicDescription": "Players can pick this plan when they create a server."
+          },
+          "modal": {
+            "delete": {
+              "title": "Delete Plan"
+            }
+          }
+        },
         "nodes": {
           "title": "Nodes",
           "resourceName": "Node",
@@ -3645,6 +3762,12 @@
                   "deploymentDisabled": "Deployment Disabled",
                   "maintenanceEnabled": "Under Maintenance",
                   "deploymentPaused": "Deployment Paused",
+                  "deploymentPausedAuto": "Deployment Paused ({reason})",
+                  "pauseReason": {
+                    "memory": "memory",
+                    "cpu": "CPU",
+                    "unreachable": "not answering"
+                  },
                   "maintenanceDisabled": "Not Under Maintenance"
                 },
                 "label": {

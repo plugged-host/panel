@@ -80,6 +80,13 @@ mod get {
         admins_only: bool,
     }
 
+    /// plugged.host: what players may do with servers themselves.
+    #[derive(ToSchema, Serialize)]
+    struct ResponseGames {
+        create_enabled: bool,
+        allow_deleting: bool,
+    }
+
     #[derive(ToSchema, Serialize)]
     struct Response<'a> {
         time: chrono::DateTime<chrono::Utc>,
@@ -98,6 +105,8 @@ mod get {
         user: ResponseUser<'a>,
         #[schema(inline)]
         noprofit: ResponseNoprofit<'a>,
+        #[schema(inline)]
+        games: ResponseGames, // plugged.host
     }
 
     #[utoipa::path(get, path = "/", responses(
@@ -180,6 +189,11 @@ mod get {
                 accounts_url: noprofit_connected
                     .then(|| settings.noprofit.accounts_url.trim_end_matches('/')),
                 admins_only: noprofit_connected && settings.noprofit.admins_only,
+            },
+            // plugged.host
+            games: ResponseGames {
+                create_enabled: settings.games.create_enabled,
+                allow_deleting: settings.games.allow_deleting,
             },
         })
         .ok()

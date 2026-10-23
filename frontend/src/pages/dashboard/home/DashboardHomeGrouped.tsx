@@ -20,6 +20,7 @@ import { SERVER_GROUPS_CONTAINER_ID, useServerGroupsDnd } from '@/plugins/server
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useUserStore } from '@/stores/user.ts';
+import CreateServerButton from '../create/CreateServerButton.tsx'; // plugged.host
 import BulkActionBar from './BulkActionBar.tsx';
 import DashboardHomeTitle from './DashboardHomeTitle.tsx';
 import ServerGroupCreateModal from './modals/ServerGroupCreateModal.tsx';
@@ -168,6 +169,7 @@ export default function DashboardHomeGrouped() {
   return (
     <AccountContentContainer
       title={t('pages.account.home.title', {})}
+      contentRight={<CreateServerButton />} // plugged.host
       registry={window.extensionContext.extensionRegistry.pages.dashboard.home.containerGrouped}
     >
       <ServerGroupCreateModal opened={openModal === 'create'} onClose={() => setOpenModal(null)} />

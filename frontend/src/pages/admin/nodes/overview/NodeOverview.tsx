@@ -113,7 +113,14 @@ export default function NodeOverview({ node }: { node: Node }) {
         {/* plugged.host: placement (docs/features/node-telemetry.md) */}
         {node.deploymentPaused && (
           <Badge color='yellow' variant='light'>
-            {t('pages.admin.nodes.tabs.capacity.page.status.deploymentPaused', {})}
+            {node.deploymentPausedReason
+              ? t('pages.admin.nodes.tabs.capacity.page.status.deploymentPausedAuto', {
+                  reason: t(
+                    `pages.admin.nodes.tabs.capacity.page.status.pauseReason.${node.deploymentPausedReason}`,
+                    {},
+                  ),
+                })
+              : t('pages.admin.nodes.tabs.capacity.page.status.deploymentPaused', {})}
           </Badge>
         )}
       </Group>

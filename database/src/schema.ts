@@ -700,6 +700,24 @@ export const locationsTable = pgTable(
   ],
 );
 
+// plugged.host: the resource presets offered when a player creates a server (Admin › Plans,
+// docs/features/create-server.md). CPU in percent of one thread, memory and disk in MiB.
+export const plansTable = pgTable(
+  'plans',
+  {
+    uuid: uuid().default(sql`gen_random_uuid()`).primaryKey().notNull(),
+    name: varchar({ length: 255 * UTF8_MAX_SCALAR_SIZE }).notNull(),
+    description: text(),
+    cpu: integer().notNull(),
+    memory: bigint({ mode: 'number' }).notNull(),
+    disk: bigint({ mode: 'number' }).notNull(),
+    sort: integer().default(0).notNull(),
+    public: boolean().default(true).notNull(),
+    created: timestamp().defaultNow().notNull(),
+  },
+  (cols) => [uniqueIndex('plans_name_idx').on(cols.name)],
+);
+
 export const locationDatabaseHostsTable = pgTable(
   'location_database_hosts',
   {
@@ -744,6 +762,8 @@ export const nodesTable = pgTable(
     tags: varchar({ length: 64 }).array().default([]).notNull(),
     srv_target: varchar({ length: 255 }),
     deployment_paused: boolean().default(false).notNull(),
+    // plugged.host: why the panel paused it (memory, cpu, unreachable); null when an admin did
+    deployment_paused_reason: varchar({ length: 32 }),
     created: timestamp().defaultNow().notNull(),
   },
   (cols) => [

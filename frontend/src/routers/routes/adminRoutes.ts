@@ -13,6 +13,7 @@ import {
   faFingerprint,
   faFolderOpen,
   faHeartPulse,
+  faLayerGroup,
   faScroll,
   faServer,
   faShieldHalved,
@@ -36,6 +37,7 @@ import AdminLocations from '@/pages/admin/locations/AdminLocations.tsx';
 import AdminNests from '@/pages/admin/nests/AdminNests.tsx';
 import AdminNodes from '@/pages/admin/nodes/AdminNodes.tsx';
 import AdminOAuthProviders from '@/pages/admin/oauth-providers/AdminOAuthProviders.tsx';
+import AdminPlans from '@/pages/admin/plans/AdminPlans.tsx'; // plugged.host
 import AdminRoles from '@/pages/admin/roles/AdminRoles.tsx';
 import AdminServers from '@/pages/admin/servers/AdminServers.tsx';
 import AdminSettings from '@/pages/admin/settings/AdminSettings.tsx';
@@ -90,6 +92,15 @@ const routes: AdminRouteDefinition[] = [
     category: 'infrastructure',
   },
   // plugged.host: abuse protection (docs/features/abuse.md)
+  // plugged.host: the resource presets players create servers with
+  {
+    name: () => getTranslations().t('pages.admin.plans.title', {}),
+    icon: faLayerGroup,
+    path: '/plans/*',
+    element: AdminPlans,
+    permission: ['plans.*'],
+    category: 'infrastructure',
+  },
   {
     name: () => getTranslations().t('pages.admin.abuse.title', {}),
     icon: faShieldHalved,

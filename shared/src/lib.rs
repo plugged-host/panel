@@ -19,6 +19,7 @@ use tower::util::ServiceExt;
 use utoipa::ToSchema;
 
 pub mod abuse; // plugged.host
+pub mod allowance; // plugged.host
 pub mod cache;
 pub mod cap;
 pub mod captcha;
@@ -46,6 +47,7 @@ pub mod permissions;
 pub mod prelude;
 pub mod response;
 pub mod retry;
+pub mod server_creation; // plugged.host
 pub mod settings;
 pub mod start_gates; // plugged.host
 pub mod status; // plugged.host

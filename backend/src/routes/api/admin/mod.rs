@@ -39,6 +39,7 @@ mod locations;
 mod nests;
 mod nodes;
 mod oauth_providers;
+mod plans; // plugged.host
 mod roles;
 mod servers;
 mod settings;
@@ -89,6 +90,7 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         .nest("/settings", settings::router(state))
         .nest("/assets", assets::router(state))
         .nest("/locations", locations::router(state))
+        .nest("/plans", plans::router(state)) // plugged.host
         .nest("/servers", servers::router(state))
         .nest("/nodes", nodes::router(state))
         .nest("/nests", nests::router(state))

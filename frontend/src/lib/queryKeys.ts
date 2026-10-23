@@ -83,6 +83,12 @@ const admin = {
     nodes: (locationUuid: string) => ['admin', 'locations', locationUuid, 'nodes'] as const,
   },
 
+  // plugged.host
+  plans: {
+    all: () => ['admin', 'plans'] as const,
+    detail: (uuid: string) => ['admin', 'plans', { uuid }] as const,
+  },
+
   mounts: {
     all: () => ['admin', 'mounts'] as const,
     detail: (uuid: string) => ['admin', 'mounts', { uuid }] as const,
@@ -362,6 +368,7 @@ const user = {
   },
   servers: {
     all: () => ['user', 'servers'] as const,
+    createOptions: () => ['user', 'servers', 'create'] as const, // plugged.host
   },
   serverGroups: {
     all: () => ['user', 'server-groups'] as const,

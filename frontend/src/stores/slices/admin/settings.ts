@@ -208,6 +208,28 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
     cpuMinutes: 20,
     deleteAfterHours: 24,
   },
+  // plugged.host: what players may create, the deployment pause
+  games: {
+    createEnabled: false,
+    catalog: [],
+    limitAllocations: 1,
+    limitDatabases: 0,
+    limitBackups: 0,
+    limitSchedules: 0,
+    allowDeleting: false,
+    maxServers: 0,
+    allowanceCpu: 0,
+    allowanceMemory: 0,
+    allowanceDisk: 0,
+  },
+  placement: {
+    pauseEnabled: true,
+    pausePercent: 85,
+    smallOffset: 10,
+    smallMemoryGb: 34,
+    smallThreads: 9,
+    unreachableAfter: 3,
+  },
 
   updateInformation: null,
   updateInformationError: null,
@@ -227,6 +249,8 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
       noprofit: value.noprofit, // plugged.host
       status: value.status, // plugged.host
       abuse: value.abuse, // plugged.host
+      games: value.games, // plugged.host
+      placement: value.placement, // plugged.host
     })),
   updateSettings: (value) =>
     set((state) => ({
@@ -243,6 +267,8 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
       ...(value.noprofit ? { noprofit: { ...state.noprofit, ...value.noprofit } } : {}), // plugged.host
       ...(value.status ? { status: { ...state.status, ...value.status } } : {}), // plugged.host
       ...(value.abuse ? { abuse: { ...state.abuse, ...value.abuse } } : {}), // plugged.host
+      ...(value.games ? { games: { ...state.games, ...value.games } } : {}), // plugged.host
+      ...(value.placement ? { placement: { ...state.placement, ...value.placement } } : {}), // plugged.host
     })),
   setUpdateInformation: (value) => set((state) => ({ ...state, updateInformation: value })),
   loadUpdateInformation: async () => {

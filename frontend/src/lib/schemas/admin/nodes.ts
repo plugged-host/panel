@@ -38,6 +38,8 @@ export const adminNodeSchema = z.looseObject({
   tags: z.array(z.string().min(1).max(64)).max(32),
   srvTarget: z.preprocess(nullableString, hostnameSchema.nullable()),
   deploymentPaused: z.boolean(),
+  // why the panel paused it (memory, cpu, unreachable); null when an admin did
+  deploymentPausedReason: z.enum(['memory', 'cpu', 'unreachable']).nullable().optional(),
   created: z.coerce.date(),
 });
 
@@ -142,6 +144,7 @@ export const adminNodeUpdateSchema = z.lazy(() =>
       uuid: true,
       location: true,
       backupConfiguration: true,
+      deploymentPausedReason: true, // plugged.host: the panel's own
       created: true,
     })
     .extend({

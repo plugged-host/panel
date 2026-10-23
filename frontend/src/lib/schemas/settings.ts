@@ -107,4 +107,9 @@ export const publicSettingsSchema = z.object({
     accountsUrl: z.string().nullable(),
     adminsOnly: z.boolean(),
   }),
+  // plugged.host: what players may do with servers themselves
+  games: z.object({
+    createEnabled: z.boolean(),
+    allowDeleting: z.boolean(),
+  }),
 });
