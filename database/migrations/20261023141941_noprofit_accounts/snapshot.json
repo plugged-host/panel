@@ -3,7 +3,7 @@
   "dialect": "postgres",
   "id": "cef6c30a-0ace-4f72-b5de-323e85b89cea",
   "prevIds": [
-    "2ef1457b-cafc-4d72-9a1d-170b95bcc373"
+    "dc207ba1-ab9a-4906-8fb0-beea737b7364"
   ],
   "ddl": [
     {
@@ -1712,6 +1712,19 @@
       "generated": null,
       "identity": null,
       "name": "readme",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "egg_repository_eggs"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "banner",
       "entityType": "columns",
       "schema": "public",
       "table": "egg_repository_eggs"
@@ -5682,6 +5695,19 @@
       "table": "servers"
     },
     {
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "trash",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "servers"
+    },
+    {
       "type": "boolean",
       "typeSchema": null,
       "notNull": true,
@@ -8530,6 +8556,20 @@
           "asc": true,
           "nullsFirst": false,
           "opclass": null
+        },
+        {
+          "value": "ip",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "port",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
         }
       ],
       "isUnique": false,
@@ -8537,7 +8577,7 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
-      "name": "allocations_node_uuid_idx",
+      "name": "allocations_node_uuid_ip_inet_port_idx",
       "entityType": "indexes",
       "schema": "public",
       "table": "node_allocations"
@@ -8922,6 +8962,13 @@
           "asc": true,
           "nullsFirst": false,
           "opclass": null
+        },
+        {
+          "value": "created",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
         }
       ],
       "isUnique": false,
@@ -8929,7 +8976,7 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
-      "name": "server_activities_server_uuid_idx",
+      "name": "server_activities_server_uuid_created_idx",
       "entityType": "indexes",
       "schema": "public",
       "table": "server_activities"
@@ -9175,6 +9222,34 @@
       "method": "btree",
       "concurrently": false,
       "name": "server_backups_node_uuid_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "server_backups"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "node_uuid",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "created",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": "\"deleted\" IS NULL",
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "server_backups_node_uuid_created_idx",
       "entityType": "indexes",
       "schema": "public",
       "table": "server_backups"
@@ -10008,6 +10083,27 @@
       "method": "btree",
       "concurrently": false,
       "name": "servers_uuid_short_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "servers"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "created",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "servers_created_idx",
       "entityType": "indexes",
       "schema": "public",
       "table": "servers"
@@ -11079,6 +11175,27 @@
       "method": "btree",
       "concurrently": false,
       "name": "users_role_uuid_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "users"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "created",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "users_created_idx",
       "entityType": "indexes",
       "schema": "public",
       "table": "users"
