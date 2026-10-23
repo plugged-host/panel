@@ -88,6 +88,7 @@ mod get {
         create_enabled: bool,
         allow_resizing: bool,
         allow_deleting: bool,
+        transfer_enabled: bool,
     }
 
     #[derive(ToSchema, Serialize)]
@@ -202,6 +203,7 @@ mod get {
                 create_enabled: settings.games.create_enabled,
                 allow_resizing: settings.games.allow_resizing,
                 allow_deleting: settings.games.allow_deleting,
+                transfer_enabled: settings.games.transfer_enabled,
             },
         })
         .ok()

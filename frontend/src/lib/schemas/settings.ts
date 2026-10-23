@@ -113,5 +113,6 @@ export const publicSettingsSchema = z.object({
     createEnabled: z.boolean(),
     allowResizing: z.boolean(),
     allowDeleting: z.boolean(),
+    transferEnabled: z.boolean(),
   }),
 });

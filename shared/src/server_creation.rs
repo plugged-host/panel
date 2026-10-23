@@ -36,10 +36,10 @@ pub const EULA_FEATURE: &str = "eula";
 /// How long an accepted EULA waits for the install to finish.
 const EULA_MARKER_SECONDS: u64 = 7 * 24 * 60 * 60;
 /// The node role that takes players' servers.
-const GAME_ROLE: &str = "game";
+pub const GAME_ROLE: &str = "game";
 /// An admin deploy's defaults: suspended servers count half, some randomness among equals.
-const SUSPENSION_PENALTY: f64 = 0.5;
-const RANDOMNESS: f64 = 0.5;
+pub const SUSPENSION_PENALTY: f64 = 0.5;
+pub const RANDOMNESS: f64 = 0.5;
 
 #[derive(ToSchema, Serialize)]
 pub struct ApiGameVariant {
@@ -213,6 +213,39 @@ pub async fn options(state: &crate::State, user: &User) -> Result<ApiCreateOptio
         });
     }
 
+    let locations = locations(state, user).await?;
+
+    let plans = Plan::all_public(&state.database)
+        .await?
+        .into_iter()
+        .map(|plan| ApiCreatePlan {
+            available: allowance
+                .check_new(Resources::new(plan.cpu as i64, plan.memory, plan.disk))
+                .is_ok(),
+            uuid: plan.uuid,
+            name: plan.name,
+            description: plan.description,
+            cpu: plan.cpu,
+            memory: plan.memory,
+            disk: plan.disk,
+        })
+        .collect();
+
+    Ok(ApiCreateOptions {
+        enabled,
+        allowance,
+        games,
+        locations,
+        plans,
+    })
+}
+
+/// The public locations as players see them: whether their tier is theirs, whether a node there
+/// takes new servers now, and how fast their nodes answer. Also the transfer page's list.
+pub async fn locations(
+    state: &crate::State,
+    user: &User,
+) -> Result<Vec<ApiCreateLocation>, anyhow::Error> {
     let rows = sqlx::query(
         r#"
         SELECT locations.uuid, locations.name, locations.description, locations.flag, locations.tier,
@@ -255,29 +288,7 @@ pub async fn options(state: &crate::State, user: &User) -> Result<ApiCreateOptio
         });
     }
 
-    let plans = Plan::all_public(&state.database)
-        .await?
-        .into_iter()
-        .map(|plan| ApiCreatePlan {
-            available: allowance
-                .check_new(Resources::new(plan.cpu as i64, plan.memory, plan.disk))
-                .is_ok(),
-            uuid: plan.uuid,
-            name: plan.name,
-            description: plan.description,
-            cpu: plan.cpu,
-            memory: plan.memory,
-            disk: plan.disk,
-        })
-        .collect();
-
-    Ok(ApiCreateOptions {
-        enabled,
-        allowance,
-        games,
-        locations,
-        plans,
-    })
+    Ok(locations)
 }
 
 /// The startup command and image of a variant: an egg's own startup command or image picked by

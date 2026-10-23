@@ -243,6 +243,7 @@ const admin = {
     general: () => ['admin', 'health', 'general'] as const,
     tasks: () => ['admin', 'health', 'tasks'] as const, // plugged.host
     telemetry: () => ['admin', 'health', 'telemetry'] as const, // plugged.host
+    capacity: () => ['admin', 'health', 'capacity'] as const, // plugged.host
   },
 
   emailTemplates: {
@@ -259,6 +260,7 @@ const server = (serverUuid: string) => ({
     resize: () => ['server', serverUuid, 'settings', 'resize'] as const,
     software: () => ['server', serverUuid, 'settings', 'software'] as const,
   },
+  transfer: () => ['server', serverUuid, 'transfer'] as const, // plugged.host
   activity: {
     all: (userUuid: string | null) => ['server', serverUuid, 'activity', { uuid: userUuid }] as const,
     byEvent: (userUuid: string | null, event: string) =>

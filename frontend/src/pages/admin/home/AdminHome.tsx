@@ -1,7 +1,8 @@
-import { faCog, faHeartPulse } from '@fortawesome/free-solid-svg-icons';
+import { faCog, faHeartPulse, faScaleBalanced } from '@fortawesome/free-solid-svg-icons'; // plugged.host: faScaleBalanced
 import AdminContentContainer from '@/elements/containers/AdminContentContainer.tsx';
 import SubNavigation from '@/elements/navigation/SubNavigation.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
+import AdminOverviewCapacity from './capacity/AdminOverviewCapacity.tsx'; // plugged.host
 import AdminOverviewHealth from './health/AdminOverviewHealth.tsx';
 import AdminOverview from './overview/AdminOverview.tsx';
 
@@ -31,6 +32,14 @@ export default function AdminHome() {
             path: `/health`,
             element: <AdminOverviewHealth />,
             permission: 'stats.read',
+          },
+          // plugged.host: free resources per location and the moves (docs/features/transfers.md)
+          {
+            name: t('pages.admin.home.tabs.capacity.title', {}),
+            icon: faScaleBalanced,
+            path: `/capacity`,
+            element: <AdminOverviewCapacity />,
+            permission: 'nodes.read',
           },
         ]}
       />

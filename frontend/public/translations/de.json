@@ -2329,6 +2329,39 @@
                   "debugDisabled": "Debug-Modus deaktiviert."
                 }
               }
+            },
+            "capacity": {
+              "title": "Kapazität",
+              "page": {
+                "description": "Was jeder Standort noch aufnehmen kann, und die Umzüge der letzten Tage. Freier Arbeitsspeicher und Speicherplatz zählen nur Nodes mit einer Grenze.",
+                "card": {
+                  "locations": "Standorte",
+                  "transfers": "Umzüge"
+                },
+                "table": {
+                  "nodes": "Offene Nodes",
+                  "memoryFree": "Freier Arbeitsspeicher",
+                  "diskFree": "Freier Speicherplatz",
+                  "pressure": "Last (5 Min.)",
+                  "route": "Von → Nach",
+                  "origin": "Gestartet von"
+                },
+                "openNodes": "{open} von {total}",
+                "noTransfers": "Noch keine Umzüge.",
+                "attempts": "{attempts} Nodes versucht",
+                "status": {
+                  "queued": "Eingeplant",
+                  "running": "Läuft",
+                  "cancelling": "Wird abgebrochen",
+                  "completed": "Abgeschlossen",
+                  "failed": "Fehlgeschlagen",
+                  "cancelled": "Abgebrochen"
+                },
+                "origin": {
+                  "user": "Spieler",
+                  "admin": "Admin"
+                }
+              }
             }
           }
         },
@@ -2856,6 +2889,15 @@
                   "allowDeletingDescription": "Spieler können ihre eigenen Server in den Servereinstellungen löschen.",
                   "maxServers": "Server pro Konto",
                   "maxServersDescription": "Wie viele Server ein Konto haben darf. 0 ist unbegrenzt.",
+                  "transfers": "Server umziehen",
+                  "transferEnabled": "Spieler ziehen Server um",
+                  "transferEnabledDescription": "Besitzer können ihre Server auf der Seite „Server umziehen“ an einen anderen Standort oder auf einen anderen Node desselben Standorts umziehen.",
+                  "transferCooldownHours": "Stunden zwischen Umzügen",
+                  "transferCooldownHoursDescription": "Wie lange ein Server nach einem Umzug wartet, bis sein Besitzer ihn wieder umziehen kann. 0 heißt ohne Wartezeit.",
+                  "transferAttempts": "Versuchte Nodes pro Umzug",
+                  "transferAttemptsDescription": "Schlägt ein Umzug fehl, wird er auf einem anderen Node wiederholt, bis so viele Nodes versucht wurden.",
+                  "transferParallel": "Gleichzeitige Umzüge pro Node",
+                  "transferParallelDescription": "Wie viele eingeplante Umzüge (aus „Last verringern“) gleichzeitig einen Node verlassen.",
                   "limits": "Jeder neue Server",
                   "limitAllocations": "Zuweisungen",
                   "limitDatabases": "Datenbanken",
@@ -4026,7 +4068,29 @@
                   "powerAction": {
                     "title": "Energieaktion bestätigen",
                     "content": "Bist du sicher, dass du **{action}** für {servers} ausführen möchtest?"
+                  },
+                  "lighten": {
+                    "title": "Last verringern",
+                    "description": "Zieht einige Server auf die anderen Nodes von {location} um, wenige gleichzeitig (Admin › Einstellungen › Spiele › Gleichzeitige Umzüge pro Node). Jeder Server bekommt eine neue Adresse.",
+                    "form": {
+                      "pick": "Server",
+                      "count": "Wie viele"
+                    },
+                    "enum": {
+                      "pick": {
+                        "stopped": "Gestoppte Server (niemand wird getrennt)",
+                        "busiest": "Laufende Server mit dem meisten Arbeitsspeicher (gestoppt, umgezogen, wieder gestartet)"
+                      }
+                    },
+                    "button": "Umzüge einplanen",
+                    "toast": {
+                      "queued": "Umzüge für {servers} eingeplant.",
+                      "none": "Kein Server auf diesem Node passt zu dieser Auswahl."
+                    }
                   }
+                },
+                "button": {
+                  "lighten": "Last verringern"
                 }
               }
             },
@@ -8620,6 +8684,38 @@
             "toast": {
               "deleted": "Server gelöscht."
             }
+          }
+        },
+        "transfer": {
+          "title": "Server umziehen",
+          "description": "Zieht den Server auf einen Node an einem anderen Standort oder auf einen anderen Node desselben Standorts um. Der Server ist aus, während seine Dateien und Backups kopiert werden, bekommt eine neue Adresse und startet danach wieder, wenn er lief.",
+          "disabled": "Server umziehen ist ausgeschaltet.",
+          "location": "Standort",
+          "currentLocation": "Aktueller Standort",
+          "cooldown": "Dieser Server wurde vor Kurzem umgezogen.",
+          "cooldownUntil": "Nächster Umzug möglich:",
+          "lastMove": "Letzter Umzug",
+          "currentMove": "Laufender Umzug",
+          "status": {
+            "queued": "Wartet, bis er an der Reihe ist. Der Umzug beginnt, sobald der Node frei ist.",
+            "running": "Der Server wird umgezogen (Node {attempt}). Er ist aus, bis die Kopie fertig ist.",
+            "cancelling": "Der Umzug wird abgebrochen.",
+            "completed": "Der Server wurde umgezogen.",
+            "failed": "Der Umzug ist fehlgeschlagen: {error}",
+            "cancelled": "Der Umzug wurde abgebrochen.",
+            "byAdmin": "Ein Admin zieht diesen Server um."
+          },
+          "button": {
+            "move": "Server umziehen",
+            "cancel": "Umzug abbrechen"
+          },
+          "modal": {
+            "title": "Server umziehen",
+            "content": "Den Server nach **{location}** umziehen? Er ist aus, während er kopiert wird, und bekommt eine neue Adresse. Spieler verbinden sich danach mit der neuen Adresse."
+          },
+          "toast": {
+            "requested": "Der Umzug hat begonnen.",
+            "cancelled": "Der Umzug wird abgebrochen."
           }
         },
         "activity": {

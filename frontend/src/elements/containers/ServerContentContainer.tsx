@@ -7,18 +7,20 @@ import { useShallow } from 'zustand/react/shallow';
 import cancelTransfer from '@/api/admin/servers/cancelTransfer.ts';
 import { httpErrorToHuman } from '@/api/axios.ts';
 import cancelServerInstall from '@/api/server/settings/cancelServerInstall.ts';
+import cancelServerTransfer from '@/api/server/transfer/cancelServerTransfer.ts'; // plugged.host
 import Button from '@/elements/buttons/Button.tsx';
 import DismissibleAnnouncementAlert from '@/elements/DismissibleAnnouncementAlert.tsx';
 import Notification from '@/elements/feedback/Notification.tsx';
 import Progress from '@/elements/feedback/Progress.tsx';
 import Tooltip from '@/elements/overlays/Tooltip.tsx';
 import { bytesProgressString } from '@/lib/format/size.ts';
+import { useAdminCan, useServerCan } from '@/plugins/usePermissions.ts'; // plugged.host
 import { useAuth } from '@/providers/AuthProvider.tsx';
 import { useCurrentWindow } from '@/providers/CurrentWindowProvider.tsx';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useServerStore } from '@/stores/server.ts';
-import { AdminCan, ServerCan } from '../Can.tsx';
+import { ServerCan } from '../Can.tsx'; // plugged.host: AdminCan replaced by useAdminCan below
 import ExtensionSlot from '../ExtensionSlot.tsx';
 import EstimatedTimeArrival from '../time/EstimatedTimeArrival.tsx';
 import ContentContainer from './ContentContainer.tsx';
@@ -92,6 +94,9 @@ function ServerContentContainer(props: Props) {
     })),
   );
   const { user } = useAuth();
+  // plugged.host: players may cancel their own move (docs/features/transfers.md)
+  const canAdminTransfer = useAdminCan('servers.transfer');
+  const canPlayerTransfer = useServerCan('settings.transfer');
   const { id } = useCurrentWindow();
   const { addToast } = useToast();
 
@@ -122,7 +127,7 @@ function ServerContentContainer(props: Props) {
   const doAbortTransfer = () => {
     setAbortLoading('transfer');
 
-    cancelTransfer(server.uuid)
+    (canAdminTransfer ? cancelTransfer(server.uuid) : cancelServerTransfer(server.uuid)) // plugged.host
       .then(() => {
         addToast(t('pages.server.console.toast.transferCancelled', {}), 'success');
         setAbortLoading(null);
@@ -162,7 +167,7 @@ function ServerContentContainer(props: Props) {
                 </Tooltip>
               </div>
 
-              <AdminCan action='servers.transfer'>
+              {(canAdminTransfer || canPlayerTransfer) && ( // plugged.host: or the player's own move
                 <Button
                   className='min-w-fit'
                   leftSection={<FontAwesomeIcon icon={faCancel} />}
@@ -172,7 +177,7 @@ function ServerContentContainer(props: Props) {
                 >
                   {t('common.button.cancel', {})}
                 </Button>
-              </AdminCan>
+              )}
             </div>
           </Notification>
         </div>

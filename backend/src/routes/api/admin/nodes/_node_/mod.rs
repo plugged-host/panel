@@ -26,6 +26,7 @@ mod duplicate;
 mod enrollment;
 // plugged.host: mounts removed (docs/upstream.md)
 // mod mounts;
+mod lighten; // plugged.host
 mod pair;
 mod reset_token;
 mod servers;
@@ -271,6 +272,7 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         .nest("/system", system::router(state))
         .nest("/capacity", capacity::router(state))
         .nest("/telemetry", telemetry::router(state)) // plugged.host
+        .nest("/lighten", lighten::router(state)) // plugged.host
         .nest("/bandwidth", bandwidth::router(state))
         .nest("/servers", servers::router(state))
         // .nest("/mounts", mounts::router(state))

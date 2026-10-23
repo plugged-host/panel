@@ -1040,6 +1040,7 @@ pub(crate) static BASE_SERVER_PERMISSIONS: LazyLock<IndexMap<&'static str, Permi
                             "delete",
                             "Allows deleting the server, when the panel lets players delete their servers.",
                         ),
+                        ("transfer", "Allows moving the server to another location."),
                     ]),
                 },
             ),

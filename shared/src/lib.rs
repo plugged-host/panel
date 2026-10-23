@@ -50,6 +50,7 @@ pub mod retry;
 pub mod server_creation; // plugged.host
 pub mod server_resize; // plugged.host
 pub mod server_software; // plugged.host
+pub mod server_transfers; // plugged.host
 pub mod settings;
 pub mod start_gates; // plugged.host
 pub mod status; // plugged.host

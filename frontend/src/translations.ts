@@ -2206,6 +2206,41 @@ const baseTranslations = defineTranslations({
                 },
               },
             },
+            // plugged.host
+            capacity: {
+              title: 'Capacity',
+              page: {
+                description:
+                  'What each location can still take, and the moves of the last days. Free memory and disk count nodes with a limit only.',
+                card: {
+                  locations: 'Locations',
+                  transfers: 'Moves',
+                },
+                table: {
+                  nodes: 'Open Nodes',
+                  memoryFree: 'Memory Free',
+                  diskFree: 'Disk Free',
+                  pressure: 'Load (5 min)',
+                  route: 'From → To',
+                  origin: 'Started By',
+                },
+                openNodes: '{open} of {total}',
+                noTransfers: 'No moves yet.',
+                attempts: '{attempts} nodes tried',
+                status: {
+                  queued: 'Queued',
+                  running: 'Running',
+                  cancelling: 'Cancelling',
+                  completed: 'Completed',
+                  failed: 'Failed',
+                  cancelled: 'Cancelled',
+                },
+                origin: {
+                  user: 'Player',
+                  admin: 'Admin',
+                },
+              },
+            },
           },
         },
         settings: {
@@ -2785,6 +2820,19 @@ const baseTranslations = defineTranslations({
                   allowDeletingDescription: 'Players can delete the servers they own from the server settings.',
                   maxServers: 'Servers per Account',
                   maxServersDescription: 'How many servers an account may have. 0 is no limit.',
+                  transfers: 'Moving Servers',
+                  transferEnabled: 'Players Move Servers',
+                  transferEnabledDescription:
+                    'Owners can move their servers to another location, or to another node of the same one, from the Move Server page.',
+                  transferCooldownHours: 'Hours Between Moves',
+                  transferCooldownHoursDescription:
+                    'How long a server waits after a move before its owner can move it again. 0 is no wait.',
+                  transferAttempts: 'Nodes Tried per Move',
+                  transferAttemptsDescription:
+                    'When a move fails, it is tried again on another node until this many nodes were tried.',
+                  transferParallel: 'Moves at Once per Node',
+                  transferParallelDescription:
+                    'How many queued moves (from Lighten Load) leave one node at the same time.',
                   limits: 'Every New Server',
                   limitAllocations: 'Allocations',
                   limitDatabases: 'Databases',
@@ -4006,6 +4054,31 @@ const baseTranslations = defineTranslations({
                     title: 'Confirm Power Action',
                     content: 'Are you sure you want to **{action}** {servers}?',
                   },
+                  // plugged.host
+                  lighten: {
+                    title: 'Lighten Load',
+                    description:
+                      'Moves some of the servers to the other nodes of {location}, a few at a time (Admin › Settings › Games › Moves at Once per Node). Each server gets a new address.',
+                    form: {
+                      pick: 'Servers',
+                      count: 'How Many',
+                    },
+                    enum: {
+                      pick: {
+                        stopped: 'Stopped servers (nobody is disconnected)',
+                        busiest: 'Running servers using the most memory (stopped, moved, started again)',
+                      },
+                    },
+                    button: 'Queue Moves',
+                    toast: {
+                      queued: 'Queued moves for {servers}.',
+                      none: 'No server on this node fits that choice.',
+                    },
+                  },
+                },
+                // plugged.host
+                button: {
+                  lighten: 'Lighten Load',
                 },
               },
             },
@@ -8769,6 +8842,41 @@ const baseTranslations = defineTranslations({
             toast: {
               deleted: 'Server deleted.',
             },
+          },
+        },
+        // plugged.host
+        transfer: {
+          title: 'Move Server',
+          description:
+            'Moves the server to a node of another location, or to another node of the same one. The server stops while its files and backups are copied, gets a new address, and starts again afterwards if it was running.',
+          disabled: 'Moving servers is turned off.',
+          location: 'Location',
+          currentLocation: 'Current location',
+          cooldown: 'This server was moved recently.',
+          cooldownUntil: 'Next move possible:',
+          lastMove: 'Last Move',
+          currentMove: 'Move Under Way',
+          status: {
+            queued: 'Waiting for its turn. The move starts when the node has a free slot.',
+            running: 'The server is being moved (node {attempt}). It is off until the copy is done.',
+            cancelling: 'Cancelling the move.',
+            completed: 'The server was moved.',
+            failed: 'The move failed: {error}',
+            cancelled: 'The move was cancelled.',
+            byAdmin: 'An admin is moving this server.',
+          },
+          button: {
+            move: 'Move Server',
+            cancel: 'Cancel Move',
+          },
+          modal: {
+            title: 'Move Server',
+            content:
+              'Move the server to **{location}**? It stops while it is copied and gets a new address. Players connect with the new address afterwards.',
+          },
+          toast: {
+            requested: 'The move has started.',
+            cancelled: 'The move is being cancelled.',
           },
         },
         activity: {

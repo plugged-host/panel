@@ -81,6 +81,14 @@ pub struct AppSettingsGames {
     pub allow_resizing: bool,
     /// Players may delete their own servers.
     pub allow_deleting: bool,
+    /// Players may move their servers to another location (docs/features/transfers.md).
+    pub transfer_enabled: bool,
+    /// Hours between two finished moves of one server; 0 is none.
+    pub transfer_cooldown_hours: i32,
+    /// Nodes a move tries before it gives up.
+    pub transfer_attempts: i32,
+    /// Moves off one node at the same time ("Lighten load").
+    pub transfer_parallel: i32,
     /// Servers an account may have; 0 is no limit.
     pub max_servers: i32,
     /// What every account may use in total without noprofit.space (CPU in %, memory and disk in
@@ -101,6 +109,10 @@ impl Default for AppSettingsGames {
             limit_schedules: 0,
             allow_resizing: false,
             allow_deleting: false,
+            transfer_enabled: false,
+            transfer_cooldown_hours: 24,
+            transfer_attempts: 2,
+            transfer_parallel: 2,
             max_servers: 0,
             allowance_cpu: 0,
             allowance_memory: 0,
@@ -135,6 +147,14 @@ pub struct PayloadGames {
     allow_resizing: Option<bool>,
     #[garde(skip)]
     allow_deleting: Option<bool>,
+    #[garde(skip)]
+    transfer_enabled: Option<bool>,
+    #[garde(inner(range(min = 0, max = 720)))]
+    transfer_cooldown_hours: Option<i32>,
+    #[garde(inner(range(min = 1, max = 5)))]
+    transfer_attempts: Option<i32>,
+    #[garde(inner(range(min = 1, max = 10)))]
+    transfer_parallel: Option<i32>,
     #[garde(inner(range(min = 0, max = 1000)))]
     max_servers: Option<i32>,
     #[garde(inner(range(min = 0)))]
@@ -204,6 +224,10 @@ impl PayloadGames {
             limit_schedules,
             allow_resizing,
             allow_deleting,
+            transfer_enabled,
+            transfer_cooldown_hours,
+            transfer_attempts,
+            transfer_parallel,
             max_servers,
             allowance_cpu,
             allowance_memory,
@@ -238,6 +262,22 @@ impl SettingsSerializeExt for AppSettingsGames {
             .write_raw_setting("limit_schedules", self.limit_schedules.to_compact_string())
             .write_raw_setting("allow_resizing", self.allow_resizing.to_compact_string())
             .write_raw_setting("allow_deleting", self.allow_deleting.to_compact_string())
+            .write_raw_setting(
+                "transfer_enabled",
+                self.transfer_enabled.to_compact_string(),
+            )
+            .write_raw_setting(
+                "transfer_cooldown_hours",
+                self.transfer_cooldown_hours.to_compact_string(),
+            )
+            .write_raw_setting(
+                "transfer_attempts",
+                self.transfer_attempts.to_compact_string(),
+            )
+            .write_raw_setting(
+                "transfer_parallel",
+                self.transfer_parallel.to_compact_string(),
+            )
             .write_raw_setting("max_servers", self.max_servers.to_compact_string())
             .write_raw_setting("allowance_cpu", self.allowance_cpu.to_compact_string())
             .write_raw_setting(
@@ -279,6 +319,10 @@ impl SettingsDeserializeExt for AppSettingsGamesDeserializer {
             limit_schedules: parsed!(limit_schedules),
             allow_resizing: parsed!(allow_resizing),
             allow_deleting: parsed!(allow_deleting),
+            transfer_enabled: parsed!(transfer_enabled),
+            transfer_cooldown_hours: parsed!(transfer_cooldown_hours),
+            transfer_attempts: parsed!(transfer_attempts),
+            transfer_parallel: parsed!(transfer_parallel),
             max_servers: parsed!(max_servers),
             allowance_cpu: parsed!(allowance_cpu),
             allowance_memory: parsed!(allowance_memory),
@@ -319,6 +363,10 @@ mod tests {
             limit_schedules: None,
             allow_resizing: None,
             allow_deleting: None,
+            transfer_enabled: None,
+            transfer_cooldown_hours: None,
+            transfer_attempts: None,
+            transfer_parallel: None,
             max_servers: Some(3),
             allowance_cpu: None,
             allowance_memory: None,

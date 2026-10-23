@@ -916,6 +916,14 @@ pub async fn define_background_tasks(
             },
         )
         .await;
+    // plugged.host: moves of servers (shared::server_transfers): done, retried, queued ones started
+    background_task_builder
+        .add_cron_task(
+            "settle_transfers",
+            croner::Cron::from_str("*/15 * * * * *").unwrap(),
+            async |state| shared::server_transfers::settle(&state).await,
+        )
+        .await;
     background_task_builder
         .add_cron_task(
             "prune_node_telemetry",

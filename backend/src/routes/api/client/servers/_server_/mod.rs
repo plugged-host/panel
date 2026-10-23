@@ -37,6 +37,7 @@ mod schedules;
 mod settings;
 mod startup;
 mod subusers;
+mod transfer; // plugged.host
 // plugged.host: the private network removed (docs/upstream.md)
 // mod tunnel;
 mod websocket;
@@ -70,6 +71,9 @@ pub async fn auth(
         "/api/client/servers/{server}/websocket",
         "/api/client/servers/{server}/settings/install/cancel",
         "/api/client/servers/{server}/backups/unlock",
+        // plugged.host: a move's state and its cancel stay reachable while it runs
+        "/api/client/servers/{server}/transfer",
+        "/api/client/servers/{server}/transfer/cancel",
     ];
 
     // anyone allowed to update servers stays able to act on a suspended one, which is what suspension is for
@@ -150,6 +154,7 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         .nest("/settings", settings::router(state))
         .nest("/startup", startup::router(state))
         .nest("/subusers", subusers::router(state))
+        .nest("/transfer", transfer::router(state)) // plugged.host
         .nest("/backups", backups::router(state))
         .nest("/allocations", allocations::router(state))
         // .nest("/firewall", firewall::router(state))

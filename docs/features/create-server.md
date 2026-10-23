@@ -24,6 +24,7 @@ Admin › Settings › Games (`shared/src/settings/games.rs`):
 | Players Create Servers | Turns the create page on |
 | Players Resize Servers | Owners may change their servers' CPU, memory and disk within their allowance ([server-settings.md](server-settings.md)) |
 | Players Delete Servers | Owners may delete their own servers ([server-settings.md](server-settings.md)) |
+| Players Move Servers, Hours Between Moves, Nodes Tried per Move, Moves at Once per Node | Owners may move their servers to another location ([transfers.md](transfers.md)) |
 | Games | The catalog, in order: an egg, the name and description players see (empty uses the egg's), the egg variable the software choice is written to, and the software choices |
 | Allocations, databases, backups, schedules | What every new server may have; allocations is at least 1 plus the ports its deployment needs |
 | Servers per Account | 0 is no limit |

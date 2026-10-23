@@ -23,6 +23,7 @@ import { useTableSelection } from '@/plugins/selection/useTableSelection.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import BulkActionBar from './BulkActionBar.tsx';
+import LightenNodeModal from './modals/LightenNodeModal.tsx'; // plugged.host
 import ServersTransferModal from './modals/ServersTransferModal.tsx';
 import ServerPowerButtons from './ServerPowerButtons.tsx';
 
@@ -43,6 +44,7 @@ export default function AdminNodeServers({ node }: { node: AdminNode }) {
   const [bulkActionLoading, setBulkActionLoading] = useState<PowerAction | null>(null);
   const [allActionLoading, setAllActionLoading] = useState<PowerAction | null>(null);
   const [transferScope, setTransferScope] = useState<'bulk' | 'all' | null>(null);
+  const [lightening, setLightening] = useState(false); // plugged.host
   const [confirmPowerAction, setConfirmPowerAction] = useState<{ action: PowerAction; scope: 'bulk' | 'all' } | null>(
     null,
   );
@@ -182,6 +184,8 @@ export default function AdminNodeServers({ node }: { node: AdminNode }) {
           opened={transferScope !== null}
           onClose={() => setTransferScope(null)}
         />
+        {/* plugged.host: docs/features/transfers.md */}
+        <LightenNodeModal node={node} opened={lightening} onClose={() => setLightening(false)} />
       </AdminCan>
 
       <ConfirmationModal
@@ -221,6 +225,10 @@ export default function AdminNodeServers({ node }: { node: AdminNode }) {
                 disabled={allActionLoading !== null || nodeServers?.total === 0}
               >
                 {t('common.button.transfer', {})} ({nodeServers?.total})
+              </Button>
+              {/* plugged.host: docs/features/transfers.md */}
+              <Button color='gray' onClick={() => setLightening(true)} disabled={nodeServers?.total === 0}>
+                {t('pages.admin.nodes.tabs.servers.page.button.lighten', {})}
               </Button>
             </AdminCan>
           </Group>

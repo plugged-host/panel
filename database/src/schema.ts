@@ -1365,6 +1365,36 @@ export const abuseFindingsTable = pgTable(
   ],
 );
 
+// plugged.host: moves of a server to another node, asked for by its owner or an admin's "Lighten
+// load" (shared/src/server_transfers.rs, docs/features/transfers.md)
+export const serverTransferRequestsTable = pgTable(
+  'server_transfer_requests',
+  {
+    uuid: uuid().default(sql`gen_random_uuid()`).primaryKey().notNull(),
+    server_uuid: uuid()
+      .references(() => serversTable.uuid, { onDelete: 'cascade' })
+      .notNull(),
+    user_uuid: uuid().references(() => usersTable.uuid, { onDelete: 'set null' }),
+    origin: varchar({ length: 16 }).notNull(),
+    location_uuid: uuid().references(() => locationsTable.uuid, { onDelete: 'set null' }),
+    source_node_uuid: uuid().references(() => nodesTable.uuid, { onDelete: 'set null' }),
+    destination_node_uuid: uuid().references(() => nodesTable.uuid, { onDelete: 'set null' }),
+    tried_node_uuids: uuid().array().default([]).notNull(),
+    attempts: integer().default(0).notNull(),
+    status: varchar({ length: 16 }).notNull(),
+    error: text(),
+    restart: boolean().default(false).notNull(),
+    variables: jsonb().default({}).notNull(),
+    created: timestamp().defaultNow().notNull(),
+    started: timestamp(),
+    finished: timestamp(),
+  },
+  (cols) => [
+    index('server_transfer_requests_server_uuid_created_idx').on(cols.server_uuid, cols.created),
+    index('server_transfer_requests_status_idx').on(cols.status),
+  ],
+);
+
 export const serverAllocationsTable = pgTable(
   'server_allocations',
   {

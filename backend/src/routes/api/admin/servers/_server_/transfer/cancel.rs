@@ -49,6 +49,7 @@ mod post {
             .await?
             .delete_servers_server_transfer(server.uuid)
             .await?;
+        shared::server_transfers::mark_cancelling(&state, server.uuid).await; // plugged.host: not retried
 
         activity_logger
             .log(

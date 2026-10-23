@@ -6,6 +6,7 @@ import {
   faFolderOpen,
   faNetworkWired,
   faPlay,
+  faRightLeft,
   faStopwatch,
   faTerminal,
   faUsers,
@@ -26,7 +27,9 @@ import ServerSchedules from '@/pages/server/schedules/ServerSchedules.tsx';
 import ServerSettings from '@/pages/server/settings/ServerSettings.tsx';
 import ServerStartup from '@/pages/server/startup/ServerStartup.tsx';
 import ServerSubusers from '@/pages/server/subusers/ServerSubusers.tsx';
+import ServerTransfer from '@/pages/server/transfer/ServerTransfer.tsx'; // plugged.host
 import { getTranslations } from '@/providers/TranslationProvider.tsx';
+import { useGlobalStore } from '@/stores/global.ts';
 
 const ServerConsole = lazy(() => import('@/pages/server/console/ServerConsole.tsx'));
 const PopoutConsole = lazy(() => import('@/pages/server/console/PopoutConsole.tsx'));
@@ -147,6 +150,15 @@ const routes: ServerRouteDefinition[] = [
     path: '/settings',
     element: ServerSettings,
     permission: ['settings.*'],
+  },
+  // plugged.host: players moving their server (docs/features/transfers.md)
+  {
+    name: () => getTranslations().t('pages.server.transfer.title', {}),
+    icon: faRightLeft,
+    path: '/transfer',
+    element: ServerTransfer,
+    permission: 'settings.transfer',
+    filter: () => !!useGlobalStore.getState().settings.games?.transferEnabled,
   },
   {
     name: () => getTranslations().t('pages.server.activity.title', {}),
