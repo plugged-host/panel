@@ -84,6 +84,18 @@ const serdeDefaultResponseProperties: Record<string, string[]> = {
 }
 
 const openapi: oas31.OpenAPIObject = JSON.parse(fs.readFileSync('../openapi.json', 'utf-8'))
+
+// plugged.host: plugged-host/wings adds `build.cpu_weight` (the container's CPU shares) and
+// `build.cpu_burst` (the borrowed part of the CPU limit); keep them when the client is generated from
+// upstream's spec
+{
+    const build = (openapi.components?.schemas?.ServerConfiguration as oas31.SchemaObject | undefined)?.properties?.build as oas31.SchemaObject | undefined
+    for (const field of ['cpu_weight', 'cpu_burst']) {
+        if (build?.properties && !build.properties[field] && build.properties.io_weight) {
+            build.properties[field] = structuredClone(build.properties.io_weight)
+        }
+    }
+}
 const output = fs.createWriteStream('../src/lib.rs', { flags: 'w' })
 
 output.write(`//! The Calagopus Panel Wings API library.

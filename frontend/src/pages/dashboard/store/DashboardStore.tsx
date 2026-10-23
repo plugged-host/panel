@@ -63,6 +63,7 @@ export default function DashboardStore() {
       const updated = await purchaseResource(buying.entry.resource, buying.offer.steps, buying.offer.price);
       queryClient.setQueryData(queryKeys.user.store(), updated);
       queryClient.invalidateQueries({ queryKey: queryKeys.user.membership() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.user.balance() });
       queryClient.invalidateQueries({ queryKey: queryKeys.user.servers.createOptions() });
       addToast(
         t(`${page}.toast.bought`, {

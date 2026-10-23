@@ -53,6 +53,7 @@ export default function DashboardMembership() {
     queryClient.setQueryData(queryKeys.user.membership(), economy);
     queryClient.invalidateQueries({ queryKey: queryKeys.user.tokens() });
     queryClient.invalidateQueries({ queryKey: queryKeys.user.store() });
+    queryClient.invalidateQueries({ queryKey: queryKeys.user.balance() });
     queryClient.invalidateQueries({ queryKey: queryKeys.user.servers.createOptions() });
     setBuying(null);
   };
@@ -116,6 +117,11 @@ export default function DashboardMembership() {
                   <Text size='sm' c='dimmed'>
                     {t(`${page}.plus.description`, { name: economy.plusName })}
                   </Text>
+                  {economy.plusBurstCores > 0 && (
+                    <Text size='sm' c='dimmed'>
+                      {t(`${page}.burst`, { cpu: economy.plusBurstCores * 100 })}
+                    </Text>
+                  )}
                   {economy.plusSince ? (
                     <Text size='sm'>
                       {t(`${page}.plus.since`, { name: economy.plusName })}{' '}
@@ -143,6 +149,11 @@ export default function DashboardMembership() {
                         })
                       : t(`${page}.plusplus.description`, { name: economy.plusplusName, plus: economy.plusName })}
                   </Text>
+                  {economy.plusplusBurstCores > 0 && (
+                    <Text size='sm' c='dimmed'>
+                      {t(`${page}.burst`, { cpu: economy.plusplusBurstCores * 100 })}
+                    </Text>
+                  )}
                   {economy.plusplusUntil && (
                     <Text size='sm'>
                       {t(`${page}.plusplus.until`, { name: economy.plusplusName })}{' '}

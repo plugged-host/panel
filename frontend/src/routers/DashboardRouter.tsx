@@ -8,6 +8,7 @@ import Spinner from '@/elements/feedback/Spinner.tsx';
 import Container from '@/elements/layout/Container.tsx';
 import ServerSwitcher from '@/elements/navigation/ServerSwitcher.tsx';
 import Sidebar from '@/elements/navigation/Sidebar.tsx';
+import SidebarBalance from '@/elements/navigation/SidebarBalance.tsx'; // plugged.host
 import QuickActionsTrigger from '@/elements/quickActions/QuickActionsTrigger.tsx';
 import { isAdmin } from '@/lib/auth/permissions.ts';
 import { resolveString } from '@/lib/lazy.ts';
@@ -101,6 +102,8 @@ export default function DashboardRouter({ isNormal }: { isNormal: boolean }) {
           }
           footer={
             <>
+              {/* plugged.host: the usage card and balances */}
+              {!user?.suspended && <SidebarBalance />}
               {!user?.suspended && <ServerSwitcher className='mb-2' />}
               <Sidebar.Footer />
             </>

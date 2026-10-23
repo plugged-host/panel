@@ -643,6 +643,7 @@
       },
       "stat": {
         "cpu": "CPU",
+        "cpuWithBurst": "{base} + {burst} Burst",
         "cpuLoad": "CPU-Last",
         "memoryUsage": "Arbeitsspeicher-Nutzung",
         "memoryLoad": "RAM-Last",
@@ -717,7 +718,10 @@
           "installing": "Wird installiert",
           "installFailed": "Installation fehlgeschlagen",
           "backupRestoreFailed": "Backup-Wiederherstellung fehlgeschlagen",
-          "resourcesUnavailable": "Ressourcennutzung nicht verfügbar"
+          "resourcesUnavailable": "Ressourcennutzung nicht verfügbar",
+          "parking": "Wird geparkt",
+          "parked": "Geparkt",
+          "restoring": "Wird wiederhergestellt"
         }
       },
       "enum": {
@@ -843,7 +847,9 @@
           "plus": "Mitgliedschaft",
           "plusplus": "Mitgliedschaft",
           "admin": "Von einem Admin geändert",
-          "earn": "Gesponserter Link"
+          "earn": "Gesponserter Link",
+          "limbo": "Server wiederhergestellt",
+          "limboRefund": "Wiederherstellung erstattet"
         }
       },
       "chartLegend": {
@@ -949,6 +955,15 @@
             "title": "Abmelden",
             "content": "Bist du sicher, dass du dich abmelden möchtest?"
           }
+        },
+        "balance": {
+          "cpu": "CPU",
+          "memory": "RAM",
+          "disk": "Speicher",
+          "openStore": "Mehr im Ressourcen-Shop holen",
+          "tokens": "Tokens",
+          "credits": "Credits",
+          "openTokens": "Tokens-Seite öffnen"
         }
       },
       "welcomeTour": {
@@ -2352,6 +2367,7 @@
           "title": "Mitgliedschaft",
           "balance": "Du hast {tokens} Tokens und {credits} Credits.",
           "disabled": "Mitgliedschaften sind ausgeschaltet.",
+          "burst": "Burst: Jeder deiner Server darf bis zu {cpu} % mehr CPU nutzen als sein Limit, solange sein Node sie übrig hat.",
           "plus": {
             "description": "{name} gehört dir nach dem Kauf dauerhaft: Es öffnet die {name}-Standorte und stellt deine Server in der Startwarteschlange vor kostenlose.",
             "since": "Du hast {name} seit",
@@ -3178,6 +3194,62 @@
                 }
               }
             },
+            "queue": {
+              "title": "Startwarteschlange",
+              "page": {
+                "title": "Einstellungen der Startwarteschlange",
+                "form": {
+                  "enabled": "Starts auf ausgelasteten Nodes einreihen",
+                  "enabledDescription": "Der Start eines Spielers wartet, bis er dran ist, solange die Node des Servers über der Grenze liegt oder dort schon andere warten. Admins warten nie.",
+                  "includeRestart": "Neustarts einreihen",
+                  "includeRestartDescription": "Auch ein Neustart wartet; der Server läuft weiter, bis er dran ist.",
+                  "linePercent": "Grenze (%)",
+                  "linePercentDescription": "Arbeitsspeicher- oder CPU-Auslastung, ab der eine Node Starts zurückhält. Auf einer kleinen Node liegt sie um den Wert aus den Platzierungseinstellungen tiefer.",
+                  "maxWait": "Längste Wartezeit (Sekunden)",
+                  "maxWaitDescription": "Danach startet der Server, egal wie ausgelastet die Node ist.",
+                  "releaseInterval": "Sekunden zwischen Starts",
+                  "releaseIntervalDescription": "Eine Node lässt einen Start nach dem anderen durch und wartet so lange, bevor sie für den nächsten gemessen wird.",
+                  "passMinutes": "Freipass (Minuten)",
+                  "passMinutesDescription": "Nachdem ein Start durchgelassen wurde, wartet der nächste Start des Servers innerhalb dieser Zeit nicht.",
+                  "move": "Weg von einer ausgelasteten Node",
+                  "moveOffer": "Umzug anbieten",
+                  "moveOfferDescription": "Die Warteschlangenseite verlinkt auf „Server umziehen“, wenn Umzüge an sind und der Benutzer diesen Server umziehen darf.",
+                  "moveRequiresMembership": "Nur für Mitglieder",
+                  "moveRequiresMembershipDescription": "Nur Konten mit einer Mitgliedschaft sehen das Angebot."
+                },
+                "toast": {
+                  "updated": "Einstellungen der Startwarteschlange aktualisiert."
+                }
+              }
+            },
+            "limbo": {
+              "title": "Limbo",
+              "page": {
+                "title": "Limbo-Einstellungen",
+                "form": {
+                  "enabled": "Ungenutzte Server parken",
+                  "enabledDescription": "Ein Server, den eine Weile niemand benutzt hat, wird gestoppt, später außerhalb seines Nodes gesichert und von ihm entfernt. Der Besitzer stellt ihn auf der Serverseite wieder her. Server von Admins bleiben unberührt.",
+                  "stopHours": "Stoppen nach (Stunden)",
+                  "stopHoursDescription": "Ein laufender Server, den so lange niemand benutzt hat, wird gestoppt.",
+                  "parkHours": "Parken nach (Stunden)",
+                  "parkHoursDescription": "Ein gestoppter Server, den so lange niemand benutzt hat, wird gesichert und von seinem Node entfernt.",
+                  "maxPerRun": "Server pro Minute",
+                  "maxPerRunDescription": "Wie viele Server pro Minute höchstens gestoppt und wie viele geparkt werden.",
+                  "exemptMembers": "Mitglieder verschonen",
+                  "exemptMembersDescription": "Server von Konten mit Mitgliedschaft werden nie gestoppt oder geparkt.",
+                  "cost": "Wiederherstellen",
+                  "costEarly": "Frühe Wiederherstellung (Tokens)",
+                  "costEarlyDescription": "Was eine Wiederherstellung kurz nach dem Parken kostet. 0 ist kostenlos.",
+                  "costLate": "Späte Wiederherstellung (Tokens)",
+                  "costLateDescription": "Was eine Wiederherstellung danach kostet. 0 ist kostenlos.",
+                  "costWindowHours": "Frühes Zeitfenster (Stunden)",
+                  "costWindowHoursDescription": "Wie lange nach dem Parken der frühe Preis gilt."
+                },
+                "toast": {
+                  "updated": "Limbo-Einstellungen aktualisiert."
+                }
+              }
+            },
             "tour": {
               "title": "Willkommenstour",
               "page": {
@@ -3248,6 +3320,10 @@
                   "plusplusCreditDays": "Zweite Mitgliedschaft: Tage für Credits",
                   "plusplusCpu": "Zweite Mitgliedschaft: zusätzliche CPU (%)",
                   "plusplusCpuDescription": "Wird zur CPU des Kontos addiert, solange sie läuft. Läuft sie ab, geben die Server sie gleichmäßig zurück und verlassen die Premium-Standorte.",
+                  "plusBurstCores": "Erste Mitgliedschaft: Burst-Kerne",
+                  "plusBurstCoresDescription": "CPU über dem Limit jedes Servers, 100 % pro Kern, genutzt solange der Node sie übrig hat. Außerhalb des Kontingents und des Shops; bezahlte CPU gewinnt, wenn der Node ausgelastet ist.",
+                  "plusplusBurstCores": "Zweite Mitgliedschaft: Burst-Kerne",
+                  "plusplusBurstCoresDescription": "Die Gesamtzahl, solange sie läuft, nicht zu denen der ersten Mitgliedschaft addiert.",
                   "storeSection": "Preise",
                   "storeNote": "Ohne noprofit.space: was ein Schritt kostet und wo die Preise steigen. Mit noprofit.space gelten dessen Shop und Preise.",
                   "cpuStep": "CPU-Schritt (%)",
@@ -9154,6 +9230,50 @@
             "toast": {
               "deleted": "Server gelöscht."
             }
+          }
+        },
+        "queue": {
+          "title": "Startwarteschlange",
+          "description": "Die Node, auf der dieser Server läuft, ist gerade ausgelastet, deshalb starten Server nacheinander. Deiner startet von selbst, sobald die Node Platz hat; du kannst diese Seite verlassen.",
+          "position": "Platz {position} in der Warteschlange",
+          "waited": "Wartet seit {waited}.",
+          "remaining": "Er startet spätestens in {remaining}.",
+          "membership": "Mit {name} kommen deine Starts vor alle, die es nicht haben.",
+          "move": "Oder zieh den Server auf eine Node mit Platz um. Er bekommt eine neue Adresse und startet dort, sobald der Umzug fertig ist.",
+          "notWaiting": "Dieser Server wartet nicht in der Startwarteschlange.",
+          "button": {
+            "membership": "Hol dir {name}",
+            "move": "Server umziehen",
+            "leave": "Warteschlange verlassen",
+            "console": "Zurück zur Konsole"
+          },
+          "toast": {
+            "left": "Der Server hat die Startwarteschlange verlassen.",
+            "released": "Dein Server startet."
+          }
+        },
+        "limbo": {
+          "title": "Geparkter Server",
+          "parked": "Diesen Server hat eine Weile niemand benutzt, deshalb wurde er gesichert und von seinem Node entfernt, um Platz zu schaffen. Stell ihn wieder her, um weiterzuspielen; seine Dateien kommen unverändert zurück.",
+          "lastActivity": "Zuletzt benutzt:",
+          "failed": "Die letzte Wiederherstellung ist fehlgeschlagen: {error}",
+          "location": "Standort",
+          "homeFull": "Sein Node hat gerade keinen Platz. Wähle, wo er zurückkommt; dort bekommt er eine neue Adresse.",
+          "home": "Er kommt auf seinem Node mit seiner alten Adresse zurück.",
+          "cost": "Die Wiederherstellung kostet {cost} Tokens. Du hast {tokens}.",
+          "parking": "Dieser Server wird gerade geparkt: Er wird gesichert und dann von seinem Node entfernt. Behalte ihn, um das zu stoppen.",
+          "restoring": "Der Server wird auf seinem Node eingerichtet.",
+          "unpacking": "Die Dateien des Servers kommen zurück. Bei einem großen Server dauert das ein paar Minuten.",
+          "notParked": "Dieser Server ist nicht geparkt.",
+          "button": {
+            "restore": "Server wiederherstellen",
+            "restoreFor": "Für {cost} Tokens wiederherstellen",
+            "tokens": "Tokens verdienen",
+            "keep": "Server behalten"
+          },
+          "toast": {
+            "restoring": "Die Wiederherstellung hat begonnen.",
+            "restored": "Dein Server ist zurück."
           }
         },
         "transfer": {

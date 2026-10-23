@@ -423,6 +423,14 @@ mod put {
         #[schema(inline)]
         #[garde(dive)]
         economy: Option<shared::settings::economy::PayloadEconomy>,
+        // plugged.host
+        #[schema(inline)]
+        #[garde(dive)]
+        queue: Option<shared::settings::queue::PayloadQueue>,
+        // plugged.host
+        #[schema(inline)]
+        #[garde(dive)]
+        limbo: Option<shared::settings::limbo::PayloadLimbo>,
         #[schema(inline)]
         #[garde(dive)]
         updates: Option<PayloadUpdates>,
@@ -937,6 +945,14 @@ mod put {
             return ApiResponse::error(error)
                 .with_status(StatusCode::BAD_REQUEST)
                 .ok();
+        }
+        // plugged.host: the start queue
+        if let Some(queue) = data.queue {
+            queue.apply(&mut settings.queue);
+        }
+        // plugged.host: limbo
+        if let Some(limbo) = data.limbo {
+            limbo.apply(&mut settings.limbo);
         }
 
         if !settings.app.password_login_enabled {

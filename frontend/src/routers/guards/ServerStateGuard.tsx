@@ -8,7 +8,9 @@ import { ServerCan } from '@/elements/Can.tsx';
 import ServerContentContainer from '@/elements/containers/ServerContentContainer.tsx';
 import ScreenBlock from '@/elements/feedback/ScreenBlock.tsx';
 import ConfirmationModal from '@/elements/modals/ConfirmationModal.tsx';
+import { isInLimbo } from '@/lib/domain/limbo.ts'; // plugged.host
 import { isConflictingState, serverStatusInfo } from '@/lib/domain/server.ts';
+import ServerLimbo from '@/pages/server/limbo/ServerLimbo.tsx'; // plugged.host
 import { useAdminCan } from '@/plugins/usePermissions.ts';
 import { useAuth } from '@/providers/AuthProvider.tsx';
 import { useToast } from '@/providers/ToastProvider.tsx';
@@ -69,6 +71,11 @@ export default function ServerStateGuard() {
         addToast(httpErrorToHuman(msg), 'error');
       });
   };
+
+  // plugged.host: a parked server (or one on its way) shows its limbo page on every path
+  if (isInLimbo(server.limboState) && !server.isSuspended) {
+    return <ServerLimbo />;
+  }
 
   if (
     (isConflictingState(server, user) &&

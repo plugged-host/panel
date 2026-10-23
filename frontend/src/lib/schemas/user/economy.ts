@@ -1,6 +1,7 @@
 // plugged.host: credits, tokens, the memberships and the Resource Store (shared/src/economy.rs,
 // shared/src/earn.rs, docs/features/economy.md)
 import { z } from 'zod';
+import { serverCreateAllowanceSchema } from '@/lib/schemas/server/create.ts';
 
 export const economySourceSchema = z.enum(['panel', 'noprofit']);
 
@@ -61,6 +62,9 @@ export const userEconomySchema = z.object({
     }),
   ),
   plusplusCpu: z.number(),
+  plusBurstCores: z.number(),
+  plusplusBurstCores: z.number(),
+  burstCores: z.number(),
 });
 
 export const earnProviderSchema = z.enum(['linkvertise', 'vylo']);
@@ -105,4 +109,11 @@ export const adminUserEconomySchema = userEconomySchema.extend({
   plusplusPurchases: z.number(),
   creditTransactions: z.array(economyTransactionSchema),
   tokenTransactions: z.array(economyTransactionSchema),
+});
+
+// the sidebar's card (shared/src/economy.rs ApiBalance)
+export const userBalanceSchema = z.object({
+  credits: z.number().nullable(),
+  tokens: z.number().nullable(),
+  allowance: serverCreateAllowanceSchema,
 });

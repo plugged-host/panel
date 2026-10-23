@@ -1,0 +1,1 @@
+ALTER TABLE "users" ADD COLUMN "burst_cores" smallint DEFAULT 0 NOT NULL;

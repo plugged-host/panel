@@ -188,6 +188,7 @@ pub async fn resize(
             COALESCE(SUM(servers.disk), 0)::BIGINT AS used_disk
         FROM nodes
         LEFT JOIN servers ON servers.node_uuid = nodes.uuid
+            AND servers.limbo_state IS DISTINCT FROM 'parked'
         WHERE nodes.uuid = $1
         GROUP BY nodes.uuid
         "#,

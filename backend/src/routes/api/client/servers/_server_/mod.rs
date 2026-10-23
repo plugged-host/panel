@@ -31,7 +31,9 @@ mod files;
 mod logs;
 // plugged.host: mounts removed (docs/upstream.md)
 // mod mounts;
+mod limbo; // plugged.host
 mod power;
+mod queue; // plugged.host
 mod resources;
 mod schedules;
 mod settings;
@@ -82,6 +84,23 @@ pub async fn auth(
         && !(server.suspended && permissions.has_admin_permission("servers.update").is_ok())
     {
         return Ok(ApiResponse::error(message)
+            .with_status(StatusCode::CONFLICT)
+            .into_response());
+    }
+
+    // plugged.host: a server limbo parks has no files on a node: its page, its limbo page, a
+    // start (held by limbo's start gate) and its activity stay (docs/features/limbo.md)
+    const LIMBO_PATHS: &[&str] = &[
+        "/api/client/servers/{server}",
+        "/api/client/servers/{server}/limbo",
+        "/api/client/servers/{server}/power",
+        "/api/client/servers/{server}/activity",
+    ];
+    if let Some(limbo) = server.limbo
+        && limbo.away()
+        && !LIMBO_PATHS.contains(&matched_path.as_str())
+    {
+        return Ok(ApiResponse::error("server is parked")
             .with_status(StatusCode::CONFLICT)
             .into_response());
     }
@@ -149,7 +168,9 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         .nest("/logs", logs::router(state))
         .nest("/websocket", websocket::router(state))
         .nest("/command", command::router(state))
+        .nest("/limbo", limbo::router(state)) // plugged.host
         .nest("/power", power::router(state))
+        .nest("/queue", queue::router(state)) // plugged.host
         .nest("/files", files::router(state))
         .nest("/settings", settings::router(state))
         .nest("/startup", startup::router(state))

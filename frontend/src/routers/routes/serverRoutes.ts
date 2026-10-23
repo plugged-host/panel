@@ -21,7 +21,9 @@ import ServerDatabases from '@/pages/server/databases/ServerDatabases.tsx';
 import FileSqliteQuery from '@/pages/server/files/editor/FileSqliteQuery.tsx';
 import ServerFiles from '@/pages/server/files/ServerFiles.tsx';
 import ServerFilesTrash from '@/pages/server/files/trash/ServerFilesTrash.tsx';
+import ServerLimbo from '@/pages/server/limbo/ServerLimbo.tsx'; // plugged.host
 import ServerNetwork from '@/pages/server/network/ServerNetwork.tsx';
+import ServerQueue from '@/pages/server/queue/ServerQueue.tsx'; // plugged.host
 import ScheduleView from '@/pages/server/schedules/ScheduleView.tsx';
 import ServerSchedules from '@/pages/server/schedules/ServerSchedules.tsx';
 import ServerSettings from '@/pages/server/settings/ServerSettings.tsx';
@@ -159,6 +161,20 @@ const routes: ServerRouteDefinition[] = [
     element: ServerTransfer,
     permission: 'settings.transfer',
     filter: () => !!useGlobalStore.getState().settings.games?.transferEnabled,
+  },
+  // plugged.host: a start waiting for room on a busy node (docs/features/start-queue.md)
+  {
+    name: undefined,
+    path: '/queue',
+    element: ServerQueue,
+    permission: ['control.start', 'control.restart'],
+  },
+  // plugged.host: a parked server and its restore (docs/features/limbo.md)
+  {
+    name: undefined,
+    path: '/limbo',
+    element: ServerLimbo,
+    permission: ['control.start', 'control.restart'],
   },
   {
     name: () => getTranslations().t('pages.server.activity.title', {}),

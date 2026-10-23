@@ -24,6 +24,7 @@ import ContextMenu, { ContextMenuItem } from '@/elements/overlays/ContextMenu.ts
 import Tooltip from '@/elements/overlays/Tooltip.tsx';
 import ScrollingText from '@/elements/ScrollingText.tsx';
 import RedactedText from '@/elements/typography/RedactedText.tsx';
+import { isInLimbo } from '@/lib/domain/limbo.ts'; // plugged.host
 import { formatAllocation, serverStatusInfo, statusToColor } from '@/lib/domain/server.ts';
 import { bytesToString, mbToBytes } from '@/lib/format/size.ts';
 import { serverPowerAction, serverSchema } from '@/lib/schemas/server/server.ts';
@@ -96,30 +97,44 @@ export default function ServerItem({
   const diskLimit = server.limits.disk !== 0 ? bytesToString(mbToBytes(server.limits.disk)) : t('common.unlimited', {});
   const memoryLimit =
     server.limits.memory !== 0 ? bytesToString(mbToBytes(server.limits.memory)) : t('common.unlimited', {});
-  const cpuLimit = server.limits.cpu !== 0 ? `${server.limits.cpu}%` : t('common.unlimited', {});
+  // plugged.host: burst cores above the paid CPU
+  const cpuLimit =
+    server.limits.cpu === 0
+      ? t('common.unlimited', {})
+      : server.limits.burstCpu > 0
+        ? t('common.stat.cpuWithBurst', { base: `${server.limits.cpu}%`, burst: `${server.limits.burstCpu}%` })
+        : `${server.limits.cpu}%`;
 
   // plugged.host: the card's state line and meters (Theme v2's ThemeV2ServerEntry).
+  const limbo = isInLimbo(server.limboState) ? server.limboState : null; // plugged.host: docs/features/limbo.md
   const stateLabel = server.isSuspended
     ? t('common.server.state.suspended', {})
-    : server.isTransferring
-      ? t('common.server.state.transferring', {})
-      : server.nodeMaintenanceEnabled
-        ? t('common.server.state.nodeMaintenance', {})
-        : server.status
-          ? serverStatusInfo[server.status].label()
-          : stats
-            ? t(`common.enum.serverState.${stats.state}`, {})
-            : statsUnavailable
-              ? t('common.server.state.resourcesUnavailable', {})
-              : t('common.enum.serverState.unknown', {});
+    : limbo
+      ? t(`common.server.state.${limbo === 'parking' || limbo === 'parked' ? limbo : 'restoring'}`, {})
+      : server.isTransferring
+        ? t('common.server.state.transferring', {})
+        : server.nodeMaintenanceEnabled
+          ? t('common.server.state.nodeMaintenance', {})
+          : server.status
+            ? serverStatusInfo[server.status].label()
+            : stats
+              ? t(`common.enum.serverState.${stats.state}`, {})
+              : statsUnavailable
+                ? t('common.server.state.resourcesUnavailable', {})
+                : t('common.enum.serverState.unknown', {});
   const stateFailed =
     server.isSuspended ||
     server.nodeMaintenanceEnabled ||
     (!!server.status && serverStatusInfo[server.status].failed) ||
-    (!server.status && !stats && statsUnavailable);
-  const stateBusy = !stateFailed && (server.isTransferring || !!server.status || (!stats && !statsUnavailable));
+    (!server.status && !stats && statsUnavailable && !limbo);
+  const stateBusy =
+    !stateFailed &&
+    (server.isTransferring ||
+      !!server.status ||
+      (!!limbo && limbo !== 'parked') ||
+      (!stats && !statsUnavailable && !limbo));
 
-  const showUsage = !!stats && !server.isSuspended && !server.isTransferring && !server.status;
+  const showUsage = !!stats && !server.isSuspended && !server.isTransferring && !server.status && !limbo;
   const meter = (label: string, used: number, limit: number, format: (value: number) => string, unlimited: string) => {
     const percent = showUsage && limit > 0 ? Math.min(100, Math.max(0, (used / limit) * 100)) : 0;
 
@@ -132,7 +147,17 @@ export default function ServerItem({
     };
   };
   const meters = [
-    meter(t('common.stat.cpu', {}), stats?.cpuAbsolute ?? 0, server.limits.cpu, (v) => `${v.toFixed(2)}%`, cpuLimit),
+    {
+      ...meter(
+        t('common.stat.cpu', {}),
+        stats?.cpuAbsolute ?? 0,
+        server.limits.cpu + server.limits.burstCpu, // plugged.host
+        (v) => `${v.toFixed(2)}%`,
+        cpuLimit,
+      ),
+      // plugged.host: says the burst apart
+      ...(server.limits.burstCpu > 0 ? { limit: cpuLimit } : {}),
+    },
     meter(
       t('common.stat.memoryUsage', {}),
       stats?.memoryBytes ?? 0,

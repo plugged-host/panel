@@ -1,6 +1,7 @@
 import {
   faAt,
   faBan,
+  faBoxArchive, // plugged.host
   faCircleQuestion, // plugged.host
   faCircleUp,
   faClockRotateLeft, // plugged.host
@@ -11,6 +12,7 @@ import {
   faGamepad,
   faHandshake,
   faHeartPulse,
+  faHourglassHalf, // plugged.host
   faLayerGroup,
   faLock, // plugged.host
   faMedal, // plugged.host
@@ -48,9 +50,11 @@ import CaptchaContainer from './captcha/CaptchaContainer.tsx';
 import EconomyContainer from './economy/EconomyContainer.tsx'; // plugged.host
 import EmailContainer from './email/EmailContainer.tsx';
 import GamesContainer from './games/GamesContainer.tsx'; // plugged.host
+import LimboContainer from './limbo/LimboContainer.tsx'; // plugged.host
 import MetadataContainer from './metadata/MetadataContainer.tsx';
 import NoprofitContainer from './noprofit/NoprofitContainer.tsx';
 import PlacementContainer from './placement/PlacementContainer.tsx'; // plugged.host
+import QueueContainer from './queue/QueueContainer.tsx'; // plugged.host
 import RatelimitsContainer from './ratelimits/RatelimitsContainer.tsx';
 import RecoveryContainer from './recovery/RecoveryContainer.tsx'; // plugged.host
 import ServerContainer from './server/ServerContainer.tsx';
@@ -187,6 +191,18 @@ export const settingsGroups: SettingsGroup[] = [
         icon: faScaleBalanced,
         path: '/placement',
         element: <PlacementContainer />,
+      },
+      {
+        name: t('pages.admin.settings.tabs.queue.title', {}),
+        icon: faHourglassHalf,
+        path: '/queue',
+        element: <QueueContainer />,
+      },
+      {
+        name: t('pages.admin.settings.tabs.limbo.title', {}),
+        icon: faBoxArchive,
+        path: '/limbo',
+        element: <LimboContainer />,
       },
       {
         name: t('pages.admin.settings.tabs.recovery.title', {}),

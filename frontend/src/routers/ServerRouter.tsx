@@ -14,10 +14,12 @@ import Spinner from '@/elements/feedback/Spinner.tsx';
 import Container from '@/elements/layout/Container.tsx';
 import ServerSwitcher from '@/elements/navigation/ServerSwitcher.tsx';
 import Sidebar from '@/elements/navigation/Sidebar.tsx';
+import SidebarBalance from '@/elements/navigation/SidebarBalance.tsx'; // plugged.host
 import QuickActionsTrigger from '@/elements/quickActions/QuickActionsTrigger.tsx';
 import ServerQuickActions from '@/elements/quickActions/ServerQuickActions.tsx';
 import ServerStatusIndicator from '@/elements/ServerStatusIndicator.tsx';
 import { isAdmin } from '@/lib/auth/permissions.ts';
+import { isInLimbo } from '@/lib/domain/limbo.ts'; // plugged.host
 import { getDisabledServerRoutePaths, isConflictingState } from '@/lib/domain/server.ts';
 import { resolveString } from '@/lib/lazy.ts';
 import { queryKeys } from '@/lib/queryKeys.ts';
@@ -61,7 +63,7 @@ export default function ServerRouter({ isNormal }: { isNormal: boolean }) {
   const { data: announcements } = useResource({
     queryKey: queryKeys.server(server.uuid).announcements.all(),
     queryFn: () => getServerAnnouncements(server.uuid),
-    enabled: !!server.uuid && !isConflictingState(server, user),
+    enabled: !!server.uuid && !isConflictingState(server, user) && !isInLimbo(server.limboState), // plugged.host
   });
 
   useEffect(() => {
@@ -187,6 +189,8 @@ export default function ServerRouter({ isNormal }: { isNormal: boolean }) {
           }
           footer={
             <>
+              {/* plugged.host: the usage card and balances */}
+              {!user?.suspended && <SidebarBalance />}
               {!user?.suspended && <ServerSwitcher isServer className='mb-2' />}
               <Sidebar.Footer />
             </>
@@ -286,16 +290,21 @@ export default function ServerRouter({ isNormal }: { isNormal: boolean }) {
             <Spinner.Centered />
           ) : server.uuid ? (
             <>
-              <WebsocketHandler />
-              <WebsocketListener />
-              <ServerStatusPoller />
-              {isNormal && <ServerStatusToast />}
+              {/* plugged.host: a parked server has no Wings server to talk to */}
+              {!isInLimbo(server.limboState) && (
+                <>
+                  <WebsocketHandler />
+                  <WebsocketListener />
+                  <ServerStatusPoller />
+                  {isNormal && <ServerStatusToast />}
+                </>
+              )}
               <ExtensionSlot
                 components={window.extensionContext.extensionRegistry.pages.server.prependedComponents}
                 name='server-prepended-component'
               />
 
-              <WebsocketStatusBanner />
+              {!isInLimbo(server.limboState) && <WebsocketStatusBanner />}
 
               <Suspense fallback={<Spinner.Centered />}>
                 <Routes>

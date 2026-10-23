@@ -415,6 +415,30 @@ export const adminSettingsPlacementSchema = z.object({
   unreachableAfter: z.number().int().min(1).max(60),
 });
 
+// plugged.host: the start queue (shared/src/settings/queue.rs, docs/features/start-queue.md)
+export const adminSettingsQueueSchema = z.object({
+  enabled: z.boolean(),
+  includeRestart: z.boolean(),
+  linePercent: z.number().int().min(1).max(100),
+  maxWait: z.number().int().min(30).max(86400),
+  releaseInterval: z.number().int().min(0).max(3600),
+  passMinutes: z.number().int().min(0).max(1440),
+  moveOffer: z.boolean(),
+  moveRequiresMembership: z.boolean(),
+});
+
+// plugged.host: idle servers stopped and parked (shared/src/settings/limbo.rs, docs/features/limbo.md)
+export const adminSettingsLimboSchema = z.object({
+  enabled: z.boolean(),
+  stopHours: z.number().int().min(1).max(8760),
+  parkHours: z.number().int().min(1).max(8760),
+  maxPerRun: z.number().int().min(1).max(100),
+  costEarly: z.number().int().min(0).max(100000),
+  costLate: z.number().int().min(0).max(100000),
+  costWindowHours: z.number().int().min(0).max(8760),
+  exemptMembers: z.boolean(),
+});
+
 // plugged.host: deleted servers' copies and node failover (shared/src/settings/recovery.rs, docs/features/backups-page.md, failover.md)
 export const adminSettingsRecoverySchema = z.object({
   deletedHoldDays: z.number().int().min(0).max(90),
@@ -438,6 +462,8 @@ export const adminSettingsEconomySchema = z.object({
   plusplusCredits: z.number().int().min(0).max(1_000_000),
   plusplusCreditDays: z.number().int().min(1).max(365),
   plusplusCpu: z.number().int().min(0).max(1000),
+  plusBurstCores: z.number().int().min(0).max(16),
+  plusplusBurstCores: z.number().int().min(0).max(16),
   cpuStep: z.number().int().min(0).max(10_000),
   cpuPrice: z.number().int().min(0).max(1_000_000),
   memoryStep: z.number().int().min(0).max(1_048_576),
@@ -514,5 +540,7 @@ export const adminSettingsSchema = z.object({
   tour: adminSettingsTourSchema, // plugged.host
   recovery: adminSettingsRecoverySchema, // plugged.host
   economy: adminSettingsEconomySchema, // plugged.host
+  queue: adminSettingsQueueSchema, // plugged.host
+  limbo: adminSettingsLimboSchema, // plugged.host
   updates: adminSettingsUpdatesSchema,
 });

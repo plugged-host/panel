@@ -462,6 +462,7 @@ const baseTranslations = defineTranslations({
       },
       stat: {
         cpu: 'CPU',
+        cpuWithBurst: '{base} + {burst} burst',
         cpuLoad: 'CPU Load',
         memoryUsage: 'Memory Usage',
         memoryLoad: 'Memory Load',
@@ -539,6 +540,10 @@ const baseTranslations = defineTranslations({
           installFailed: 'Install Failed',
           backupRestoreFailed: 'Backup Restore Failed',
           resourcesUnavailable: 'Resource Usage Unavailable',
+          // plugged.host
+          parking: 'Being Parked',
+          parked: 'Parked',
+          restoring: 'Being Restored',
         },
       },
       enum: {
@@ -668,6 +673,8 @@ const baseTranslations = defineTranslations({
           plusplus: 'Membership',
           admin: 'Changed by an admin',
           earn: 'Sponsored link',
+          limbo: 'Server restored',
+          limboRefund: 'Restore refunded',
         },
       },
       chartLegend: {
@@ -776,6 +783,16 @@ const baseTranslations = defineTranslations({
             title: 'Logout',
             content: 'Are you sure you want to log out?',
           },
+        },
+        // plugged.host: the usage card and balances (elements/navigation/SidebarBalance.tsx)
+        balance: {
+          cpu: 'CPU',
+          memory: 'RAM',
+          disk: 'Disk',
+          openStore: 'Get more in the Resource Store',
+          tokens: 'tokens',
+          credits: 'credits',
+          openTokens: 'Open the Tokens page',
         },
       },
       // plugged.host
@@ -2228,6 +2245,8 @@ const baseTranslations = defineTranslations({
           title: 'Membership',
           balance: 'You have {tokens} tokens and {credits} credits.',
           disabled: 'Memberships are turned off.',
+          burst:
+            'Burst: each of your servers may use up to {cpu}% more CPU than its limit while its node has it to spare.',
           plus: {
             description:
               '{name} is yours for good once bought: it opens the {name} locations and puts your servers ahead of free ones in the start queue.',
@@ -3130,6 +3149,71 @@ const baseTranslations = defineTranslations({
               },
             },
             // plugged.host
+            queue: {
+              title: 'Start Queue',
+              page: {
+                title: 'Start Queue Settings',
+                form: {
+                  enabled: 'Queue Starts on Busy Nodes',
+                  enabledDescription:
+                    "A player's start waits its turn while the server's node is over the line or others are already waiting there. Admins never wait.",
+                  includeRestart: 'Queue Restarts',
+                  includeRestartDescription: 'A restart waits too; the server keeps running until its turn.',
+                  linePercent: 'Line (%)',
+                  linePercentDescription:
+                    "Memory or CPU use above which a node holds starts back. On a small node it is lower by the placement settings' offset.",
+                  maxWait: 'Longest Wait (Seconds)',
+                  maxWaitDescription: 'After this a start goes out however busy the node is.',
+                  releaseInterval: 'Seconds Between Starts',
+                  releaseIntervalDescription:
+                    'A node lets one start go at a time and waits this long before it is measured for the next.',
+                  passMinutes: 'Free Pass (Minutes)',
+                  passMinutesDescription:
+                    "After a start was let go, the server's next start within this time does not wait.",
+                  move: 'Moving Off a Busy Node',
+                  moveOffer: 'Offer a Move',
+                  moveOfferDescription:
+                    'The queue page links to Move Server when moving servers is on and the user may move this one.',
+                  moveRequiresMembership: 'Only for Members',
+                  moveRequiresMembershipDescription: 'Only accounts with a membership see the offer.',
+                },
+                toast: {
+                  updated: 'Start queue settings updated.',
+                },
+              },
+            },
+            // plugged.host
+            limbo: {
+              title: 'Limbo',
+              page: {
+                title: 'Limbo Settings',
+                form: {
+                  enabled: 'Park Idle Servers',
+                  enabledDescription:
+                    "A server nobody used for a while is stopped, later backed up off its node and removed from it. Its owner restores it from the server page. Admins' servers are never touched.",
+                  stopHours: 'Stop After (Hours)',
+                  stopHoursDescription: 'A running server nobody used for this long is stopped.',
+                  parkHours: 'Park After (Hours)',
+                  parkHoursDescription:
+                    'A stopped server nobody used for this long is backed up and removed from its node.',
+                  maxPerRun: 'Servers per Minute',
+                  maxPerRunDescription: 'How many servers are stopped and how many are parked each minute, at most.',
+                  exemptMembers: 'Spare Members',
+                  exemptMembersDescription: 'Servers of accounts with a membership are never stopped or parked.',
+                  cost: 'Restoring',
+                  costEarly: 'Early Restore (Tokens)',
+                  costEarlyDescription: 'What a restore costs soon after parking. 0 is free.',
+                  costLate: 'Late Restore (Tokens)',
+                  costLateDescription: 'What a restore costs after that. 0 is free.',
+                  costWindowHours: 'Early Window (Hours)',
+                  costWindowHoursDescription: 'How long after parking the early price applies.',
+                },
+                toast: {
+                  updated: 'Limbo settings updated.',
+                },
+              },
+            },
+            // plugged.host
             tour: {
               title: 'Welcome Tour',
               page: {
@@ -3213,6 +3297,11 @@ const baseTranslations = defineTranslations({
                   plusplusCpu: 'Second Membership: Extra CPU (%)',
                   plusplusCpuDescription:
                     'Added to the account’s CPU while it runs. When it runs out, its servers give it back evenly and leave the premium locations.',
+                  plusBurstCores: 'First Membership: Burst Cores',
+                  plusBurstCoresDescription:
+                    'CPU above each server’s limit, 100% per core, used while the node has it to spare. Outside the allowance and the store; paid CPU wins when the node is busy.',
+                  plusplusBurstCores: 'Second Membership: Burst Cores',
+                  plusplusBurstCoresDescription: 'The total while it runs, not added to the first membership’s.',
                   storeSection: 'Prices',
                   storeNote:
                     'Without noprofit.space: what a step costs and where prices climb. With noprofit.space its store and prices are used.',
@@ -9351,6 +9440,54 @@ const baseTranslations = defineTranslations({
             toast: {
               deleted: 'Server deleted.',
             },
+          },
+        },
+        // plugged.host
+        queue: {
+          title: 'Start Queue',
+          description:
+            'The node this server runs on is busy right now, so starts take turns. Yours goes out by itself when the node has room; you may leave this page.',
+          position: 'Place {position} in Line',
+          waited: 'Waiting for {waited}.',
+          remaining: 'It starts in {remaining} at the latest.',
+          membership: 'With {name}, your starts go ahead of everyone without it.',
+          move: 'Or move the server to a node with room. It gets a new address and starts there once it is moved.',
+          notWaiting: 'This server is not waiting in the start queue.',
+          button: {
+            membership: 'Get {name}',
+            move: 'Move Server',
+            leave: 'Leave the Queue',
+            console: 'Back to the Console',
+          },
+          toast: {
+            left: 'The server left the start queue.',
+            released: 'Your server is starting.',
+          },
+        },
+        // plugged.host
+        limbo: {
+          title: 'Parked Server',
+          parked:
+            'Nobody used this server for a while, so it was backed up and removed from its node to make room. Restore it to play again; its files come back as they were.',
+          lastActivity: 'Last used:',
+          failed: 'The last restore failed: {error}',
+          location: 'Location',
+          homeFull: 'Its node has no room right now. Pick where it comes back; it gets a new address there.',
+          home: 'It comes back on its node with its old address.',
+          cost: 'Restoring costs {cost} tokens. You have {tokens}.',
+          parking: 'This server is being parked: it is backed up and then removed from its node. Keep it to stop that.',
+          restoring: 'The server is being set up on its node.',
+          unpacking: "The server's files are coming back. This takes a few minutes for a big server.",
+          notParked: 'This server is not parked.',
+          button: {
+            restore: 'Restore Server',
+            restoreFor: 'Restore for {cost} Tokens',
+            tokens: 'Earn Tokens',
+            keep: 'Keep the Server',
+          },
+          toast: {
+            restoring: 'The restore started.',
+            restored: 'Your server is back.',
           },
         },
         // plugged.host

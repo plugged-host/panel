@@ -31,7 +31,7 @@ export default function ServerStats() {
     series: useMemo(() => [t('common.stat.cpuLoad', {})], [t]),
     format: formatPercent,
     min: 10,
-    limit: server.limits.cpu > 0 ? server.limits.cpu : null,
+    limit: server.limits.cpu > 0 ? server.limits.cpu + server.limits.burstCpu : null, // plugged.host: with burst
   });
   const memory = useStreamChart({
     series: useMemo(() => [t('common.stat.memoryLoad', {})], [t]),

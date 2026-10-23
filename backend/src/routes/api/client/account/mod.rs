@@ -5,6 +5,7 @@ mod activity;
 mod api_keys;
 mod avatar;
 mod backups; // plugged.host
+mod balance; // plugged.host
 mod command_snippets;
 mod credits; // plugged.host
 mod email;
@@ -194,6 +195,7 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         .nest("/activity", activity::router(state))
         .nest("/tour", tour::router(state)) // plugged.host
         .nest("/backups", backups::router(state)) // plugged.host
+        .nest("/balance", balance::router(state)) // plugged.host
         .nest("/credits", credits::router(state)) // plugged.host
         .nest("/tokens", tokens::router(state)) // plugged.host
         .nest("/membership", membership::router(state)) // plugged.host

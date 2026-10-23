@@ -425,6 +425,7 @@ impl Node {
                     COALESCE(SUM((memory + memory_overhead) * CASE WHEN suspended THEN $5 ELSE 1.0 END), 0)::BIGINT AS used_memory,
                     COALESCE(SUM(disk * CASE WHEN suspended THEN $5 ELSE 1.0 END), 0)::BIGINT AS used_disk
                 FROM servers
+                WHERE servers.limbo_state IS DISTINCT FROM 'parked' -- plugged.host: limbo frees the room
                 GROUP BY node_uuid
             )
             SELECT {}, COALESCE(u.used_memory, 0) AS used_memory, COALESCE(u.used_disk, 0) AS used_disk,
@@ -567,6 +568,7 @@ impl Node {
                     COALESCE(SUM((memory + memory_overhead) * CASE WHEN suspended THEN $5 ELSE 1.0 END), 0)::BIGINT AS used_memory,
                     COALESCE(SUM(disk * CASE WHEN suspended THEN $5 ELSE 1.0 END), 0)::BIGINT AS used_disk
                 FROM servers
+                WHERE servers.limbo_state IS DISTINCT FROM 'parked' -- plugged.host: limbo frees the room
                 GROUP BY node_uuid
             )
             SELECT

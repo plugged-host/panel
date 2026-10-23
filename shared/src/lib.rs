@@ -41,6 +41,7 @@ pub mod heavy;
 pub mod icons;
 pub mod ignore_list;
 pub mod jwt;
+pub mod limbo; // plugged.host
 pub mod mail;
 pub mod models;
 pub mod net;
@@ -60,6 +61,7 @@ pub mod server_software; // plugged.host
 pub mod server_transfers; // plugged.host
 pub mod settings;
 pub mod start_gates; // plugged.host
+pub mod start_queue; // plugged.host
 pub mod status; // plugged.host
 pub mod storage;
 pub mod telemetry;

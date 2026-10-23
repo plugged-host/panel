@@ -16,12 +16,32 @@ PlusPlus); in code, tables and routes they are `plus` and `plusplus`:
 | Bought with | tokens, once, kept for good | tokens or credits, for some days; needs the first; buying again adds to the time left |
 | Location tier it opens | `plus` | `premium` (and `plus`) |
 | Start queue priority | 1 | 2 |
+| Burst cores on every server | 1 | 2 (the total, not 1 + 2) |
 | More CPU | | the settings' extra CPU while it runs |
 
 A location's tier is set on the location ([node-telemetry.md](node-telemetry.md)); a tier the
 economy does not know stays closed to players (`server_creation::tier_unlocked`). Admins place
 servers anywhere. The start queue, ads and limbo use the memberships when they arrive (later
 batches of this phase).
+
+## Burst cores
+
+CPU above a server's paid limit, 100 % per core, that the server uses while its node has CPU to
+spare: a game's startup or a busy evening runs faster without buying more. Every server of the
+account gets them (servers with unlimited CPU get nothing added). They are outside the allowance,
+the store and its price curve; Admin › Nodes and the allowance count the paid CPU only.
+
+- The account's count is `users.burst_cores`, kept by `economy::sync_burst`: right after a
+  membership is bought or an admin changes one, and every minute for all accounts (a PlusPlus that
+  ran out drops to Plus's count; changed settings reach everyone). A changed count syncs the
+  account's servers to Wings, which applies the new limit to running containers.
+- Wings gets `cpu_limit` = paid + 100 × burst cores, so stock Wings already lets a server burst. The
+  Wings fork also takes `build.cpu_weight` (Docker CPU shares, 1024 per paid core, from the paid
+  limit alone), so when the node is busy paid CPU wins over burst, and `build.cpu_burst`, which its
+  public resources leave out of the allocated CPU ([wings.md](../wings.md)).
+- Upstream's CFS burst (`docker.cfs_burst`) and startup boost are separate and stay as they are.
+- The server card, the console's CPU card and the CPU graph show "paid + burst"
+  (`limits.burst_cpu` on the server).
 
 ## The Resource Store
 
@@ -88,6 +108,15 @@ When the second membership runs out, the `settle_memberships` task (every minute
 3. counts the lapse as settled once no server is left on a premium location; until then it comes
    back, so a full location is tried again. Buying again before that stops it.
 
+## The sidebar
+
+Over the sidebar's footer (dashboard and server), Theme v2's card: one row per limited resource of
+the account (used / limit, red at the limit), and a row with the tokens and credits. Usage and
+credits lead to the Resource Store, tokens to the Tokens page; a part whose page is off is plain
+text, and a resource without a limit or a currency that is off is left out. It reads
+`GET /api/client/account/balance` once a minute and after a purchase, a redeemed link or a
+membership change. Suspended users don't see it.
+
 ## Admins
 
 Admin › Users › a user › Economy (`users.economy`): credits, tokens, what was earned, both
@@ -104,7 +133,8 @@ end the second. Admin activity `user:economy`.
 | `GET /api/client/account/tokens` | `economy.read` | `{tokens}`: balance, earned, `claim_minutes`, `providers: [{provider, reward, daily_cap, granted_today, full_script, publisher, whitelist}]`, `transactions` |
 | `POST /api/client/account/tokens/earn` | `economy.earn` | `{provider}` → `{earn: {url, nonce}}`; 409 capped, 429 throttled, 502 the provider made no link |
 | `POST /api/client/account/tokens/redeem` | `economy.earn` | `{claim, params}` → `{redemption: {status, amount, provider}}`, status `granted`, `settled`, `no_claim`, `expired`, `no_token`, `replay`, `capped`, `invalid` |
-| `GET /api/client/account/membership` | `economy.read` | `{economy}`: balances, both memberships, their prices, the extra CPU, the queue priority |
+| `GET /api/client/account/balance` | `economy.read` | `{balance}`: `credits` and `tokens` (`null` when off), `allowance` (the create page's) |
+| `GET /api/client/account/membership` | `economy.read` | `{economy}`: balances, both memberships, their prices, the extra CPU, the burst cores of each and the account's now, the queue priority |
 | `POST /api/client/account/membership/plus` | `economy.purchase` | `{economy}`; 409 owned or short |
 | `POST /api/client/account/membership/plusplus` | `economy.purchase` | `{pay: tokens\|credits}` → `{economy}`; 403 without the first membership |
 | `GET /api/admin/users/{user}/economy` | `users.economy` | The user's economy and both histories |
@@ -122,6 +152,7 @@ User activity: `account:store.purchase`, `account:membership.plus`, `account:mem
 | `user_credit_transactions`, `user_token_transactions` | The ledgers: amount, balance after, type, description, data |
 | `user_token_claims` | Earn trips: nonce, provider, proof hash, status, reason, amount |
 | `user_memberships` | `plus_since`, `plusplus_until`, purchases, `plusplus_cut` and `plusplus_settled` of the last lapse |
+| `users.burst_cores` | The burst cores the account's servers get now (kept by `sync_burst`) |
 
 ## Settings
 
@@ -140,6 +171,7 @@ Tokens (daily tokens, Linkvertise, Vylo) and Memberships. A tab saves only its o
 | Second: tokens and days | `economy::plusplus_tokens`, `plusplus_token_days` | 10, 7 |
 | Second: credits (0 = not for credits) and days | `economy::plusplus_credits`, `plusplus_credit_days` | 150, 14 |
 | Second: extra CPU (%) | `economy::plusplus_cpu` | 50 |
+| Burst cores: first, second (the total) | `economy::plus_burst_cores`, `plusplus_burst_cores` (0 to 16) | 1, 2 |
 | Store steps and prices | `economy::{cpu,memory,disk}_{step,price}` | 50 % / 100, 1024 MiB / 150, 5120 MiB / 75 |
 | Store limits | `economy::limit_{cpu,memory,disk}` | 600 %, 24576 MiB, 102400 MiB |
 | Curve | `economy::price_floor`, `soft_limit`, `soft_multiplier`, `doubling` | 50 %, 125 %, 4 ×, 5 % |
@@ -172,3 +204,10 @@ and `/credits/spend`.
   reloading the page that came back does not add more.
 - With noprofit.space: the store shows noprofit.space's balance and prices; a purchase there raises
   the plan at once (create page allowance).
+- Burst cores: with the first membership, a server with 200 % CPU shows "200% + 100% burst" on its
+  card and console, and its CPU graph tops out at 300 %. A busy loop in the server reaches about 300 %
+  while the node is quiet. On the node, `docker inspect <uuid> --format '{{.HostConfig.CpuShares}}'`
+  says 2048 (the paid 200 %). End the second membership in Admin › Users › Economy: within a minute
+  a server that had 2 burst cores shows 1, without a restart.
+- The sidebar card: with a RAM limit, the RAM row shows what the servers use; buying in the Resource
+  Store or redeeming a link updates it at once; with tokens off the tokens pill is gone.

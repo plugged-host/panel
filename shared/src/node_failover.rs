@@ -248,6 +248,7 @@ async fn create(
     let servers: Vec<(uuid::Uuid, String)> = sqlx::query_as(
         "SELECT uuid, name FROM servers
         WHERE node_uuid = $1 AND ($2::uuid IS NULL OR uuid = $2)
+            AND limbo_state IS DISTINCT FROM 'parked'
         ORDER BY name",
     )
     .bind(node_uuid)

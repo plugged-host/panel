@@ -175,6 +175,7 @@ pub struct Server {
     pub status: Option<ServerStatus>,
     pub suspended: bool,
     pub suspension: Option<suspension::ServerSuspension>, // plugged.host
+    pub limbo: Option<crate::limbo::LimboState>,          // plugged.host
 
     pub name: compact_str::CompactString,
     pub description: Option<compact_str::CompactString>,
@@ -364,6 +365,7 @@ impl BaseModel for Server {
         columns.extend(super::nest_egg::NestEgg::base_columns(Some("egg_")));
         columns.extend(super::nest::Nest::base_columns(Some("nest_")));
         columns.extend(suspension::base_columns(prefix)); // plugged.host
+        columns.extend(crate::limbo::base_columns(prefix)); // plugged.host
 
         columns
     }
@@ -413,6 +415,9 @@ impl BaseModel for Server {
             status: row.try_get(compact_str::format_compact!("{prefix}status").as_str())?,
             suspended: row.try_get(compact_str::format_compact!("{prefix}suspended").as_str())?,
             suspension: suspension::ServerSuspension::map(prefix, row)?, // plugged.host
+            limbo: crate::limbo::LimboState::parse(
+                row.try_get::<Option<&str>, _>(format!("{prefix}limbo_state").as_str())?,
+            ), // plugged.host
             name: row.try_get(compact_str::format_compact!("{prefix}name").as_str())?,
             description: row
                 .try_get(compact_str::format_compact!("{prefix}description").as_str())?,
@@ -2001,7 +2006,16 @@ impl Server {
                     overhead_memory: self.memory_overhead,
                     swap: self.swap,
                     io_weight: self.io_weight.map(|w| w as u32),
-                    cpu_limit: self.cpu as i64,
+                    // plugged.host: the owner's burst cores on top, weighed by the paid CPU alone
+                    cpu_limit: crate::economy::cpu_limit_with_burst(
+                        self.cpu,
+                        self.owner.burst_cores,
+                    ),
+                    cpu_weight: crate::economy::cpu_weight(self.cpu),
+                    cpu_burst: Some(
+                        crate::economy::burst_cpu(self.cpu, self.owner.burst_cores) as u32
+                    )
+                    .filter(|burst| *burst > 0),
                     disk_space: self.disk as u64,
                     threads: {
                         let mut threads = compact_str::CompactString::default();
@@ -2154,6 +2168,7 @@ impl super::IntoAdminApiObject for Server {
                 suspension: self
                     .suspension
                     .map(suspension::ServerSuspension::into_admin_api_object), // plugged.host
+                limbo_state: self.limbo, // plugged.host
                 is_transferring: self.destination_node.is_some(),
                 name: self.name,
                 description: self.description,
@@ -2262,12 +2277,14 @@ impl super::IntoApiObject for Server {
                 suspension: self
                     .suspension
                     .map(suspension::ServerSuspension::into_api_object), // plugged.host
+                limbo_state: self.limbo, // plugged.host
                 is_owner: self.owner.uuid == user.uuid,
                 is_transferring: self.destination_node.is_some(),
                 name: self.name,
                 description: self.description,
                 limits: ApiServerLimits {
                     cpu: self.cpu,
+                    burst_cpu: crate::economy::burst_cpu(self.cpu, self.owner.burst_cores), // plugged.host
                     memory: self.memory,
                     swap: self.swap,
                     disk: self.disk,
@@ -3184,6 +3201,15 @@ impl DeletableModel for Server {
                 .await?
                 .delete_servers_server(server_uuid)
                 .await
+                // plugged.host: Wings no longer has it (limbo parked it): nothing left to delete there
+                .or_else(|err| match err {
+                    wings_api::client::ApiHttpError::Http(status, _)
+                        if status == reqwest::StatusCode::NOT_FOUND =>
+                    {
+                        Ok(wings_api::servers_server::delete::Response200 {})
+                    }
+                    err => Err(err),
+                })
             {
                 Ok(_) => {
                     transaction.commit().await?;
@@ -3311,6 +3337,11 @@ pub struct ApiServerLimits {
     #[garde(range(min = 0))]
     #[schema(minimum = 0)]
     pub cpu: i32,
+    /// plugged.host: CPU (%) the owner's burst cores add above `cpu` while the node has it to
+    /// spare (shared/src/economy.rs).
+    #[garde(skip)]
+    #[serde(default)]
+    pub burst_cpu: i64,
     #[garde(range(min = 0))]
     #[schema(minimum = 0)]
     pub memory: i64,
@@ -3364,6 +3395,8 @@ pub struct AdminApiServer {
 
     pub is_suspended: bool,
     pub suspension: Option<suspension::AdminApiServerSuspension>, // plugged.host
+    /// plugged.host: idle servers stopped and parked (docs/features/limbo.md)
+    pub limbo_state: Option<crate::limbo::LimboState>,
     pub is_transferring: bool,
 
     pub name: compact_str::CompactString,
@@ -3410,6 +3443,8 @@ pub struct ApiServer {
     pub is_owner: bool,
     pub is_suspended: bool,
     pub suspension: Option<suspension::ApiServerSuspension>, // plugged.host
+    /// plugged.host: idle servers stopped and parked (docs/features/limbo.md)
+    pub limbo_state: Option<crate::limbo::LimboState>,
     pub is_transferring: bool,
     pub permissions: Vec<compact_str::CompactString>,
     pub ignored_files: Vec<compact_str::CompactString>,

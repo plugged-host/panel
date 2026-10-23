@@ -13,6 +13,8 @@ const typeKeys = {
   plus: 'plus',
   plusplus: 'plusplus',
   admin: 'admin',
+  limbo: 'limbo', // plugged.host: docs/features/limbo.md
+  limbo_refund: 'limboRefund',
 } as const;
 
 type TypeKey = (typeof typeKeys)[keyof typeof typeKeys] | 'earn';

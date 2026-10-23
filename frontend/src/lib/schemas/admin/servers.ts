@@ -13,6 +13,7 @@ import { serverBackupRetentionStatusSchema } from '@/lib/schemas/backupRetention
 import { databaseAgentType, databaseType } from '@/lib/schemas/generic.ts';
 import { serverAllocationSchema } from '@/lib/schemas/server/allocations.ts';
 import { serverBackupKind } from '@/lib/schemas/server/backups.ts';
+import { serverLimboStateSchema } from '@/lib/schemas/server/limbo.ts'; // plugged.host
 import { serverAutostartBehavior, serverStatus, serverSuspensionSchema } from '@/lib/schemas/server/server.ts';
 import { serverTrashSettingsSchema } from '@/lib/schemas/server/settings.ts';
 import { nullableNumber, nullableString } from '@/lib/serialization/transformers.ts';
@@ -52,6 +53,7 @@ export const adminServerSchema = z.looseObject({
   status: z.lazy(() => serverStatus).nullable(),
   isSuspended: z.boolean(),
   suspension: adminServerSuspensionSchema.nullable(), // plugged.host
+  limboState: serverLimboStateSchema.nullable().default(null), // plugged.host
   isTransferring: z.boolean(),
   name: z.string().min(1).max(255),
   description: z.preprocess(nullableString, z.string().max(1024).nullable()),
@@ -86,6 +88,7 @@ const adminServerBaseOmit = adminServerSchema.omit({
   status: true,
   isSuspended: true,
   suspension: true, // plugged.host
+  limboState: true, // plugged.host
   isTransferring: true,
   autoKill: true,
   autoStartBehavior: true,

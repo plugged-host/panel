@@ -16,6 +16,8 @@ features need. Like the panel, the fork is edited directly in its source and mer
 | `GET /api/servers/{uuid}/processes`: the same for one server | Abuse protection (an admin's look at one server) | |
 | `POST /api/system/orphans` with a server's configuration (what `GET /api/remote/servers` gives): removes that server from the node, loaded or not: its files, container and state. The panel no longer lists it on the node, so stock Wings cannot delete it | [Node failover](features/failover.md), once the old node is back | The old copy's files stay on the node; the failover row says so |
 | A schedule's restart step restarts a running server only; a stopped one stays stopped ("server is not running.") | [Start gates](features/start-gates.md) | A scheduled restart could start a stopped server past the gates |
+| `build.cpu_weight` in a server's configuration: the container's CPU shares (Docker's 2 to 262144, 1024 a default container's), on create and live on every sync. The panel sends 1024 per paid core | [Burst cores](features/economy.md#burst-cores): paid CPU wins over burst when the node is busy | Burst works, but every container weighs the same |
+| `build.cpu_burst`: the part of `cpu_limit` that is burst; `/api/public/resources` leaves it out of the allocated CPU | Burst cores | Allocated CPU counts the burst too |
 
 `curl https://node.example.com:8080/api/public/resources` answers:
 
@@ -29,8 +31,6 @@ features need. Like the panel, the fork is edited directly in its source and mer
 
 Bytes throughout; disk `free` is what non-root users can still write. It is cached for 5 seconds
 (`Cache-Control`).
-
-Planned: a `build.cpu_weight` server field that sets the container's CPU shares (burst cores).
 
 CPU use in the process reports is measured since the previous report. When the node was not asked for
 five minutes it measures for two seconds first, so the first call takes that long.

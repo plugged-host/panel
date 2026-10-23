@@ -50,6 +50,8 @@ pub struct User {
 
     pub has_password: bool,
 
+    pub burst_cores: i16, // plugged.host: shared/src/economy.rs
+
     pub created: chrono::NaiveDateTime,
 
     extension_data: super::ModelExtensionData,
@@ -141,6 +143,11 @@ impl BaseModel for User {
                 "(users.password IS NOT NULL)",
                 compact_str::format_compact!("{prefix}has_password"),
             ),
+            // plugged.host
+            (
+                "users.burst_cores",
+                compact_str::format_compact!("{prefix}burst_cores"),
+            ),
             (
                 "users.created",
                 compact_str::format_compact!("{prefix}created"),
@@ -197,6 +204,8 @@ impl BaseModel for User {
             language: row.try_get(compact_str::format_compact!("{prefix}language").as_str())?,
             has_password: row
                 .try_get(compact_str::format_compact!("{prefix}has_password").as_str())?,
+            burst_cores: row
+                .try_get(compact_str::format_compact!("{prefix}burst_cores").as_str())?, // plugged.host
             created: row.try_get(compact_str::format_compact!("{prefix}created").as_str())?,
             extension_data: Self::map_extensions(prefix, row)?,
         })

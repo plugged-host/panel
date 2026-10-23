@@ -44,6 +44,8 @@ For AI agents: [`AGENTS.md`](../AGENTS.md) at the root has the hard rules in sho
 | **Welcome tour**: a guide drawn over the server list and the first console (off by default, versioned, replay from the account menu) | [features/welcome-tour.md](features/welcome-tour.md) |
 | **Node failover**: a down node's servers restored on the other nodes of its location from their newest off-node backup, by hand, automatically or as a drill; old copies removed when the node is back | [features/failover.md](features/failover.md) |
 | **Credits, tokens and memberships**: the Resource Store (CPU, memory and disk for credits, on noprofit.space's curve), tokens from sponsored links (Linkvertise, Vylo), two memberships that open location tiers and add CPU, admin view per user | [features/economy.md](features/economy.md) |
+| **Limbo**: servers nobody used for 48 hours are stopped, after 72 hours backed up off their node and removed from it; the owner restores them from the server page for a few tokens, home or to a location with room; Admin › Settings › Hosting › Limbo | [features/limbo.md](features/limbo.md) |
+| **Start queue**: starts on a busy node take turns, members first, at most one per node every 20 seconds and none waiting longer than 10 minutes; the queue page offers a membership or a move; Admin › Settings › Hosting › Start Queue | [features/start-queue.md](features/start-queue.md) |
 | **Suspension details**: why, since when, by whom and until when a server is suspended, shown to its owner; servers past their deletion time are purged | [features/suspension.md](features/suspension.md) |
 | **Delete a user with their servers** from the user's delete dialog | [features/admin-users.md](features/admin-users.md) |
 | **Status page**: the website, the panel and every node checked each minute, incidents with updates, overrides, 90 days of uptime, served as `/data/*.json` and an RSS feed for a public status page; Admin › Status and Admin › Settings › General › Status Page | [features/status.md](features/status.md) |
@@ -52,7 +54,7 @@ For AI agents: [`AGENTS.md`](../AGENTS.md) at the root has the hard rules in sho
 | **Removed features**: devices, mounts, the extension manager, the update checker, Tundra's private network, the server firewall, managed database instances, backup groups; telemetry is opt-in | [upstream.md](upstream.md#removed-features) |
 | **German stays complete**: a build fails while a German string is missing | [development.md](development.md#strings) |
 
-More features arrive in phases (the start queue, limbo, ads, Minecraft and FiveM tools, subdomains,
+More features arrive in phases (ads, Minecraft and FiveM tools, subdomains,
 an AI assistant, Discord rewards). Each one gets its page in [features/](features/) in the same
 commit as its code.
 

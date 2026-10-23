@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { adminServerFeatureLimitsSchema } from '@/lib/schemas/admin/servers.ts';
 import { serverAllocationSchema } from '@/lib/schemas/server/allocations.ts';
+import { serverLimboStateSchema } from '@/lib/schemas/server/limbo.ts'; // plugged.host
 import { serverTrashSettingsSchema } from '@/lib/schemas/server/settings.ts';
 import { eggConfigurationRouteItemSchema } from '../generic.ts';
 
@@ -26,6 +27,7 @@ export const serverBackupStatus = z.enum(['starting', 'finished', 'failed']);
 
 export const serverLimitsSchema = z.object({
   cpu: z.number().min(0),
+  burstCpu: z.number().min(0).default(0), // plugged.host: the owner's burst cores above cpu
   memory: z.number().min(0),
   swap: z.number().min(-1),
   disk: z.number().min(0),
@@ -61,6 +63,7 @@ export const serverSchema = z.looseObject({
   status: serverStatus.nullable(),
   isSuspended: z.boolean(),
   suspension: serverSuspensionSchema.nullable(), // plugged.host
+  limboState: serverLimboStateSchema.nullable().default(null), // plugged.host
   isOwner: z.boolean(),
   isTransferring: z.boolean(),
   permissions: z.array(z.string()),

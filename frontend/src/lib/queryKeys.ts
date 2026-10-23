@@ -265,6 +265,8 @@ const server = (serverUuid: string) => ({
     software: () => ['server', serverUuid, 'settings', 'software'] as const,
   },
   transfer: () => ['server', serverUuid, 'transfer'] as const, // plugged.host
+  queue: () => ['server', serverUuid, 'queue'] as const, // plugged.host
+  limbo: () => ['server', serverUuid, 'limbo'] as const, // plugged.host
   activity: {
     all: (userUuid: string | null) => ['server', serverUuid, 'activity', { uuid: userUuid }] as const,
     byEvent: (userUuid: string | null, event: string) =>
@@ -396,6 +398,7 @@ const user = {
   store: () => ['user', 'store'] as const,
   tokens: () => ['user', 'tokens'] as const,
   membership: () => ['user', 'membership'] as const,
+  balance: () => ['user', 'balance'] as const,
 };
 
 const global = {

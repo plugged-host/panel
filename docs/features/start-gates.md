@@ -28,7 +28,8 @@ none of them needs to know about the others.
 4. A gate that fails is logged and skipped: a bug in a waiting room must never be why someone cannot
    start a server.
 
-Until those gates exist the list is empty and every start goes straight through.
+Limbo ([limbo.md](limbo.md)) and the start queue ([start-queue.md](start-queue.md)) are in; the ad
+waiting room follows.
 
 ## Closing the other ways to start a server
 
@@ -47,7 +48,8 @@ Admins keep every path; the gates themselves decide whether they hold an admin's
 Implement `StartGate` (`name()` and `check()` returning `Decision::Pass` or `Decision::Hold { url
 }`) next to the feature's other code, and add it to `gates()` in `shared/src/start_gates.rs` at its
 place in the order. Its page sends the start with `POST /power` once it lets it through, so it must
-not hold that start again (record that it let it through, for example).
+not hold that start again (record that it let it through, for example), or it sends the power
+action to Wings itself, past the gates, as the start queue does.
 
 ## Check
 

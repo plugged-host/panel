@@ -137,6 +137,7 @@ export default function DashboardTokens() {
       .then((result) => {
         setRedemption(result);
         queryClient.invalidateQueries({ queryKey: queryKeys.user.membership() });
+        queryClient.invalidateQueries({ queryKey: queryKeys.user.balance() });
       })
       .catch((error) => setRedeemError(httpErrorToHuman(error)))
       .finally(() => {

@@ -140,10 +140,16 @@ export default function ServerDetails() {
               : `${(stats?.cpuAbsolute || 0).toFixed(2)}%`
         }
         limit={
-          doNormalizeCpuLoad ? null : server.limits.cpu !== 0 ? `${server.limits.cpu}%` : t('common.unlimited', {})
+          doNormalizeCpuLoad
+            ? null
+            : server.limits.cpu === 0
+              ? t('common.unlimited', {})
+              : server.limits.burstCpu > 0 // plugged.host: burst cores above the paid CPU
+                ? t('common.stat.cpuWithBurst', { base: `${server.limits.cpu}%`, burst: `${server.limits.burstCpu}%` })
+                : `${server.limits.cpu}%`
         }
         progress={state === 'offline' && server.status !== 'installing' ? null : stats?.cpuAbsolute}
-        total={server.limits.cpu}
+        total={server.limits.cpu > 0 ? server.limits.cpu + server.limits.burstCpu : 0} // plugged.host
         popover={
           <Checkbox
             label={

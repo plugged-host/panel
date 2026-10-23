@@ -235,6 +235,26 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
     smallThreads: 9,
     unreachableAfter: 3,
   },
+  queue: {
+    enabled: false,
+    includeRestart: true,
+    linePercent: 85,
+    maxWait: 600,
+    releaseInterval: 20,
+    passMinutes: 10,
+    moveOffer: true,
+    moveRequiresMembership: true,
+  },
+  limbo: {
+    enabled: false,
+    stopHours: 48,
+    parkHours: 72,
+    maxPerRun: 3,
+    costEarly: 5,
+    costLate: 10,
+    costWindowHours: 72,
+    exemptMembers: true,
+  },
   tour: {
     enabled: false,
     version: 1,
@@ -260,6 +280,8 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
     plusplusCredits: 150,
     plusplusCreditDays: 14,
     plusplusCpu: 50,
+    plusBurstCores: 1,
+    plusplusBurstCores: 2,
     cpuStep: 50,
     cpuPrice: 100,
     memoryStep: 1024,
@@ -315,6 +337,8 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
       tour: value.tour, // plugged.host
       recovery: value.recovery, // plugged.host
       economy: value.economy, // plugged.host
+      queue: value.queue, // plugged.host
+      limbo: value.limbo, // plugged.host
       updates: value.updates,
     })),
   updateSettings: (value) =>
@@ -337,6 +361,8 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
       ...(value.tour ? { tour: { ...state.tour, ...value.tour } } : {}), // plugged.host
       ...(value.recovery ? { recovery: { ...state.recovery, ...value.recovery } } : {}), // plugged.host
       ...(value.economy ? { economy: { ...state.economy, ...value.economy } } : {}), // plugged.host
+      ...(value.queue ? { queue: { ...state.queue, ...value.queue } } : {}), // plugged.host
+      ...(value.limbo ? { limbo: { ...state.limbo, ...value.limbo } } : {}), // plugged.host
       ...(value.updates ? { updates: { ...state.updates, ...value.updates } } : {}),
     })),
   setUpdateInformation: (value) => set((state) => ({ ...state, updateInformation: value })),

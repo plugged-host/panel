@@ -11,6 +11,12 @@
 //! always the panel's: Plus once, for good (the `plus` locations), PlusPlus for a while with
 //! tokens or credits (the `premium` locations, more CPU). When PlusPlus runs out its servers leave
 //! the premium locations and the CPU it added comes off ([`settle_memberships`]).
+//!
+//! Both memberships give **burst cores**: CPU above each server's paid limit (100 % per core) that
+//! a server uses while its node has it to spare. They are outside the allowance and the store. The
+//! account's count is kept in `users.burst_cores` ([`sync_burst`]), so every server read has it;
+//! Wings gets the raised limit and a CPU weight from the paid limit alone, so paid CPU wins when
+//! the node is busy ([`cpu_limit_with_burst`], [`cpu_weight`]).
 
 use crate::{
     allowance::Resources,
@@ -115,6 +121,24 @@ impl Membership {
         }
     }
 
+    /// The burst cores each of the account's servers gets: PlusPlus's count while it runs (the
+    /// total, not added to Plus's), else Plus's.
+    pub fn burst_cores(
+        &self,
+        settings: &crate::settings::economy::AppSettingsEconomy,
+        now: chrono::NaiveDateTime,
+    ) -> i16 {
+        let cores = if self.has_plusplus(now) {
+            settings.plusplus_burst_cores
+        } else if self.has_plus() {
+            settings.plus_burst_cores
+        } else {
+            0
+        };
+
+        cores.clamp(0, i16::MAX as i32) as i16
+    }
+
     /// When PlusPlus bought now runs out: bought time adds to what is left.
     pub fn extended_until(&self, now: chrono::NaiveDateTime, days: i64) -> chrono::NaiveDateTime {
         let from = self
@@ -145,6 +169,107 @@ pub async fn membership(
             plusplus_purchases: row.try_get("plusplus_purchases")?,
         }),
         None => Ok(Membership::default()),
+    }
+}
+
+/// The CPU limit (%) Wings enforces: the paid limit plus 100 % per burst core. Unlimited (0) stays
+/// unlimited.
+pub fn cpu_limit_with_burst(cpu: i32, burst_cores: i16) -> i64 {
+    if cpu > 0 {
+        cpu as i64 + burst_cpu(cpu, burst_cores)
+    } else {
+        0
+    }
+}
+
+/// What burst cores add to a server's CPU limit (%), 0 for an unlimited server.
+pub fn burst_cpu(cpu: i32, burst_cores: i16) -> i64 {
+    if cpu > 0 {
+        100 * burst_cores.max(0) as i64
+    } else {
+        0
+    }
+}
+
+/// The container's CPU weight, as Docker's CPU shares: 1024 per paid core, from the paid limit
+/// alone. `None` for an unlimited server (the host default).
+pub fn cpu_weight(cpu: i32) -> Option<u32> {
+    (cpu > 0).then(|| (cpu as i64 * 1024 / 100).clamp(2, 262_144) as u32)
+}
+
+/// Brings `users.burst_cores` in line with the memberships and the settings, for one account or
+/// every account, and syncs the servers of each account whose count changed: Wings applies the
+/// new CPU limit live. Runs after every membership change and each minute, which catches a
+/// PlusPlus running out and changed settings.
+pub async fn sync_burst(
+    state: &crate::State,
+    user_uuid: Option<uuid::Uuid>,
+) -> Result<(), anyhow::Error> {
+    let economy = state.settings.get().await?.economy.clone();
+    let now = chrono::Utc::now().naive_utc();
+
+    let rows = sqlx::query(
+        "SELECT users.uuid, users.burst_cores, user_memberships.plus_since,
+            user_memberships.plusplus_until
+        FROM users
+        LEFT JOIN user_memberships ON user_memberships.user_uuid = users.uuid
+        WHERE ($1::uuid IS NULL OR users.uuid = $1)
+            AND (user_memberships.user_uuid IS NOT NULL OR users.burst_cores <> 0)",
+    )
+    .bind(user_uuid)
+    .fetch_all(state.database.write())
+    .await?;
+
+    for row in rows {
+        let uuid: uuid::Uuid = row.try_get("uuid")?;
+        let stored: i16 = row.try_get("burst_cores")?;
+        let cores = Membership {
+            plus_since: row.try_get("plus_since")?,
+            plusplus_until: row.try_get("plusplus_until")?,
+            plusplus_purchases: 0,
+        }
+        .burst_cores(&economy, now);
+
+        if cores == stored {
+            continue;
+        }
+
+        // only from the value read, so a change made meanwhile is not undone
+        let updated =
+            sqlx::query("UPDATE users SET burst_cores = $2 WHERE uuid = $1 AND burst_cores = $3")
+                .bind(uuid)
+                .bind(cores)
+                .bind(stored)
+                .execute(state.database.write())
+                .await?
+                .rows_affected();
+        if updated == 0 {
+            continue;
+        }
+
+        let servers: Vec<uuid::Uuid> =
+            sqlx::query_scalar("SELECT uuid FROM servers WHERE owner_uuid = $1 AND cpu > 0")
+                .bind(uuid)
+                .fetch_all(state.database.write())
+                .await?;
+
+        for server in servers {
+            if let Some(server) =
+                crate::models::server::Server::by_uuid_optional(&state.database, server).await?
+            {
+                server.batch_sync(state).await;
+            }
+        }
+    }
+
+    Ok(())
+}
+
+/// [`sync_burst`] for one account right after its membership changed; a failure waits for the
+/// next minute's run.
+async fn sync_burst_now(state: &crate::State, user_uuid: uuid::Uuid) {
+    if let Err(err) = sync_burst(state, Some(user_uuid)).await {
+        tracing::warn!(user = %user_uuid, "failed to sync the burst cores: {err:#}");
     }
 }
 
@@ -436,6 +561,11 @@ pub struct ApiEconomy {
     pub plus_cost: i64,
     pub plusplus_offers: Vec<ApiPlusPlusOffer>,
     pub plusplus_cpu: i64,
+    /// Burst cores on every server with Plus, and with PlusPlus (the total).
+    pub plus_burst_cores: i64,
+    pub plusplus_burst_cores: i64,
+    /// What the account's servers get now.
+    pub burst_cores: i64,
 }
 
 /// The account's economy. Gives the daily tokens and the starting credits when they are due.
@@ -478,6 +608,8 @@ pub async fn summary(state: &crate::State, user: &User) -> Result<ApiEconomy, an
         });
     }
 
+    let burst_cores = membership.burst_cores(&economy, now) as i64;
+
     Ok(ApiEconomy {
         source: if connected {
             Source::Noprofit
@@ -501,6 +633,46 @@ pub async fn summary(state: &crate::State, user: &User) -> Result<ApiEconomy, an
         plus_cost: economy.plus_tokens.max(0) as i64,
         plusplus_offers,
         plusplus_cpu: economy.plusplus_cpu.max(0) as i64,
+        plus_burst_cores: economy.plus_burst_cores.max(0) as i64,
+        plusplus_burst_cores: economy.plusplus_burst_cores.max(0) as i64,
+        burst_cores,
+    })
+}
+
+/// The sidebar's card: what the account's servers use of its allowance, and its balances.
+#[derive(ToSchema, Serialize)]
+pub struct ApiBalance {
+    /// `None` while credits are turned off.
+    pub credits: Option<i64>,
+    /// `None` while tokens are turned off.
+    pub tokens: Option<i64>,
+    pub allowance: crate::allowance::Allowance,
+}
+
+/// What the sidebar shows; reads only (no daily tokens given), since it is asked every minute.
+pub async fn balance(state: &crate::State, user: &User) -> Result<ApiBalance, anyhow::Error> {
+    let (credits_enabled, tokens_enabled, connected) = {
+        let settings = state.settings.get().await?;
+        (
+            settings.economy.credits_enabled,
+            settings.economy.tokens_enabled,
+            settings.noprofit.connected(),
+        )
+    };
+
+    let (local_credits, tokens, _) = balances(&state.database, user.uuid).await?;
+    let credits = if connected {
+        crate::noprofit::Link::by_user_uuid(&state.database, user.uuid)
+            .await?
+            .map_or(0, |link| link.credits)
+    } else {
+        local_credits
+    };
+
+    Ok(ApiBalance {
+        credits: credits_enabled.then_some(credits),
+        tokens: tokens_enabled.then_some(tokens),
+        allowance: crate::allowance::for_user(state, user.uuid).await?,
     })
 }
 
@@ -881,6 +1053,7 @@ pub async fn buy_plus(state: &crate::State, user: &User) -> Result<ApiEconomy, E
         .execute(&mut *transaction)
         .await?;
     transaction.commit().await?;
+    sync_burst_now(state, user.uuid).await;
 
     Ok(summary(state, user).await?)
 }
@@ -990,6 +1163,7 @@ pub async fn buy_plusplus(
     .execute(&mut *transaction)
     .await?;
     transaction.commit().await?;
+    sync_burst_now(state, user.uuid).await;
 
     if spent_on_noprofit && let Err(err) = crate::noprofit::refresh_user(state, user.uuid).await {
         tracing::warn!(user = %user.uuid, "failed to pull the account after PlusPlus: {err:#}");
@@ -1117,6 +1291,7 @@ pub async fn admin_change(
         }
     }
     transaction.commit().await?;
+    sync_burst_now(state, user.uuid).await;
 
     Ok(())
 }
@@ -1138,7 +1313,8 @@ pub fn destination_order(
 /// and every server on a premium location moves to another location the owner may use (an
 /// admin move, a few at a time). A lapse is settled once no server is left on a premium
 /// location; until then the task comes back, so a full location is tried again. Buying PlusPlus
-/// again before that stops it.
+/// again before that stops it. Then every account's burst cores are brought in line
+/// ([`sync_burst`]).
 pub async fn settle_memberships(state: &crate::State) -> Result<(), anyhow::Error> {
     let bonus = state.settings.get().await?.economy.plusplus_cpu.max(0) as i64;
 
@@ -1162,7 +1338,8 @@ pub async fn settle_memberships(state: &crate::State) -> Result<(), anyhow::Erro
         }
     }
 
-    Ok(())
+    // a PlusPlus that ran out drops to Plus's burst cores
+    sync_burst(state, None).await
 }
 
 async fn settle_lapse(
@@ -1262,6 +1439,44 @@ mod tests {
         chrono::DateTime::from_timestamp(1_800_000_000 + hours * 3600, 0)
             .unwrap()
             .naive_utc()
+    }
+
+    #[test]
+    fn burst_cores_follow_the_best_membership_running() {
+        let settings = crate::settings::economy::AppSettingsEconomy::default();
+        let now = at(0);
+        let plus = Membership {
+            plus_since: Some(at(-10)),
+            ..Default::default()
+        };
+        let plusplus = Membership {
+            plusplus_until: Some(at(5)),
+            ..plus.clone()
+        };
+        let lapsed = Membership {
+            plusplus_until: Some(at(-1)),
+            ..plus.clone()
+        };
+
+        assert_eq!(Membership::default().burst_cores(&settings, now), 0);
+        assert_eq!(plus.burst_cores(&settings, now), 1);
+        // the total, not 1 + 2
+        assert_eq!(plusplus.burst_cores(&settings, now), 2);
+        assert_eq!(lapsed.burst_cores(&settings, now), 1);
+    }
+
+    #[test]
+    fn burst_raises_the_limit_but_not_the_weight() {
+        assert_eq!(cpu_limit_with_burst(200, 1), 300);
+        assert_eq!(burst_cpu(200, 2), 200);
+        // unlimited stays unlimited
+        assert_eq!(cpu_limit_with_burst(0, 2), 0);
+        assert_eq!(burst_cpu(0, 2), 0);
+
+        assert_eq!(cpu_weight(100), Some(1024));
+        assert_eq!(cpu_weight(250), Some(2560));
+        assert_eq!(cpu_weight(0), None);
+        assert_eq!(cpu_weight(1_000_000), Some(262_144));
     }
 
     #[test]

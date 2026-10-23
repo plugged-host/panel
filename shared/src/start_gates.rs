@@ -47,7 +47,7 @@ pub trait StartGate: Send + Sync {
 
 /// The gates in the order they are asked.
 fn gates() -> &'static [&'static dyn StartGate] {
-    &[]
+    &[&crate::limbo::LimboGate, &crate::start_queue::QueueGate]
 }
 
 /// A start a gate holds.

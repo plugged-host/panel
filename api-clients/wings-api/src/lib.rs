@@ -599,6 +599,10 @@ nestify::nest! {
             pub oom_disabled: bool,
             #[schema(inline)]
             pub bandwidth: BandwidthLimits,
+            #[schema(inline)]
+            pub cpu_weight: Option<u32>,
+            #[schema(inline)]
+            pub cpu_burst: Option<u32>,
         },
 
         #[schema(inline)]

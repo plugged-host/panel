@@ -28,9 +28,11 @@ pub mod activity;
 pub mod app;
 pub mod economy; // plugged.host
 pub mod games; // plugged.host
+pub mod limbo; // plugged.host
 pub mod metadata;
 pub mod noprofit; // plugged.host
 pub mod placement; // plugged.host
+pub mod queue; // plugged.host
 pub mod ratelimits;
 pub mod recovery; // plugged.host
 pub mod server;
@@ -436,6 +438,12 @@ pub struct AppSettings {
     // plugged.host: credits, tokens, memberships and the Resource Store
     #[schema(inline)]
     pub economy: economy::AppSettingsEconomy,
+    // plugged.host: the start queue
+    #[schema(inline)]
+    pub queue: queue::AppSettingsQueue,
+    // plugged.host: idle servers stopped, parked and restored
+    #[schema(inline)]
+    pub limbo: limbo::AppSettingsLimbo,
     #[schema(inline)]
     pub updates: updates::AppSettingsUpdates,
 
@@ -739,6 +747,10 @@ impl SettingsSerializeExt for AppSettings {
             .await?
             .nest("economy", &self.economy) // plugged.host
             .await?
+            .nest("queue", &self.queue) // plugged.host
+            .await?
+            .nest("limbo", &self.limbo) // plugged.host
+            .await?
             .nest("updates", &self.updates)
             .await?;
 
@@ -1041,6 +1053,12 @@ impl SettingsDeserializeExt for AppSettingsDeserializer {
                 .await?,
             economy: deserializer // plugged.host
                 .nest("economy", &economy::AppSettingsEconomyDeserializer)
+                .await?,
+            queue: deserializer // plugged.host
+                .nest("queue", &queue::AppSettingsQueueDeserializer)
+                .await?,
+            limbo: deserializer // plugged.host
+                .nest("limbo", &limbo::AppSettingsLimboDeserializer)
                 .await?,
             updates: deserializer
                 .nest("updates", &updates::AppSettingsUpdatesDeserializer)

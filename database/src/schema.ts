@@ -177,6 +177,8 @@ export const usersTable = pgTable(
     tokens: bigint({ mode: 'number' }).default(0).notNull(),
     tokens_earned: bigint({ mode: 'number' }).default(0).notNull(),
     tokens_daily_granted: date({ mode: 'string' }),
+    // plugged.host: the memberships' burst cores, kept by the economy
+    burst_cores: smallint().default(0).notNull(),
     created: timestamp().defaultNow().notNull(),
   },
   (cols) => [
@@ -1383,6 +1385,9 @@ export const serversTable = pgTable(
     suspended_at: timestamp(),
     suspended_by: uuid().references((): PgColumn => usersTable.uuid, { onDelete: 'set null' }),
     suspension_delete_at: timestamp(),
+    // plugged.host: the idle clock and where the server is in limbo (shared/src/limbo.rs)
+    last_activity: timestamp().defaultNow().notNull(),
+    limbo_state: varchar({ length: 16 }),
     memory: bigint({ mode: 'number' }).notNull(),
     memory_overhead: bigint({ mode: 'number' }).default(0).notNull(),
     swap: bigint({ mode: 'number' }).notNull(),
@@ -1418,6 +1423,7 @@ export const serversTable = pgTable(
     uniqueIndex('servers_uuid_short_idx').on(cols.uuid_short),
     index('servers_created_idx').on(cols.created),
     index('servers_suspension_delete_at_idx').on(cols.suspension_delete_at), // plugged.host
+    index('servers_limbo_state_idx').on(cols.limbo_state), // plugged.host
   ],
 );
 
@@ -1590,6 +1596,47 @@ export const serverTransferRequestsTable = pgTable(
     index('server_transfer_requests_status_idx').on(cols.status),
   ],
 );
+
+// plugged.host: starts waiting for room on a busy node, one row per server, reused
+// (shared/src/start_queue.rs, docs/features/start-queue.md)
+export const serverStartQueueTable = pgTable(
+  'server_start_queue',
+  {
+    server_uuid: uuid()
+      .references(() => serversTable.uuid, { onDelete: 'cascade' })
+      .primaryKey()
+      .notNull(),
+    user_uuid: uuid().references(() => usersTable.uuid, { onDelete: 'set null' }),
+    node_uuid: uuid()
+      .references(() => nodesTable.uuid, { onDelete: 'cascade' })
+      .notNull(),
+    action: varchar({ length: 16 }).notNull(),
+    status: varchar({ length: 16 }).notNull(),
+    priority: smallint().default(0).notNull(),
+    queued: timestamp().defaultNow().notNull(),
+    last_seen: timestamp(),
+    released: timestamp(),
+    reason: varchar({ length: 16 }),
+  },
+  (cols) => [index('server_start_queue_node_uuid_status_idx').on(cols.node_uuid, cols.status)],
+);
+
+// plugged.host: a server's way through limbo: since when, its final backup, when it was parked, who
+// paid for the restore and the last error (shared/src/limbo.rs)
+export const serverLimboTable = pgTable('server_limbo', {
+  server_uuid: uuid()
+    .references(() => serversTable.uuid, { onDelete: 'cascade' })
+    .primaryKey()
+    .notNull(),
+  since: timestamp().defaultNow().notNull(),
+  backup_uuid: uuid().references(() => serverBackupsTable.uuid, { onDelete: 'set null' }),
+  parked: timestamp(),
+  paid: integer().default(0).notNull(),
+  payer_uuid: uuid().references(() => usersTable.uuid, { onDelete: 'set null' }),
+  error: text(),
+  failed: timestamp(),
+  updated: timestamp().defaultNow().notNull(),
+});
 
 export const serverAllocationsTable = pgTable(
   'server_allocations',

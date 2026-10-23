@@ -380,7 +380,11 @@ pub async fn request(
         return Err(TransferError::Disabled);
     }
     // the move's routes skip the server's state check, so that a running move stays visible
-    if (server.suspended && !admin) || server.status.is_some() {
+    // a parked server (limbo) has no files on a node to move
+    if (server.suspended && !admin)
+        || server.status.is_some()
+        || server.limbo.is_some_and(|limbo| limbo.away())
+    {
         return Err(TransferError::Unavailable);
     }
 
@@ -413,7 +417,11 @@ pub async fn request(
         return Err(TransferError::LocationLocked);
     }
 
-    let restart = running(state, server).await;
+    // a start waiting in the start queue goes along: the server starts on its new node
+    let queued = crate::start_queue::entry(&state.database, server.uuid)
+        .await?
+        .is_some_and(|entry| entry.waiting());
+    let restart = queued || running(state, server).await;
     let mut request = insert(
         state,
         server,
@@ -423,6 +431,9 @@ pub async fn request(
         restart,
     )
     .await?;
+    if queued && let Err(err) = crate::start_queue::leave(state, server.uuid).await {
+        tracing::warn!(server = %server.uuid, "failed to take a moved server out of the start queue: {err:#}");
+    }
 
     if let Err(err) = start_attempt(state, &mut request).await {
         request.finish(FAILED, Some(err.message()));
@@ -1038,6 +1049,7 @@ pub async fn capacity(state: &crate::State) -> Result<Vec<ApiLocationCapacity>, 
             SELECT node_uuid, SUM(memory + memory_overhead)::BIGINT AS memory,
                 SUM(disk)::BIGINT AS disk
             FROM servers
+            WHERE servers.limbo_state IS DISTINCT FROM 'parked'
             GROUP BY node_uuid
         )
         SELECT locations.uuid, locations.name,

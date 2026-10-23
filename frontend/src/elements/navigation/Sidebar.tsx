@@ -43,6 +43,8 @@ import { useQuickActionsStore } from '@/stores/quickActions.ts';
 import { useRelativePageStore } from '@/stores/relativePage.ts';
 
 const CloseMobileMenuContext = createContext<(() => void) | null>(null);
+// plugged.host: for links in the footer (SidebarBalance), so they close the mobile menu like the rows
+export const useCloseMobileMenu = () => useContext(CloseMobileMenuContext);
 
 type SidebarProps = {
   children: ReactNode;

@@ -941,6 +941,24 @@ pub async fn define_background_tasks(
             async |state| shared::allowance_cuts::settle(&state).await,
         )
         .await;
+    // plugged.host: the start queue (shared::start_queue): the front of each line let go once its
+    // node has room, everyone who waited long enough regardless
+    background_task_builder
+        .add_cron_task(
+            "release_start_queue",
+            croner::Cron::from_str("*/10 * * * * *").unwrap(),
+            async |state| shared::start_queue::settle(&state).await,
+        )
+        .await;
+    // plugged.host: limbo (shared::limbo): idle servers stopped and parked, parks and restores
+    // moved along
+    background_task_builder
+        .add_cron_task(
+            "settle_limbo",
+            croner::Cron::from_str("50 * * * * *").unwrap(),
+            async |state| shared::limbo::settle(&state).await,
+        )
+        .await;
     // plugged.host: PlusPlus that ran out (shared::economy)
     background_task_builder
         .add_cron_task(
