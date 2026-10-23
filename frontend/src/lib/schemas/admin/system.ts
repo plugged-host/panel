@@ -42,14 +42,35 @@ export const adminUpdateInformationSchema = z.object({
   extensions: z.record(z.string(), adminExtensionUpdateCheckResultSchema),
 });
 
-export const adminNodeUpdateInformationSchema = z.object({
-  version: z.string(),
+export const adminUpgradeStatusSchema = z.object({
+  currentVersion: z.string(),
+  latestVersion: z.string().nullable(),
+  updateAvailable: z.boolean(),
+  upgradable: z.boolean(),
+  source: z.enum(['daemon', 'calagopus']),
+});
+
+export const adminNodeUpdateInformationSchema = adminUpgradeStatusSchema.extend({
   node: z.lazy(() => adminNodeSchema),
 });
 
-export const adminDatabaseAgentHostUpdateInformationSchema = z.object({
-  version: z.string(),
+export const adminDatabaseAgentHostUpdateInformationSchema = adminUpgradeStatusSchema.extend({
   databaseAgentHost: z.lazy(() => adminDatabaseAgentHostSchema),
+});
+
+export const adminUpgradeSourceSchema = z.object({
+  provider: z.string(),
+  repository: z.string(),
+  apiUrl: z.string(),
+});
+
+export const adminUpgradeSchema = z.object({
+  version: z.string().trim().min(1).max(64),
+});
+
+export const adminUpgradeResultSchema = z.object({
+  applied: z.boolean(),
+  version: z.string().nullable(),
 });
 
 export const adminNodeDesyncSchema = z.object({

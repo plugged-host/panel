@@ -33,15 +33,15 @@ import {
   adminExtensionUpdateCheckResultUpdateAvailableSchema,
 } from '@/lib/schemas/admin/system.ts';
 import { databaseAgentHostTableColumns, nodeTableColumns } from '@/lib/tableColumns.ts';
-import DatabaseAgentHostRow from '@/pages/admin/database-agent-hosts/DatabaseAgentHostRow.tsx';
 import { useResource } from '@/plugins/resource/useResource.ts';
 import { useSearchablePaginatedTable } from '@/plugins/resource/useSearchablePaginatedTable.ts';
 import { useAdminCan } from '@/plugins/usePermissions.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useAdminStore } from '@/stores/admin.tsx';
-import NodeRow from '../../nodes/NodeRow.tsx';
 import PanelUpdateAlert, { usePanelUpdateAvailable } from '../PanelUpdateAlert.tsx';
+import OutdatedDatabaseAgentHostRow from './OutdatedDatabaseAgentHostRow.tsx';
+import OutdatedNodeRow from './OutdatedNodeRow.tsx';
 import OutdatedResourceCard from './OutdatedResourceCard.tsx';
 
 type ExtensionUpdateEntry = [string, z.infer<typeof adminExtensionUpdateCheckResultUpdateAvailableSchema>];
@@ -288,21 +288,20 @@ export default function AdminOverviewUpdates() {
               loading,
               error,
               data: nodes?.outdatedNodes,
-              columns: nodeTableColumns(),
+              columns: [...nodeTableColumns(), ''],
               onPageSelect: setPage,
               onRetry: refetch,
             }}
             status={{
               upToDate: t('pages.admin.home.tabs.updates.page.nodesUpToDate', { failed: nodes?.failedNodes ?? 0 }),
-              outdated: t('pages.admin.home.tabs.updates.page.nodesOutdated', {
-                latest: updateInformation?.latestWingsVersion || unknownLabel,
+              outdated: t('pages.admin.home.tabs.updates.page.nodesOutdatedSummary', {
                 outdated: nodes?.outdatedNodes.total ?? 0,
                 failed: nodes?.failedNodes ?? 0,
-              }).md(),
+              }),
             }}
           >
-            {nodes?.outdatedNodes?.data.map((node) => (
-              <NodeRow key={node.node.uuid} node={node.node} />
+            {nodes?.outdatedNodes?.data.map((outdatedNode) => (
+              <OutdatedNodeRow key={outdatedNode.node.uuid} outdatedNode={outdatedNode} />
             ))}
           </OutdatedResourceCard>
         </AdminCan>
@@ -314,7 +313,7 @@ export default function AdminOverviewUpdates() {
               loading: databaseAgentHostsLoading,
               error: databaseAgentHostsError,
               data: databaseAgentHosts?.outdatedDatabaseAgentHosts,
-              columns: databaseAgentHostTableColumns(),
+              columns: [...databaseAgentHostTableColumns(), ''],
               onPageSelect: setDatabaseAgentHostsPage,
               onRetry: refetchDatabaseAgentHosts,
             }}
@@ -322,15 +321,17 @@ export default function AdminOverviewUpdates() {
               upToDate: t('pages.admin.home.tabs.updates.page.databaseAgentHostsUpToDate', {
                 failed: databaseAgentHosts?.failedDatabaseAgentHosts ?? 0,
               }),
-              outdated: t('pages.admin.home.tabs.updates.page.databaseAgentHostsOutdated', {
-                latest: updateInformation?.latestDbAgentVersion || unknownLabel,
+              outdated: t('pages.admin.home.tabs.updates.page.databaseAgentHostsOutdatedSummary', {
                 outdated: databaseAgentHosts?.outdatedDatabaseAgentHosts.total ?? 0,
                 failed: databaseAgentHosts?.failedDatabaseAgentHosts ?? 0,
-              }).md(),
+              }),
             }}
           >
-            {databaseAgentHosts?.outdatedDatabaseAgentHosts?.data.map((host) => (
-              <DatabaseAgentHostRow key={host.databaseAgentHost.uuid} databaseAgentHost={host.databaseAgentHost} />
+            {databaseAgentHosts?.outdatedDatabaseAgentHosts?.data.map((outdatedDatabaseAgentHost) => (
+              <OutdatedDatabaseAgentHostRow
+                key={outdatedDatabaseAgentHost.databaseAgentHost.uuid}
+                outdatedDatabaseAgentHost={outdatedDatabaseAgentHost}
+              />
             ))}
           </OutdatedResourceCard>
         </AdminCan>

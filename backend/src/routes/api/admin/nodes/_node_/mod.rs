@@ -37,6 +37,7 @@ mod token;
 mod transfers;
 // plugged.host: the private network removed (docs/upstream.md)
 // mod tunnel;
+mod upgrade;
 
 pub async fn auth(
     state: GetState,
@@ -268,6 +269,7 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         .nest("/enrollment", enrollment::router(state))
         .nest("/pair", pair::router(state))
         .nest("/token", token::router(state))
+        .nest("/upgrade", upgrade::router(state))
         // .nest("/tunnel", tunnel::router(state))
         .nest("/allocations", allocations::router(state))
         .nest("/system", system::router(state))

@@ -16,6 +16,7 @@ export const databaseHostSchema = z.looseObject({
 export const oAuthProviderSchema = z.looseObject({
   uuid: z.string(),
   name: z.string(),
+  icon: z.string().nullable(),
   linkViewable: z.boolean(),
   userManageable: z.boolean(),
 });
@@ -40,7 +41,7 @@ export const serverSelectorSchema = z.discriminatedUnion('type', [
 ]);
 
 export const eggConfigurationRouteItemSchema = z.discriminatedUnion('type', [
-  z.object({ type: z.literal('route'), path: z.string() }),
+  z.object({ type: z.literal('route'), path: z.string(), icon: z.string().nullish() }),
   z.object({
     type: z.literal('divider'),
     name: z.string().nullable(),
@@ -51,6 +52,7 @@ export const eggConfigurationRouteItemSchema = z.discriminatedUnion('type', [
     name: z.string(),
     nameTranslations: z.record(z.string(), z.string()),
     destination: z.string(),
+    icon: z.string().nullish(),
   }),
 ]);
 

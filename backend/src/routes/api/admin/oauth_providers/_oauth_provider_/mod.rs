@@ -237,6 +237,7 @@ mod patch {
                 serde_json::json!({
                     "name": oauth_provider.name,
                     "description": oauth_provider.description,
+                    "icon": oauth_provider.icon,
                     "enabled": oauth_provider.enabled,
                     "login_only": oauth_provider.login_only,
                     "login_bypass_two_factor": oauth_provider.login_bypass_two_factor,

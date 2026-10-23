@@ -84,6 +84,8 @@ mod patch {
 
         let applied = node.update_configuration(&state.database, &data).await?;
 
+        shared::censor::censor_paths(&mut data, wings_api::SECRET_CONFIG_PATHS);
+
         activity_logger
             .log(
                 "node:update-config",

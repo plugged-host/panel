@@ -10,7 +10,7 @@ type IconPackage = {
   icons: Map<string, IconDefinition>;
 };
 
-async function loadIconPackage(entry: string): Promise<IconPackage> {
+export async function loadIconPackage(entry: string): Promise<IconPackage> {
   const module: Record<string, unknown> = await import(pathToFileURL(entry).href);
   const canonical = new Map<string, string>();
   const icons = new Map<string, IconDefinition>();

@@ -20,6 +20,7 @@ type SettingsStoreKey =
   | 'user'
   | 'activity'
   | 'ratelimits'
+  | 'updates'
   | 'storageDriver'
   | 'mailMode'
   | 'captchaProvider'

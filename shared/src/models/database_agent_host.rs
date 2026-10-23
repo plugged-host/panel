@@ -324,6 +324,61 @@ impl DatabaseAgentHost {
         ))
     }
 
+    pub async fn upgrade_status(
+        &self,
+        state: &crate::State,
+        token: Option<compact_str::CompactString>,
+    ) -> Result<crate::updates::UpgradeStatus, anyhow::Error> {
+        let client = self.api_client(&state.database).await?;
+        let overview = tokio::time::timeout(
+            std::time::Duration::from_secs(2),
+            client.get_system_overview(),
+        )
+        .await??;
+
+        if overview.upgrade.is_none() {
+            let update_information = state.updates.get_update_information().await;
+
+            return Ok(crate::updates::UpgradeStatus::from_calagopus(
+                overview.version,
+                update_information
+                    .as_ref()
+                    .map(|information| &information.latest_db_agent_version),
+            ));
+        }
+
+        let check = tokio::time::timeout(
+            std::time::Duration::from_secs(5),
+            client.post_system_upgrade_check(
+                &db_agent_api::system_upgrade_check::post::RequestBody {
+                    token,
+                    force: false,
+                },
+            ),
+        )
+        .await;
+
+        let (latest_version, update_available) = match check {
+            Ok(Ok(check)) => (check.latest_version, check.update_available),
+            Ok(Err(err)) => {
+                tracing::warn!(database_agent_host = %self.uuid, "failed to check for database agent upgrades: {:?}", err);
+                (None, false)
+            }
+            Err(_) => {
+                tracing::warn!(database_agent_host = %self.uuid, "timed out checking for database agent upgrades");
+                (None, false)
+            }
+        };
+
+        Ok(crate::updates::UpgradeStatus {
+            current_version: overview.version,
+            latest_version,
+            update_available,
+            upgradable: true,
+            source: crate::updates::UpgradeStatusSource::Daemon,
+        })
+    }
+
     /// Fetch the current configuration of this database agent host
     ///
     /// Cached for 120 seconds.

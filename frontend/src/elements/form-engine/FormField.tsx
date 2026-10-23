@@ -1,11 +1,13 @@
 import { faCircleQuestion } from '@fortawesome/free-regular-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { UseFormReturnType } from '@mantine/form';
+import classNames from 'classnames';
 import { ReactNode } from 'react';
 import CollapsibleSection from '@/elements/CollapsibleSection.tsx';
 import Autocomplete from '@/elements/input/Autocomplete.tsx';
 import Checkbox from '@/elements/input/Checkbox.tsx';
 import DateTimePicker from '@/elements/input/DateTimePicker.tsx';
+import IconInput from '@/elements/input/IconInput.tsx';
 import LocalizedTextArea from '@/elements/input/LocalizedTextArea.tsx';
 import LocalizedTextInput from '@/elements/input/LocalizedTextInput.tsx';
 import MultiSelect from '@/elements/input/MultiSelect.tsx';
@@ -80,18 +82,37 @@ export function FormField<T extends Record<string, unknown>>({ form, field }: Pr
   const f = form as UseFormReturnType<Record<string, unknown>>;
 
   switch (field.type) {
-    case 'text':
-      return (
+    case 'text': {
+      const input = (
         <TextInput
-          className={colSpanClass}
           label={fieldLabel(field)}
           description={resolveString(field.description)}
           withAsterisk={field.required}
           key={f.key(field.name)}
           {...f.getInputProps(field.name)}
           {...field.props}
+          className={classNames(field.icon ? 'flex-1' : colSpanClass, field.props?.className)}
         />
       );
+
+      if (!field.icon) return input;
+
+      const { icon } = field;
+
+      return (
+        <div className={classNames(colSpanClass, 'flex items-start gap-2')}>
+          <IconInput
+            key={f.key(icon.name)}
+            label={resolveString(icon.label)}
+            value={getByPath(f.getValues(), icon.name) as string | null}
+            onChange={(value) => (f.setFieldValue as (n: string, v: unknown) => void)(icon.name, value)}
+            fallback={icon.fallback}
+            error={f.errors[icon.name]}
+          />
+          {input}
+        </div>
+      );
+    }
 
     case 'password':
       return (

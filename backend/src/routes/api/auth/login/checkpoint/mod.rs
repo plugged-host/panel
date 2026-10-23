@@ -15,13 +15,21 @@ pub struct TwoFactorRequiredJwt {
 
 /// Every factor the user can prove here, which excludes security keys: they have no checkpoint
 /// step, only a login of their own.
+///
+/// A user who meets an enforced requirement is held to the accepted methods, otherwise a factor
+/// the admin excluded (such as email, which password resets also go through) would stand in for
+/// the one that satisfies it. Users who do not meet it yet keep every factor, as dropping them
+/// could leave nothing to check and hand out a session without any second factor.
 pub fn available_methods(
     user: &User,
     settings: &shared::settings::AppSettings,
 ) -> Vec<TwoFactorMethod> {
+    let enforced = user.require_two_factor(settings) && user.satisfies_two_factor(settings);
+
     user.two_factor_methods(settings)
         .into_iter()
         .filter(|method| matches!(method, TwoFactorMethod::Totp | TwoFactorMethod::Email))
+        .filter(|method| !enforced || settings.app.two_factor_accepted_methods.contains(method))
         .collect()
 }
 
@@ -31,9 +39,7 @@ pub fn available_methods(
 pub fn two_factor_unprovable(user: &User, settings: &shared::settings::AppSettings) -> bool {
     user.require_two_factor(settings)
         && user.satisfies_two_factor(settings)
-        && !available_methods(user, settings)
-            .iter()
-            .any(|method| settings.app.two_factor_accepted_methods.contains(method))
+        && available_methods(user, settings).is_empty()
 }
 
 mod post {

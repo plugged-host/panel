@@ -40,6 +40,9 @@ mod patch {
 
         let ignored_paths = db_agent_api::strip_config_paths(&mut data.config);
 
+        let mut logged_config = data.config.clone();
+        shared::censor::censor_paths(&mut logged_config, db_agent_api::SECRET_CONFIG_PATHS);
+
         let update_host = async |host: uuid::Uuid| -> Result<bool, anyhow::Error> {
             let host = DatabaseAgentHost::by_uuid_optional_cached(&state.database, host).await?;
             let Some(host) = host else {
@@ -69,7 +72,7 @@ mod patch {
                     "database-agent-host:update-config",
                     serde_json::json!({
                         "uuid": host.uuid,
-                        "config": data.config,
+                        "config": logged_config,
                     }),
                 )
                 .await;

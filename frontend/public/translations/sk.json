@@ -1273,7 +1273,6 @@
                 "extensionsOutdated": "Niektoré rozšírenia sú zastarané alebo sa vyskytli chyby pri kontrole aktualizácií.",
                 "noChangelog": "Žiadny zoznam zmien",
                 "nodesUpToDate": "Zdá sa, že všetky uzly sú aktuálne. (Kontrola zlyhala pri {failed})",
-                "nodesOutdated": "Niektoré uzly sú zastarané, najnovšia dostupná verzia je `{latest}`. ({outdated} zastaraných, kontrola zlyhala pri {failed})",
                 "table": {
                   "version": "Verzia",
                   "installed": "Nainštalované",

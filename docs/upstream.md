@@ -61,6 +61,14 @@ The panel records applied migrations **by snapshot id**, which allows moving our
 
 `plugged-host/generate-migration.sh <name> <old-id>` does steps 2 and 3 for one migration.
 
+When upstream brings fewer migrations than ours after the fork point, move **upstream's** to the end
+instead, the same way: delete its directory and run `generate-migration.sh <name> <its old id>`.
+Upstream's next migration then follows that id, so the chain stays linear. Done so far:
+
+| Upstream migration | Regenerated as |
+|---|---|
+| `20261023184528_wild_revanche` (`oauth_providers.icon`) | `20261023200523_oauth_provider_icons` |
+
 ## Translations
 
 `.gitattributes` sends `frontend/public/translations/*.json` and `shared/mails/variables/*.json` to

@@ -338,6 +338,34 @@ pub async fn invalidate_cache_keys(
     }
 }
 
+pub trait CreatedModelResult {
+    fn created_cache_invalidation_keys(&self) -> Vec<compact_str::CompactString>;
+}
+
+impl<T: BaseModel> CreatedModelResult for T {
+    fn created_cache_invalidation_keys(&self) -> Vec<compact_str::CompactString> {
+        self.cache_invalidation_keys()
+    }
+}
+
+impl<T: BaseModel> CreatedModelResult for (String, T) {
+    fn created_cache_invalidation_keys(&self) -> Vec<compact_str::CompactString> {
+        self.1.cache_invalidation_keys()
+    }
+}
+
+impl CreatedModelResult for () {
+    fn created_cache_invalidation_keys(&self) -> Vec<compact_str::CompactString> {
+        Vec::new()
+    }
+}
+
+impl CreatedModelResult for String {
+    fn created_cache_invalidation_keys(&self) -> Vec<compact_str::CompactString> {
+        Vec::new()
+    }
+}
+
 pub trait EventEmittingModel: BaseModel {
     type Event: Send + Sync + 'static;
 
@@ -377,7 +405,7 @@ pub type CreateListenerList<M> =
 #[async_trait::async_trait]
 pub trait CreatableModel: BaseModel + Send + Sync + 'static {
     type CreateOptions<'a>: Send + Sync + Validate;
-    type CreateResult: Send;
+    type CreateResult: Send + CreatedModelResult;
 
     fn get_create_handlers() -> &'static LazyLock<CreateListenerList<Self>>;
 
@@ -482,6 +510,8 @@ pub trait CreatableModel: BaseModel + Send + Sync + 'static {
         };
 
         transaction.commit().await?;
+
+        invalidate_cache_keys(&state.database, &result.created_cache_invalidation_keys()).await;
 
         Ok(result)
     }
@@ -785,7 +815,7 @@ pub type DuplicateHandlerList<M> =
 #[async_trait::async_trait]
 pub trait DuplicableModel: BaseModel + Send + Sync + 'static {
     type DuplicateOptions<'a>: Send + Sync + Validate;
-    type DuplicateResult: Send;
+    type DuplicateResult: Send + CreatedModelResult;
 
     fn get_duplicate_handlers() -> &'static LazyLock<DuplicateHandlerList<Self>>;
 
@@ -895,6 +925,12 @@ pub trait DuplicableModel: BaseModel + Send + Sync + 'static {
         };
 
         transaction.commit().await?;
+
+        invalidate_cache_keys(
+            &state.database,
+            &duplicated.created_cache_invalidation_keys(),
+        )
+        .await;
 
         Ok(duplicated)
     }

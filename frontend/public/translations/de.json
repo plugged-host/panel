@@ -251,6 +251,7 @@
         "disableTwoFactor": "Zwei-Faktor deaktivieren",
         "verify": "Verifizieren",
         "update": "Aktualisieren",
+        "upgrade": "Aktualisieren",
         "close": "Schließen",
         "copy": "Kopieren",
         "cancel": "Abbrechen",
@@ -354,6 +355,15 @@
           },
           "nextRun": "Nächste Ausführung ist {timestamp}."
         },
+        "iconInput": {
+          "defaultIcon": "Standardsymbol",
+          "searchPlaceholder": "Symbole durchsuchen…",
+          "noResults": "Keine Symbole entsprechen deiner Suche.",
+          "moreResults": "Es werden die ersten {count} Treffer angezeigt, verfeinere deine Suche, um mehr zu sehen.",
+          "button": {
+            "reset": "Standardsymbol verwenden"
+          }
+        },
         "trashRetention": {
           "days": "Tage"
         },
@@ -450,6 +460,7 @@
       "form": {
         "force": "Möchtest du diesen Löschvorgang zwangsweise ausführen?",
         "name": "Name",
+        "icon": "Symbol",
         "newName": "Neuer Name",
         "description": "Beschreibung",
         "author": "Autor",
@@ -652,7 +663,8 @@
         "failed": "Fehlgeschlagen",
         "installed": "Installiert",
         "updateAvailable": "Update verfügbar",
-        "systemBackup": "System"
+        "systemBackup": "System",
+        "restarting": "Startet neu"
       },
       "label": {
         "noSubdirectories": "Keine Unterverzeichnisse",
@@ -2364,9 +2376,12 @@
                 "extensionsOutdated": "Einige Erweiterungen sind veraltet oder es traten Fehler bei der Update-Prüfung auf.",
                 "noChangelog": "Kein Änderungsprotokoll",
                 "nodesUpToDate": "Es scheint, als wären alle Nodes auf dem neuesten Stand. ({failed} Prüfungen fehlgeschlagen)",
-                "nodesOutdated": "Einige Nodes sind veraltet, die neueste verfügbare Version ist `{latest}`. ({outdated} veraltet, {failed} Prüfungen fehlgeschlagen)",
+                "nodesOutdatedSummary": "Einige Nodes sind veraltet. ({outdated} veraltet, {failed} Prüfungen fehlgeschlagen)",
                 "databaseAgentHostsUpToDate": "Es scheint, als wären alle Datenbank-Agent-Hosts auf dem neuesten Stand. ({failed} Prüfungen fehlgeschlagen)",
-                "databaseAgentHostsOutdated": "Einige Datenbank-Agent-Hosts sind veraltet, die neueste verfügbare Version ist `{latest}`. ({outdated} veraltet, {failed} Prüfungen fehlgeschlagen)",
+                "databaseAgentHostsOutdatedSummary": "Einige Datenbank-Agent-Hosts sind veraltet. ({outdated} veraltet, {failed} Prüfungen fehlgeschlagen)",
+                "badge": {
+                  "latestVersion": "Neueste {version}"
+                },
                 "table": {
                   "version": "Version",
                   "installed": "Installiert",
@@ -3082,6 +3097,20 @@
                   "updated": "Einstellungen der Wiederherstellung aktualisiert."
                 }
               }
+            },
+            "updates": {
+              "title": "Updates",
+              "page": {
+                "title": "Update-Einstellungen",
+                "alert": "Release-Tokens sind optional. Sie werden nur benötigt, wenn Nodes oder Datenbank-Agent-Hosts von einem privaten Fork aktualisiert werden oder die GitHub-API nicht authentifizierte Downloads begrenzt. Verwende ein fein abgestuftes Token, das nur Lesezugriff auf **Contents** des Release-Repositorys hat, und gib ihm ein Ablaufdatum. Das Token wird an jeden Node oder Datenbank-Agent-Host gesendet, den du aktualisierst, und nur dann, wenn der Admin, der die Aktualisierung startet, auch die Panel-Einstellungen lesen darf.",
+                "form": {
+                  "wingsReleaseToken": "Wings-Release-Token",
+                  "dbAgentReleaseToken": "Datenbank-Agent-Release-Token"
+                },
+                "toast": {
+                  "updated": "Release-Tokens aktualisiert."
+                }
+              }
             }
           }
         },
@@ -3761,7 +3790,8 @@
                   "unavailable": "Nicht verfügbar"
                 },
                 "badge": {
-                  "updateAvailable": "Update verfügbar"
+                  "updateAvailable": "Update verfügbar",
+                  "latestVersionUnknown": "Neueste Version unbekannt"
                 }
               }
             },
@@ -3771,6 +3801,7 @@
                   "allInOneNode": "All-in-One Node",
                   "errorWhileFetchingVersion": "Fehler beim Abrufen der Version",
                   "updateAvailable": "{version} (Update verfügbar)",
+                  "latestVersionUnknown": "{version} (Neueste Version unbekannt)",
                   "useWingsProxyUrl": "Wings Proxy URL verwenden"
                 },
                 "form": {
@@ -4421,6 +4452,18 @@
               },
               "error": {
                 "invalidYaml": "Ungültiges YAML: {error}"
+              }
+            },
+            "upgrade": {
+              "title": "Wings aktualisieren - {name}",
+              "content": "Wings lädt das Release von `{repository}` ({provider}) herunter, ersetzt seine Binärdatei und startet neu. Der Node ist während des Neustarts einige Sekunden nicht erreichbar.",
+              "form": {
+                "version": "Version",
+                "versionDescription": "Eine Release-Version wie 1.2.8 oder latest für das neueste stabile Release."
+              },
+              "toast": {
+                "scheduled": "Aktualisierung von {name} auf {version} geplant, der Node startet neu.",
+                "ignored": "{name} hat die Aktualisierung ignoriert, seine lokale Konfiguration deaktiviert vom Panel gestartete Aktualisierungen."
               }
             }
           }
@@ -5403,7 +5446,8 @@
                 "titleUpdate": "Datenbank-Agent-Host aktualisieren",
                 "tooltip": {
                   "errorWhileFetchingVersion": "Fehler beim Abrufen der Version",
-                  "updateAvailable": "{version} (Update verfügbar)"
+                  "updateAvailable": "{version} (Update verfügbar)",
+                  "latestVersionUnknown": "{version} (Neueste Version unbekannt)"
                 },
                 "form": {
                   "typePublicHost": "Öffentlicher Host",
@@ -5551,7 +5595,8 @@
                   "noAllocations": "Keine Instanzen belegen diese Ressource."
                 },
                 "badge": {
-                  "updateAvailable": "Update verfügbar"
+                  "updateAvailable": "Update verfügbar",
+                  "latestVersionUnknown": "Neueste Version unbekannt"
                 }
               }
             },
@@ -5595,6 +5640,18 @@
               },
               "error": {
                 "invalidYaml": "Ungültiges YAML: {error}"
+              }
+            },
+            "upgrade": {
+              "title": "Datenbank-Agent aktualisieren - {name}",
+              "content": "Der Datenbank-Agent lädt das Release von `{repository}` ({provider}) herunter, ersetzt seine Binärdatei und startet neu. Der Host ist während des Neustarts einige Sekunden nicht erreichbar.",
+              "form": {
+                "version": "Version",
+                "versionDescription": "Eine Release-Version wie 1.2.3 oder latest für das neueste stabile Release."
+              },
+              "toast": {
+                "scheduled": "Aktualisierung von {name} auf {version} geplant, der Host startet neu.",
+                "ignored": "{name} hat die Aktualisierung ignoriert, seine lokale Konfiguration deaktiviert vom Panel gestartete Aktualisierungen."
               }
             }
           }

@@ -1343,7 +1343,6 @@
                 "extensionsOutdated": "Niektóre rozszerzenia są nieaktualne lub miały błędy podczas sprawdzania aktualizacji.",
                 "noChangelog": "Brak listy zmian",
                 "nodesUpToDate": "Wygląda na to, że wszystkie węzły są aktualne. (nie udało się sprawdzić {failed})",
-                "nodesOutdated": "Niektóre węzły są nieaktualne, najnowsza dostępna wersja to `{latest}`. ({outdated} przestarzałych, nie udało się sprawdzić {failed})",
                 "table": {
                   "version": "Wersja",
                   "packageName": "Nazwa pakietu",

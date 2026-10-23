@@ -1761,6 +1761,15 @@ pub mod system_overview {
                 pub architecture: compact_str::CompactString,
                 #[schema(inline)]
                 pub kernel_version: compact_str::CompactString,
+                #[schema(inline)]
+                pub upgrade: Option<#[derive(Debug, ToSchema, Deserialize, Serialize, Clone)] pub struct Response200Upgrade {
+                    #[schema(inline)]
+                    pub provider: compact_str::CompactString,
+                    #[schema(inline)]
+                    pub repository: compact_str::CompactString,
+                    #[schema(inline)]
+                    pub api_url: compact_str::CompactString,
+                }>,
             }
         }
 
@@ -1792,15 +1801,18 @@ pub mod system_upgrade {
         nestify::nest! {
             #[derive(Debug, ToSchema, Deserialize, Serialize, Clone)] pub struct RequestBody {
                 #[schema(inline)]
-                pub url: compact_str::CompactString,
+                pub version: compact_str::CompactString,
                 #[schema(inline)]
-                pub headers: IndexMap<compact_str::CompactString, compact_str::CompactString>,
+                pub token: Option<compact_str::CompactString>,
+            }
+        }
+
+        nestify::nest! {
+            #[derive(Debug, ToSchema, Deserialize, Serialize, Clone)] pub struct Response200 {
                 #[schema(inline)]
-                pub sha256: compact_str::CompactString,
+                pub applied: bool,
                 #[schema(inline)]
-                pub restart_command: compact_str::CompactString,
-                #[schema(inline)]
-                pub restart_command_args: Vec<compact_str::CompactString>,
+                pub version: Option<compact_str::CompactString>,
             }
         }
 
@@ -1808,11 +1820,59 @@ pub mod system_upgrade {
             #[derive(Debug, ToSchema, Deserialize, Serialize, Clone)] pub struct Response202 {
                 #[schema(inline)]
                 pub applied: bool,
+                #[schema(inline)]
+                pub version: Option<compact_str::CompactString>,
             }
         }
 
+        pub type Response400 = ApiError;
+
+        pub type Response404 = ApiError;
+
         pub type Response409 = ApiError;
 
-        pub type Response = Response202;
+        pub type Response501 = ApiError;
+
+        #[derive(Deserialize)]
+        #[serde(untagged)]
+        pub enum Response {
+            Ok(Response200),
+            Accepted(Response202),
+        }
+    }
+}
+pub mod system_upgrade_check {
+    use super::*;
+
+    pub mod post {
+        use super::*;
+
+        nestify::nest! {
+            #[derive(Debug, ToSchema, Deserialize, Serialize, Clone)] pub struct RequestBody {
+                #[schema(inline)]
+                pub token: Option<compact_str::CompactString>,
+                #[schema(inline)]
+                pub force: bool,
+            }
+        }
+
+        nestify::nest! {
+            #[derive(Debug, ToSchema, Deserialize, Serialize, Clone)] pub struct Response200 {
+                #[schema(inline)]
+                pub current_version: compact_str::CompactString,
+                #[schema(inline)]
+                pub latest_version: Option<compact_str::CompactString>,
+                #[schema(inline)]
+                pub update_available: bool,
+                #[schema(inline)]
+                pub checked_at: chrono::DateTime<chrono::Local>,
+            }
+        }
+
+        pub type Response501 = ApiError;
+
+        pub type Response502 = ApiError;
+
+        pub type Response = Response200;
     }
 }

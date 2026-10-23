@@ -72,6 +72,47 @@ impl Display for ParsedVersionInformation {
     }
 }
 
+#[derive(ToSchema, Serialize, Deserialize, Clone, Copy, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub enum UpgradeStatusSource {
+    /// The daemon checked the release source it was built against.
+    Daemon,
+    /// The daemon cannot check for itself, compared against the official releases.
+    Calagopus,
+}
+
+#[derive(ToSchema, Serialize, Deserialize, Clone)]
+pub struct UpgradeStatus {
+    pub current_version: compact_str::CompactString,
+    pub latest_version: Option<compact_str::CompactString>,
+    pub update_available: bool,
+    pub upgradable: bool,
+    pub source: UpgradeStatusSource,
+}
+
+impl UpgradeStatus {
+    pub fn from_calagopus(
+        current_version: compact_str::CompactString,
+        latest_version: Option<&semver::Version>,
+    ) -> Self {
+        let update_available = match (
+            ParsedVersionInformation::from_str(&current_version),
+            latest_version,
+        ) {
+            (Ok(current), Some(latest)) => current.version < *latest,
+            _ => false,
+        };
+
+        Self {
+            current_version,
+            latest_version: latest_version.map(|latest| latest.to_compact_string()),
+            update_available,
+            upgradable: false,
+            source: UpgradeStatusSource::Calagopus,
+        }
+    }
+}
+
 #[derive(ToSchema, Serialize, Clone)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum ExtensionUpdateCheckResult {
@@ -339,5 +380,48 @@ impl UpdateManager {
                 ))
             })
             .flatten()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // UpgradeStatus::from_calagopus
+    #[test]
+    fn from_calagopus_reports_update_only_when_behind_latest() {
+        let cases: &[(&str, Option<&str>, bool)] = &[
+            ("1.2.7", Some("1.2.8"), true),
+            ("1.2.7", Some("1.2.7"), false),
+            ("1.2.8", Some("1.2.7"), false),
+            ("1.2.7:abc@main", Some("1.2.8"), true),
+            ("1.2.7:abc@main", Some("1.2.7"), false),
+            ("garbage", Some("1.2.8"), false),
+            ("1.2.7", None, false),
+        ];
+
+        for &(current, latest, expected) in cases {
+            let latest = latest.map(|l| semver::Version::parse(l).unwrap());
+            let status = UpgradeStatus::from_calagopus(current.into(), latest.as_ref());
+
+            assert_eq!(
+                status.update_available, expected,
+                "current {current:?}, latest {latest:?}"
+            );
+            assert_eq!(
+                status.latest_version.as_deref(),
+                latest.map(|l| l.to_string()).as_deref()
+            );
+        }
+    }
+
+    #[test]
+    fn from_calagopus_marks_source_and_echoes_current() {
+        let latest = semver::Version::parse("1.2.8").unwrap();
+        let status = UpgradeStatus::from_calagopus("1.2.7:abc@main".into(), Some(&latest));
+
+        assert!(status.source == UpgradeStatusSource::Calagopus);
+        assert!(!status.upgradable);
+        assert_eq!(status.current_version, "1.2.7:abc@main");
     }
 }

@@ -7,6 +7,7 @@ pub mod admin;
 mod announcements;
 pub mod auth;
 pub mod client;
+mod icons;
 mod languages;
 pub mod remote;
 mod settings;
@@ -39,6 +40,7 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         )
         .nest("/settings", settings::router(state))
         .nest("/announcements", announcements::router(state))
+        .nest("/icons", icons::router(state))
         .nest("/languages", languages::router(state))
         .nest("/timezones", timezones::router(state))
         .nest("/auth", auth::router(state))

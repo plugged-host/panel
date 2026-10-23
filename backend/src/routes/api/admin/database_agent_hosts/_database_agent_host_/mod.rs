@@ -20,6 +20,7 @@ mod reset_token;
 mod system;
 mod test;
 mod token;
+mod upgrade;
 
 pub type GetDatabaseAgentHost = shared::extract::ConsumingExtension<DatabaseAgentHost>;
 
@@ -289,6 +290,7 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         .nest("/config", config::router(state))
         .nest("/test", test::router(state))
         .nest("/system", system::router(state))
+        .nest("/upgrade", upgrade::router(state))
         .route_layer(axum::middleware::from_fn_with_state(state.clone(), auth))
         .with_state(state.clone())
 }

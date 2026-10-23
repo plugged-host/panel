@@ -2,6 +2,7 @@ import {
   faAt,
   faBan,
   faCircleQuestion, // plugged.host
+  faCircleUp,
   faClockRotateLeft, // plugged.host
   faDatabase,
   faEnvelopesBulk,
@@ -45,6 +46,7 @@ import ServerContainer from './server/ServerContainer.tsx';
 import StatusContainer from './status/StatusContainer.tsx';
 import StorageContainer from './storage/StorageContainer.tsx';
 import TourContainer from './tour/TourContainer.tsx'; // plugged.host
+import UpdatesContainer from './updates/UpdatesContainer.tsx';
 import UserContainer from './user/UserContainer.tsx';
 import WebauthnContainer from './webauthn/WebauthnContainer.tsx';
 
@@ -186,6 +188,12 @@ export default function AdminSettings() {
               icon: faClockRotateLeft,
               path: '/recovery',
               element: <RecoveryContainer />,
+            },
+            {
+              name: t('pages.admin.settings.tabs.updates.title', {}),
+              icon: faCircleUp,
+              path: '/updates',
+              element: <UpdatesContainer />,
             },
           ]}
         />

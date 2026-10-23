@@ -997,4 +997,18 @@ impl DbAgentClient {
     ) -> Result<super::system_upgrade::post::Response, ApiHttpError> {
         request_impl(self, Method::POST, "/api/system/upgrade", Some(data), None).await
     }
+
+    pub async fn post_system_upgrade_check(
+        &self,
+        data: &super::system_upgrade_check::post::RequestBody,
+    ) -> Result<super::system_upgrade_check::post::Response, ApiHttpError> {
+        request_impl(
+            self,
+            Method::POST,
+            "/api/system/upgrade/check",
+            Some(data),
+            None,
+        )
+        .await
+    }
 }

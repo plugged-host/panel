@@ -150,7 +150,14 @@ impl EggRepositoryCredentials {
             .unwrap_or(gix::url::Scheme::Https);
 
         match self {
-            EggRepositoryCredentials::None => {}
+            EggRepositoryCredentials::None => {
+                if scheme == gix::url::Scheme::Ssh {
+                    return Err(crate::response::DisplayError::new(
+                        "ssh repositories need credentials, use an https repository url for public repositories",
+                    )
+                    .into());
+                }
+            }
             EggRepositoryCredentials::Password { .. } => {
                 if scheme == gix::url::Scheme::Http {
                     return Err(crate::response::DisplayError::new(

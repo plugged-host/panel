@@ -168,7 +168,16 @@ export default function ServerGroupItem({
   };
 
   const handleGroupPowerAction = async (action: z.infer<typeof serverPowerAction>) => {
-    await handleBulkPowerAction(serverGroup.serverOrder, action);
+    const blocked = new Set(
+      servers.data
+        .filter((s) => !!s.status || s.isSuspended || s.isTransferring || s.nodeMaintenanceEnabled)
+        .map((s) => s.uuid),
+    );
+
+    await handleBulkPowerAction(
+      serverGroup.serverOrder.filter((uuid) => !blocked.has(uuid)),
+      action,
+    );
   };
 
   const doRemoveServer = async () => {

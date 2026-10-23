@@ -484,6 +484,7 @@ export const oauthProvidersTable = pgTable(
     uuid: uuid().default(sql`gen_random_uuid()`).primaryKey().notNull(),
     name: varchar({ length: 255 * UTF8_MAX_SCALAR_SIZE }).notNull(),
     description: text(),
+    icon: varchar({ length: 128 }),
     client_id: varchar({ length: 255 }).notNull(),
     client_secret: bytea(),
     auth_url: varchar({ length: 255 }).notNull(),

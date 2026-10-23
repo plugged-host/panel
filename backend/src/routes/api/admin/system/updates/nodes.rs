@@ -3,7 +3,6 @@ use utoipa_axum::{router::OpenApiRouter, routes};
 
 mod get {
     use axum::{extract::Query, http::StatusCode};
-    use compact_str::ToCompactString;
     use futures_util::{StreamExt, TryStreamExt};
     use serde::Serialize;
     use shared::{
@@ -13,14 +12,14 @@ mod get {
             user::GetPermissionManager,
         },
         response::{ApiResponse, ApiResponseResult},
-        updates::ParsedVersionInformation,
     };
-    use std::str::FromStr;
     use utoipa::ToSchema;
 
     #[derive(ToSchema, Serialize)]
     struct ResponseNode {
-        version: compact_str::CompactString,
+        #[serde(flatten)]
+        #[schema(inline)]
+        status: shared::updates::UpgradeStatus,
         node: shared::models::node::AdminApiNode,
     }
 
@@ -33,7 +32,6 @@ mod get {
 
     #[utoipa::path(get, path = "/", responses(
         (status = OK, body = inline(Response)),
-        (status = EXPECTATION_FAILED, body = ApiError),
     ), params(
         (
             "page" = i64, Query,
@@ -59,15 +57,21 @@ mod get {
 
         permissions.has_admin_permission("nodes.read")?;
 
-        let Some(update_information) = state.updates.get_update_information().await else {
-            return ApiResponse::error("no update information available, try triggering a recheck")
-                .with_status(StatusCode::EXPECTATION_FAILED)
-                .ok();
+        let token = state
+            .settings
+            .get()
+            .await?
+            .updates
+            .wings_release_token_for(&permissions);
+        let cache_key = if token.is_some() {
+            "nodes::versions::token"
+        } else {
+            "nodes::versions"
         };
 
         let (node_versions, failed_nodes) = state
             .cache
-            .cached("nodes::versions", 30, || async {
+            .cached(cache_key, 30, || async {
                 let mut versions = Vec::new();
                 let mut failed_nodes = 0;
 
@@ -81,17 +85,12 @@ mod get {
 
                     let mut versions_futures = Vec::new();
                     for node in &nodes.data {
-                        let client = node.api_client(&state.database).await?;
+                        let token = token.clone();
+                        let state = &state;
                         versions_futures.push(async move {
-                            let overview = tokio::time::timeout(
-                                std::time::Duration::from_secs(2),
-                                client.get_system_overview(),
-                            )
-                            .await??;
-
                             Ok::<_, anyhow::Error>((
                                 node.uuid,
-                                ParsedVersionInformation::from_str(&overview.version)?,
+                                node.upgrade_status(state, token).await?,
                             ))
                         });
                     }
@@ -101,7 +100,7 @@ mod get {
 
                     while let Some(result) = futures_stream.next().await {
                         match result {
-                            Ok((node_uuid, version)) => {
+                            Ok((node_uuid, status)) => {
                                 let Some(created) = nodes
                                     .data
                                     .iter()
@@ -111,7 +110,7 @@ mod get {
                                     continue;
                                 };
 
-                                versions.push((node_uuid, created, version));
+                                versions.push((node_uuid, created, status));
                             }
                             Err(err) => {
                                 tracing::warn!(
@@ -133,9 +132,9 @@ mod get {
             .await?;
 
         let mut outdated_node_uuids = Vec::new();
-        for (node_uuid, _, version) in node_versions {
-            if version.version < update_information.latest_wings_version {
-                outdated_node_uuids.push((node_uuid, version));
+        for (node_uuid, _, status) in node_versions {
+            if status.update_available {
+                outdated_node_uuids.push((node_uuid, status));
             }
         }
 
@@ -162,18 +161,15 @@ mod get {
         let mut futures_stream = futures_util::stream::iter(node_futures).buffered(10);
 
         while let Some(node) = futures_stream.try_next().await? {
-            let version = match outdated_node_uuids
+            let status = match outdated_node_uuids
                 .iter()
                 .find(|(uuid, _)| *uuid == node.uuid)
             {
-                Some((_, version)) => version,
+                Some((_, status)) => status.clone(),
                 None => continue,
             };
 
-            outdated_nodes.data.push(ResponseNode {
-                version: version.to_compact_string(),
-                node,
-            });
+            outdated_nodes.data.push(ResponseNode { status, node });
         }
 
         ApiResponse::new_serialized(Response {

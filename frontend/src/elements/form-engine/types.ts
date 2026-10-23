@@ -1,3 +1,4 @@
+import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import {
   AutocompleteProps,
   CheckboxProps,
@@ -41,6 +42,11 @@ interface BaseFieldDef<T extends Record<string, unknown>> {
 export interface TextFieldDef<T extends Record<string, unknown>> extends BaseFieldDef<T> {
   type: 'text';
   props?: Partial<TextInputProps>;
+  icon?: {
+    name: keyof T & string;
+    label: LazyString;
+    fallback?: IconDefinition;
+  };
 }
 
 export interface PasswordFieldDef<T extends Record<string, unknown>> extends BaseFieldDef<T> {

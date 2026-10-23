@@ -21,6 +21,7 @@ pub struct OAuthProvider {
 
     pub name: compact_str::CompactString,
     pub description: Option<compact_str::CompactString>,
+    pub icon: Option<compact_str::CompactString>,
 
     pub client_id: compact_str::CompactString,
     pub client_secret: Option<EncryptedString>,
@@ -81,6 +82,10 @@ impl BaseModel for OAuthProvider {
             (
                 "oauth_providers.description",
                 compact_str::format_compact!("{prefix}description"),
+            ),
+            (
+                "oauth_providers.icon",
+                compact_str::format_compact!("{prefix}icon"),
             ),
             (
                 "oauth_providers.client_id",
@@ -182,6 +187,7 @@ impl BaseModel for OAuthProvider {
             name: row.try_get(compact_str::format_compact!("{prefix}name").as_str())?,
             description: row
                 .try_get(compact_str::format_compact!("{prefix}description").as_str())?,
+            icon: row.try_get(compact_str::format_compact!("{prefix}icon").as_str())?,
             client_id: row.try_get(compact_str::format_compact!("{prefix}client_id").as_str())?,
             client_secret: row
                 .try_get(compact_str::format_compact!("{prefix}client_secret").as_str())?,
@@ -225,6 +231,7 @@ impl BaseModel for OAuthProvider {
         vec![
             compact_str::format_compact!("{}::{}", Self::NAME, self.uuid),
             compact_str::CompactString::const_new("oauth_providers::usable"),
+            crate::icons::REFERENCED_ICONS_CACHE_KEY.into(),
         ]
     }
 }
@@ -783,6 +790,7 @@ impl IntoAdminApiObject for OAuthProvider {
                 uuid: self.uuid,
                 name: self.name,
                 description: self.description,
+                icon: self.icon,
                 client_id: self.client_id,
                 client_secret: match self.client_secret {
                     Some(client_secret) => Some(client_secret.decrypt(&state.database).await?),
@@ -833,6 +841,7 @@ impl IntoApiObject for OAuthProvider {
             ApiOAuthProvider {
                 uuid: self.uuid,
                 name: self.name,
+                icon: self.icon,
                 link_viewable: self.link_viewable,
                 user_manageable: self.user_manageable,
             },
@@ -934,6 +943,13 @@ pub struct CreateOAuthProviderOptions {
     #[garde(length(chars, min = 1, max = 1024))]
     #[schema(min_length = 1, max_length = 1024)]
     pub description: Option<compact_str::CompactString>,
+    #[garde(
+        length(chars, min = 1, max = 128),
+        inner(custom(crate::icons::validate_icon))
+    )]
+    #[schema(min_length = 1, max_length = 128)]
+    #[serde(default)]
+    pub icon: Option<compact_str::CompactString>,
     #[garde(skip)]
     pub enabled: bool,
     #[garde(skip)]
@@ -1050,6 +1066,7 @@ impl CreatableModel for OAuthProvider {
         query_builder
             .set("name", &options.name)
             .set("description", &options.description)
+            .set("icon", &options.icon)
             .set("client_id", &options.client_id)
             .set("client_secret", encrypted_client_secret)
             .set("auth_url", &options.auth_url)
@@ -1097,6 +1114,17 @@ pub struct UpdateOAuthProviderOptions {
         with = "::serde_with::rust::double_option"
     )]
     pub description: Option<Option<compact_str::CompactString>>,
+    #[garde(
+        length(chars, min = 1, max = 128),
+        inner(inner(custom(crate::icons::validate_icon)))
+    )]
+    #[schema(min_length = 1, max_length = 128)]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        with = "::serde_with::rust::double_option"
+    )]
+    pub icon: Option<Option<compact_str::CompactString>>,
     #[garde(skip)]
     pub enabled: Option<bool>,
     #[garde(skip)]
@@ -1268,6 +1296,7 @@ impl UpdatableModel for OAuthProvider {
                 "description",
                 options.description.as_ref().map(|d| d.as_ref()),
             )
+            .set("icon", options.icon.as_ref().map(|i| i.as_ref()))
             .set("client_id", options.client_id.as_ref())
             .set("client_secret", encrypted_client_secret.clone())
             .set("auth_url", options.auth_url.as_ref())
@@ -1313,6 +1342,9 @@ impl UpdatableModel for OAuthProvider {
         }
         if let Some(description) = options.description {
             self.description = description;
+        }
+        if let Some(icon) = options.icon {
+            self.icon = icon;
         }
         if let Some(enabled) = options.enabled {
             self.enabled = enabled;
@@ -1455,6 +1487,7 @@ impl DuplicableModel for OAuthProvider {
         query_builder
             .set("name", &options.name)
             .set("description", &self.description)
+            .set("icon", &self.icon)
             .set("client_id", &self.client_id)
             .set("client_secret", self.client_secret.clone())
             .set("auth_url", &self.auth_url)
@@ -1511,6 +1544,7 @@ pub struct AdminApiOAuthProvider {
 
     pub name: compact_str::CompactString,
     pub description: Option<compact_str::CompactString>,
+    pub icon: Option<compact_str::CompactString>,
 
     pub client_id: compact_str::CompactString,
     pub client_secret: Option<compact_str::CompactString>,
@@ -1548,6 +1582,7 @@ pub struct ApiOAuthProvider {
     pub uuid: uuid::Uuid,
 
     pub name: compact_str::CompactString,
+    pub icon: Option<compact_str::CompactString>,
 
     pub link_viewable: bool,
     pub user_manageable: bool,

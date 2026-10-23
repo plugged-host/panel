@@ -39,6 +39,9 @@ mod patch {
 
         let ignored_paths = wings_api::strip_config_paths(&mut data.config);
 
+        let mut logged_config = data.config.clone();
+        shared::censor::censor_paths(&mut logged_config, wings_api::SECRET_CONFIG_PATHS);
+
         let update_node = async |node: uuid::Uuid| -> Result<bool, anyhow::Error> {
             let node = Node::by_uuid_optional_cached(&state.database, node).await?;
             let Some(node) = node else {
@@ -68,7 +71,7 @@ mod patch {
                     "node:update-config",
                     serde_json::json!({
                         "uuid": node.uuid,
-                        "config": data.config,
+                        "config": logged_config,
                     }),
                 )
                 .await;

@@ -429,6 +429,11 @@ export const adminSettingsTourSchema = z.object({
   version: z.number().int().min(1).max(1000),
 });
 
+export const adminSettingsUpdatesSchema = z.object({
+  wingsReleaseToken: z.preprocess(nullableString, z.string().min(1).max(1024).nullable()),
+  dbAgentReleaseToken: z.preprocess(nullableString, z.string().min(1).max(1024).nullable()),
+});
+
 export const twoFactorRequirement = z.enum(['admins', 'all_users', 'none']);
 
 export const adminSettingsSchema = z.object({
@@ -452,4 +457,5 @@ export const adminSettingsSchema = z.object({
   placement: adminSettingsPlacementSchema, // plugged.host
   tour: adminSettingsTourSchema, // plugged.host
   recovery: adminSettingsRecoverySchema, // plugged.host
+  updates: adminSettingsUpdatesSchema,
 });

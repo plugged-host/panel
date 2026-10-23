@@ -2,6 +2,7 @@ import {
   faChartBar,
   faChartPie,
   faCircleInfo,
+  faCircleUp,
   faHardDrive,
   faMemory,
   faMicrochip,
@@ -9,6 +10,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Text } from '@mantine/core';
+import { useState } from 'react';
 import { z } from 'zod';
 import getNodeCapacity from '@/api/admin/nodes/getNodeCapacity.ts';
 import getNodeSystemOverview from '@/api/admin/nodes/system/getNodeSystemOverview.ts';
@@ -20,6 +22,8 @@ import AllocationBar, {
 } from '@/elements/admin/AllocationBar.tsx';
 import CapacityCard from '@/elements/admin/CapacityCard.tsx';
 import InfoRow from '@/elements/admin/InfoRow.tsx';
+import Button from '@/elements/buttons/Button.tsx';
+import { AdminCan } from '@/elements/Can.tsx';
 import AdminSubContentContainer from '@/elements/containers/AdminSubContentContainer.tsx';
 import Badge from '@/elements/data-display/Badge.tsx';
 import TableLink from '@/elements/data-display/TableLink.tsx';
@@ -35,9 +39,12 @@ import { formatDateTime } from '@/lib/format/time.ts';
 import { queryKeys } from '@/lib/queryKeys.ts';
 import { adminNodeCapacitySchema, adminNodeSchema } from '@/lib/schemas/admin/nodes.ts';
 import { useUserSettingMapEntry } from '@/lib/userSettings.ts';
-import { useNodeUpdateAvailable } from '@/plugins/nodes/useNodeVersion.ts';
+import { useNodeOnlineWait } from '@/plugins/nodes/useNodeOnlineWait.ts';
+import { useNodeUpgradeStatus } from '@/plugins/nodes/useNodeVersion.ts';
 import { useResource } from '@/plugins/resource/useResource.ts';
+import { useUpgradeRestart } from '@/plugins/useUpgradeRestart.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
+import NodeUpgradeModal from '../modals/NodeUpgradeModal.tsx';
 
 type Node = z.infer<typeof adminNodeSchema>;
 type CapacityServer = z.infer<typeof adminNodeCapacitySchema>['servers'][number];
@@ -95,10 +102,28 @@ export default function NodeOverview({ node }: { node: Node }) {
     silent: true,
   });
 
-  const hasUpdate = useNodeUpdateAvailable(overview?.version);
+  const { availability: upgradeAvailability } = useNodeUpgradeStatus(node.uuid);
+
+  const [openModal, setOpenModal] = useState<'upgrade' | null>(null);
+  const onlineWait = useNodeOnlineWait();
+  const upgradeRestart = useUpgradeRestart(onlineWait, [
+    queryKeys.admin.nodes.systemOverview(node.uuid),
+    queryKeys.admin.nodes.systemDirect(node.uuid),
+    queryKeys.admin.nodes.upgradeStatus(node.uuid),
+    queryKeys.admin.updates.nodes(),
+  ]);
 
   return (
     <AdminSubContentContainer title={t('pages.admin.nodes.tabs.overview.page.title', {})} titleOrder={2}>
+      {overview?.upgrade && (
+        <NodeUpgradeModal
+          node={node}
+          onScheduled={(previousVersion) => upgradeRestart.start(node.uuid, previousVersion)}
+          opened={openModal === 'upgrade'}
+          onClose={() => setOpenModal(null)}
+        />
+      )}
+
       <Group mb='md' gap='xs'>
         <Badge color={node.deploymentEnabled ? 'green' : 'red'} variant='light'>
           {node.deploymentEnabled
@@ -236,10 +261,33 @@ export default function NodeOverview({ node }: { node: Node }) {
                     <Text size='sm' ff='monospace'>
                       {overview.version}
                     </Text>
-                    {hasUpdate && (
+                    {upgradeAvailability === 'available' && (
                       <Badge color='yellow' variant='light' size='sm'>
                         {t('pages.admin.nodes.tabs.overview.page.badge.updateAvailable', {})}
                       </Badge>
+                    )}
+                    {upgradeAvailability === 'unknown' && (
+                      <Badge color='gray' variant='light' size='sm'>
+                        {t('pages.admin.nodes.tabs.overview.page.badge.latestVersionUnknown', {})}
+                      </Badge>
+                    )}
+                    {upgradeRestart.restarting ? (
+                      <Badge variant='light' size='sm' loading>
+                        {t('common.badge.restarting', {})}
+                      </Badge>
+                    ) : (
+                      overview.upgrade && (
+                        <AdminCan action='nodes.upgrade'>
+                          <Button
+                            size='xs'
+                            variant='light'
+                            leftSection={<FontAwesomeIcon icon={faCircleUp} />}
+                            onClick={() => setOpenModal('upgrade')}
+                          >
+                            {t('common.button.upgrade', {})}
+                          </Button>
+                        </AdminCan>
+                      )
                     )}
                   </Group>
                 </InfoRow>

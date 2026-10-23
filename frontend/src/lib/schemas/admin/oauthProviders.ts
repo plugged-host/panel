@@ -6,6 +6,7 @@ export const adminOAuthProviderSchema = z.looseObject({
   uuid: z.string(),
   name: z.string().min(1).max(255),
   description: z.preprocess(nullableString, z.string().max(1024).nullable()),
+  icon: z.preprocess(nullableString, z.string().max(128).nullable()).default(null),
   clientId: z.string().min(3).max(255),
   clientSecret: z.preprocess(nullableString, z.string().min(3).max(255).nullable()),
   authUrl: z.string().min(3).max(255),

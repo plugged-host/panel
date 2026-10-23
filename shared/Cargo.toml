@@ -13,7 +13,7 @@ schema-extension-core = { workspace = true }
 schema-extension-derive = { workspace = true }
 rustis = { workspace = true }
 aws-sdk-s3 = { workspace = true }
-reqwest = { workspace = true }
+reqwest = { workspace = true, features = ["blocking"] }
 tokio = { workspace = true }
 tokio-util = { workspace = true }
 utoipa = { workspace = true }

@@ -1,3 +1,4 @@
+import { faFingerprint } from '@fortawesome/free-solid-svg-icons';
 import { z } from 'zod';
 import { type FieldDef } from '@/elements/form-engine/index.ts';
 import MultiKeyValueInput from '@/elements/input/MultiKeyValueInput.tsx';
@@ -10,6 +11,7 @@ type OAuthFormValues = z.infer<typeof adminOAuthProviderUpdateSchema>;
 export const oauthProviderEmptyFormValues: OAuthFormValues = {
   name: '',
   description: null,
+  icon: null,
   clientId: '',
   clientSecret: null,
   authUrl: '',
@@ -38,6 +40,7 @@ export const oauthProviderToFormValues = (
 ): Partial<OAuthFormValues> => ({
   name: provider.name,
   description: provider.description,
+  icon: provider.icon,
   clientId: provider.clientId,
   clientSecret: provider.clientSecret,
   authUrl: provider.authUrl,
@@ -68,7 +71,13 @@ export function useOAuthProviderFormFields(): {
   const { t } = useTranslations();
 
   const fieldsTop: FieldDef<OAuthFormValues>[] = [
-    { type: 'text', name: 'name', label: t('common.form.name', {}), required: true },
+    {
+      type: 'text',
+      name: 'name',
+      label: t('common.form.name', {}),
+      required: true,
+      icon: { name: 'icon', label: t('common.form.icon', {}), fallback: faFingerprint },
+    },
     { type: 'textarea', name: 'description', label: t('common.form.description', {}) },
   ];
 

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { axiosInstance } from '@/api/axios.ts';
+import { adminUpgradeSourceSchema } from '@/lib/schemas/admin/system.ts';
 import { parseFromApi } from '@/lib/serialization/api-transform.ts';
 
 const databaseAgentHostSystemOverviewSchema = z.object({
@@ -26,6 +27,7 @@ const databaseAgentHostSystemOverviewSchema = z.object({
   architecture: z.string(),
   kernelVersion: z.string(),
   localTime: z.coerce.date(),
+  upgrade: adminUpgradeSourceSchema.nullable().optional(),
 });
 
 export type DatabaseAgentHostSystemOverview = z.infer<typeof databaseAgentHostSystemOverviewSchema>;

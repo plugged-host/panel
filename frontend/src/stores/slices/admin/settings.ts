@@ -245,6 +245,10 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
     failoverAfter: 10,
     failoverParallel: 3,
   },
+  updates: {
+    wingsReleaseToken: null,
+    dbAgentReleaseToken: null,
+  },
 
   updateInformation: null,
   updateInformationError: null,
@@ -268,6 +272,7 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
       placement: value.placement, // plugged.host
       tour: value.tour, // plugged.host
       recovery: value.recovery, // plugged.host
+      updates: value.updates,
     })),
   updateSettings: (value) =>
     set((state) => ({
@@ -288,6 +293,7 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
       ...(value.placement ? { placement: { ...state.placement, ...value.placement } } : {}), // plugged.host
       ...(value.tour ? { tour: { ...state.tour, ...value.tour } } : {}), // plugged.host
       ...(value.recovery ? { recovery: { ...state.recovery, ...value.recovery } } : {}), // plugged.host
+      ...(value.updates ? { updates: { ...state.updates, ...value.updates } } : {}),
     })),
   setUpdateInformation: (value) => set((state) => ({ ...state, updateInformation: value })),
   loadUpdateInformation: async () => {

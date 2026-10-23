@@ -30,6 +30,7 @@ import { useAuth } from '@/providers/AuthProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useGlobalStore } from '@/stores/global.ts';
 import AuthWrapper from './AuthWrapper.tsx';
+import OAuthProviderButton from './OAuthProviderButton.tsx';
 
 export default function Login() {
   const { doLogin } = useAuth();
@@ -391,19 +392,7 @@ export default function Login() {
                     oAuthProviders.length > 0 && (
                       <>
                         {oAuthProviders.map((oAuthProvider) => (
-                          <Button
-                            key={oAuthProvider.uuid}
-                            leftSection={<FontAwesomeIcon icon={faFingerprint} />}
-                            size='md'
-                            fullWidth
-                            onClick={() => {
-                              window.location.href = `/api/auth/oauth/redirect/${oAuthProvider.uuid}`;
-                            }}
-                          >
-                            {t('pages.auth.button.loginWith', {
-                              name: oAuthProvider.name,
-                            })}
-                          </Button>
+                          <OAuthProviderButton key={oAuthProvider.uuid} oAuthProvider={oAuthProvider} />
                         ))}
                       </>
                     )

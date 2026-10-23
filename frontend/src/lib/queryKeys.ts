@@ -29,6 +29,7 @@ const admin = {
     systemStats: (nodeUuid: string) => ['admin', 'nodes', nodeUuid, 'system', 'stats'] as const,
     systemDirect: (nodeUuid: string) => ['admin', 'nodes', nodeUuid, 'system', 'direct'] as const,
     systemIps: (nodeUuid: string) => ['admin', 'nodes', nodeUuid, 'system', 'ips'] as const,
+    upgradeStatus: (nodeUuid: string) => ['admin', 'nodes', nodeUuid, 'upgrade'] as const,
     config: (nodeUuid: string) => ['admin', 'nodes', nodeUuid, 'config'] as const,
     mountAllowed: (nodeUuid: string, mountUuid: string) =>
       ['admin', 'nodes', nodeUuid, 'mounts', mountUuid, 'allowed'] as const,
@@ -137,6 +138,7 @@ const admin = {
     capacities: () => ['admin', 'database-agent-hosts', 'capacities'] as const,
     systemOverview: (uuid: string) => ['admin', 'database-agent-hosts', uuid, 'system', 'overview'] as const,
     systemStats: (uuid: string) => ['admin', 'database-agent-hosts', uuid, 'system', 'stats'] as const,
+    upgradeStatus: (uuid: string) => ['admin', 'database-agent-hosts', uuid, 'upgrade'] as const,
   },
 
   databaseAgentTemplates: {
@@ -392,6 +394,9 @@ const user = {
 };
 
 const global = {
+  iconManifest: {
+    all: () => ['global', 'iconManifest'] as const,
+  },
   timezones: {
     all: () => ['global', 'timezones'] as const,
   },

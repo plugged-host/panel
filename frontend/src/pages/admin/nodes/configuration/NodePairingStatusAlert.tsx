@@ -2,14 +2,14 @@ import { faCheck, faExclamationTriangle } from '@fortawesome/free-solid-svg-icon
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import Alert from '@/elements/feedback/Alert.tsx';
 import Spinner from '@/elements/feedback/Spinner.tsx';
-import { NodeOnlineWaitStatus } from '@/plugins/nodes/useNodeOnlineWait.ts';
+import { OnlineWaitStatus } from '@/plugins/useOnlineWait.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 
 export default function NodePairingStatusAlert({
   status,
   version,
 }: {
-  status: NodeOnlineWaitStatus;
+  status: OnlineWaitStatus;
   version: string | null;
 }) {
   const { t } = useTranslations();

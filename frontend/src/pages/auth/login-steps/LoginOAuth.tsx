@@ -1,4 +1,4 @@
-import { faExclamationTriangle, faFingerprint } from '@fortawesome/free-solid-svg-icons';
+import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
@@ -14,6 +14,7 @@ import Title from '@/elements/typography/Title.tsx';
 import { oAuthProviderSchema } from '@/lib/schemas/generic.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import AuthWrapper from '../AuthWrapper.tsx';
+import OAuthProviderButton from '../OAuthProviderButton.tsx';
 
 export default function LoginOAuth() {
   const { t } = useTranslations();
@@ -51,17 +52,7 @@ export default function LoginOAuth() {
         <Card>
           <Stack>
             {oAuthProviders.map((oAuthProvider) => (
-              <Button
-                key={oAuthProvider.uuid}
-                leftSection={<FontAwesomeIcon icon={faFingerprint} />}
-                size='md'
-                fullWidth
-                onClick={() => {
-                  window.location.href = `/api/auth/oauth/redirect/${oAuthProvider.uuid}`;
-                }}
-              >
-                {t('pages.auth.button.loginWith', { name: oAuthProvider.name })}
-              </Button>
+              <OAuthProviderButton key={oAuthProvider.uuid} oAuthProvider={oAuthProvider} />
             ))}
 
             <Divider label={t('common.divider.or', {})} labelPosition='center' />

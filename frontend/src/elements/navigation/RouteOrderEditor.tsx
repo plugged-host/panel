@@ -16,6 +16,7 @@ import Button from '@/elements/buttons/Button.tsx';
 import Badge from '@/elements/data-display/Badge.tsx';
 import { DndContainer, DndItem, SortableItem } from '@/elements/dnd/DragAndDrop.tsx';
 import Alert from '@/elements/feedback/Alert.tsx';
+import IconInput from '@/elements/input/IconInput.tsx';
 import LocalizedTextInput from '@/elements/input/LocalizedTextInput.tsx';
 import Select from '@/elements/input/Select.tsx';
 import TextInput from '@/elements/input/TextInput.tsx';
@@ -139,7 +140,13 @@ export default function RouteOrderEditor({
               {t('elements.routeOrderEditor.label.route', {})}
             </Badge>
 
-            {info?.icon && <FontAwesomeIcon icon={info.icon} style={{ fontSize: 14, opacity: 0.7, flexShrink: 0 }} />}
+            <IconInput
+              size='xs'
+              value={item.icon}
+              onChange={(icon) => handleUpdate(index, { ...item, icon })}
+              fallback={info?.icon}
+              disabled={readOnly}
+            />
             <Text size='sm' fw={500} style={{ flex: 1, minWidth: 0 }}>
               <ScrollingText>{name}</ScrollingText>
             </Text>
@@ -247,6 +254,14 @@ export default function RouteOrderEditor({
                   {t('elements.routeOrderEditor.label.redirect', {})}
                 </Group>
               </Badge>
+
+              <IconInput
+                size='xs'
+                value={item.icon}
+                onChange={(icon) => handleUpdate(index, { ...item, icon })}
+                fallback={faArrowUpRightFromSquare}
+                disabled={readOnly}
+              />
 
               {readOnly ? (
                 <Text size='sm' fw={500} style={{ flex: 1 }}>

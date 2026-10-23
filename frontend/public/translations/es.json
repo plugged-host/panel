@@ -2030,9 +2030,7 @@
                 "extensionsOutdated": "Algunas extensiones están desactualizadas o tuvieron errores al buscar actualizaciones.",
                 "noChangelog": "No hay registro de cambios",
                 "nodesUpToDate": "Parece que todos los nodos están actualizados. ({failed} no se pudieron comprobar)",
-                "nodesOutdated": "Algunos nodos están desactualizados; la última versión disponible es {latest}. ({outdated} desactualizados, {failed} no se pudieron comprobar)",
                 "databaseAgentHostsUpToDate": "Parece que todos los hosts de agentes de bases de datos están actualizados. ({failed} no se pudieron comprobar)",
-                "databaseAgentHostsOutdated": "Algunos hosts de agentes de bases de datos están desactualizados; la última versión disponible es {latest}. ({outdated} desactualizados, {failed} no se pudieron comprobar)",
                 "table": {
                   "version": "Versión",
                   "installed": "Instalado",

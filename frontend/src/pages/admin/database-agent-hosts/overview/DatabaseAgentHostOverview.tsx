@@ -2,12 +2,14 @@ import {
   faChartBar,
   faChartPie,
   faCircleInfo,
+  faCircleUp,
   faHardDrive,
   faMemory,
   faMicrochip,
   faServer,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { useState } from 'react';
 import { z } from 'zod';
 import getDatabaseAgentHostCapacity from '@/api/admin/database-agent-hosts/getDatabaseAgentHostCapacity.ts';
 import getDatabaseAgentHostSystemOverview from '@/api/admin/database-agent-hosts/getDatabaseAgentHostSystemOverview.ts';
@@ -19,6 +21,8 @@ import AllocationBar, {
 } from '@/elements/admin/AllocationBar.tsx';
 import CapacityCard from '@/elements/admin/CapacityCard.tsx';
 import InfoRow from '@/elements/admin/InfoRow.tsx';
+import Button from '@/elements/buttons/Button.tsx';
+import { AdminCan } from '@/elements/Can.tsx';
 import AdminSubContentContainer from '@/elements/containers/AdminSubContentContainer.tsx';
 import Badge from '@/elements/data-display/Badge.tsx';
 import TitleCard from '@/elements/data-display/TitleCard.tsx';
@@ -35,10 +39,12 @@ import {
   adminDatabaseAgentHostSchema,
 } from '@/lib/schemas/admin/databaseAgentHosts.ts';
 import { useUserSettingMapEntry } from '@/lib/userSettings.ts';
-import { parseVersion } from '@/lib/version.ts';
+import { useDatabaseAgentHostOnlineWait } from '@/plugins/database-agent-hosts/useDatabaseAgentHostOnlineWait.ts';
+import { useDatabaseAgentHostUpgradeStatus } from '@/plugins/database-agent-hosts/useDatabaseAgentHostVersion.ts';
 import { useResource } from '@/plugins/resource/useResource.ts';
+import { useUpgradeRestart } from '@/plugins/useUpgradeRestart.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
-import { useAdminStore } from '@/stores/admin.tsx';
+import DatabaseAgentHostUpgradeModal from '../modals/DatabaseAgentHostUpgradeModal.tsx';
 
 type DatabaseAgentHost = z.infer<typeof adminDatabaseAgentHostSchema>;
 type CapacityInstance = z.infer<typeof adminDatabaseAgentHostCapacitySchema>['instances'][number];
@@ -59,7 +65,6 @@ export default function DatabaseAgentHostOverview({ databaseAgentHost }: { datab
     enabled: Object.values(allocationTotals).some((total) => total?.mode === 'live'),
     silent: true,
   });
-  const updateInformation = useAdminStore((state) => state.updateInformation);
 
   const capacityResource = useResource({
     queryKey: queryKeys.admin.databaseAgentHosts.capacity(databaseAgentHost.uuid),
@@ -99,10 +104,15 @@ export default function DatabaseAgentHostOverview({ databaseAgentHost }: { datab
     ) : undefined;
   };
 
-  const hasUpdate =
-    overview && updateInformation
-      ? parseVersion(updateInformation.latestDbAgentVersion).isNewerThan(overview.version)
-      : false;
+  const { availability: upgradeAvailability } = useDatabaseAgentHostUpgradeStatus(databaseAgentHost.uuid);
+
+  const [openModal, setOpenModal] = useState<'upgrade' | null>(null);
+  const onlineWait = useDatabaseAgentHostOnlineWait();
+  const upgradeRestart = useUpgradeRestart(onlineWait, [
+    queryKeys.admin.databaseAgentHosts.systemOverview(databaseAgentHost.uuid),
+    queryKeys.admin.databaseAgentHosts.upgradeStatus(databaseAgentHost.uuid),
+    queryKeys.admin.updates.databaseAgentHosts(),
+  ]);
 
   return (
     <AdminSubContentContainer
@@ -111,6 +121,15 @@ export default function DatabaseAgentHostOverview({ databaseAgentHost }: { datab
       registry={window.extensionContext.extensionRegistry.pages.admin.databaseAgentHosts.view.overview.subContainer}
       registryProps={{ databaseAgentHost }}
     >
+      {overview?.upgrade && (
+        <DatabaseAgentHostUpgradeModal
+          databaseAgentHost={databaseAgentHost}
+          onScheduled={(previousVersion) => upgradeRestart.start(databaseAgentHost.uuid, previousVersion)}
+          opened={openModal === 'upgrade'}
+          onClose={() => setOpenModal(null)}
+        />
+      )}
+
       <Group mb='md' gap='xs'>
         <Badge color={databaseAgentHost.deploymentEnabled ? 'green' : 'red'} variant='light'>
           {databaseAgentHost.deploymentEnabled
@@ -182,10 +201,33 @@ export default function DatabaseAgentHostOverview({ databaseAgentHost }: { datab
                     <Text size='sm' ff='monospace'>
                       {overview.version}
                     </Text>
-                    {hasUpdate && (
+                    {upgradeAvailability === 'available' && (
                       <Badge color='yellow' variant='light' size='sm'>
                         {t('pages.admin.databaseAgentHosts.tabs.overview.page.badge.updateAvailable', {})}
                       </Badge>
+                    )}
+                    {upgradeAvailability === 'unknown' && (
+                      <Badge color='gray' variant='light' size='sm'>
+                        {t('pages.admin.databaseAgentHosts.tabs.overview.page.badge.latestVersionUnknown', {})}
+                      </Badge>
+                    )}
+                    {upgradeRestart.restarting ? (
+                      <Badge variant='light' size='sm' loading>
+                        {t('common.badge.restarting', {})}
+                      </Badge>
+                    ) : (
+                      overview.upgrade && (
+                        <AdminCan action='database-agent-hosts.upgrade'>
+                          <Button
+                            size='xs'
+                            variant='light'
+                            leftSection={<FontAwesomeIcon icon={faCircleUp} />}
+                            onClick={() => setOpenModal('upgrade')}
+                          >
+                            {t('common.button.upgrade', {})}
+                          </Button>
+                        </AdminCan>
+                      )
                     )}
                   </Group>
                 </InfoRow>

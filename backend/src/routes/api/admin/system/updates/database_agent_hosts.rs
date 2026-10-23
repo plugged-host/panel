@@ -3,7 +3,6 @@ use utoipa_axum::{router::OpenApiRouter, routes};
 
 mod get {
     use axum::{extract::Query, http::StatusCode};
-    use compact_str::ToCompactString;
     use futures_util::{StreamExt, TryStreamExt};
     use serde::Serialize;
     use shared::{
@@ -13,14 +12,14 @@ mod get {
             database_agent_host::DatabaseAgentHost, user::GetPermissionManager,
         },
         response::{ApiResponse, ApiResponseResult},
-        updates::ParsedVersionInformation,
     };
-    use std::str::FromStr;
     use utoipa::ToSchema;
 
     #[derive(ToSchema, Serialize)]
     struct ResponseDatabaseAgentHost {
-        version: compact_str::CompactString,
+        #[serde(flatten)]
+        #[schema(inline)]
+        status: shared::updates::UpgradeStatus,
         database_agent_host: shared::models::database_agent_host::AdminApiDatabaseAgentHost,
     }
 
@@ -33,7 +32,6 @@ mod get {
 
     #[utoipa::path(get, path = "/", responses(
         (status = OK, body = inline(Response)),
-        (status = EXPECTATION_FAILED, body = ApiError),
     ), params(
         (
             "page" = i64, Query,
@@ -59,15 +57,21 @@ mod get {
 
         permissions.has_admin_permission("database-agent-hosts.read")?;
 
-        let Some(update_information) = state.updates.get_update_information().await else {
-            return ApiResponse::error("no update information available, try triggering a recheck")
-                .with_status(StatusCode::EXPECTATION_FAILED)
-                .ok();
+        let token = state
+            .settings
+            .get()
+            .await?
+            .updates
+            .db_agent_release_token_for(&permissions);
+        let cache_key = if token.is_some() {
+            "database_agent_hosts::versions::token"
+        } else {
+            "database_agent_hosts::versions"
         };
 
         let (host_versions, failed_database_agent_hosts) = state
             .cache
-            .cached("database_agent_hosts::versions", 30, || async {
+            .cached(cache_key, 30, || async {
                 let mut versions = Vec::new();
                 let mut failed_hosts = 0;
 
@@ -86,17 +90,12 @@ mod get {
 
                     let mut versions_futures = Vec::new();
                     for host in &hosts.data {
-                        let client = host.api_client(&state.database).await?;
+                        let token = token.clone();
+                        let state = &state;
                         versions_futures.push(async move {
-                            let overview = tokio::time::timeout(
-                                std::time::Duration::from_secs(2),
-                                client.get_system_overview(),
-                            )
-                            .await??;
-
                             Ok::<_, anyhow::Error>((
                                 host.uuid,
-                                ParsedVersionInformation::from_str(&overview.version)?,
+                                host.upgrade_status(state, token).await?,
                             ))
                         });
                     }
@@ -106,7 +105,7 @@ mod get {
 
                     while let Some(result) = futures_stream.next().await {
                         match result {
-                            Ok((host_uuid, version)) => {
+                            Ok((host_uuid, status)) => {
                                 let Some(created) = hosts
                                     .data
                                     .iter()
@@ -116,7 +115,7 @@ mod get {
                                     continue;
                                 };
 
-                                versions.push((host_uuid, created, version));
+                                versions.push((host_uuid, created, status));
                             }
                             Err(err) => {
                                 tracing::warn!(
@@ -138,9 +137,9 @@ mod get {
             .await?;
 
         let mut outdated_host_uuids = Vec::new();
-        for (host_uuid, _, version) in host_versions {
-            if version.version < update_information.latest_db_agent_version {
-                outdated_host_uuids.push((host_uuid, version));
+        for (host_uuid, _, status) in host_versions {
+            if status.update_available {
+                outdated_host_uuids.push((host_uuid, status));
             }
         }
 
@@ -167,18 +166,18 @@ mod get {
         let mut futures_stream = futures_util::stream::iter(host_futures).buffered(10);
 
         while let Some(host) = futures_stream.try_next().await? {
-            let version = match outdated_host_uuids
+            let status = match outdated_host_uuids
                 .iter()
                 .find(|(uuid, _)| *uuid == host.uuid)
             {
-                Some((_, version)) => version,
+                Some((_, status)) => status.clone(),
                 None => continue,
             };
 
             outdated_database_agent_hosts
                 .data
                 .push(ResponseDatabaseAgentHost {
-                    version: version.to_compact_string(),
+                    status,
                     database_agent_host: host,
                 });
         }

@@ -128,7 +128,7 @@ pub struct EggConfigStartup {
 
 #[derive(ToSchema, Validate, Serialize, Deserialize, Default, Clone)]
 pub struct EggConfigRoutes {
-    #[garde(length(max = 100))]
+    #[garde(length(max = 100), dive)]
     #[schema(max_length = 100)]
     pub order: Vec<crate::settings::RouteOrderItem>,
 }
@@ -398,6 +398,7 @@ impl BaseModel for EggConfiguration {
         vec![
             compact_str::format_compact!("{}::{}", Self::NAME, self.uuid),
             Self::ALL_CACHE_KEY.into(),
+            crate::icons::REFERENCED_ICONS_CACHE_KEY.into(),
         ]
     }
 }

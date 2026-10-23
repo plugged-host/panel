@@ -97,6 +97,7 @@ export default function ServerRouter({ isNormal }: { isNormal: boolean }) {
         .map((route) => ({
           type: 'route' as const,
           route,
+          icon: null,
         }));
     }
 
@@ -105,7 +106,7 @@ export default function ServerRouter({ isNormal }: { isNormal: boolean }) {
         if (item.type === 'route') {
           const route = allServerRoutes.find((r) => r.path === item.path);
           if (!route || !route.name || (route.filter && !route.filter())) return null;
-          return { type: 'route' as const, route };
+          return { type: 'route' as const, route, icon: item.icon };
         }
 
         if (item.type === 'divider') {
@@ -119,6 +120,7 @@ export default function ServerRouter({ isNormal }: { isNormal: boolean }) {
             type: 'redirect' as const,
             name,
             destination: item.destination,
+            icon: item.icon,
           };
         }
 
@@ -224,6 +226,7 @@ export default function ServerRouter({ isNormal }: { isNormal: boolean }) {
                         key={`redirect-${index}`}
                         to={item.destination}
                         icon={faArrowUpRightFromSquare}
+                        customIcon={item.icon}
                         name={item.name}
                       />
                     );
@@ -239,6 +242,7 @@ export default function ServerRouter({ isNormal }: { isNormal: boolean }) {
                           to={to(route.path, `/server/${params.id}`)}
                           end={route.exact}
                           icon={route.icon}
+                          customIcon={item.icon}
                           name={name}
                           activeMatches={route.activeMatches}
                         />
@@ -249,6 +253,7 @@ export default function ServerRouter({ isNormal }: { isNormal: boolean }) {
                         to={to(route.path, `/server/${params.id}`)}
                         end={route.exact}
                         icon={route.icon}
+                        customIcon={item.icon}
                         name={name}
                         activeMatches={route.activeMatches}
                       />

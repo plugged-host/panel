@@ -35,6 +35,7 @@ pub mod recovery; // plugged.host
 pub mod server;
 pub mod status; // plugged.host
 pub mod tour; // plugged.host
+pub mod updates;
 pub mod user;
 pub mod webauthn;
 
@@ -49,21 +50,50 @@ pub const OOBE_STEPS: &[&str] = &[
     "finished",
 ];
 
-#[derive(ToSchema, Serialize, Deserialize, Clone)]
+#[derive(ToSchema, Validate, Serialize, Deserialize, Clone)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum RouteOrderItem {
     Route {
+        #[garde(skip)]
         path: compact_str::CompactString,
+        #[garde(
+            length(chars, min = 1, max = 128),
+            inner(custom(crate::icons::validate_icon))
+        )]
+        #[schema(min_length = 1, max_length = 128)]
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        icon: Option<compact_str::CompactString>,
     },
     Divider {
+        #[garde(skip)]
         name: Option<compact_str::CompactString>,
+        #[garde(skip)]
         name_translations: BTreeMap<compact_str::CompactString, compact_str::CompactString>,
     },
     Redirect {
+        #[garde(skip)]
         name: compact_str::CompactString,
+        #[garde(skip)]
         name_translations: BTreeMap<compact_str::CompactString, compact_str::CompactString>,
+        #[garde(skip)]
         destination: compact_str::CompactString,
+        #[garde(
+            length(chars, min = 1, max = 128),
+            inner(custom(crate::icons::validate_icon))
+        )]
+        #[schema(min_length = 1, max_length = 128)]
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        icon: Option<compact_str::CompactString>,
     },
+}
+
+impl RouteOrderItem {
+    pub fn icon(&self) -> Option<&str> {
+        match self {
+            Self::Route { icon, .. } | Self::Redirect { icon, .. } => icon.as_deref(),
+            Self::Divider { .. } => None,
+        }
+    }
 }
 
 #[derive(ToSchema, Validate, Serialize, Deserialize, Clone, Copy)]
@@ -402,6 +432,8 @@ pub struct AppSettings {
     // plugged.host: deleted servers' copies (and, later, node failover)
     #[schema(inline)]
     pub recovery: recovery::AppSettingsRecovery,
+    #[schema(inline)]
+    pub updates: updates::AppSettingsUpdates,
 
     #[serde(skip)]
     pub disabled_extensions: Vec<compact_str::CompactString>,
@@ -700,6 +732,8 @@ impl SettingsSerializeExt for AppSettings {
             .nest("tour", &self.tour) // plugged.host
             .await?
             .nest("recovery", &self.recovery) // plugged.host
+            .await?
+            .nest("updates", &self.updates)
             .await?;
 
         for (ext_identifier, ext_settings) in self.extensions.iter() {
@@ -999,6 +1033,9 @@ impl SettingsDeserializeExt for AppSettingsDeserializer {
             recovery: deserializer // plugged.host
                 .nest("recovery", &recovery::AppSettingsRecoveryDeserializer)
                 .await?,
+            updates: deserializer
+                .nest("updates", &updates::AppSettingsUpdatesDeserializer)
+                .await?,
             disabled_extensions: deserializer
                 .take_raw_setting("disabled_extensions")
                 .map(|s| parse_disabled_extensions(&s))
@@ -1149,6 +1186,12 @@ impl<'a> SettingsWriteGuard<'a> {
             .cached_index
             .store(buffer_index, Ordering::Release);
 
+        crate::models::invalidate_cache_keys(
+            &self.parent.database,
+            &[crate::icons::REFERENCED_ICONS_CACHE_KEY.into()],
+        )
+        .await;
+
         crate::models::node::Node::invalidate_permissions_everywhere(
             &self.parent.database,
             crate::models::node::PermissionsInvalidation {
@@ -1179,6 +1222,7 @@ impl<'a> SettingsWriteGuard<'a> {
         json["mail_mode"] = serde_json::to_value(settings.mail_mode.clone().censored()).unwrap();
         json["captcha_provider"] =
             serde_json::to_value(settings.captcha_provider.clone().censored()).unwrap();
+        json["updates"] = serde_json::to_value(settings.updates.clone().censored()).unwrap();
 
         json
     }

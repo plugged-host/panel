@@ -88,6 +88,8 @@ mod patch {
             .update_configuration(&state.database, &data)
             .await?;
 
+        shared::censor::censor_paths(&mut data, db_agent_api::SECRET_CONFIG_PATHS);
+
         activity_logger
             .log(
                 "database-agent-host:update-config",

@@ -1876,9 +1876,7 @@
                 "extensionsOutdated": "Nogle extensions er forældede eller gav fejl under tjek for opdateringer.",
                 "noChangelog": "Ingen changelog",
                 "nodesUpToDate": "Alle nodes ser ud til at være opdaterede. ({failed} kunne ikke tjekkes)",
-                "nodesOutdated": "Nogle nodes er forældede. Den nyeste tilgængelige version er `{latest}`. ({outdated} forældede, {failed} kunne ikke tjekkes)",
                 "databaseAgentHostsUpToDate": "Alle database agent hosts ser ud til at være opdaterede. ({failed} kunne ikke tjekkes)",
-                "databaseAgentHostsOutdated": "Nogle database agent hosts er forældede. Den nyeste tilgængelige version er `{latest}`. ({outdated} forældede, {failed} kunne ikke tjekkes)",
                 "table": {
                   "installed": "Installeret",
                   "packageName": "Pakkenavn",

@@ -2011,9 +2011,7 @@
                 "extensionsOutdated": "Một số tiện ích mở rộng đã lỗi thời hoặc gặp lỗi khi kiểm tra cập nhật.",
                 "noChangelog": "Không có nhật ký thay đổi",
                 "nodesUpToDate": "Có vẻ tất cả các node đều đã cập nhật. ({failed} kiểm tra thất bại)",
-                "nodesOutdated": "Một số node đã lỗi thời, phiên bản mới nhất là `{latest}`. ({outdated} lỗi thời, {failed} kiểm tra thất bại)",
                 "databaseAgentHostsUpToDate": "Dường như tất cả các máy chủ agent cơ sở dữ liệu đều đã được cập nhật. ({failed} lỗi khi kiểm tra)",
-                "databaseAgentHostsOutdated": "Một số máy chủ agent cơ sở dữ liệu đã lỗi thời, phiên bản mới nhất hiện có là `{latest}`. ({outdated} lỗi thời, {failed} lỗi khi kiểm tra)",
                 "table": {
                   "version": "Phiên Bản",
                   "installed": "Đã Cài Đặt",

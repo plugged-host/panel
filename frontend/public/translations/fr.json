@@ -1496,7 +1496,6 @@
                 "extensionsOutdated": "Certaines extensions sont obsolètes ou ont rencontré des erreurs lors de la vérification des mises à jour.",
                 "noChangelog": "Aucun journal des modifications",
                 "nodesUpToDate": "Il semble que tous les nœuds soient à jour. ({failed} échec(s) de vérification)",
-                "nodesOutdated": "Certains nœuds sont obsolètes, la dernière version disponible est `{latest}`. ({outdated} obsolète(s), {failed} échec(s) de vérification)",
                 "table": {
                   "installed": "Installée",
                   "packageName": "Nom du paquet",

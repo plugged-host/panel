@@ -1,6 +1,7 @@
 import { faHeart, faHeartBroken } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { forwardRef, ReactNode } from 'react';
+import { z } from 'zod';
 import Badge from '@/elements/data-display/Badge.tsx';
 import { TableData, TableRow, TableSelectionCell } from '@/elements/data-display/Table.tsx';
 import TableLink from '@/elements/data-display/TableLink.tsx';
@@ -12,12 +13,14 @@ import Code from '@/elements/typography/Code.tsx';
 import { isNodeAIO, nodeDeploymentStateInfo } from '@/lib/domain/node.ts';
 import { bytesToString, mbToBytes } from '@/lib/format/size.ts';
 import { AdminNode } from '@/lib/schemas/admin/nodes.ts';
+import { adminUpgradeStatusSchema } from '@/lib/schemas/admin/system.ts';
 import { useNodeDeployment } from '@/plugins/nodes/useNodeDeployment.ts';
 import { useNodeVersion } from '@/plugins/nodes/useNodeVersion.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 
 interface NodeRowProps {
   node: AdminNode;
+  upgradeStatus?: z.infer<typeof adminUpgradeStatusSchema>;
   desync?: number;
   isSelected?: boolean;
   onSelectionChange?: (selected: boolean, range?: boolean) => void;
@@ -26,11 +29,11 @@ interface NodeRowProps {
 }
 
 const NodeRow = forwardRef<HTMLTableRowElement, NodeRowProps>(function NodeRow(
-  { node, desync, isSelected = false, onSelectionChange, contextMenuProps, nameSection },
+  { node, upgradeStatus, desync, isSelected = false, onSelectionChange, contextMenuProps, nameSection },
   ref,
 ) {
   const { t } = useTranslations();
-  const { version, unavailable, loading, updateAvailable } = useNodeVersion(node);
+  const { version, unavailable, loading, upgradeAvailability } = useNodeVersion(node, { upgradeStatus });
   const { state: deploymentState, usage: deploymentUsage, loading: deploymentLoading } = useNodeDeployment(node);
 
   return (
@@ -62,9 +65,13 @@ const NodeRow = forwardRef<HTMLTableRowElement, NodeRowProps>(function NodeRow(
           <Tooltip label={t('pages.admin.nodes.tabs.general.page.tooltip.errorWhileFetchingVersion', {})}>
             <FontAwesomeIcon icon={faHeartBroken} className='text-(--mantine-color-red-text)' />
           </Tooltip>
-        ) : updateAvailable ? (
+        ) : upgradeAvailability === 'available' ? (
           <Tooltip label={t('pages.admin.nodes.tabs.general.page.tooltip.updateAvailable', { version })}>
             <FontAwesomeIcon icon={faHeart} className='text-(--mantine-color-yellow-text) animate-pulse' />
+          </Tooltip>
+        ) : upgradeAvailability === 'unknown' ? (
+          <Tooltip label={t('pages.admin.nodes.tabs.general.page.tooltip.latestVersionUnknown', { version })}>
+            <FontAwesomeIcon icon={faHeart} className='text-(--mantine-color-dimmed) animate-pulse' />
           </Tooltip>
         ) : (
           <Tooltip label={version}>

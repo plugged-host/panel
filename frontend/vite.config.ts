@@ -12,6 +12,7 @@ import { deprecatedPaths } from './vite-plugins/deprecated-paths.ts';
 import { extensionChunkGroups } from './vite-plugins/extension-chunks.ts';
 import { extensionOverrides } from './vite-plugins/extension-overrides.ts';
 import { fontAwesomeIcons } from './vite-plugins/fontawesome-icons.ts';
+import { iconManifest } from './vite-plugins/icon-manifest.ts';
 import { precompressAssets } from './vite-plugins/precompress.ts';
 import { tablerIcons } from './vite-plugins/tabler-icons.ts';
 import { translationsPlugin } from './vite-plugins/translations.ts';
@@ -53,6 +54,7 @@ export default defineConfig({
     fontAwesomeIcons(),
     // plugged.host: Tabler's outline icons, as on the Pelican panel
     tablerIcons(),
+    iconManifest(),
     bootSpinner(),
     viteStaticCopy({
       targets: [

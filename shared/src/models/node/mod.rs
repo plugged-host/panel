@@ -830,6 +830,59 @@ impl Node {
         ))
     }
 
+    pub async fn upgrade_status(
+        &self,
+        state: &crate::State,
+        token: Option<compact_str::CompactString>,
+    ) -> Result<crate::updates::UpgradeStatus, anyhow::Error> {
+        let client = self.api_client(&state.database).await?;
+        let overview = tokio::time::timeout(
+            std::time::Duration::from_secs(2),
+            client.get_system_overview(),
+        )
+        .await??;
+
+        if overview.upgrade.is_none() {
+            let update_information = state.updates.get_update_information().await;
+
+            return Ok(crate::updates::UpgradeStatus::from_calagopus(
+                overview.version,
+                update_information
+                    .as_ref()
+                    .map(|information| &information.latest_wings_version),
+            ));
+        }
+
+        let check = tokio::time::timeout(
+            std::time::Duration::from_secs(5),
+            client.post_system_upgrade_check(&wings_api::system_upgrade_check::post::RequestBody {
+                token,
+                force: false,
+            }),
+        )
+        .await;
+
+        let (latest_version, update_available) = match check {
+            Ok(Ok(check)) => (check.latest_version, check.update_available),
+            Ok(Err(err)) => {
+                tracing::warn!(node = %self.uuid, "failed to check for wings upgrades: {:?}", err);
+                (None, false)
+            }
+            Err(_) => {
+                tracing::warn!(node = %self.uuid, "timed out checking for wings upgrades");
+                (None, false)
+            }
+        };
+
+        Ok(crate::updates::UpgradeStatus {
+            current_version: overview.version,
+            latest_version,
+            update_available,
+            upgradable: true,
+            source: crate::updates::UpgradeStatusSource::Daemon,
+        })
+    }
+
     /// Tells wings that permissions changed: live sessions continue with their new
     /// permissions and only those that lost access end. Must run after the change is
     /// committed. Nodes that predate invalidation end the affected users' sessions instead.

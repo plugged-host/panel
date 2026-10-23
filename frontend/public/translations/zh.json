@@ -1742,9 +1742,7 @@
                 "extensionsOutdated": "部分擴充功能已過期或在檢查更新時發生錯誤。",
                 "noChangelog": "無變更紀錄",
                 "nodesUpToDate": "所有節點似乎都是最新版本。（{failed} 個檢查失敗）",
-                "nodesOutdated": "部分節點已過期，最新可用版本為 `{latest}`。（{outdated} 個過期，{failed} 個檢查失敗）",
                 "databaseAgentHostsUpToDate": "看起來所有資料庫代理主機都已是最新版本。（{failed} 個檢查失敗）",
-                "databaseAgentHostsOutdated": "部分資料庫代理主機版本已過時，目前最新版本為 {latest}。（{outdated} 個已過時，{failed} 個檢查失敗）",
                 "table": {
                   "version": "版本",
                   "installed": "已安裝",

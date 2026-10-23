@@ -473,6 +473,10 @@ pub(crate) static BASE_ADMIN_PERMISSIONS: LazyLock<IndexMap<&'static str, Permis
                         ("read-token", "Allows viewing a node's token."),
                         ("reset-token", "Allows resetting a node's token."),
                         (
+                            "upgrade",
+                            "Allows upgrading a node's wings to a newer release.",
+                        ),
+                        (
                             "allocations",
                             "Allows viewing and managing a node's allocations.",
                         ),
@@ -613,6 +617,10 @@ pub(crate) static BASE_ADMIN_PERMISSIONS: LazyLock<IndexMap<&'static str, Permis
                         (
                             "reset-token",
                             "Allows resetting database agent host tokens.",
+                        ),
+                        (
+                            "upgrade",
+                            "Allows upgrading a database agent host to a newer release.",
                         ),
                         ("test", "Allows testing database agent host connections."),
                         (
