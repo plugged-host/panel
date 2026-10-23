@@ -8,3 +8,5 @@ minimumReleaseAge: 4320 # 3 days
 blockExoticSubdeps: true
 overrides:
   dompurify: ^3.4.17
+  # plugged.host: typedoc 0.28 pins markdown-it 14.3.2 (GHSA, Dependabot #9)
+  markdown-it: ^14.3.3
