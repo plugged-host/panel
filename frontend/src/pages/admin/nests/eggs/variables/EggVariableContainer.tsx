@@ -205,7 +205,7 @@ export default function EggVariableContainer({
               variant='subtle'
               color='gray'
               style={{ cursor: 'grab', flexShrink: 0 }}
-              className='text-gray-400! light:text-gray-500!'
+              className='text-(--mantine-color-dimmed)!'
               aria-label={t('pages.admin.nests.tabs.eggs.page.tabs.variables.page.aria.reorder', {})}
               {...dragHandleProps}
             >

@@ -134,10 +134,11 @@ export default function AdminSystemBackupPolicyLocations({
     search,
     setSearch,
     setPage,
+    setPerPage,
     refetch,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.admin.systemBackupPolicies.locations(systemBackupPolicy.uuid),
-    fetcher: (page, search) => getSystemBackupPolicyLocations(systemBackupPolicy.uuid, page, search),
+    fetcher: (page, search, perPage) => getSystemBackupPolicyLocations(systemBackupPolicy.uuid, page, search, perPage),
   });
 
   return (
@@ -170,6 +171,7 @@ export default function AdminSystemBackupPolicyLocations({
         loading={loading}
         pagination={systemBackupPolicyLocations}
         onPageSelect={setPage}
+        onPerPageSelect={setPerPage}
         error={error}
       >
         {systemBackupPolicyLocations?.data.map((systemBackupPolicyLocation) => (

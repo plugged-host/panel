@@ -23,9 +23,11 @@ export default function AdminBackupConfigurationBackups({
     search,
     setSearch,
     setPage,
+    setPerPage,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.admin.backups.byBackupConfiguration(backupConfiguration.uuid),
-    fetcher: (page, search) => getBackupConfigurationBackups(backupConfiguration.uuid, page, search),
+    fetcher: (page, search, perPage) =>
+      getBackupConfigurationBackups(backupConfiguration.uuid, page, search, undefined, perPage),
     paginationKey: 'backups',
     refetchInterval: (data) =>
       data?.backups.data.some((backup) => backup.deletionStatus === 'deleting') ? 5000 : false,
@@ -64,6 +66,7 @@ export default function AdminBackupConfigurationBackups({
         error={error}
         pagination={backupConfigurationBackups?.backups}
         onPageSelect={setPage}
+        onPerPageSelect={setPerPage}
       >
         {backupConfigurationBackups?.backups.data.map((backup) => (
           <NodeServerBackupRow

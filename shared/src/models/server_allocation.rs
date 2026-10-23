@@ -259,45 +259,29 @@ impl ServerAllocation {
         per_page: i64,
         search: Option<&str>,
     ) -> Result<super::Pagination<Self>, crate::database::DatabaseError> {
-        let offset = (page - 1) * per_page;
-
-        let rows = sqlx::query(sqlx::AssertSqlSafe(format!(
-            r#"
-            SELECT {}, COUNT(*) OVER() AS total_count
-            FROM server_allocations
-            JOIN node_allocations ON server_allocations.allocation_uuid = node_allocations.uuid
-            WHERE server_allocations.server_uuid = $1
-                AND (
-                    $2 IS NULL
-                    OR host(node_allocations.ip) || ':' || node_allocations.port ILIKE '%' || $2 || '%'
-                    OR (node_allocations.ip_alias IS NOT NULL AND node_allocations.ip_alias || ':' || node_allocations.port ILIKE '%' || $2 || '%')
-                    OR server_allocations.notes ILIKE '%' || $2 || '%'
-                    OR {search_uuid}
-                )
-            ORDER BY server_allocations.created
-            LIMIT $3 OFFSET $4
-            "#,
+        super::PaginatedQueryBuilder::new(
             Self::columns_sql(None),
-            search_uuid = super::uuid_search_sql(2, "server_allocations.uuid")
-        )))
+            format!(
+                r#"
+                FROM server_allocations
+                JOIN node_allocations ON server_allocations.allocation_uuid = node_allocations.uuid
+                WHERE server_allocations.server_uuid = $1
+                    AND (
+                        $2 IS NULL
+                        OR host(node_allocations.ip) || ':' || node_allocations.port ILIKE '%' || $2 || '%'
+                        OR (node_allocations.ip_alias IS NOT NULL AND node_allocations.ip_alias || ':' || node_allocations.port ILIKE '%' || $2 || '%')
+                        OR server_allocations.notes ILIKE '%' || $2 || '%'
+                        OR {search_uuid}
+                    )
+                "#,
+                search_uuid = super::uuid_search_sql(2, "server_allocations.uuid"),
+            ),
+            "server_allocations.created, node_allocations.ip, node_allocations.port, server_allocations.uuid",
+        )
         .bind(server_uuid)
         .bind(search)
-        .bind(per_page)
-        .bind(offset)
-        .fetch_all(database.read())
-        .await?;
-
-        Ok(super::Pagination {
-            total: rows
-                .first()
-                .map_or(Ok(0), |row| row.try_get("total_count"))?,
-            per_page,
-            page,
-            data: rows
-                .into_iter()
-                .map(|row| Self::map(None, &row))
-                .try_collect_vec()?,
-        })
+        .fetch(database, page, per_page)
+        .await
     }
 
     pub async fn all_by_server_uuid(
@@ -310,7 +294,7 @@ impl ServerAllocation {
             FROM server_allocations
             JOIN node_allocations ON server_allocations.allocation_uuid = node_allocations.uuid
             WHERE server_allocations.server_uuid = $1
-            ORDER BY server_allocations.created
+            ORDER BY server_allocations.created, node_allocations.ip, node_allocations.port, server_allocations.uuid
             "#,
             Self::columns_sql(None)
         )))

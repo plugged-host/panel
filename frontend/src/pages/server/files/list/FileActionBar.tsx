@@ -22,9 +22,11 @@ import Button from '@/elements/buttons/Button.tsx';
 import { ServerCan } from '@/elements/Can.tsx';
 import ExtensionSlot from '@/elements/ExtensionSlot.tsx';
 import Tooltip from '@/elements/overlays/Tooltip.tsx';
+import { isTrashEnabled } from '@/lib/domain/server.ts';
 import { useFileSelectionQuickActions } from '@/pages/server/files/hooks/useFileSelectionQuickActions.tsx';
 import { downloadFilesWithToast } from '@/pages/server/files/list/downloadFilesWithToast.ts';
 import { canMoveFilesToDirectory } from '@/pages/server/files/list/fileMove.ts';
+import { hasNonMountGateway, withoutMountGateways } from '@/pages/server/files/list/mountGateway.ts';
 import FileCopyConflictModal, {
   ConflictResolutions,
   FileConflict,
@@ -45,9 +47,11 @@ function FileActionBar() {
     actingMode,
     actingFiles,
     selectedFilesCount,
+    hasDeletableSelection,
     actingFilesSource,
     browsingDirectory,
     browsingWritableDirectory,
+    browsingPrimaryFilesystem,
     doActFiles,
     doSelectFiles,
     clearActingFiles,
@@ -59,9 +63,11 @@ function FileActionBar() {
       actingMode: state.actingMode,
       actingFiles: state.actingFiles,
       selectedFilesCount: state.selectedFiles.size,
+      hasDeletableSelection: hasNonMountGateway(state.selectedFiles.values(), state.browsingPrimaryFilesystem),
       actingFilesSource: state.actingFilesSource,
       browsingDirectory: state.browsingDirectory,
       browsingWritableDirectory: state.browsingWritableDirectory,
+      browsingPrimaryFilesystem: state.browsingPrimaryFilesystem,
       doActFiles: state.doActFiles,
       doSelectFiles: state.doSelectFiles,
       clearActingFiles: state.clearActingFiles,
@@ -74,6 +80,7 @@ function FileActionBar() {
   const canCreate = useServerCan('files.create');
   const canUpdate = useServerCan('files.update');
   const canDelete = useServerCan('files.delete');
+  const trashEnabled = isTrashEnabled(server, browsingPrimaryFilesystem);
 
   const [loading, setLoading] = useState(false);
   const [conflicts, setConflicts] = useState<FileConflict[] | null>(null);
@@ -245,8 +252,11 @@ function FileActionBar() {
       {
         id: 'files.delete',
         callback: () => {
-          if (canDelete && actingFiles.size === 0 && selectedFilesCount > 0 && browsingWritableDirectory) {
-            doOpenModal('delete', store.getState().selectedFiles.values());
+          if (canDelete && actingFiles.size === 0 && hasDeletableSelection && browsingWritableDirectory) {
+            doOpenModal(
+              'delete',
+              withoutMountGateways(store.getState().selectedFiles.values(), browsingPrimaryFilesystem),
+            );
           }
         },
       },
@@ -262,6 +272,8 @@ function FileActionBar() {
       canCreate,
       canUpdate,
       canDelete,
+      browsingPrimaryFilesystem,
+      hasDeletableSelection,
     ],
   });
 
@@ -377,13 +389,25 @@ function FileActionBar() {
                     </Button>
                   </Tooltip>
                 </ServerCan>
-                <ServerCan action='files.delete'>
-                  <Tooltip label={t('common.button.delete', {})}>
-                    <Button color='red' onClick={() => doOpenModal('delete', store.getState().selectedFiles.values())}>
-                      <FontAwesomeIcon icon={faTrash} />
-                    </Button>
-                  </Tooltip>
-                </ServerCan>
+                {hasDeletableSelection && (
+                  <ServerCan action='files.delete'>
+                    <Tooltip
+                      label={t(trashEnabled ? 'pages.server.files.button.moveToTrash' : 'common.button.delete', {})}
+                    >
+                      <Button
+                        color={trashEnabled ? 'blue' : 'red'}
+                        onClick={() =>
+                          doOpenModal(
+                            'delete',
+                            withoutMountGateways(store.getState().selectedFiles.values(), browsingPrimaryFilesystem),
+                          )
+                        }
+                      >
+                        <FontAwesomeIcon icon={faTrash} />
+                      </Button>
+                    </Tooltip>
+                  </ServerCan>
+                )}
               </>
             )}
           </>

@@ -1,4 +1,3 @@
-import { type OnMount } from '@monaco-editor/react';
 import { MonacoBinding } from 'y-monaco';
 import { Awareness } from 'y-protocols/awareness';
 import * as Y from 'yjs';
@@ -8,6 +7,7 @@ import {
   type PierreFileChangeEvent,
   type PierreLocalSelection,
 } from '@/elements/editors/PierreEditor.tsx';
+import { type OnMount } from '@/lib/editor/monacoLoader.ts';
 
 type MonacoEditor = Parameters<OnMount>[0];
 type MonacoModel = NonNullable<ReturnType<MonacoEditor['getModel']>>;

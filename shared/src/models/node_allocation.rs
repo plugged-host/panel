@@ -69,6 +69,19 @@ impl AllocationFilter {
             .bind(self.port_to)
             .bind(self.assigned)
     }
+
+    #[inline]
+    pub fn bind_paginated<'q>(
+        &'q self,
+        query: super::PaginatedQueryBuilder<'q>,
+    ) -> super::PaginatedQueryBuilder<'q> {
+        query
+            .bind(self.search.as_deref())
+            .bind(self.ip.map(sqlx::types::ipnetwork::IpNetwork::from))
+            .bind(self.port_from)
+            .bind(self.port_to)
+            .bind(self.assigned)
+    }
 }
 
 #[derive(ToSchema, garde::Validate, Deserialize, Serialize)]
@@ -816,44 +829,28 @@ impl NodeAllocation {
         per_page: i64,
         search: Option<&str>,
     ) -> Result<super::Pagination<Self>, crate::database::DatabaseError> {
-        let offset = (page - 1) * per_page;
-
-        let rows = sqlx::query(sqlx::AssertSqlSafe(format!(
-            r#"
-            SELECT {}, COUNT(*) OVER() AS total_count
-            FROM node_allocations
-            LEFT JOIN server_allocations ON server_allocations.allocation_uuid = node_allocations.uuid
-            WHERE node_allocations.node_uuid = $1 AND server_allocations.uuid IS NULL
-                AND (
-                    $2 IS NULL
-                    OR host(node_allocations.ip) || ':' || node_allocations.port ILIKE '%' || $2 || '%'
-                    OR (node_allocations.ip_alias IS NOT NULL AND node_allocations.ip_alias || ':' || node_allocations.port ILIKE '%' || $2 || '%')
-                    OR {search_uuid}
-                )
-            ORDER BY node_allocations.ip, node_allocations.port
-            LIMIT $3 OFFSET $4
-            "#,
+        super::PaginatedQueryBuilder::new(
             Self::columns_sql(None),
-            search_uuid = super::uuid_search_sql(2, "node_allocations.uuid")
-        )))
+            format!(
+                r#"
+                FROM node_allocations
+                LEFT JOIN server_allocations ON server_allocations.allocation_uuid = node_allocations.uuid
+                WHERE node_allocations.node_uuid = $1 AND server_allocations.uuid IS NULL
+                    AND (
+                        $2 IS NULL
+                        OR host(node_allocations.ip) || ':' || node_allocations.port ILIKE '%' || $2 || '%'
+                        OR (node_allocations.ip_alias IS NOT NULL AND node_allocations.ip_alias || ':' || node_allocations.port ILIKE '%' || $2 || '%')
+                        OR {search_uuid}
+                    )
+                "#,
+                search_uuid = super::uuid_search_sql(2, "node_allocations.uuid"),
+            ),
+            "node_allocations.ip, node_allocations.port",
+        )
         .bind(node_uuid)
         .bind(search)
-        .bind(per_page)
-        .bind(offset)
-        .fetch_all(database.read())
-        .await?;
-
-        Ok(super::Pagination {
-            total: rows
-                .first()
-                .map_or(Ok(0), |row| row.try_get("total_count"))?,
-            per_page,
-            page,
-            data: rows
-                .into_iter()
-                .map(|row| Self::map(None, &row))
-                .try_collect_vec()?,
-        })
+        .fetch(database, page, per_page)
+        .await
     }
 
     pub async fn by_node_uuid_with_pagination(
@@ -863,49 +860,33 @@ impl NodeAllocation {
         page: i64,
         per_page: i64,
     ) -> Result<super::Pagination<Self>, crate::database::DatabaseError> {
-        let offset = (page - 1) * per_page;
-
-        let query = sqlx::query(sqlx::AssertSqlSafe(format!(
-            r#"
-            SELECT {}, server_allocations.server_uuid, COUNT(*) OVER() AS total_count
-            FROM node_allocations
-            LEFT JOIN server_allocations ON server_allocations.allocation_uuid = node_allocations.uuid
-            WHERE node_allocations.node_uuid = $1
-                AND ($2::text IS NULL
-                    OR host(node_allocations.ip) || ':' || node_allocations.port ILIKE '%' || $2 || '%'
-                    OR (node_allocations.ip_alias IS NOT NULL AND node_allocations.ip_alias || ':' || node_allocations.port ILIKE '%' || $2 || '%')
-                    OR server_allocations.notes ILIKE '%' || $2 || '%'
-                    OR {search_uuid})
-                AND ($3::inet IS NULL OR host(node_allocations.ip) = host($3))
-                AND ($4::int IS NULL OR node_allocations.port >= $4)
-                AND ($5::int IS NULL OR node_allocations.port <= $5)
-                AND ($6::bool IS NULL OR (server_allocations.uuid IS NOT NULL) = $6)
-            ORDER BY node_allocations.ip, node_allocations.port
-            LIMIT $7 OFFSET $8
-            "#,
-            Self::columns_sql(None),
-            search_uuid = super::uuid_search_sql(2, "node_allocations.uuid")
-        )))
+        let query = super::PaginatedQueryBuilder::new(
+            format!("{}, server_allocations.server_uuid", Self::columns_sql(None)),
+            format!(
+                r#"
+                FROM node_allocations
+                LEFT JOIN server_allocations ON server_allocations.allocation_uuid = node_allocations.uuid
+                WHERE node_allocations.node_uuid = $1
+                    AND ($2::text IS NULL
+                        OR host(node_allocations.ip) || ':' || node_allocations.port ILIKE '%' || $2 || '%'
+                        OR (node_allocations.ip_alias IS NOT NULL AND node_allocations.ip_alias || ':' || node_allocations.port ILIKE '%' || $2 || '%')
+                        OR server_allocations.notes ILIKE '%' || $2 || '%'
+                        OR {search_uuid})
+                    AND ($3::inet IS NULL OR host(node_allocations.ip) = host($3))
+                    AND ($4::int IS NULL OR node_allocations.port >= $4)
+                    AND ($5::int IS NULL OR node_allocations.port <= $5)
+                    AND ($6::bool IS NULL OR (server_allocations.uuid IS NOT NULL) = $6)
+                "#,
+                search_uuid = super::uuid_search_sql(2, "node_allocations.uuid"),
+            ),
+            "node_allocations.ip, node_allocations.port",
+        )
         .bind(node_uuid);
 
-        let rows = filter
-            .bind(query)
-            .bind(per_page)
-            .bind(offset)
-            .fetch_all(database.read())
-            .await?;
-
-        Ok(super::Pagination {
-            total: rows
-                .first()
-                .map_or(Ok(0), |row| row.try_get("total_count"))?,
-            per_page,
-            page,
-            data: rows
-                .into_iter()
-                .map(|row| Self::map(None, &row))
-                .try_collect_vec()?,
-        })
+        filter
+            .bind_paginated(query)
+            .fetch(database, page, per_page)
+            .await
     }
 
     pub async fn distinct_ips_by_node_uuid(

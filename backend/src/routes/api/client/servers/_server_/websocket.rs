@@ -48,10 +48,13 @@ mod get {
             user_avatar: Option<String>,
             server_uuid: uuid::Uuid,
             permissions: Vec<&'a str>,
+            full_permissions: Vec<&'a str>,
             ignored_files: &'a [compact_str::CompactString],
+            credential: Option<uuid::Uuid>,
         }
 
         let credential_scope = CredentialScope::from(&**auth);
+        let settings = state.settings.get().await?;
 
         let node = server.node.fetch_cached(&state.database).await?;
         let storage_url_retriever = state.storage.retrieve_urls().await?;
@@ -64,12 +67,12 @@ mod get {
                     base: BasePayload {
                         scope: "websocket".into(),
                         issuer: "panel".into(),
-                        subject: None,
+                        subject: Some(user.uuid.to_compact_string()),
                         audience: Vec::new(),
                         expiration_time: Some(chrono::Utc::now().timestamp() + 600),
                         not_before: None,
                         issued_at: Some(chrono::Utc::now().timestamp()),
-                        jwt_id: user.uuid.to_compact_string(),
+                        jwt_id: uuid::Uuid::new_v4().to_compact_string(),
                     },
                     user_uuid: user.uuid,
                     user_name: &user.username,
@@ -78,12 +81,14 @@ mod get {
                         .as_ref()
                         .map(|a| storage_url_retriever.get_url(a)),
                     server_uuid: server.uuid,
-                    permissions: server.wings_permissions(
-                        &*state.settings.get().await?,
+                    permissions: server.wings_permissions(&settings, &user, &credential_scope),
+                    full_permissions: server.wings_permissions(
+                        &settings,
                         &user,
-                        &credential_scope,
+                        &CredentialScope::Session,
                     ),
                     ignored_files: server.subuser_ignored_files.as_deref().unwrap_or(&[]),
+                    credential: auth.api_key_uuid(),
                 },
             )
             .await?;

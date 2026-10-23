@@ -10,7 +10,7 @@ mod get {
         models::{
             admin_activity::GetAdminActivityLogger,
             node::GetNode,
-            user::{GetPermissionManager, GetUser},
+            user::{GetAuthMethod, GetPermissionManager, GetUser},
         },
         response::{ApiResponse, ApiResponseResult},
     };
@@ -50,6 +50,7 @@ mod get {
         request_host: shared::GetRequestHost,
         permissions: GetPermissionManager,
         activity_logger: GetAdminActivityLogger,
+        auth: GetAuthMethod,
         user: GetUser,
         node: GetNode,
         backup: GetServerBackup,
@@ -80,6 +81,7 @@ mod get {
                 &state,
                 request_host.as_deref(),
                 &user,
+                auth.api_key_uuid(),
                 &node,
                 params.archive_format,
             )

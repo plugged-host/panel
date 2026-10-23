@@ -14,9 +14,10 @@ export default async (
   mountUuid: string,
   page: number,
   search?: string,
+  perPage?: number,
 ): Promise<Pagination<z.infer<typeof nestEggMountSchema>>> => {
   const { data } = await axiosInstance.get(`/api/admin/mounts/${mountUuid}/nest-eggs`, {
-    params: { page, search },
+    params: { page, per_page: perPage, search },
   });
   return parsePaginationFromApi(nestEggMountSchema, data.nest_egg_mounts);
 };

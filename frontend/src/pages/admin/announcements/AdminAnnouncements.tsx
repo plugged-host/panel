@@ -26,6 +26,7 @@ function AnnouncementsContainer() {
     search,
     setSearch,
     setPage,
+    setPerPage,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.admin.announcements.all(),
     fetcher: getAnnouncements,
@@ -55,6 +56,7 @@ function AnnouncementsContainer() {
         error={error}
         pagination={announcements}
         onPageSelect={setPage}
+        onPerPageSelect={setPerPage}
       >
         {announcements?.data.map((announcement) => (
           <AnnouncementRow key={announcement.uuid} announcement={announcement} />

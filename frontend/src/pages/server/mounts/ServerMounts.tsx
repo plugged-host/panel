@@ -84,7 +84,7 @@ export default function ServerMounts() {
                   contextMount={mount}
                   ref={innerRef as Ref<HTMLTableRowElement>}
                   isSelected={selectedMounts.has(mount.uuid)}
-                  onSelectionChange={canSelect ? (selected) => toggleMount(mount, selected) : undefined}
+                  onSelectionChange={canSelect ? (selected, range) => toggleMount(mount, selected, range) : undefined}
                 />
               )}
             </SelectionArea.Selectable>

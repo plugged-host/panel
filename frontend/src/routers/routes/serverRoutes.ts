@@ -23,6 +23,7 @@ import ServerDatabases from '@/pages/server/databases/ServerDatabases.tsx';
 import ServerDevices from '@/pages/server/devices/ServerDevices.tsx';
 import FileSqliteQuery from '@/pages/server/files/editor/FileSqliteQuery.tsx';
 import ServerFiles from '@/pages/server/files/ServerFiles.tsx';
+import ServerFilesTrash from '@/pages/server/files/trash/ServerFilesTrash.tsx';
 import ServerMounts from '@/pages/server/mounts/ServerMounts.tsx';
 import ServerFirewall from '@/pages/server/network/firewall/ServerFirewall.tsx';
 import ServerNetwork from '@/pages/server/network/ServerNetwork.tsx';
@@ -60,6 +61,12 @@ const routes: ServerRouteDefinition[] = [
     icon: faFolderOpen,
     path: '/files',
     element: ServerFiles,
+    permission: 'files.read',
+  },
+  {
+    name: undefined,
+    path: '/files/trash',
+    element: ServerFilesTrash,
     permission: 'files.read',
   },
   {

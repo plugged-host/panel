@@ -98,38 +98,22 @@ impl NestEggMount {
         per_page: i64,
         search: Option<&str>,
     ) -> Result<super::Pagination<Self>, crate::database::DatabaseError> {
-        let offset = (page - 1) * per_page;
-
-        let rows = sqlx::query(sqlx::AssertSqlSafe(format!(
-            r#"
-            SELECT {}, COUNT(*) OVER() AS total_count
-            FROM nest_egg_mounts
-            JOIN mounts ON mounts.uuid = nest_egg_mounts.mount_uuid
-            WHERE nest_egg_mounts.egg_uuid = $1 AND {search}
-            ORDER BY nest_egg_mounts.created
-            LIMIT $3 OFFSET $4
-            "#,
+        super::PaginatedQueryBuilder::new(
             Self::columns_sql(None),
-            search = super::search_sql(2, &["mounts.name"], &["mounts.uuid"])
-        )))
+            format!(
+                r#"
+                FROM nest_egg_mounts
+                JOIN mounts ON mounts.uuid = nest_egg_mounts.mount_uuid
+                WHERE nest_egg_mounts.egg_uuid = $1 AND {search}
+                "#,
+                search = super::search_sql(2, &["mounts.name"], &["mounts.uuid"]),
+            ),
+            "nest_egg_mounts.created, nest_egg_mounts.egg_uuid, nest_egg_mounts.mount_uuid",
+        )
         .bind(egg_uuid)
         .bind(search)
-        .bind(per_page)
-        .bind(offset)
-        .fetch_all(database.read())
-        .await?;
-
-        Ok(super::Pagination {
-            total: rows
-                .first()
-                .map_or(Ok(0), |row| row.try_get("total_count"))?,
-            per_page,
-            page,
-            data: rows
-                .into_iter()
-                .map(|row| Self::map(None, &row))
-                .try_collect_vec()?,
-        })
+        .fetch(database, page, per_page)
+        .await
     }
 
     pub async fn by_mount_uuid_with_pagination(
@@ -139,38 +123,22 @@ impl NestEggMount {
         per_page: i64,
         search: Option<&str>,
     ) -> Result<super::Pagination<Self>, crate::database::DatabaseError> {
-        let offset = (page - 1) * per_page;
-
-        let rows = sqlx::query(sqlx::AssertSqlSafe(format!(
-            r#"
-            SELECT {}, COUNT(*) OVER() AS total_count
-            FROM nest_egg_mounts
-            JOIN nest_eggs ON nest_eggs.uuid = nest_egg_mounts.egg_uuid
-            WHERE nest_egg_mounts.mount_uuid = $1 AND {search}
-            ORDER BY nest_egg_mounts.created
-            LIMIT $3 OFFSET $4
-            "#,
+        super::PaginatedQueryBuilder::new(
             Self::columns_sql(None),
-            search = super::search_sql(2, &["nest_eggs.name"], &["nest_eggs.uuid"])
-        )))
+            format!(
+                r#"
+                FROM nest_egg_mounts
+                JOIN nest_eggs ON nest_eggs.uuid = nest_egg_mounts.egg_uuid
+                WHERE nest_egg_mounts.mount_uuid = $1 AND {search}
+                "#,
+                search = super::search_sql(2, &["nest_eggs.name"], &["nest_eggs.uuid"]),
+            ),
+            "nest_egg_mounts.created, nest_egg_mounts.egg_uuid, nest_egg_mounts.mount_uuid",
+        )
         .bind(mount_uuid)
         .bind(search)
-        .bind(per_page)
-        .bind(offset)
-        .fetch_all(database.read())
-        .await?;
-
-        Ok(super::Pagination {
-            total: rows
-                .first()
-                .map_or(Ok(0), |row| row.try_get("total_count"))?,
-            per_page,
-            page,
-            data: rows
-                .into_iter()
-                .map(|row| Self::map(None, &row))
-                .try_collect_vec()?,
-        })
+        .fetch(database, page, per_page)
+        .await
     }
 
     pub async fn into_admin_nest_egg_api_object(

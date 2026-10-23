@@ -1,5 +1,5 @@
 import { faDocker } from '@fortawesome/free-brands-svg-icons';
-import { faPlay } from '@fortawesome/free-solid-svg-icons';
+import { faPlay, faSliders } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import debounce from 'debounce';
 import { useEffect, useMemo, useState } from 'react';
@@ -12,6 +12,8 @@ import updateVariables from '@/api/server/startup/updateVariables.ts';
 import Button from '@/elements/buttons/Button.tsx';
 import ServerContentContainer from '@/elements/containers/ServerContentContainer.tsx';
 import TitleCard from '@/elements/data-display/TitleCard.tsx';
+import EmptyState from '@/elements/feedback/EmptyState.tsx';
+import ErrorState from '@/elements/feedback/ErrorState.tsx';
 import Spinner from '@/elements/feedback/Spinner.tsx';
 import Select from '@/elements/input/Select.tsx';
 import TextArea from '@/elements/input/TextArea.tsx';
@@ -24,6 +26,7 @@ import { useBlocker } from '@/plugins/useBlocker.ts';
 import { useServerCan } from '@/plugins/usePermissions.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
+import { trackActivity } from '@/stores/activity.ts';
 import { useGlobalStore } from '@/stores/global.ts';
 import { useServerStore } from '@/stores/server.ts';
 
@@ -49,6 +52,7 @@ export default function ServerStartup() {
   const [values, setValues] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [variablesLoading, setVariablesLoading] = useState(true);
+  const [variablesError, setVariablesError] = useState<unknown>(null);
   const blocker = useBlocker(Object.keys(values).length > 0);
 
   const setDebouncedCommand = useMemo(
@@ -66,12 +70,17 @@ export default function ServerStartup() {
     [server.uuid, t, addToast, updateServer],
   );
 
-  useEffect(() => {
-    getVariables(server.uuid).then((data) => {
-      setVariables(data);
-      setVariablesLoading(false);
-    });
-  }, []);
+  const loadVariables = () => {
+    setVariablesLoading(true);
+    setVariablesError(null);
+
+    trackActivity(getVariables(server.uuid))
+      .then(setVariables)
+      .catch(setVariablesError)
+      .finally(() => setVariablesLoading(false));
+  };
+
+  useEffect(loadVariables, []);
 
   useEffect(() => {
     if (command !== server.startup) {
@@ -220,19 +229,31 @@ export default function ServerStartup() {
       <div className='grid grid-cols-1 xl:grid-cols-2 gap-4 mt-4'>
         {variablesLoading ? (
           <Spinner.Centered className='col-span-full' />
+        ) : variablesError ? (
+          <div className='col-span-full'>
+            <ErrorState error={httpErrorToHuman(variablesError)} onRetry={loadVariables} />
+          </div>
         ) : variables.length === 0 ? (
-          <p className='text-(--mantine-color-dimmed) col-span-full'>{t('pages.server.startup.noVariables', {})}</p>
+          <div className='col-span-full'>
+            <EmptyState
+              icon={faSliders}
+              title={t('pages.server.startup.empty.title', {})}
+              description={t('pages.server.startup.empty.description', {})}
+            />
+          </div>
         ) : null}
-        {variables.map((variable) => (
-          <VariableContainer
-            key={variable.envVariable}
-            variable={variable}
-            loading={loading}
-            disabled={!canModifyVariables}
-            value={values[variable.envVariable] ?? variable.value ?? variable.defaultValue ?? ''}
-            setValue={(value) => setValues((prev) => ({ ...prev, [variable.envVariable]: value }))}
-          />
-        ))}
+        {!variablesLoading &&
+          !variablesError &&
+          variables.map((variable) => (
+            <VariableContainer
+              key={variable.envVariable}
+              variable={variable}
+              loading={loading}
+              disabled={!canModifyVariables}
+              value={values[variable.envVariable] ?? variable.value ?? variable.defaultValue ?? ''}
+              setValue={(value) => setValues((prev) => ({ ...prev, [variable.envVariable]: value }))}
+            />
+          ))}
       </div>
     </ServerContentContainer>
   );

@@ -59,6 +59,19 @@ export function formatMilliseconds(uptime: number, short = true, withSeconds = t
   return formatter.format(withSeconds ? { days, hours, minutes, seconds } : { days, hours, minutes });
 }
 
+export function formatSeconds(seconds: number) {
+  const days = Math.floor(seconds / 86400);
+  const hours = Math.floor((seconds % 86400) / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+
+  return new Intl.DurationFormat(getTranslations().language, { style: 'long' }).format({
+    days,
+    hours,
+    minutes,
+    seconds: seconds < 60 ? seconds : 0,
+  });
+}
+
 export function formatDateTime(timestamp: string | number | Date, precise?: boolean, short = true) {
   return new Date(timestamp).toLocaleString(getTranslations().language, {
     year: 'numeric',

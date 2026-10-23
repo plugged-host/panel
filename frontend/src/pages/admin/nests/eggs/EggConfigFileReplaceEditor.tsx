@@ -9,6 +9,7 @@ import JsonInput from '@/elements/input/JsonInput.tsx';
 import Switch from '@/elements/input/Switch.tsx';
 import TextInput from '@/elements/input/TextInput.tsx';
 import Group from '@/elements/layout/Group.tsx';
+import Text from '@/elements/typography/Text.tsx';
 import { adminEggUpdateSchema } from '@/lib/schemas/admin/eggs.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 
@@ -24,7 +25,9 @@ export default function EggConfigFileReplaceEditor({
   return (
     <div className='flex flex-col'>
       {form.getValues().configFiles[index].replace.length === 0 ? (
-        <p className='mb-2'>{t('pages.admin.nests.tabs.eggs.page.tabs.general.page.emptyReplacements', {})}</p>
+        <Text size='sm' c='dimmed' mb='xs'>
+          {t('pages.admin.nests.tabs.eggs.page.tabs.general.page.emptyReplacements', {})}
+        </Text>
       ) : (
         form.getValues().configFiles[index].replace.map((_, replaceIndex) => (
           <Card key={replaceIndex} className='flex flex-row! mb-2'>

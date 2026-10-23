@@ -9,6 +9,7 @@ import {
   faFolderPlus,
   faMagnifyingGlassChart,
   faSearch,
+  faTrashCan,
   faTriangleExclamation,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -157,6 +158,15 @@ export function useFileBrowserQuickActions({
       icon: <FontAwesomeIcon icon={faDoorOpen} />,
       isVisible: () => store.getState().browsingBackup !== null,
       perform: () => navigate(`/server/${server.uuidShort}/files`),
+    },
+    {
+      id: 'files.openTrash',
+      category: page,
+      label: () => t('pages.server.files.quickAction.openTrash', {}),
+      keywords: ['deleted', 'restore'],
+      icon: <FontAwesomeIcon icon={faTrashCan} />,
+      permission: 'files.read',
+      perform: () => navigate(`/server/${server.uuidShort}/files/trash`),
     },
   ]);
 }

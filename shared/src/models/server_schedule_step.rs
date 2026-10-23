@@ -122,7 +122,7 @@ impl ServerScheduleStep {
             SELECT {}
             FROM server_schedule_steps
             WHERE server_schedule_steps.schedule_uuid = $1
-            ORDER BY server_schedule_steps.order_, server_schedule_steps.created
+            ORDER BY server_schedule_steps.order_, server_schedule_steps.created, server_schedule_steps.uuid
             "#,
             Self::columns_sql(None)
         )))

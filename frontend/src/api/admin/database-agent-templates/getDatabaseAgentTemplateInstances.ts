@@ -7,9 +7,10 @@ export default async (
   templateUuid: string,
   page: number,
   search?: string,
+  perPage?: number,
 ): Promise<Pagination<z.infer<typeof adminServerDatabaseAgentSchema>>> => {
   const { data } = await axiosInstance.get(`/api/admin/database-agent-templates/${templateUuid}/instances`, {
-    params: { page, search },
+    params: { page, per_page: perPage, search },
   });
   return parsePaginationFromApi(adminServerDatabaseAgentSchema, data.instances);
 };

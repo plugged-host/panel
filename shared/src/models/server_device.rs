@@ -100,38 +100,22 @@ impl ServerDevice {
         per_page: i64,
         search: Option<&str>,
     ) -> Result<super::Pagination<Self>, crate::database::DatabaseError> {
-        let offset = (page - 1) * per_page;
-
-        let rows = sqlx::query(sqlx::AssertSqlSafe(format!(
-            r#"
-            SELECT {}, COUNT(*) OVER() AS total_count
-            FROM server_devices
-            JOIN devices ON devices.uuid = server_devices.device_uuid
-            WHERE server_devices.server_uuid = $1 AND {search}
-            ORDER BY server_devices.device_uuid ASC
-            LIMIT $3 OFFSET $4
-            "#,
+        super::PaginatedQueryBuilder::new(
             Self::columns_sql(None),
-            search = super::search_sql(2, &["devices.name"], &["devices.uuid"])
-        )))
+            format!(
+                r#"
+                FROM server_devices
+                JOIN devices ON devices.uuid = server_devices.device_uuid
+                WHERE server_devices.server_uuid = $1 AND {search}
+                "#,
+                search = super::search_sql(2, &["devices.name"], &["devices.uuid"]),
+            ),
+            "server_devices.device_uuid ASC",
+        )
         .bind(server_uuid)
         .bind(search)
-        .bind(per_page)
-        .bind(offset)
-        .fetch_all(database.read())
-        .await?;
-
-        Ok(super::Pagination {
-            total: rows
-                .first()
-                .map_or(Ok(0), |row| row.try_get("total_count"))?,
-            per_page,
-            page,
-            data: rows
-                .into_iter()
-                .map(|row| Self::map(None, &row))
-                .try_collect_vec()?,
-        })
+        .fetch(database, page, per_page)
+        .await
     }
 
     pub async fn available_by_server_with_pagination(
@@ -141,43 +125,26 @@ impl ServerDevice {
         per_page: i64,
         search: Option<&str>,
     ) -> Result<super::Pagination<Self>, crate::database::DatabaseError> {
-        let offset = (page - 1) * per_page;
-
-        let rows = sqlx::query(sqlx::AssertSqlSafe(format!(
-            r#"
-            SELECT {}, devices.uuid AS alt_device_uuid, COUNT(*) OVER() AS total_count
-            FROM devices
-            JOIN node_devices ON devices.uuid = node_devices.device_uuid AND node_devices.node_uuid = $1
-            JOIN nest_egg_devices ON devices.uuid = nest_egg_devices.device_uuid AND nest_egg_devices.egg_uuid = $2
-            LEFT JOIN server_devices ON server_devices.device_uuid = devices.uuid AND server_devices.server_uuid = $3
-            WHERE {search}
-            ORDER BY devices.created
-            LIMIT $5 OFFSET $6
-            "#,
-            Self::columns_sql(None),
-            search = super::search_sql(4, &["devices.name"], &["devices.uuid"])
-        )))
+        super::PaginatedQueryBuilder::new(
+            format!("{}, devices.uuid AS alt_device_uuid", Self::columns_sql(None)),
+            format!(
+                r#"
+                FROM devices
+                JOIN node_devices ON devices.uuid = node_devices.device_uuid AND node_devices.node_uuid = $1
+                JOIN nest_egg_devices ON devices.uuid = nest_egg_devices.device_uuid AND nest_egg_devices.egg_uuid = $2
+                LEFT JOIN server_devices ON server_devices.device_uuid = devices.uuid AND server_devices.server_uuid = $3
+                WHERE {search}
+                "#,
+                search = super::search_sql(4, &["devices.name"], &["devices.uuid"]),
+            ),
+            "devices.created, devices.uuid",
+        )
         .bind(server.node.uuid)
         .bind(server.egg.uuid)
         .bind(server.uuid)
         .bind(search)
-        .bind(per_page)
-        .bind(offset)
-        .fetch_all(database.read())
+        .fetch(database, page, per_page)
         .await
-        ?;
-
-        Ok(super::Pagination {
-            total: rows
-                .first()
-                .map_or(Ok(0), |row| row.try_get("total_count"))?,
-            per_page,
-            page,
-            data: rows
-                .into_iter()
-                .map(|row| Self::map(None, &row))
-                .try_collect_vec()?,
-        })
     }
 
     pub async fn attachable_by_server_with_pagination(
@@ -187,43 +154,26 @@ impl ServerDevice {
         per_page: i64,
         search: Option<&str>,
     ) -> Result<super::Pagination<Self>, crate::database::DatabaseError> {
-        let offset = (page - 1) * per_page;
-
-        let rows = sqlx::query(sqlx::AssertSqlSafe(format!(
-            r#"
-            SELECT {}, devices.uuid AS alt_device_uuid, COUNT(*) OVER() AS total_count
-            FROM devices
-            JOIN node_devices ON devices.uuid = node_devices.device_uuid AND node_devices.node_uuid = $1
-            JOIN nest_egg_devices ON devices.uuid = nest_egg_devices.device_uuid AND nest_egg_devices.egg_uuid = $2
-            LEFT JOIN server_devices ON server_devices.device_uuid = devices.uuid AND server_devices.server_uuid = $3
-            WHERE devices.user_attachable = TRUE AND {search}
-            ORDER BY devices.created
-            LIMIT $5 OFFSET $6
-            "#,
-            Self::columns_sql(None),
-            search = super::search_sql(4, &["devices.name"], &["devices.uuid"])
-        )))
+        super::PaginatedQueryBuilder::new(
+            format!("{}, devices.uuid AS alt_device_uuid", Self::columns_sql(None)),
+            format!(
+                r#"
+                FROM devices
+                JOIN node_devices ON devices.uuid = node_devices.device_uuid AND node_devices.node_uuid = $1
+                JOIN nest_egg_devices ON devices.uuid = nest_egg_devices.device_uuid AND nest_egg_devices.egg_uuid = $2
+                LEFT JOIN server_devices ON server_devices.device_uuid = devices.uuid AND server_devices.server_uuid = $3
+                WHERE devices.user_attachable = TRUE AND {search}
+                "#,
+                search = super::search_sql(4, &["devices.name"], &["devices.uuid"]),
+            ),
+            "devices.created, devices.uuid",
+        )
         .bind(server.node.uuid)
         .bind(server.egg.uuid)
         .bind(server.uuid)
         .bind(search)
-        .bind(per_page)
-        .bind(offset)
-        .fetch_all(database.read())
+        .fetch(database, page, per_page)
         .await
-        ?;
-
-        Ok(super::Pagination {
-            total: rows
-                .first()
-                .map_or(Ok(0), |row| row.try_get("total_count"))?,
-            per_page,
-            page,
-            data: rows
-                .into_iter()
-                .map(|row| Self::map(None, &row))
-                .try_collect_vec()?,
-        })
     }
 
     pub async fn by_device_uuid_with_pagination(
@@ -233,38 +183,22 @@ impl ServerDevice {
         per_page: i64,
         search: Option<&str>,
     ) -> Result<super::Pagination<Self>, crate::database::DatabaseError> {
-        let offset = (page - 1) * per_page;
-
-        let rows = sqlx::query(sqlx::AssertSqlSafe(format!(
-            r#"
-            SELECT {}, COUNT(*) OVER() AS total_count
-            FROM server_devices
-            JOIN servers ON servers.uuid = server_devices.server_uuid
-            WHERE server_devices.device_uuid = $1 AND {search}
-            ORDER BY server_devices.device_uuid ASC
-            LIMIT $3 OFFSET $4
-            "#,
+        super::PaginatedQueryBuilder::new(
             Self::columns_sql(None),
-            search = super::search_sql(2, &["servers.name"], &["servers.uuid"])
-        )))
+            format!(
+                r#"
+                FROM server_devices
+                JOIN servers ON servers.uuid = server_devices.server_uuid
+                WHERE server_devices.device_uuid = $1 AND {search}
+                "#,
+                search = super::search_sql(2, &["servers.name"], &["servers.uuid"]),
+            ),
+            "server_devices.device_uuid ASC",
+        )
         .bind(device_uuid)
         .bind(search)
-        .bind(per_page)
-        .bind(offset)
-        .fetch_all(database.read())
-        .await?;
-
-        Ok(super::Pagination {
-            total: rows
-                .first()
-                .map_or(Ok(0), |row| row.try_get("total_count"))?,
-            per_page,
-            page,
-            data: rows
-                .into_iter()
-                .map(|row| Self::map(None, &row))
-                .try_collect_vec()?,
-        })
+        .fetch(database, page, per_page)
+        .await
     }
 
     pub async fn into_admin_server_api_object(

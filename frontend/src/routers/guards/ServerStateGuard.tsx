@@ -8,7 +8,6 @@ import { ServerCan } from '@/elements/Can.tsx';
 import ServerContentContainer from '@/elements/containers/ServerContentContainer.tsx';
 import ScreenBlock from '@/elements/feedback/ScreenBlock.tsx';
 import ConfirmationModal from '@/elements/modals/ConfirmationModal.tsx';
-import { isAdmin } from '@/lib/auth/permissions.ts';
 import { isConflictingState, serverStatusInfo } from '@/lib/domain/server.ts';
 import { useAdminCan } from '@/plugins/usePermissions.ts';
 import { useAuth } from '@/providers/AuthProvider.tsx';
@@ -25,13 +24,14 @@ export default function ServerStateGuard() {
   const server = useServerStore((state) => state.server);
   const updateServer = useServerStore((state) => state.updateServer);
   const canReadInstallationLogs = useAdminCan('servers.read');
+  const canUpdateServers = useAdminCan('servers.update');
   const location = useLocation();
 
   const [openModal, setOpenModal] = useState<'acknowledgeFailure' | null>(null);
 
   const acknowledge = useMemo(() => {
     if (server.status === 'install_failed') {
-      if (!settings.server.allowAcknowledgingInstallationFailure && !isAdmin(user)) {
+      if (!settings.server.allowAcknowledgingInstallationFailure && !canUpdateServers) {
         return null;
       }
 
@@ -53,7 +53,7 @@ export default function ServerStateGuard() {
     }
 
     return null;
-  }, [server.status, server.uuid, settings.server.allowAcknowledgingInstallationFailure, user, t]);
+  }, [server.status, server.uuid, settings.server.allowAcknowledgingInstallationFailure, canUpdateServers, t]);
 
   const doAcknowledgeFailure = async () => {
     await acknowledge
@@ -106,8 +106,7 @@ export default function ServerStateGuard() {
                     ? serverStatusInfo[server.status].blockContent()
                     : ''
           }
-        />
-        <div className='flex flex-row items-center justify-center gap-4 mt-6'>
+        >
           {canReadInstallationLogs && server.status === 'install_failed' && (
             <NavLink to={`/admin/servers/${server.uuid}/logs`}>
               <Button variant='outline'>{t('elements.screenBlock.serverConflict.button.viewInstallLogs', {})}</Button>
@@ -120,7 +119,7 @@ export default function ServerStateGuard() {
               </Button>
             </ServerCan>
           )}
-        </div>
+        </ScreenBlock>
       </ServerContentContainer>
     );
   }

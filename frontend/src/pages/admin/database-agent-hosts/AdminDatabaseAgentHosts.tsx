@@ -32,6 +32,7 @@ function DatabaseAgentHostsContainer() {
     search,
     setSearch,
     setPage,
+    setPerPage,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.admin.databaseAgentHosts.all(),
     fetcher: getDatabaseAgentHosts,
@@ -77,7 +78,14 @@ function DatabaseAgentHostsContainer() {
       <DatabaseAgentHostActionBar selectedHosts={selectedHosts} setSelectedHosts={setSelectedHosts} />
 
       <SelectionArea {...selectionAreaProps}>
-        <Table columns={columns} loading={loading} pagination={databaseAgentHosts} onPageSelect={setPage} error={error}>
+        <Table
+          columns={columns}
+          loading={loading}
+          pagination={databaseAgentHosts}
+          onPageSelect={setPage}
+          onPerPageSelect={setPerPage}
+          error={error}
+        >
           {databaseAgentHosts?.data.map((host) => (
             <SelectionArea.Selectable key={host.uuid} item={host}>
               {(innerRef: Ref<HTMLElement>) => (
@@ -86,7 +94,7 @@ function DatabaseAgentHostsContainer() {
                   databaseAgentHost={host}
                   ref={innerRef as Ref<HTMLTableRowElement>}
                   isSelected={selectedHosts.has(host.uuid)}
-                  onSelectionChange={(selected) => toggleHost(host, selected)}
+                  onSelectionChange={(selected, range) => toggleHost(host, selected, range)}
                 />
               )}
             </SelectionArea.Selectable>

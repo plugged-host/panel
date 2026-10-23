@@ -51,15 +51,15 @@ function EggsContainer({ contextNest }: { contextNest: z.infer<typeof adminNestS
     search,
     setSearch,
     setPage,
+    setPerPage,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.admin.nests.eggs(contextNest.uuid),
-    fetcher: (page, search) => getEggs(contextNest.uuid, page, search),
+    fetcher: (page, search, perPage) => getEggs(contextNest.uuid, page, search, perPage),
   });
 
   const {
     selected: selectedEggs,
-    add: addSelectedEgg,
-    remove: removeSelectedEgg,
+    toggle: toggleEgg,
     clear: clearSelectedEggs,
     selectAll,
     allSelected,
@@ -203,7 +203,14 @@ function EggsContainer({ contextNest }: { contextNest: z.infer<typeof adminNestS
       />
 
       <SelectionArea {...selectionAreaProps}>
-        <Table columns={columns} loading={loading} pagination={eggs} onPageSelect={setPage} error={error}>
+        <Table
+          columns={columns}
+          loading={loading}
+          pagination={eggs}
+          onPageSelect={setPage}
+          onPerPageSelect={setPerPage}
+          error={error}
+        >
           {eggs?.data.map((egg) => (
             <SelectionArea.Selectable key={egg.uuid} item={egg}>
               {(innerRef: Ref<HTMLElement>) => (
@@ -212,7 +219,7 @@ function EggsContainer({ contextNest }: { contextNest: z.infer<typeof adminNestS
                   nest={contextNest}
                   egg={egg}
                   isSelected={selectedEggs.has(egg.uuid)}
-                  onSelectionChange={(selected) => (selected ? addSelectedEgg(egg) : removeSelectedEgg(egg))}
+                  onSelectionChange={(selected, range) => toggleEgg(egg, selected, range)}
                   ref={innerRef as Ref<HTMLTableRowElement>}
                 />
               )}

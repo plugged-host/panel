@@ -160,13 +160,14 @@ mod delete {
             )
             .await;
 
-        server.0.batch_sync(&state.database).await;
+        server.0.batch_sync(&state).await;
 
         ApiResponse::new_serialized(Response {}).ok()
     }
 }
 
 mod patch {
+    use axum::http::StatusCode;
     use serde::Serialize;
     use shared::{
         ApiError, GetState,
@@ -212,6 +213,19 @@ mod patch {
     ) -> ApiResponseResult {
         permissions.has_server_permission("schedules.update")?;
 
+        if let Some(permission) = permissions.missing_server_permission(
+            data.triggers
+                .iter()
+                .flatten()
+                .flat_map(|trigger| trigger.permissions()),
+        ) {
+            return ApiResponse::error(format!(
+                "unable to update schedule trigger that requires permission: {permission}"
+            ))
+            .with_status(StatusCode::FORBIDDEN)
+            .ok();
+        }
+
         schedule.update(&state, data).await?;
 
         activity_logger
@@ -227,7 +241,7 @@ mod patch {
             )
             .await;
 
-        server.0.batch_sync(&state.database).await;
+        server.0.batch_sync(&state).await;
 
         ApiResponse::new_serialized(Response {}).ok()
     }

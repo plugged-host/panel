@@ -16,7 +16,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     perl \
     build-essential \
     mold \
-    clang \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=node_source /usr/local/lib/node_modules /usr/local/lib/node_modules
@@ -31,12 +30,14 @@ WORKDIR /app/repo
 
 COPY --from=planner /app/repo/recipe.json recipe.json
 RUN mkdir -p .cargo && \
-    printf '[target."x86_64-unknown-linux-gnu"]\nlinker = "clang"\nrustflags = ["-C", "link-arg=-fuse-ld=mold"]\n' > .cargo/config.toml
-RUN cargo chef cook --profile heavy-release --recipe-path recipe.json -p panel-rs -p heavy-supervisor
+    printf '[target."x86_64-unknown-linux-gnu"]\nrustflags = ["-C", "link-arg=-fuse-ld=mold"]\n\n[target."aarch64-unknown-linux-gnu"]\nrustflags = ["-C", "link-arg=-fuse-ld=mold"]\n' > .cargo/config.toml
+RUN cargo chef cook --profile heavy-release --recipe-path recipe.json -p panel-rs -p heavy-supervisor \
+    && rm -rf "$CARGO_HOME/registry/src"
 
 COPY . /app/repo
 RUN cd frontend && pnpm install --frozen-lockfile && pnpm build:ci
-RUN cargo build --profile heavy-release -p panel-rs -p heavy-supervisor
+RUN cargo build --profile heavy-release -p panel-rs -p heavy-supervisor \
+    && rm -rf "$CARGO_HOME/registry/src"
 
 RUN cp /app/repo/target/heavy-release/panel-rs /app/panel-rs.stock
 RUN cp /app/repo/target/heavy-release/heavy-supervisor /app/heavy-supervisor

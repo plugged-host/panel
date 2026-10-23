@@ -235,36 +235,20 @@ impl Announcement {
         per_page: i64,
         search: Option<&str>,
     ) -> Result<super::Pagination<Self>, crate::database::DatabaseError> {
-        let offset = (page - 1) * per_page;
-
-        let rows = sqlx::query(sqlx::AssertSqlSafe(format!(
-            r#"
-            SELECT {}, COUNT(*) OVER() AS total_count
-            FROM announcements
-            WHERE {search}
-            ORDER BY announcements.created
-            LIMIT $2 OFFSET $3
-            "#,
+        super::PaginatedQueryBuilder::new(
             Self::columns_sql(None),
-            search = super::search_sql(1, &["announcements.title"], &["announcements.uuid"])
-        )))
+            format!(
+                r#"
+                FROM announcements
+                WHERE {search}
+                "#,
+                search = super::search_sql(1, &["announcements.title"], &["announcements.uuid"]),
+            ),
+            "announcements.created, announcements.uuid",
+        )
         .bind(search)
-        .bind(per_page)
-        .bind(offset)
-        .fetch_all(database.read())
-        .await?;
-
-        Ok(super::Pagination {
-            total: rows
-                .first()
-                .map_or(Ok(0), |row| row.try_get("total_count"))?,
-            per_page,
-            page,
-            data: rows
-                .into_iter()
-                .map(|row| Self::map(None, &row))
-                .try_collect_vec()?,
-        })
+        .fetch(database, page, per_page)
+        .await
     }
 
     pub async fn all_by_active(
@@ -281,7 +265,7 @@ impl Announcement {
                 AND array_length(announcements.nodes, 1) IS NULL
                 AND array_length(announcements.backup_configurations, 1) IS NULL
                 AND array_length(announcements.eggs, 1) IS NULL
-            ORDER BY announcements.created
+            ORDER BY announcements.created, announcements.uuid
             "#,
             Self::columns_sql(None)
         )))
@@ -318,7 +302,7 @@ impl Announcement {
                     OR ($3 IS NOT NULL AND (announcements.backup_configurations IS NULL OR $3 = ANY(announcements.backup_configurations)))
                     OR (announcements.eggs IS NULL OR $4 = ANY(announcements.eggs))
                 )
-            ORDER BY announcements.created
+            ORDER BY announcements.created, announcements.uuid
             "#,
             Self::columns_sql(None)
         )))

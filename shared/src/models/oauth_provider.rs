@@ -365,36 +365,20 @@ impl OAuthProvider {
         per_page: i64,
         search: Option<&str>,
     ) -> Result<super::Pagination<Self>, crate::database::DatabaseError> {
-        let offset = (page - 1) * per_page;
-
-        let rows = sqlx::query(sqlx::AssertSqlSafe(format!(
-            r#"
-            SELECT {}, COUNT(*) OVER() AS total_count
-            FROM oauth_providers
-            WHERE {search}
-            ORDER BY oauth_providers.created
-            LIMIT $2 OFFSET $3
-            "#,
+        super::PaginatedQueryBuilder::new(
             Self::columns_sql(None),
-            search = super::search_sql(1, &["oauth_providers.name"], &["oauth_providers.uuid"])
-        )))
+            format!(
+                r#"
+                FROM oauth_providers
+                WHERE {search}
+                "#,
+                search = super::search_sql(1, &["oauth_providers.name"], &["oauth_providers.uuid"]),
+            ),
+            "oauth_providers.created, oauth_providers.uuid",
+        )
         .bind(search)
-        .bind(per_page)
-        .bind(offset)
-        .fetch_all(database.read())
-        .await?;
-
-        Ok(super::Pagination {
-            total: rows
-                .first()
-                .map_or(Ok(0), |row| row.try_get("total_count"))?,
-            per_page,
-            page,
-            data: rows
-                .into_iter()
-                .map(|row| Self::map(None, &row))
-                .try_collect_vec()?,
-        })
+        .fetch(database, page, per_page)
+        .await
     }
 
     pub async fn exists_usable_except(
@@ -424,7 +408,7 @@ impl OAuthProvider {
             SELECT {}
             FROM oauth_providers
             WHERE oauth_providers.enabled = true
-            ORDER BY oauth_providers.created
+            ORDER BY oauth_providers.created, oauth_providers.uuid
             "#,
             Self::columns_sql(None)
         )))
@@ -1218,6 +1202,30 @@ pub struct UpdateOAuthProviderOptions {
     pub avatar_url_template: Option<Option<String>>,
     #[garde(skip)]
     pub avatar_overwrite: Option<bool>,
+}
+
+impl UpdateOAuthProviderOptions {
+    /// Whether this changes how the provider identifies users or how they may sign in with it,
+    /// which amounts to taking over every linked account.
+    pub fn changes_identity(&self, oauth_provider: &OAuthProvider) -> bool {
+        fn differs<T: PartialEq>(new: &Option<T>, current: &T) -> bool {
+            new.as_ref().is_some_and(|new| new != current)
+        }
+
+        differs(&self.client_id, &oauth_provider.client_id)
+            || differs(&self.auth_url, &oauth_provider.auth_url)
+            || differs(&self.token_url, &oauth_provider.token_url)
+            || differs(&self.info_url, &oauth_provider.info_url)
+            || differs(&self.info_urls, &oauth_provider.info_urls)
+            || differs(&self.scopes, &oauth_provider.scopes)
+            || differs(&self.identifier_path, &oauth_provider.identifier_path)
+            || differs(&self.login_only, &oauth_provider.login_only)
+            || differs(
+                &self.login_bypass_two_factor,
+                &oauth_provider.login_bypass_two_factor,
+            )
+            || differs(&self.user_manageable, &oauth_provider.user_manageable)
+    }
 }
 
 #[async_trait::async_trait]

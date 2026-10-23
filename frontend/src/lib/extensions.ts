@@ -86,6 +86,7 @@ export interface ExtensionCardFlags {
   isDisabled: boolean;
   isPendingDisabled: boolean;
   isBuildFailed: boolean;
+  isStartFailed: boolean;
 }
 
 export interface ExtensionBadge {
@@ -100,6 +101,9 @@ export function getExtensionBadges(t: TFunc, flags: ExtensionCardFlags): Extensi
   if (flags.isBuildFailed) {
     badges.push({ key: 'buildFailed', color: 'red', label: t('pages.admin.extensions.badge.buildFailed', {}) });
   }
+  if (flags.isStartFailed) {
+    badges.push({ key: 'startFailed', color: 'red', label: t('pages.admin.extensions.badge.startFailed', {}) });
+  }
   if (flags.isDisabled) {
     badges.push({ key: 'disabled', color: 'gray', label: t('pages.admin.extensions.badge.disabled', {}) });
   }
@@ -110,7 +114,7 @@ export function getExtensionBadges(t: TFunc, flags: ExtensionCardFlags): Extensi
       label: t('pages.admin.extensions.badge.pendingRestart', {}),
     });
   }
-  if (!flags.hasFrontend && !flags.isDisabled) {
+  if (!flags.hasFrontend && !flags.isDisabled && !flags.isStartFailed) {
     badges.push({
       key: 'frontendMissing',
       color: 'red',

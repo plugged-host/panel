@@ -46,6 +46,7 @@ pub fn validate_variable_translations(
     Ok(())
 }
 
+#[derive(Clone)]
 pub struct EmailVariable {
     pub template_identifier: Option<compact_str::CompactString>,
     pub name: compact_str::CompactString,

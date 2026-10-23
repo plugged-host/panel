@@ -76,7 +76,7 @@ mod patch {
         ApiError, GetState,
         models::{
             UpdatableModel,
-            user::{AuthMethod, GetAuthMethod, GetPermissionManager, GetUser},
+            user::{GetAuthMethod, GetPermissionManager, GetUser},
             user_activity::GetUserActivityLogger,
             user_api_key::{UpdateUserApiKeyOptions, UserApiKey},
         },
@@ -110,6 +110,13 @@ mod patch {
         shared::Payload(data): shared::Payload<UpdateUserApiKeyOptions>,
     ) -> ApiResponseResult {
         permissions.has_user_permission("api-keys.update")?;
+        permissions.deny_while_impersonating()?;
+
+        if auth.api_key_uuid() == Some(api_key) {
+            return ApiResponse::error("unable to update the api key currently in use")
+                .with_status(StatusCode::BAD_REQUEST)
+                .ok();
+        }
 
         if !permissions.scope().covers(
             data.user_permissions.as_deref().unwrap_or_default(),
@@ -130,15 +137,6 @@ mod patch {
                         .ok();
                 }
             };
-
-        if data.enabled == Some(false)
-            && let AuthMethod::ApiKey(auth_api_key) = &**auth
-            && auth_api_key.uuid == api_key.uuid
-        {
-            return ApiResponse::error("unable to disable the api key currently in use")
-                .with_status(StatusCode::BAD_REQUEST)
-                .ok();
-        }
 
         match api_key.update(&state, data).await {
             Ok(_) => {}

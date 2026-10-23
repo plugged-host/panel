@@ -14,6 +14,7 @@ use utoipa_axum::router::OpenApiRouter;
 mod activity;
 mod backups;
 mod enroll;
+mod permissions;
 mod schedule;
 pub mod servers;
 mod sftp;
@@ -90,6 +91,7 @@ pub async fn auth(
 pub fn router(state: &State) -> OpenApiRouter<State> {
     OpenApiRouter::new()
         .nest("/sftp", sftp::router(state))
+        .nest("/permissions", permissions::router(state))
         .nest("/activity", activity::router(state))
         .nest("/servers", servers::router(state))
         .nest("/backups", backups::router(state))

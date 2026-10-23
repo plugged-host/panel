@@ -1,6 +1,8 @@
+import { faPuzzlePiece } from '@fortawesome/free-solid-svg-icons';
 import { useMemo } from 'react';
 import { AdminExtensionList } from '@/api/admin/extensions/getAdminExtensions.ts';
 import { ExtensionStatus } from '@/api/admin/extensions/manage/getExtensionStatus.ts';
+import EmptyState from '@/elements/feedback/EmptyState.tsx';
 import Spinner from '@/elements/feedback/Spinner.tsx';
 import {
   computeInstalledCount,
@@ -19,12 +21,14 @@ export default function InstalledExtensionsGrid({
   failedExtensions,
   onRemove,
   onToggle,
+  isPending,
 }: {
   adminExtensions: AdminExtensionList | undefined;
   extensionStatus: ExtensionStatus | undefined;
   failedExtensions: string[];
   onRemove: (extension: AdminBackendExtension) => void;
   onToggle: (packageName: string, enabled: boolean) => void;
+  isPending: (key: string) => boolean;
 }) {
   const { t } = useTranslations();
 
@@ -39,19 +43,19 @@ export default function InstalledExtensionsGrid({
 
   if (installedCount === 0) {
     return (
-      <span>
-        {t('pages.admin.extensions.alert.noExtensions', {})}{' '}
-        {!extensionStatus && adminExtensions.managementDisabled && (
-          <span>{t('pages.admin.extensions.alert.managementDisabled', {})}</span>
-        )}
-        {!extensionStatus && !adminExtensions.managementDisabled && (
-          <span>
-            {t('pages.admin.extensions.alert.heavyImageMissing', {
-              docsUrl: 'https://calagopus.com/docs/panel/extensions/switching-to-the-heavy-image',
-            }).md()}
-          </span>
-        )}
-      </span>
+      <EmptyState
+        icon={faPuzzlePiece}
+        title={t('pages.admin.extensions.empty.title', {})}
+        description={
+          extensionStatus
+            ? t('pages.admin.extensions.empty.description', {})
+            : adminExtensions.managementDisabled
+              ? t('pages.admin.extensions.empty.descriptionDisabled', {})
+              : t('pages.admin.extensions.alert.heavyImageMissing', {
+                  docsUrl: 'https://calagopus.com/docs/panel/extensions/switching-to-the-heavy-image',
+                }).md()
+        }
+      />
     );
   }
 
@@ -69,8 +73,10 @@ export default function InstalledExtensionsGrid({
             isDisabled={backendExtension ? adminExtensions.disabled.includes(extension.packageName) : false}
             isPendingDisabled={adminExtensions.pendingDisabled.includes(extension.packageName)}
             isBuildFailed={failedExtensions.includes(extension.packageName)}
+            isStartFailed={extension.packageName in adminExtensions.failed}
             onRemove={extensionStatus && backendExtension ? () => onRemove(backendExtension) : undefined}
             onToggle={backendExtension ? (enabled) => onToggle(extension.packageName, enabled) : undefined}
+            busy={isPending(`toggle:${extension.packageName}`) || isPending(`remove:${extension.packageName}`)}
           />
         );
       })}
@@ -82,8 +88,13 @@ export default function InstalledExtensionsGrid({
           isDisabled={adminExtensions.disabled.includes(backendExtension.metadataToml.packageName)}
           isPendingDisabled={adminExtensions.pendingDisabled.includes(backendExtension.metadataToml.packageName)}
           isBuildFailed={failedExtensions.includes(backendExtension.metadataToml.packageName)}
+          isStartFailed={backendExtension.metadataToml.packageName in adminExtensions.failed}
           onRemove={extensionStatus ? () => onRemove(backendExtension) : undefined}
           onToggle={(enabled) => onToggle(backendExtension.metadataToml.packageName, enabled)}
+          busy={
+            isPending(`toggle:${backendExtension.metadataToml.packageName}`) ||
+            isPending(`remove:${backendExtension.metadataToml.packageName}`)
+          }
         />
       ))}
     </ExtensionGrid>

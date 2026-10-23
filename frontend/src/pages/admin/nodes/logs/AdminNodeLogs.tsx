@@ -1,4 +1,4 @@
-import { type OnMount } from '@monaco-editor/react';
+import { faFileLines } from '@fortawesome/free-solid-svg-icons';
 import classNames from 'classnames';
 import debounce from 'debounce';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -10,11 +10,14 @@ import { httpErrorToHuman } from '@/api/axios.ts';
 import Button from '@/elements/buttons/Button.tsx';
 import AdminSubContentContainer from '@/elements/containers/AdminSubContentContainer.tsx';
 import MonacoEditor from '@/elements/editors/MonacoEditor.tsx';
+import EmptyState from '@/elements/feedback/EmptyState.tsx';
+import ErrorState from '@/elements/feedback/ErrorState.tsx';
 import Spinner from '@/elements/feedback/Spinner.tsx';
 import NumberInput from '@/elements/input/NumberInput.tsx';
 import Select from '@/elements/input/Select.tsx';
 import Switch from '@/elements/input/Switch.tsx';
 import { downloadBlob } from '@/lib/download/download.ts';
+import { type OnMount } from '@/lib/editor/monacoLoader.ts';
 import { stripAnsi } from '@/lib/format/ansi.ts';
 import { bytesToString } from '@/lib/format/size.ts';
 import { queryKeys } from '@/lib/queryKeys.ts';
@@ -47,7 +50,12 @@ export default function AdminNodeLogs({ node }: { node: z.infer<typeof adminNode
     }
   });
 
-  const { data: logFiles } = useResource({
+  const {
+    data: logFiles,
+    loading: logFilesLoading,
+    error: logFilesError,
+    refetch: refetchLogFiles,
+  } = useResource({
     queryKey: queryKeys.admin.nodes.logs(node.uuid),
     queryFn: useCallback(() => getNodeLogs(node.uuid), [node.uuid]),
   });
@@ -175,8 +183,18 @@ export default function AdminNodeLogs({ node }: { node: z.infer<typeof adminNode
       registry={window.extensionContext.extensionRegistry.pages.admin.nodes.view.logs.subContainer}
       registryProps={{ node }}
     >
-      {!logs.length ? (
-        <Spinner.Centered />
+      {!logFiles ? (
+        logFilesError && !logFilesLoading ? (
+          <ErrorState error={httpErrorToHuman(logFilesError)} onRetry={refetchLogFiles} />
+        ) : (
+          <Spinner.Centered />
+        )
+      ) : !logs.length ? (
+        <EmptyState
+          icon={faFileLines}
+          title={t('pages.admin.nodes.tabs.logs.page.empty.title', {})}
+          description={t('pages.admin.nodes.tabs.logs.page.empty.description', {})}
+        />
       ) : (
         <div className='flex flex-col'>
           <div className='grid md:grid-cols-4 grid-cols-2 grid-rows-1 gap-2'>
@@ -227,7 +245,9 @@ export default function AdminNodeLogs({ node }: { node: z.infer<typeof adminNode
                     <span
                       className={classNames(
                         'rounded-full size-2',
-                        connected ? 'bg-green-500 animate-pulse' : 'bg-red-500',
+                        connected
+                          ? 'bg-(--mantine-color-green-filled) animate-pulse'
+                          : 'bg-(--mantine-color-red-filled)',
                       )}
                     />
                     {t(`common.enum.connectionStatus.${connected ? 'connected' : 'offline'}`, {})}

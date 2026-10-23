@@ -13,18 +13,22 @@ export default function ExtensionStatusAlerts({
   buildFailed,
   failureReason,
   failedExtensions,
+  startFailedExtensions,
   pendingRestart,
   isBuilding,
   onRestart,
+  restarting,
 }: {
   extensionStatus: ExtensionStatus | undefined;
   supervisor: ExtensionStatus['supervisor'];
   buildFailed: boolean;
   failureReason: string | null;
   failedExtensions: string[];
+  startFailedExtensions: Record<string, string>;
   pendingRestart: boolean;
   isBuilding: boolean;
   onRestart: () => void;
+  restarting: boolean;
 }) {
   const { t } = useTranslations();
 
@@ -76,6 +80,25 @@ export default function ExtensionStatusAlerts({
         </Alert>
       )}
 
+      {Object.keys(startFailedExtensions).length > 0 && (
+        <Alert
+          color='red'
+          icon={<FontAwesomeIcon icon={faExclamationTriangle} />}
+          title={t('pages.admin.extensions.alert.startFailed.title', {})}
+          mb='md'
+        >
+          <div className='flex flex-col items-start gap-2'>
+            <span>{t('pages.admin.extensions.alert.startFailed.content', {})}</span>
+            {Object.entries(startFailedExtensions).map(([packageName, reason]) => (
+              <div key={packageName} className='flex flex-col items-start gap-1'>
+                <Code>{packageName}</Code>
+                <Code block>{reason}</Code>
+              </div>
+            ))}
+          </div>
+        </Alert>
+      )}
+
       {pendingRestart && (
         <Alert
           color='yellow'
@@ -91,6 +114,7 @@ export default function ExtensionStatusAlerts({
                   variant='default'
                   leftSection={<FontAwesomeIcon icon={faPowerOff} />}
                   disabled={isBuilding}
+                  loading={restarting}
                   onClick={onRestart}
                 >
                   {t('pages.admin.extensions.button.restart', {})}

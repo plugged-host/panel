@@ -26,6 +26,7 @@ function RolesContainer() {
     search,
     setSearch,
     setPage,
+    setPerPage,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.admin.roles.all(),
     fetcher: getRoles,
@@ -49,7 +50,14 @@ function RolesContainer() {
         </AdminCan>
       }
     >
-      <Table columns={roleTableColumns()} loading={loading} pagination={roles} onPageSelect={setPage} error={error}>
+      <Table
+        columns={roleTableColumns()}
+        loading={loading}
+        pagination={roles}
+        onPageSelect={setPage}
+        onPerPageSelect={setPerPage}
+        error={error}
+      >
         {roles?.data.map((role) => (
           <RoleRow key={role.uuid} role={role} />
         ))}

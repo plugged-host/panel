@@ -38,6 +38,22 @@ impl CliCommandGroupBuilder {
         }
     }
 
+    /// Moves every command and group of `other` into this group, unless one of them is already registered.
+    pub(crate) fn merge(&mut self, other: CliCommandGroupBuilder) -> Result<(), String> {
+        if let Some(name) = other.map.keys().find(|name| self.map.contains_key(*name)) {
+            return Err(format!("CLI command `{name}` is already registered"));
+        }
+
+        let mut command = std::mem::take(&mut self.command);
+        for subcommand in other.command.get_subcommands() {
+            command = command.subcommand(subcommand.clone());
+        }
+        self.command = command;
+        self.map.extend(other.map);
+
+        Ok(())
+    }
+
     pub fn get_command(&self) -> Command {
         self.command.clone()
     }

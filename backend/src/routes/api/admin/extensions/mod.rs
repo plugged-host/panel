@@ -20,6 +20,7 @@ mod get {
         extensions: &'a [shared::extensions::ConstructedExtension],
         disabled: Vec<compact_str::CompactString>,
         pending_disabled: Vec<compact_str::CompactString>,
+        failed: std::collections::BTreeMap<compact_str::CompactString, String>,
         management_disabled: bool,
     }
 
@@ -38,6 +39,7 @@ mod get {
             extensions: &state.extensions.extensions().await,
             disabled: state.extensions.disabled(),
             pending_disabled,
+            failed: state.extensions.failed(),
             management_disabled: state.env.app_disable_extension_management,
         })
         .ok()

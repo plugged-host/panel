@@ -76,6 +76,7 @@ mod delete {
     #[utoipa::path(delete, path = "/", responses(
         (status = OK, body = inline(Response)),
         (status = NOT_FOUND, body = ApiError),
+        (status = CONFLICT, body = ApiError),
     ), params(
         (
             "oauth_link" = uuid::Uuid,
@@ -102,6 +103,17 @@ mod delete {
                 }
             };
 
+        let oauth_provider = oauth_link
+            .oauth_provider
+            .fetch_cached(&state.database)
+            .await?;
+
+        if !oauth_provider.user_manageable {
+            return ApiResponse::error("you cannot unlink this oauth provider")
+                .with_status(StatusCode::CONFLICT)
+                .ok();
+        }
+
         oauth_link.delete(&state, ()).await?;
 
         activity_logger
@@ -109,7 +121,7 @@ mod delete {
                 "oauth-link:delete",
                 serde_json::json!({
                     "uuid": oauth_link.uuid,
-                    "oauth_provider": oauth_link.oauth_provider.fetch_cached(&state.database).await?.name,
+                    "oauth_provider": oauth_provider.name,
                 }),
             )
             .await;

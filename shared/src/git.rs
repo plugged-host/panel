@@ -172,10 +172,7 @@ impl GitCredentials {
         self,
         env: Arc<crate::env::Env>,
         url: gix::Url,
-    ) -> impl FnMut(
-        &mut GitConnection<'_, '_, '_>,
-    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>>
-    + 'static {
+    ) -> impl FnMut(&mut GitConnection<'_, '_, '_>) -> gix::Result + 'static {
         let over_ssh = url.scheme == gix::url::Scheme::Ssh;
 
         move |connection| {
@@ -188,7 +185,8 @@ impl GitCredentials {
                             username: username.to_string(),
                             password: password.to_string(),
                             oauth_refresh_token: None,
-                        })?;
+                        })
+                        .map_err(gix::Error::from_error)?;
 
                     return Ok(());
                 }
@@ -201,15 +199,16 @@ impl GitCredentials {
                     passphrase,
                 } => (
                     username,
-                    SshAuth::PrivateKey(Arc::new(parse_private_key(
-                        private_key,
-                        passphrase.as_deref(),
-                    )?)),
+                    SshAuth::PrivateKey(Arc::new(
+                        parse_private_key(private_key, passphrase.as_deref())
+                            .map_err(|err| gix::Error::from_boxed(err.into()))?,
+                    )),
                 ),
             };
 
             let transport = tokio::runtime::Handle::current()
-                .block_on(ssh_upload_pack(&env, &url, username, auth))?;
+                .block_on(ssh_upload_pack(&env, &url, username, auth))
+                .map_err(|err| gix::Error::from_boxed(err.into()))?;
 
             *connection.transport_mut() = transport;
 

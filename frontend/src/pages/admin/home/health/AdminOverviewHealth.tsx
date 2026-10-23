@@ -22,6 +22,7 @@ import TitleCard from '@/elements/data-display/TitleCard.tsx';
 import ExtensionSlot from '@/elements/ExtensionSlot.tsx';
 import ResourceView from '@/elements/ResourceView.tsx';
 import Code from '@/elements/typography/Code.tsx';
+import Text from '@/elements/typography/Text.tsx';
 import { percentString } from '@/lib/format/usage.ts';
 import { queryKeys } from '@/lib/queryKeys.ts';
 import { desyncNodeTableColumns } from '@/lib/tableColumns.ts';
@@ -57,6 +58,7 @@ export default function AdminOverviewHealth() {
     loading,
     error,
     setPage,
+    refetch,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.admin.health.nodes(),
     fetcher: (page) => getNodesHealth(page),
@@ -134,7 +136,9 @@ export default function AdminOverviewHealth() {
         <ResourceView resource={generalHealth}>
           {(general) =>
             Object.keys(general.migrations.extensions).length === 0 ? (
-              t('pages.admin.home.tabs.health.page.noExtensions', {})
+              <Text size='sm' c='dimmed'>
+                {t('pages.admin.home.tabs.health.page.noExtensions', {})}
+              </Text>
             ) : (
               <Table
                 columns={[
@@ -177,7 +181,7 @@ export default function AdminOverviewHealth() {
                     ? t('pages.admin.home.tabs.health.page.debugEnabled', {})
                     : t('pages.admin.home.tabs.health.page.debugDisabled', {})}
                   <br />
-                  <span className='text-sm text-gray-400'>
+                  <span className='text-sm text-(--mantine-color-dimmed)'>
                     {tReact('pages.admin.home.tabs.health.page.debugResetNote', {
                       default: (
                         <Badge color={debugMode.default ? 'green' : 'red'} size='xs'>
@@ -219,6 +223,7 @@ export default function AdminOverviewHealth() {
             data: nodes?.desyncNodes,
             columns: desyncNodeTableColumns(),
             onPageSelect: setPage,
+            onRetry: refetch,
           }}
           status={{
             upToDate: t('pages.admin.home.tabs.health.page.nodesSynced', { failed: nodes?.failedNodes ?? 0 }),

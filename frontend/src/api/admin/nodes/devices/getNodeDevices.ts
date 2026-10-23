@@ -7,9 +7,10 @@ export default async (
   nodeUuid: string,
   page: number,
   search?: string,
+  perPage?: number,
 ): Promise<Pagination<z.infer<typeof adminNodeDeviceSchema>>> => {
   const { data } = await axiosInstance.get(`/api/admin/nodes/${nodeUuid}/devices`, {
-    params: { page, search },
+    params: { page, per_page: perPage, search },
   });
   return parsePaginationFromApi(adminNodeDeviceSchema, data.devices);
 };

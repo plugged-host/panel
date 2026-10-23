@@ -8,9 +8,10 @@ export default async (
   eggUuid: string,
   page: number,
   search?: string,
+  perPage?: number,
 ): Promise<Pagination<z.infer<typeof adminNodeDeviceSchema>>> => {
   const { data } = await axiosInstance.get(`/api/admin/nests/${nestUuid}/eggs/${eggUuid}/devices`, {
-    params: { page, search },
+    params: { page, per_page: perPage, search },
   });
   return parsePaginationFromApi(adminNodeDeviceSchema, data.devices);
 };

@@ -3,9 +3,13 @@ import { axiosInstance } from '@/api/axios.ts';
 import { adminNestSchema } from '@/lib/schemas/admin/nests.ts';
 import { parsePaginationFromApi } from '@/lib/serialization/api-transform.ts';
 
-export default async (page: number, search?: string): Promise<Pagination<z.infer<typeof adminNestSchema>>> => {
+export default async (
+  page: number,
+  search?: string,
+  perPage?: number,
+): Promise<Pagination<z.infer<typeof adminNestSchema>>> => {
   const { data } = await axiosInstance.get('/api/admin/nests', {
-    params: { page, search },
+    params: { page, per_page: perPage, search },
   });
   return parsePaginationFromApi(adminNestSchema, data.nests);
 };

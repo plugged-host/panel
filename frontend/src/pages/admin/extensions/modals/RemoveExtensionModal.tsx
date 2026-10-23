@@ -11,9 +11,10 @@ import { useTranslations } from '@/providers/TranslationProvider.tsx';
 interface Props extends ModalProps {
   extension: z.infer<typeof adminBackendExtensionSchema> | null;
   onRemove: (removeMigrations: boolean) => void;
+  removing: boolean;
 }
 
-export default function RemoveExtensionModal({ extension, onRemove, ...props }: Props) {
+export default function RemoveExtensionModal({ extension, onRemove, removing, ...props }: Props) {
   const { t } = useTranslations();
   const [removeMigrations, setRemoveMigrations] = useState(false);
 
@@ -33,7 +34,7 @@ export default function RemoveExtensionModal({ extension, onRemove, ...props }: 
       </Stack>
 
       <ModalFooter>
-        <Button color='red' onClick={() => onRemove(removeMigrations)}>
+        <Button color='red' loading={removing} onClick={() => onRemove(removeMigrations)}>
           {t('common.button.delete', {})}
         </Button>
         <Button variant='default' onClick={() => props.onClose()}>

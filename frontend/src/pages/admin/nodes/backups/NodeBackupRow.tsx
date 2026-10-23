@@ -232,7 +232,7 @@ export default function NodeBackupRow({
               </Code>
               {backup.server && backup.server.node.uuid !== node.uuid && (
                 <Tooltip label={t('pages.admin.nodes.tabs.backups.page.tooltip.backupNotOnSameNode', {})}>
-                  <FontAwesomeIcon icon={faWarning} className='ml-1 text-yellow-400' />
+                  <FontAwesomeIcon icon={faWarning} className='ml-1 text-(--mantine-color-yellow-text)' />
                 </Tooltip>
               )}
             </TableData>

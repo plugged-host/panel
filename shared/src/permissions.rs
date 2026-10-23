@@ -686,7 +686,10 @@ pub(crate) static BASE_SERVER_PERMISSIONS: LazyLock<IndexMap<&'static str, Permi
                             "update",
                             "Allows updating the contents of an existing file or directory.",
                         ),
-                        ("delete", "Allows deleting files or directories."),
+                        (
+                            "delete",
+                            "Allows deleting files or directories, restoring them from the trash and emptying the trash.",
+                        ),
                         (
                             "archive",
                             "Allows archiving the contents of a directory and decompressing files.",
@@ -969,6 +972,7 @@ pub(crate) static BASE_SERVER_PERMISSIONS: LazyLock<IndexMap<&'static str, Permi
                             "auto-start",
                             "Allows changing the server's auto-start settings.",
                         ),
+                        ("trash", "Allows changing the server's trash settings."),
                         ("install", "Allows triggering a reinstall of the server."),
                         (
                             "cancel-install",

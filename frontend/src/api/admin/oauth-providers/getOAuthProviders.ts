@@ -3,9 +3,13 @@ import { axiosInstance } from '@/api/axios.ts';
 import { adminOAuthProviderSchema } from '@/lib/schemas/admin/oauthProviders.ts';
 import { parsePaginationFromApi } from '@/lib/serialization/api-transform.ts';
 
-export default async (page: number, search?: string): Promise<Pagination<z.infer<typeof adminOAuthProviderSchema>>> => {
+export default async (
+  page: number,
+  search?: string,
+  perPage?: number,
+): Promise<Pagination<z.infer<typeof adminOAuthProviderSchema>>> => {
   const { data } = await axiosInstance.get('/api/admin/oauth-providers', {
-    params: { page, search },
+    params: { page, per_page: perPage, search },
   });
   return parsePaginationFromApi(adminOAuthProviderSchema, data.oauth_providers);
 };

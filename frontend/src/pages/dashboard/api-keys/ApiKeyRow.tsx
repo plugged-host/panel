@@ -37,7 +37,7 @@ interface ApiKeyRowProps {
   apiKey: z.infer<typeof userApiKeySchema>;
   atLimit?: boolean;
   isSelected?: boolean;
-  onSelectionChange?: (selected: boolean) => void;
+  onSelectionChange?: (selected: boolean, range?: boolean) => void;
 }
 
 const ApiKeyRow = forwardRef<HTMLTableRowElement, ApiKeyRowProps>(function ApiKeyRow(

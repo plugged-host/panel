@@ -51,10 +51,11 @@ export default function ServerSubusers() {
     debouncedSearch,
     setSearch,
     setPage,
+    setPerPage,
     refetch,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.server(server.uuid).subusers.all(),
-    fetcher: (page, search) => getSubusers(server.uuid, page, search),
+    fetcher: (page, search, perPage) => getSubusers(server.uuid, page, search, perPage),
   });
 
   const {
@@ -77,7 +78,7 @@ export default function ServerSubusers() {
     <ServerContentContainer
       title={t('pages.server.subusers.title', {})}
       subtitle={t('pages.server.subusers.subtitle', {
-        current: subusers?.total ?? 0,
+        current: subusers?.total ?? '…',
         max: settings.server.maxSubuserCount,
       })}
       search={search}
@@ -93,7 +94,7 @@ export default function ServerSubusers() {
                 onClick={() => setOpenModal('create')}
                 color='blue'
                 leftSection={<FontAwesomeIcon icon={faPlus} />}
-                disabled={atLimit}
+                disabled={!subusers || atLimit}
               >
                 {t('common.button.create', {})}
               </Button>
@@ -129,6 +130,7 @@ export default function ServerSubusers() {
           loading={loading}
           pagination={subusers}
           onPageSelect={setPage}
+          onPerPageSelect={setPerPage}
           error={error}
           empty={
             debouncedSearch ? undefined : (
@@ -151,7 +153,7 @@ export default function ServerSubusers() {
                       onClick={() => setOpenModal('create')}
                       color='blue'
                       leftSection={<FontAwesomeIcon icon={faPlus} />}
-                      disabled={atLimit}
+                      disabled={!subusers || atLimit}
                     >
                       {t('pages.server.subusers.button.createFirstSubuser', {})}
                     </Button>
@@ -168,7 +170,7 @@ export default function ServerSubusers() {
                   subuser={su}
                   ref={innerRef as Ref<HTMLTableRowElement>}
                   isSelected={selectedSubusers.has(su.user.uuid)}
-                  onSelectionChange={canDelete ? (selected) => toggleSubuser(su, selected) : undefined}
+                  onSelectionChange={canDelete ? (selected, range) => toggleSubuser(su, selected, range) : undefined}
                 />
               )}
             </SelectionArea.Selectable>

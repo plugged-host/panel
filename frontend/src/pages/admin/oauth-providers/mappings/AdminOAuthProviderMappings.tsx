@@ -29,10 +29,11 @@ export default function AdminOAuthProviderMappings({
     loading,
     error,
     setPage,
+    setPerPage,
     refetch,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.admin.oAuthProviders.mappings(oauthProvider.uuid),
-    fetcher: (page) => getOAuthProviderMappings(oauthProvider.uuid, page),
+    fetcher: (page, _search, perPage) => getOAuthProviderMappings(oauthProvider.uuid, page, perPage),
   });
 
   return (
@@ -62,6 +63,7 @@ export default function AdminOAuthProviderMappings({
         error={error}
         pagination={mappings}
         onPageSelect={setPage}
+        onPerPageSelect={setPerPage}
       >
         {mappings?.data.map((mapping) => (
           <OAuthProviderMappingRow

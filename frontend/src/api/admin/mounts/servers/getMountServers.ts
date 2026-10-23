@@ -12,9 +12,10 @@ export default async (
   mountUuid: string,
   page: number,
   search?: string,
+  perPage?: number,
 ): Promise<Pagination<z.infer<typeof serverMountSchema>>> => {
   const { data } = await axiosInstance.get(`/api/admin/mounts/${mountUuid}/servers`, {
-    params: { page, search },
+    params: { page, per_page: perPage, search },
   });
   return parsePaginationFromApi(serverMountSchema, data.server_mounts);
 };

@@ -27,6 +27,11 @@ export function useUserSettingsFormFields(): FieldDef<UserSettingsFormValues>[] 
 
   return [
     {
+      type: 'divider',
+      name: 'limitsDivider',
+      label: t('pages.admin.settings.tabs.user.page.section.limits', {}),
+    },
+    {
       type: 'number',
       name: 'maxServerGroupCount',
       label: t('pages.admin.settings.tabs.user.page.form.maxServerGroupCount', {}),
@@ -67,6 +72,11 @@ export function useUserSettingsFormFields(): FieldDef<UserSettingsFormValues>[] 
       name: 'maxSettingsValueBytes',
       label: t('pages.admin.settings.tabs.user.page.form.maxSettingsValueBytes', {}),
       required: true,
+    },
+    {
+      type: 'divider',
+      name: 'permissionsDivider',
+      label: t('pages.admin.settings.tabs.user.page.section.permissions', {}),
     },
     {
       type: 'switch',

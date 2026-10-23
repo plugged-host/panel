@@ -38,6 +38,7 @@ import { useResource } from '@/plugins/resource/useResource.ts';
 import { useAdminCan } from '@/plugins/usePermissions.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import BackupStatsPanel from '../../backup-configurations/BackupStatsPanel.tsx';
+import ExtensionBuildFailedAlert from '../ExtensionBuildFailedAlert.tsx';
 import PanelUpdateAlert from '../PanelUpdateAlert.tsx';
 
 export default function AdminOverview() {
@@ -85,6 +86,7 @@ export default function AdminOverview() {
   return (
     <>
       <PanelUpdateAlert />
+      <ExtensionBuildFailedAlert />
 
       <ExtensionSlot
         components={window.extensionContext.extensionRegistry.pages.admin.home.overview.cards.prependedComponents}

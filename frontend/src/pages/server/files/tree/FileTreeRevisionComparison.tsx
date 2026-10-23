@@ -6,7 +6,7 @@ import { httpErrorToHuman } from '@/api/axios.ts';
 import getFileRevisionContent from '@/api/server/files/getFileRevisionContent.ts';
 import ActionIcon from '@/elements/buttons/ActionIcon.tsx';
 import Button from '@/elements/buttons/Button.tsx';
-import Alert from '@/elements/feedback/Alert.tsx';
+import ErrorState from '@/elements/feedback/ErrorState.tsx';
 import Spinner from '@/elements/feedback/Spinner.tsx';
 import ConfirmationModal from '@/elements/modals/ConfirmationModal.tsx';
 import FileRevisionDiffEditor from '@/pages/server/files/editor/FileRevisionDiffEditor.tsx';
@@ -50,6 +50,7 @@ export default function FileTreeRevisionComparison({
   const [revisions, setRevisions] = useState<{ original: string; modified?: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [restoreConfirm, setRestoreConfirm] = useState(false);
+  const [loadAttempt, setLoadAttempt] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -70,7 +71,7 @@ export default function FileTreeRevisionComparison({
     return () => {
       cancelled = true;
     };
-  }, [serverUuid, filePath, revisionId, previousRevisionId]);
+  }, [serverUuid, filePath, revisionId, previousRevisionId, loadAttempt]);
 
   const title =
     previousRevisionId === undefined
@@ -120,9 +121,7 @@ export default function FileTreeRevisionComparison({
       </div>
       <div className='min-h-0 flex-1'>
         {error ? (
-          <Alert color='red' m='sm'>
-            {error}
-          </Alert>
+          <ErrorState error={error} onRetry={() => setLoadAttempt((attempt) => attempt + 1)} />
         ) : !revisions ? (
           <div className='flex h-full items-center justify-center'>
             <Spinner />

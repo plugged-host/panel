@@ -59,7 +59,7 @@ compact_str = { workspace = true }
 sysinfo = { workspace = true }
 serde_with = { workspace = true }
 minijinja = { workspace = true }
-serde_norway = { workspace = true }
+serde-saphyr = { workspace = true }
 hyper = "1.8.1"
 hex = { workspace = true }
 aes = "0.9.0"

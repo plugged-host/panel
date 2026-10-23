@@ -9,10 +9,12 @@ export default async (
   search?: string,
   ungrouped?: boolean,
   filter?: z.infer<typeof serverBackupFilterSchema>,
+  perPage?: number,
 ): Promise<Pagination<z.infer<typeof serverBackupSchema>>> => {
   const { data } = await axiosInstance.get(`/api/client/servers/${uuid}/backups`, {
     params: {
       page,
+      per_page: perPage,
       search,
       ungrouped,
       kind: filter?.kind,

@@ -139,6 +139,7 @@ mod post {
         shared::Payload(data): shared::Payload<Payload>,
     ) -> ApiResponseResult {
         permissions.has_user_permission("api-keys.create")?;
+        permissions.deny_while_impersonating()?;
 
         if !permissions.scope().covers(
             &data.user_permissions,

@@ -9,10 +9,8 @@ mod post {
     use shared::{
         ApiError, GetState,
         models::{
-            DuplicableModel, IntoAdminApiObject,
-            admin_activity::GetAdminActivityLogger,
-            role::DuplicateRoleOptions,
-            user::{GetPermissionManager, GetUser},
+            DuplicableModel, IntoAdminApiObject, admin_activity::GetAdminActivityLogger,
+            role::DuplicateRoleOptions, user::GetPermissionManager,
         },
         response::{ApiResponse, ApiResponseResult},
     };
@@ -46,38 +44,16 @@ mod post {
     pub async fn route(
         state: GetState,
         permissions: GetPermissionManager,
-        caller: GetUser,
         role: GetRole,
         activity_logger: GetAdminActivityLogger,
         shared::Payload(data): shared::Payload<Payload>,
     ) -> ApiResponseResult {
         permissions.has_admin_permission("roles.create")?;
 
-        if !caller.admin {
-            let caller_admin = caller
-                .role
-                .as_ref()
-                .map(|r| r.admin_permissions.as_slice())
-                .unwrap_or(&[]);
-            let caller_server = caller
-                .role
-                .as_ref()
-                .map(|r| r.server_permissions.as_slice())
-                .unwrap_or(&[]);
-
-            if !role
-                .admin_permissions
-                .iter()
-                .all(|p| caller_admin.contains(p))
-                || !role
-                    .server_permissions
-                    .iter()
-                    .all(|p| caller_server.contains(p))
-            {
-                return ApiResponse::error("permissions: more permissions than self")
-                    .with_status(StatusCode::FORBIDDEN)
-                    .ok();
-            }
+        if !permissions.can_grant(&role.admin_permissions, &role.server_permissions) {
+            return ApiResponse::error("permissions: more permissions than self")
+                .with_status(StatusCode::FORBIDDEN)
+                .ok();
         }
 
         let options = DuplicateRoleOptions { name: data.name };

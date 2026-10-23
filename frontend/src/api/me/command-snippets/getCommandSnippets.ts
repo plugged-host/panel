@@ -3,9 +3,13 @@ import { axiosInstance } from '@/api/axios.ts';
 import { userCommandSnippetSchema } from '@/lib/schemas/user/commandSnippets.ts';
 import { parsePaginationFromApi } from '@/lib/serialization/api-transform.ts';
 
-export default async (page: number, search?: string): Promise<Pagination<z.infer<typeof userCommandSnippetSchema>>> => {
+export default async (
+  page: number,
+  search?: string,
+  perPage?: number,
+): Promise<Pagination<z.infer<typeof userCommandSnippetSchema>>> => {
   const { data } = await axiosInstance.get('/api/client/account/command-snippets', {
-    params: { page, search },
+    params: { page, per_page: perPage, search },
   });
   return parsePaginationFromApi(userCommandSnippetSchema, data.command_snippets);
 };

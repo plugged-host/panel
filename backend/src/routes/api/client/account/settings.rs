@@ -39,9 +39,7 @@ mod patch {
     use serde::{Deserialize, Serialize};
     use shared::{
         ApiError, GetState,
-        models::user::{
-            GetPermissionManager, GetUser, GetUserImpersonator, settings::UserSettingsMap,
-        },
+        models::user::{GetPermissionManager, GetUser, settings::UserSettingsMap},
         response::{ApiResponse, ApiResponseResult},
     };
     use utoipa::ToSchema;
@@ -66,7 +64,6 @@ mod patch {
         state: GetState,
         permissions: GetPermissionManager,
         user: GetUser,
-        user_impersonator: GetUserImpersonator,
         shared::Payload(data): shared::Payload<Payload>,
     ) -> ApiResponseResult {
         if let Err(errors) = shared::utils::validate_data(&data) {
@@ -76,12 +73,7 @@ mod patch {
         }
 
         permissions.has_user_permission("settings.update")?;
-
-        if user_impersonator.is_some() {
-            return ApiResponse::error("user settings cannot be modified while impersonating")
-                .with_status(StatusCode::CONFLICT)
-                .ok();
-        }
+        permissions.deny_while_impersonating()?;
 
         if data.settings.is_empty() {
             return ApiResponse::new_serialized(Response {}).ok();

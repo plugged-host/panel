@@ -13,12 +13,15 @@ import {
   faTrash,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { isTrashEnabled } from '@/lib/domain/server.ts';
 import { isArchiveType } from '@/lib/files/files.ts';
 import { CORE_QUICK_ACTION_CATEGORIES } from '@/lib/quickActions/coreQuickActions.tsx';
 import { canMoveFilesToDirectory } from '@/pages/server/files/list/fileMove.ts';
+import { hasNonMountGateway, withoutMountGateways } from '@/pages/server/files/list/mountGateway.ts';
 import { useQuickActions } from '@/plugins/quick-actions/useQuickActions.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useFileManagerApi } from '@/stores/fileManager.ts';
+import { useServerStore } from '@/stores/server.ts';
 
 interface UseFileSelectionQuickActionsOptions {
   doCopy: () => void;
@@ -35,8 +38,10 @@ export function useFileSelectionQuickActions({
 }: UseFileSelectionQuickActionsOptions) {
   const { t, tItem } = useTranslations();
   const store = useFileManagerApi();
+  const server = useServerStore((state) => state.server);
 
   const page = CORE_QUICK_ACTION_CATEGORIES.page;
+  const trashEnabled = () => isTrashEnabled(server, store.getState().browsingPrimaryFilesystem);
   const actingMode = store.getState().actingMode;
 
   const hasSelection = () => {
@@ -200,14 +205,29 @@ export function useFileSelectionQuickActions({
     {
       id: 'files.deleteSelection',
       category: page,
-      label: () => t('pages.server.files.quickAction.deleteSelection', {}),
+      label: () =>
+        t(
+          trashEnabled()
+            ? 'pages.server.files.quickAction.trashSelection'
+            : 'pages.server.files.quickAction.deleteSelection',
+          {},
+        ),
+      keywords: ['delete', 'remove'],
       icon: <FontAwesomeIcon icon={faTrash} />,
-      danger: true,
+      danger: !trashEnabled(),
       permission: 'files.delete',
-      isVisible: hasWritableSelection,
+      isVisible: () => {
+        const state = store.getState();
+        return (
+          hasWritableSelection() && hasNonMountGateway(state.selectedFiles.values(), state.browsingPrimaryFilesystem)
+        );
+      },
       perform: () => {
         const state = store.getState();
-        state.doOpenModal('delete', state.selectedFiles.values());
+        state.doOpenModal(
+          'delete',
+          withoutMountGateways(state.selectedFiles.values(), state.browsingPrimaryFilesystem),
+        );
       },
     },
   ]);

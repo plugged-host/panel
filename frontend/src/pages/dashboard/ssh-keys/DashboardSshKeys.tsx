@@ -31,6 +31,7 @@ export default function DashboardSshKeys() {
     search,
     setSearch,
     setPage,
+    setPerPage,
     refetch,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.user.sshKeys.all(),
@@ -108,6 +109,7 @@ export default function DashboardSshKeys() {
           loading={loading}
           pagination={sshKeys}
           onPageSelect={setPage}
+          onPerPageSelect={setPerPage}
           error={error}
         >
           {sshKeys?.data.map((key) => (
@@ -117,7 +119,7 @@ export default function DashboardSshKeys() {
                   sshKey={key}
                   ref={innerRef as Ref<HTMLTableRowElement>}
                   isSelected={selectedSshKeys.has(key.uuid)}
-                  onSelectionChange={(selected) => toggleSshKey(key, selected)}
+                  onSelectionChange={(selected, range) => toggleSshKey(key, selected, range)}
                 />
               )}
             </SelectionArea.Selectable>

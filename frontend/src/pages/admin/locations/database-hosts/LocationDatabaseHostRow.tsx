@@ -13,6 +13,7 @@ import Code from '@/elements/typography/Code.tsx';
 import { databaseTypeLabelMapping } from '@/lib/enums.ts';
 import { queryKeys } from '@/lib/queryKeys.ts';
 import { adminLocationDatabaseHostSchema, adminLocationSchema } from '@/lib/schemas/admin/locations.ts';
+import DatabaseHostHealthIcon from '@/pages/admin/database-hosts/DatabaseHostHealthIcon.tsx';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 
@@ -76,6 +77,9 @@ export default function LocationDatabaseHostRow({
               openMenu(e.clientX, e.clientY);
             }}
           >
+            <TableData>
+              <DatabaseHostHealthIcon databaseHost={databaseHost.databaseHost} />
+            </TableData>
             <TableData>
               <TableLink to={`/admin/database-hosts/${databaseHost.databaseHost.uuid}`}>
                 <Code>{databaseHost.databaseHost.uuid}</Code>

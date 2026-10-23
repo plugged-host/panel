@@ -10,12 +10,17 @@ mod post {
         models::{
             ByUuid, CreatableModel, IntoAdminApiObject,
             admin_activity::GetAdminActivityLogger,
-            egg_configuration::{EggConfiguration, EggConfigurationTarget},
+            egg_configuration::{
+                EggConfigAllocationsDeployment, EggConfiguration, EggConfigurationTarget,
+            },
             nest_egg::NestEgg,
             nest_egg_variable::NestEggVariable,
             node::Node,
             node_allocation::NodeAllocation,
-            server::Server,
+            server::{
+                AdminApiServer, AdminApiServerLimits, ApiServerFeatureLimits, CreateServerOptions,
+                Server, TrashSettings, validate_labels,
+            },
             user::GetPermissionManager,
         },
         response::{ApiResponse, ApiResponseResult},
@@ -58,7 +63,7 @@ mod post {
         randomness: f64,
 
         #[garde(dive)]
-        allocations: Option<shared::models::egg_configuration::EggConfigAllocationsDeployment>,
+        allocations: Option<EggConfigAllocationsDeployment>,
     }
 
     #[derive(ToSchema, Validate, Deserialize)]
@@ -95,7 +100,7 @@ mod post {
         description: Option<compact_str::CompactString>,
 
         #[garde(dive)]
-        limits: shared::models::server::AdminApiServerLimits,
+        limits: AdminApiServerLimits,
         #[garde(inner(range(min = 0)))]
         pinned_cpus: Vec<i16>,
 
@@ -105,12 +110,15 @@ mod post {
         #[garde(length(chars, min = 2, max = 255))]
         #[schema(min_length = 2, max_length = 255)]
         image: compact_str::CompactString,
-        #[garde(custom(shared::models::server::validate_labels))]
+        #[garde(custom(validate_labels))]
         #[serde(default)]
         labels: indexmap::IndexMap<compact_str::CompactString, compact_str::CompactString>,
         #[garde(skip)]
         #[schema(value_type = Option<String>)]
         timezone: Option<chrono_tz::Tz>,
+        #[garde(dive)]
+        #[schema(inline)]
+        trash: Option<TrashSettings>,
 
         #[garde(skip)]
         hugepages_passthrough_enabled: bool,
@@ -118,7 +126,7 @@ mod post {
         kvm_passthrough_enabled: bool,
 
         #[garde(dive)]
-        feature_limits: shared::models::server::ApiServerFeatureLimits,
+        feature_limits: ApiServerFeatureLimits,
         #[schema(inline)]
         #[garde(dive)]
         variables: Vec<PayloadVariable>,
@@ -126,7 +134,7 @@ mod post {
 
     #[derive(ToSchema, Serialize)]
     struct Response {
-        server: shared::models::server::AdminApiServer,
+        server: AdminApiServer,
     }
 
     #[utoipa::path(post, path = "/", responses(
@@ -329,7 +337,7 @@ mod post {
 
         let allocation_uuids = allocation_uuids.unwrap_or_default();
 
-        let options = shared::models::server::CreateServerOptions {
+        let options = CreateServerOptions {
             node_uuid,
             owner_uuid: data.owner_uuid,
             egg_uuid: data.egg_uuid,
@@ -347,6 +355,7 @@ mod post {
             image: data.image,
             labels: data.labels,
             timezone: data.timezone,
+            trash: data.trash,
             hugepages_passthrough_enabled: data.hugepages_passthrough_enabled,
             kvm_passthrough_enabled: data.kvm_passthrough_enabled,
             feature_limits: data.feature_limits.clone(),
@@ -388,6 +397,7 @@ mod post {
                     "image": server.image,
                     "labels": server.labels,
                     "timezone": server.timezone,
+                    "trash": server.trash,
 
                     "hugepages_passthrough_enabled": server.hugepages_passthrough_enabled,
                     "kvm_passthrough_enabled": server.kvm_passthrough_enabled,

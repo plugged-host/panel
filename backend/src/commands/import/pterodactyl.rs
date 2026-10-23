@@ -2,10 +2,11 @@ use super::{
     ImportArgs, SourceContext, model::*, source_bool, source_i64, source_optional_i64,
     source_optional_text, source_readable_uuid, source_text, source_timestamp,
 };
+use chrono::{DateTime, Utc};
 use clap::{Args, FromArgMatches};
 use compact_str::{CompactString, ToCompactString};
 use shared::models::server_backup::BackupDisk;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 #[derive(Args)]
 pub struct PterodactylArgs {
@@ -77,6 +78,164 @@ pub(super) fn backup_config_from_env() -> SourceBackupConfig {
                     .unwrap_or(1024 * 1024 * 1024),
             }
         }),
+    }
+}
+
+/// Pterodactyl 2.x built-in game tags, in the order it resolves an egg's game by.
+const BUILT_IN_EGG_TAGS: &[&str] = &[
+    "srcds",
+    "bedrock",
+    "minecraft",
+    "rust",
+    "garrysmod",
+    "fivem",
+    "voice",
+];
+
+#[derive(Clone)]
+struct SourceTag {
+    id: i64,
+    name: String,
+    slug: String,
+    legacy_nest_id: Option<i64>,
+}
+
+async fn read_egg_tags(
+    context: &SourceContext,
+) -> Result<HashMap<i64, Vec<SourceTag>>, anyhow::Error> {
+    if !context.has_table("tags").await? || !context.has_table("taggables").await? {
+        return Ok(HashMap::new());
+    }
+
+    let tags: HashMap<i64, SourceTag> = context
+        .map_table("tags", None, |_, row| {
+            let id = source_i64(row, "id")?;
+
+            Ok((
+                id,
+                SourceTag {
+                    id,
+                    name: source_text(row, "name")?,
+                    slug: source_text(row, "slug")?,
+                    legacy_nest_id: source_optional_i64(row, "legacy_nest_id")?,
+                },
+            ))
+        })
+        .await?
+        .into_iter()
+        .collect();
+
+    let attachments = context
+        .map_table("taggables", Some("taggable_type = 'egg'"), |_, row| {
+            Ok((source_i64(row, "taggable_id")?, source_i64(row, "tag_id")?))
+        })
+        .await?;
+
+    let mut egg_tags: HashMap<i64, Vec<SourceTag>> = HashMap::new();
+    for (egg_id, tag_id) in attachments {
+        if let Some(tag) = tags.get(&tag_id) {
+            egg_tags.entry(egg_id).or_default().push(tag.clone());
+        }
+    }
+
+    Ok(egg_tags)
+}
+
+struct TagNests {
+    real_ids: HashSet<i64>,
+    real_names: HashMap<String, i64>,
+    synthesized: HashMap<String, i64>,
+    next_id: i64,
+    nests: Vec<SourceNest>,
+}
+
+impl TagNests {
+    fn new(nests: &[SourceNest]) -> Self {
+        Self {
+            real_ids: nests.iter().map(|nest| nest.id).collect(),
+            real_names: nests
+                .iter()
+                .map(|nest| (nest.name.trim().to_lowercase(), nest.id))
+                .collect(),
+            synthesized: HashMap::new(),
+            next_id: nests.iter().map(|nest| nest.id).max().unwrap_or(0) + 1,
+            nests: Vec::new(),
+        }
+    }
+
+    fn pick_tag<'a>(&self, tags: &'a [SourceTag]) -> Option<&'a SourceTag> {
+        tags.iter()
+            .find(|tag| {
+                tag.legacy_nest_id
+                    .is_some_and(|nest_id| self.real_ids.contains(&nest_id))
+            })
+            .or_else(|| {
+                tags.iter()
+                    .filter(|tag| !BUILT_IN_EGG_TAGS.contains(&tag.slug.as_str()))
+                    .min_by_key(|tag| tag.id)
+            })
+            .or_else(|| {
+                BUILT_IN_EGG_TAGS
+                    .iter()
+                    .find_map(|slug| tags.iter().find(|tag| tag.slug == *slug))
+            })
+    }
+
+    fn nest_id(
+        &mut self,
+        nest_id: Option<i64>,
+        tags: Option<&Vec<SourceTag>>,
+        author: &str,
+        created: Option<DateTime<Utc>>,
+    ) -> i64 {
+        if let Some(nest_id) = nest_id.filter(|nest_id| self.real_ids.contains(nest_id)) {
+            return nest_id;
+        }
+
+        let tag = tags.and_then(|tags| self.pick_tag(tags));
+        if let Some(nest_id) = tag
+            .and_then(|tag| tag.legacy_nest_id)
+            .filter(|nest_id| self.real_ids.contains(nest_id))
+        {
+            return nest_id;
+        }
+
+        let (name, description) = match tag {
+            Some(tag) => (
+                tag.name.trim().to_string(),
+                format!(
+                    "generated from Pterodactyl egg tag `{}` during import",
+                    tag.slug
+                ),
+            ),
+            None => (
+                "Pterodactyl".to_string(),
+                "generated for untagged Pterodactyl eggs during import".to_string(),
+            ),
+        };
+
+        let key = name.to_lowercase();
+        if let Some(nest_id) = self
+            .real_names
+            .get(&key)
+            .or_else(|| self.synthesized.get(&key))
+        {
+            return *nest_id;
+        }
+
+        let id = self.next_id;
+        self.next_id += 1;
+        self.synthesized.insert(key, id);
+        self.nests.push(SourceNest {
+            id,
+            uuid: None,
+            author: author.to_string(),
+            name,
+            description: Some(description),
+            created,
+        });
+
+        id
     }
 }
 
@@ -205,6 +364,8 @@ pub(super) async fn read_egg_variables(
                 rules,
                 order: if table.has("sort") {
                     source_optional_i64(row, "sort")?.unwrap_or(0)
+                } else if table.has("sort_order") {
+                    source_optional_i64(row, "sort_order")?.unwrap_or(0)
                 } else {
                     0
                 },
@@ -428,7 +589,7 @@ pub(super) async fn read(
         })
         .await?;
 
-    let nests = context
+    let mut nests = context
         .map_table("nests", None, |_, row| {
             Ok(SourceNest {
                 id: source_i64(row, "id")?,
@@ -441,13 +602,24 @@ pub(super) async fn read(
         })
         .await?;
 
+    let egg_tags = read_egg_tags(context).await?;
+    let mut tag_nests = TagNests::new(&nests);
     let eggs = context
         .map_table("eggs", None, |_, row| {
+            let id = source_i64(row, "id")?;
+            let author = source_text(row, "author")?;
+            let created = source_timestamp(row, "created_at");
+
             Ok(SourceEgg {
-                id: source_i64(row, "id")?,
+                id,
                 uuid: source_readable_uuid(row, "uuid"),
-                nest_id: source_i64(row, "nest_id")?,
-                author: source_text(row, "author")?,
+                nest_id: tag_nests.nest_id(
+                    source_optional_i64(row, "nest_id")?,
+                    egg_tags.get(&id),
+                    &author,
+                    created,
+                ),
+                author,
                 name: source_text(row, "name")?,
                 description: source_optional_text(row, "description")?,
                 features: source_optional_text(row, "features")?,
@@ -463,10 +635,11 @@ pub(super) async fn read(
                 script_install: source_optional_text(row, "script_install")?,
                 startup: SourceEggStartup::Single(source_optional_text(row, "startup")?),
                 force_outgoing_ip: source_bool(row, "force_outgoing_ip")?,
-                created: source_timestamp(row, "created_at"),
+                created,
             })
         })
         .await?;
+    nests.append(&mut tag_nests.nests);
 
     let database_hosts = context
         .map_table("database_hosts", None, |_, row| {

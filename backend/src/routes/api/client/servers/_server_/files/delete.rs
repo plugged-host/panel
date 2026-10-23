@@ -21,11 +21,15 @@ mod post {
         root: compact_str::CompactString,
 
         files: Vec<compact_str::CompactString>,
+
+        #[serde(default)]
+        permanent: bool,
     }
 
     #[derive(ToSchema, Serialize)]
     struct Response {
         deleted: u64,
+        entries: Vec<wings_api::TrashEntry>,
     }
 
     #[utoipa::path(post, path = "/", responses(
@@ -49,57 +53,113 @@ mod post {
     ) -> ApiResponseResult {
         permissions.has_server_permission("files.delete")?;
 
+        let trash = !data.permanent
+            && server
+                .effective_trash(&*state.settings.get().await?)
+                .retention
+                .is_some();
+
         let files = data
             .files
             .into_iter()
             .filter(|f| !server.is_ignored_either(std::path::Path::new(&data.root).join(f)))
             .collect();
 
-        let request_body = wings_api::servers_server_files_delete::post::RequestBody {
-            root: data.root,
-            files,
-        };
-
         tokio::spawn(async move {
-            let data = match server
+            let client = server
                 .0
                 .node
                 .fetch_cached(&state.database)
                 .await?
                 .api_client(&state.database)
                 .await?
-                .ignoring(server.0.subuser_ignored_files.unwrap_or_default())
-                .post_servers_server_files_delete(server.0.uuid, &request_body)
-                .await
-            {
-                Ok(data) => data,
-                Err(wings_api::client::ApiHttpError::Http(StatusCode::NOT_FOUND, err)) => {
-                    return ApiResponse::new_serialized(ApiError::new_wings_value(err))
-                        .with_status(StatusCode::NOT_FOUND)
-                        .ok();
+                .ignoring(server.0.subuser_ignored_files.unwrap_or_default());
+
+            let (mut deleted, entries, files) = if trash {
+                let request_body = wings_api::servers_server_files_trash::post::RequestBody {
+                    root: data.root.clone(),
+                    files,
+                };
+
+                let data = match client
+                    .post_servers_server_files_trash(server.0.uuid, &request_body)
+                    .await
+                {
+                    Ok(data) => data,
+                    Err(wings_api::client::ApiHttpError::Http(StatusCode::NOT_FOUND, err)) => {
+                        return ApiResponse::new_serialized(ApiError::new_wings_value(err))
+                            .with_status(StatusCode::NOT_FOUND)
+                            .ok();
+                    }
+                    Err(wings_api::client::ApiHttpError::Http(
+                        StatusCode::EXPECTATION_FAILED,
+                        err,
+                    )) => {
+                        return ApiResponse::new_serialized(ApiError::new_wings_value(err))
+                            .with_status(StatusCode::EXPECTATION_FAILED)
+                            .ok();
+                    }
+                    Err(err) => return Err(err.into()),
+                };
+
+                if !data.entries.is_empty() {
+                    activity_logger
+                        .log(
+                            "server:file.trash",
+                            serde_json::json!({
+                                "directory": request_body.root,
+                                "files": data.entries.iter().map(|e| &e.name).collect::<Vec<_>>(),
+                            }),
+                        )
+                        .await;
                 }
-                Err(wings_api::client::ApiHttpError::Http(StatusCode::EXPECTATION_FAILED, err)) => {
-                    return ApiResponse::new_serialized(ApiError::new_wings_value(err))
-                        .with_status(StatusCode::EXPECTATION_FAILED)
-                        .ok();
-                }
-                Err(err) => return Err(err.into()),
+
+                (data.entries.len() as u64, data.entries, data.skipped)
+            } else {
+                (0, Vec::new(), files)
             };
 
-            activity_logger
-                .log(
-                    "server:file.delete",
-                    serde_json::json!({
-                        "directory": request_body.root,
-                        "files": request_body.files.iter().collect::<Vec<_>>(),
-                    }),
-                )
-                .await;
+            if !files.is_empty() {
+                let request_body = wings_api::servers_server_files_delete::post::RequestBody {
+                    root: data.root,
+                    files,
+                };
 
-            ApiResponse::new_serialized(Response {
-                deleted: data.deleted,
-            })
-            .ok()
+                let data = match client
+                    .post_servers_server_files_delete(server.0.uuid, &request_body)
+                    .await
+                {
+                    Ok(data) => data,
+                    Err(wings_api::client::ApiHttpError::Http(StatusCode::NOT_FOUND, err)) => {
+                        return ApiResponse::new_serialized(ApiError::new_wings_value(err))
+                            .with_status(StatusCode::NOT_FOUND)
+                            .ok();
+                    }
+                    Err(wings_api::client::ApiHttpError::Http(
+                        StatusCode::EXPECTATION_FAILED,
+                        err,
+                    )) => {
+                        return ApiResponse::new_serialized(ApiError::new_wings_value(err))
+                            .with_status(StatusCode::EXPECTATION_FAILED)
+                            .ok();
+                    }
+                    Err(err) => return Err(err.into()),
+                };
+
+                deleted += data.deleted;
+
+                activity_logger
+                    .log(
+                        "server:file.delete",
+                        serde_json::json!({
+                            "directory": request_body.root,
+                            "files": request_body.files.iter().collect::<Vec<_>>(),
+                        }),
+                    )
+                    .await;
+            }
+
+            ApiResponse::new_serialized(Response { deleted, entries }).ok()
         })
         .await?
     }

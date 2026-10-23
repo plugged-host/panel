@@ -6,6 +6,7 @@ mod auto_start;
 mod install;
 mod rename;
 mod timezone;
+mod trash;
 
 pub fn router(state: &State) -> OpenApiRouter<State> {
     OpenApiRouter::new()
@@ -14,5 +15,6 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         .nest("/timezone", timezone::router(state))
         .nest("/auto-kill", auto_kill::router(state))
         .nest("/auto-start", auto_start::router(state))
+        .nest("/trash", trash::router(state))
         .with_state(state.clone())
 }

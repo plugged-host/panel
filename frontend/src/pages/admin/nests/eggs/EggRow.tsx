@@ -12,7 +12,7 @@ interface EggRowProps {
   nest: z.infer<typeof adminNestSchema>;
   egg: z.infer<typeof adminEggSchema>;
   isSelected?: boolean;
-  onSelectionChange?: (selected: boolean) => void;
+  onSelectionChange?: (selected: boolean, range?: boolean) => void;
   contextMenuProps?: ContextMenuChildrenProps;
 }
 
@@ -24,8 +24,8 @@ const EggRow = forwardRef<HTMLTableRowElement, EggRowProps>(function EggRow(
     <TableRow
       bg={isSelected ? 'var(--mantine-color-blue-light)' : undefined}
       onClick={(e) => {
-        if (e.ctrlKey || e.metaKey) {
-          onSelectionChange?.(true);
+        if (e.ctrlKey || e.metaKey || e.shiftKey) {
+          onSelectionChange?.(true, e.shiftKey);
           return true;
         }
 

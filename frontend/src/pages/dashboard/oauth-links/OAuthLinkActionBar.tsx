@@ -1,4 +1,4 @@
-import { faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faTrash, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useState } from 'react';
 import { z } from 'zod';
@@ -6,6 +6,8 @@ import deleteOAuthLink from '@/api/me/oauth-links/deleteOAuthLink.ts';
 import ActionBar from '@/elements/ActionBar.tsx';
 import Button from '@/elements/buttons/Button.tsx';
 import ExtensionSlot from '@/elements/ExtensionSlot.tsx';
+import Alert from '@/elements/feedback/Alert.tsx';
+import Stack from '@/elements/layout/Stack.tsx';
 import ConfirmationModal from '@/elements/modals/ConfirmationModal.tsx';
 import { ObjectSet } from '@/lib/objectSet.ts';
 import { userOAuthLinkSchema } from '@/lib/schemas/user/oAuth.ts';
@@ -26,7 +28,8 @@ export default function OAuthLinkActionBar({
 
   const [confirming, setConfirming] = useState(false);
 
-  const oauthLinks = selectedOAuthLinks.values();
+  const removable = selectedOAuthLinks.values().filter((oauthLink) => oauthLink.oauthProvider.userManageable);
+  const skipped = selectedOAuthLinks.size - removable.length;
 
   const finish = () => {
     clearSelection();
@@ -38,7 +41,7 @@ export default function OAuthLinkActionBar({
 
     run({
       action: 'delete',
-      items: oauthLinks,
+      items: removable,
       itemKey: 'oauthLink',
       verb: t('common.bulkActions.verb.removed', {}),
       request: (oauthLink) => deleteOAuthLink(oauthLink.uuid),
@@ -55,9 +58,19 @@ export default function OAuthLinkActionBar({
         confirm={t('common.button.remove', {})}
         onConfirmed={doDelete}
       >
-        {t('pages.account.oauthLinks.modal.deleteOAuthLinks.content', {
-          oauthLinks: tItem('oauthLink', oauthLinks.length),
-        }).md()}
+        <Stack>
+          {t('pages.account.oauthLinks.modal.deleteOAuthLinks.content', {
+            oauthLinks: tItem('oauthLink', removable.length),
+          }).md()}
+
+          {skipped > 0 && (
+            <Alert color='yellow' icon={<FontAwesomeIcon icon={faTriangleExclamation} />}>
+              {t('pages.account.oauthLinks.modal.deleteOAuthLinks.alert.skipped', {
+                oauthLinks: tItem('oauthLink', skipped),
+              })}
+            </Alert>
+          )}
+        </Stack>
       </ConfirmationModal>
 
       <ActionBar opened={selectedOAuthLinks.size > 0}>
@@ -68,9 +81,14 @@ export default function OAuthLinkActionBar({
           name='oauthLinks-actionBar-prepended'
         />
 
-        <Button color='red' onClick={() => setConfirming(true)} loading={loading === 'delete'}>
+        <Button
+          color='red'
+          onClick={() => setConfirming(true)}
+          loading={loading === 'delete'}
+          disabled={removable.length === 0}
+        >
           <FontAwesomeIcon icon={faTrash} className='mr-2' />
-          {t('common.button.remove', {})} ({oauthLinks.length})
+          {t('common.button.remove', {})} ({removable.length})
         </Button>
 
         <ExtensionSlot

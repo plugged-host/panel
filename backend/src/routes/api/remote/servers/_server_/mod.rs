@@ -67,7 +67,7 @@ mod get {
         ),
     ))]
     pub async fn route(state: GetState, server: GetServer) -> ApiResponseResult {
-        ApiResponse::new_serialized(server.0.into_remote_api_object(&state.database).await?).ok()
+        ApiResponse::new_serialized(server.0.into_remote_api_object(&state).await?).ok()
     }
 }
 

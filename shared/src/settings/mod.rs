@@ -698,10 +698,18 @@ impl SettingsDeserializeExt for AppSettingsDeserializer {
                 deserializer.settings,
             );
 
-            let ext_settings = ext_deserializer
+            match ext_deserializer
                 .deserialize_boxed(settings_deserializer)
-                .await?;
-            extensions.insert(ext_identifier, ext_settings);
+                .await
+            {
+                Ok(ext_settings) => {
+                    extensions.insert(ext_identifier, ext_settings);
+                }
+                Err(err) => tracing::error!(
+                    extension = %ext_identifier,
+                    "failed to deserialize extension settings, skipping: {err:#}"
+                ),
+            }
         }
 
         Ok(Box::new(AppSettings {
@@ -979,10 +987,15 @@ impl Deref for SettingsReadGuard<'_> {
 fn render_index_html(settings: &AppSettings) -> Result<String, anyhow::Error> {
     let mut environment = minijinja::Environment::new();
     environment.set_auto_escape_callback(|_| minijinja::AutoEscape::Html);
-    environment.add_global("settings", minijinja::Value::from_serialize(settings));
+    environment.add_global(
+        "settings",
+        minijinja::Value::from(minijinja::value::Serde(settings)),
+    );
     environment.add_global(
         "metadata",
-        minijinja::Value::from_serialize(settings.metadata.resolve(&settings.app)),
+        minijinja::Value::from(minijinja::value::Serde(
+            settings.metadata.resolve(&settings.app),
+        )),
     );
 
     let index_html = crate::frontend_index_html().ok_or_else(|| {
@@ -1072,6 +1085,14 @@ impl<'a> SettingsWriteGuard<'a> {
             .cached_index
             .store(buffer_index, Ordering::Release);
 
+        crate::models::node::Node::invalidate_permissions_everywhere(
+            &self.parent.database,
+            crate::models::node::PermissionsInvalidation {
+                servers: Some(wings_api::ServerSelector::All),
+                ..Default::default()
+            },
+        );
+
         Ok(())
     }
 
@@ -1142,9 +1163,10 @@ pub struct Settings {
 }
 
 impl Settings {
-    async fn fetch_settings(
+    pub(crate) async fn fetch_settings_map(
         database: &Arc<crate::database::Database>,
-    ) -> Result<AppSettings, anyhow::Error> {
+    ) -> Result<HashMap<compact_str::CompactString, compact_str::CompactString>, anyhow::Error>
+    {
         let rows = sqlx::query!("SELECT * FROM settings")
             .fetch_all(database.read())
             .await?;
@@ -1153,6 +1175,14 @@ impl Settings {
         for row in rows {
             map.insert(row.key.into(), row.value.into());
         }
+
+        Ok(map)
+    }
+
+    async fn fetch_settings(
+        database: &Arc<crate::database::Database>,
+    ) -> Result<AppSettings, anyhow::Error> {
+        let mut map = Self::fetch_settings_map(database).await?;
 
         let boxed = SettingsDeserializeExt::deserialize_boxed(
             &AppSettingsDeserializer,

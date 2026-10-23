@@ -59,6 +59,21 @@ export function useExtensionManagement() {
   const watchedBuildRef = useRef<number | null>(null);
   const [uploads, setUploads] = useState<Map<number, ExtensionUpload>>(new Map());
   const uploadIdRef = useRef(0);
+  const [pendingActions, setPendingActions] = useState<ReadonlySet<string>>(new Set());
+
+  const isPending = (key: string) => pendingActions.has(key);
+
+  const track = <T>(key: string, promise: Promise<T>) => {
+    setPendingActions((prev) => new Set(prev).add(key));
+
+    return promise.finally(() =>
+      setPendingActions((prev) => {
+        const next = new Set(prev);
+        next.delete(key);
+        return next;
+      }),
+    );
+  };
 
   const supervisor = extensionStatus?.supervisor ?? null;
   const supervisorState = supervisor?.state ?? null;
@@ -103,7 +118,7 @@ export function useExtensionManagement() {
   }, [supervisorState?.type, buildId]);
 
   const handleRebuild = (force: boolean) => {
-    mutate(rebuildExtensions(force), (rebuild) => {
+    mutate(track('rebuild', rebuildExtensions(force)), (rebuild) => {
       watchedBuildRef.current = rebuild.buildId;
       addToast(t('pages.admin.extensions.toast.buildStarted', {}), 'success');
       setExtensionStatus((prev) => prev && { ...prev, isBuilding: true });
@@ -114,7 +129,7 @@ export function useExtensionManagement() {
 
   const handleCancelBuild = () => {
     mutate(
-      cancelExtensionRebuild(buildId),
+      track('cancel', cancelExtensionRebuild(buildId)),
       (cancel) => {
         setCancellingBuild(cancel.buildId);
         addToast(t('pages.admin.extensions.toast.cancelRequested', {}), 'success');
@@ -124,20 +139,19 @@ export function useExtensionManagement() {
   };
 
   const handleRemove = (backendExtension: AdminBackendExtension, removeMigrations: boolean) => {
-    mutate(removeExtension(backendExtension.metadataToml.packageName, removeMigrations), () => {
+    const packageName = backendExtension.metadataToml.packageName;
+
+    mutate(track(`remove:${packageName}`, removeExtension(packageName, removeMigrations)), () => {
       setExtensionStatus((prev) =>
         prev
           ? {
               ...prev,
-              pendingExtensions: removeByPackageName(prev.pendingExtensions, backendExtension.metadataToml.packageName),
+              pendingExtensions: removeByPackageName(prev.pendingExtensions, packageName),
               removedExtensions: upsertByPackageName(prev.removedExtensions, backendExtension),
             }
           : prev,
       );
-      addToast(
-        t('pages.admin.extensions.toast.removed', { packageName: backendExtension.metadataToml.packageName }).md(),
-        'success',
-      );
+      addToast(t('pages.admin.extensions.toast.removed', { packageName }).md(), 'success');
       setRemovalExtension(null);
     });
   };
@@ -165,7 +179,7 @@ export function useExtensionManagement() {
   };
 
   const handleToggle = (packageName: string, enabled: boolean) => {
-    mutate(setExtensionEnabled(packageName, enabled), () => {
+    mutate(track(`toggle:${packageName}`, setExtensionEnabled(packageName, enabled)), () => {
       queryClient.setQueryData<AdminExtensionList>(queryKeys.admin.extensions.all(), (prev) =>
         prev
           ? {
@@ -186,7 +200,7 @@ export function useExtensionManagement() {
   };
 
   const handleRestart = () => {
-    mutate(restartPanel(), () => {
+    mutate(track('restart', restartPanel()), () => {
       addToast(t('pages.admin.extensions.toast.restarting', {}), 'success');
     });
   };
@@ -277,6 +291,7 @@ export function useExtensionManagement() {
     handleRemove,
     handleToggle,
     handleRestart,
+    isPending,
     handleAdd,
     handleLicenseAccept,
     handleFileUpload,

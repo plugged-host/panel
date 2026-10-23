@@ -280,38 +280,22 @@ impl UserApiKey {
         per_page: i64,
         search: Option<&str>,
     ) -> Result<super::Pagination<Self>, crate::database::DatabaseError> {
-        let offset = (page - 1) * per_page;
-
-        let rows = sqlx::query(sqlx::AssertSqlSafe(format!(
-            r#"
-            SELECT {}, COUNT(*) OVER() AS total_count
-            FROM user_api_keys
-            WHERE user_api_keys.user_uuid = $1 AND {search}
-                AND (user_api_keys.expires IS NULL OR user_api_keys.expires > NOW())
-            ORDER BY user_api_keys.created
-            LIMIT $3 OFFSET $4
-            "#,
+        super::PaginatedQueryBuilder::new(
             Self::columns_sql(None),
-            search = super::search_sql(2, &["user_api_keys.name"], &["user_api_keys.uuid"])
-        )))
+            format!(
+                r#"
+                FROM user_api_keys
+                WHERE user_api_keys.user_uuid = $1 AND {search}
+                    AND (user_api_keys.expires IS NULL OR user_api_keys.expires > NOW())
+                "#,
+                search = super::search_sql(2, &["user_api_keys.name"], &["user_api_keys.uuid"]),
+            ),
+            "user_api_keys.created, user_api_keys.uuid",
+        )
         .bind(user_uuid)
         .bind(search)
-        .bind(per_page)
-        .bind(offset)
-        .fetch_all(database.read())
-        .await?;
-
-        Ok(super::Pagination {
-            total: rows
-                .first()
-                .map_or(Ok(0), |row| row.try_get("total_count"))?,
-            per_page,
-            page,
-            data: rows
-                .into_iter()
-                .map(|row| Self::map(None, &row))
-                .try_collect_vec()?,
-        })
+        .fetch(database, page, per_page)
+        .await
     }
 
     pub async fn by_uuids(
@@ -565,6 +549,45 @@ impl UpdatableModel for UserApiKey {
         &UPDATE_LISTENERS
     }
 
+    async fn update(
+        &mut self,
+        state: &crate::State,
+        options: Self::UpdateOptions,
+    ) -> Result<(), crate::database::DatabaseError> {
+        let scope_changed = options.allowed_ips.is_some()
+            || options.enabled.is_some()
+            || options.user_permissions.is_some()
+            || options.admin_permissions.is_some()
+            || options.server_permissions.is_some()
+            || options.expires.is_some();
+
+        let mut transaction = state.database.write().begin().await?;
+
+        if let Err(err) = self
+            .update_with_transaction(state, options, &mut transaction)
+            .await
+        {
+            transaction.rollback().await?;
+            return Err(err);
+        }
+
+        transaction.commit().await?;
+
+        super::invalidate_cache_keys(&state.database, &self.cache_invalidation_keys()).await;
+
+        if scope_changed {
+            super::node::Node::invalidate_permissions_everywhere(
+                &state.database,
+                super::node::PermissionsInvalidation {
+                    revoke_credentials: vec![self.uuid],
+                    ..Default::default()
+                },
+            );
+        }
+
+        Ok(())
+    }
+
     async fn update_with_transaction(
         &mut self,
         state: &crate::State,
@@ -734,6 +757,36 @@ impl DeletableModel for UserApiKey {
             LazyLock::new(|| Arc::new(ModelHandlerList::default()));
 
         &DELETE_LISTENERS
+    }
+
+    async fn delete(
+        &self,
+        state: &crate::State,
+        options: Self::DeleteOptions,
+    ) -> Result<(), anyhow::Error> {
+        let mut transaction = state.database.write().begin().await?;
+
+        if let Err(err) = self
+            .delete_with_transaction(state, options, &mut transaction)
+            .await
+        {
+            transaction.rollback().await?;
+            return Err(err);
+        }
+
+        transaction.commit().await?;
+
+        super::invalidate_cache_keys(&state.database, &self.cache_invalidation_keys()).await;
+
+        super::node::Node::invalidate_permissions_everywhere(
+            &state.database,
+            super::node::PermissionsInvalidation {
+                revoke_credentials: vec![self.uuid],
+                ..Default::default()
+            },
+        );
+
+        Ok(())
     }
 
     async fn delete_with_transaction(

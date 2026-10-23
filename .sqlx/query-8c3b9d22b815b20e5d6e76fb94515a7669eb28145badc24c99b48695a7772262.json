@@ -1,0 +1,85 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT\n                    server_database_instances.uuid,\n                    server_database_instances.name,\n                    servers.uuid AS server_uuid,\n                    servers.name AS server_name,\n                    COALESCE(server_database_instances.cpu, database_agent_templates.cpu) AS cpu,\n                    COALESCE(server_database_instances.memory, database_agent_templates.memory) AS memory,\n                    COALESCE(server_database_instances.disk, database_agent_templates.disk) AS disk\n                FROM server_database_instances\n                JOIN servers ON servers.uuid = server_database_instances.server_uuid\n                LEFT JOIN database_agent_templates ON database_agent_templates.uuid = server_database_instances.database_agent_template_uuid\n                WHERE server_database_instances.database_agent_host_uuid = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "uuid",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "server_database_instances",
+            "name": "uuid"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "name",
+        "type_info": "Varchar",
+        "origin": {
+          "Table": {
+            "table": "server_database_instances",
+            "name": "name"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "server_uuid",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "servers",
+            "name": "uuid"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "server_name",
+        "type_info": "Varchar",
+        "origin": {
+          "Table": {
+            "table": "servers",
+            "name": "name"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "cpu",
+        "type_info": "Int4",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 5,
+        "name": "memory",
+        "type_info": "Int8",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 6,
+        "name": "disk",
+        "type_info": "Int8",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      null,
+      null,
+      null
+    ]
+  },
+  "hash": "8c3b9d22b815b20e5d6e76fb94515a7669eb28145badc24c99b48695a7772262"
+}

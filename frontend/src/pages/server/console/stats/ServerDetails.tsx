@@ -19,6 +19,7 @@ import { formatMilliseconds } from '@/lib/format/time.ts';
 import { useUserSetting } from '@/lib/userSettings.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useServerStore } from '@/stores/server.ts';
+import { useServerStatsPending } from './useServerStatsPending.ts';
 
 const NORMALIZE_CPU_LOAD_KEY = 'console::normalize_cpu_load';
 const normalizeCpuLoadSchema = z.boolean();
@@ -28,6 +29,7 @@ export default function ServerDetails() {
   const server = useServerStore((state) => state.server);
   const stats = useServerStore((state) => state.stats);
   const state = useServerStore((state) => state.state);
+  const statsPending = useServerStatsPending();
 
   const [doNormalizeCpuLoad, setDoNormalizeCpuLoad] = useUserSetting(
     NORMALIZE_CPU_LOAD_KEY,
@@ -118,6 +120,7 @@ export default function ServerDetails() {
         icon={faClock}
         label={t('common.stat.uptime', {})}
         order={30}
+        loading={statsPending}
         value={
           state === 'offline' && server.status !== 'installing'
             ? t('common.enum.serverState.offline', {})
@@ -128,6 +131,7 @@ export default function ServerDetails() {
         icon={faMicrochip}
         label={t('common.stat.cpuLoad', {})}
         order={40}
+        loading={statsPending}
         value={
           state === 'offline' && server.status !== 'installing'
             ? t('common.enum.serverState.offline', {})
@@ -161,6 +165,7 @@ export default function ServerDetails() {
         icon={faMemory}
         label={t('common.stat.memoryLoad', {})}
         order={50}
+        loading={statsPending}
         value={
           state === 'offline' && server.status !== 'installing'
             ? t('common.enum.serverState.offline', {})
@@ -174,6 +179,7 @@ export default function ServerDetails() {
         icon={faHardDrive}
         label={t('common.stat.diskUsage', {})}
         order={60}
+        loading={statsPending}
         value={bytesToString(stats?.diskBytes || 0)}
         limit={server.limits.disk !== 0 ? bytesToString(mbToBytes(server.limits.disk)) : t('common.unlimited', {})}
         progress={stats?.diskBytes}
@@ -183,6 +189,7 @@ export default function ServerDetails() {
         icon={faCloudDownload}
         label={t('pages.server.console.details.networkIn', {})}
         order={70}
+        loading={statsPending}
         value={
           state === 'offline' && server.status !== 'installing'
             ? t('common.enum.serverState.offline', {})
@@ -208,6 +215,7 @@ export default function ServerDetails() {
         icon={faCloudUpload}
         label={t('pages.server.console.details.networkOut', {})}
         order={80}
+        loading={statsPending}
         value={
           state === 'offline' && server.status !== 'installing'
             ? t('common.enum.serverState.offline', {})

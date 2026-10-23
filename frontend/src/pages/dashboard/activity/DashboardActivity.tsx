@@ -19,6 +19,7 @@ export default function DashboardActivity() {
     search,
     setSearch,
     setPage,
+    setPerPage,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.user.activity.all(),
     fetcher: getUserActivity,
@@ -31,7 +32,14 @@ export default function DashboardActivity() {
       setSearch={setSearch}
       registry={window.extensionContext.extensionRegistry.pages.dashboard.activity.container}
     >
-      <Table columns={activityColumns()} loading={loading} pagination={activities} onPageSelect={setPage} error={error}>
+      <Table
+        columns={activityColumns()}
+        loading={loading}
+        pagination={activities}
+        onPageSelect={setPage}
+        onPerPageSelect={setPerPage}
+        error={error}
+      >
         {activities?.data.map((activity, index) => (
           <ActivityRow
             key={`${activity.created.toISOString()}-${index}`}

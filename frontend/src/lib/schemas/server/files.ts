@@ -301,3 +301,28 @@ export const serverFileSqliteQuerySchema = z.object({
   rows: z.number().min(1).max(1000),
   readOnly: z.boolean(),
 });
+
+export const serverTrashEntrySchema = z.object({
+  uuid: z.string(),
+  name: z.string(),
+  path: z.string(),
+  directory: z.boolean(),
+  size: z.number(),
+  deletedAt: z.coerce.date(),
+});
+
+export const serverTrashSelectorSchema = z.discriminatedUnion('type', [
+  z.object({ type: z.literal('uuids'), uuids: z.array(z.string()) }),
+  z.object({ type: z.literal('all') }),
+]);
+
+export const serverTrashRestoreToSchema = z.object({
+  destination: z.string().min(1).max(255),
+  names: z.array(
+    z
+      .string()
+      .min(1)
+      .max(255)
+      .refine((val) => !val.includes('/')),
+  ),
+});

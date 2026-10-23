@@ -7,9 +7,10 @@ export default async (
   roleUuid: string,
   page: number,
   search?: string,
+  perPage?: number,
 ): Promise<Pagination<z.infer<typeof adminFullUserSchema>>> => {
   const { data } = await axiosInstance.get(`/api/admin/roles/${roleUuid}/users`, {
-    params: { page, search },
+    params: { page, per_page: perPage, search },
   });
   return parsePaginationFromApi(adminFullUserSchema, data.users);
 };

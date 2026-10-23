@@ -1,4 +1,4 @@
-import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
+import { faDownload, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useModalsStack } from '@mantine/core';
 import { useForm } from '@mantine/form';
@@ -22,6 +22,7 @@ import { Modal, ModalFooter } from '@/elements/modals/Modal.tsx';
 import Code from '@/elements/typography/Code.tsx';
 import Text from '@/elements/typography/Text.tsx';
 import { withTwoFactorMethod } from '@/lib/auth/twoFactor.ts';
+import { downloadTextFile } from '@/lib/download/download.ts';
 import { dashboardTwoFactorEnableSchema } from '@/lib/schemas/dashboard.ts';
 import { liveValidation } from '@/plugins/form/liveValidation.ts';
 import { useAuth } from '@/providers/AuthProvider.tsx';
@@ -140,12 +141,12 @@ export default function TwoFactorSetupButton() {
               <Spinner.Centered />
             ) : (
               <div className='flex flex-col items-center justify-center my-4'>
-                <div className='flex items-center justify-center w-56 h-56 p-2 bg-gray-50 shadow'>
+                <div className='flex items-center justify-center w-56 h-56 p-2 bg-white rounded-md'>
                   <canvas ref={setCanvasRef}></canvas>
                 </div>
                 <div className='mt-2'>
                   <CopyOnClick content={token.secret}>
-                    <Code>{token.secret.match(/.{1,4}/g)!.join(' ') || 'Loading...'}</Code>
+                    <Code>{token.secret.match(/.{1,4}/g)?.join(' ')}</Code>
                   </CopyOnClick>
                 </div>
               </div>
@@ -200,6 +201,12 @@ export default function TwoFactorSetupButton() {
             </CopyOnClick>
 
             <ModalFooter>
+              <Button
+                leftSection={<FontAwesomeIcon icon={faDownload} />}
+                onClick={() => downloadTextFile(recoveryCodes.join('\n'), 'recovery-codes.txt')}
+              >
+                {t('common.button.download', {})}
+              </Button>
               <Button
                 variant='default'
                 onClick={() => {

@@ -94,9 +94,10 @@ export default function AdminDeviceNestEggs({ device }: { device: z.infer<typeof
     search,
     setSearch,
     setPage,
+    setPerPage,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.admin.deviceAssignments.eggsByDevice(device.uuid),
-    fetcher: (page, search) => getDeviceNestEggs(device.uuid, page, search),
+    fetcher: (page, search, perPage) => getDeviceNestEggs(device.uuid, page, search, perPage),
   });
 
   return (
@@ -124,6 +125,7 @@ export default function AdminDeviceNestEggs({ device }: { device: z.infer<typeof
         loading={loading}
         pagination={deviceNestEggs}
         onPageSelect={setPage}
+        onPerPageSelect={setPerPage}
         error={error}
       >
         {deviceNestEggs?.data.map((nestEggDevice) => (

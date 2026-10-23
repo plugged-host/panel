@@ -13,6 +13,8 @@ import { AdminCan } from '@/elements/Can.tsx';
 import AdminSubContentContainer from '@/elements/containers/AdminSubContentContainer.tsx';
 import MonacoEditor from '@/elements/editors/MonacoEditor.tsx';
 import Alert from '@/elements/feedback/Alert.tsx';
+import ErrorState from '@/elements/feedback/ErrorState.tsx';
+import Spinner from '@/elements/feedback/Spinner.tsx';
 import Switch from '@/elements/input/Switch.tsx';
 import TextInput from '@/elements/input/TextInput.tsx';
 import Divider from '@/elements/layout/Divider.tsx';
@@ -53,12 +55,22 @@ export default function EmailTemplatesContainer() {
     validate: zod4Resolver(templateFormSchema),
   });
 
-  const { data: templates, loading: templatesLoading } = useResource({
+  const {
+    data: templates,
+    loading: templatesLoading,
+    error: templatesError,
+    refetch: refetchTemplates,
+  } = useResource({
     queryKey: queryKeys.admin.emailTemplates.all(),
     queryFn: getEmailTemplates,
   });
 
-  const { data: template, loading: templateLoading } = useResource({
+  const {
+    data: template,
+    loading: templateLoading,
+    error: templateError,
+    refetch: refetchTemplate,
+  } = useResource({
     queryKey: queryKeys.admin.emailTemplates.detail(selectedIdentifier!),
     queryFn: () => getEmailTemplate(selectedIdentifier!),
     enabled: selectedIdentifier !== null,
@@ -165,11 +177,12 @@ export default function EmailTemplatesContainer() {
       </Stack>
       <Divider />
       <Stack gap={0} p='xs'>
-        {templatesLoading && (
-          <Text size='sm' c='dimmed' p='xs'>
-            {t('pages.admin.settings.tabs.mailTemplates.page.sidebar.loading', {})}
-          </Text>
-        )}
+        {!templates &&
+          (templatesError && !templatesLoading ? (
+            <ErrorState error={httpErrorToHuman(templatesError)} onRetry={refetchTemplates} />
+          ) : (
+            <Spinner.Centered />
+          ))}
         {templates?.map((tpl) => (
           <NavLink
             key={tpl.identifier}
@@ -261,13 +274,15 @@ export default function EmailTemplatesContainer() {
         ) : (
           <>
             <Paper withBorder radius='md' className='flex! flex-col flex-1 min-w-0 overflow-hidden'>
-              {templateLoading ? (
+              {!template ? (
                 <div className='flex items-center justify-center h-64'>
-                  <Text c='dimmed' size='sm'>
-                    {t('pages.admin.settings.tabs.mailTemplates.page.loadingTemplate', {})}
-                  </Text>
+                  {templateError && !templateLoading ? (
+                    <ErrorState error={httpErrorToHuman(templateError)} onRetry={refetchTemplate} />
+                  ) : (
+                    <Spinner />
+                  )}
                 </div>
-              ) : template ? (
+              ) : (
                 <>
                   <div className='px-4 py-2.5 bg-(--mantine-color-default) shrink-0'>
                     <Group justify='space-between'>
@@ -337,7 +352,7 @@ export default function EmailTemplatesContainer() {
                     </div>
                   </div>
                 </>
-              ) : null}
+              )}
             </Paper>
 
             <div className='shrink-0 lg:w-[26rem] w-full lg:relative'>

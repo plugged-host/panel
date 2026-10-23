@@ -22,8 +22,17 @@ impl NodeAllowedSources {
         }
     }
 
-    pub fn from_config(config: &wings_api::Config) -> Self {
-        Self::new(&config.allowed_mounts, &config.allowed_devices)
+    pub fn from_config(config: &wings_api::Config) -> Result<Self, serde_json::Error> {
+        #[derive(Default, serde::Deserialize)]
+        #[serde(default)]
+        struct AllowedSourcesConfig {
+            allowed_mounts: Vec<compact_str::CompactString>,
+            allowed_devices: Vec<compact_str::CompactString>,
+        }
+
+        let config: AllowedSourcesConfig = config.view()?;
+
+        Ok(Self::new(&config.allowed_mounts, &config.allowed_devices))
     }
 
     /// `None` when the answer depends on a relative entry the panel cannot resolve.
@@ -201,5 +210,38 @@ mod tests {
             Some(false)
         );
         assert_eq!(device_only.allows_mount("/mnt/data", "/data"), Some(false));
+    }
+
+    // NodeAllowedSources::from_config
+    #[test]
+    fn from_config_reads_the_allowlists_and_ignores_unknown_fields() {
+        let config = wings_api::Config(serde_json::json!({
+            "allowed_mounts": ["/srv"],
+            "allowed_devices": ["/dev/fuse"],
+            "docker": { "network": { "name": "pterodactyl_nw" } },
+            "some_future_section": { "enabled": true, "values": [1, 2, 3] },
+        }));
+
+        let sources = NodeAllowedSources::from_config(&config).unwrap();
+
+        assert_eq!(sources.allows_mount("/srv/x", "/data"), Some(true));
+        assert_eq!(sources.allows_mount("/etc", "/data"), Some(false));
+        assert_eq!(
+            sources.allows_device("/dev/fuse", "/dev/fuse", "rw"),
+            Some(true)
+        );
+    }
+
+    #[test]
+    fn from_config_without_allowlists_allows_nothing() {
+        let config = wings_api::Config(serde_json::json!({ "token": "secret" }));
+
+        let sources = NodeAllowedSources::from_config(&config).unwrap();
+
+        assert_eq!(sources.allows_mount("/srv/x", "/data"), Some(false));
+        assert_eq!(
+            sources.allows_device("/dev/fuse", "/dev/fuse", "rw"),
+            Some(false)
+        );
     }
 }

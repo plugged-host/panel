@@ -845,6 +845,7 @@ export const scheduleStepDefaultMapping: Record<
   delete_files: {
     type: 'delete_files',
     ignoreFailure: false,
+    trash: false,
     root: '/',
     files: [],
   },

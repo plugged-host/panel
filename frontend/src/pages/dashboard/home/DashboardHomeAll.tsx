@@ -1,3 +1,4 @@
+import { faServer } from '@fortawesome/free-solid-svg-icons';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { z } from 'zod';
@@ -6,7 +7,9 @@ import getServerGroups from '@/api/me/servers/groups/getServerGroups.ts';
 import getServers from '@/api/server/getServers.ts';
 import { AdminCan } from '@/elements/Can.tsx';
 import AccountContentContainer from '@/elements/containers/AccountContentContainer.tsx';
-import { Pagination } from '@/elements/data-display/Table.tsx';
+import { NoItems, Pagination } from '@/elements/data-display/Table.tsx';
+import EmptyState from '@/elements/feedback/EmptyState.tsx';
+import ErrorState from '@/elements/feedback/ErrorState.tsx';
 import Spinner from '@/elements/feedback/Spinner.tsx';
 import Checkbox from '@/elements/input/Checkbox.tsx';
 import Switch from '@/elements/input/Switch.tsx';
@@ -77,6 +80,8 @@ export default function DashboardHomeAll() {
   const {
     data: servers,
     loading,
+    error,
+    refetch,
     search,
     debouncedSearch,
     setSearch,
@@ -179,8 +184,18 @@ export default function DashboardHomeAll() {
       )}
       {loading ? (
         <Spinner.Centered />
-      ) : (servers?.total ?? 0) === 0 ? (
-        <p className='text-(--mantine-color-dimmed)'>{t('pages.account.home.noServers', {})}</p>
+      ) : error && !servers ? (
+        <ErrorState error={error} onRetry={refetch} />
+      ) : servers?.total === 0 ? (
+        debouncedSearch ? (
+          <NoItems />
+        ) : (
+          <EmptyState
+            icon={faServer}
+            title={t('pages.account.home.empty.title', {})}
+            description={t('pages.account.home.empty.description', {})}
+          />
+        )
       ) : (
         <div className='ph-server-grid'>
           {servers?.data.map((server) => (

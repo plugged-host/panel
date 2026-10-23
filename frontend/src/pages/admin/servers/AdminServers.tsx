@@ -35,6 +35,7 @@ function ServersContainer() {
     search,
     setSearch,
     setPage,
+    setPerPage,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.admin.servers.all(),
     fetcher: getServers,
@@ -50,10 +51,10 @@ function ServersContainer() {
   } = useTableSelection<AdminServer>({ items: servers?.data });
 
   const handleServerClick = (server: AdminServer, event: React.MouseEvent) => {
-    if (event.ctrlKey || event.metaKey) {
+    if (event.ctrlKey || event.metaKey || event.shiftKey) {
       event.preventDefault();
       event.stopPropagation();
-      toggleServer(server, !selectedServers.has(server));
+      toggleServer(server, !selectedServers.has(server), event.shiftKey);
     }
   };
 
@@ -101,6 +102,7 @@ function ServersContainer() {
             loading={loading}
             pagination={servers}
             onPageSelect={setPage}
+            onPerPageSelect={setPerPage}
             error={error}
           >
             {servers?.data.map((server) => (
@@ -110,7 +112,7 @@ function ServersContainer() {
                     server={server}
                     ref={innerRef as Ref<HTMLTableRowElement>}
                     isSelected={selectedServers.has(server.uuid)}
-                    onSelectionChange={(selected) => toggleServer(server, selected)}
+                    onSelectionChange={(selected, range) => toggleServer(server, selected, range)}
                     onClick={(e) => handleServerClick(server, e)}
                   />
                 )}

@@ -42,6 +42,7 @@ import { useResourceForm } from '@/plugins/resource/useResourceForm.ts';
 import { useSearchableResource } from '@/plugins/resource/useSearchableResource.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
+import { trackActivity } from '@/stores/activity.ts';
 import { EggExportMenu, EggUpdateFromMenu } from './EggActionsMenu.tsx';
 import EggConfigFilesEditor from './EggConfigFilesEditor.tsx';
 import EggStopConfigEditor from './EggStopConfigEditor.tsx';
@@ -142,7 +143,7 @@ export default function EggCreateOrUpdate({
   const applyEggUpdate = () => {
     if (!contextEgg) return;
 
-    getEgg(contextNest.uuid, contextEgg.uuid)
+    trackActivity(getEgg(contextNest.uuid, contextEgg.uuid))
       .then((egg) => {
         const values = eggToFormValues(egg);
         form.resetDirty({ ...form.getValues(), ...values });

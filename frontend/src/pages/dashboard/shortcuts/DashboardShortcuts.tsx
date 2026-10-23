@@ -148,8 +148,8 @@ export default function DashboardShortcuts() {
               border: '1px solid var(--mantine-color-default-border)',
             }}
           >
-            <FontAwesomeIcon icon={isMac ? faApple : faWindows} style={{ color: 'var(--mantine-color-gray-5)' }} />
-            <Text size='sm' c='gray.5'>
+            <FontAwesomeIcon icon={isMac ? faApple : faWindows} style={{ color: 'var(--mantine-color-dimmed)' }} />
+            <Text size='sm' c='dimmed'>
               {isMac ? t('pages.account.shortcuts.detectedMac', {}) : t('pages.account.shortcuts.detectedWindows', {})}
             </Text>
           </Flex>

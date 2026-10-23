@@ -6,9 +6,10 @@ import { parsePaginationFromApi } from '@/lib/serialization/api-transform.ts';
 export default async (
   oauthProviderUuid: string,
   page: number,
+  perPage?: number,
 ): Promise<Pagination<z.infer<typeof adminOAuthProviderMappingSchema>>> => {
   const { data } = await axiosInstance.get(`/api/admin/oauth-providers/${oauthProviderUuid}/mappings`, {
-    params: { page },
+    params: { page, per_page: perPage },
   });
   return parsePaginationFromApi(adminOAuthProviderMappingSchema, data.oauth_mappings);
 };

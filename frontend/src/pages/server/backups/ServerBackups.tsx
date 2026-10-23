@@ -122,9 +122,10 @@ export default function ServerBackups({
 
   const groupsQueryKey = useMemo(() => queryKeys.server(server.uuid).backups.groups.all(), [server.uuid]);
 
-  const { loading, error, search, debouncedSearch, setSearch, setPage } = useSearchablePaginatedTable({
+  const { loading, error, search, debouncedSearch, setSearch, setPage, setPerPage } = useSearchablePaginatedTable({
     queryKey: queryKeys.server(server.uuid).backups.all(),
-    fetcher: (page, search) => getBackups(server.uuid, page, search, showGroups && canReadGroups, filter),
+    fetcher: (page, search, perPage) =>
+      getBackups(server.uuid, page, search, showGroups && canReadGroups, filter, perPage),
     deps: [filter],
     setStoreData: setBackups,
     modifyParams: modifyParams ?? variant === 'page',
@@ -136,7 +137,7 @@ export default function ServerBackups({
     enabled: (showGroups || showGroupLabels) && canReadGroups,
   });
 
-  const { data: usage } = useQuery({
+  const { data: usage, isError: usageFailed } = useQuery({
     queryKey: queryKeys.server(server.uuid).backups.usage(),
     queryFn: () => getBackupUsage(server.uuid),
   });
@@ -212,7 +213,8 @@ export default function ServerBackups({
   const atBackupLimit = totalBackupCount >= server.featureLimits.backups;
   // the section list is filtered to one kind, so its fallback understates the shared limit
   const usageUnknown = !usage && variant === 'section';
-  const createDisabled = atBackupLimit || usageUnknown || createBlockedReason !== null;
+  const countKnown = usage !== undefined || usageFailed;
+  const createDisabled = !countKnown || atBackupLimit || usageUnknown || createBlockedReason !== null;
   const createTooltip = atBackupLimit
     ? t(
         variant === 'page'
@@ -238,17 +240,17 @@ export default function ServerBackups({
     variant === 'page'
       ? usage && usage.databaseInstance > 0
         ? t('pages.server.backups.subtitleWithDatabase', {
-            current: totalBackupCount,
+            current: countKnown ? totalBackupCount : '…',
             max: server.featureLimits.backups,
             server: usage.server,
             database: usage.databaseInstance,
           })
         : t('pages.server.backups.subtitle', {
-            current: totalBackupCount,
+            current: countKnown ? totalBackupCount : '…',
             max: server.featureLimits.backups,
           })
       : t('pages.server.databases.instance.backups.subtitle', {
-          current: totalBackupCount,
+          current: countKnown ? totalBackupCount : '…',
           max: server.featureLimits.backups,
         });
 
@@ -324,6 +326,7 @@ export default function ServerBackups({
           loading={loading}
           pagination={backups}
           onPageSelect={setPage}
+          onPerPageSelect={setPerPage}
           error={error}
           empty={
             isEmpty ? (
@@ -355,7 +358,7 @@ export default function ServerBackups({
                   columns={columns}
                   ref={innerRef as Ref<HTMLTableRowElement>}
                   isSelected={selectedBackups.has(backup.uuid)}
-                  onSelectionChange={canSelect ? (selected) => toggleBackup(backup, selected) : undefined}
+                  onSelectionChange={canSelect ? (selected, range) => toggleBackup(backup, selected, range) : undefined}
                 />
               )}
             </SelectionArea.Selectable>

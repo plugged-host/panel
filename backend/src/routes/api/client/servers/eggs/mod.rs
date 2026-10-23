@@ -9,8 +9,7 @@ mod get {
     use shared::{
         GetState,
         models::{
-            IntoApiObject, Pagination, PaginationParamsWithSearch,
-            user::{GetPermissionManager, GetUser},
+            IntoApiObject, Pagination, PaginationParamsWithSearch, user::GetPermissionManager,
         },
         response::{ApiResponse, ApiResponseResult},
     };
@@ -43,14 +42,13 @@ mod get {
     pub async fn route(
         state: GetState,
         permissions: GetPermissionManager,
-        user: GetUser,
         Query(params): Query<PaginationParamsWithSearch>,
     ) -> ApiResponseResult {
         permissions.has_user_permission("servers.read")?;
 
         let nest_eggs = shared::models::nest_egg::NestEgg::by_user_with_pagination(
             &state.database,
-            &user,
+            &permissions,
             params.page,
             params.per_page,
             params.search.as_deref(),

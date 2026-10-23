@@ -114,7 +114,7 @@ mod post {
             )
             .await;
 
-        server.0.batch_sync(&state.database).await;
+        server.0.batch_sync(&state).await;
 
         ApiResponse::new_serialized(Response {
             schedule_step: duplicated.into_api_object(&state, ()).await?,

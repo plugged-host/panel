@@ -18,9 +18,18 @@ type SchemaOptions<T extends z.ZodTypeAny> = Omit<WebsocketOptions, 'onMessage'>
   onMessage: (data: z.infer<T>) => void;
 };
 
+export type WebsocketStatus = 'connecting' | 'connected' | 'reconnecting' | 'disconnected';
+
 interface WebsocketHandle {
   connected: boolean;
+  status: WebsocketStatus;
+  nextRetryMs: number | null;
+  reconnectAttempt: number;
   send: (data: string) => void;
+}
+
+function isDeliberateClose(event: CloseEvent) {
+  return event.code === 1008 || event.code >= 4000;
 }
 
 export function useWebsocket(options: WebsocketOptions & { schema?: undefined }): WebsocketHandle;
@@ -31,7 +40,11 @@ export function useWebsocket<T extends z.ZodTypeAny>(
 ): WebsocketHandle {
   const { path, params, enabled = true, reconnectDelay = null, schema } = options;
 
-  const [connected, setConnected] = useState(false);
+  const [status, setStatus] = useState<WebsocketStatus>('connecting');
+  const [retry, setRetry] = useState<{ nextRetryMs: number | null; reconnectAttempt: number }>({
+    nextRetryMs: null,
+    reconnectAttempt: 0,
+  });
 
   const handlers = useRef(options);
 
@@ -53,6 +66,10 @@ export function useWebsocket<T extends z.ZodTypeAny>(
     let destroyed = false;
     let lossNotified = false;
     let lastSchemaError: string | null = null;
+    let reconnectAttempt = 0;
+
+    setStatus('connecting');
+    setRetry({ nextRetryMs: null, reconnectAttempt: 0 });
 
     const connect = () => {
       if (destroyed) {
@@ -72,7 +89,9 @@ export function useWebsocket<T extends z.ZodTypeAny>(
         }
 
         openSocket.current = socket;
-        setConnected(true);
+        reconnectAttempt = 0;
+        setStatus('connected');
+        setRetry({ nextRetryMs: null, reconnectAttempt: 0 });
         handlers.current.onOpen?.();
       };
 
@@ -116,10 +135,11 @@ export function useWebsocket<T extends z.ZodTypeAny>(
 
         socketRef = null;
         openSocket.current = null;
-        setConnected(false);
         handlers.current.onClose?.(event);
 
-        if (event.wasClean) {
+        // The proxies forward upstream close frames verbatim, so a clean close only means "stop" for deliberate codes
+        if (event.wasClean && (reconnectDelay === null || isDeliberateClose(event))) {
+          setStatus('disconnected');
           return;
         }
 
@@ -129,10 +149,16 @@ export function useWebsocket<T extends z.ZodTypeAny>(
         }
 
         if (reconnectDelay !== null) {
+          reconnectAttempt++;
+          setStatus('reconnecting');
+          setRetry({ nextRetryMs: reconnectDelay, reconnectAttempt });
           reconnectTimer = setTimeout(() => {
             reconnectTimer = null;
+            setRetry({ nextRetryMs: null, reconnectAttempt });
             connect();
           }, reconnectDelay);
+        } else {
+          setStatus('disconnected');
         }
       };
     };
@@ -141,7 +167,7 @@ export function useWebsocket<T extends z.ZodTypeAny>(
 
     return () => {
       destroyed = true;
-      setConnected(false);
+      setStatus('disconnected');
 
       if (reconnectTimer !== null) {
         clearTimeout(reconnectTimer);
@@ -159,5 +185,5 @@ export function useWebsocket<T extends z.ZodTypeAny>(
     }
   }, []);
 
-  return { connected, send };
+  return { connected: status === 'connected', status, ...retry, send };
 }

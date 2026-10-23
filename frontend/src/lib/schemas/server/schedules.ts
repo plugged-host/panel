@@ -422,6 +422,7 @@ export const serverScheduleStepCopyFileSchema = z.object({
 export const serverScheduleStepDeleteFilesSchema = z.object({
   type: z.literal('delete_files'),
   ignoreFailure: z.boolean(),
+  trash: z.boolean(),
   root: serverScheduleStepDynamicSchema,
   files: z.array(z.string().min(1)).min(1),
 });

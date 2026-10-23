@@ -3,13 +3,12 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useForm } from '@mantine/form';
 import { zod4Resolver } from 'mantine-form-zod-resolver';
 import { useEffect, useState } from 'react';
-import { zones } from 'tzdata';
 import { z } from 'zod';
 import { httpErrorToHuman } from '@/api/axios.ts';
 import updateTimezone from '@/api/server/settings/updateTimezone.ts';
 import Button from '@/elements/buttons/Button.tsx';
 import TitleCard from '@/elements/data-display/TitleCard.tsx';
-import Select from '@/elements/input/Select.tsx';
+import TimezoneInput from '@/elements/input/TimezoneInput.tsx';
 import Group from '@/elements/layout/Group.tsx';
 import Stack from '@/elements/layout/Stack.tsx';
 import { formatDateTimeAsTimezone } from '@/lib/format/time.ts';
@@ -18,13 +17,6 @@ import { liveValidation } from '@/plugins/form/liveValidation.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useServerStore } from '@/stores/server.ts';
-
-const timezones = Object.keys(zones)
-  .sort()
-  .map((zone) => ({
-    value: zone,
-    label: zone,
-  }));
 
 export default function TimezoneContainer() {
   const { t } = useTranslations();
@@ -79,14 +71,11 @@ export default function TimezoneContainer() {
       <form onSubmit={form.onSubmit(() => doUpdate())} className='h-full'>
         <Stack h='100%'>
           <Stack gap='xs'>
-            <Select
+            <TimezoneInput
               withAsterisk
-              label={t('common.form.timezone', {})}
               placeholder={t('common.form.timezoneSystem', {})}
-              data={timezones}
               allowDeselect
               clearable
-              searchable
               {...form.getInputProps('timezone')}
             />
             {time && <p>{time}</p>}

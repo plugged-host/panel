@@ -22,3 +22,15 @@ export function preloadRouterForPath(pathname: string) {
 
   load().catch(() => undefined);
 }
+
+export function prefetchRouters(admin: boolean) {
+  const loads = [routerImports.dashboard, routerImports.server, ...(admin ? [routerImports.admin] : [])];
+  const whenIdle = window.requestIdleCallback ?? ((callback: () => void) => setTimeout(callback, 2000));
+
+  const next = () => {
+    const load = loads.shift();
+    if (load) whenIdle(() => load().then(next, next));
+  };
+
+  next();
+}

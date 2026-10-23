@@ -44,6 +44,11 @@ const handImplementedMethods = new Set([
     'post /api/tundra/sync',
 ])
 
+/** Responses whose schema tracks wings' internals too closely to pin, consumers deserialize what they need. */
+const untypedResponses = new Set([
+    'get /api/system/config',
+])
+
 const compatBodyProperties: Record<string, Record<string, 'client' | 'extra'>> = {
     'post /api/backups/{backup}/export': { ignored: 'client' },
     'post /api/servers/{server}/files/chmod': { ignored: 'client' },
@@ -55,11 +60,15 @@ const compatBodyProperties: Record<string, Record<string, 'client' | 'extra'>> =
     'post /api/servers/{server}/files/create-symlink': { ignored: 'client' },
     'post /api/servers/{server}/files/decompress': { ignored: 'client' },
     'post /api/servers/{server}/files/delete': { ignored: 'client' },
+    'post /api/servers/{server}/files/ignore-matches': { ignored: 'client' },
     'post /api/servers/{server}/files/pull': { ignored: 'client' },
     'put /api/servers/{server}/files/rename': { ignored: 'client', create_directories: 'extra' },
     'post /api/servers/{server}/files/search': { match_context: 'extra' },
     'post /api/servers/{server}/files/sqlite-query': { ignored: 'client' },
     'post /api/servers/{server}/files/stat': { ignored: 'client' },
+    'post /api/servers/{server}/files/trash': { ignored: 'client' },
+    'post /api/servers/{server}/files/trash/restore': { ignored: 'client' },
+    'post /api/servers/{server}/files/trash/purge': { ignored: 'client' },
     'post /api/servers/{server}/reinstall': { start_on_completion: 'extra' },
 }
 
@@ -385,6 +394,7 @@ for (const [path, route] of Object.entries(openapi.paths ?? {})) {
     if (!path.startsWith('/api')) continue
 
     output.write(`pub mod ${snakeCase(path).slice(4)} {\n`)
+    if (methods.every((method) => !route[method] || untypedResponses.has(`${method} ${path}`))) output.write('    #[allow(unused_imports)]\n')
     output.write('    use super::*;\n')
 
     for (const method of methods) {
@@ -392,6 +402,7 @@ for (const [path, route] of Object.entries(openapi.paths ?? {})) {
         if (!data) continue
 
         output.write(`\n    pub mod ${method} {\n`)
+        if (untypedResponses.has(`${method} ${path}`)) output.write('        #[allow(unused_imports)]\n')
         output.write('        use super::*;\n\n')
 
         const compat = compatBodyProperties[`${method} ${path}`] ?? {}
@@ -416,7 +427,9 @@ for (const [path, route] of Object.entries(openapi.paths ?? {})) {
         for (const [code, _response] of Object.entries(data.responses ?? [])) {
             const response = _response as oas31.ResponseObject
             const schema = Object.values(response.content ?? {})[0].schema
-            if (schema?.$ref) {
+            if (code.startsWith('2') && untypedResponses.has(`${method} ${path}`)) {
+                output.write(`        pub type Response${code} = serde_json::Value;\n\n`)
+            } else if (schema?.$ref) {
                 output.write(`        pub type Response${code} = ${schema.$ref.split('/').at(-1)};\n\n`)
             } else {
                 if ((schema as oas31.SchemaObject).type !== 'object') {

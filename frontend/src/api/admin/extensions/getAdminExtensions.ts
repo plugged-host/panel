@@ -7,6 +7,7 @@ export interface AdminExtensionList {
   extensions: z.infer<typeof adminBackendExtensionSchema>[];
   disabled: string[];
   pendingDisabled: string[];
+  failed: Record<string, string>;
   managementDisabled: boolean;
 }
 
@@ -16,6 +17,7 @@ export default async (): Promise<AdminExtensionList> => {
     extensions: data.extensions.map((item: unknown) => parseFromApi(adminBackendExtensionSchema, item)),
     disabled: data.disabled,
     pendingDisabled: data.pending_disabled,
+    failed: data.failed,
     managementDisabled: data.management_disabled,
   };
 };

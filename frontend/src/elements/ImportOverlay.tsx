@@ -1,6 +1,5 @@
-import { faUpload } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { memo } from 'react';
+import UploadDropOverlay from '@/elements/UploadDropOverlay.tsx';
 
 interface ImportOverlayProps {
   visible: boolean;
@@ -8,22 +7,8 @@ interface ImportOverlayProps {
   subtitle: string;
 }
 
-function ImportOverlay({ visible, title, subtitle }: ImportOverlayProps) {
-  if (!visible) return null;
-
-  return (
-    <div className='fixed inset-0 z-100 flex items-center justify-center backdrop-blur-md bg-black/20 pointer-events-auto'>
-      <div className='pointer-events-none'>
-        <div className='bg-(--mantine-color-body) rounded-lg p-8 shadow-2xl border-2 border-dashed border-(--mantine-color-blue-5)'>
-          <div className='flex flex-col items-center gap-4 z-100'>
-            <FontAwesomeIcon icon={faUpload} className='text-6xl text-(--mantine-color-blue-5) animate-bounce' />
-            <p className='text-xl font-semibold'>{title}</p>
-            <p className='text-sm text-(--mantine-color-dimmed)'>{subtitle}</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+function ImportOverlay(props: ImportOverlayProps) {
+  return <UploadDropOverlay blur {...props} />;
 }
 
 export default memo(ImportOverlay);

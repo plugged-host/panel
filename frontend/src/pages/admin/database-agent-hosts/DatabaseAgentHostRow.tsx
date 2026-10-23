@@ -11,7 +11,7 @@ import DatabaseAgentHostHealthIcon from './DatabaseAgentHostHealthIcon.tsx';
 interface DatabaseAgentHostRowProps {
   databaseAgentHost: z.infer<typeof adminDatabaseAgentHostSchema>;
   isSelected?: boolean;
-  onSelectionChange?: (selected: boolean) => void;
+  onSelectionChange?: (selected: boolean, range?: boolean) => void;
 }
 
 const DatabaseAgentHostRow = forwardRef<HTMLTableRowElement, DatabaseAgentHostRowProps>(function DatabaseAgentHostRow(
@@ -22,8 +22,8 @@ const DatabaseAgentHostRow = forwardRef<HTMLTableRowElement, DatabaseAgentHostRo
     <TableRow
       bg={isSelected ? 'var(--mantine-color-blue-light)' : undefined}
       onClick={(e) => {
-        if (e.ctrlKey || e.metaKey) {
-          onSelectionChange?.(true);
+        if (e.ctrlKey || e.metaKey || e.shiftKey) {
+          onSelectionChange?.(true, e.shiftKey);
           return true;
         }
         return false;

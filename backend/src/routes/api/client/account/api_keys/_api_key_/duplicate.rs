@@ -53,6 +53,7 @@ mod post {
         shared::Payload(data): shared::Payload<Payload>,
     ) -> ApiResponseResult {
         permissions.has_user_permission("api-keys.create")?;
+        permissions.deny_while_impersonating()?;
 
         let api_key =
             match UserApiKey::by_user_uuid_uuid(&state.database, user.uuid, api_key).await? {

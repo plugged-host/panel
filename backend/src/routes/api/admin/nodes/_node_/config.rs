@@ -75,6 +75,12 @@ mod patch {
         permissions.has_admin_permission("nodes.update")?;
 
         wings_api::strip_config_paths(&mut data);
+        if permissions
+            .has_admin_permission("nodes.read-token")
+            .is_err()
+        {
+            shared::censor::strip_censored_paths(&mut data, wings_api::SECRET_CONFIG_PATHS);
+        }
 
         let applied = node.update_configuration(&state.database, &data).await?;
 

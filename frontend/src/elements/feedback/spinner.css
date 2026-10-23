@@ -1,26 +1,66 @@
+/* shared by the React Spinner, the Mantine Loader override and the pre-React boot markup, so it must stay plain CSS on a single element */
+@property --spinner-arc {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 120deg;
+}
+
 .spinner {
+  --spinner-size: var(--loader-size, 2.25rem);
+  --spinner-color: var(--loader-color, var(--mantine-primary-color-filled, #228be6));
+  --spinner-thickness: max(2px, calc(var(--spinner-size) * 0.1));
+
+  position: relative;
   display: inline-block;
-  width: 35px;
-  height: 35px;
-  border: 2px solid #fff;
-  border-bottom-color: transparent;
-  border-radius: 100%;
-  animation: spinner-clip 0.75s 0s infinite linear both;
+  flex-shrink: 0;
+  width: var(--spinner-size);
+  height: var(--spinner-size);
+  border-radius: 50%;
+  background:
+    conic-gradient(
+      transparent calc(360deg - var(--spinner-arc)),
+      var(--spinner-color) calc(360deg - var(--spinner-arc) * 0.45)
+    ),
+    color-mix(in srgb, var(--spinner-color) 20%, transparent);
+  mask: radial-gradient(
+    farthest-side,
+    transparent calc(100% - var(--spinner-thickness)),
+    #000 calc(100% - var(--spinner-thickness) + 0.5px)
+  );
+  animation:
+    spinner-rotate 1.4s linear infinite,
+    spinner-arc 1.4s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
 }
 
-:root[data-mantine-color-scheme="light"] .spinner {
-  border-color: #000;
-  border-bottom-color: transparent;
+.spinner::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: var(--spinner-thickness);
+  height: var(--spinner-thickness);
+  border-radius: 50%;
+  background: var(--spinner-color);
+  transform: translateX(-50%);
 }
 
-@keyframes spinner-clip {
-  0% {
-    transform: rotate(0deg) scale(1);
+@keyframes spinner-rotate {
+  to {
+    transform: rotate(360deg);
   }
-  50% {
-    transform: rotate(180deg) scale(0.8);
+}
+
+@keyframes spinner-arc {
+  from {
+    --spinner-arc: 70deg;
   }
-  100% {
-    transform: rotate(360deg) scale(1);
+  to {
+    --spinner-arc: 250deg;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: spinner-rotate 2.8s linear infinite;
   }
 }

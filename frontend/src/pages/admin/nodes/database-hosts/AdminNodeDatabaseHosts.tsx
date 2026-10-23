@@ -26,9 +26,10 @@ export default function AdminNodeDatabaseHosts({ node }: { node: z.infer<typeof 
     search,
     setSearch,
     setPage,
+    setPerPage,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.admin.nodes.databaseHosts(node.uuid),
-    fetcher: (page, search) => getNodeDatabaseHosts(node.uuid, page, search),
+    fetcher: (page, search, perPage) => getNodeDatabaseHosts(node.uuid, page, search, perPage),
   });
 
   return (
@@ -57,6 +58,7 @@ export default function AdminNodeDatabaseHosts({ node }: { node: z.infer<typeof 
         error={error}
         pagination={nodeDatabaseHosts}
         onPageSelect={setPage}
+        onPerPageSelect={setPerPage}
       >
         {nodeDatabaseHosts?.data.map((databaseHost) => (
           <NodeDatabaseHostRow key={databaseHost.databaseHost.uuid} node={node} databaseHost={databaseHost} />

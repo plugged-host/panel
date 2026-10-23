@@ -41,13 +41,15 @@ export default function AdminDatabaseAgentTemplateInstances({
     search,
     setSearch,
     setPage,
+    setPerPage,
     refetch,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.admin.databaseInstances.byTemplate(databaseAgentTemplate.uuid),
-    fetcher: (page, search) => getDatabaseAgentTemplateInstances(databaseAgentTemplate.uuid, page, search),
+    fetcher: (page, search, perPage) =>
+      getDatabaseAgentTemplateInstances(databaseAgentTemplate.uuid, page, search, perPage),
   });
 
-  const { selected, add, remove, clear, selectAll, allSelected, selectionAreaProps } = useTableSelection({
+  const { selected, toggle, clear, selectAll, allSelected, selectionAreaProps } = useTableSelection({
     items: instances?.data,
   });
 
@@ -146,7 +148,14 @@ export default function AdminDatabaseAgentTemplateInstances({
       </ActionBar>
 
       <SelectionArea onSelectedStart={selectionAreaProps.onSelectedStart} onSelected={selectionAreaProps.onSelected}>
-        <Table columns={columns} loading={loading} error={error} pagination={instances} onPageSelect={setPage}>
+        <Table
+          columns={columns}
+          loading={loading}
+          error={error}
+          pagination={instances}
+          onPageSelect={setPage}
+          onPerPageSelect={setPerPage}
+        >
           {instances?.data.map((databaseAgent) => (
             <SelectionArea.Selectable key={databaseAgent.uuid} item={databaseAgent}>
               {(innerRef: Ref<HTMLElement>) => (
@@ -154,7 +163,7 @@ export default function AdminDatabaseAgentTemplateInstances({
                   key={databaseAgent.uuid}
                   databaseAgent={databaseAgent}
                   isSelected={selected.has(databaseAgent.uuid)}
-                  onSelectionChange={(isSelected) => (isSelected ? add(databaseAgent) : remove(databaseAgent))}
+                  onSelectionChange={(isSelected, range) => toggle(databaseAgent, isSelected, range)}
                   ref={innerRef as Ref<HTMLTableRowElement>}
                 />
               )}

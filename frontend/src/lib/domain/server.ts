@@ -1,9 +1,11 @@
 import { z } from 'zod';
 import { isAdmin } from '@/lib/auth/permissions.ts';
+import { formatSeconds } from '@/lib/format/time.ts';
 import { adminNodeAllocationSchema } from '@/lib/schemas/admin/nodes.ts';
 import { serverAllocationSchema } from '@/lib/schemas/server/allocations.ts';
 import { serverBackupSchema, serverBackupSourceInstanceSchema } from '@/lib/schemas/server/backups.ts';
 import { serverPowerState, serverSchema, serverStatus } from '@/lib/schemas/server/server.ts';
+import { serverTrashSettingsSchema } from '@/lib/schemas/server/settings.ts';
 import { fullUserSchema } from '@/lib/schemas/user.ts';
 import { getTranslations } from '@/providers/TranslationProvider.tsx';
 
@@ -11,7 +13,7 @@ export function isConflictingState(
   server: z.infer<typeof serverSchema>,
   user: z.infer<typeof fullUserSchema> | null = null,
 ): boolean {
-  return (server.isSuspended && !isAdmin(user)) || server.status !== null || server.isTransferring;
+  return (server.isSuspended && !isAdmin(user, 'servers.update')) || server.status !== null || server.isTransferring;
 }
 
 export function getDisabledServerRoutePaths(
@@ -108,4 +110,24 @@ export function getBackupSourceInstance(
   backup: Pick<z.infer<typeof serverBackupSchema>, 'metadata'>,
 ): z.infer<typeof serverBackupSourceInstanceSchema> | null {
   return serverBackupSourceInstanceSchema.safeParse(backup.metadata.source_instance).data ?? null;
+}
+
+export function formatTrashSettings(trash: z.infer<typeof serverTrashSettingsSchema>): string {
+  const { t } = getTranslations();
+
+  if (trash.retention === 0) {
+    return t('common.elements.trashSettings.summary.disabled', {});
+  }
+  if (trash.usageThreshold === 0) {
+    return formatSeconds(trash.retention);
+  }
+
+  return t('common.elements.trashSettings.summary.withThreshold', {
+    retention: formatSeconds(trash.retention),
+    threshold: trash.usageThreshold,
+  });
+}
+
+export function isTrashEnabled(server: z.infer<typeof serverSchema>, browsingPrimaryFilesystem: boolean): boolean {
+  return browsingPrimaryFilesystem && server.trash.retention !== null;
 }

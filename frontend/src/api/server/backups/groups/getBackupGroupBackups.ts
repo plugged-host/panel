@@ -8,9 +8,10 @@ export default async (
   backupGroupUuid: string,
   page: number,
   search?: string,
+  perPage?: number,
 ): Promise<Pagination<z.infer<typeof serverBackupSchema>>> => {
   const { data } = await axiosInstance.get(`/api/client/servers/${serverUuid}/backups/groups/${backupGroupUuid}`, {
-    params: { page, search },
+    params: { page, per_page: perPage, search },
   });
   return parsePaginationFromApi(serverBackupSchema, data.backups);
 };

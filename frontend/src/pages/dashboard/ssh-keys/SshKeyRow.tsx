@@ -19,7 +19,7 @@ import SshKeyEditModal from './modals/SshKeyEditModal.tsx';
 interface SshKeyRowProps {
   sshKey: z.infer<typeof userSshKeySchema>;
   isSelected?: boolean;
-  onSelectionChange?: (selected: boolean) => void;
+  onSelectionChange?: (selected: boolean, range?: boolean) => void;
 }
 
 const SshKeyRow = forwardRef<HTMLTableRowElement, SshKeyRowProps>(function SshKeyRow(

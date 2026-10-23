@@ -6,6 +6,7 @@ import { defineConfig, normalizePath } from 'vite';
 import dynamicPublicDirectory from 'vite-multiple-assets';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 import { bootSpinner } from './vite-plugins/boot-spinner.ts';
+import { chunkSizeWarnings } from './vite-plugins/chunk-size.ts';
 import { countryFlags } from './vite-plugins/country-flags.ts';
 import { deprecatedPaths } from './vite-plugins/deprecated-paths.ts';
 import { extensionChunkGroups } from './vite-plugins/extension-chunks.ts';
@@ -17,8 +18,11 @@ import { translationsPlugin } from './vite-plugins/translations.ts';
 
 const usePrecompress = process.env.PRECOMPRESS === 'true';
 
-const monacoVsDir = normalizePath(
-  path.join(path.dirname(fileURLToPath(import.meta.resolve('monaco-editor/package.json'))), 'min/vs'),
+const pakoInflateUmd = normalizePath(
+  path.join(
+    path.dirname(fileURLToPath(import.meta.resolve('pako/package.json'))),
+    'dist/browser/pako_inflate.umd.min.js',
+  ),
 );
 const svgCountryFlagsDir = normalizePath(
   path.join(path.dirname(fileURLToPath(import.meta.resolve('svg-country-flags/package.json'))), 'svg'),
@@ -53,13 +57,6 @@ export default defineConfig({
     viteStaticCopy({
       targets: [
         {
-          src: monacoVsDir,
-          dest: 'monaco',
-          rename: {
-            stripBase: 7,
-          },
-        },
-        {
           src: svgCountryFlagsDir,
           dest: 'flags',
           rename: {
@@ -67,6 +64,12 @@ export default defineConfig({
           },
         },
       ],
+    }),
+    chunkSizeWarnings({
+      limitKb: 1024,
+      // monaco is loaded on demand and can't be split meaningfully further
+      ignoreModules: /\/node_modules\/(\.pnpm\/[^/]+\/node_modules\/)?monaco-editor\//,
+      ignoreAssets: /^assets\/(editor|css|html|json|ts)\.worker-/,
     }),
     usePrecompress && precompressAssets(),
   ],
@@ -84,12 +87,12 @@ export default defineConfig({
   build: {
     outDir: './dist',
     emptyOutDir: true,
-    chunkSizeWarningLimit: 1024,
+    // enforced by chunkSizeWarnings()
+    chunkSizeWarningLimit: Infinity,
     target: 'es2022',
     cssCodeSplit: true,
     reportCompressedSize: usePrecompress,
     rolldownOptions: {
-      external: ['monaco-editor'],
       experimental: {
         lazyBarrel: true,
       },
@@ -217,6 +220,10 @@ export default defineConfig({
       {
         find: 'monaco-editor/esm/vs/editor/editor.api.js',
         replacement: path.resolve(import.meta.dirname, 'src/lib/editor/monacoApiShim.ts'),
+      },
+      {
+        find: /^pako\/dist\/browser\/pako_inflate\.umd\.min\.js/,
+        replacement: pakoInflateUmd,
       },
     ],
   },

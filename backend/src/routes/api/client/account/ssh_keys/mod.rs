@@ -126,6 +126,7 @@ mod post {
         }
 
         permissions.has_user_permission("ssh-keys.create")?;
+        permissions.deny_while_impersonating()?;
 
         let ssh_keys_lock = state
             .cache

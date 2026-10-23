@@ -6,6 +6,7 @@ import getDatabaseInstanceTemplates from '@/api/server/databases/instances/getDa
 import { queryKeys } from '@/lib/queryKeys.ts';
 import { useResource } from '@/plugins/resource/useResource.ts';
 import { paginatedTableQueryKey } from '@/plugins/resource/useSearchablePaginatedTable.ts';
+import { useTablePerPage } from '@/plugins/resource/useTablePerPage.ts';
 import { useServerCan } from '@/plugins/usePermissions.ts';
 import { useServerStore } from '@/stores/server.ts';
 
@@ -15,16 +16,17 @@ export function useDatabaseRelevance() {
   const canReadClassic = useServerCan('databases.read');
   const canReadAgent = useServerCan('database-instances.read');
   const canCreateAgent = useServerCan('database-instances.create');
+  const [perPage] = useTablePerPage();
 
   const { data: databases } = useQuery({
-    queryKey: paginatedTableQueryKey(queryKeys.server(server.uuid).databases.all(), 1, ''),
-    queryFn: () => getDatabases(server.uuid, 1, ''),
+    queryKey: paginatedTableQueryKey(queryKeys.server(server.uuid).databases.all(), 1, '', perPage),
+    queryFn: () => getDatabases(server.uuid, 1, '', perPage),
     enabled: canReadClassic,
   });
 
   const { data: instances } = useQuery({
-    queryKey: paginatedTableQueryKey(queryKeys.server(server.uuid).databases.instances.all(), 1, ''),
-    queryFn: () => getDatabaseInstances(server.uuid, 1, ''),
+    queryKey: paginatedTableQueryKey(queryKeys.server(server.uuid).databases.instances.all(), 1, '', perPage),
+    queryFn: () => getDatabaseInstances(server.uuid, 1, '', perPage),
     enabled: canReadAgent,
   });
 

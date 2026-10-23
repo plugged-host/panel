@@ -81,7 +81,7 @@ mod post {
         models::{
             CreatableModel, IntoAdminApiObject,
             admin_activity::GetAdminActivityLogger,
-            user::{CreateUserOptions, GetPermissionManager, GetUser, User},
+            user::{CreateUserOptions, GetPermissionManager, User},
         },
         response::{ApiResponse, ApiResponseResult},
     };
@@ -100,13 +100,12 @@ mod post {
     pub async fn route(
         state: GetState,
         permissions: GetPermissionManager,
-        caller: GetUser,
         activity_logger: GetAdminActivityLogger,
         shared::Payload(data): shared::Payload<CreateUserOptions>,
     ) -> ApiResponseResult {
         permissions.has_admin_permission("users.create")?;
 
-        if !caller.admin {
+        if !permissions.is_unrestricted_admin() {
             if data.admin {
                 return ApiResponse::error("you cannot grant admin status")
                     .with_status(StatusCode::FORBIDDEN)

@@ -18,9 +18,10 @@ export default function AdminLocationNodes({ location }: { location: z.infer<typ
     search,
     setSearch,
     setPage,
+    setPerPage,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.admin.locations.nodes(location.uuid),
-    fetcher: (page, search) => getLocationNodes(location.uuid, page, search),
+    fetcher: (page, search, perPage) => getLocationNodes(location.uuid, page, search, perPage),
   });
 
   return (
@@ -38,6 +39,7 @@ export default function AdminLocationNodes({ location }: { location: z.infer<typ
         error={error}
         pagination={locationNodes}
         onPageSelect={setPage}
+        onPerPageSelect={setPerPage}
       >
         {locationNodes?.data.map((node) => (
           <NodeRow key={node.uuid} node={node} />

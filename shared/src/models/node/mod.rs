@@ -7,6 +7,7 @@ use crate::{
     prelude::*,
 };
 use compact_str::ToCompactString;
+use futures_util::StreamExt;
 use garde::Validate;
 use rand::{RngExt, distr::SampleString};
 use serde::{Deserialize, Serialize};
@@ -68,6 +69,28 @@ impl NodeDeploymentBlocker {
                 "no single node in the selected location(s) has enough unallocated memory and disk at the same time"
             }
         }
+    }
+}
+
+/// A change to permissions that wings may hold, see [`Node::invalidate_permissions`].
+#[derive(Default)]
+pub struct PermissionsInvalidation {
+    /// Users whose permissions changed, refetched wherever wings holds them.
+    pub users: Vec<uuid::Uuid>,
+    /// Servers on which the permissions of every user changed.
+    pub servers: Option<wings_api::ServerSelector>,
+    /// Users whose sessions and tokens end, for changes to how they authenticate.
+    pub revoke_users: Vec<uuid::Uuid>,
+    /// API keys whose tokens end.
+    pub revoke_credentials: Vec<uuid::Uuid>,
+}
+
+impl PermissionsInvalidation {
+    pub fn is_empty(&self) -> bool {
+        self.users.is_empty()
+            && self.servers.is_none()
+            && self.revoke_users.is_empty()
+            && self.revoke_credentials.is_empty()
     }
 }
 
@@ -277,38 +300,22 @@ impl Node {
         per_page: i64,
         search: Option<&str>,
     ) -> Result<super::Pagination<Self>, crate::database::DatabaseError> {
-        let offset = (page - 1) * per_page;
-
-        let rows = sqlx::query(sqlx::AssertSqlSafe(format!(
-            r#"
-            SELECT {}, COUNT(*) OVER() AS total_count
-            FROM nodes
-            JOIN locations ON locations.uuid = nodes.location_uuid
-            WHERE nodes.location_uuid = $1 AND {search}
-            ORDER BY nodes.created
-            LIMIT $3 OFFSET $4
-            "#,
+        super::PaginatedQueryBuilder::new(
             Self::columns_sql(None),
-            search = super::search_sql(2, &["nodes.name"], &["nodes.uuid"])
-        )))
+            format!(
+                r#"
+                FROM nodes
+                JOIN locations ON locations.uuid = nodes.location_uuid
+                WHERE nodes.location_uuid = $1 AND {search}
+                "#,
+                search = super::search_sql(2, &["nodes.name"], &["nodes.uuid"]),
+            ),
+            "nodes.created, nodes.uuid",
+        )
         .bind(location_uuid)
         .bind(search)
-        .bind(per_page)
-        .bind(offset)
-        .fetch_all(database.read())
-        .await?;
-
-        Ok(super::Pagination {
-            total: rows
-                .first()
-                .map_or(Ok(0), |row| row.try_get("total_count"))?,
-            per_page,
-            page,
-            data: rows
-                .into_iter()
-                .map(|row| Self::map(None, &row))
-                .try_collect_vec()?,
-        })
+        .fetch(database, page, per_page)
+        .await
     }
 
     pub async fn by_backup_configuration_uuid_with_pagination(
@@ -318,38 +325,22 @@ impl Node {
         per_page: i64,
         search: Option<&str>,
     ) -> Result<super::Pagination<Self>, crate::database::DatabaseError> {
-        let offset = (page - 1) * per_page;
-
-        let rows = sqlx::query(sqlx::AssertSqlSafe(format!(
-            r#"
-            SELECT {}, COUNT(*) OVER() AS total_count
-            FROM nodes
-            JOIN locations ON locations.uuid = nodes.location_uuid
-            WHERE nodes.backup_configuration_uuid = $1 AND {search}
-            ORDER BY nodes.created
-            LIMIT $3 OFFSET $4
-            "#,
+        super::PaginatedQueryBuilder::new(
             Self::columns_sql(None),
-            search = super::search_sql(2, &["nodes.name"], &["nodes.uuid"])
-        )))
+            format!(
+                r#"
+                FROM nodes
+                JOIN locations ON locations.uuid = nodes.location_uuid
+                WHERE nodes.backup_configuration_uuid = $1 AND {search}
+                "#,
+                search = super::search_sql(2, &["nodes.name"], &["nodes.uuid"]),
+            ),
+            "nodes.created, nodes.uuid",
+        )
         .bind(backup_configuration_uuid)
         .bind(search)
-        .bind(per_page)
-        .bind(offset)
-        .fetch_all(database.read())
-        .await?;
-
-        Ok(super::Pagination {
-            total: rows
-                .first()
-                .map_or(Ok(0), |row| row.try_get("total_count"))?,
-            per_page,
-            page,
-            data: rows
-                .into_iter()
-                .map(|row| Self::map(None, &row))
-                .try_collect_vec()?,
-        })
+        .fetch(database, page, per_page)
+        .await
     }
 
     pub async fn all_with_pagination(
@@ -358,37 +349,21 @@ impl Node {
         per_page: i64,
         search: Option<&str>,
     ) -> Result<super::Pagination<Self>, crate::database::DatabaseError> {
-        let offset = (page - 1) * per_page;
-
-        let rows = sqlx::query(sqlx::AssertSqlSafe(format!(
-            r#"
-            SELECT {}, COUNT(*) OVER() AS total_count
-            FROM nodes
-            JOIN locations ON locations.uuid = nodes.location_uuid
-            WHERE {search}
-            ORDER BY nodes.created
-            LIMIT $2 OFFSET $3
-            "#,
+        super::PaginatedQueryBuilder::new(
             Self::columns_sql(None),
-            search = super::search_sql(1, &["nodes.name"], &["nodes.uuid"])
-        )))
+            format!(
+                r#"
+                FROM nodes
+                JOIN locations ON locations.uuid = nodes.location_uuid
+                WHERE {search}
+                "#,
+                search = super::search_sql(1, &["nodes.name"], &["nodes.uuid"]),
+            ),
+            "nodes.created, nodes.uuid",
+        )
         .bind(search)
-        .bind(per_page)
-        .bind(offset)
-        .fetch_all(database.read())
-        .await?;
-
-        Ok(super::Pagination {
-            total: rows
-                .first()
-                .map_or(Ok(0), |row| row.try_get("total_count"))?,
-            per_page,
-            page,
-            data: rows
-                .into_iter()
-                .map(|row| Self::map(None, &row))
-                .try_collect_vec()?,
-        })
+        .fetch(database, page, per_page)
+        .await
     }
 
     pub async fn by_location_uuids_most_eligible(
@@ -609,12 +584,12 @@ impl Node {
         database
             .cache
             .cached(
-                &format!("node::{}::configuration", self.uuid),
+                &format!("node::{}::configuration::raw", self.uuid),
                 120,
                 || async {
-                    Ok::<_, anyhow::Error>(
+                    Ok::<_, anyhow::Error>(wings_api::Config(
                         self.api_client(database).await?.get_system_config().await?,
-                    )
+                    ))
                 },
             )
             .await
@@ -639,7 +614,7 @@ impl Node {
 
         database
             .cache
-            .invalidate(&format!("node::{}::configuration", self.uuid))
+            .invalidate(&format!("node::{}::configuration::raw", self.uuid))
             .await?;
 
         Ok(true)
@@ -790,6 +765,133 @@ impl Node {
         ))
     }
 
+    /// Tells wings that permissions changed: live sessions continue with their new
+    /// permissions and only those that lost access end. Must run after the change is
+    /// committed. Nodes that predate invalidation end the affected users' sessions instead.
+    /// Runs in the background, failures are only logged.
+    pub fn invalidate_permissions(
+        &self,
+        database: &Arc<crate::database::Database>,
+        invalidation: PermissionsInvalidation,
+    ) {
+        if invalidation.is_empty() {
+            return;
+        }
+
+        let as_of = chrono::Utc::now().timestamp_millis();
+        let node = self.clone();
+        let database = database.clone();
+
+        tokio::spawn(async move {
+            node.invalidate_permissions_as_of(&database, &invalidation, as_of)
+                .await;
+        });
+    }
+
+    /// [`Self::invalidate_permissions`] on every node.
+    pub fn invalidate_permissions_everywhere(
+        database: &Arc<crate::database::Database>,
+        invalidation: PermissionsInvalidation,
+    ) {
+        if invalidation.is_empty() {
+            return;
+        }
+
+        let as_of = chrono::Utc::now().timestamp_millis();
+        let database = database.clone();
+
+        tokio::spawn(async move {
+            let mut nodes = Vec::new();
+            let mut node_page = 1;
+            loop {
+                match Self::all_with_pagination(&database, node_page, 50, None).await {
+                    Ok(page) if page.data.is_empty() => break,
+                    Ok(page) => nodes.extend(page.data),
+                    Err(err) => {
+                        tracing::error!(
+                            "failed to list nodes to invalidate permissions: {:?}",
+                            err
+                        );
+                        break;
+                    }
+                }
+
+                node_page += 1;
+            }
+
+            let mut futures = Vec::with_capacity(nodes.len());
+            for node in &nodes {
+                futures.push(node.invalidate_permissions_as_of(&database, &invalidation, as_of));
+            }
+
+            let mut results_stream = futures_util::stream::iter(futures).buffer_unordered(10);
+            while results_stream.next().await.is_some() {}
+        });
+    }
+
+    async fn invalidate_permissions_as_of(
+        &self,
+        database: &crate::database::Database,
+        invalidation: &PermissionsInvalidation,
+        as_of: i64,
+    ) {
+        const PERMISSIONS_INVALIDATE_TIMEOUT: std::time::Duration =
+            std::time::Duration::from_secs(5);
+
+        let result = async {
+            let api_client = self.api_client(database).await?;
+
+            let response = tokio::time::timeout(
+                PERMISSIONS_INVALIDATE_TIMEOUT,
+                api_client.post_permissions_invalidate(
+                    &wings_api::permissions_invalidate::post::RequestBody {
+                        as_of,
+                        revoke_credentials: invalidation.revoke_credentials.clone(),
+                        revoke_users: invalidation.revoke_users.clone(),
+                        servers: invalidation.servers.clone(),
+                        users: invalidation.users.clone(),
+                    },
+                ),
+            )
+            .await?;
+
+            match response {
+                Ok(_) => Ok(()),
+                Err(wings_api::client::ApiHttpError::Http(reqwest::StatusCode::NOT_FOUND, _)) => {
+                    for &user in invalidation.users.iter().chain(&invalidation.revoke_users) {
+                        let deauthorized = async {
+                            tokio::time::timeout(
+                                PERMISSIONS_INVALIDATE_TIMEOUT,
+                                api_client.post_deauthorize_user(
+                                    &wings_api::deauthorize_user::post::RequestBody {
+                                        servers: Vec::new(),
+                                        user,
+                                    },
+                                ),
+                            )
+                            .await??;
+
+                            Ok::<_, anyhow::Error>(())
+                        }
+                        .await;
+
+                        if let Err(err) = deauthorized {
+                            tracing::error!(node = %self.uuid, user = %user, "failed to deauthorize user in wings: {:?}", err);
+                        }
+                    }
+
+                    Ok(())
+                }
+                Err(err) => Err(anyhow::Error::from(err)),
+            }
+        }
+        .await;
+
+        if let Err(err) = result {
+            tracing::error!(node = %self.uuid, "failed to invalidate permissions in wings: {:?}", err);
+        }
+    }
+
     /// Whether this node will enforce firewall rules, `None` when its configuration could not
     /// be retrieved in time. False covers both a node that cannot firewall at all and one with
     /// firewalling turned off, so the reason stays out of the client API.
@@ -805,13 +907,7 @@ impl Node {
                 .ok()?
                 .ok()?;
 
-        Some(
-            !config.system.user.rootless.enabled
-                && !matches!(
-                    config.docker.firewall.backend,
-                    wings_api::FirewallBackendKind::Disabled
-                ),
-        )
+        firewall_supported(&config).ok()
     }
 
     /// The node's `allowed_mounts` / `allowed_devices`, `None` when its configuration could
@@ -828,7 +924,7 @@ impl Node {
                 .ok()?
                 .ok()?;
 
-        Some(NodeAllowedSources::from_config(&config))
+        NodeAllowedSources::from_config(&config).ok()
     }
 
     pub async fn bandwidth_status(
@@ -981,6 +1077,35 @@ impl Node {
     ) -> Result<String, anyhow::Error> {
         Ok(jwt.create_custom(self.token.decrypt(database).await?.as_bytes(), payload)?)
     }
+}
+
+/// Whether a node with this config enforces firewall rules, see [`Node::fetch_firewall_support`].
+fn firewall_supported(config: &wings_api::Config) -> Result<bool, serde_json::Error> {
+    nestify::nest! {
+        #[derive(Default, Deserialize)] #[serde(default)] struct FirewallConfig {
+            system: #[derive(Default, Deserialize)] #[serde(default)] struct FirewallConfigSystem {
+                user: #[derive(Default, Deserialize)] #[serde(default)] struct FirewallConfigSystemUser {
+                    rootless: #[derive(Default, Deserialize)] #[serde(default)] struct FirewallConfigSystemUserRootless {
+                        enabled: bool,
+                    },
+                },
+            },
+            docker: #[derive(Default, Deserialize)] #[serde(default)] struct FirewallConfigDocker {
+                // absent on wings releases predating firewalling
+                firewall: Option<#[derive(Default, Deserialize)] #[serde(default)] struct FirewallConfigDockerFirewall {
+                    backend: compact_str::CompactString,
+                }>,
+            },
+        }
+    }
+
+    let config: FirewallConfig = config.view()?;
+
+    Ok(!config.system.user.rootless.enabled
+        && config
+            .docker
+            .firewall
+            .is_some_and(|firewall| firewall.backend != "disabled"))
 }
 
 #[async_trait::async_trait]
@@ -1568,4 +1693,58 @@ pub struct AdminApiNode {
     pub disk: i64,
 
     pub created: chrono::DateTime<chrono::Utc>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    // firewall_supported
+    #[test]
+    fn firewall_is_unsupported_without_a_firewall_section() {
+        let config = wings_api::Config(json!({ "docker": { "network": {} } }));
+
+        assert!(!firewall_supported(&config).unwrap());
+    }
+
+    #[test]
+    fn firewall_is_supported_when_the_section_has_no_backend() {
+        let config = wings_api::Config(json!({ "docker": { "firewall": {} } }));
+
+        assert!(firewall_supported(&config).unwrap());
+    }
+
+    #[test]
+    fn firewall_is_unsupported_when_the_backend_is_disabled() {
+        let config = wings_api::Config(json!({
+            "docker": { "firewall": { "backend": "disabled" } },
+        }));
+
+        assert!(!firewall_supported(&config).unwrap());
+    }
+
+    #[test]
+    fn unknown_firewall_backends_count_as_supported() {
+        let config = wings_api::Config(json!({
+            "docker": { "firewall": { "backend": "some_future_backend", "new_option": 1 } },
+        }));
+
+        assert!(firewall_supported(&config).unwrap());
+    }
+
+    #[test]
+    fn firewall_is_unsupported_when_rootless() {
+        let rootless = wings_api::Config(json!({
+            "system": { "user": { "rootless": { "enabled": true } } },
+            "docker": { "firewall": { "backend": "nftables" } },
+        }));
+        let rootful = wings_api::Config(json!({
+            "system": { "user": { "rootless": { "enabled": false } } },
+            "docker": { "firewall": { "backend": "nftables" } },
+        }));
+
+        assert!(!firewall_supported(&rootless).unwrap());
+        assert!(firewall_supported(&rootful).unwrap());
+    }
 }

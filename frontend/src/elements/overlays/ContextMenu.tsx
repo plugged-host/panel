@@ -114,7 +114,11 @@ export const ContextMenuProvider = ({ children }: { children: ReactNode }) => {
               item.type === 'divider' ? (
                 <Menu.Divider key={idx} />
               ) : (item.items || []).length > 0 ? (
-                <Menu.Sub key={idx} position={state.x + 300 > window.innerWidth ? 'left-start' : 'right-start'}>
+                <Menu.Sub
+                  key={idx}
+                  position={state.x + 300 > window.innerWidth ? 'left-start' : 'right-start'}
+                  opened={item.disabled ? false : undefined}
+                >
                   <Menu.Sub.Target>
                     <Menu.Sub.Item
                       key={idx}

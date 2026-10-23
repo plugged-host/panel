@@ -36,6 +36,7 @@ export default function FileTreeScrollingRow({
       aria-selected={selected}
       data-active-file={active || undefined}
       data-file-manager-tree-row
+      data-file-tree-path={row.path}
       className='pointer-events-none grid w-full grid-cols-(--file-manager-tree-columns) items-center gap-x-2 text-left text-sm [contain:layout_paint]'
       style={{
         height: rowHeight,

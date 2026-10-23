@@ -26,6 +26,7 @@ function NestsContainer() {
     search,
     setSearch,
     setPage,
+    setPerPage,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.admin.nests.all(),
     fetcher: getNests,
@@ -48,7 +49,14 @@ function NestsContainer() {
         </AdminCan>
       }
     >
-      <Table columns={nestTableColumns()} loading={loading} error={error} pagination={nests} onPageSelect={setPage}>
+      <Table
+        columns={nestTableColumns()}
+        loading={loading}
+        error={error}
+        pagination={nests}
+        onPageSelect={setPage}
+        onPerPageSelect={setPerPage}
+      >
         {nests?.data.map((nest) => (
           <NestRow key={nest.uuid} nest={nest} />
         ))}

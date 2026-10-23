@@ -39,6 +39,17 @@ export const adminDatabaseAgentHostCapacitySchema = z.object({
     disk: z.number(),
   }),
   allocated: adminDatabaseAgentHostAllocatedCapacitySchema,
+  instances: z.array(
+    z.object({
+      uuid: z.string(),
+      name: z.string(),
+      serverUuid: z.string(),
+      serverName: z.string(),
+      cpu: z.number(),
+      memory: z.number(),
+      disk: z.number(),
+    }),
+  ),
 });
 
 export const adminDatabaseAgentHostCapacitiesSchema = z.record(

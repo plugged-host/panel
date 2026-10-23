@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import Card from '@/elements/data-display/Card.tsx';
 import SemiCircleProgress from '@/elements/feedback/SemiCircleProgress.tsx';
+import Text from '@/elements/typography/Text.tsx';
 import Title from '@/elements/typography/Title.tsx';
 import { bytesToString, mbToBytes } from '@/lib/format/size.ts';
 import { usageColor } from '@/lib/format/usage.ts';
@@ -33,7 +34,7 @@ export default function CapacityCard({
         <div className='flex justify-center md:flex-1'>
           <SemiCircleProgress
             value={unlimited ? 100 : Math.min(percent, 100)}
-            label={unlimited ? '--' : <>{percent.toFixed(1)}%</>}
+            label={unlimited ? '∞' : <>{percent.toFixed(1)}%</>}
             filledSegmentColor={unlimited ? 'gray' : usageColor(allocated, limit)}
           />
         </div>
@@ -41,7 +42,7 @@ export default function CapacityCard({
           <Title order={2}>
             {icon} {label}
           </Title>
-          <h2>
+          <Text fw={500}>
             {unlimited ? (
               formatValue(allocated)
             ) : (
@@ -49,8 +50,14 @@ export default function CapacityCard({
                 {formatValue(allocated)} / {formatValue(limit)}
               </>
             )}
-          </h2>
-          {unlimited ? <p className='text-xs'>{footer ?? noLimitLabel}</p> : footer}
+          </Text>
+          {unlimited ? (
+            <Text size='xs' c='dimmed'>
+              {footer ?? noLimitLabel}
+            </Text>
+          ) : (
+            footer
+          )}
         </div>
       </div>
     </Card>

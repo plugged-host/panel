@@ -171,6 +171,7 @@ export interface FileManagerStore {
   selectFile: (file: z.infer<typeof serverDirectoryEntrySchema>) => void;
   toggleSelectedFile: (file: z.infer<typeof serverDirectoryEntrySchema>) => void;
   selectFileRange: (file: z.infer<typeof serverDirectoryEntrySchema>) => void;
+  setFileRangeSelected: (file: z.infer<typeof serverDirectoryEntrySchema>, selected: boolean) => void;
   addSelectedFile: (file: z.infer<typeof serverDirectoryEntrySchema>) => void;
   removeSelectedFile: (file: z.infer<typeof serverDirectoryEntrySchema>) => void;
   doOpenModal: (modal: ModalType, entries?: z.infer<typeof serverDirectoryEntrySchema>[]) => void;
@@ -705,6 +706,28 @@ export const createFileManagerStore = (
 
         const [start, end] = anchorIndex < targetIndex ? [anchorIndex, targetIndex] : [targetIndex, anchorIndex];
         set({ selectedFiles: new ObjectSet('name', entries.slice(start, end + 1)) });
+      },
+      setFileRangeSelected: (file, selected) => {
+        const entries = get().browsingEntries.data;
+        const targetIndex = entries.findIndex((entry) => entry.name === file.name);
+        if (targetIndex === -1) return;
+
+        const anchorIndex = selectionAnchor ? entries.findIndex((entry) => entry.name === selectionAnchor!.name) : -1;
+        const fromIndex = anchorIndex === -1 ? targetIndex : anchorIndex;
+        const [start, end] = fromIndex < targetIndex ? [fromIndex, targetIndex] : [targetIndex, fromIndex];
+        selectionAnchor = file;
+
+        set((state) => {
+          const next = state.selectedFiles.clone();
+          for (const entry of entries.slice(start, end + 1)) {
+            if (selected) {
+              next.add(entry);
+            } else {
+              next.delete(entry);
+            }
+          }
+          return { selectedFiles: next };
+        });
       },
       addSelectedFile: (file) => set((state) => ({ selectedFiles: state.selectedFiles.clone().add(file) })),
       removeSelectedFile: (file) =>

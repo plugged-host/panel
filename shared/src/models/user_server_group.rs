@@ -113,7 +113,7 @@ impl UserServerGroup {
             SELECT {}
             FROM user_server_groups
             WHERE user_server_groups.user_uuid = $1
-            ORDER BY user_server_groups.order_, user_server_groups.created
+            ORDER BY user_server_groups.order_, user_server_groups.created, user_server_groups.uuid
             "#,
             Self::columns_sql(None)
         )))

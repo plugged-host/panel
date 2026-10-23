@@ -11,7 +11,7 @@ mod post {
         jwt::BasePayload,
         models::{
             server::{GetServer, GetServerActivityLogger, Server},
-            user::{GetPermissionManager, GetUser},
+            user::GetPermissionManager,
         },
         response::{ApiResponse, ApiResponseResult},
     };
@@ -78,7 +78,6 @@ mod post {
         state: GetState,
         permissions: GetPermissionManager,
         mut server: GetServer,
-        user: GetUser,
         activity_logger: GetServerActivityLogger,
         shared::Payload(data): shared::Payload<Payload>,
     ) -> ApiResponseResult {
@@ -126,7 +125,7 @@ mod post {
         }
 
         let mut destination_servers =
-            Server::by_user_uuids(&state.database, &user, &destination_uuids).await?;
+            Server::by_user_uuids(&state.database, &permissions, &destination_uuids).await?;
 
         if destination_servers.len() != destination_uuids.len() {
             return ApiResponse::error("destination server not found")

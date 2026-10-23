@@ -18,9 +18,10 @@ export default function AdminRoleUsers({ role }: { role: z.infer<typeof roleSche
     search,
     setSearch,
     setPage,
+    setPerPage,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.admin.roles.users(role.uuid),
-    fetcher: (page, search) => getRoleUsers(role.uuid, page, search),
+    fetcher: (page, search, perPage) => getRoleUsers(role.uuid, page, search, perPage),
   });
 
   return (
@@ -32,7 +33,14 @@ export default function AdminRoleUsers({ role }: { role: z.infer<typeof roleSche
       registry={window.extensionContext.extensionRegistry.pages.admin.roles.view.users.subContainer}
       registryProps={{ role }}
     >
-      <Table columns={userTableColumns()} loading={loading} error={error} pagination={roleUsers} onPageSelect={setPage}>
+      <Table
+        columns={userTableColumns()}
+        loading={loading}
+        error={error}
+        pagination={roleUsers}
+        onPageSelect={setPage}
+        onPerPageSelect={setPerPage}
+      >
         {roleUsers?.data.map((user) => (
           <UserRow key={user.uuid} user={user} />
         ))}

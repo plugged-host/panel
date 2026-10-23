@@ -9,6 +9,11 @@ function rustIdent(name: string): string {
     return ['type', 'override', 'match', 'move', 'ref', 'self', 'use', 'mod'].includes(name) ? `r#${name}` : name
 }
 
+/** Responses whose schema tracks the db-agent's internals too closely to pin, consumers deserialize what they need. */
+const untypedResponses = new Set([
+    'get /api/system/config',
+])
+
 const openapi: oas31.OpenAPIObject = JSON.parse(fs.readFileSync('../openapi.json', 'utf-8'))
 setSchemas(openapi.components?.schemas ?? {})
 const output = fs.createWriteStream('../src/lib.rs', { flags: 'w' })
@@ -292,6 +297,7 @@ for (const [path, route] of Object.entries(openapi.paths ?? {})) {
     if (!path.startsWith('/api')) continue
 
     output.write(`pub mod ${snakeCase(path).slice(4)} {\n`)
+    if (methods.every((method) => !route[method] || untypedResponses.has(`${method} ${path}`))) output.write('    #[allow(unused_imports)]\n')
     output.write('    use super::*;\n')
 
     for (const method of methods) {
@@ -299,6 +305,7 @@ for (const [path, route] of Object.entries(openapi.paths ?? {})) {
         if (!data) continue
 
         output.write(`\n    pub mod ${method} {\n`)
+        if (untypedResponses.has(`${method} ${path}`)) output.write('        #[allow(unused_imports)]\n')
         output.write('        use super::*;\n\n')
 
         if (data.requestBody) {
@@ -319,7 +326,9 @@ for (const [path, route] of Object.entries(openapi.paths ?? {})) {
         for (const [code, _response] of Object.entries(data.responses ?? [])) {
             const response = _response as oas31.ResponseObject
             const schema = Object.values(response.content ?? {})[0].schema
-            if (schema?.$ref) {
+            if (code.startsWith('2') && untypedResponses.has(`${method} ${path}`)) {
+                output.write(`        pub type Response${code} = serde_json::Value;\n\n`)
+            } else if (schema?.$ref) {
                 output.write(`        pub type Response${code} = ${renameSchema(schema.$ref.split('/').at(-1)!)};\n\n`)
             } else {
                 if ((schema as oas31.SchemaObject).type !== 'object') {

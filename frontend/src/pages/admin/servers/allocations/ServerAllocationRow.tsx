@@ -141,7 +141,7 @@ export default function ServerAllocationRow({
             <TableData className='relative w-10 text-center'>
               {allocation.isPrimary && (
                 <Tooltip label={t('common.tooltip.primary', {})}>
-                  <FontAwesomeIcon icon={faStar} className='text-yellow-500' />
+                  <FontAwesomeIcon icon={faStar} className='text-(--mantine-color-yellow-text)' />
                 </Tooltip>
               )}
             </TableData>

@@ -23,9 +23,10 @@ export default function AdminDatabaseAgentHostBackups({
     search,
     setSearch,
     setPage,
+    setPerPage,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.admin.backups.byDatabaseAgentHost(databaseAgentHost.uuid),
-    fetcher: (page, search) => getDatabaseAgentHostBackups(databaseAgentHost.uuid, page, search),
+    fetcher: (page, search, perPage) => getDatabaseAgentHostBackups(databaseAgentHost.uuid, page, search, perPage),
     paginationKey: 'backups',
     refetchInterval: (data) =>
       data?.backups.data.some((backup) => backup.deletionStatus === 'deleting') ? 5000 : false,
@@ -63,6 +64,7 @@ export default function AdminDatabaseAgentHostBackups({
         error={error}
         pagination={databaseAgentHostBackups?.backups}
         onPageSelect={setPage}
+        onPerPageSelect={setPerPage}
       >
         {databaseAgentHostBackups?.backups.data.map((backup) => (
           <NodeServerBackupRow

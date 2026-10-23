@@ -32,6 +32,7 @@ function DatabaseAgentTemplatesContainer() {
     search,
     setSearch,
     setPage,
+    setPerPage,
     refetch,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.admin.databaseAgentTemplates.all(),
@@ -82,6 +83,7 @@ function DatabaseAgentTemplatesContainer() {
         loading={loading}
         pagination={databaseAgentTemplates}
         onPageSelect={setPage}
+        onPerPageSelect={setPerPage}
         error={error}
       >
         {databaseAgentTemplates?.data.map((template) => (

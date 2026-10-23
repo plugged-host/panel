@@ -15,6 +15,7 @@ export default function DatabaseInstanceDetails({
   const { t } = useTranslations();
   const usage = useServerStore((state) => state.databaseInstanceUsage);
 
+  const statsPending = !usage;
   const offline = !usage || usage.state === 'offline';
   const host = instance.host ? `${instance.host}${instance.port ? `:${instance.port}` : ''}` : null;
 
@@ -30,23 +31,27 @@ export default function DatabaseInstanceDetails({
       <StatCard
         icon={faClock}
         label={t('common.stat.uptime', {})}
+        loading={statsPending}
         value={offline ? t('common.enum.serverState.offline', {}) : formatMilliseconds(usage.uptime)}
       />
       <StatCard
         icon={faMicrochip}
         label={t('common.stat.cpuLoad', {})}
+        loading={statsPending}
         value={offline ? t('common.enum.serverState.offline', {}) : `${usage.cpuAbsolute.toFixed(2)}%`}
         limit={instance.cpu !== 0 ? `${instance.cpu}%` : t('common.unlimited', {})}
       />
       <StatCard
         icon={faMemory}
         label={t('common.stat.memoryLoad', {})}
+        loading={statsPending}
         value={offline ? t('common.enum.serverState.offline', {}) : bytesToString(usage.memoryBytes)}
         limit={instance.memory !== 0 ? bytesToString(mbToBytes(instance.memory)) : t('common.unlimited', {})}
       />
       <StatCard
         icon={faHardDrive}
         label={t('common.stat.diskUsage', {})}
+        loading={statsPending}
         value={bytesToString(usage?.diskBytes ?? 0)}
         limit={instance.disk !== 0 ? bytesToString(mbToBytes(instance.disk)) : t('common.unlimited', {})}
       />

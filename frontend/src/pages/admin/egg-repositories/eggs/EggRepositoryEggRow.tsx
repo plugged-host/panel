@@ -14,7 +14,7 @@ import { useTranslations } from '@/providers/TranslationProvider.tsx';
 interface EggRepositoryEggRowProps {
   egg: z.infer<typeof adminEggRepositoryEggSchema>;
   isSelected: boolean;
-  onSelectionChange: (selected: boolean) => void;
+  onSelectionChange: (selected: boolean, range?: boolean) => void;
   onOpen: () => void;
   onInstall: () => void;
 }

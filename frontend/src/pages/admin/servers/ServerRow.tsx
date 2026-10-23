@@ -15,7 +15,7 @@ import { useTranslations } from '@/providers/TranslationProvider.tsx';
 interface ServerRowProps {
   server: AdminServer;
   isSelected?: boolean;
-  onSelectionChange?: (selected: boolean) => void;
+  onSelectionChange?: (selected: boolean, range?: boolean) => void;
   onClick?: (event: React.MouseEvent) => void;
 }
 

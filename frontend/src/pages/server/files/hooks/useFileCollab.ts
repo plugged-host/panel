@@ -1,4 +1,3 @@
-import { type OnMount } from '@monaco-editor/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Awareness, applyAwarenessUpdate, encodeAwarenessUpdate } from 'y-protocols/awareness';
 import * as Y from 'yjs';
@@ -7,6 +6,7 @@ import {
   type PierreFileChangeEvent,
   type PierreLocalSelection,
 } from '@/elements/editors/PierreEditor.tsx';
+import { type OnMount } from '@/lib/editor/monacoLoader.ts';
 import {
   bindPierreEditor,
   createMonacoBinding,

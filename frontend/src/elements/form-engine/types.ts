@@ -119,6 +119,12 @@ export interface SizeFieldDef<T extends Record<string, unknown>> extends BaseFie
   min: number;
 }
 
+export interface TimezoneFieldDef<T extends Record<string, unknown>> extends BaseFieldDef<T> {
+  type: 'timezone';
+  withSystemOption?: boolean;
+  props?: Partial<SelectProps>;
+}
+
 export interface LocalizedTextFieldDef<T extends Record<string, unknown>> extends BaseFieldDef<T> {
   type: 'localizedtext';
   translationsName: keyof T & string;
@@ -181,6 +187,7 @@ export type FieldDef<T extends Record<string, unknown> = Record<string, unknown>
   | TagsFieldDef<T>
   | NumberTagsFieldDef<T>
   | SizeFieldDef<T>
+  | TimezoneFieldDef<T>
   | LocalizedTextFieldDef<T>
   | LocalizedTextAreaFieldDef<T>
   | MultiSelectGroupFieldDef<T>

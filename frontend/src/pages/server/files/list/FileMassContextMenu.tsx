@@ -11,9 +11,11 @@ import { useCallback, useMemo } from 'react';
 import { z } from 'zod';
 import downloadFiles from '@/api/server/files/downloadFiles.ts';
 import ContextMenu, { ContextMenuItem } from '@/elements/overlays/ContextMenu.tsx';
+import { isTrashEnabled } from '@/lib/domain/server.ts';
 import { streamingArchiveFormat } from '@/lib/schemas/generic.ts';
 import { serverDirectoryEntrySchema } from '@/lib/schemas/server/files.ts';
 import { buildDownloadAsMenuItems, downloadFilesWithToast } from '@/pages/server/files/list/downloadFilesWithToast.ts';
+import { hasNonMountGateway, withoutMountGateways } from '@/pages/server/files/list/mountGateway.ts';
 import { useServerCan } from '@/plugins/usePermissions.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
@@ -49,6 +51,11 @@ export default function FileMassContextMenu({
   const canArchive = useServerCan('files.archive');
   const canUpdate = useServerCan('files.update');
   const canDelete = useServerCan('files.delete');
+  const browsingPrimaryFilesystem = useFileManagerStore((state) => state.browsingPrimaryFilesystem);
+  const trashEnabled = isTrashEnabled(server, browsingPrimaryFilesystem);
+  const hasDeletableFiles = useFileManagerStore((state) =>
+    hasNonMountGateway(files ?? state.selectedFiles.values(), state.browsingPrimaryFilesystem),
+  );
   const activeDirectory = directory ?? browsingDirectory;
   const activeWritableDirectory = writableDirectory ?? browsingWritableDirectory;
   const getActiveFiles = useCallback(() => files ?? store.getState().selectedFiles.values(), [files, store]);
@@ -152,10 +159,13 @@ export default function FileMassContextMenu({
       {
         type: 'action',
         icon: faTrash,
-        label: t('common.button.delete', {}),
-        hidden: !!actingMode || !activeWritableDirectory,
-        onClick: () => withActiveFiles((activeFiles) => store.getState().doOpenModal('delete', activeFiles)),
-        color: 'red',
+        label: t(trashEnabled ? 'pages.server.files.button.moveToTrash' : 'common.button.delete', {}),
+        hidden: !!actingMode || !activeWritableDirectory || !hasDeletableFiles,
+        onClick: () =>
+          withActiveFiles((activeFiles) =>
+            store.getState().doOpenModal('delete', withoutMountGateways(activeFiles, browsingPrimaryFilesystem)),
+          ),
+        color: trashEnabled ? 'gray' : 'red',
         canAccess: canDelete,
       },
     ],
@@ -168,6 +178,9 @@ export default function FileMassContextMenu({
       canArchive,
       canUpdate,
       canDelete,
+      trashEnabled,
+      browsingPrimaryFilesystem,
+      hasDeletableFiles,
       store,
       doDownload,
       withActiveFiles,

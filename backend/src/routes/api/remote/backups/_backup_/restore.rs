@@ -126,8 +126,8 @@ mod post {
                     "server_restored",
                     &server.owner,
                     minijinja::context! {
-                        user => server.owner,
-                        server => server,
+                        user => minijinja::value::Serde(&server.owner),
+                        server => minijinja::value::Serde(&server),
                         server_link => format!(
                             "{}/server/{:08x}",
                             settings.app.url,

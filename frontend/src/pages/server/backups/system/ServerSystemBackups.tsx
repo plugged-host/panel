@@ -26,9 +26,10 @@ export default function ServerSystemBackups() {
     search,
     setSearch,
     setPage,
+    setPerPage,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.server(server.uuid).backups.system(),
-    fetcher: (page, search) => getSystemBackups(server.uuid, page, search),
+    fetcher: (page, search, perPage) => getSystemBackups(server.uuid, page, search, perPage),
   });
 
   return (
@@ -41,7 +42,14 @@ export default function ServerSystemBackups() {
     >
       <BackupsSubNavigation />
 
-      <Table columns={columns.headers} loading={loading} pagination={backups} onPageSelect={setPage} error={error}>
+      <Table
+        columns={columns.headers}
+        loading={loading}
+        pagination={backups}
+        onPageSelect={setPage}
+        onPerPageSelect={setPerPage}
+        error={error}
+      >
         {backups?.data.map((backup) => (
           <BackupRow backup={backup} columns={columns} key={backup.uuid} readOnly />
         ))}

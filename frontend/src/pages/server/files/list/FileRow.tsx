@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import { join } from 'pathe';
 import { forwardRef, memo, useMemo, useRef } from 'react';
-import { FileOpenMode } from 'shared/src/registries/pages/server/files.ts';
+import { FileOpenMode } from 'shared/src/registries/pages/server/files/index.ts';
 import { z } from 'zod';
 import { TableData, TableRow } from '@/elements/data-display/Table.tsx';
 import Checkbox from '@/elements/input/Checkbox.tsx';
@@ -30,19 +30,24 @@ function FileRowCheckbox({
 }: {
   file: z.infer<typeof serverDirectoryEntrySchema>;
   isSelected: boolean;
-  toggleSelected: () => void;
+  toggleSelected: (range: boolean) => void;
 }) {
   const anyActing = useFileManagerStore((state) => state.actingFiles.size > 0);
 
   return (
-    <td className='pl-4 relative cursor-pointer w-10 text-center py-2'>
+    <td
+      className='pl-4 relative cursor-pointer w-10 text-center py-2'
+      onClick={(e) => {
+        e.stopPropagation();
+        if (!anyActing) toggleSelected(e.shiftKey);
+      }}
+    >
       <Checkbox
         id={file.name}
         checked={isSelected}
         classNames={{ input: 'cursor-pointer!' }}
         disabled={anyActing}
-        onChange={toggleSelected}
-        onClick={(e) => e.stopPropagation()}
+        readOnly
       />
     </td>
   );
@@ -86,12 +91,12 @@ const FileRow = forwardRef<HTMLTableRowElement, FileRowProps>(function FileRow(
   const { moving, isDropTarget, getDropHandlers } = useDraggedFileMove({ targetDirectory });
   const openMode = useMemo(() => isOpenableFile(file, store.getState()), [file, browsingFastDirectory, store]);
 
-  const toggleSelected = () => {
+  const toggleSelected = (range: boolean) => {
     const state = store.getState();
-    if (isSelected) {
-      state.removeSelectedFile(file);
+    if (range) {
+      state.setFileRangeSelected(file, !isSelected);
     } else {
-      state.addSelectedFile(file);
+      state.toggleSelectedFile(file);
     }
   };
 

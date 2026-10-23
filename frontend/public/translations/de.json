@@ -238,6 +238,7 @@
       "button": {
         "create": "Erstellen",
         "add": "Hinzufügen",
+        "retry": "Erneut versuchen",
         "addDefaultPort": ":{port} hinzufügen",
         "save": "Speichern",
         "saveAndStay": "Speichern & Bleiben",
@@ -336,6 +337,8 @@
           "matches": "{count} Treffer",
           "noMatches": "Keine Treffer",
           "exception": "Ausnahme",
+          "invalid": "Ungültiges Muster",
+          "unavailable": "Zählung nicht verfügbar",
           "tooManyPatterns": "Bei mehr als {max} Mustern werden Treffer nicht automatisch gezählt.",
           "unanchoredException": "`{pattern}` trifft in jeder Tiefe zu, verwende `{anchored}`, um nur im Hauptverzeichnis zu treffen."
         },
@@ -349,6 +352,21 @@
             "weekday": "Wochentag"
           },
           "nextRun": "Nächste Ausführung ist {timestamp}."
+        },
+        "trashRetention": {
+          "days": "Tage"
+        },
+        "trashSettings": {
+          "custom": "Eigene Papierkorb-Einstellungen für diesen Server verwenden",
+          "default": "Panel-Standard: {summary}",
+          "summary": {
+            "disabled": "Deaktiviert",
+            "withThreshold": "{retention}, geleert bei {threshold}% Speichernutzung"
+          },
+          "retention": "Aufbewahrung",
+          "retentionDescription": "Wie lange gelöschte Dateien im Papierkorb bleiben. 0 deaktiviert den Papierkorb.",
+          "usageThreshold": "Leeren bei Speichernutzung",
+          "usageThresholdDescription": "Die ältesten Papierkorb-Einträge entfernen, sobald die Speichernutzung diesen Prozentsatz des Limits erreicht. 0 leert den Papierkorb nur, wenn ein Schreibvorgang das Limit überschreiten würde."
         },
         "backupRetention": {
           "title": "Aufbewahrung",
@@ -540,8 +558,11 @@
       "table": {
         "selectRow": "Zeile auswählen",
         "pagination": {
-          "results": "Zeige {start} bis {end} von {total} Ergebnissen.",
-          "empty": "Es konnten keine Elemente gefunden werden, fast so, als würden sie sich verstecken."
+          "results": "Zeige {start} bis {end} von {total} Ergebnissen."
+        },
+        "empty": {
+          "title": "Keine Einträge gefunden",
+          "description": "Versuche eine andere Suche oder schau wieder vorbei, sobald etwas hinzugefügt wurde."
         },
         "columns": {
           "id": "ID",
@@ -728,6 +749,7 @@
         },
         "connectionStatus": {
           "connected": "Verbunden",
+          "connecting": "Verbindung wird hergestellt...",
           "offline": "Offline"
         },
         "serverAutoStartBehavior": {
@@ -818,8 +840,18 @@
           "addRedirect": "Weiterleitung hinzufügen"
         }
       },
+      "assetReloadNotice": {
+        "title": "Aktualisierung auf die neueste Version",
+        "reloading": "Eine neue Version des Panels ist verfügbar. Die Seite wird neu geladen...",
+        "offline": "Eine neue Version des Panels ist verfügbar. Die Seite wird neu geladen, sobald die Verbindung wieder besteht...",
+        "stalled": "Eine neue Version des Panels ist verfügbar. Lade die Seite neu, um fortzufahren.",
+        "button": {
+          "reloadNow": "Jetzt neu laden"
+        }
+      },
       "errorBoundary": {
         "message": "Beim Rendern dieser Ansicht ist in der Anwendung ein Fehler aufgetreten. Versuche, die Seite neu zu laden.",
+        "refresh": "Seite neu laden",
         "hideDetails": "Details ausblenden",
         "showDetails": "Details einblenden",
         "errorMessage": "Fehlermeldung:",
@@ -916,6 +948,21 @@
       },
       "serverSelect": {
         "showOtherUsersServers": "Server anderer Benutzer anzeigen"
+      },
+      "allocationBar": {
+        "tooltip": {
+          "total": "Gesamtwert ändern"
+        },
+        "form": {
+          "total": "Messen gegen",
+          "customTotal": "Eigener Gesamtwert"
+        },
+        "total": {
+          "limit": "Konfiguriertes Limit",
+          "live": "Live-Kapazität",
+          "aggregate": "Zugewiesene Summe",
+          "custom": "Eigener Wert"
+        }
       },
       "can": {
         "tooltip": {
@@ -1501,7 +1548,11 @@
                     "moved": "Server nach {group} verschoben."
                   }
                 },
-                "noGroups": "Es konnten keine Gruppen gefunden werden, Zeit eine zu erstellen?"
+                "empty": {
+                  "title": "Keine Servergruppen",
+                  "description": "Jeder Server wird einzeln aufgeführt. Erstelle eine Gruppe, um Server in Abschnitte zu sortieren und per Drag & Drop neu anzuordnen.",
+                  "descriptionReadOnly": "Jeder Server wird einzeln aufgeführt."
+                }
               }
             },
             "allServers": {
@@ -1529,7 +1580,11 @@
             "partial": "Erfolgreich {successfulServers} {action}. {failedServers} fehlgeschlagen.",
             "groupActions": "Gruppen-Aktionen"
           },
-          "noServers": "Es konnten keine Server gefunden werden, Zeit, einen hinzuzufügen?"
+          "empty": {
+            "title": "Keine Server",
+            "description": "Dieses Konto hat noch keine Server. Server, die dafür erstellt oder als Subuser mit ihm geteilt werden, erscheinen hier."
+          },
+          "emptyGroup": "Diese Gruppe ist leer. Ziehe einen Server hierher, um ihn hinzuzufügen."
         },
         "admin": {
           "title": "Admin"
@@ -1927,7 +1982,10 @@
           "modal": {
             "deleteOAuthLinks": {
               "title": "Löschen der OAuth-Verknüpfungen bestätigen",
-              "content": "Bist du sicher, dass du **{oauthLinks}** aus deinem Konto löschen möchtest?"
+              "content": "Bist du sicher, dass du **{oauthLinks}** aus deinem Konto löschen möchtest?",
+              "alert": {
+                "skipped": "Übersprungen: {oauthLinks}. Verknüpfungen mit Anbietern, die das Trennen nicht erlauben, können nicht entfernt werden."
+              }
             },
             "deleteOAuthLink": {
               "title": "Löschen der OAuth-Verknüpfung bestätigen",
@@ -2217,6 +2275,13 @@
                   "passwordLoginEnabled": "Passwort-Anmeldung aktivieren",
                   "passwordLoginEnabledDescription": "Erlaube Benutzern, sich mit Benutzername und Passwort anzumelden. Wenn du dies deaktivierst, bleiben nur OAuth-Anbieter und Sicherheitsschlüssel als Zugang, und die lokale Registrierung, das Zurücksetzen von Passwörtern sowie die SFTP-Anmeldung mit Passwort werden ebenfalls gestoppt."
                 },
+                "section": {
+                  "general": "Allgemein",
+                  "branding": "Branding",
+                  "authentication": "Authentifizierung",
+                  "sessions": "Sitzungen",
+                  "telemetry": "Telemetrie"
+                },
                 "enum": {
                   "twoFactorMethod": {
                     "totp": "Authenticator-App (TOTP)",
@@ -2369,7 +2434,6 @@
                 "sidebar": {
                   "templates": "Vorlagen",
                   "globalVariables": "Globale Variablen",
-                  "loading": "Wird geladen…",
                   "availableVariables": "Verfügbare Variablen"
                 },
                 "alert": {
@@ -2389,7 +2453,6 @@
                   "descriptionAfter": "Bausteine sind MiniJinja-Schnipsel mit Zugriff auf dieselben Variablen wie die Vorlage. Ein leeres Feld verwendet den darin angezeigten Standard; Sprachen ohne Wert greifen auf den englischen Wert zurück, danach auf die eingebaute Übersetzung.",
                   "custom": "Benutzerdefiniert",
                   "add": "Variable hinzufügen",
-                  "loading": "Wird geladen…",
                   "empty": "Keine Variablen definiert.",
                   "error": {
                     "valueRequired": "Benutzerdefinierte Variablen benötigen einen englischen Wert."
@@ -2416,7 +2479,6 @@
                     }
                   }
                 },
-                "loadingTemplate": "Vorlage wird geladen…",
                 "form": {
                   "subject": "Betreff"
                 },
@@ -2508,8 +2570,22 @@
                   "allowAcknowledgingInstallationFailureDescription": "Wenn aktiviert, können Benutzer Installationsfehler für Server bestätigen, die sich im Zustand „Install Failed“ befinden, und versuchen, den Server zu starten, anstatt auf einen Admin warten zu müssen. Wenn deaktiviert, können nur Admins Installationsfehler bestätigen.",
                   "allowViewingTransferProgress": "Anzeigen des Übertragungsfortschritts erlauben",
                   "allowViewingTransferProgressDescription": "Wenn aktiviert, können Benutzer mit Lesezugriff auf die Konsole auch Übertragungsfortschritts-Protokolle über die WebSocket-Verbindung sehen. Wenn deaktiviert, sind Übertragungsfortschritts-Protokolle nur für Admins verfügbar.",
+                  "trashRetention": "Papierkorb-Aufbewahrung",
+                  "trashRetentionDescription": "Wie lange gelöschte Dateien im Papierkorb eines Servers bleiben, bevor sie endgültig entfernt werden. 0 deaktiviert den Papierkorb. Dateien im Papierkorb zählen zum Speicherlimit des Servers. Jeder Server kann stattdessen eigene Papierkorb-Einstellungen verwenden.",
+                  "trashUsageThreshold": "Papierkorb leeren bei Speichernutzung",
+                  "trashUsageThresholdDescription": "Die ältesten Papierkorb-Einträge entfernen, sobald ein Server diesen Prozentsatz seines Speicherlimits erreicht. 0 leert den Papierkorb nur, wenn ein Schreibvorgang das Limit überschreiten würde.",
+                  "allowChangingTrashSettings": "Ändern der Papierkorb-Einstellungen erlauben",
+                  "allowChangingTrashSettingsDescription": "Wenn aktiviert, können Benutzer eigene Papierkorb-Einstellungen für ihre Server festlegen. Wenn deaktiviert, können nur Admins sie ändern. Bereits für einen Server festgelegte eigene Einstellungen bleiben bestehen.",
                   "containerPrelude": "Container-Präludium",
                   "containerPreludeDescription": "Das Terminal-Präludium, das für einige statusbezogene Nachrichten in der Server-Konsole verwendet wird."
+                },
+                "section": {
+                  "fileManager": "Dateimanager",
+                  "limits": "Limits",
+                  "networking": "Netzwerk",
+                  "databaseInstances": "Datenbankinstanzen",
+                  "lifecycle": "Konsole & Lebenszyklus",
+                  "trash": "Papierkorb"
                 },
                 "toast": {
                   "updated": "Server-Einstellungen aktualisiert."
@@ -2532,6 +2608,10 @@
                   "allowChangingLanguageDescription": "Wenn aktiviert, können Benutzer ihre Spracheinstellungen ändern.",
                   "allowChangingAvatar": "Avatar ändern erlauben",
                   "allowChangingAvatarDescription": "Wenn aktiviert, können Benutzer ihren Avatar hochladen und entfernen."
+                },
+                "section": {
+                  "limits": "Limits",
+                  "permissions": "Berechtigungen"
                 },
                 "routeOrder": {
                   "title": "Client-Routenreihenfolge"
@@ -2678,8 +2758,6 @@
           "title": "Erweiterungen",
           "unknownExtension": "Unbekannte Erweiterung",
           "alert": {
-            "noExtensions": "Keine Erweiterungen installiert.",
-            "managementDisabled": "Die Erweiterungsverwaltung wurde auf diesem Panel deaktiviert.",
             "heavyImageMissing": "Du scheinst nicht das Heavy-Image zu verwenden, das zum Installieren von Erweiterungen benötigt wird. Siehe [hier]({docsUrl}), wie du dazu wechselst.",
             "supervisorUnreachable": {
               "title": "Der Erweiterungs-Supervisor antwortet nicht",
@@ -2689,6 +2767,10 @@
               "title": "Der letzte Erweiterungs-Build ist fehlgeschlagen",
               "content": "Diese Erweiterungen werden erst wieder erstellt, wenn sie sich ändern oder du den Build ausdrücklich erneut startest.",
               "failedExtensions": "Der Build ist in {extensions} fehlgeschlagen. Aktualisiere oder entferne sie und starte den Build dann erneut."
+            },
+            "startFailed": {
+              "title": "Einige Erweiterungen konnten nicht gestartet werden",
+              "content": "Sie sind beim Start abgestürzt, oder ihre Routen oder CLI-Befehle kollidieren mit dem Panel oder einer anderen Erweiterung, daher laufen sie nicht. Aktualisiere oder entferne sie und starte das Panel danach neu."
             },
             "pendingRestart": {
               "title": "Einige Erweiterungen wurden aktiviert oder deaktiviert",
@@ -2739,6 +2821,7 @@
             "backendMissing": "Backend fehlt",
             "pendingBuild": "Build ausstehend",
             "buildFailed": "Build fehlgeschlagen",
+            "startFailed": "Start fehlgeschlagen",
             "pendingRemoval": "Entfernung ausstehend",
             "pendingRestart": "Neustart ausstehend",
             "disabled": "Deaktiviert",
@@ -2791,6 +2874,11 @@
                 "removeMigrations": "Möchtest du die Datenbank-Migrationen dieser Erweiterung entfernen & zurückrollen?"
               }
             }
+          },
+          "empty": {
+            "title": "Keine Erweiterungen installiert",
+            "description": "Dieses Panel läuft ohne Erweiterungen. Ziehe eine Erweiterungsdatei auf diese Seite, um eine zu installieren.",
+            "descriptionDisabled": "Dieses Panel läuft ohne Erweiterungen. Die Erweiterungsverwaltung ist deaktiviert, daher können keine installiert werden."
           }
         },
         "users": {
@@ -3175,7 +3263,8 @@
                 "title": "Deployment-Kapazität",
                 "subtitle": "Ressourcen, die Servern auf diesem Node zugewiesen sind, gemessen an den in den Node-Einstellungen konfigurierten Limits, nicht an der physischen Kapazität der Maschine. Das Deployment prüft nur Arbeitsspeicher und Festplatte.",
                 "card": {
-                  "resources": "Zugewiesene Ressourcen"
+                  "resources": "Zugewiesene Ressourcen",
+                  "breakdown": "Zuteilungsaufschlüsselung"
                 },
                 "status": {
                   "deploymentEnabled": "Deployment aktiviert",
@@ -3191,7 +3280,12 @@
                   "noLimit": "Kein Node-Limit",
                   "free": "{size} frei",
                   "overhead": "+ {size} reservierter Overhead",
-                  "cores": "{cores} Kerne zugewiesen"
+                  "cores": "{cores} Kerne zugewiesen",
+                  "other": "Sonstige ({servers})",
+                  "suspended": "Gesperrt",
+                  "unlimitedServers": "{servers} ohne Limit",
+                  "overallocated": "Um {size} überbucht",
+                  "noAllocations": "Keine Server belegen diese Ressource."
                 }
               }
             },
@@ -3208,6 +3302,10 @@
                 },
                 "toast": {
                   "connectionLost": "Verbindung zum Node-Log-Stream verloren."
+                },
+                "empty": {
+                  "title": "Keine Log-Dateien",
+                  "description": "Auf diesem System wurden noch keine Log-Dateien geschrieben."
                 }
               }
             },
@@ -3479,7 +3577,6 @@
                 },
                 "metrics": {
                   "title": "Aktive Peer-Verbindungen",
-                  "loading": "Die Node wird nach ihren Metriken gefragt...",
                   "unreachable": "Die Node war nicht erreichbar, daher sind keine Live-Metriken verfügbar.",
                   "applied": "Statusversion {epoch}, {snapshots} angewendet",
                   "stat": {
@@ -3639,6 +3736,7 @@
                   "unlimited": "Unendlich",
                   "autoKillSeconds": "{seconds}s",
                   "autoKillDisabled": "Deaktiviert",
+                  "trash": "Papierkorb",
                   "labels": "Labels",
                   "uuid": "UUID"
                 },
@@ -3857,6 +3955,12 @@
               "title": "Verwaltung",
               "page": {
                 "title": "Server-Verwaltung",
+                "trash": {
+                  "title": "Papierkorb",
+                  "toast": {
+                    "updated": "Papierkorb-Einstellungen des Servers aktualisiert."
+                  }
+                },
                 "transfer": {
                   "title": "Transfer",
                   "content": "Übertrage diesen Server und seine Daten auf eine andere Node innerhalb dieses Systems.",
@@ -4113,6 +4217,11 @@
                         "duplicate": {
                           "title": "Egg Variable duplizieren"
                         }
+                      },
+                      "empty": {
+                        "title": "Keine Variablen",
+                        "description": "Server mit diesem Egg haben auf ihrer Startup-Seite nichts einzustellen. Füge eine Variable hinzu, um eine Einstellung an den Startbefehl und das Installationsskript zu übergeben.",
+                        "descriptionReadOnly": "Server mit diesem Egg haben auf ihrer Startup-Seite nichts einzustellen."
                       }
                     }
                   },
@@ -4368,6 +4477,9 @@
                 "toast": {
                   "synced": "Egg Repository synchronisiert, {eggs} gefunden."
                 },
+                "alert": {
+                  "credentialsCleared": "Wenn Schema, Host oder Port des Repositorys geändert werden, werden die gespeicherten Zugangsdaten gelöscht. Gib sie unten erneut ein, falls der neue Host sie benötigt."
+                },
                 "modal": {
                   "delete": {
                     "title": "Egg Repository Löschung bestätigen"
@@ -4606,7 +4718,8 @@
                 "card": {
                   "hostDetails": "Host-Details",
                   "systemInfo": "Systeminformationen",
-                  "resources": "Zugewiesene Ressourcen"
+                  "resources": "Zugewiesene Ressourcen",
+                  "breakdown": "Zuteilungsaufschlüsselung"
                 },
                 "label": {
                   "createdAt": "Erstellt",
@@ -4619,7 +4732,11 @@
                   "unavailable": "Nicht verfügbar",
                   "noLimit": "Kein Host-Limit",
                   "free": "{size} frei",
-                  "cores": "{cores} Kerne zugewiesen"
+                  "cores": "{cores} Kerne zugewiesen",
+                  "other": "Sonstige ({instances})",
+                  "unlimitedInstances": "{instances} ohne Limit",
+                  "overallocated": "Um {size} überbucht",
+                  "noAllocations": "Keine Instanzen belegen diese Ressource."
                 },
                 "badge": {
                   "updateAvailable": "Update verfügbar"
@@ -4963,7 +5080,10 @@
                 },
                 "modal": {
                   "delete": {
-                    "title": "Löschen der Backup-Konfiguration bestätigen"
+                    "title": "Löschen der Backup-Konfiguration bestätigen",
+                    "alert": {
+                      "detachWarning": "Bestehende Backups, die mit dieser Konfiguration erstellt wurden, werden von ihr getrennt und können nicht mehr wiederhergestellt oder heruntergeladen werden. Bearbeite die Konfiguration lieber, anstatt sie zu löschen."
+                    }
                   },
                   "removeProvider": {
                     "title": "Entfernen der Provider-Einstellungen bestätigen",
@@ -5521,7 +5641,8 @@
             }
           },
           "stats": {
-            "offline": "Server ist offline"
+            "offline": "Server ist offline",
+            "connecting": "Verbindung wird hergestellt..."
           },
           "socketConnected": "Verbunden ({ping}ms ping)",
           "socketDisconnected": "Getrennt"
@@ -5574,6 +5695,7 @@
             "unsavedTab": "{name} hat ungespeicherte Änderungen",
             "dropToSplit": "Hier ablegen, um in einem neuen Editorbereich zu öffnen",
             "resizeEditorPanes": "Größe der Editorbereiche ändern",
+            "resizeFileTree": "Größe des Dateibaums ändern",
             "selectPane": "Editorbereich auswählen",
             "editorPane": "Editorbereich {number}"
           },
@@ -5607,6 +5729,12 @@
             "extract": "Entpacken",
             "archive": "Archivieren",
             "more": "Mehr",
+            "moveToTrash": "In den Papierkorb verschieben",
+            "deletePermanently": "Endgültig löschen",
+            "trash": "Papierkorb",
+            "emptyTrash": "Papierkorb leeren",
+            "backToFiles": "Zurück zu den Dateien",
+            "restoreTo": "Wiederherstellen nach...",
             "remoteCopy": "Remote-Kopie",
             "search": "Suchen",
             "exitBackup": "Backup verlassen",
@@ -5653,6 +5781,8 @@
             "permissionsSelection": "Berechtigungen ändern",
             "fingerprintSelection": "Dateifingerabdruck anzeigen",
             "deleteSelection": "Auswahl löschen",
+            "trashSelection": "Auswahl in den Papierkorb verschieben",
+            "openTrash": "Papierkorb öffnen",
             "saveFile": "Datei speichern",
             "createFile": "Datei erstellen"
           },
@@ -5727,6 +5857,10 @@
             "moveCouldNotBeUndone": "Verschieben konnte nicht rückgängig gemacht werden.",
             "downloadStarted": "Download gestartet.",
             "filesDeleted": "Dateien wurden gelöscht.",
+            "filesTrashed": "{files} in den Papierkorb verschoben.",
+            "filesTrashedPartiallyDeleted": "{files} in den Papierkorb verschoben, {deleted} endgültig gelöscht.",
+            "trashUndone": "{files} aus dem Papierkorb wiederhergestellt.",
+            "trashCouldNotBeUndone": "Dateien konnten nicht aus dem Papierkorb wiederhergestellt werden.",
             "archiveCreationStarted": "Archiverstellung hat begonnen.",
             "decompressionStarted": "Das Entpacken des Archivs hat begonnen.",
             "fileCopyingStarted": "Dateikopiervorgang hat begonnen.",
@@ -5785,6 +5919,53 @@
                 "original": "Revision",
                 "current": "Aktuell"
               }
+            }
+          },
+          "trash": {
+            "title": "Papierkorb",
+            "subtitle": "Gelöschte Dateien werden {retention} lang aufbewahrt, bevor sie endgültig entfernt werden.",
+            "subtitleDisabled": "Der Papierkorb ist für diesen Server deaktiviert. Vorhandene Einträge bleiben erhalten, bis sie wiederhergestellt oder gelöscht werden.",
+            "table": {
+              "columns": {
+                "originalLocation": "Ursprünglicher Ort",
+                "deletedAt": "Gelöscht"
+              }
+            },
+            "empty": {
+              "title": "Der Papierkorb ist leer",
+              "description": "Gelöschte Dateien landen hier und können wiederhergestellt werden, bis sie ablaufen."
+            },
+            "modal": {
+              "deleteEntries": {
+                "title": "Endgültig löschen",
+                "content": "Bist du sicher, dass du {entries} endgültig aus dem Papierkorb löschen möchtest? Dies kann nicht rückgängig gemacht werden."
+              },
+              "deleteEntry": {
+                "title": "Endgültig löschen",
+                "content": "Bist du sicher, dass du **{name}** endgültig aus dem Papierkorb löschen möchtest? Dies kann nicht rückgängig gemacht werden."
+              },
+              "emptyTrash": {
+                "title": "Papierkorb leeren",
+                "content": "Bist du sicher, dass du alles im Papierkorb endgültig löschen möchtest? Dies kann nicht rückgängig gemacht werden."
+              },
+              "restoreTo": {
+                "title": "In Verzeichnis wiederherstellen",
+                "destination": "Zielverzeichnis",
+                "restoredAs": "Diese Datei wird wiederhergestellt als "
+              },
+              "restoreConflict": {
+                "title": "Wiederherstellungskonflikte auflösen",
+                "description": "An der Stelle, an der die folgenden {files} wiederhergestellt würden, existiert bereits etwas.",
+                "confirm": "{files} wiederherstellen"
+              }
+            },
+            "toast": {
+              "restored": "{entries} wiederhergestellt.",
+              "nothingRestored": "Nichts konnte wiederhergestellt werden.",
+              "restoreUndone": "{files} zurück in den Papierkorb verschoben.",
+              "restoreCouldNotBeUndone": "Die Wiederherstellung konnte nicht rückgängig gemacht werden.",
+              "deleted": "{entries} endgültig gelöscht.",
+              "emptied": "Der Papierkorb wurde geleert."
             }
           },
           "modal": {
@@ -5866,8 +6047,12 @@
             },
             "deleteFile": {
               "title": "Datei löschen",
-              "singleFileWarning": "Du wirst den Inhalt von {file} nach dem Löschen nicht mehr wiederherstellen können.",
-              "multipleFilesWarning": "Du wirst den Inhalt der folgenden Dateien nach dem Löschen nicht mehr wiederherstellen können."
+              "singleFileWarning": "Du wirst den Inhalt von **{file}** nach dem Löschen nicht mehr wiederherstellen können.",
+              "multipleFilesWarning": "Du wirst den Inhalt der folgenden Dateien nach dem Löschen nicht mehr wiederherstellen können.",
+              "trashTitle": "In den Papierkorb verschieben",
+              "singleFileTrash": "**{file}** wird in den Papierkorb verschoben und kann {retention} lang wiederhergestellt werden.",
+              "multipleFilesTrash": "Die folgenden Dateien werden in den Papierkorb verschoben und können {retention} lang wiederhergestellt werden.",
+              "permanent": "Endgültig löschen, statt in den Papierkorb zu verschieben"
             },
             "createFile": {
               "title": "Datei erstellen"
@@ -6001,6 +6186,11 @@
               "hint": "Setze ihn im Upload-Bereich fort, wenn du ihn gestartet hast, oder lösche die unvollständige Datei, wenn du sie nicht mehr brauchst.",
               "empty": "Alle Uploads auf diesen Server sind abgeschlossen."
             }
+          },
+          "empty": {
+            "title": "Leeres Verzeichnis",
+            "description": "In diesem Verzeichnis ist noch nichts. Lade Dateien hoch oder erstelle neue, um es zu füllen.",
+            "descriptionReadOnly": "In diesem Verzeichnis ist noch nichts."
           }
         },
         "databases": {
@@ -6213,8 +6403,10 @@
                 "logs": "Logs"
               },
               "stats": {
+                "connecting": "Verbindung wird hergestellt...",
                 "offline": "Instanz ist offline"
-              }
+              },
+              "connectionLost": "Verbindung zur Datenbankinstanz verloren."
             },
             "databases": {
               "title": "Datenbanken",
@@ -6641,9 +6833,12 @@
               "preConditions": "Zeitplan-Vorbedingungen",
               "triggers": "Zeitplan-Auslöser"
             },
-            "alert": {
-              "noActions": "Keine Aktionen für diesen Zeitplan konfiguriert",
-              "noTriggers": "Keine Auslöser für diesen Zeitplan konfiguriert"
+            "empty": {
+              "triggers": {
+                "title": "Keine Auslöser",
+                "description": "Dieser Zeitplan startet nie von selbst und läuft nur, wenn er manuell gestartet wird. Bearbeite ihn, um einen Auslöser hinzuzufügen.",
+                "descriptionReadOnly": "Dieser Zeitplan startet nie von selbst und läuft nur, wenn er manuell gestartet wird."
+              }
             }
           },
           "step": {
@@ -6806,7 +7001,8 @@
             },
             "empty": {
               "title": "Keine Schritte konfiguriert",
-              "description": "Dieser Zeitplan hat noch keine Schritte. Füge einige Aktionen hinzu, um loszulegen."
+              "description": "Dieser Zeitplan hat noch keine Schritte. Füge einige Aktionen hinzu, um loszulegen.",
+              "descriptionReadOnly": "Dieser Zeitplan tut nichts, wenn er ausgeführt wird."
             },
             "warning": {
               "unclosedIf": "Einem \"Wenn\"-Block fehlt das zugehörige \"Ende Wenn\". Alle verbleibenden Schritte werden als Teil des Blocks ausgeführt.",
@@ -7102,13 +7298,17 @@
               "title": "Dateien löschen",
               "description": "Löscht Dateien oder Ordner.",
               "form": {
-                "filesToDelete": "Zu löschende Dateien"
+                "filesToDelete": "Zu löschende Dateien",
+                "trash": "In den Papierkorb verschieben",
+                "trashDescription": "Die Dateien in den Papierkorb verschieben, statt sie endgültig zu löschen. Der Papierkorb muss für diesen Server aktiviert sein."
               },
               "renderer": {
                 "compact": "Lösche {files}",
+                "compactTrash": "{files} in den Papierkorb verschieben",
                 "detail": {
                   "root": "Root: {root}",
-                  "files": "Dateien: {files}"
+                  "files": "Dateien: {files}",
+                  "trash": "In den Papierkorb verschieben: {value}"
                 }
               }
             },
@@ -7675,8 +7875,11 @@
               "content": "Du hast ungespeicherte Änderungen an deinen Startvariablen. Bist du sicher, dass du diese Seite verlassen möchtest? Wenn du die Seite verlässt, gehen deine Änderungen verloren."
             }
           },
-          "noVariables": "Keine Startvariablen für diesen Server gefunden.",
-          "predefinedStartupCommands": "Vordefinierte Startbefehle"
+          "predefinedStartupCommands": "Vordefinierte Startbefehle",
+          "empty": {
+            "title": "Keine Startvariablen",
+            "description": "Das Egg dieses Servers hat hier keine Einstellungen, der Startbefehl wird also unverändert ausgeführt."
+          }
         },
         "mounts": {
           "title": "Mounts",
@@ -7777,6 +7980,12 @@
             },
             "toast": {
               "updated": "Server Auto-Kill aktualisiert."
+            }
+          },
+          "trash": {
+            "title": "Papierkorb",
+            "toast": {
+              "updated": "Papierkorb-Einstellungen des Servers aktualisiert."
             }
           },
           "autostart": {

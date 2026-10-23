@@ -11,6 +11,7 @@ import Switch from '@/elements/input/Switch.tsx';
 import TextInput from '@/elements/input/TextInput.tsx';
 import Group from '@/elements/layout/Group.tsx';
 import Stack from '@/elements/layout/Stack.tsx';
+import Text from '@/elements/typography/Text.tsx';
 import { processConfigurationParserLabelMapping } from '@/lib/enums.ts';
 import { adminEggUpdateSchema } from '@/lib/schemas/admin/eggs.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
@@ -29,7 +30,9 @@ export default function EggConfigFilesEditor({
       icon={<FontAwesomeIcon icon={faFileText} size='sm' />}
     >
       {form.getValues().configFiles.length === 0 ? (
-        <p className='mb-2'>{t('pages.admin.nests.tabs.eggs.page.tabs.general.page.emptyConfigFiles', {})}</p>
+        <Text size='sm' c='dimmed' mb='xs'>
+          {t('pages.admin.nests.tabs.eggs.page.tabs.general.page.emptyConfigFiles', {})}
+        </Text>
       ) : (
         form.getValues().configFiles.map((_, index) => (
           <Card key={index} className='flex flex-row! justify-between mb-2'>

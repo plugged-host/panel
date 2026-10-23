@@ -6,7 +6,6 @@ import type { FieldDef } from '@/elements/form-engine/index.ts';
 import MultiKeyValueInput from '@/elements/input/MultiKeyValueInput.tsx';
 import Select from '@/elements/input/Select.tsx';
 import TextArea from '@/elements/input/TextArea.tsx';
-import { getTimezoneOptions } from '@/lib/format/timezones.ts';
 import { queryKeys } from '@/lib/queryKeys.ts';
 import { adminBackupConfigurationSchema } from '@/lib/schemas/admin/backupConfigurations.ts';
 import { adminEggSchema } from '@/lib/schemas/admin/eggs.ts';
@@ -30,8 +29,6 @@ type EggsResource = Pick<
 >;
 
 export type ServerFormMode = 'create' | 'update';
-
-const timezones = getTimezoneOptions();
 
 const baseServerFormValues = {
   ownerUuid: '',
@@ -581,23 +578,20 @@ function buildServerConfigFields<T extends ServerEggAssignmentFormValues>(
   const timezoneField: FieldDef<T> =
     mode === 'create'
       ? {
-          type: 'select',
+          type: 'timezone',
           name: 'timezone',
           label: t('common.form.timezone', {}),
-          options: [{ label: t('common.form.timezoneSystem', {}), value: '' }, ...timezones],
+          withSystemOption: true,
           props: {
             placeholder: 'Europe/Amsterdam',
-            searchable: true,
           },
         }
       : {
-          type: 'select',
+          type: 'timezone',
           name: 'timezone',
           label: t('common.form.timezone', {}),
-          options: timezones,
           props: {
             placeholder: t('common.form.timezoneSystem', {}),
-            searchable: true,
             allowDeselect: true,
             clearable: true,
           },

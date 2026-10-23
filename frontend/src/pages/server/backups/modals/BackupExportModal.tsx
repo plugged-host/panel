@@ -145,7 +145,7 @@ export default function BackupExportModal({ backup, ...props }: Props) {
         <span>{t('pages.server.files.modal.createArchive.createdAs', {})}</span>
         <Code>
           /home/container/
-          <span className='text-cyan-200'>
+          <span className='text-(--mantine-color-cyan-text)'>
             {join(form.values.directory, `${form.values.name}${extension}`).replace(/^(\.\.\/|\/)+/, '')}
           </span>
         </Code>

@@ -96,7 +96,7 @@ export default function ForgotPassword() {
       <Stack className='w-full'>
         <div>
           <Title order={2}>{t('pages.auth.forgotPassword.title', {})}</Title>
-          <Text className='text-neutral-400!'>{t('pages.auth.forgotPassword.subtitle', {})}</Text>
+          <Text c='dimmed'>{t('pages.auth.forgotPassword.subtitle', {})}</Text>
         </div>
 
         <Card>
@@ -121,7 +121,7 @@ export default function ForgotPassword() {
               <Button
                 type='submit'
                 loading={loading}
-                disabled={requested || !form.isValid() || !captcha.isValid}
+                disabled={requested || !form.isValid() || (!captcha.isValid && !loading)}
                 size='md'
                 fullWidth
               >

@@ -14,19 +14,20 @@ export function createUndoAction<R>(
     addToast: AddToast;
     invalidateFilemanager: () => void;
     cannotUndoMessage: ReactNode;
-    undoneMessage: ReactNode;
+    undoneMessage: ReactNode | ((count: number) => ReactNode);
     onError: (err: unknown) => void;
   },
 ): () => Promise<void> {
   return () =>
     reverseCall()
       .then((result) => {
-        if (getCount(result) < 1) {
+        const count = getCount(result);
+        if (count < 1) {
           addToast(cannotUndoMessage, 'error');
           return;
         }
 
-        addToast(undoneMessage, 'success');
+        addToast(typeof undoneMessage === 'function' ? undoneMessage(count) : undoneMessage, 'success');
         invalidateFilemanager();
       })
       .catch(onError);

@@ -22,7 +22,7 @@ export default function DatabaseAgentHostHealthIcon({
   if (unavailable || !version) {
     return (
       <Tooltip label={t('pages.admin.databaseAgentHosts.tabs.general.page.tooltip.errorWhileFetchingVersion', {})}>
-        <FontAwesomeIcon icon={faHeartBroken} className='text-red-500' />
+        <FontAwesomeIcon icon={faHeartBroken} className='text-(--mantine-color-red-text)' />
       </Tooltip>
     );
   }
@@ -30,14 +30,14 @@ export default function DatabaseAgentHostHealthIcon({
   if (updateAvailable) {
     return (
       <Tooltip label={t('pages.admin.databaseAgentHosts.tabs.general.page.tooltip.updateAvailable', { version })}>
-        <FontAwesomeIcon icon={faHeart} className='text-yellow-500 animate-pulse' />
+        <FontAwesomeIcon icon={faHeart} className='text-(--mantine-color-yellow-text) animate-pulse' />
       </Tooltip>
     );
   }
 
   return (
     <Tooltip label={version}>
-      <FontAwesomeIcon icon={faHeart} className='text-green-500 animate-pulse' />
+      <FontAwesomeIcon icon={faHeart} className='text-(--mantine-color-green-text) animate-pulse' />
     </Tooltip>
   );
 }

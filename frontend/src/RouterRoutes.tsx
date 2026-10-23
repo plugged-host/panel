@@ -9,14 +9,15 @@ import ExtensionSlot from './elements/ExtensionSlot.tsx';
 import UploadConflictHost from './elements/files/UploadConflictHost.tsx';
 import UploadsCard from './elements/files/UploadsCard.tsx';
 import QuickActionsPalette from './elements/quickActions/QuickActionsPalette.tsx';
-import { AuthProvider } from './providers/AuthProvider.tsx';
+import { isAdmin } from './lib/auth/permissions.ts';
+import { AuthProvider, useAuth } from './providers/AuthProvider.tsx';
 import { useCurrentWindow } from './providers/CurrentWindowProvider.tsx';
 import { useTranslations } from './providers/TranslationProvider.tsx';
 import { useWindows } from './providers/WindowProvider.tsx';
 import AdminGuard from './routers/guards/AdminGuard.tsx';
 import AuthenticatedGuard from './routers/guards/AuthenticatedGuard.tsx';
 import UnauthenticatedGuard from './routers/guards/UnauthenticatedGuard.tsx';
-import { routerImports } from './routers/routerImports.ts';
+import { prefetchRouters, routerImports } from './routers/routerImports.ts';
 import globalRoutes from './routers/routes/globalRoutes.ts';
 import { AdminStoreContextProvider, createAdminStore } from './stores/admin.tsx';
 import {
@@ -44,6 +45,18 @@ function RelativePageListener() {
       document.title = title;
     }
   }, [id, title]);
+
+  return null;
+}
+
+function RouterPrefetcher() {
+  const { user } = useAuth();
+  const userUuid = user?.uuid;
+  const admin = isAdmin(user);
+
+  useEffect(() => {
+    if (userUuid) prefetchRouters(admin);
+  }, [userUuid, admin]);
 
   return null;
 }
@@ -120,6 +133,7 @@ export default function RouterRoutes({ isNormal }: { isNormal: boolean }) {
                 name='pagesGlobal-appended'
               />
               <RelativePageListener />
+              {isNormal && <RouterPrefetcher />}
             </AuthProvider>
           </ServerStoreContextProvider>
         </AdminStoreContextProvider>

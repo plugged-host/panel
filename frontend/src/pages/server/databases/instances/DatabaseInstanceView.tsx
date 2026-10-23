@@ -11,6 +11,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useQueryClient } from '@tanstack/react-query';
+import classNames from 'classnames';
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { z } from 'zod';
@@ -59,6 +60,7 @@ import DatabaseInstanceDeleteModal from './modals/DatabaseInstanceDeleteModal.ts
 import DatabaseInstanceEditModal from './modals/DatabaseInstanceEditModal.tsx';
 import DatabaseInstanceExportModal from './modals/DatabaseInstanceExportModal.tsx';
 import DatabaseInstanceImportModal from './modals/DatabaseInstanceImportModal.tsx';
+import DatabaseInstanceConnectionBanner from './overview/DatabaseInstanceConnectionBanner.tsx';
 import DatabaseInstanceDetails from './overview/DatabaseInstanceDetails.tsx';
 import DatabaseInstanceLogs from './overview/DatabaseInstanceLogs.tsx';
 import DatabaseInstanceOperations from './overview/DatabaseInstanceOperations.tsx';
@@ -294,10 +296,10 @@ export default function DatabaseInstanceView() {
     ],
   );
 
-  const { connected, send } = useWebsocket({
+  const { connected, status, nextRetryMs, reconnectAttempt, send } = useWebsocket({
     path: `/api/client/servers/${server.uuid}/databases/instances/${params.id}/ws`,
     schema: serverDatabaseInstanceWebsocketMessageSchema,
-    enabled: !!params.id,
+    enabled: !!resource.data,
     reconnectDelay: 5000,
     onMessage,
     onOpen: () => {
@@ -369,6 +371,12 @@ export default function DatabaseInstanceView() {
             )}
 
             <Stack gap='lg'>
+              <DatabaseInstanceConnectionBanner
+                status={status}
+                nextRetryMs={nextRetryMs}
+                reconnectAttempt={reconnectAttempt}
+              />
+
               {restoring && (
                 <Notification loading>
                   <span className='flex flex-row items-center'>
@@ -403,6 +411,23 @@ export default function DatabaseInstanceView() {
                       {t('pages.server.databases.instance.backups.badge.restoring', {})}
                     </Badge>
                   )}
+                  <span className='flex items-center gap-1.5 text-xs text-(--mantine-color-dimmed)'>
+                    <span
+                      className={classNames(
+                        'rounded-full size-2 animate-pulse',
+                        connected
+                          ? 'bg-(--mantine-color-green-filled)'
+                          : status === 'disconnected'
+                            ? 'bg-(--mantine-color-red-filled)'
+                            : 'bg-(--mantine-color-yellow-filled)',
+                      )}
+                    />
+                    {connected
+                      ? t('common.enum.connectionStatus.connected', {})
+                      : status === 'disconnected'
+                        ? t('pages.server.console.socketDisconnected', {})
+                        : t('common.enum.connectionStatus.connecting', {})}
+                  </span>
                 </Group>
 
                 <Group>
@@ -552,7 +577,7 @@ export default function DatabaseInstanceView() {
                   )}
                   {canSeeLogs && (
                     <Tabs.Panel value='logs' pt='xs'>
-                      <DatabaseInstanceLogs />
+                      <DatabaseInstanceLogs connected={connected} />
                     </Tabs.Panel>
                   )}
                 </Tabs>

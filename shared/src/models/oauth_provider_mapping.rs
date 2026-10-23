@@ -262,47 +262,27 @@ pub enum OAuthProviderMappingType {
 }
 
 impl OAuthProviderMappingType {
-    /// Whether `caller` holds every permission this mapping hands out, so a delegated operator
-    /// cannot grant more through a provider than they have themselves. A mapping to a role that
-    /// no longer exists grants nothing.
+    /// Whether `permissions` holds every permission this mapping hands out, so a delegated
+    /// operator cannot grant more through a provider than they have themselves. A mapping to a
+    /// role that no longer exists grants nothing.
     pub async fn is_within_permissions_of(
         &self,
         database: &crate::database::Database,
-        caller: &super::user::User,
+        permissions: &super::user::PermissionManager,
     ) -> Result<bool, crate::database::DatabaseError> {
-        if caller.admin {
-            return Ok(true);
-        }
-
-        let caller_admin = caller
-            .role
-            .as_ref()
-            .map(|r| r.admin_permissions.as_slice())
-            .unwrap_or(&[]);
-        let caller_server = caller
-            .role
-            .as_ref()
-            .map(|r| r.server_permissions.as_slice())
-            .unwrap_or(&[]);
-
         Ok(match self {
             OAuthProviderMappingType::Role { role_uuid, .. } => {
                 match super::role::Role::by_uuid_optional(database, *role_uuid).await? {
                     Some(role) => {
-                        role.admin_permissions
-                            .iter()
-                            .all(|p| caller_admin.contains(p))
-                            && role
-                                .server_permissions
-                                .iter()
-                                .all(|p| caller_server.contains(p))
+                        permissions.can_grant(&role.admin_permissions, &role.server_permissions)
                     }
                     None => true,
                 }
             }
-            OAuthProviderMappingType::ServerSubuser { permissions, .. } => {
-                permissions.iter().all(|p| caller_server.contains(p))
-            }
+            OAuthProviderMappingType::ServerSubuser {
+                permissions: subuser_permissions,
+                ..
+            } => permissions.can_grant(&[], subuser_permissions),
         })
     }
 
@@ -422,35 +402,17 @@ impl OAuthProviderMapping {
         page: i64,
         per_page: i64,
     ) -> Result<super::Pagination<Self>, crate::database::DatabaseError> {
-        let offset = (page - 1) * per_page;
-
-        let rows = sqlx::query(sqlx::AssertSqlSafe(format!(
+        super::PaginatedQueryBuilder::new(
+            Self::columns_sql(None),
             r#"
-            SELECT {}, COUNT(*) OVER() AS total_count
             FROM oauth_provider_mappings
             WHERE oauth_provider_mappings.oauth_provider_uuid = $1
-            ORDER BY oauth_provider_mappings.created
-            LIMIT $2 OFFSET $3
             "#,
-            Self::columns_sql(None)
-        )))
+            "oauth_provider_mappings.created, oauth_provider_mappings.uuid",
+        )
         .bind(oauth_provider_uuid)
-        .bind(per_page)
-        .bind(offset)
-        .fetch_all(database.read())
-        .await?;
-
-        Ok(super::Pagination {
-            total: rows
-                .first()
-                .map_or(Ok(0), |row| row.try_get("total_count"))?,
-            per_page,
-            page,
-            data: rows
-                .into_iter()
-                .map(|row| Self::map(None, &row))
-                .try_collect_vec()?,
-        })
+        .fetch(database, page, per_page)
+        .await
     }
 
     pub async fn all_by_oauth_provider_uuid(
@@ -462,7 +424,7 @@ impl OAuthProviderMapping {
             SELECT {}
             FROM oauth_provider_mappings
             WHERE oauth_provider_mappings.oauth_provider_uuid = $1
-            ORDER BY oauth_provider_mappings.created
+            ORDER BY oauth_provider_mappings.created, oauth_provider_mappings.uuid
             "#,
             Self::columns_sql(None)
         )))

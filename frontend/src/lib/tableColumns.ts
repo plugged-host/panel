@@ -77,6 +77,7 @@ export const systemBackupPolicyServerTableColumns = (): string[] => {
 export const databaseHostTableColumns = (): string[] => {
   const { t } = getTranslations();
   return [
+    '',
     t('common.table.columns.id', {}),
     t('common.table.columns.name', {}),
     t('common.table.columns.type', {}),
@@ -153,6 +154,7 @@ export const databaseAgentTemplateInstanceTableColumns = (): string[] => {
 export const locationDatabaseHostTableColumns = (): string[] => {
   const { t } = getTranslations();
   return [
+    '',
     t('common.table.columns.id', {}),
     t('common.table.columns.name', {}),
     t('common.table.columns.type', {}),
@@ -342,6 +344,7 @@ export const nodeDeviceTableColumns = (): string[] => {
 export const nodeDatabaseHostTableColumns = (): string[] => {
   const { t } = getTranslations();
   return [
+    '',
     t('common.table.columns.id', {}),
     t('common.table.columns.name', {}),
     t('common.table.columns.type', {}),

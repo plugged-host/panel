@@ -156,7 +156,9 @@ export default function NodeBackupsExportModal({ node, backup, ...props }: Props
         <span>{t('pages.server.files.modal.createArchive.createdAs', {})}</span>
         <Code>
           /home/container/
-          <span className='text-cyan-200'>{join(directory, `${name}${extension}`).replace(/^(\.\.\/|\/)+/, '')}</span>
+          <span className='text-(--mantine-color-cyan-text)'>
+            {join(directory, `${name}${extension}`).replace(/^(\.\.\/|\/)+/, '')}
+          </span>
         </Code>
       </p>
 

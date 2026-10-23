@@ -26,6 +26,7 @@ function DevicesContainer() {
     search,
     setSearch,
     setPage,
+    setPerPage,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.admin.devices.all(),
     fetcher: getDevices,
@@ -49,7 +50,14 @@ function DevicesContainer() {
         </AdminCan>
       }
     >
-      <Table columns={deviceTableColumns()} loading={loading} pagination={devices} onPageSelect={setPage} error={error}>
+      <Table
+        columns={deviceTableColumns()}
+        loading={loading}
+        pagination={devices}
+        onPageSelect={setPage}
+        onPerPageSelect={setPerPage}
+        error={error}
+      >
         {devices?.data.map((d) => (
           <DeviceRow key={d.uuid} device={d} />
         ))}

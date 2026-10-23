@@ -206,6 +206,14 @@ mod patch {
     ) -> ApiResponseResult {
         permissions.has_admin_permission("nodes.update")?;
 
+        if data.url.as_ref().is_some_and(|url| {
+            reqwest::Url::parse(url)
+                .ok()
+                .is_none_or(|url| url != node.url)
+        }) {
+            permissions.has_admin_permission("nodes.read-token")?;
+        }
+
         let disabled_features = DisabledFeatures::resolve(&state.database).await?;
         match node.update(&state, data).await {
             Ok(_) => {}

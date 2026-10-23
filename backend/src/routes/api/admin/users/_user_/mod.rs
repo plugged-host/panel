@@ -223,8 +223,9 @@ mod patch {
         shared::Payload(data): shared::Payload<UpdateUserOptions>,
     ) -> ApiResponseResult {
         permissions.has_admin_permission("users.update")?;
+        permissions.can_modify_user(&user)?;
 
-        if !caller.admin {
+        if !permissions.is_unrestricted_admin() {
             if data.admin.is_some_and(|admin| admin != user.admin) {
                 return ApiResponse::error("you cannot change admin status")
                     .with_status(StatusCode::FORBIDDEN)
@@ -239,20 +240,20 @@ mod patch {
                     .ok();
             }
 
-            permissions.can_modify_user(&user)?;
-
-            if caller.uuid != user.uuid {
+            if caller.uuid != user.uuid || !permissions.scope().is_session() {
                 if data.password.is_some() {
-                    return ApiResponse::error("you cannot change another user's password")
-                        .with_status(StatusCode::FORBIDDEN)
-                        .ok();
+                    return ApiResponse::error(
+                        "you can only change your own password from a session",
+                    )
+                    .with_status(StatusCode::FORBIDDEN)
+                    .ok();
                 }
                 if data
                     .email
                     .as_ref()
                     .is_some_and(|email| *email != user.email)
                 {
-                    return ApiResponse::error("you cannot change another user's email")
+                    return ApiResponse::error("you can only change your own email from a session")
                         .with_status(StatusCode::FORBIDDEN)
                         .ok();
                 }

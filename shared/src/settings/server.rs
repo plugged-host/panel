@@ -2,6 +2,7 @@ use super::{
     ExtensionSettings, SettingsDeserializeExt, SettingsDeserializer, SettingsSerializeExt,
     SettingsSerializer,
 };
+use crate::models::server::TrashSettings;
 use compact_str::ToCompactString;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
@@ -25,6 +26,9 @@ pub struct AppSettingsServer {
     pub allow_viewing_installation_logs: bool,
     pub allow_acknowledging_installation_failure: bool,
     pub allow_viewing_transfer_progress: bool,
+
+    pub trash: TrashSettings,
+    pub allow_changing_trash_settings: bool,
 
     pub container_prelude: compact_str::CompactString,
 }
@@ -104,6 +108,15 @@ impl SettingsSerializeExt for AppSettingsServer {
                 "allow_viewing_transfer_progress",
                 self.allow_viewing_transfer_progress.to_compact_string(),
             )
+            .write_raw_setting("trash_retention", self.trash.retention.to_compact_string())
+            .write_raw_setting(
+                "trash_usage_threshold",
+                self.trash.usage_threshold.to_compact_string(),
+            )
+            .write_raw_setting(
+                "allow_changing_trash_settings",
+                self.allow_changing_trash_settings.to_compact_string(),
+            )
             .write_raw_setting("container_prelude", &*self.container_prelude))
     }
 }
@@ -179,6 +192,20 @@ impl SettingsDeserializeExt for AppSettingsServerDeserializer {
                 .unwrap_or(true),
             allow_viewing_transfer_progress: deserializer
                 .take_raw_setting("allow_viewing_transfer_progress")
+                .map(|s| s == "true")
+                .unwrap_or(true),
+            trash: TrashSettings {
+                retention: deserializer
+                    .take_raw_setting("trash_retention")
+                    .and_then(|s| s.parse().ok())
+                    .unwrap_or(7 * 24 * 60 * 60),
+                usage_threshold: deserializer
+                    .take_raw_setting("trash_usage_threshold")
+                    .and_then(|s| s.parse().ok())
+                    .unwrap_or(90),
+            },
+            allow_changing_trash_settings: deserializer
+                .take_raw_setting("allow_changing_trash_settings")
                 .map(|s| s == "true")
                 .unwrap_or(true),
             container_prelude: deserializer

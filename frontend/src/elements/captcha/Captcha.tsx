@@ -1,11 +1,17 @@
-import HCaptcha from '@hcaptcha/react-hcaptcha';
+import type HCaptcha from '@hcaptcha/react-hcaptcha';
 import { useComputedColorScheme } from '@mantine/core';
-import { Turnstile, type TurnstileInstance } from '@marsidev/react-turnstile';
-import { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
-import ReCAPTCHA from 'react-google-recaptcha';
-import Cap, { type CapRef } from '@/elements/captcha/Cap.tsx';
-import FriendlyCaptcha, { type FriendlyCaptchaRef } from '@/elements/captcha/FriendlyCaptcha.tsx';
+import type { TurnstileInstance } from '@marsidev/react-turnstile';
+import { lazy, Suspense, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
+import type ReCAPTCHA from 'react-google-recaptcha';
+import type { CapRef } from '@/elements/captcha/Cap.tsx';
+import type { FriendlyCaptchaRef } from '@/elements/captcha/FriendlyCaptcha.tsx';
 import { useGlobalStore } from '@/stores/global.ts';
+
+const Cap = lazy(() => import('@/elements/captcha/Cap.tsx'));
+const FriendlyCaptcha = lazy(() => import('@/elements/captcha/FriendlyCaptcha.tsx'));
+const HCaptchaWidget = lazy(() => import('@hcaptcha/react-hcaptcha'));
+const ReCAPTCHAWidget = lazy(() => import('react-google-recaptcha'));
+const Turnstile = lazy(() => import('@marsidev/react-turnstile').then((module) => ({ default: module.Turnstile })));
 
 export interface CaptchaRef {
   getToken: () => Promise<string | null>;
@@ -135,62 +141,64 @@ const Captcha = ({ onValidChange, ref }: CaptchaProps) => {
 
   return (
     <div key={`${captchaProvider.type}-${colorScheme}`} className='flex w-full items-center justify-center'>
-      {captchaProvider.type === 'cap' && (
-        <Cap
-          ref={capRef}
-          apiUrl={captchaProvider.apiUrl}
-          siteKey={captchaProvider.siteKey}
-          theme={colorScheme}
-          onComplete={setValid}
-          onExpire={setInvalid}
-          onError={setInvalid}
-        />
-      )}
+      <Suspense>
+        {captchaProvider.type === 'cap' && (
+          <Cap
+            ref={capRef}
+            apiUrl={captchaProvider.apiUrl}
+            siteKey={captchaProvider.siteKey}
+            theme={colorScheme}
+            onComplete={setValid}
+            onExpire={setInvalid}
+            onError={setInvalid}
+          />
+        )}
 
-      {captchaProvider.type === 'turnstile' && (
-        <Turnstile
-          ref={turnstileRef}
-          siteKey={captchaProvider.siteKey}
-          options={{ size: 'flexible', theme: colorScheme }}
-          onSuccess={setValid}
-          onExpire={setInvalid}
-          onError={setInvalid}
-        />
-      )}
+        {captchaProvider.type === 'turnstile' && (
+          <Turnstile
+            ref={turnstileRef}
+            siteKey={captchaProvider.siteKey}
+            options={{ size: 'flexible', theme: colorScheme }}
+            onSuccess={setValid}
+            onExpire={setInvalid}
+            onError={setInvalid}
+          />
+        )}
 
-      {captchaProvider.type === 'recaptcha' && (
-        <ReCAPTCHA
-          ref={recaptchaRef}
-          sitekey={captchaProvider.siteKey}
-          theme={colorScheme}
-          onChange={setValid}
-          onExpired={setInvalid}
-          onErrored={setInvalid}
-        />
-      )}
+        {captchaProvider.type === 'recaptcha' && (
+          <ReCAPTCHAWidget
+            ref={recaptchaRef}
+            sitekey={captchaProvider.siteKey}
+            theme={colorScheme}
+            onChange={setValid}
+            onExpired={setInvalid}
+            onErrored={setInvalid}
+          />
+        )}
 
-      {captchaProvider.type === 'hcaptcha' && (
-        <HCaptcha
-          ref={hcaptchaRef}
-          sitekey={captchaProvider.siteKey}
-          theme={colorScheme}
-          onVerify={setValid}
-          onExpire={setInvalid}
-          onError={setInvalid}
-          onChalExpired={setInvalid}
-        />
-      )}
+        {captchaProvider.type === 'hcaptcha' && (
+          <HCaptchaWidget
+            ref={hcaptchaRef}
+            sitekey={captchaProvider.siteKey}
+            theme={colorScheme}
+            onVerify={setValid}
+            onExpire={setInvalid}
+            onError={setInvalid}
+            onChalExpired={setInvalid}
+          />
+        )}
 
-      {captchaProvider.type === 'friendly_captcha' && (
-        <FriendlyCaptcha
-          ref={friendlyCaptchaRef}
-          sitekey={captchaProvider.siteKey}
-          theme={colorScheme}
-          onComplete={setValid}
-          onExpire={setInvalid}
-          onError={setInvalid}
-        />
-      )}
+        {captchaProvider.type === 'friendly_captcha' && (
+          <FriendlyCaptcha
+            ref={friendlyCaptchaRef}
+            sitekey={captchaProvider.siteKey}
+            theme={colorScheme}
+            onComplete={setValid}
+            onExpire={setInvalid}
+            onError={setInvalid}
+          />
+        )}
+      </Suspense>
     </div>
   );
 };

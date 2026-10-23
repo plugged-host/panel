@@ -165,7 +165,7 @@ fn render(
     body: &str,
     context: &minijinja::Value,
 ) -> Result<RenderedMail, anyhow::Error> {
-    let settings = minijinja::Value::from_serialize(settings);
+    let settings = minijinja::Value::from(minijinja::value::Serde(settings));
 
     let mut text_environment = minijinja::Environment::new();
     text_environment.add_global("settings", settings.clone());
@@ -574,7 +574,7 @@ mod tests {
     #[test]
     fn variable_markup_is_kept_while_interpolations_are_escaped() {
         let context = minijinja::context! {
-            user => serde_json::json!({ "username": "<script>alert(1)</script>" }),
+            user => minijinja::value::Serde(serde_json::json!({ "username": "<script>alert(1)</script>" })),
             link => "https://panel.example.com/reset?token=a&b=<c>",
         };
         let variables = variables(&[

@@ -138,102 +138,60 @@ async fn handle_aio_wings(
         if let Some(config_path) = &state.env.aio_base_wings_configuration {
             tracing::info!("using aio base wings configuration from environment variable");
             (
-                serde_norway::Value::Mapping(
-                    serde_norway::from_str(
-                        &tokio::fs::read_to_string(config_path)
-                            .await
-                            .unwrap_or_else(|_| "".into()),
-                    )
-                    .unwrap_or_else(|_| serde_norway::Mapping::new()),
-                ),
+                serde_saphyr::from_str_with_options::<serde_json::Map<String, serde_json::Value>>(
+                    &tokio::fs::read_to_string(config_path)
+                        .await
+                        .unwrap_or_else(|_| "".into()),
+                    shared::utils::yaml_deserialize_options(),
+                )
+                .unwrap_or_default(),
                 PathBuf::from(config_path),
             )
         } else {
             (
-                serde_norway::Value::Mapping(serde_norway::Mapping::new()),
+                serde_json::Map::new(),
                 std::env::temp_dir().join("aio-wings-config.yml"),
             )
         };
 
-    let Some(mapping) = wings_configuration.as_mapping_mut() else {
-        return Err(anyhow::anyhow!(
-            "invalid aio base wings configuration: expected a mapping at the root"
-        ));
-    };
-
-    mapping.insert(
-        serde_norway::Value::String("uuid".into()),
-        serde_norway::Value::String(Node::AIO_NODE_UUID.to_string()),
-    );
-    mapping.insert(
-        serde_norway::Value::String("token_id".into()),
-        serde_norway::Value::String(token_id),
-    );
-    mapping.insert(
-        serde_norway::Value::String("token".into()),
-        serde_norway::Value::String(token),
-    );
-    mapping.insert(
-        serde_norway::Value::String("remote".into()),
-        serde_norway::Value::String(format!("http://localhost:{}", state.env.port)),
+    wings_configuration.insert("uuid".into(), Node::AIO_NODE_UUID.to_string().into());
+    wings_configuration.insert("token_id".into(), token_id.into());
+    wings_configuration.insert("token".into(), token.into());
+    wings_configuration.insert(
+        "remote".into(),
+        format!("http://localhost:{}", state.env.port).into(),
     );
     {
-        let api_mapping = match mapping.get_mut(serde_norway::Value::String("api".into())) {
-            Some(serde_norway::Value::Mapping(api_mapping)) => api_mapping,
-            _ => {
-                let api_mapping = serde_norway::Mapping::new();
-                mapping.insert(
-                    serde_norway::Value::String("api".into()),
-                    serde_norway::Value::Mapping(api_mapping),
-                );
-                match mapping.get_mut(serde_norway::Value::String("api".into())) {
-                    Some(serde_norway::Value::Mapping(api_mapping)) => api_mapping,
-                    _ => unreachable!(),
-                }
-            }
+        let api_mapping = wings_configuration
+            .entry("api")
+            .or_insert_with(|| serde_json::Map::new().into());
+        if !api_mapping.is_object() {
+            *api_mapping = serde_json::Map::new().into();
+        }
+        let serde_json::Value::Object(api_mapping) = api_mapping else {
+            unreachable!()
         };
 
+        api_mapping.insert("host".into(), "127.0.0.1".into());
+        api_mapping.insert("port".into(), 64332.into());
+        api_mapping.insert("upload_limit".into(), 10240.into());
         api_mapping.insert(
-            serde_norway::Value::String("host".into()),
-            serde_norway::Value::String("127.0.0.1".into()),
-        );
-        api_mapping.insert(
-            serde_norway::Value::String("port".into()),
-            serde_norway::Value::Number(64332.into()),
-        );
-        api_mapping.insert(
-            serde_norway::Value::String("upload_limit".into()),
-            serde_norway::Value::Number(10240.into()),
-        );
-        api_mapping.insert(
-            serde_norway::Value::String("trusted_proxies".into()),
-            serde_norway::Value::Sequence(vec![
-                serde_norway::Value::String("127.0.0.1".into()),
-                serde_norway::Value::String("::1".into()),
-            ]),
+            "trusted_proxies".into(),
+            serde_json::json!(["127.0.0.1", "::1"]),
         );
     }
     {
-        let tundra_mapping = match mapping.get_mut(serde_norway::Value::String("tundra".into())) {
-            Some(serde_norway::Value::Mapping(tundra_mapping)) => tundra_mapping,
-            _ => {
-                mapping.insert(
-                    serde_norway::Value::String("tundra".into()),
-                    serde_norway::Value::Mapping(serde_norway::Mapping::new()),
-                );
-                match mapping.get_mut(serde_norway::Value::String("tundra".into())) {
-                    Some(serde_norway::Value::Mapping(tundra_mapping)) => tundra_mapping,
-                    _ => unreachable!(),
-                }
-            }
+        let tundra_mapping = wings_configuration
+            .entry("tundra")
+            .or_insert_with(|| serde_json::Map::new().into());
+        if !tundra_mapping.is_object() {
+            *tundra_mapping = serde_json::Map::new().into();
+        }
+        let serde_json::Value::Object(tundra_mapping) = tundra_mapping else {
+            unreachable!()
         };
 
-        if !tundra_mapping.contains_key(serde_norway::Value::String("enabled".into())) {
-            tundra_mapping.insert(
-                serde_norway::Value::String("enabled".into()),
-                serde_norway::Value::Bool(true),
-            );
-        }
+        tundra_mapping.entry("enabled").or_insert(true.into());
     }
 
     let mut options = tokio::fs::OpenOptions::new();
@@ -269,7 +227,7 @@ async fn handle_aio_wings(
             .await?;
     }
 
-    file.write_all(serde_norway::to_string(&wings_configuration)?.as_bytes())
+    file.write_all(serde_saphyr::to_string(&wings_configuration)?.as_bytes())
         .await?;
     file.flush().await?;
     drop(file);

@@ -1,6 +1,11 @@
 use crate::State;
 use futures_util::FutureExt;
-use std::{borrow::Cow, collections::HashMap, panic::AssertUnwindSafe, sync::Arc};
+use std::{
+    borrow::Cow,
+    collections::{HashMap, HashSet},
+    panic::AssertUnwindSafe,
+    sync::Arc,
+};
 use tokio::sync::{OwnedRwLockReadGuard, RwLock};
 
 pub struct BackgroundTask {
@@ -22,6 +27,29 @@ impl BackgroundTaskBuilder {
             state,
             tasks: Arc::new(RwLock::new(HashMap::new())),
         }
+    }
+
+    pub(crate) fn share(&self) -> Self {
+        Self {
+            state: self.state.clone(),
+            tasks: Arc::clone(&self.tasks),
+        }
+    }
+
+    pub(crate) async fn task_names(&self) -> HashSet<&'static str> {
+        self.tasks.read().await.keys().copied().collect()
+    }
+
+    /// Aborts and removes every task not in `keep`.
+    pub(crate) async fn rollback(&self, keep: &HashSet<&'static str>) {
+        self.tasks.write().await.retain(|name, task| {
+            if keep.contains(name) {
+                return true;
+            }
+
+            task.task.abort();
+            false
+        });
     }
 
     /// Adds a background task that will be executed periodically, depending on your loop function implementation.

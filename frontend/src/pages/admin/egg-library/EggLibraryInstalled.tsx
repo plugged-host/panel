@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router';
 import searchEggs from '@/api/admin/eggs/searchEggs.ts';
 import Button from '@/elements/buttons/Button.tsx';
 import AdminSubContentContainer from '@/elements/containers/AdminSubContentContainer.tsx';
-import { ErrorItems, NoItems, Pagination } from '@/elements/data-display/Table.tsx';
+import { NoItems, Pagination } from '@/elements/data-display/Table.tsx';
 import EmptyState from '@/elements/feedback/EmptyState.tsx';
+import ErrorState from '@/elements/feedback/ErrorState.tsx';
 import Spinner from '@/elements/feedback/Spinner.tsx';
 import Stack from '@/elements/layout/Stack.tsx';
 import { queryKeys } from '@/lib/queryKeys.ts';
@@ -42,7 +43,7 @@ export default function EggLibraryInstalled() {
           </Button>
         </EmptyState>
       ) : error ? (
-        <ErrorItems error={error} />
+        <ErrorState error={error} />
       ) : !data ? (
         <Spinner.Centered />
       ) : data.total === 0 ? (

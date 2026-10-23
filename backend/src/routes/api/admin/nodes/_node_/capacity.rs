@@ -20,6 +20,17 @@ mod get {
     }
 
     #[derive(ToSchema, Serialize)]
+    struct ResponseServer {
+        uuid: uuid::Uuid,
+        name: compact_str::CompactString,
+        suspended: bool,
+        cpu: i32,
+        memory: i64,
+        memory_overhead: i64,
+        disk: i64,
+    }
+
+    #[derive(ToSchema, Serialize)]
     struct ResponseLimits {
         memory: i64,
         disk: i64,
@@ -31,6 +42,8 @@ mod get {
         limits: ResponseLimits,
         #[schema(inline)]
         allocated: ResponseStats,
+        #[schema(inline)]
+        servers: Vec<ResponseServer>,
     }
 
     #[utoipa::path(get, path = "/", responses(
@@ -50,20 +63,48 @@ mod get {
     ) -> ApiResponseResult {
         permissions.has_admin_permission("nodes.read")?;
 
-        let allocated = sqlx::query_as_unchecked!(
-            ResponseStats,
-            "SELECT
-                COUNT(*) as servers,
-                COALESCE(SUM(cpu), 0)::int8 as cpu,
-                COALESCE(SUM(memory), 0)::int8 as memory,
-                COALESCE(SUM(memory_overhead), 0)::int8 as memory_overhead,
-                COALESCE(SUM(disk), 0)::int8 as disk
-            FROM servers
-            WHERE servers.node_uuid = $1",
-            node.uuid
-        )
-        .fetch_one(state.database.read())
-        .await?;
+        let (allocated, servers) = tokio::try_join!(
+            sqlx::query_as_unchecked!(
+                ResponseStats,
+                "SELECT
+                    COUNT(*) as servers,
+                    COALESCE(SUM(cpu), 0)::int8 as cpu,
+                    COALESCE(SUM(memory), 0)::int8 as memory,
+                    COALESCE(SUM(memory_overhead), 0)::int8 as memory_overhead,
+                    COALESCE(SUM(disk), 0)::int8 as disk
+                FROM servers
+                WHERE servers.node_uuid = $1",
+                node.uuid
+            )
+            .fetch_one(state.database.read()),
+            sqlx::query!(
+                "SELECT
+                    servers.uuid,
+                    servers.name,
+                    servers.suspended,
+                    servers.cpu,
+                    servers.memory,
+                    servers.memory_overhead,
+                    servers.disk
+                FROM servers
+                WHERE servers.node_uuid = $1",
+                node.uuid
+            )
+            .fetch_all(state.database.read()),
+        )?;
+
+        let servers = servers
+            .into_iter()
+            .map(|row| ResponseServer {
+                uuid: row.uuid,
+                name: row.name.into(),
+                suspended: row.suspended,
+                cpu: row.cpu,
+                memory: row.memory,
+                memory_overhead: row.memory_overhead,
+                disk: row.disk,
+            })
+            .collect();
 
         ApiResponse::new_serialized(Response {
             limits: ResponseLimits {
@@ -71,6 +112,7 @@ mod get {
                 disk: node.disk,
             },
             allocated,
+            servers,
         })
         .ok()
     }

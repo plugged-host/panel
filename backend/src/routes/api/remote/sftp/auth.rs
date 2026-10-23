@@ -6,7 +6,11 @@ mod post {
     use serde::{Deserialize, Serialize};
     use shared::{
         ApiError, GetState,
-        models::{node::GetNode, server::Server, user::User},
+        models::{
+            node::GetNode,
+            server::Server,
+            user::{CredentialScope, PermissionManager, User},
+        },
         response::{ApiResponse, ApiResponseResult},
     };
     use utoipa::ToSchema;
@@ -32,6 +36,8 @@ mod post {
 
         permissions: Vec<&'a str>,
         ignored_files: &'a [compact_str::CompactString],
+
+        as_of: i64,
     }
 
     /// plugged.host: the user behind an SFTP username when it signs in with noprofit.space, and its
@@ -65,6 +71,8 @@ mod post {
         node: GetNode,
         shared::Payload(data): shared::Payload<Payload>,
     ) -> ApiResponseResult {
+        let as_of = chrono::Utc::now().timestamp_millis();
+
         let ratelimit = state
             .settings
             .get_as(|s| s.ratelimits.remote_sftp_auth)
@@ -157,31 +165,20 @@ mod post {
             }
         };
 
-        if user.suspended {
-            return ApiResponse::error("account is suspended")
+        let denial = user.wings_access_denial(&*state.settings.get().await?);
+        if let Some(denial) = denial {
+            return ApiResponse::error(denial)
                 .with_status(StatusCode::EXPECTATION_FAILED)
                 .ok();
         }
 
-        let settings = state.settings.get().await?;
-        let two_factor_missing =
-            user.require_two_factor(&settings) && !user.satisfies_two_factor(&settings);
-        let email_unverified = user.require_email_verification(&settings) && !user.email_verified;
-        drop(settings);
-
-        if two_factor_missing {
-            return ApiResponse::error("two-factor authentication required")
-                .with_status(StatusCode::EXPECTATION_FAILED)
-                .ok();
-        }
-
-        if email_unverified {
-            return ApiResponse::error("email verification required")
-                .with_status(StatusCode::EXPECTATION_FAILED)
-                .ok();
-        }
-
-        let server = match Server::by_user_identifier(&state.database, &user, server).await? {
+        let server = match Server::by_user_identifier(
+            &state.database,
+            &PermissionManager::new(&user, CredentialScope::Session),
+            server,
+        )
+        .await?
+        {
             Some(server) => server,
             None => {
                 return ApiResponse::error("server not found")
@@ -202,9 +199,10 @@ mod post {
             permissions: server.wings_permissions(
                 &*state.settings.get().await?,
                 &user,
-                &shared::models::user::CredentialScope::Session,
+                &CredentialScope::Session,
             ),
             ignored_files: server.subuser_ignored_files.as_deref().unwrap_or(&[]),
+            as_of,
         })
         .ok()
     }

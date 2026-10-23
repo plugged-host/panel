@@ -32,9 +32,10 @@ export default function AdminEggMounts({
     search,
     setSearch,
     setPage,
+    setPerPage,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.admin.mountAssignments.mountsByEgg(contextEgg.uuid),
-    fetcher: (page, search) => getEggMounts(contextNest.uuid, contextEgg.uuid, page, search),
+    fetcher: (page, search, perPage) => getEggMounts(contextNest.uuid, contextEgg.uuid, page, search, perPage),
   });
 
   return (
@@ -62,6 +63,7 @@ export default function AdminEggMounts({
         error={error}
         pagination={eggMounts}
         onPageSelect={setPage}
+        onPerPageSelect={setPerPage}
       >
         {eggMounts?.data.map((mount) => (
           <EggMountRow key={mount.mount.uuid} nest={contextNest} egg={contextEgg} mount={mount} />

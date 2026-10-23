@@ -53,6 +53,7 @@ mod get {
 
         allow_overwriting_custom_docker_image: bool,
         allow_acknowledging_installation_failure: bool,
+        allow_changing_trash_settings: bool,
 
         container_prelude: &'a str,
     }
@@ -108,7 +109,7 @@ mod get {
         ApiResponse::new_serialized(Response {
             time: chrono::Utc::now(),
             oobe_step: settings.oobe_step.as_deref(),
-            disabled_extensions: state.extensions.disabled(),
+            disabled_extensions: state.extensions.inactive(),
             captcha_provider: settings.captcha_provider.to_public_provider(),
             app: ResponseApp {
                 url: &settings.app.url,
@@ -157,6 +158,7 @@ mod get {
                 allow_acknowledging_installation_failure: settings
                     .server
                     .allow_acknowledging_installation_failure,
+                allow_changing_trash_settings: settings.server.allow_changing_trash_settings,
                 container_prelude: &settings.server.container_prelude,
             },
             user: ResponseUser {

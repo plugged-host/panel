@@ -7,9 +7,10 @@ export default async (
   userUuid: string,
   page: number,
   search?: string,
+  perPage?: number,
 ): Promise<Pagination<z.infer<typeof userActivitySchema>>> => {
   const { data } = await axiosInstance.get(`/api/admin/users/${userUuid}/activity`, {
-    params: { page, search },
+    params: { page, per_page: perPage, search },
   });
   return parsePaginationFromApi(userActivitySchema, data.activities);
 };

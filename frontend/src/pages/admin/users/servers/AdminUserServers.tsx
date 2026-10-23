@@ -22,9 +22,10 @@ export default function AdminUserServers({ user }: { user: z.infer<typeof adminF
     search,
     setSearch,
     setPage,
+    setPerPage,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.admin.users.servers(user.uuid),
-    fetcher: (page, search) => getUserServers(user.uuid, page, search, showOwnedUserServers),
+    fetcher: (page, search, perPage) => getUserServers(user.uuid, page, search, showOwnedUserServers, perPage),
     deps: [showOwnedUserServers],
   });
 
@@ -49,6 +50,7 @@ export default function AdminUserServers({ user }: { user: z.infer<typeof adminF
         loading={loading}
         pagination={userServers}
         onPageSelect={setPage}
+        onPerPageSelect={setPerPage}
         error={error}
       >
         {userServers?.data.map((server) => (

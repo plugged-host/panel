@@ -6,6 +6,7 @@ import { ReactNode } from 'react';
 import Button from '@/elements/buttons/Button.tsx';
 import CopyOnClick from '@/elements/CopyOnClick.tsx';
 import Card from '@/elements/data-display/Card.tsx';
+import Spinner from '@/elements/feedback/Spinner.tsx';
 import ScrollingText from '@/elements/ScrollingText.tsx';
 import RedactedText from '@/elements/typography/RedactedText.tsx';
 import { usageColor, usagePercent } from '@/lib/format/usage.ts';
@@ -30,6 +31,7 @@ export default function StatCard({
   total,
   valueColor,
   redact,
+  loading,
 }: {
   icon?: IconDefinition;
   label: string;
@@ -45,10 +47,12 @@ export default function StatCard({
   total?: number | null;
   valueColor?: MantineColor;
   redact?: boolean;
+  loading?: boolean;
 }) {
   const displayValue = redact ? <RedactedText value={value} /> : value;
-  const color = usageColor(progress, total);
-  const percent = usagePercent(progress, total);
+  const shownProgress = loading ? null : progress;
+  const color = usageColor(shownProgress, total);
+  const percent = usagePercent(shownProgress, total);
 
   const valueContent = (
     <>
@@ -60,7 +64,7 @@ export default function StatCard({
     <Card className={classNames('ph-stat', className)} style={{ order }} p={0}>
       <div className='ph-stat-head'>
         <span className='ph-stat-label'>{label}</span>
-        {details && <span className='ph-stat-details'>{details}</span>}
+        {details && !loading && <span className='ph-stat-details'>{details}</span>}
         {popover && (
           <Popover position='bottom' withArrow shadow='md'>
             <Popover.Target>
@@ -76,7 +80,11 @@ export default function StatCard({
         className='ph-stat-value'
         style={valueColor ? { color: `var(--mantine-color-${valueColor}-text)` } : undefined}
       >
-        {copyOnClick ? (
+        {loading ? (
+          <span className='flex h-7 items-center'>
+            <Spinner size={18} />
+          </span>
+        ) : copyOnClick ? (
           <ScrollingText>
             <CopyOnClick content={value} className='text-left block'>
               {valueContent}

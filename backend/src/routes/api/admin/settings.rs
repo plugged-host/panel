@@ -40,6 +40,7 @@ mod put {
         models::{
             admin_activity::GetAdminActivityLogger,
             oauth_provider::OAuthProvider,
+            server::TrashSettings,
             user::{GetPermissionManager, GetUser},
             user_api_key::UserApiKey,
             user_oauth_link::UserOAuthLink,
@@ -163,6 +164,12 @@ mod put {
         allow_acknowledging_installation_failure: Option<bool>,
         #[garde(skip)]
         allow_viewing_transfer_progress: Option<bool>,
+
+        #[garde(dive)]
+        #[schema(inline)]
+        trash: Option<TrashSettings>,
+        #[garde(skip)]
+        allow_changing_trash_settings: Option<bool>,
 
         #[garde(length(chars, min = 1, max = 255))]
         container_prelude: Option<compact_str::CompactString>,
@@ -542,6 +549,12 @@ mod put {
             }
             if let Some(allow_viewing_transfer_progress) = server.allow_viewing_transfer_progress {
                 settings.server.allow_viewing_transfer_progress = allow_viewing_transfer_progress;
+            }
+            if let Some(trash) = server.trash {
+                settings.server.trash = trash;
+            }
+            if let Some(allow_changing_trash_settings) = server.allow_changing_trash_settings {
+                settings.server.allow_changing_trash_settings = allow_changing_trash_settings;
             }
             if let Some(container_prelude) = server.container_prelude {
                 settings.server.container_prelude = container_prelude;

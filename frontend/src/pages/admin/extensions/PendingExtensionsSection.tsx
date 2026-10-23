@@ -21,6 +21,7 @@ export default function PendingExtensionsSection({
   onCancelBuild,
   onRebuild,
   onRemove,
+  isPending,
 }: {
   extensionStatus: ExtensionStatus;
   phase: string | null;
@@ -31,6 +32,7 @@ export default function PendingExtensionsSection({
   onCancelBuild: () => void;
   onRebuild: (force: boolean) => void;
   onRemove: (backendExtension: AdminBackendExtension, removeMigrations: boolean) => void;
+  isPending: (key: string) => boolean;
 }) {
   const { t } = useTranslations();
   const { pendingExtensions, removedExtensions } = extensionStatus;
@@ -58,6 +60,7 @@ export default function PendingExtensionsSection({
                   variant='default'
                   leftSection={<FontAwesomeIcon icon={faBan} />}
                   disabled={cancellingBuild !== null}
+                  loading={isPending('cancel')}
                   onClick={onCancelBuild}
                 >
                   {t('pages.admin.extensions.button.cancelBuild', {})}
@@ -76,7 +79,7 @@ export default function PendingExtensionsSection({
               <Button
                 color='red'
                 leftSection={<FontAwesomeIcon icon={faRefresh} />}
-                loading={isBuilding}
+                loading={isBuilding || isPending('rebuild')}
                 onClick={() => onRebuild(buildFailed)}
               >
                 {buildFailed
@@ -101,6 +104,7 @@ export default function PendingExtensionsSection({
               isPending
               isBuildFailed={failedExtensions.includes(extension.metadataToml.packageName)}
               onRemove={() => onRemove(extension, false)}
+              busy={isPending(`remove:${extension.metadataToml.packageName}`)}
             />
           ))}
         </ExtensionGrid>

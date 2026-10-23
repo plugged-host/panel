@@ -7,7 +7,7 @@ mod post {
     use shared::{
         ApiError, GetState,
         models::{
-            user::{GetPermissionManager, GetUser},
+            user::{GetAuthMethod, GetPermissionManager, GetUser},
             user_activity::GetUserActivityLogger,
             user_api_key::UserApiKey,
         },
@@ -34,11 +34,19 @@ mod post {
     pub async fn route(
         state: GetState,
         permissions: GetPermissionManager,
+        auth: GetAuthMethod,
         user: GetUser,
         activity_logger: GetUserActivityLogger,
         Path(api_key): Path<uuid::Uuid>,
     ) -> ApiResponseResult {
         permissions.has_user_permission("api-keys.recreate")?;
+        permissions.deny_while_impersonating()?;
+
+        if auth.api_key_uuid() == Some(api_key) {
+            return ApiResponse::error("unable to recreate the api key currently in use")
+                .with_status(StatusCode::BAD_REQUEST)
+                .ok();
+        }
 
         let mut api_key =
             match UserApiKey::by_user_uuid_uuid(&state.database, user.uuid, api_key).await? {

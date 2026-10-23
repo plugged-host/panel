@@ -1,4 +1,4 @@
-import { type Monaco } from '@monaco-editor/react';
+import { type Monaco } from '@/lib/editor/monacoLoader.ts';
 import { matchActiveInputShortcut } from '@/plugins/quick-actions/useKeyboardShortcuts.ts';
 
 type IMonarchLanguageRule = import('monaco-editor').languages.IMonarchLanguageRule;

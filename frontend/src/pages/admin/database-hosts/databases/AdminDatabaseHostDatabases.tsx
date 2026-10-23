@@ -22,9 +22,10 @@ export default function AdminDatabaseHostDatabases({
     search,
     setSearch,
     setPage,
+    setPerPage,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.admin.databaseHosts.databases(databaseHost.uuid),
-    fetcher: (page, search) => getDatabaseHostDatabases(databaseHost.uuid, page, search),
+    fetcher: (page, search, perPage) => getDatabaseHostDatabases(databaseHost.uuid, page, search, perPage),
   });
 
   return (
@@ -42,6 +43,7 @@ export default function AdminDatabaseHostDatabases({
         error={error}
         pagination={databaseHostDatabases}
         onPageSelect={setPage}
+        onPerPageSelect={setPerPage}
       >
         {databaseHostDatabases?.data.map((database) => (
           <DatabaseRow key={database.uuid} databaseHost={databaseHost} database={database} />

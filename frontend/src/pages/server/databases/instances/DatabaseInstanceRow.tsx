@@ -35,7 +35,7 @@ import DatabaseInstanceDeleteModal from './modals/DatabaseInstanceDeleteModal.ts
 interface DatabaseInstanceRowProps {
   instance: z.infer<typeof serverDatabaseInstanceSchema>;
   isSelected?: boolean;
-  onSelectionChange?: (selected: boolean) => void;
+  onSelectionChange?: (selected: boolean, range?: boolean) => void;
   onClick?: (event: React.MouseEvent) => void;
 }
 
@@ -165,9 +165,9 @@ const DatabaseInstanceRow = forwardRef<HTMLTableRowElement, DatabaseInstanceRowP
             <TableData>
               <Group gap='xs' wrap='nowrap'>
                 {instance.isLocked ? (
-                  <FontAwesomeIcon className='text-green-500' icon={faLock} />
+                  <FontAwesomeIcon className='text-(--mantine-color-green-text)' icon={faLock} />
                 ) : (
-                  <FontAwesomeIcon className='text-red-500' icon={faLockOpen} />
+                  <FontAwesomeIcon className='text-(--mantine-color-red-text)' icon={faLockOpen} />
                 )}
                 {instance.updateAvailable && (
                   <Badge color='yellow'>{t('pages.server.databases.instance.updateAvailable', {})}</Badge>

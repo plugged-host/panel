@@ -1,5 +1,6 @@
 import { basename, dirname, join } from 'pathe';
 import { useRef } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import saveFileContent from '@/api/server/files/saveFileContent.ts';
 import { readFileDraft } from '@/lib/files/fileDrafts.ts';
 import { useServerCan } from '@/plugins/usePermissions.ts';
@@ -38,7 +39,7 @@ export default function useFileTreeFileCreation({
     return {
       directory,
       action: 'new',
-      params: { draftId: crypto.randomUUID() },
+      params: { draftId: uuidv4() },
       primary: capabilities.primary,
       writable: capabilities.writable,
       file: {

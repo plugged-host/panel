@@ -27,6 +27,7 @@ export default function DashboardSecurityKeys() {
     search,
     setSearch,
     setPage,
+    setPerPage,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.user.securityKeys.all(),
     fetcher: getSecurityKeys,
@@ -96,6 +97,7 @@ export default function DashboardSecurityKeys() {
         loading={loading}
         pagination={securityKeys}
         onPageSelect={setPage}
+        onPerPageSelect={setPerPage}
         error={error}
       >
         {securityKeys?.data.map((key) => (

@@ -138,36 +138,20 @@ impl Role {
         per_page: i64,
         search: Option<&str>,
     ) -> Result<super::Pagination<Self>, crate::database::DatabaseError> {
-        let offset = (page - 1) * per_page;
-
-        let rows = sqlx::query(sqlx::AssertSqlSafe(format!(
-            r#"
-            SELECT {}, COUNT(*) OVER() AS total_count
-            FROM roles
-            WHERE {search}
-            ORDER BY roles.created
-            LIMIT $2 OFFSET $3
-            "#,
+        super::PaginatedQueryBuilder::new(
             Self::columns_sql(None),
-            search = super::search_sql(1, &["roles.name"], &["roles.uuid"])
-        )))
+            format!(
+                r#"
+                FROM roles
+                WHERE {search}
+                "#,
+                search = super::search_sql(1, &["roles.name"], &["roles.uuid"]),
+            ),
+            "roles.created, roles.uuid",
+        )
         .bind(search)
-        .bind(per_page)
-        .bind(offset)
-        .fetch_all(database.read())
-        .await?;
-
-        Ok(super::Pagination {
-            total: rows
-                .first()
-                .map_or(Ok(0), |row| row.try_get("total_count"))?,
-            per_page,
-            page,
-            data: rows
-                .into_iter()
-                .map(|row| Self::map(None, &row))
-                .try_collect_vec()?,
-        })
+        .fetch(database, page, per_page)
+        .await
     }
 }
 
@@ -337,6 +321,18 @@ impl UpdatableModel for Role {
         state: &crate::State,
         options: Self::UpdateOptions,
     ) -> Result<(), crate::database::DatabaseError> {
+        let access_changed = options
+            .admin_permissions
+            .as_ref()
+            .is_some_and(|permissions| permissions != self.admin_permissions.as_ref())
+            || options
+                .server_permissions
+                .as_ref()
+                .is_some_and(|permissions| permissions != self.server_permissions.as_ref())
+            || options
+                .require_two_factor
+                .is_some_and(|require_two_factor| require_two_factor != self.require_two_factor);
+
         let mut transaction = state.database.write().begin().await?;
 
         if let Err(err) = self
@@ -350,6 +346,21 @@ impl UpdatableModel for Role {
         transaction.commit().await?;
 
         self.invalidate_cached_with_users(&state.database).await?;
+
+        if access_changed {
+            match self.user_uuids(&state.database).await {
+                Ok(user_uuids) => super::node::Node::invalidate_permissions_everywhere(
+                    &state.database,
+                    super::node::PermissionsInvalidation {
+                        users: user_uuids,
+                        ..Default::default()
+                    },
+                ),
+                Err(err) => {
+                    tracing::error!(role = %self.uuid, "failed to invalidate permissions in wings: {:?}", err);
+                }
+            }
+        }
 
         Ok(())
     }
@@ -433,9 +444,16 @@ impl DeletableModel for Role {
         transaction.commit().await?;
 
         Self::invalidate_cached(&state.database, self.uuid).await;
-        for user_uuid in user_uuids {
+        for &user_uuid in &user_uuids {
             super::user::User::invalidate_cached(&state.database, user_uuid).await;
         }
+        super::node::Node::invalidate_permissions_everywhere(
+            &state.database,
+            super::node::PermissionsInvalidation {
+                users: user_uuids,
+                ..Default::default()
+            },
+        );
 
         Ok(())
     }

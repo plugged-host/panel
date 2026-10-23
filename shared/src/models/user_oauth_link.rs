@@ -178,41 +178,25 @@ impl UserOAuthLink {
         per_page: i64,
         search: Option<&str>,
     ) -> Result<super::Pagination<Self>, crate::database::DatabaseError> {
-        let offset = (page - 1) * per_page;
-
-        let rows = sqlx::query(sqlx::AssertSqlSafe(format!(
-            r#"
-            SELECT {}, COUNT(*) OVER() AS total_count
-            FROM user_oauth_links
-            WHERE user_oauth_links.user_uuid = $1 AND {search}
-            ORDER BY user_oauth_links.created
-            LIMIT $3 OFFSET $4
-            "#,
+        super::PaginatedQueryBuilder::new(
             Self::columns_sql(None),
-            search = super::search_sql(
-                2,
-                &["user_oauth_links.identifier"],
-                &["user_oauth_links.uuid"]
-            )
-        )))
+            format!(
+                r#"
+                FROM user_oauth_links
+                WHERE user_oauth_links.user_uuid = $1 AND {search}
+                "#,
+                search = super::search_sql(
+                    2,
+                    &["user_oauth_links.identifier"],
+                    &["user_oauth_links.uuid"]
+                ),
+            ),
+            "user_oauth_links.created, user_oauth_links.uuid",
+        )
         .bind(user_uuid)
         .bind(search)
-        .bind(per_page)
-        .bind(offset)
-        .fetch_all(database.read())
-        .await?;
-
-        Ok(super::Pagination {
-            total: rows
-                .first()
-                .map_or(Ok(0), |row| row.try_get("total_count"))?,
-            per_page,
-            page,
-            data: rows
-                .into_iter()
-                .map(|row| Self::map(None, &row))
-                .try_collect_vec()?,
-        })
+        .fetch(database, page, per_page)
+        .await
     }
 
     pub async fn filtered_by_user_uuid_with_pagination(
@@ -221,36 +205,18 @@ impl UserOAuthLink {
         page: i64,
         per_page: i64,
     ) -> Result<super::Pagination<Self>, crate::database::DatabaseError> {
-        let offset = (page - 1) * per_page;
-
-        let rows = sqlx::query(sqlx::AssertSqlSafe(format!(
+        super::PaginatedQueryBuilder::new(
+            Self::columns_sql(None),
             r#"
-            SELECT {}, COUNT(*) OVER() AS total_count
             FROM user_oauth_links
             INNER JOIN oauth_providers ON user_oauth_links.oauth_provider_uuid = oauth_providers.uuid
             WHERE user_oauth_links.user_uuid = $1 AND oauth_providers.link_viewable = true
-            ORDER BY user_oauth_links.created
-            LIMIT $2 OFFSET $3
             "#,
-            Self::columns_sql(None)
-        )))
+            "user_oauth_links.created, user_oauth_links.uuid",
+        )
         .bind(user_uuid)
-        .bind(per_page)
-        .bind(offset)
-        .fetch_all(database.read())
-        .await?;
-
-        Ok(super::Pagination {
-            total: rows
-                .first()
-                .map_or(Ok(0), |row| row.try_get("total_count"))?,
-            per_page,
-            page,
-            data: rows
-                .into_iter()
-                .map(|row| Self::map(None, &row))
-                .try_collect_vec()?,
-        })
+        .fetch(database, page, per_page)
+        .await
     }
 
     pub async fn by_oauth_provider_uuid_with_pagination(
@@ -260,41 +226,25 @@ impl UserOAuthLink {
         per_page: i64,
         search: Option<&str>,
     ) -> Result<super::Pagination<Self>, crate::database::DatabaseError> {
-        let offset = (page - 1) * per_page;
-
-        let rows = sqlx::query(sqlx::AssertSqlSafe(format!(
-            r#"
-            SELECT {}, COUNT(*) OVER() AS total_count
-            FROM user_oauth_links
-            WHERE user_oauth_links.oauth_provider_uuid = $1 AND {search}
-            ORDER BY user_oauth_links.created
-            LIMIT $3 OFFSET $4
-            "#,
+        super::PaginatedQueryBuilder::new(
             Self::columns_sql(None),
-            search = super::search_sql(
-                2,
-                &["user_oauth_links.identifier"],
-                &["user_oauth_links.uuid"]
-            )
-        )))
+            format!(
+                r#"
+                FROM user_oauth_links
+                WHERE user_oauth_links.oauth_provider_uuid = $1 AND {search}
+                "#,
+                search = super::search_sql(
+                    2,
+                    &["user_oauth_links.identifier"],
+                    &["user_oauth_links.uuid"]
+                ),
+            ),
+            "user_oauth_links.created, user_oauth_links.uuid",
+        )
         .bind(oauth_provider_uuid)
         .bind(search)
-        .bind(per_page)
-        .bind(offset)
-        .fetch_all(database.read())
-        .await?;
-
-        Ok(super::Pagination {
-            total: rows
-                .first()
-                .map_or(Ok(0), |row| row.try_get("total_count"))?,
-            per_page,
-            page,
-            data: rows
-                .into_iter()
-                .map(|row| Self::map(None, &row))
-                .try_collect_vec()?,
-        })
+        .fetch(database, page, per_page)
+        .await
     }
 }
 

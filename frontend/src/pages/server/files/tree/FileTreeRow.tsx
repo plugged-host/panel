@@ -48,12 +48,26 @@ interface FileTreeRowProps {
   onToggleSelection: (item: TreeSelectionItem) => void;
   onStartDrag: (event: React.DragEvent, item: TreeSelectionItem) => void;
   onDragEnd: () => void;
+  onCreateFileIn?: (directory: string, writable: boolean) => void;
+  onCreateDirectoryIn?: (directory: string, writable: boolean) => void;
 }
 
-function ContextMenuOpener({ x, y, openMenu }: { x: number; y: number; openMenu: (x: number, y: number) => void }) {
+function ContextMenuOpener({
+  position,
+  openMenu,
+}: {
+  position: { x: number; y: number };
+  openMenu: (x: number, y: number) => void;
+}) {
+  const openMenuRef = useRef(openMenu);
+
   useEffect(() => {
-    openMenu(x, y);
-  }, [x, y, openMenu]);
+    openMenuRef.current = openMenu;
+  }, [openMenu]);
+
+  useEffect(() => {
+    openMenuRef.current(position.x, position.y);
+  }, [position]);
 
   return null;
 }
@@ -83,6 +97,8 @@ function FileTreeRow({
   onToggleSelection,
   onStartDrag,
   onDragEnd,
+  onCreateFileIn,
+  onCreateDirectoryIn,
 }: FileTreeRowProps) {
   const { t } = useTranslations();
   const showPreview = row.searchResult && canPreviewFile(row.entry);
@@ -110,6 +126,7 @@ function FileTreeRow({
       }),
     [parentFast, parentWritable, row.entry, row.parent, store],
   );
+  const canCreateInside = row.entry.directory && directoryWritable;
   const canDrag =
     !dragDisabled &&
     ((canUpdateFiles && parentWritable && !moving && !anyActing) || (!row.entry.directory && openMode.openable));
@@ -158,6 +175,7 @@ function FileTreeRow({
         aria-selected={selected}
         data-active-file={active || undefined}
         data-file-manager-tree-row
+        data-file-tree-path={row.path}
         data-file-tree-directory={row.entry.directory ? row.path : undefined}
         data-file-tree-drop-target={row.entry.directory ? row.path : row.parent}
         data-file-tree-drop-writable={String(row.entry.directory ? directoryWritable : parentWritable)}
@@ -328,8 +346,14 @@ function FileTreeRow({
           writableDirectory={parentWritable}
           upload={upload}
           surface='tree'
+          onCreateFile={
+            canCreateInside && onCreateFileIn ? () => onCreateFileIn(row.path, directoryWritable) : undefined
+          }
+          onCreateDirectory={
+            canCreateInside && onCreateDirectoryIn ? () => onCreateDirectoryIn(row.path, directoryWritable) : undefined
+          }
         >
-          {({ openMenu }) => <ContextMenuOpener {...menuPosition} openMenu={openMenu} />}
+          {({ openMenu }) => <ContextMenuOpener position={menuPosition} openMenu={openMenu} />}
         </FileRowContextMenu>
       )}
     </>

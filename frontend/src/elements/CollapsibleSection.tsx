@@ -2,6 +2,7 @@ import { faChevronDown } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Box, Collapse, Text, UnstyledButton } from '@mantine/core';
 import { makeComponentHookable } from 'shared';
+import ThemeIcon from '@/elements/data-display/ThemeIcon.tsx';
 
 interface CollapsibleSectionProps {
   icon: React.ReactNode;
@@ -34,21 +35,9 @@ function CollapsibleSection({ icon, title, className, enabled, onToggle, childre
           gap: 10,
         }}
       >
-        <Box
-          style={{
-            width: 28,
-            height: 28,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderRadius: 6,
-            background: enabled ? 'var(--mantine-color-blue-9)' : 'var(--mantine-color-default-hover)',
-            color: enabled ? 'var(--mantine-color-blue-2)' : 'var(--mantine-color-gray-5)',
-            transition: 'background 0.15s ease',
-          }}
-        >
+        <ThemeIcon size={28} radius={6} variant='light' color={enabled ? 'blue' : 'gray'}>
           {icon}
-        </Box>
+        </ThemeIcon>
         <Text size='sm' fw={500} c={enabled ? undefined : 'dimmed'} style={{ flex: 1, textAlign: 'left' }}>
           {title}
         </Text>
@@ -56,7 +45,7 @@ function CollapsibleSection({ icon, title, className, enabled, onToggle, childre
           icon={faChevronDown}
           size='xs'
           style={{
-            color: 'var(--mantine-color-gray-6)',
+            color: 'var(--mantine-color-dimmed)',
             transform: enabled ? 'rotate(0deg)' : 'rotate(-90deg)',
             transition: 'transform 0.15s ease',
           }}

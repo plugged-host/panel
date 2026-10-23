@@ -30,9 +30,10 @@ export default function AdminLocationDatabaseAgentHosts({
     search,
     setSearch,
     setPage,
+    setPerPage,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.admin.locations.databaseAgentHosts(location.uuid),
-    fetcher: (page, search) => getLocationDatabaseAgentHosts(location.uuid, page, search),
+    fetcher: (page, search, perPage) => getLocationDatabaseAgentHosts(location.uuid, page, search, perPage),
   });
 
   return (
@@ -65,6 +66,7 @@ export default function AdminLocationDatabaseAgentHosts({
         error={error}
         pagination={locationDatabaseAgentHosts}
         onPageSelect={setPage}
+        onPerPageSelect={setPerPage}
       >
         {locationDatabaseAgentHosts?.data.map((host) => (
           <LocationDatabaseAgentHostRow

@@ -13,6 +13,10 @@ export function mbToBytes(megabytes: number): number {
   return Math.floor(megabytes * _CONVERSION_UNIT * _CONVERSION_UNIT);
 }
 
+export function bytesToMb(bytes: number): number {
+  return Math.floor(bytes / _CONVERSION_UNIT / _CONVERSION_UNIT);
+}
+
 export function mapUnitToLocale(unit: Unit): string {
   const unitToLocaleMapping: Record<Unit, string> = {
     B: getTranslations().t('common.unit.bytes.bytes', {}),

@@ -11,7 +11,7 @@ mod get {
         jwt::BasePayload,
         models::{
             server::{GetServer, GetServerActivityLogger},
-            user::{GetPermissionManager, GetUser},
+            user::{GetAuthMethod, GetPermissionManager, GetUser},
         },
         response::{ApiResponse, ApiResponseResult},
     };
@@ -66,10 +66,12 @@ mod get {
             example = "tar_gz",
         ),
     ))]
+    #[allow(clippy::too_many_arguments)]
     pub async fn route(
         state: GetState,
         request_host: shared::GetRequestHost,
         permissions: GetPermissionManager,
+        auth: GetAuthMethod,
         user: GetUser,
         mut server: GetServer,
         activity_logger: GetServerActivityLogger,
@@ -104,6 +106,7 @@ mod get {
                 ignored_files: &'a [compact_str::CompactString],
                 server_uuid: uuid::Uuid,
                 unique_id: uuid::Uuid,
+                credential: Option<uuid::Uuid>,
             }
 
             let token = node
@@ -114,17 +117,18 @@ mod get {
                         base: BasePayload {
                             scope: "file-download".into(),
                             issuer: "panel".into(),
-                            subject: None,
+                            subject: Some(user.uuid.to_compact_string()),
                             audience: Vec::new(),
                             expiration_time: Some(chrono::Utc::now().timestamp() + 900),
                             not_before: None,
                             issued_at: Some(chrono::Utc::now().timestamp()),
-                            jwt_id: user.uuid.to_compact_string(),
+                            jwt_id: uuid::Uuid::new_v4().to_compact_string(),
                         },
                         file_path: Path::new(&params.root).join(&params.files[0]),
                         ignored_files: server.subuser_ignored_files.as_deref().unwrap_or(&[]),
                         server_uuid: server.uuid,
                         unique_id: uuid::Uuid::new_v4(),
+                        credential: auth.api_key_uuid(),
                     },
                 )
                 .await?;
@@ -158,6 +162,7 @@ mod get {
                 ignored_files: &'a [compact_str::CompactString],
                 server_uuid: uuid::Uuid,
                 unique_id: uuid::Uuid,
+                credential: Option<uuid::Uuid>,
             }
 
             let token = node
@@ -168,18 +173,19 @@ mod get {
                         base: BasePayload {
                             scope: "file-download".into(),
                             issuer: "panel".into(),
-                            subject: None,
+                            subject: Some(user.uuid.to_compact_string()),
                             audience: Vec::new(),
                             expiration_time: Some(chrono::Utc::now().timestamp() + 900),
                             not_before: None,
                             issued_at: Some(chrono::Utc::now().timestamp()),
-                            jwt_id: user.uuid.to_compact_string(),
+                            jwt_id: uuid::Uuid::new_v4().to_compact_string(),
                         },
                         file_path: &params.root,
                         file_paths: &params.files,
                         ignored_files: server.subuser_ignored_files.as_deref().unwrap_or(&[]),
                         server_uuid: server.uuid,
                         unique_id: uuid::Uuid::new_v4(),
+                        credential: auth.api_key_uuid(),
                     },
                 )
                 .await?;

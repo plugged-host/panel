@@ -10,7 +10,7 @@ mod post {
         jwt::BasePayload,
         models::{
             server::{GetServer, GetServerActivityLogger, Server},
-            user::{GetPermissionManager, GetUser},
+            user::GetPermissionManager,
         },
         response::{ApiResponse, ApiResponseResult},
     };
@@ -64,23 +64,25 @@ mod post {
         state: GetState,
         permissions: GetPermissionManager,
         mut server: GetServer,
-        user: GetUser,
         mut activity_logger: GetServerActivityLogger,
         shared::Payload(data): shared::Payload<Payload>,
     ) -> ApiResponseResult {
         permissions.has_server_permission("files.read-content")?;
 
-        let mut destination_server =
-            match Server::by_user_identifier(&state.database, &user, &data.destination_server)
-                .await?
-            {
-                Some(server) => server,
-                None => {
-                    return ApiResponse::error("destination server not found")
-                        .with_status(StatusCode::NOT_FOUND)
-                        .ok();
-                }
-            };
+        let mut destination_server = match Server::by_user_identifier(
+            &state.database,
+            &permissions,
+            &data.destination_server,
+        )
+        .await?
+        {
+            Some(server) => server,
+            None => {
+                return ApiResponse::error("destination server not found")
+                    .with_status(StatusCode::NOT_FOUND)
+                    .ok();
+            }
+        };
 
         if server.uuid == destination_server.uuid {
             return ApiResponse::error("cannot remote copy files to the same server")

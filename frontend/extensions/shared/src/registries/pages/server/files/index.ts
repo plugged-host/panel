@@ -7,8 +7,9 @@ import type { Props as ContainerProps } from '@/elements/containers/ServerConten
 import { serverDirectoryEntrySchema } from '@/lib/schemas/server/files.ts';
 import { serverSchema } from '@/lib/schemas/server/server.ts';
 import { FileManagerContextType } from '@/providers/contexts/fileManagerContext.ts';
-import { ComponentListRegistry } from '../../slices/componentList.ts';
-import { ContextMenuRegistry } from '../../slices/contextMenu.ts';
+import { ComponentListRegistry } from '../../../slices/componentList.ts';
+import { ContextMenuRegistry } from '../../../slices/contextMenu.ts';
+import { TrashRegistry } from './trash.ts';
 
 type HandleOpenProps = {
   server: z.infer<typeof serverSchema>;
@@ -113,6 +114,7 @@ export class FilesRegistry implements Registry {
     this.newFileContextMenu.mergeFrom(other.newFileContextMenu);
     this.fileContextMenu.mergeFrom(other.fileContextMenu);
     this.fileMassContextMenu.mergeFrom(other.fileMassContextMenu);
+    this.trash.mergeFrom(other.trash);
 
     this.fileIconHandlers.push(...other.fileIconHandlers);
     this.fileOpenableHandlers.push(...other.fileOpenableHandlers);
@@ -133,6 +135,7 @@ export class FilesRegistry implements Registry {
   public newFileContextMenu: ContextMenuRegistry = new ContextMenuRegistry();
   public fileContextMenu: ContextMenuRegistry<FileContextMenuProps> = new ContextMenuRegistry();
   public fileMassContextMenu: ContextMenuRegistry = new ContextMenuRegistry();
+  public trash: TrashRegistry = new TrashRegistry();
 
   public fileIconHandlers: FileIconHandler[] = [];
   public fileOpenableHandlers: FileOpenableHandler[] = [];
@@ -210,6 +213,11 @@ export class FilesRegistry implements Registry {
 
   public enterFileMassContextMenu(callback: (registry: ContextMenuRegistry) => unknown): this {
     callback(this.fileMassContextMenu);
+    return this;
+  }
+
+  public enterTrash(callback: (registry: TrashRegistry) => unknown): this {
+    callback(this.trash);
     return this;
   }
 }

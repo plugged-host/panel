@@ -89,7 +89,7 @@ export default function Register() {
       <Stack className='w-full'>
         <div>
           <Title order={2}>{t('pages.auth.register.title', {})}</Title>
-          <Text className='text-neutral-400!'>{t('pages.auth.register.subtitle', {})}</Text>
+          <Text c='dimmed'>{t('pages.auth.register.subtitle', {})}</Text>
         </div>
 
         <Card>
@@ -147,7 +147,7 @@ export default function Register() {
               <Button
                 type='submit'
                 loading={loading}
-                disabled={!form.isValid() || !captcha.isValid}
+                disabled={!form.isValid() || (!captcha.isValid && !loading)}
                 size='md'
                 fullWidth
               >

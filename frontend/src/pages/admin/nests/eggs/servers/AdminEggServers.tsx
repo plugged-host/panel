@@ -26,9 +26,10 @@ export default function AdminEggServers({
     search,
     setSearch,
     setPage,
+    setPerPage,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.admin.eggs.servers(contextEgg.uuid),
-    fetcher: (page, search) => getEggServers(contextNest.uuid, contextEgg.uuid, page, search),
+    fetcher: (page, search, perPage) => getEggServers(contextNest.uuid, contextEgg.uuid, page, search, perPage),
   });
 
   return (
@@ -44,6 +45,7 @@ export default function AdminEggServers({
         error={error}
         pagination={eggServers}
         onPageSelect={setPage}
+        onPerPageSelect={setPerPage}
       >
         {eggServers?.data.map((server) => (
           <ServerRow key={server.uuid} server={server} />

@@ -1,4 +1,4 @@
-import { faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faLayerGroup, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ComponentProps, memo, startTransition, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { z } from 'zod';
@@ -8,6 +8,8 @@ import updateServerGroupsOrder from '@/api/me/servers/groups/updateServerGroupsO
 import Button from '@/elements/buttons/Button.tsx';
 import AccountContentContainer from '@/elements/containers/AccountContentContainer.tsx';
 import { DndBoard, DndSortableList, SortableItem } from '@/elements/dnd/DragAndDrop.tsx';
+import EmptyState from '@/elements/feedback/EmptyState.tsx';
+import ErrorState from '@/elements/feedback/ErrorState.tsx';
 import Spinner from '@/elements/feedback/Spinner.tsx';
 import { ObjectSet } from '@/lib/objectSet.ts';
 import { eventKeyMatches } from '@/lib/quickActions/shortcuts.ts';
@@ -35,23 +37,30 @@ export default function DashboardHomeGrouped() {
 
   const [selectedServers, setSelectedServers] = useState(new ObjectSet<z.infer<typeof serverSchema>, 'uuid'>('uuid'));
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<unknown>(null);
   const [openModal, setOpenModal] = useState<'create' | null>(null);
   const sKeyPressedRef = useRef(false);
 
   const { handleBulkPowerAction, bulkActionLoading } = useBulkPowerActions();
 
-  useEffect(() => {
+  const loadGroups = () => {
+    setLoading(true);
+    setError(null);
+
     getServerGroups()
       .then((response) => {
         setServerGroups(response);
       })
       .catch((msg) => {
+        setError(msg);
         addToast(httpErrorToHuman(msg), 'error');
       })
       .finally(() => {
         setLoading(false);
       });
-  }, [addToast, setServerGroups]);
+  };
+
+  useEffect(loadGroups, [addToast, setServerGroups]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -174,10 +183,18 @@ export default function DashboardHomeGrouped() {
 
       {loading ? (
         <Spinner.Centered />
+      ) : error ? (
+        <ErrorState error={httpErrorToHuman(error)} onRetry={loadGroups} />
       ) : serverGroups.length === 0 ? (
-        <p className='text-gray-400 light:text-gray-600!'>
-          {t('pages.account.home.tabs.groupedServers.page.noGroups', {})}
-        </p>
+        <EmptyState
+          icon={faLayerGroup}
+          title={t('pages.account.home.tabs.groupedServers.page.empty.title', {})}
+          description={t('pages.account.home.tabs.groupedServers.page.empty.description', {})}
+        >
+          <Button onClick={() => setOpenModal('create')} color='blue' leftSection={<FontAwesomeIcon icon={faPlus} />}>
+            {t('pages.account.home.tabs.groupedServers.page.button.createGroup', {})}
+          </Button>
+        </EmptyState>
       ) : (
         <DndBoard
           collisionDetection={collisionDetection}
@@ -240,11 +257,13 @@ export default function DashboardHomeGrouped() {
         </DndBoard>
       )}
 
-      <div className='flex justify-center mt-4'>
-        <Button onClick={() => setOpenModal('create')} color='blue' leftSection={<FontAwesomeIcon icon={faPlus} />}>
-          {t('pages.account.home.tabs.groupedServers.page.button.createGroup', {})}
-        </Button>
-      </div>
+      {serverGroups.length > 0 && (
+        <div className='flex justify-center mt-4'>
+          <Button onClick={() => setOpenModal('create')} color='blue' leftSection={<FontAwesomeIcon icon={faPlus} />}>
+            {t('pages.account.home.tabs.groupedServers.page.button.createGroup', {})}
+          </Button>
+        </div>
+      )}
     </AccountContentContainer>
   );
 }

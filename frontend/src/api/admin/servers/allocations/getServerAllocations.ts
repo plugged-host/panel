@@ -7,9 +7,10 @@ export default async (
   serverUuid: string,
   page: number,
   search?: string,
+  perPage = 100,
 ): Promise<Pagination<z.infer<typeof serverAllocationSchema>>> => {
   const { data } = await axiosInstance.get(`/api/admin/servers/${serverUuid}/allocations`, {
-    params: { page, per_page: 100, search },
+    params: { page, per_page: perPage, search },
   });
   return parsePaginationFromApi(serverAllocationSchema, data.allocations);
 };

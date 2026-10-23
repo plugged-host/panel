@@ -9,7 +9,7 @@ mod get {
         jwt::BasePayload,
         models::{
             server::GetServer,
-            user::{GetPermissionManager, GetUser},
+            user::{GetAuthMethod, GetPermissionManager, GetUser},
         },
         response::{ApiResponse, ApiResponseResult},
     };
@@ -35,6 +35,7 @@ mod get {
         state: GetState,
         request_host: shared::GetRequestHost,
         permissions: GetPermissionManager,
+        auth: GetAuthMethod,
         user: GetUser,
         server: GetServer,
     ) -> ApiResponseResult {
@@ -49,6 +50,7 @@ mod get {
             user_uuid: uuid::Uuid,
             user_name: &'a str,
             unique_id: uuid::Uuid,
+            credential: Option<uuid::Uuid>,
 
             ignored_files: &'a [compact_str::CompactString],
         }
@@ -63,17 +65,18 @@ mod get {
                     base: BasePayload {
                         scope: "file-upload".into(),
                         issuer: "panel".into(),
-                        subject: None,
+                        subject: Some(user.uuid.to_compact_string()),
                         audience: Vec::new(),
                         expiration_time: Some(chrono::Utc::now().timestamp() + 900),
                         not_before: None,
                         issued_at: Some(chrono::Utc::now().timestamp()),
-                        jwt_id: user.uuid.to_compact_string(),
+                        jwt_id: uuid::Uuid::new_v4().to_compact_string(),
                     },
                     server_uuid: server.uuid,
                     user_uuid: user.uuid,
                     user_name: &user.username,
                     unique_id: uuid::Uuid::new_v4(),
+                    credential: auth.api_key_uuid(),
                     ignored_files: server.subuser_ignored_files.as_deref().unwrap_or(&[]),
                 },
             )

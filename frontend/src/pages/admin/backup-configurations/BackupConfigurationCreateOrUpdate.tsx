@@ -227,6 +227,9 @@ export default function BackupConfigurationCreateOrUpdate({
         confirm={t('common.button.delete', {})}
         onConfirmed={doDelete}
       >
+        <Alert color='yellow' icon={<FontAwesomeIcon icon={faExclamationTriangle} />} mb='md'>
+          {t('pages.admin.backupConfigurations.tabs.general.page.modal.delete.alert.detachWarning', {})}
+        </Alert>
         {t('common.modal.delete.content', {
           name: form.getValues().name ?? '',
         }).md()}

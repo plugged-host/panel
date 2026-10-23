@@ -292,27 +292,42 @@ pub struct ExtensionDistrFile {
 
 impl ExtensionDistrFile {
     pub fn parse_from_reader(file: std::fs::File) -> Result<Self, anyhow::Error> {
-        let mut zip = zip::ZipArchive::new(Arc::new(file))?;
+        let mut zip = zip::ZipArchive::new(Arc::new(file)).map_err(|_| {
+            anyhow::anyhow!(
+                "the uploaded file is not a zip archive. calagopus extensions are installed from `.c7s.zip` files."
+            )
+        })?;
 
-        let mut metadata_toml = zip.by_name("Metadata.toml")?;
-        let mut metadata_toml_bytes = vec![0; metadata_toml.size() as usize];
-        metadata_toml.read_exact(&mut metadata_toml_bytes)?;
-        drop(metadata_toml);
-        let metadata_toml: MetadataToml = toml::from_slice(&metadata_toml_bytes)?;
+        if zip.index_for_name("Metadata.toml").is_none() {
+            return Err(Self::missing_metadata_error(&zip));
+        }
 
-        let mut cargo_toml = zip.by_name("backend/Cargo.toml")?;
-        let mut cargo_toml_bytes = vec![0; cargo_toml.size() as usize];
-        cargo_toml.read_exact(&mut cargo_toml_bytes)?;
-        drop(cargo_toml);
+        let metadata_toml: MetadataToml = toml::from_slice(&Self::read_archive_file(
+            &mut zip,
+            "Metadata.toml",
+        )?)
+        .map_err(|err| {
+            anyhow::anyhow!("unable to parse `Metadata.toml` in calagopus extension archive: {err}")
+        })?;
 
-        let cargo_toml: CargoToml = toml::from_slice(&cargo_toml_bytes)?;
+        let cargo_toml: CargoToml =
+            toml::from_slice(&Self::read_archive_file(&mut zip, "backend/Cargo.toml")?).map_err(
+                |err| {
+                    anyhow::anyhow!(
+                        "unable to parse `backend/Cargo.toml` in calagopus extension archive: {err}"
+                    )
+                },
+            )?;
 
-        let mut package_json = zip.by_name("frontend/package.json")?;
-        let mut package_json_bytes = vec![0; package_json.size() as usize];
-        package_json.read_exact(&mut package_json_bytes)?;
-        drop(package_json);
-
-        let package_json: PackageJson = serde_json::from_slice(&package_json_bytes)?;
+        let package_json: PackageJson = serde_json::from_slice(&Self::read_archive_file(
+            &mut zip,
+            "frontend/package.json",
+        )?)
+        .map_err(|err| {
+            anyhow::anyhow!(
+                "unable to parse `frontend/package.json` in calagopus extension archive: {err}"
+            )
+        })?;
 
         let mut this = Self {
             zip,
@@ -325,6 +340,45 @@ impl ExtensionDistrFile {
         Ok(this)
     }
 
+    fn read_archive_file(
+        zip: &mut zip::ZipArchive<Arc<std::fs::File>>,
+        name: &str,
+    ) -> Result<Vec<u8>, anyhow::Error> {
+        let mut file = zip.by_name(name).map_err(|_| {
+            anyhow::anyhow!("unable to find file `{name}` in calagopus extension archive.")
+        })?;
+        let mut bytes = vec![0; file.size() as usize];
+        file.read_exact(&mut bytes)?;
+
+        Ok(bytes)
+    }
+
+    fn missing_metadata_error(zip: &zip::ZipArchive<Arc<std::fs::File>>) -> anyhow::Error {
+        let names = zip.file_names().flatten().collect::<Vec<_>>();
+
+        if let Some(inner) = names
+            .iter()
+            .find(|name| name.to_ascii_lowercase().ends_with(".zip"))
+        {
+            return anyhow::anyhow!(
+                "this archive contains `{inner}` instead of the extension itself. extensions are often downloaded as a zip inside a zip, so extract the downloaded file first and upload `{inner}` from inside it."
+            );
+        }
+
+        if let Some(folder) = names
+            .iter()
+            .find_map(|name| name.strip_suffix("/Metadata.toml"))
+        {
+            return anyhow::anyhow!(
+                "the extension files are inside the `{folder}/` folder of this archive, but `Metadata.toml` must be at the top level. upload the original `.c7s.zip` file instead of a re-packed one."
+            );
+        }
+
+        anyhow::anyhow!(
+            "unable to find `Metadata.toml` in the uploaded archive, so it is not a calagopus extension. if you downloaded a zip that contains another zip, extract it first and upload the `.c7s.zip` file from inside it."
+        )
+    }
+
     pub fn extract_backend(&mut self, path: impl AsRef<Path>) -> Result<(), anyhow::Error> {
         let filesystem = crate::cap::CapFilesystem::new(path.as_ref().to_path_buf())?;
 
@@ -332,7 +386,7 @@ impl ExtensionDistrFile {
         while let Ok(mut entry) = self.zip.by_index(i) {
             i += 1;
 
-            if !entry.name().starts_with("backend/") {
+            if !entry.name()?.starts_with("backend/") {
                 continue;
             }
 
@@ -371,7 +425,7 @@ impl ExtensionDistrFile {
         while let Ok(mut entry) = self.zip.by_index(i) {
             i += 1;
 
-            if !entry.name().starts_with("frontend/") {
+            if !entry.name()?.starts_with("frontend/") {
                 continue;
             }
 
@@ -409,7 +463,7 @@ impl ExtensionDistrFile {
         while let Ok(mut entry) = self.zip.by_index(i) {
             i += 1;
 
-            if !entry.name().starts_with("migrations/") {
+            if !entry.name()?.starts_with("migrations/") {
                 continue;
             }
 
@@ -444,7 +498,7 @@ impl ExtensionDistrFile {
         while let Ok(entry) = self.zip.by_index(i) {
             i += 1;
 
-            let entry_name = entry.name().to_string();
+            let entry_name = entry.name()?.to_string();
             if entry_name.starts_with("migrations/")
                 && entry_name.ends_with("/up.sql")
                 && !entry.is_dir()
@@ -922,6 +976,8 @@ pub fn resync_extension_list() -> Result<(), anyhow::Error> {
         let cargo_toml: CargoToml = toml::from_str(&cargo_toml).unwrap();
         packages.push((dir.file_name(), metadata_toml, cargo_toml.package));
     }
+
+    packages.sort_by(|(_, a, _), (_, b, _)| a.package_name.cmp(&b.package_name));
 
     std::fs::create_dir_all(internal_list_extension).unwrap();
     std::fs::create_dir_all(internal_list_extension.join("src")).unwrap();

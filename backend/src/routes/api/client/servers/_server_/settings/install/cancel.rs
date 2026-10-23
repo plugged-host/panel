@@ -9,7 +9,7 @@ mod post {
         models::{
             ByUuid,
             server::{GetServer, GetServerActivityLogger, Server},
-            user::{GetPermissionManager, GetUser},
+            user::GetPermissionManager,
         },
         response::{ApiResponse, ApiResponseResult},
     };
@@ -32,7 +32,6 @@ mod post {
     ))]
     pub async fn route(
         state: GetState,
-        user: GetUser,
         permissions: GetPermissionManager,
         mut server: GetServer,
         activity_logger: GetServerActivityLogger,
@@ -48,7 +47,7 @@ mod post {
                 .await?
                 .server
                 .allow_acknowledging_installation_failure
-                && !user.admin
+                && permissions.has_admin_permission("servers.update").is_err()
             {
                 return ApiResponse::error("acknowledging installation failure is not allowed")
                     .with_status(StatusCode::FORBIDDEN)

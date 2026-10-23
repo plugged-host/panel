@@ -59,6 +59,10 @@ export const adminEggCreateSchema = z.lazy(() =>
     })
     .extend({
       eggRepositoryEggUuid: z.uuid().nullable(),
+      startupCommands: z
+        .record(z.string(), z.string().trim().min(1))
+        .refine((commands) => Object.keys(commands).length > 0),
+      dockerImages: z.record(z.string(), z.string().trim().min(1)),
     }),
 );
 
@@ -73,6 +77,10 @@ export const adminEggUpdateSchema = z.lazy(() =>
     })
     .extend({
       eggRepositoryEggUuid: z.uuid().nullable(),
+      startupCommands: z
+        .record(z.string(), z.string().trim().min(1))
+        .refine((commands) => Object.keys(commands).length > 0),
+      dockerImages: z.record(z.string(), z.string().trim().min(1)),
     }),
 );
 

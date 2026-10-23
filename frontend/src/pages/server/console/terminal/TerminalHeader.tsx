@@ -65,7 +65,7 @@ export default function TerminalHeader({
         <span
           className={classNames(
             'rounded-full size-3 animate-pulse mr-2',
-            socketConnected ? 'bg-green-500' : 'bg-red-500',
+            socketConnected ? 'bg-(--mantine-color-green-filled)' : 'bg-(--mantine-color-red-filled)',
           )}
         />
         {socketConnected && socketInstance

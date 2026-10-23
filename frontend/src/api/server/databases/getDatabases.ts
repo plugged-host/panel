@@ -7,9 +7,10 @@ export default async (
   uuid: string,
   page: number,
   search?: string,
+  perPage?: number,
 ): Promise<Pagination<z.infer<typeof serverDatabaseSchema>>> => {
   const { data } = await axiosInstance.get(`/api/client/servers/${uuid}/databases`, {
-    params: { page, search, include_password: true },
+    params: { page, per_page: perPage, search, include_password: true },
   });
   return parsePaginationFromApi(serverDatabaseSchema, data.databases);
 };

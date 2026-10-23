@@ -30,9 +30,11 @@ import { isNamedRoutePathAccessible } from '@/lib/routes.ts';
 import { resetAllDeviceOverrides, useDeviceOverrideCount } from '@/lib/userSettings.ts';
 import { useRedactAddresses } from '@/plugins/privacy/useRedactAddresses.ts';
 import { useAuth } from '@/providers/AuthProvider.tsx';
+import { usePendingPathname } from '@/providers/contexts/pendingNavigationContext.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useWindows } from '@/providers/WindowProvider.tsx';
 import RouterRoutes from '@/RouterRoutes.tsx';
+import { preloadRouterForPath } from '@/routers/routerImports.ts';
 import { useGlobalStore } from '@/stores/global.ts';
 import { useQuickActionsStore } from '@/stores/quickActions.ts';
 import { useRelativePageStore } from '@/stores/relativePage.ts';
@@ -150,7 +152,9 @@ function Link({ to, end, icon, name, title = name, className, activeMatches }: L
   const { addWindow } = useWindows();
   const closeMobileMenu = useContext(CloseMobileMenuContext);
   const { pathname } = useLocation();
-  const extraActive = activeMatches?.some((pattern) => matchPath({ path: pattern, end: false }, pathname)) ?? false;
+  const pendingPathname = usePendingPathname();
+  const extraActive =
+    activeMatches?.some((pattern) => matchPath({ path: pattern, end: false }, pendingPathname ?? pathname)) ?? false;
 
   if (to.endsWith('/*')) to = to.slice(0, to.length - 2);
 
@@ -204,10 +208,15 @@ function Link({ to, end, icon, name, title = name, className, activeMatches }: L
             e.preventDefault();
             openMenu(e.clientX, e.clientY);
           }}
+          onPointerEnter={() => preloadRouterForPath(to)}
+          onFocus={() => preloadRouterForPath(to)}
           className='w-full'
         >
           {({ isActive: navActive }) => {
-            const isActive = navActive || extraActive;
+            const isActive =
+              (pendingPathname !== null ? !!matchPath({ path: to, end: !!end }, pendingPathname) : navActive) ||
+              extraActive;
+
             return (
               <Button
                 color={isActive ? 'blue' : 'gray'}

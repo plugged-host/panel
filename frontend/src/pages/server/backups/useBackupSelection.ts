@@ -45,9 +45,9 @@ export function useBackupSelection({
         selection.selectionAreaProps.onSelectedStart(event);
       },
     },
-    toggle: (backup: z.infer<typeof serverBackupSchema>, isSelected: boolean) => {
+    toggle: (backup: z.infer<typeof serverBackupSchema>, isSelected: boolean, range?: boolean) => {
       activateScope();
-      toggle(backup, isSelected);
+      toggle(backup, isSelected, range);
     },
     selectAll: () => {
       activateScope();

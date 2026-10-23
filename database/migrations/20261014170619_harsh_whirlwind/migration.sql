@@ -1,0 +1,1 @@
+ALTER TABLE "egg_repository_eggs" ADD COLUMN "banner" text;

@@ -23,8 +23,10 @@ export default function ExtensionCard({
   isDisabled,
   isPendingDisabled,
   isBuildFailed,
+  isStartFailed,
   onRemove,
   onToggle,
+  busy,
 }: {
   extension?: Extension;
   backendExtension?: AdminBackendExtension;
@@ -33,8 +35,10 @@ export default function ExtensionCard({
   isDisabled?: boolean;
   isPendingDisabled?: boolean;
   isBuildFailed?: boolean;
+  isStartFailed?: boolean;
   onRemove?: () => void;
   onToggle?: (enabled: boolean) => void;
+  busy?: boolean;
 }) {
   const { t } = useTranslations();
 
@@ -50,9 +54,10 @@ export default function ExtensionCard({
     isDisabled: !!isDisabled,
     isPendingDisabled: !!isPendingDisabled,
     isBuildFailed: !!isBuildFailed,
+    isStartFailed: !!isStartFailed,
   });
 
-  const configureDisabled = !backendExtension || !!isDisabled || !extension?.cardConfigurationPage;
+  const configureDisabled = !backendExtension || !!isDisabled || !!isStartFailed || !extension?.cardConfigurationPage;
   const configureButton = (
     <Button leftSection={<FontAwesomeIcon icon={faWrench} />} disabled={configureDisabled} className='w-full!'>
       {t('pages.admin.extensions.button.configure', {})}
@@ -148,12 +153,23 @@ export default function ExtensionCard({
                 : t('pages.admin.extensions.tooltip.disableExtension', {})
             }
           >
-            <Switch checked={!isPendingDisabled} disabled={isRemoved} onChange={(e) => onToggle(e.target.checked)} />
+            <Switch
+              checked={!isPendingDisabled}
+              disabled={isRemoved || busy}
+              onChange={(e) => onToggle(e.target.checked)}
+            />
           </Tooltip>
         )}
         {backendExtension && onRemove && (
           <Tooltip label={t('pages.admin.extensions.tooltip.removeExtension', {})}>
-            <ActionIcon color='red' variant='subtle' size='input-md' disabled={isRemoved} onClick={onRemove}>
+            <ActionIcon
+              color='red'
+              variant='subtle'
+              size='input-md'
+              disabled={isRemoved}
+              loading={busy}
+              onClick={onRemove}
+            >
               <FontAwesomeIcon icon={faTrash} />
             </ActionIcon>
           </Tooltip>

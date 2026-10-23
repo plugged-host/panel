@@ -21,6 +21,7 @@ import SubNavigation from '@/elements/navigation/SubNavigation.tsx';
 import EmailTemplatesContainer from '@/pages/admin/settings/emailTemplates/EmailTemplatesContainer.tsx';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
+import { trackActivity } from '@/stores/activity.ts';
 import { useAdminStore } from '@/stores/admin.tsx';
 import ActivityContainer from './activity/ActivityContainer.tsx';
 import ApplicationContainer from './application/ApplicationContainer.tsx';
@@ -41,7 +42,7 @@ export default function AdminSettings() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getSettings()
+    trackActivity(getSettings())
       .then(setSettings)
       .catch((msg) => {
         addToast(httpErrorToHuman(msg), 'error');

@@ -36,17 +36,28 @@ import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useServerStore } from '@/stores/server.ts';
 import StepCreateOrUpdateModal from './modals/StepCreateOrUpdateModal.tsx';
 import ActionRenderer from './renderers/ActionRenderer.tsx';
+import VariableIssueList from './VariableIssueList.tsx';
+import { VariableIssue } from './variableAnalysis.ts';
 
 interface StepCardBodyProps {
   step: z.infer<typeof serverScheduleStepSchema>;
   label: string;
   isActive: boolean;
   editable?: boolean;
+  variableIssues?: VariableIssue[];
   dragHandleProps?: ComponentProps<'button'>;
   openMenu?: (x: number, y: number) => void;
 }
 
-export function StepCardBody({ step, label, isActive, editable, dragHandleProps, openMenu }: StepCardBodyProps) {
+export function StepCardBody({
+  step,
+  label,
+  isActive,
+  editable,
+  variableIssues,
+  dragHandleProps,
+  openMenu,
+}: StepCardBodyProps) {
   const { t } = useTranslations();
 
   const [expanded, setExpanded] = useState(false);
@@ -91,6 +102,13 @@ export function StepCardBody({ step, label, isActive, editable, dragHandleProps,
               {step.error && (
                 <Tooltip label={step.error}>
                   <ThemeIcon size='sm' color='red' className='cursor-help'>
+                    <FontAwesomeIcon icon={faExclamationTriangle} size='xs' />
+                  </ThemeIcon>
+                </Tooltip>
+              )}
+              {variableIssues && variableIssues.length > 0 && (
+                <Tooltip label={<VariableIssueList issues={variableIssues} />} multiline maw={400}>
+                  <ThemeIcon size='sm' color='yellow' className='cursor-help'>
                     <FontAwesomeIcon icon={faExclamationTriangle} size='xs' />
                   </ThemeIcon>
                 </Tooltip>
@@ -159,6 +177,7 @@ interface Props {
   step: z.infer<typeof serverScheduleStepSchema>;
   editable?: boolean;
   isActive?: boolean;
+  variableIssues?: VariableIssue[];
   dragHandleProps?: ComponentProps<'button'>;
   onStepUpdate?: (step: z.infer<typeof serverScheduleStepSchema>) => void;
   onStepDelete?: (stepUuid: string) => void;
@@ -174,6 +193,7 @@ export default function StepCard({
   step,
   editable = false,
   isActive = false,
+  variableIssues,
   dragHandleProps,
   onStepUpdate,
   onStepDelete,
@@ -228,7 +248,7 @@ export default function StepCard({
   const label = scheduleStepLabelMapping[step.action.type]();
 
   if (!editable) {
-    return <StepCardBody step={step} label={label} isActive={isActive} />;
+    return <StepCardBody step={step} label={label} isActive={isActive} variableIssues={variableIssues} />;
   }
 
   return (
@@ -301,6 +321,7 @@ export default function StepCard({
             label={label}
             isActive={isActive}
             editable
+            variableIssues={variableIssues}
             dragHandleProps={dragHandleProps}
             openMenu={openMenu}
           />

@@ -4,13 +4,7 @@ import { NavLink } from 'react-router';
 
 export default function TableLink({ className, children, ...rest }: ComponentProps<typeof NavLink>) {
   return (
-    <NavLink
-      className={classNames(
-        'text-blue-400 hover:text-blue-200 hover:underline light:text-blue-700 light:hover:text-blue-900',
-        className,
-      )}
-      {...rest}
-    >
+    <NavLink className={classNames('text-(--mantine-color-anchor) hover:underline', className)} {...rest}>
       {children}
     </NavLink>
   );

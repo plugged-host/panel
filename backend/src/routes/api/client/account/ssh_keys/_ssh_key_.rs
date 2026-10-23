@@ -8,6 +8,7 @@ mod delete {
         ApiError, GetState,
         models::{
             DeletableModel,
+            node::{Node, PermissionsInvalidation},
             user::{GetPermissionManager, GetUser},
             user_activity::GetUserActivityLogger,
             user_ssh_key::UserSshKey,
@@ -50,6 +51,13 @@ mod delete {
         };
 
         ssh_key.delete(&state, ()).await?;
+        Node::invalidate_permissions_everywhere(
+            &state.database,
+            PermissionsInvalidation {
+                revoke_users: vec![user.uuid],
+                ..Default::default()
+            },
+        );
 
         activity_logger
             .log(

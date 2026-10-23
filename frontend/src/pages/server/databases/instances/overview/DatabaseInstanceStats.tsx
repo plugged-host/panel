@@ -5,6 +5,7 @@ import { z } from 'zod';
 import ChartBlock from '@/elements/charts/ChartBlock.tsx';
 import ChartSyncGroup from '@/elements/charts/ChartSyncGroup.tsx';
 import StreamChart from '@/elements/charts/StreamChart.tsx';
+import Spinner from '@/elements/feedback/Spinner.tsx';
 import { formatBytes, formatPercent, useStreamChart } from '@/lib/chart.ts';
 import { mbToBytes } from '@/lib/format/size.ts';
 import { serverDatabaseInstanceSchema } from '@/lib/schemas/server/databaseInstances.ts';
@@ -50,8 +51,14 @@ export default function DatabaseInstanceStats({
     memory.push(usage.memoryBytes);
   }, [usage]);
 
-  const overlayIcon = <FontAwesomeIcon icon={faPowerOff} className='text-2xl' />;
-  const overlayLabel = offline ? t('pages.server.databases.instance.view.stats.offline', {}) : undefined;
+  const statsPending = !usage;
+
+  const overlayIcon = statsPending ? <Spinner size={24} /> : <FontAwesomeIcon icon={faPowerOff} className='text-2xl' />;
+  const overlayLabel = statsPending
+    ? t('pages.server.databases.instance.view.stats.connecting', {})
+    : offline
+      ? t('pages.server.databases.instance.view.stats.offline', {})
+      : undefined;
 
   return (
     <ChartSyncGroup>

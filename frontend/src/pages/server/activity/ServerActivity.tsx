@@ -27,9 +27,10 @@ export default function ServerActivity() {
     search,
     setSearch,
     setPage,
+    setPerPage,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.server(server.uuid).activity.all(filterUserUuid),
-    fetcher: (page, search) => getServerActivity(server.uuid, filterUserUuid, page, search),
+    fetcher: (page, search, perPage) => getServerActivity(server.uuid, filterUserUuid, page, search, perPage),
   });
 
   return (
@@ -40,7 +41,14 @@ export default function ServerActivity() {
       contentRight={filterUserUuid ? <ClearUserFilterButton onClick={() => setFilterUserUuid(null)} /> : null}
       registry={window.extensionContext.extensionRegistry.pages.server.activity.container}
     >
-      <Table columns={activityColumns()} loading={loading} pagination={activities} onPageSelect={setPage} error={error}>
+      <Table
+        columns={activityColumns()}
+        loading={loading}
+        pagination={activities}
+        onPageSelect={setPage}
+        onPerPageSelect={setPerPage}
+        error={error}
+      >
         {activities?.data.map((activity, index) => {
           const fileWriteData = activity.data as { file?: string; revision_id?: string } | null;
           const diffHref =

@@ -30,9 +30,10 @@ export default function AdminOAuthProviderUsers({
     search,
     setSearch,
     setPage,
+    setPerPage,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.admin.oAuthProviders.users(oauthProvider.uuid),
-    fetcher: (page, search) => getOAuthProviderUsers(oauthProvider.uuid, page, search),
+    fetcher: (page, search, perPage) => getOAuthProviderUsers(oauthProvider.uuid, page, search, perPage),
   });
 
   return (
@@ -68,6 +69,7 @@ export default function AdminOAuthProviderUsers({
         error={error}
         pagination={oauthProviderUsers}
         onPageSelect={setPage}
+        onPerPageSelect={setPerPage}
       >
         {oauthProviderUsers?.data.map((userOAuthLink) => (
           <UserOAuthLinkRow key={userOAuthLink.uuid} userOAuthLink={userOAuthLink} />

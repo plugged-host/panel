@@ -26,9 +26,10 @@ export default function AdminNodeDatabaseAgentHosts({ node }: { node: z.infer<ty
     search,
     setSearch,
     setPage,
+    setPerPage,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.admin.nodes.databaseAgentHosts(node.uuid),
-    fetcher: (page, search) => getNodeDatabaseAgentHosts(node.uuid, page, search),
+    fetcher: (page, search, perPage) => getNodeDatabaseAgentHosts(node.uuid, page, search, perPage),
   });
 
   return (
@@ -61,6 +62,7 @@ export default function AdminNodeDatabaseAgentHosts({ node }: { node: z.infer<ty
         error={error}
         pagination={nodeDatabaseAgentHosts}
         onPageSelect={setPage}
+        onPerPageSelect={setPerPage}
       >
         {nodeDatabaseAgentHosts?.data.map((databaseAgentHost) => (
           <NodeDatabaseAgentHostRow

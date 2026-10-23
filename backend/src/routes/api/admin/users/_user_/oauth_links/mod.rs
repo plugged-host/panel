@@ -138,35 +138,14 @@ mod post {
         permissions.has_admin_permission("users.oauth-links")?;
         permissions.can_modify_user(&user)?;
 
-        if !caller.admin {
-            let caller_admin = caller
-                .role
-                .as_ref()
-                .map(|r| r.admin_permissions.as_slice())
-                .unwrap_or(&[]);
-            let caller_server = caller
-                .role
-                .as_ref()
-                .map(|r| r.server_permissions.as_slice())
-                .unwrap_or(&[]);
-            let target_admin = user
-                .role
-                .as_ref()
-                .map(|r| r.admin_permissions.as_slice())
-                .unwrap_or(&[]);
-            let target_server = user
-                .role
-                .as_ref()
-                .map(|r| r.server_permissions.as_slice())
-                .unwrap_or(&[]);
-
-            if !target_admin.iter().all(|p| caller_admin.contains(p))
-                || !target_server.iter().all(|p| caller_server.contains(p))
-            {
-                return ApiResponse::error("permissions: more permissions than self")
-                    .with_status(StatusCode::FORBIDDEN)
-                    .ok();
-            }
+        if !permissions.is_unrestricted_admin()
+            && (caller.uuid != user.uuid || !permissions.scope().is_session())
+        {
+            return ApiResponse::error(
+                "you can only link identities to your own account from a session",
+            )
+            .with_status(StatusCode::FORBIDDEN)
+            .ok();
         }
 
         let oauth_provider =

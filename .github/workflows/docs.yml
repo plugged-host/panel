@@ -14,10 +14,10 @@ jobs:
 
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Install Rust toolchain
-        uses: actions-rust-lang/setup-rust-toolchain@v2
+        uses: actions-rust-lang/setup-rust-toolchain@ecabd13d1c56bd1345c230e542e9144811ad706f # v2.0.0
         with:
           toolchain: stable
           target: ${{ matrix.target }}
@@ -33,7 +33,7 @@ jobs:
         run: echo "<meta http-equiv=\"refresh\" content=\"0; url=shared/index.html\">" > target/doc/index.html
 
       - name: Deploy
-        uses: cloudflare/wrangler-action@v4
+        uses: cloudflare/wrangler-action@953926a2e2182532811c01a25e53647d93bf07c0 # v4.1.3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_PAGES_DEPLOY_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -47,15 +47,15 @@ jobs:
 #
 #    steps:
 #      - name: Checkout sources
-#        uses: actions/checkout@v7
+#        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 #
 #      - name: Setup Node.js
-#        uses: actions/setup-node@v6
+#        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
 #        with:
 #          node-version: "24"
 #
 #      - name: Setup pnpm
-#        uses: pnpm/action-setup@v5
+#        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
 #        with:
 #          version: 11
 #          run_install: false
@@ -71,7 +71,7 @@ jobs:
 #          pnpm build:docs
 #
 #      - name: Deploy Frontend Docs
-#        uses: cloudflare/wrangler-action@v4
+#        uses: cloudflare/wrangler-action@953926a2e2182532811c01a25e53647d93bf07c0 # v4.1.3
 #        with:
 #          apiToken: ${{ secrets.CLOUDFLARE_PAGES_DEPLOY_TOKEN }}
 #          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

@@ -3,9 +3,13 @@ import { axiosInstance } from '@/api/axios.ts';
 import { adminFullUserSchema } from '@/lib/schemas/admin/users.ts';
 import { parsePaginationFromApi } from '@/lib/serialization/api-transform.ts';
 
-export default async (page: number, search?: string): Promise<Pagination<z.infer<typeof adminFullUserSchema>>> => {
+export default async (
+  page: number,
+  search?: string,
+  perPage?: number,
+): Promise<Pagination<z.infer<typeof adminFullUserSchema>>> => {
   const { data } = await axiosInstance.get('/api/admin/users', {
-    params: { page, search },
+    params: { page, per_page: perPage, search },
   });
   return parsePaginationFromApi(adminFullUserSchema, data.users);
 };

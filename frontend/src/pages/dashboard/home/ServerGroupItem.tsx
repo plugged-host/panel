@@ -35,6 +35,7 @@ import ConfirmationModal from '@/elements/modals/ConfirmationModal.tsx';
 import Menu from '@/elements/overlays/Menu.tsx';
 import Tooltip from '@/elements/overlays/Tooltip.tsx';
 import ScrollingText from '@/elements/ScrollingText.tsx';
+import Text from '@/elements/typography/Text.tsx';
 import { ObjectSet } from '@/lib/objectSet.ts';
 import { queryKeys } from '@/lib/queryKeys.ts';
 import { serverPowerAction, serverSchema } from '@/lib/schemas/server/server.ts';
@@ -303,7 +304,7 @@ export default function ServerGroupItem({
         <div
           id='server-group-item-header'
           className={classNames(
-            'flex flex-col sm:flex-row sm:items-center sm:gap-3 px-3 bg-(--mantine-color-dark-7) light:bg-(--mantine-color-gray-0)! justify-between',
+            'flex flex-col sm:flex-row sm:items-center sm:gap-3 px-3 bg-(--mantine-color-default) light:bg-(--mantine-color-gray-0) justify-between',
             isExpanded && 'border-b border-(--mantine-color-default-border)',
           )}
         >
@@ -314,7 +315,7 @@ export default function ServerGroupItem({
                 variant='subtle'
                 color='gray'
                 style={{ cursor: 'grab', flexShrink: 0 }}
-                className='text-gray-400! light:text-gray-500!'
+                className='text-(--mantine-color-dimmed)!'
                 {...dragHandleProps}
               >
                 <FontAwesomeIcon icon={faGripVertical} style={{ fontSize: 16 }} />
@@ -436,9 +437,9 @@ export default function ServerGroupItem({
             {loading && servers.data.length === 0 ? (
               <Spinner.Centered />
             ) : dndServers.length === 0 ? (
-              <p className='text-gray-500 text-sm text-center py-4 light:text-gray-600!'>
-                {t('pages.account.home.noServers', {})}
-              </p>
+              <Text size='sm' c='dimmed' ta='center' py='md'>
+                {t('pages.account.home.emptyGroup', {})}
+              </Text>
             ) : (
               <DndSortableList id={serverGroup.uuid} items={serverDndIds} strategy={rectSortingStrategy}>
                 <div className='gap-3 grid md:grid-cols-2 auto-rows-[minmax(8.5rem,auto)]'>

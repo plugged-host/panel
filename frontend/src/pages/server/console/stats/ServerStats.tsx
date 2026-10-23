@@ -6,15 +6,18 @@ import ChartLegend from '@/elements/charts/ChartLegend.tsx';
 import ChartSyncGroup from '@/elements/charts/ChartSyncGroup.tsx';
 import StreamChart from '@/elements/charts/StreamChart.tsx';
 import ExtensionSlot from '@/elements/ExtensionSlot.tsx';
+import Spinner from '@/elements/feedback/Spinner.tsx';
 import { formatBytes, formatPercent, useStreamChart } from '@/lib/chart.ts';
 import { bitsPerSecondToString, mbToBytes } from '@/lib/format/size.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useServerStore } from '@/stores/server.ts';
+import { useServerStatsPending } from './useServerStatsPending.ts';
 
 export default function ServerStats() {
   const { t } = useTranslations();
   const server = useServerStore((state) => state.server);
   const stats = useServerStore((state) => state.stats);
+  const statsPending = useServerStatsPending();
 
   const networkPrevious = useRef<{
     tx: number;
@@ -87,8 +90,12 @@ export default function ServerStats() {
     };
   }, [stats, offline, cpu.push, memory.push, network.push]);
 
-  const overlayIcon = <FontAwesomeIcon icon={faPowerOff} className='text-2xl' />;
-  const overlayLabel = offline ? t('pages.server.console.stats.offline', {}) : undefined;
+  const overlayIcon = statsPending ? <Spinner size={24} /> : <FontAwesomeIcon icon={faPowerOff} className='text-2xl' />;
+  const overlayLabel = statsPending
+    ? t('pages.server.console.stats.connecting', {})
+    : offline
+      ? t('pages.server.console.stats.offline', {})
+      : undefined;
 
   return (
     <ChartSyncGroup>

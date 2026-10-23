@@ -109,37 +109,21 @@ impl Location {
         per_page: i64,
         search: Option<&str>,
     ) -> Result<super::Pagination<Self>, crate::database::DatabaseError> {
-        let offset = (page - 1) * per_page;
-
-        let rows = sqlx::query(sqlx::AssertSqlSafe(format!(
-            r#"
-            SELECT {}, COUNT(*) OVER() AS total_count
-            FROM locations
-            WHERE locations.backup_configuration_uuid = $1 AND {search}
-            ORDER BY locations.created
-            LIMIT $3 OFFSET $4
-            "#,
+        super::PaginatedQueryBuilder::new(
             Self::columns_sql(None),
-            search = super::search_sql(2, &["locations.name"], &["locations.uuid"])
-        )))
+            format!(
+                r#"
+                FROM locations
+                WHERE locations.backup_configuration_uuid = $1 AND {search}
+                "#,
+                search = super::search_sql(2, &["locations.name"], &["locations.uuid"]),
+            ),
+            "locations.created, locations.uuid",
+        )
         .bind(backup_configuration_uuid)
         .bind(search)
-        .bind(per_page)
-        .bind(offset)
-        .fetch_all(database.read())
-        .await?;
-
-        Ok(super::Pagination {
-            total: rows
-                .first()
-                .map_or(Ok(0), |row| row.try_get("total_count"))?,
-            per_page,
-            page,
-            data: rows
-                .into_iter()
-                .map(|row| Self::map(None, &row))
-                .try_collect_vec()?,
-        })
+        .fetch(database, page, per_page)
+        .await
     }
 
     pub async fn all_with_pagination(
@@ -148,36 +132,20 @@ impl Location {
         per_page: i64,
         search: Option<&str>,
     ) -> Result<super::Pagination<Self>, crate::database::DatabaseError> {
-        let offset = (page - 1) * per_page;
-
-        let rows = sqlx::query(sqlx::AssertSqlSafe(format!(
-            r#"
-            SELECT {}, COUNT(*) OVER() AS total_count
-            FROM locations
-            WHERE {search}
-            ORDER BY locations.created
-            LIMIT $2 OFFSET $3
-            "#,
+        super::PaginatedQueryBuilder::new(
             Self::columns_sql(None),
-            search = super::search_sql(1, &["locations.name"], &["locations.uuid"])
-        )))
+            format!(
+                r#"
+                FROM locations
+                WHERE {search}
+                "#,
+                search = super::search_sql(1, &["locations.name"], &["locations.uuid"]),
+            ),
+            "locations.created, locations.uuid",
+        )
         .bind(search)
-        .bind(per_page)
-        .bind(offset)
-        .fetch_all(database.read())
-        .await?;
-
-        Ok(super::Pagination {
-            total: rows
-                .first()
-                .map_or(Ok(0), |row| row.try_get("total_count"))?,
-            per_page,
-            page,
-            data: rows
-                .into_iter()
-                .map(|row| Self::map(None, &row))
-                .try_collect_vec()?,
-        })
+        .fetch(database, page, per_page)
+        .await
     }
 }
 

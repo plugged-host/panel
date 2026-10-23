@@ -1,8 +1,6 @@
 import { IconDefinition } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ReactNode } from 'react';
 import { makeComponentHookable } from 'shared';
-import ThemeIcon from '@/elements/data-display/ThemeIcon.tsx';
 import Paper from '@/elements/layout/Paper.tsx';
 import Text from '@/elements/typography/Text.tsx';
 import Title from '@/elements/typography/Title.tsx';
@@ -15,13 +13,12 @@ export interface EmptyStateProps {
   children?: ReactNode;
 }
 
-function EmptyState({ icon, title, description, flush = false, children }: EmptyStateProps) {
+// plugged.host: Filament's empty state ("fi-ta-empty-state"): a "text-base font-semibold" heading
+// over the description, without the illustration (`icon` is still accepted, for the callers).
+function EmptyState({ title, description, flush = false, children }: EmptyStateProps) {
   const content = (
     <>
-      <ThemeIcon size='xl' mb='md' color='gray'>
-        <FontAwesomeIcon icon={icon} />
-      </ThemeIcon>
-      <Title order={3} c='dimmed' mb='sm'>
+      <Title order={3} fz='md' fw={600} mb={4}>
         {title}
       </Title>
       <Text c='dimmed' mb='md'>

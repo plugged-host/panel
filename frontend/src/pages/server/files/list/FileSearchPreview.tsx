@@ -1,6 +1,5 @@
 import { faChevronDown, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { type OnMount } from '@monaco-editor/react';
 import { type File as PierreFile, type PostRenderPhase } from '@pierre/diffs';
 import { skipToken, useQuery } from '@tanstack/react-query';
 import { useEffect, useId, useMemo, useRef } from 'react';
@@ -11,6 +10,7 @@ import ActionIcon from '@/elements/buttons/ActionIcon.tsx';
 import MonacoEditor from '@/elements/editors/MonacoEditor.tsx';
 import PierreEditor from '@/elements/editors/PierreEditor.tsx';
 import { registerHoconLanguage, registerTomlLanguage } from '@/lib/editor/monaco.ts';
+import { type OnMount } from '@/lib/editor/monacoLoader.ts';
 import { isArchiveType } from '@/lib/files/files.ts';
 import { queryKeys } from '@/lib/queryKeys.ts';
 import { serverDirectoryEntrySchema, serverFilesContentMatchesSchema } from '@/lib/schemas/server/files.ts';
@@ -153,6 +153,7 @@ export default function FileSearchPreview({
     queryFn: canRead && !matches ? () => getFileLines(serverUuid, path, 1, FILE_SEARCH_PREVIEW_LINES) : skipToken,
     staleTime: Infinity,
     retry: false,
+    meta: { progress: false },
   });
   const block = canRead ? (matchBlock ?? (!matches && !isError ? data : undefined)) : undefined;
   const content = stripTrailingNewline(block?.content ?? '');

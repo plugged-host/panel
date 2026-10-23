@@ -49,7 +49,7 @@ pub async fn auth(
     mut req: Request,
     next: Next,
 ) -> Result<Response, StatusCode> {
-    let server = Server::by_user_identifier(&state.database, &user, &server[0]).await;
+    let server = Server::by_user_identifier(&state.database, &permissions, &server[0]).await;
     let server = match server {
         Ok(Some(server)) => server,
         Ok(None) => {
@@ -67,10 +67,10 @@ pub async fn auth(
         "/api/client/servers/{server}/backups/unlock",
     ];
 
-    // administrators stay able to act on a suspended server, which is what suspension is for
+    // anyone allowed to update servers stays able to act on a suspended one, which is what suspension is for
     if !IGNORED_STATUS_PATHS.contains(&matched_path.as_str())
         && let Some(message) = server.unavailable_reason()
-        && !(server.suspended && user.admin)
+        && !(server.suspended && permissions.has_admin_permission("servers.update").is_ok())
     {
         return Ok(ApiResponse::error(message)
             .with_status(StatusCode::CONFLICT)

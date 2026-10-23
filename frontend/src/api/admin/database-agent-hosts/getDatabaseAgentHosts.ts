@@ -6,9 +6,10 @@ import { parsePaginationFromApi } from '@/lib/serialization/api-transform.ts';
 export default async (
   page: number,
   search?: string,
+  perPage?: number,
 ): Promise<Pagination<z.infer<typeof adminDatabaseAgentHostSchema>>> => {
   const { data } = await axiosInstance.get('/api/admin/database-agent-hosts', {
-    params: { page, search },
+    params: { page, per_page: perPage, search },
   });
   return parsePaginationFromApi(adminDatabaseAgentHostSchema, data.database_agent_hosts);
 };

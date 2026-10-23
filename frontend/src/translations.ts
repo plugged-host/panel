@@ -44,6 +44,7 @@ const baseTranslations = defineTranslations({
       button: {
         create: 'Create',
         add: 'Add',
+        retry: 'Retry',
         addDefaultPort: 'Add :{port}',
         save: 'Save',
         saveAndStay: 'Save & Stay',
@@ -57,6 +58,7 @@ const baseTranslations = defineTranslations({
         verify: 'Verify',
         update: 'Update',
         close: 'Close',
+        copy: 'Copy',
         cancel: 'Cancel',
         continue: 'Continue',
         skip: 'Skip',
@@ -144,6 +146,8 @@ const baseTranslations = defineTranslations({
           matches: '{count} matched',
           noMatches: 'No matches',
           exception: 'Exception',
+          invalid: 'Invalid pattern',
+          unavailable: 'Count unavailable',
           tooManyPatterns: 'Matching is not counted automatically for more than {max} patterns.',
           unanchoredException:
             '`{pattern}` matches at any depth, use `{anchored}` to only match it in the root directory.',
@@ -158,6 +162,22 @@ const baseTranslations = defineTranslations({
             weekday: 'Weekday',
           },
           nextRun: 'Next run is {timestamp}.',
+        },
+        trashRetention: {
+          days: 'days',
+        },
+        trashSettings: {
+          custom: 'Use custom trash settings for this server',
+          default: 'Panel default: {summary}',
+          summary: {
+            disabled: 'Disabled',
+            withThreshold: '{retention}, cleared at {threshold}% disk usage',
+          },
+          retention: 'Retention',
+          retentionDescription: 'How long deleted files stay in the trash. Set to 0 to disable the trash.',
+          usageThreshold: 'Clear at Disk Usage',
+          usageThresholdDescription:
+            'Clear the oldest trash entries once disk usage reaches this percentage of the limit. Set to 0 to only clear the trash when a write would exceed the limit.',
         },
         backupRetention: {
           title: 'Retention',
@@ -359,7 +379,12 @@ const baseTranslations = defineTranslations({
         selectRow: 'Select row',
         pagination: {
           results: 'Showing {start} to {end} of {total} results.',
-          empty: "No items could be found, it's almost like they are hiding.",
+          perPage: '{count} / page',
+          perPageLabel: 'Results per page',
+        },
+        empty: {
+          title: 'No items found',
+          description: 'Try a different search, or check back once something has been added.',
         },
         columns: {
           id: 'ID',
@@ -549,6 +574,7 @@ const baseTranslations = defineTranslations({
         },
         connectionStatus: {
           connected: 'Connected',
+          connecting: 'Connecting...',
           offline: 'Offline',
         },
         serverAutoStartBehavior: {
@@ -651,9 +677,19 @@ const baseTranslations = defineTranslations({
           addRedirect: 'Add Redirect',
         },
       },
+      assetReloadNotice: {
+        title: 'Updating to the latest version',
+        reloading: 'A new version of the panel is available. Reloading...',
+        offline: 'A new version of the panel is available. Reloading once your connection is back...',
+        stalled: 'A new version of the panel is available. Reload the page to continue.',
+        button: {
+          reloadNow: 'Reload Now',
+        },
+      },
       errorBoundary: {
         message:
           'An unexpected error occurred while rendering this page. Try refreshing. If the problem persists, contact your system administrator.',
+        refresh: 'Refresh Page',
         hideDetails: 'Hide Details',
         showDetails: 'Show Details',
         errorMessage: 'Error Message:',
@@ -752,6 +788,21 @@ const baseTranslations = defineTranslations({
       },
       serverSelect: {
         showOtherUsersServers: "Show other user's servers",
+      },
+      allocationBar: {
+        tooltip: {
+          total: 'Change Total',
+        },
+        form: {
+          total: 'Measure Against',
+          customTotal: 'Custom Total',
+        },
+        total: {
+          limit: 'Configured Limit',
+          live: 'Live Capacity',
+          aggregate: 'Allocated Total',
+          custom: 'Custom',
+        },
       },
       can: {
         tooltip: {
@@ -1300,6 +1351,12 @@ const baseTranslations = defineTranslations({
       },
       account: {
         home: {
+          empty: {
+            title: 'No Servers',
+            description:
+              'This account has no servers yet. Servers created for it, or shared with it as a subuser, show up here.',
+          },
+          emptyGroup: 'This group is empty. Drag a server here to add it.',
           title: 'Servers',
           tooltip: {
             removeFromGroup: 'Remove from Group',
@@ -1314,6 +1371,12 @@ const baseTranslations = defineTranslations({
             groupedServers: {
               title: 'Grouped Servers',
               page: {
+                empty: {
+                  title: 'No Server Groups',
+                  description:
+                    'Every server is listed on its own. Create a group to sort servers into sections and reorder them by dragging.',
+                  descriptionReadOnly: 'Every server is listed on its own.',
+                },
                 button: {
                   createGroup: 'Create Group',
                 },
@@ -1367,7 +1430,6 @@ const baseTranslations = defineTranslations({
                     moved: 'Server moved to {group}.',
                   },
                 },
-                noGroups: 'No Groups could be found, time to create one?',
               },
             },
             allServers: {
@@ -1395,7 +1457,6 @@ const baseTranslations = defineTranslations({
             partial: 'Successfully {action} {successfulServers}. {failedServers} failed.',
             groupActions: 'Group Actions',
           },
-          noServers: 'No Servers could be found, time to add one?',
         },
         admin: {
           title: 'Admin',
@@ -1819,6 +1880,10 @@ const baseTranslations = defineTranslations({
             deleteOAuthLinks: {
               title: 'Confirm OAuth Link Deletion',
               content: 'Are you sure you want to delete **{oauthLinks}** from your account?',
+              alert: {
+                skipped:
+                  '{oauthLinks} will be skipped. Links to providers that do not allow unlinking cannot be removed.',
+              },
             },
             deleteOAuthLink: {
               title: 'Confirm OAuth Link Deletion',
@@ -1953,6 +2018,10 @@ const baseTranslations = defineTranslations({
           alert: {
             newPanelVersion:
               'A new version is available for the panel! You are currently on {current} and the latest version is {latest}. You may want to consider upgrading. [Click here]({upgradeUrl}) to view upgrade instructions.',
+            extensionBuildFailed: {
+              content: 'The last extension build failed.',
+              link: 'View extensions',
+            },
           },
           tabs: {
             overview: {
@@ -2124,6 +2193,13 @@ const baseTranslations = defineTranslations({
                   passwordLoginEnabledDescription:
                     'Let users sign in with a username and password. Turning this off leaves OAuth providers and security keys as the only way in, and also stops local registration, password resets and SFTP password authentication.',
                 },
+                section: {
+                  general: 'General',
+                  branding: 'Branding',
+                  authentication: 'Authentication',
+                  sessions: 'Sessions',
+                  telemetry: 'Telemetry',
+                },
                 enum: {
                   twoFactorMethod: {
                     totp: 'Authenticator App (TOTP)',
@@ -2283,7 +2359,6 @@ const baseTranslations = defineTranslations({
                 sidebar: {
                   templates: 'Templates',
                   globalVariables: 'Global Variables',
-                  loading: 'Loading...',
                   availableVariables: 'Available Variables',
                 },
                 alert: {
@@ -2305,7 +2380,6 @@ const baseTranslations = defineTranslations({
                     'Fragments are MiniJinja snippets with access to the same variables as the template. An empty field uses the default shown in it; languages without a value fall back to the English value, then to the built-in translation.',
                   custom: 'Custom',
                   add: 'Add Variable',
-                  loading: 'Loading...',
                   empty: 'No variables defined.',
                   error: {
                     valueRequired: 'Custom variables need an English value.',
@@ -2334,7 +2408,6 @@ const baseTranslations = defineTranslations({
                     },
                   },
                 },
-                loadingTemplate: 'Loading template...',
                 form: {
                   subject: 'Subject',
                 },
@@ -2435,9 +2508,26 @@ const baseTranslations = defineTranslations({
                   allowViewingTransferProgress: 'Allow Viewing Transfer Progress',
                   allowViewingTransferProgressDescription:
                     'If enabled, users with console read permissions will also be able to view transfer progress logs via the websocket connection. If disabled, transfer progress logs will only be available for admins.',
+                  trashRetention: 'Trash Retention',
+                  trashRetentionDescription:
+                    'How long deleted files stay in a server trash before they are removed permanently. Set to 0 to disable the trash. Files in the trash count towards the server disk limit. Each server can use its own trash settings instead.',
+                  trashUsageThreshold: 'Clear Trash at Disk Usage',
+                  trashUsageThresholdDescription:
+                    'Clear the oldest trash entries once a server reaches this percentage of its disk limit. Set to 0 to only clear the trash when a write would exceed the limit.',
+                  allowChangingTrashSettings: 'Allow Changing Trash Settings',
+                  allowChangingTrashSettingsDescription:
+                    'If enabled, users will be able to set custom trash settings for their servers. If disabled, only admins can change them. Custom settings already set on a server stay in effect.',
                   containerPrelude: 'Container Prelude',
                   containerPreludeDescription:
                     'The terminal prelude used for some status-related messages in the server console.',
+                },
+                section: {
+                  fileManager: 'File Manager',
+                  limits: 'Limits',
+                  networking: 'Networking',
+                  databaseInstances: 'Database Instances',
+                  lifecycle: 'Console & Lifecycle',
+                  trash: 'Trash',
                 },
                 toast: {
                   updated: 'Server settings updated.',
@@ -2461,6 +2551,10 @@ const baseTranslations = defineTranslations({
                     'If enabled, users will be able to change their language preferences.',
                   allowChangingAvatar: 'Allow Changing Avatar',
                   allowChangingAvatarDescription: 'If enabled, users will be able to upload and remove their avatar.',
+                },
+                section: {
+                  limits: 'Limits',
+                  permissions: 'Permissions',
                 },
                 routeOrder: {
                   title: 'Client Route Order',
@@ -2609,11 +2703,16 @@ const baseTranslations = defineTranslations({
           },
         },
         extensions: {
+          empty: {
+            title: 'No Extensions Installed',
+            description:
+              'This panel runs without any extensions. Drop an extension file onto this page to install one.',
+            descriptionDisabled:
+              'This panel runs without any extensions. Extension management has been disabled, so none can be installed.',
+          },
           title: 'Extensions',
           unknownExtension: 'Unknown Extension',
           alert: {
-            noExtensions: 'No extensions installed.',
-            managementDisabled: 'Extension management has been disabled on this panel.',
             heavyImageMissing:
               "You don't seem to be using the heavy image required to install extensions, see [here]({docsUrl}) on how to switch to it.",
             supervisorUnreachable: {
@@ -2626,6 +2725,11 @@ const baseTranslations = defineTranslations({
               content:
                 'These extensions are not built again until they change, or until you retry the build explicitly.',
               failedExtensions: 'The build failed in {extensions}. Update or remove them, then retry the build.',
+            },
+            startFailed: {
+              title: 'Some extensions failed to start',
+              content:
+                'They crashed while starting, or their routes or CLI commands conflict with the panel or another extension, so they are not running. Update or remove them, then restart the panel.',
             },
             pendingRestart: {
               title: 'Some extensions were enabled or disabled',
@@ -2677,6 +2781,7 @@ const baseTranslations = defineTranslations({
             backendMissing: 'Backend missing',
             pendingBuild: 'Pending build',
             buildFailed: 'Build failed',
+            startFailed: 'Failed to start',
             pendingRemoval: 'Pending removal',
             pendingRestart: 'Pending restart',
             disabled: 'Disabled',
@@ -3124,6 +3229,7 @@ const baseTranslations = defineTranslations({
                   'Resources allocated to servers on this node, measured against the limits configured in node settings, not the physical machine capacity. Deployment only checks memory and disk.',
                 card: {
                   resources: 'Allocated Resources',
+                  breakdown: 'Allocation Breakdown',
                 },
                 status: {
                   deploymentEnabled: 'Deployment Enabled',
@@ -3140,6 +3246,11 @@ const baseTranslations = defineTranslations({
                   free: '{size} free',
                   overhead: '+ {size} reserved overhead',
                   cores: '{cores} cores allocated',
+                  other: 'Other ({servers})',
+                  suspended: 'Suspended',
+                  unlimitedServers: '{servers} with no limit',
+                  overallocated: 'Overallocated by {size}',
+                  noAllocations: 'No servers allocate this resource.',
                 },
               },
             },
@@ -3156,6 +3267,10 @@ const baseTranslations = defineTranslations({
                 },
                 toast: {
                   connectionLost: 'Lost connection to the node log stream.',
+                },
+                empty: {
+                  title: 'No Log Files',
+                  description: 'This node has not written any log files yet.',
                 },
               },
             },
@@ -3444,7 +3559,6 @@ const baseTranslations = defineTranslations({
                 },
                 metrics: {
                   title: 'Live Peer Links',
-                  loading: 'Asking the node for its metrics...',
                   unreachable: 'The node could not be reached, so live metrics are unavailable.',
                   applied: 'State version {epoch}, {snapshots} applied',
                   stat: {
@@ -3629,6 +3743,7 @@ const baseTranslations = defineTranslations({
                   unlimited: 'Unlimited',
                   autoKillSeconds: '{seconds}s',
                   autoKillDisabled: 'Disabled',
+                  trash: 'Trash',
                   labels: 'Labels',
                   uuid: 'UUID',
                 },
@@ -3860,6 +3975,12 @@ const baseTranslations = defineTranslations({
               title: 'Management',
               page: {
                 title: 'Server Management',
+                trash: {
+                  title: 'Trash',
+                  toast: {
+                    updated: 'Server trash settings updated.',
+                  },
+                },
                 transfer: {
                   title: 'Transfer',
                   content: "Transfer this server and it's data to another node within this system.",
@@ -4100,6 +4221,12 @@ const baseTranslations = defineTranslations({
                   variables: {
                     title: 'Variables',
                     page: {
+                      empty: {
+                        title: 'No Variables',
+                        description:
+                          'Servers using this egg have nothing to set on their Startup page. Add a variable to pass a setting into the startup command and install script.',
+                        descriptionReadOnly: 'Servers using this egg have nothing to set on their Startup page.',
+                      },
                       title: 'Egg Variables',
                       aria: {
                         reorder: 'Reorder variable',
@@ -4396,6 +4523,10 @@ const baseTranslations = defineTranslations({
                 toast: {
                   synced: 'Egg repository synchronised, found {eggs}.',
                 },
+                alert: {
+                  credentialsCleared:
+                    'Changing the scheme, host or port of the repository clears its stored credentials. Enter them again below if the new host needs them.',
+                },
                 modal: {
                   delete: {
                     title: 'Confirm Egg Repository Deletion',
@@ -4465,6 +4596,9 @@ const baseTranslations = defineTranslations({
                 },
                 button: {
                   testConnection: 'Test Connection',
+                },
+                tooltip: {
+                  errorWhileFetchingVersion: 'Error while fetching version',
                 },
                 toast: {
                   tested: 'Test successfully completed.',
@@ -4643,6 +4777,7 @@ const baseTranslations = defineTranslations({
                   hostDetails: 'Host Details',
                   systemInfo: 'System Information',
                   resources: 'Allocated Resources',
+                  breakdown: 'Allocation Breakdown',
                 },
                 label: {
                   createdAt: 'Created',
@@ -4656,6 +4791,10 @@ const baseTranslations = defineTranslations({
                   noLimit: 'No host limit',
                   free: '{size} free',
                   cores: '{cores} cores allocated',
+                  other: 'Other ({instances})',
+                  unlimitedInstances: '{instances} with no limit',
+                  overallocated: 'Overallocated by {size}',
+                  noAllocations: 'No instances allocate this resource.',
                 },
                 badge: {
                   updateAvailable: 'Update Available',
@@ -5024,6 +5163,10 @@ const baseTranslations = defineTranslations({
                 modal: {
                   delete: {
                     title: 'Confirm Backup Configuration Deletion',
+                    alert: {
+                      detachWarning:
+                        'Existing backups made with this configuration will be detached from it and can no longer be restored or downloaded. Prefer editing the configuration over deleting it.',
+                    },
                   },
                   removeProvider: {
                     title: 'Confirm Provider Settings Removal',
@@ -5600,11 +5743,17 @@ const baseTranslations = defineTranslations({
           },
           stats: {
             offline: 'Server is offline',
+            connecting: 'Connecting...',
           },
           socketConnected: 'Connected ({ping}ms ping)',
           socketDisconnected: 'Disconnected',
         },
         files: {
+          empty: {
+            title: 'Empty Directory',
+            description: 'There is nothing in this directory yet. Upload files or create new ones to fill it.',
+            descriptionReadOnly: 'There is nothing in this directory yet.',
+          },
           title: 'Files',
           editorNotFound: {
             title: 'Not Found',
@@ -5652,6 +5801,7 @@ const baseTranslations = defineTranslations({
             unsavedTab: '{name} has unsaved changes',
             dropToSplit: 'Drop to open in a new editor pane',
             resizeEditorPanes: 'Resize editor panes',
+            resizeFileTree: 'Resize file tree',
             selectPane: 'Select editor pane',
             editorPane: 'Editor pane {number}',
           },
@@ -5685,6 +5835,12 @@ const baseTranslations = defineTranslations({
             extract: 'Extract',
             archive: 'Archive',
             more: 'More',
+            moveToTrash: 'Move to Trash',
+            deletePermanently: 'Delete Permanently',
+            trash: 'Trash',
+            emptyTrash: 'Empty Trash',
+            backToFiles: 'Back to Files',
+            restoreTo: 'Restore to...',
             remoteCopy: 'Remote Copy',
             search: 'Search',
             exitBackup: 'Exit Backup',
@@ -5731,6 +5887,8 @@ const baseTranslations = defineTranslations({
             permissionsSelection: 'Change Permissions',
             fingerprintSelection: 'Show File Fingerprint',
             deleteSelection: 'Delete Selection',
+            trashSelection: 'Move Selection to Trash',
+            openTrash: 'Open Trash',
             saveFile: 'Save File',
             createFile: 'Create File',
           },
@@ -5805,6 +5963,10 @@ const baseTranslations = defineTranslations({
             moveCouldNotBeUndone: 'Move could not be undone.',
             downloadStarted: 'Download started.',
             filesDeleted: 'Files have been deleted.',
+            filesTrashed: '{files} moved to the trash.',
+            filesTrashedPartiallyDeleted: '{files} moved to the trash, {deleted} deleted permanently.',
+            trashUndone: '{files} restored from the trash.',
+            trashCouldNotBeUndone: 'Files could not be restored from the trash.',
             archiveCreationStarted: 'Archive creation has begun.',
             decompressionStarted: 'Archive extraction has started.',
             fileCopyingStarted: 'File copying has started.',
@@ -5863,6 +6025,55 @@ const baseTranslations = defineTranslations({
                 original: 'Revision',
                 current: 'Current',
               },
+            },
+          },
+          trash: {
+            title: 'Trash',
+            subtitle: 'Deleted files are kept for {retention} before they are removed permanently.',
+            subtitleDisabled:
+              'The trash is disabled for this server. Existing entries stay until they are restored or deleted.',
+            table: {
+              columns: {
+                originalLocation: 'Original Location',
+                deletedAt: 'Deleted',
+              },
+            },
+            empty: {
+              title: 'The trash is empty',
+              description: 'Files you delete are moved here and can be restored until they expire.',
+            },
+            modal: {
+              deleteEntries: {
+                title: 'Delete Permanently',
+                content: 'Are you sure you want to permanently delete {entries} from the trash? This cannot be undone.',
+              },
+              deleteEntry: {
+                title: 'Delete Permanently',
+                content:
+                  'Are you sure you want to permanently delete **{name}** from the trash? This cannot be undone.',
+              },
+              emptyTrash: {
+                title: 'Empty Trash',
+                content: 'Are you sure you want to permanently delete everything in the trash? This cannot be undone.',
+              },
+              restoreTo: {
+                title: 'Restore to Directory',
+                destination: 'Destination Directory',
+                restoredAs: 'This file will be restored as ',
+              },
+              restoreConflict: {
+                title: 'Resolve Restore Conflicts',
+                description: 'Something already exists where the following {files} would be restored.',
+                confirm: 'Restore {files}',
+              },
+            },
+            toast: {
+              restored: '{entries} restored.',
+              nothingRestored: 'Nothing could be restored.',
+              restoreUndone: '{files} moved back to the trash.',
+              restoreCouldNotBeUndone: 'Restore could not be undone.',
+              deleted: '{entries} permanently deleted.',
+              emptied: 'The trash has been emptied.',
             },
           },
           modal: {
@@ -5948,8 +6159,12 @@ const baseTranslations = defineTranslations({
             },
             deleteFile: {
               title: 'Delete File',
-              singleFileWarning: 'You will not be able to recover the contents of {file} once deleted.',
+              singleFileWarning: 'You will not be able to recover the contents of **{file}** once deleted.',
               multipleFilesWarning: 'You will not be able to recover the contents of the following files once deleted.',
+              trashTitle: 'Move to Trash',
+              singleFileTrash: '**{file}** will be moved to the trash and can be restored for {retention}.',
+              multipleFilesTrash: 'The following files will be moved to the trash and can be restored for {retention}.',
+              permanent: 'Delete permanently instead of moving to the trash',
             },
             createFile: {
               title: 'Create File',
@@ -6304,8 +6519,10 @@ const baseTranslations = defineTranslations({
                 logs: 'Logs',
               },
               stats: {
+                connecting: 'Connecting...',
                 offline: 'Instance is offline',
               },
+              connectionLost: 'Lost connection to the database instance.',
             },
             databases: {
               title: 'Databases',
@@ -6733,6 +6950,14 @@ const baseTranslations = defineTranslations({
             },
           },
           view: {
+            empty: {
+              triggers: {
+                title: 'No Triggers',
+                description:
+                  'This schedule never starts on its own and only runs when started by hand. Edit it to add a trigger.',
+                descriptionReadOnly: 'This schedule never starts on its own and only runs when started by hand.',
+              },
+            },
             badge: {
               running: 'Running',
             },
@@ -6748,10 +6973,6 @@ const baseTranslations = defineTranslations({
               actions: 'Schedule Actions',
               preConditions: 'Schedule Pre-Conditions',
               triggers: 'Schedule Triggers',
-            },
-            alert: {
-              noActions: 'No actions configured for this schedule',
-              noTriggers: 'No triggers configured for this schedule',
             },
           },
           step: {
@@ -6914,12 +7135,19 @@ const baseTranslations = defineTranslations({
               limitReached: 'This schedule is limited to {max} steps.',
             },
             empty: {
+              descriptionReadOnly: 'This schedule does nothing when it runs.',
               title: 'No Steps Configured',
               description: "This schedule doesn't have any steps yet. Add some actions to get started.",
             },
             warning: {
               unclosedIf: 'An "If" block is missing its "End If". All remaining steps run as part of the block.',
               orphanBranch: 'There is an "Else", "Else If" or "End If" step without a matching "If" before it.',
+              variable: {
+                never: 'The variable "{variable}" is never set by this schedule, so it will not resolve.',
+                unavailable: 'The variable "{variable}" is not set by a trigger or an earlier step at this point.',
+                conditional:
+                  'The variable "{variable}" is only set on some runs, for example inside another branch, by one of several triggers or by a step that may fail.',
+              },
             },
             groups: {
               server: 'Server',
@@ -7219,12 +7447,17 @@ const baseTranslations = defineTranslations({
               description: 'Delete files or folders.',
               form: {
                 filesToDelete: 'Files to Delete',
+                trash: 'Move to Trash',
+                trashDescription:
+                  'Move the files to the trash instead of deleting them permanently. Needs the trash to be enabled for this server.',
               },
               renderer: {
                 compact: 'Delete {files}',
+                compactTrash: 'Move {files} to the trash',
                 detail: {
                   root: 'Root: {root}',
                   files: 'Files: {files}',
+                  trash: 'Move to Trash: {value}',
                 },
               },
             },
@@ -7446,6 +7679,8 @@ const baseTranslations = defineTranslations({
             downloadStarted: 'Download started.',
             restoringBackup: 'Restoring backup...',
             exportStarted: 'Backup export started.',
+            locked: 'Backup locked.',
+            unlocked: 'Backup unlocked.',
           },
           modal: {
             createBackup: {
@@ -7804,6 +8039,11 @@ const baseTranslations = defineTranslations({
           },
         },
         startup: {
+          empty: {
+            title: 'No Startup Variables',
+            description:
+              'The egg this server runs on has no settings to change here, so the startup command runs as it is.',
+          },
           title: 'Startup',
           variables: 'Variables',
           dockerImageDescription:
@@ -7822,7 +8062,6 @@ const baseTranslations = defineTranslations({
                 'You have unsaved changes to your startup variables. Are you sure you want to leave this page? If you leave, your changes will be lost.',
             },
           },
-          noVariables: 'No startup variables found for this server.',
           predefinedStartupCommands: 'Predefined Startup Commands',
         },
         mounts: {
@@ -7924,6 +8163,12 @@ const baseTranslations = defineTranslations({
             },
             toast: {
               updated: 'Server auto-kill updated.',
+            },
+          },
+          trash: {
+            title: 'Trash',
+            toast: {
+              updated: 'Server trash settings updated.',
             },
           },
           autostart: {

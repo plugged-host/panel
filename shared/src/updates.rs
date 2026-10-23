@@ -174,7 +174,9 @@ impl UpdateManager {
                         };
 
                         for extension in state.extensions.extensions().await.iter() {
-                            if state.extensions.is_disabled(extension.package_name) {
+                            if state.extensions.is_disabled(extension.package_name)
+                                || state.extensions.is_failed(extension.package_name)
+                            {
                                 continue;
                             }
 

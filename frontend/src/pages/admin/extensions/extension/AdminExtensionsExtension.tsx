@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useMemo } from 'react';
 import { Link, useParams } from 'react-router';
 import AdminContentContainer from '@/elements/containers/AdminContentContainer.tsx';
+import Text from '@/elements/typography/Text.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 
 export default function AdminExtensionsExtension() {
@@ -23,14 +24,16 @@ export default function AdminExtensionsExtension() {
 
   return (
     <AdminContentContainer title={t('pages.admin.extensions.configure.title', { packageName: extension.packageName })}>
-      <Link to='/admin/extensions' className='inline-block mb-4 text-sm text-blue-400 hover:underline'>
+      <Link to='/admin/extensions' className='inline-block mb-4 text-sm text-(--mantine-color-anchor) hover:underline'>
         <FontAwesomeIcon icon={faArrowLeft} /> {t('pages.admin.extensions.button.back', {})}
       </Link>
 
       {extension.cardConfigurationPage ? (
         <extension.cardConfigurationPage />
       ) : (
-        <span>{t('pages.admin.extensions.configure.noConfigurationPage', {})}</span>
+        <Text size='sm' c='dimmed'>
+          {t('pages.admin.extensions.configure.noConfigurationPage', {})}
+        </Text>
       )}
     </AdminContentContainer>
   );

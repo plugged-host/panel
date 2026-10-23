@@ -9,6 +9,7 @@ import {
 } from 'react';
 import { ObjectSet } from '@/lib/objectSet.ts';
 import { useKeyboardShortcuts } from '@/plugins/quick-actions/useKeyboardShortcuts.ts';
+import { selectionRange } from '@/plugins/selection/selectionRange.ts';
 import { useSelectionArea } from '@/plugins/selection/useSelectionArea.ts';
 
 interface UseTableSelectionOptions<T, K extends string> {
@@ -24,7 +25,7 @@ export interface TableSelection<T extends object, K extends string> {
   setSelected: Dispatch<SetStateAction<ObjectSet<T, K>>>;
   add: (item: T) => void;
   remove: (item: T) => void;
-  toggle: (item: T, selected: boolean) => void;
+  toggle: (item: T, selected: boolean, range?: boolean) => void;
   replace: (items?: readonly T[]) => void;
   clear: () => void;
   selectAll: () => void;
@@ -67,6 +68,13 @@ export function useTableSelection<T extends object, const K extends string = 'uu
 
   const [selected, setSelected] = useState(() => create());
 
+  const itemsRef = useRef(items);
+  const anchorRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    itemsRef.current = items;
+  });
+
   // Selection tracks the rows currently on screen: paging away drops them, and a refetch swaps the
   // held objects for the freshly loaded ones so action bars never act on a stale snapshot.
   useEffect(() => {
@@ -100,18 +108,24 @@ export function useTableSelection<T extends object, const K extends string = 'uu
   );
 
   const toggle = useCallback(
-    (item: T, isSelected: boolean) =>
+    (item: T, isSelected: boolean, range = false) => {
+      const affected = range ? selectionRange(itemsRef.current ?? [], anchorRef.current, item, identifyItem) : [item];
+      anchorRef.current = identifyItem(item);
+
       setSelected((previous) => {
         const next = previous.clone();
-        if (isSelected) {
-          next.add(item);
-        } else {
-          next.delete(item);
+        for (const entry of affected) {
+          if (isSelected) {
+            next.add(entry);
+          } else {
+            next.delete(entry);
+          }
         }
 
         return next;
-      }),
-    [],
+      });
+    },
+    [identifyItem],
   );
 
   const { onSelectedStart, onSelected } = useSelectionArea<T>({

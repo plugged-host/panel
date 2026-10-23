@@ -14,7 +14,10 @@ mod post {
             CreatableModel,
             server::GetServer,
             server_activity::ServerActivity,
-            server_backup::{BackupDisk, ServerBackup, ServerBackupKind, retention::EvictionMode},
+            server_backup::{
+                BackupDisk, ServerBackup, ServerBackupKind,
+                retention::{EvictionMode, IncomingBackup},
+            },
             server_backup_group::ServerBackupGroup,
             server_database_instance::ServerDatabaseInstance,
         },
@@ -265,7 +268,12 @@ mod post {
                 &state,
                 server.uuid,
                 kind,
-                EvictionMode::Any,
+                EvictionMode::Any(IncomingBackup {
+                    backup_group_uuid: backup_group.as_ref().map(|group| group.uuid),
+                    database_instance_uuid: database_instance
+                        .as_ref()
+                        .map(|database_instance| database_instance.uuid),
+                }),
             )
             .await
             {

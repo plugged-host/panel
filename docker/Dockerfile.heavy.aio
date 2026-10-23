@@ -31,7 +31,6 @@ RUN apt-get install -y --no-install-recommends \
     perl \
     build-essential \
     mold \
-    clang \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=kopia /usr/local/bin/kopia /usr/bin/kopia
@@ -48,8 +47,9 @@ WORKDIR /app/repo
 
 COPY --from=planner /app/repo/recipe.json recipe.json
 RUN mkdir -p .cargo && \
-    printf '[target."x86_64-unknown-linux-gnu"]\nlinker = "clang"\nrustflags = ["-C", "link-arg=-fuse-ld=mold"]\n\n[target."aarch64-unknown-linux-gnu"]\nlinker = "clang"\nrustflags = ["-C", "link-arg=-fuse-ld=mold"]\n' > .cargo/config.toml
-RUN cargo chef cook --profile heavy-release --recipe-path recipe.json -p panel-rs-aio -p heavy-supervisor
+    printf '[target."x86_64-unknown-linux-gnu"]\nrustflags = ["-C", "link-arg=-fuse-ld=mold"]\n\n[target."aarch64-unknown-linux-gnu"]\nrustflags = ["-C", "link-arg=-fuse-ld=mold"]\n' > .cargo/config.toml
+RUN cargo chef cook --profile heavy-release --recipe-path recipe.json -p panel-rs-aio -p heavy-supervisor \
+    && rm -rf "$CARGO_HOME/registry/src"
 
 COPY . /app/repo
 RUN cd frontend && pnpm install --frozen-lockfile && pnpm build:ci
@@ -58,7 +58,8 @@ RUN --mount=from=wings,source=/wings,target=/wings \
     if [ -s /wings/calagopus-wings ]; then \
         export WINGS_BINARY_PATH=/wings/calagopus-wings WINGS_RELEASE=${WINGS_SOURCE}; \
     fi && \
-    cargo build --profile heavy-release -p panel-rs-aio -p heavy-supervisor
+    cargo build --profile heavy-release -p panel-rs-aio -p heavy-supervisor \
+    && rm -rf "$CARGO_HOME/registry/src"
 
 RUN cp /app/repo/target/heavy-release/panel-rs-aio /app/panel-rs-aio.stock
 RUN cp /app/repo/target/heavy-release/heavy-supervisor /app/heavy-supervisor

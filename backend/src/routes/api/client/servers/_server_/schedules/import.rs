@@ -48,6 +48,18 @@ mod post {
 
         permissions.has_server_permission("schedules.create")?;
 
+        if let Some(permission) = permissions.missing_server_permission(
+            data.triggers
+                .iter()
+                .flat_map(|trigger| trigger.permissions()),
+        ) {
+            return ApiResponse::error(format!(
+                "unable to import schedule trigger that requires permission: {permission}"
+            ))
+            .with_status(StatusCode::FORBIDDEN)
+            .ok();
+        }
+
         let schedules_lock = state
             .cache
             .lock(
@@ -95,16 +107,16 @@ mod post {
             .await?;
 
         for (index, schedule_step) in data.steps.iter().take(max_schedule_step_count).enumerate() {
-            for permission in schedule_step.action.permissions() {
-                if permissions.has_server_permission(permission).is_err() {
-                    transaction.rollback().await.ok();
-                    return ApiResponse::error(format!(
-                        "unable to import schedule step #{} that requires permission: {permission}",
-                        index + 1
-                    ))
-                    .with_status(StatusCode::FORBIDDEN)
-                    .ok();
-                }
+            if let Some(permission) =
+                permissions.missing_server_permission(schedule_step.action.permissions())
+            {
+                transaction.rollback().await.ok();
+                return ApiResponse::error(format!(
+                    "unable to import schedule step #{} that requires permission: {permission}",
+                    index + 1
+                ))
+                .with_status(StatusCode::FORBIDDEN)
+                .ok();
             }
 
             let options = shared::models::server_schedule_step::CreateServerScheduleStepOptions {
@@ -133,7 +145,7 @@ mod post {
             )
             .await;
 
-        server.0.batch_sync(&state.database).await;
+        server.0.batch_sync(&state).await;
 
         ApiResponse::new_serialized(Response {
             schedule: schedule.into_api_object(&state, ()).await?,

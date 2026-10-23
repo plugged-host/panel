@@ -12,7 +12,7 @@ mod post {
         models::{
             server::{GetServer, GetServerActivityLogger, Server},
             server_tunnel::{ServerTunnel, ServerTunnelConnection},
-            user::{GetPermissionManager, GetUser},
+            user::GetPermissionManager,
         },
         response::{ApiResponse, ApiResponseResult},
     };
@@ -43,7 +43,6 @@ mod post {
     pub async fn route(
         state: GetState,
         permissions: GetPermissionManager,
-        user: GetUser,
         server: GetServer,
         mut activity_logger: GetServerActivityLogger,
         shared::Payload(data): shared::Payload<Payload>,
@@ -63,7 +62,8 @@ mod post {
         };
 
         let Some(target) =
-            Server::by_user_identifier(&state.database, &user, &data.server.to_string()).await?
+            Server::by_user_identifier(&state.database, &permissions, &data.server.to_string())
+                .await?
         else {
             return ApiResponse::error("server not found")
                 .with_status(StatusCode::NOT_FOUND)

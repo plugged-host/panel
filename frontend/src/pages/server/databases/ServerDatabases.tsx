@@ -33,11 +33,12 @@ export default function ServerDatabases() {
 
   const { canReadClassic, used, full, databaseHosts, classicRelevant, agentRelevant, settled } = useDatabaseRelevance();
 
-  const { data, loading, error, search, debouncedSearch, setSearch, setPage, refetch } = useSearchablePaginatedTable({
-    queryKey: queryKeys.server(server.uuid).databases.all(),
-    fetcher: (page, search) => getDatabases(server.uuid, page, search),
-    canRequest: canReadClassic,
-  });
+  const { data, loading, error, search, debouncedSearch, setSearch, setPage, setPerPage, refetch } =
+    useSearchablePaginatedTable({
+      queryKey: queryKeys.server(server.uuid).databases.all(),
+      fetcher: (page, search, perPage) => getDatabases(server.uuid, page, search, perPage),
+      canRequest: canReadClassic,
+    });
 
   const {
     selected: selectedDatabases,
@@ -52,7 +53,7 @@ export default function ServerDatabases() {
     return <ServerDatabaseInstances />;
   }
 
-  const disabled = full || databaseHosts.length === 0;
+  const disabled = !settled || full || databaseHosts.length === 0;
   const noHosts = !full && databaseHosts.length === 0;
   const isEmpty = settled && !loading && !error && !debouncedSearch && data?.total === 0;
 
@@ -60,7 +61,7 @@ export default function ServerDatabases() {
     <ServerContentContainer
       title={t('pages.server.databases.title', {})}
       subtitle={t('pages.server.databases.subtitle', {
-        current: used,
+        current: settled ? used : '…',
         max: server.featureLimits.databases,
       })}
       search={search}
@@ -69,7 +70,7 @@ export default function ServerDatabases() {
         isEmpty ? undefined : (
           <ServerCan action='databases.create'>
             <ConditionalTooltip
-              enabled={disabled}
+              enabled={settled && disabled}
               label={
                 full
                   ? t('pages.server.databases.tooltip.limitReached', {
@@ -121,6 +122,7 @@ export default function ServerDatabases() {
           loading={loading}
           pagination={data}
           onPageSelect={setPage}
+          onPerPageSelect={setPerPage}
           error={error}
           empty={
             debouncedSearch ? undefined : (
@@ -164,7 +166,9 @@ export default function ServerDatabases() {
                   database={database}
                   ref={innerRef as Ref<HTMLTableRowElement>}
                   isSelected={selectedDatabases.has(database.uuid)}
-                  onSelectionChange={canDelete ? (selected) => toggleDatabase(database, selected) : undefined}
+                  onSelectionChange={
+                    canDelete ? (selected, range) => toggleDatabase(database, selected, range) : undefined
+                  }
                 />
               )}
             </SelectionArea.Selectable>

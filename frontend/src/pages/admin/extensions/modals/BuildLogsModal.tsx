@@ -1,3 +1,5 @@
+import { faCopy } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ModalProps } from '@mantine/core';
 import { AxiosError } from 'axios';
 import { useEffect, useRef, useState } from 'react';
@@ -7,6 +9,7 @@ import Button from '@/elements/buttons/Button.tsx';
 import Stack from '@/elements/layout/Stack.tsx';
 import { Modal, ModalFooter } from '@/elements/modals/Modal.tsx';
 import Code from '@/elements/typography/Code.tsx';
+import { handleRawCopyToClipboard } from '@/lib/clipboard/copy.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 
@@ -119,6 +122,13 @@ export default function BuildLogsModal({ buildId, ...props }: Props) {
         </div>
 
         <ModalFooter>
+          <Button
+            leftSection={<FontAwesomeIcon icon={faCopy} />}
+            disabled={!logs}
+            onClick={() => handleRawCopyToClipboard(logs, addToast)}
+          >
+            {t('common.button.copy', {})}
+          </Button>
           <Button variant='default' onClick={props.onClose}>
             {t('common.button.close', {})}
           </Button>

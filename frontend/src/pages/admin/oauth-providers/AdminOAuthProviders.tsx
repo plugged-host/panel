@@ -33,6 +33,7 @@ function OAuthProvidersContainer() {
     search,
     setSearch,
     setPage,
+    setPerPage,
     refetch,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.admin.oAuthProviders.all(),
@@ -97,6 +98,7 @@ function OAuthProvidersContainer() {
         loading={loading}
         pagination={oauthProviders}
         onPageSelect={setPage}
+        onPerPageSelect={setPerPage}
         error={error}
       >
         {oauthProviders?.data.map((oauthProvider) => (

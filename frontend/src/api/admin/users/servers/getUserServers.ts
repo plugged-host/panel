@@ -8,9 +8,10 @@ export default async (
   page: number,
   search?: string,
   owned?: boolean,
+  perPage?: number,
 ): Promise<Pagination<z.infer<typeof adminServerSchema>>> => {
   const { data } = await axiosInstance.get(`/api/admin/users/${userUuid}/servers`, {
-    params: { page, search, owned },
+    params: { page, per_page: perPage, search, owned },
   });
   return parsePaginationFromApi(adminServerSchema, data.servers);
 };

@@ -100,38 +100,22 @@ impl ServerMount {
         per_page: i64,
         search: Option<&str>,
     ) -> Result<super::Pagination<Self>, crate::database::DatabaseError> {
-        let offset = (page - 1) * per_page;
-
-        let rows = sqlx::query(sqlx::AssertSqlSafe(format!(
-            r#"
-            SELECT {}, COUNT(*) OVER() AS total_count
-            FROM server_mounts
-            JOIN mounts ON mounts.uuid = server_mounts.mount_uuid
-            WHERE server_mounts.server_uuid = $1 AND {search}
-            ORDER BY server_mounts.mount_uuid ASC
-            LIMIT $3 OFFSET $4
-            "#,
+        super::PaginatedQueryBuilder::new(
             Self::columns_sql(None),
-            search = super::search_sql(2, &["mounts.name"], &["mounts.uuid"])
-        )))
+            format!(
+                r#"
+                FROM server_mounts
+                JOIN mounts ON mounts.uuid = server_mounts.mount_uuid
+                WHERE server_mounts.server_uuid = $1 AND {search}
+                "#,
+                search = super::search_sql(2, &["mounts.name"], &["mounts.uuid"]),
+            ),
+            "server_mounts.mount_uuid ASC",
+        )
         .bind(server_uuid)
         .bind(search)
-        .bind(per_page)
-        .bind(offset)
-        .fetch_all(database.read())
-        .await?;
-
-        Ok(super::Pagination {
-            total: rows
-                .first()
-                .map_or(Ok(0), |row| row.try_get("total_count"))?,
-            per_page,
-            page,
-            data: rows
-                .into_iter()
-                .map(|row| Self::map(None, &row))
-                .try_collect_vec()?,
-        })
+        .fetch(database, page, per_page)
+        .await
     }
 
     pub async fn available_by_server_with_pagination(
@@ -141,43 +125,26 @@ impl ServerMount {
         per_page: i64,
         search: Option<&str>,
     ) -> Result<super::Pagination<Self>, crate::database::DatabaseError> {
-        let offset = (page - 1) * per_page;
-
-        let rows = sqlx::query(sqlx::AssertSqlSafe(format!(
-            r#"
-            SELECT {}, mounts.uuid AS alt_mount_uuid, COUNT(*) OVER() AS total_count
-            FROM mounts
-            JOIN node_mounts ON mounts.uuid = node_mounts.mount_uuid AND node_mounts.node_uuid = $1
-            JOIN nest_egg_mounts ON mounts.uuid = nest_egg_mounts.mount_uuid AND nest_egg_mounts.egg_uuid = $2
-            LEFT JOIN server_mounts ON server_mounts.mount_uuid = mounts.uuid AND server_mounts.server_uuid = $3
-            WHERE {search}
-            ORDER BY mounts.created
-            LIMIT $5 OFFSET $6
-            "#,
-            Self::columns_sql(None),
-            search = super::search_sql(4, &["mounts.name"], &["mounts.uuid"])
-        )))
+        super::PaginatedQueryBuilder::new(
+            format!("{}, mounts.uuid AS alt_mount_uuid", Self::columns_sql(None)),
+            format!(
+                r#"
+                FROM mounts
+                JOIN node_mounts ON mounts.uuid = node_mounts.mount_uuid AND node_mounts.node_uuid = $1
+                JOIN nest_egg_mounts ON mounts.uuid = nest_egg_mounts.mount_uuid AND nest_egg_mounts.egg_uuid = $2
+                LEFT JOIN server_mounts ON server_mounts.mount_uuid = mounts.uuid AND server_mounts.server_uuid = $3
+                WHERE {search}
+                "#,
+                search = super::search_sql(4, &["mounts.name"], &["mounts.uuid"]),
+            ),
+            "mounts.created, mounts.uuid",
+        )
         .bind(server.node.uuid)
         .bind(server.egg.uuid)
         .bind(server.uuid)
         .bind(search)
-        .bind(per_page)
-        .bind(offset)
-        .fetch_all(database.read())
+        .fetch(database, page, per_page)
         .await
-        ?;
-
-        Ok(super::Pagination {
-            total: rows
-                .first()
-                .map_or(Ok(0), |row| row.try_get("total_count"))?,
-            per_page,
-            page,
-            data: rows
-                .into_iter()
-                .map(|row| Self::map(None, &row))
-                .try_collect_vec()?,
-        })
     }
 
     pub async fn mountable_by_server_with_pagination(
@@ -187,43 +154,26 @@ impl ServerMount {
         per_page: i64,
         search: Option<&str>,
     ) -> Result<super::Pagination<Self>, crate::database::DatabaseError> {
-        let offset = (page - 1) * per_page;
-
-        let rows = sqlx::query(sqlx::AssertSqlSafe(format!(
-            r#"
-            SELECT {}, mounts.uuid AS alt_mount_uuid, COUNT(*) OVER() AS total_count
-            FROM mounts
-            JOIN node_mounts ON mounts.uuid = node_mounts.mount_uuid AND node_mounts.node_uuid = $1
-            JOIN nest_egg_mounts ON mounts.uuid = nest_egg_mounts.mount_uuid AND nest_egg_mounts.egg_uuid = $2
-            LEFT JOIN server_mounts ON server_mounts.mount_uuid = mounts.uuid AND server_mounts.server_uuid = $3
-            WHERE mounts.user_mountable = TRUE AND {search}
-            ORDER BY mounts.created
-            LIMIT $5 OFFSET $6
-            "#,
-            Self::columns_sql(None),
-            search = super::search_sql(4, &["mounts.name"], &["mounts.uuid"])
-        )))
+        super::PaginatedQueryBuilder::new(
+            format!("{}, mounts.uuid AS alt_mount_uuid", Self::columns_sql(None)),
+            format!(
+                r#"
+                FROM mounts
+                JOIN node_mounts ON mounts.uuid = node_mounts.mount_uuid AND node_mounts.node_uuid = $1
+                JOIN nest_egg_mounts ON mounts.uuid = nest_egg_mounts.mount_uuid AND nest_egg_mounts.egg_uuid = $2
+                LEFT JOIN server_mounts ON server_mounts.mount_uuid = mounts.uuid AND server_mounts.server_uuid = $3
+                WHERE mounts.user_mountable = TRUE AND {search}
+                "#,
+                search = super::search_sql(4, &["mounts.name"], &["mounts.uuid"]),
+            ),
+            "mounts.created, mounts.uuid",
+        )
         .bind(server.node.uuid)
         .bind(server.egg.uuid)
         .bind(server.uuid)
         .bind(search)
-        .bind(per_page)
-        .bind(offset)
-        .fetch_all(database.read())
+        .fetch(database, page, per_page)
         .await
-        ?;
-
-        Ok(super::Pagination {
-            total: rows
-                .first()
-                .map_or(Ok(0), |row| row.try_get("total_count"))?,
-            per_page,
-            page,
-            data: rows
-                .into_iter()
-                .map(|row| Self::map(None, &row))
-                .try_collect_vec()?,
-        })
     }
 
     pub async fn by_mount_uuid_with_pagination(
@@ -233,38 +183,22 @@ impl ServerMount {
         per_page: i64,
         search: Option<&str>,
     ) -> Result<super::Pagination<Self>, crate::database::DatabaseError> {
-        let offset = (page - 1) * per_page;
-
-        let rows = sqlx::query(sqlx::AssertSqlSafe(format!(
-            r#"
-            SELECT {}, COUNT(*) OVER() AS total_count
-            FROM server_mounts
-            JOIN servers ON servers.uuid = server_mounts.server_uuid
-            WHERE server_mounts.mount_uuid = $1 AND {search}
-            ORDER BY server_mounts.mount_uuid ASC
-            LIMIT $3 OFFSET $4
-            "#,
+        super::PaginatedQueryBuilder::new(
             Self::columns_sql(None),
-            search = super::search_sql(2, &["servers.name"], &["servers.uuid"])
-        )))
+            format!(
+                r#"
+                FROM server_mounts
+                JOIN servers ON servers.uuid = server_mounts.server_uuid
+                WHERE server_mounts.mount_uuid = $1 AND {search}
+                "#,
+                search = super::search_sql(2, &["servers.name"], &["servers.uuid"]),
+            ),
+            "server_mounts.mount_uuid ASC",
+        )
         .bind(mount_uuid)
         .bind(search)
-        .bind(per_page)
-        .bind(offset)
-        .fetch_all(database.read())
-        .await?;
-
-        Ok(super::Pagination {
-            total: rows
-                .first()
-                .map_or(Ok(0), |row| row.try_get("total_count"))?,
-            per_page,
-            page,
-            data: rows
-                .into_iter()
-                .map(|row| Self::map(None, &row))
-                .try_collect_vec()?,
-        })
+        .fetch(database, page, per_page)
+        .await
     }
 
     pub async fn into_admin_server_api_object(

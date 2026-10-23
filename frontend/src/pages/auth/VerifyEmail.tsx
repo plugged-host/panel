@@ -69,7 +69,7 @@ export default function VerifyEmail() {
               </Center>
             ) : error ? (
               <>
-                <Text className='text-neutral-400!'>{t('pages.auth.verifyEmail.failed', {})}</Text>
+                <Text c='dimmed'>{t('pages.auth.verifyEmail.failed', {})}</Text>
                 <Button onClick={() => navigate('/auth/login')} size='md' fullWidth>
                   {t('pages.auth.button.login', {})}
                 </Button>
@@ -77,9 +77,9 @@ export default function VerifyEmail() {
             ) : (
               <>
                 <Center>
-                  <FontAwesomeIcon icon={faCircleCheck} className='text-green-500' size='3x' />
+                  <FontAwesomeIcon icon={faCircleCheck} className='text-(--mantine-color-green-text)' size='3x' />
                 </Center>
-                <Text className='text-neutral-400! text-center'>
+                <Text c='dimmed' className='text-center'>
                   {t('pages.auth.verifyEmail.success', { email }).md()}
                 </Text>
                 <Button onClick={() => navigate(user ? '/' : '/auth/login')} size='md' fullWidth>

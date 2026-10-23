@@ -140,7 +140,7 @@ impl UserTwoFactorCode {
             FROM user_two_factor_codes
             WHERE user_two_factor_codes.user_uuid = $1
             AND user_two_factor_codes.created > NOW() - make_interval(mins => $3)
-            ORDER BY user_two_factor_codes.created DESC
+            ORDER BY user_two_factor_codes.created DESC, user_two_factor_codes.uuid
             LIMIT 1
             FOR UPDATE
             "#,

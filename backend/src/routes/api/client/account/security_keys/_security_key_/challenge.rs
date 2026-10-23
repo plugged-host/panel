@@ -44,6 +44,7 @@ mod post {
         shared::Payload(data): shared::Payload<Payload>,
     ) -> ApiResponseResult {
         permissions.has_user_permission("security-keys.create")?;
+        permissions.deny_while_impersonating()?;
 
         let settings = state.settings.get().await?;
         if !settings.webauthn.enabled {

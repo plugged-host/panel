@@ -31,12 +31,13 @@ export default function EggRepositoryEggs({
     search,
     setSearch,
     setPage,
+    setPerPage,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.admin.eggRepositories.eggs(contextEggRepository.uuid),
-    fetcher: (page, search) => getEggRepositoryEggs(contextEggRepository.uuid, page, search),
+    fetcher: (page, search, perPage) => getEggRepositoryEggs(contextEggRepository.uuid, page, search, perPage),
   });
 
-  const { selected, add, remove, clear, selectAll, allSelected, selectionAreaProps } = useTableSelection({
+  const { selected, toggle, clear, selectAll, allSelected, selectionAreaProps } = useTableSelection({
     items: eggRepositoryEggs?.data,
   });
 
@@ -79,6 +80,7 @@ export default function EggRepositoryEggs({
           error={error}
           pagination={eggRepositoryEggs}
           onPageSelect={setPage}
+          onPerPageSelect={setPerPage}
         >
           {eggRepositoryEggs?.data.map((eggRepositoryEgg) => (
             <SelectionArea.Selectable key={eggRepositoryEgg.uuid} item={eggRepositoryEgg}>
@@ -88,7 +90,7 @@ export default function EggRepositoryEggs({
                   egg={eggRepositoryEgg}
                   ref={innerRef as Ref<HTMLTableRowElement>}
                   isSelected={selected.has(eggRepositoryEgg.uuid)}
-                  onSelectionChange={(isSelected) => (isSelected ? add(eggRepositoryEgg) : remove(eggRepositoryEgg))}
+                  onSelectionChange={(isSelected, range) => toggle(eggRepositoryEgg, isSelected, range)}
                   onOpen={() => setDrawerEgg(eggRepositoryEgg)}
                   onInstall={() => setInstallEgg(eggRepositoryEgg)}
                 />

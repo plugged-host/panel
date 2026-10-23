@@ -29,6 +29,7 @@ function UsersContainer() {
     search,
     setSearch,
     setPage,
+    setPerPage,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.admin.users.all(),
     fetcher: getUsers,
@@ -64,7 +65,14 @@ function UsersContainer() {
         </>
       }
     >
-      <Table columns={userTableColumns()} loading={loading} error={error} pagination={users} onPageSelect={setPage}>
+      <Table
+        columns={userTableColumns()}
+        loading={loading}
+        error={error}
+        pagination={users}
+        onPageSelect={setPage}
+        onPerPageSelect={setPerPage}
+      >
         {users?.data.map((user) => (
           <UserRow key={user.uuid} user={user} />
         ))}

@@ -45,7 +45,7 @@ export default function LoginOAuth() {
 
         <div>
           <Title order={2}>{t('pages.auth.oauth.title', {})}</Title>
-          <Text className='text-neutral-400!'>{t('pages.auth.oauth.subtitle', {})}</Text>
+          <Text c='dimmed'>{t('pages.auth.oauth.subtitle', {})}</Text>
         </div>
 
         <Card>

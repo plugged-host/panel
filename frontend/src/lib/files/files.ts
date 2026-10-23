@@ -1,6 +1,6 @@
 import { join } from 'pathe';
 import { createSearchParams } from 'react-router';
-import { FileOpenMode } from 'shared/src/registries/pages/server/files.ts';
+import { FileOpenMode } from 'shared/src/registries/pages/server/files/index.ts';
 import { z } from 'zod';
 import { serverDirectoryEntrySchema } from '@/lib/schemas/server/files.ts';
 import { serverSchema } from '@/lib/schemas/server/server.ts';
@@ -140,7 +140,7 @@ export function isOpenableFile(
     ? {
         openable: true,
         handleOpen: ({ handleFileOpen }) => {
-          handleFileOpen(file.name, 'edit', {});
+          handleFileOpen(file.name, 'edit', file.editable ? {} : { compressed: 'true' });
         },
       }
     : { openable: false };
@@ -231,6 +231,14 @@ export function generateArchiveName(extension: string) {
   const tzFormatted = `${tzSign}${tzHours}${tzMinutes}`;
 
   return `archive-${year}-${month}-${day}T${hours}${minutes}${seconds}${tzFormatted}${extension}`;
+}
+
+export function generateCopyName(name: string): string {
+  const dot = name.lastIndexOf('.');
+  const ext = dot > 0 ? name.slice(dot) : '';
+  const base = dot > 0 ? name.slice(0, dot) : name;
+
+  return `${base} copy${ext}`;
 }
 
 export function toContainerPath(path: string): string {

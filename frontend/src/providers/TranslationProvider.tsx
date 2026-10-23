@@ -18,7 +18,7 @@ import { getGlobalStore, useGlobalStore } from '@/stores/global.ts';
 import baseTranslations from '@/translations.ts';
 
 const zodLocaleModules = import.meta.glob('/node_modules/zod/v4/locales/*.js');
-const monacoNlsModules = import.meta.glob('/node_modules/monaco-editor/esm/nls.messages.*.js');
+const monacoNlsModules = import.meta.glob('/node_modules/monaco-editor/esm/vs/nls/lang/*.js');
 const cronstrueLocaleModules: Record<string, () => Promise<unknown>> = {
   ar: () => import('cronstrue/locales/ar.js'),
   cs: () => import('cronstrue/locales/cs.js'),
@@ -187,7 +187,7 @@ const TranslationProvider = ({ children }: { children: ReactNode }) => {
 
   const loadMonaco = async (lang: string) => {
     const locale = monacoLocaleAliases[lang] ?? lang;
-    const path = `/node_modules/monaco-editor/esm/nls.messages.${locale}.js`;
+    const path = `/node_modules/monaco-editor/esm/vs/nls/lang/${locale}.js`;
 
     if (lang === 'en' || !monacoNlsModules[path]) {
       globalThis._VSCODE_NLS_MESSAGES = undefined;

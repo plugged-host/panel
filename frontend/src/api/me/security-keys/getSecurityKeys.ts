@@ -3,9 +3,13 @@ import { axiosInstance } from '@/api/axios.ts';
 import { userSecurityKeySchema } from '@/lib/schemas/user/securityKeys.ts';
 import { parsePaginationFromApi } from '@/lib/serialization/api-transform.ts';
 
-export default async (page: number, search?: string): Promise<Pagination<z.infer<typeof userSecurityKeySchema>>> => {
+export default async (
+  page: number,
+  search?: string,
+  perPage?: number,
+): Promise<Pagination<z.infer<typeof userSecurityKeySchema>>> => {
   const { data } = await axiosInstance.get('/api/client/account/security-keys', {
-    params: { page, search },
+    params: { page, per_page: perPage, search },
   });
   return parsePaginationFromApi(userSecurityKeySchema, data.security_keys);
 };

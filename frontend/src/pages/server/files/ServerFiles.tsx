@@ -23,6 +23,7 @@ import { useNavbarPageHeader } from '@/elements/containers/useNavbarPageHeader.t
 import Card from '@/elements/data-display/Card.tsx';
 import Table, { TableData, TableHeaderProps, TableRow } from '@/elements/data-display/Table.tsx';
 import SelectionArea from '@/elements/dnd/SelectionArea.tsx';
+import EmptyState from '@/elements/feedback/EmptyState.tsx';
 import Spinner from '@/elements/feedback/Spinner.tsx';
 import Group from '@/elements/layout/Group.tsx';
 import SegmentedControl from '@/elements/layout/SegmentedControl.tsx';
@@ -397,6 +398,20 @@ function FileBrowser() {
                 pagination={browsingEntries}
                 error={browsingError}
                 allowSelect={false}
+                empty={
+                  searchInfo ? undefined : (
+                    <EmptyState
+                      flush
+                      icon={faFolderOpen}
+                      title={t('pages.server.files.empty.title', {})}
+                      description={
+                        canCreate
+                          ? t('pages.server.files.empty.description', {})
+                          : t('pages.server.files.empty.descriptionReadOnly', {})
+                      }
+                    />
+                  )
+                }
               >
                 {showParentDirectoryRow && <FileParentDirectoryRow />}
 

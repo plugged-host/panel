@@ -89,7 +89,7 @@ mod post {
                 CreateOAuthProviderMappingOptions, OAuthProviderMapping,
                 OAuthProviderMappingMatcher, OAuthProviderMappingType,
             },
-            user::{GetPermissionManager, GetUser},
+            user::GetPermissionManager,
         },
         response::{ApiResponse, ApiResponseResult},
     };
@@ -122,7 +122,6 @@ mod post {
     pub async fn route(
         state: GetState,
         permissions: GetPermissionManager,
-        caller: GetUser,
         oauth_provider: GetOAuthProvider,
         activity_logger: GetAdminActivityLogger,
         shared::Payload(data): shared::Payload<Payload>,
@@ -137,7 +136,7 @@ mod post {
 
         if !data
             .mapping
-            .is_within_permissions_of(&state.database, &caller)
+            .is_within_permissions_of(&state.database, &permissions)
             .await?
         {
             return ApiResponse::error("permissions: more permissions than self")

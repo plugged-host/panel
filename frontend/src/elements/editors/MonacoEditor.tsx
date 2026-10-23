@@ -1,7 +1,5 @@
 import { useComputedColorScheme } from '@mantine/core';
-import { DiffEditor, Editor, loader } from '@monaco-editor/react';
 import {
-  ComponentProps,
   MouseEvent as ReactMouseEvent,
   TouchEvent as ReactTouchEvent,
   useCallback,
@@ -11,16 +9,16 @@ import {
   useState,
 } from 'react';
 import { flushSync } from 'react-dom';
+import {
+  BaseDiffEditor,
+  BaseEditor,
+  type DiffEditorProps,
+  type EditorProps,
+} from '@/elements/editors/MonacoBaseEditor.tsx';
 import ContextMenu, { ContextMenuItem } from '@/elements/overlays/ContextMenu.tsx';
 import { forwardGlobalShortcuts } from '@/lib/editor/monaco.ts';
 
 type ICodeEditor = import('monaco-editor').editor.ICodeEditor;
-
-loader.config({
-  paths: {
-    vs: '/monaco',
-  },
-});
 
 const SEPARATOR_ID = 'vs.actions.separator';
 
@@ -195,7 +193,7 @@ function useMonacoContextMenu() {
   return { attach, items, openMenuRef, containerProps };
 }
 
-export default function MonacoEditor(props: ComponentProps<typeof Editor>) {
+export default function MonacoEditor(props: EditorProps) {
   const computedColorScheme = useComputedColorScheme('dark');
   const { attach, items, openMenuRef, containerProps } = useMonacoContextMenu();
 
@@ -206,9 +204,9 @@ export default function MonacoEditor(props: ComponentProps<typeof Editor>) {
 
         return (
           <div style={{ display: 'contents' }} {...containerProps}>
-            <Editor
+            <BaseEditor
               {...props}
-              theme={computedColorScheme === 'dark' ? 'vs-dark' : 'light'}
+              theme={computedColorScheme === 'dark' ? 'vs-dark' : 'vs'}
               options={{ ...props.options, contextmenu: false }}
               onMount={(e, m) => {
                 attach(e);
@@ -228,7 +226,7 @@ export default function MonacoEditor(props: ComponentProps<typeof Editor>) {
   );
 }
 
-export function MonacoDiffEditor(props: ComponentProps<typeof DiffEditor>) {
+export function MonacoDiffEditor(props: DiffEditorProps) {
   const computedColorScheme = useComputedColorScheme('dark');
   const { attach, items, openMenuRef, containerProps } = useMonacoContextMenu();
   const cleanupRef = useRef<(() => void) | null>(null);
@@ -248,9 +246,9 @@ export function MonacoDiffEditor(props: ComponentProps<typeof DiffEditor>) {
 
         return (
           <div style={{ display: 'contents' }} {...containerProps}>
-            <DiffEditor
+            <BaseDiffEditor
               {...props}
-              theme={computedColorScheme === 'dark' ? 'vs-dark' : 'light'}
+              theme={computedColorScheme === 'dark' ? 'vs-dark' : 'vs'}
               options={{ ...props.options, contextmenu: false }}
               onMount={(e, m) => {
                 cleanupRef.current = () => {

@@ -2,7 +2,15 @@ use super::DatabaseAgentType;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
-pub type Config = super::system_config::get::Response200;
+#[derive(Debug, ToSchema, Deserialize, Serialize, Clone)]
+#[serde(transparent)]
+pub struct Config(pub serde_json::Value);
+
+impl Config {
+    pub fn view<T: serde::de::DeserializeOwned>(&self) -> Result<T, serde_json::Error> {
+        T::deserialize(&self.0)
+    }
+}
 
 #[derive(Debug, ToSchema, Deserialize, Serialize, Clone)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -208,6 +216,14 @@ pub const FORBIDDEN_CONFIG_PATHS: &[&str] = &[
     "api.trusted_proxies",
     "api.disable_remote_import",
     "api.remote_import_blocked_cidrs",
+];
+
+/// Config paths holding secrets, `*` matching every key of a map.
+pub const SECRET_CONFIG_PATHS: &[&str] = &[
+    "api.token",
+    "database.url",
+    "docker.registries.*.password",
+    "docker.log_config.config.*",
 ];
 
 pub fn strip_config_paths(value: &mut serde_json::Value) -> Vec<&'static str> {

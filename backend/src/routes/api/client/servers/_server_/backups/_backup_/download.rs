@@ -10,7 +10,7 @@ mod get {
         models::{
             server::{GetServer, GetServerActivityLogger},
             server_backup::ServerBackupKind,
-            user::{GetPermissionManager, GetUser},
+            user::{GetAuthMethod, GetPermissionManager, GetUser},
         },
         response::{ApiResponse, ApiResponseResult},
     };
@@ -54,6 +54,7 @@ mod get {
         state: GetState,
         request_host: shared::GetRequestHost,
         permissions: GetPermissionManager,
+        auth: GetAuthMethod,
         user: GetUser,
         server: GetServer,
         activity_logger: GetServerActivityLogger,
@@ -87,6 +88,7 @@ mod get {
                 &state,
                 request_host.as_deref(),
                 &user,
+                auth.api_key_uuid(),
                 &node,
                 params.archive_format,
             )

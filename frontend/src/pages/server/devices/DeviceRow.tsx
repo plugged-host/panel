@@ -22,7 +22,7 @@ import { useServerStore } from '@/stores/server.ts';
 interface DeviceRowProps {
   contextDevice: z.infer<typeof serverDeviceSchema>;
   isSelected?: boolean;
-  onSelectionChange?: (selected: boolean) => void;
+  onSelectionChange?: (selected: boolean, range?: boolean) => void;
 }
 
 export const DeviceRow = forwardRef<HTMLTableRowElement, DeviceRowProps>(function DeviceRow(
@@ -118,9 +118,9 @@ export const DeviceRow = forwardRef<HTMLTableRowElement, DeviceRowProps>(functio
 
         <TableData>
           {contextDevice.created ? (
-            <FontAwesomeIcon icon={faCheck} className='text-green-500' />
+            <FontAwesomeIcon icon={faCheck} className='text-(--mantine-color-green-text)' />
           ) : (
-            <FontAwesomeIcon icon={faX} className='text-red-500' />
+            <FontAwesomeIcon icon={faX} className='text-(--mantine-color-red-text)' />
           )}
         </TableData>
 

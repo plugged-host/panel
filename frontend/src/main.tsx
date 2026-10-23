@@ -1,9 +1,11 @@
-import { InputWrapper, mergeThemeOverrides, Tooltip } from '@mantine/core';
+import { InputWrapper, Loader, mergeThemeOverrides, Tooltip } from '@mantine/core';
 import { createRoot } from 'react-dom/client';
 import { Extension, ExtensionContext } from 'shared';
 import App from '@/App.tsx';
 import getSettings from '@/api/getSettings.ts';
+import { SpinnerLoader } from '@/elements/feedback/Spinner.tsx';
 import { preloadRouterForPath } from '@/routers/routerImports.ts';
+import { registerAssetReloadHandler } from '@/stores/assetReload.ts';
 import { useGlobalStore } from '@/stores/global.ts';
 import { pluggedHostTheme } from '@/theme.ts';
 
@@ -33,33 +35,19 @@ const baseTheme = mergeThemeOverrides(pluggedHostTheme, {
       styles: (_theme, props) =>
         props.description && props.description === props.error ? { description: { display: 'none' } } : {},
     }),
+    Loader: Loader.extend({
+      defaultProps: {
+        loaders: { ...Loader.defaultLoaders, panel: SpinnerLoader },
+        type: 'panel',
+      },
+    }),
     Tooltip: Tooltip.extend({
       styles: { tooltip: { '--code-bg': 'color-mix(in srgb, currentColor 15%, transparent)' } },
     }),
   },
 });
 
-const CHUNK_RELOAD_ATTEMPTS_KEY = 'chunkReloadAttempts';
-const MAX_CHUNK_RELOAD_ATTEMPTS = 3;
-let chunkReloadScheduled = false;
-
-window.addEventListener('vite:preloadError', () => {
-  const attempts = parseInt(sessionStorage.getItem(CHUNK_RELOAD_ATTEMPTS_KEY) || '0');
-  if (chunkReloadScheduled || attempts >= MAX_CHUNK_RELOAD_ATTEMPTS) return;
-
-  chunkReloadScheduled = true;
-  sessionStorage.setItem(CHUNK_RELOAD_ATTEMPTS_KEY, (attempts + 1).toString());
-
-  const reload = () => window.location.reload();
-  setTimeout(
-    () => (navigator.onLine ? reload() : window.addEventListener('online', reload, { once: true })),
-    1000 * 2 ** attempts,
-  );
-});
-
-setTimeout(() => {
-  if (!chunkReloadScheduled) sessionStorage.removeItem(CHUNK_RELOAD_ATTEMPTS_KEY);
-}, 30_000);
+registerAssetReloadHandler();
 
 const root = document.getElementById('root');
 

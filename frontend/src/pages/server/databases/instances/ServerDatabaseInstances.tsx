@@ -34,11 +34,12 @@ export default function ServerDatabaseInstances() {
 
   const { canReadAgent, used, full, agentTemplates, settled } = useDatabaseRelevance();
 
-  const { data, loading, error, search, debouncedSearch, setSearch, setPage, refetch } = useSearchablePaginatedTable({
-    queryKey: queryKeys.server(server.uuid).databases.instances.all(),
-    fetcher: (page, search) => getDatabaseInstances(server.uuid, page, search),
-    canRequest: canReadAgent,
-  });
+  const { data, loading, error, search, debouncedSearch, setSearch, setPage, setPerPage, refetch } =
+    useSearchablePaginatedTable({
+      queryKey: queryKeys.server(server.uuid).databases.instances.all(),
+      fetcher: (page, search, perPage) => getDatabaseInstances(server.uuid, page, search, perPage),
+      canRequest: canReadAgent,
+    });
 
   const {
     selected: selectedInstances,
@@ -50,14 +51,14 @@ export default function ServerDatabaseInstances() {
   } = useTableSelection({ items: data?.data, shortcuts: canSelect });
 
   const handleInstanceClick = (instance: z.infer<typeof serverDatabaseInstanceSchema>, event: React.MouseEvent) => {
-    if (canSelect && (event.ctrlKey || event.metaKey)) {
+    if (canSelect && (event.ctrlKey || event.metaKey || event.shiftKey)) {
       event.preventDefault();
       event.stopPropagation();
-      toggleInstance(instance, !selectedInstances.has(instance.uuid));
+      toggleInstance(instance, !selectedInstances.has(instance.uuid), event.shiftKey);
     }
   };
 
-  const disabled = full || agentTemplates.length === 0;
+  const disabled = !settled || full || agentTemplates.length === 0;
   const noTemplates = !full && agentTemplates.length === 0;
   const isEmpty = settled && !loading && !error && !debouncedSearch && data?.total === 0;
 
@@ -65,7 +66,7 @@ export default function ServerDatabaseInstances() {
     <ServerContentContainer
       title={t('pages.server.databases.title', {})}
       subtitle={t('pages.server.databases.subtitle', {
-        current: used,
+        current: settled ? used : '…',
         max: server.featureLimits.databases,
       })}
       search={search}
@@ -74,7 +75,7 @@ export default function ServerDatabaseInstances() {
         isEmpty ? undefined : (
           <ServerCan action='database-instances.create'>
             <ConditionalTooltip
-              enabled={disabled}
+              enabled={settled && disabled}
               label={
                 full
                   ? t('pages.server.databases.tooltip.limitReached', {
@@ -130,6 +131,7 @@ export default function ServerDatabaseInstances() {
           loading={loading}
           pagination={data}
           onPageSelect={setPage}
+          onPerPageSelect={setPerPage}
           error={error}
           empty={
             debouncedSearch ? undefined : (
@@ -173,7 +175,9 @@ export default function ServerDatabaseInstances() {
                   instance={instance}
                   ref={innerRef as Ref<HTMLTableRowElement>}
                   isSelected={selectedInstances.has(instance.uuid)}
-                  onSelectionChange={canSelect ? (selected) => toggleInstance(instance, selected) : undefined}
+                  onSelectionChange={
+                    canSelect ? (selected, range) => toggleInstance(instance, selected, range) : undefined
+                  }
                   onClick={(e) => handleInstanceClick(instance, e)}
                 />
               )}

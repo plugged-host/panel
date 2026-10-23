@@ -160,7 +160,7 @@ export default function NodeServerBackupRow<P>({
               </Code>
               {backup.server && backup.server.node.uuid !== backup.node.uuid && (
                 <Tooltip label={t('common.tooltip.backupOnDifferentNode', {})}>
-                  <FontAwesomeIcon icon={faWarning} className='ml-1 text-yellow-400' />
+                  <FontAwesomeIcon icon={faWarning} className='ml-1 text-(--mantine-color-yellow-text)' />
                 </Tooltip>
               )}
             </TableData>

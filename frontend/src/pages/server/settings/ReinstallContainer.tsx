@@ -16,7 +16,7 @@ export default function ReinstallContainer() {
     <TitleCard
       title={t('pages.server.settings.reinstall.title', {})}
       icon={<FontAwesomeIcon icon={faCog} />}
-      className='h-full order-50'
+      className='h-full order-60'
     >
       <SettingsReinstallModal opened={modalOpen} onClose={() => setModalOpen(false)} />
 

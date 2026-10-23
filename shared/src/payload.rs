@@ -107,7 +107,11 @@ impl<T: DeserializeOwned> Payload<T> {
                     bytes = Bytes::from_static(b"{}");
                 }
 
-                let value = serde_norway::from_slice(&bytes).map_err(anyhow::Error::from)?;
+                let value = serde_saphyr::from_slice_with_options(
+                    &bytes,
+                    crate::utils::yaml_deserialize_options(),
+                )
+                .map_err(anyhow::Error::from)?;
                 Ok(Payload(value))
             }
             _ => Err(PayloadRejection(anyhow::anyhow!(
@@ -226,5 +230,62 @@ mod tests {
         assert!(
             Payload::<serde_json::Value>::from_bytes(mime::TEXT_XML, Bytes::from(body)).is_err()
         );
+    }
+
+    // Payload::from_bytes (yaml)
+    fn yaml_payload(
+        body: impl Into<Bytes>,
+    ) -> Result<Payload<serde_json::Value>, PayloadRejection> {
+        Payload::from_bytes(
+            mime::Mime::from_str("application/yaml").unwrap(),
+            body.into(),
+        )
+    }
+
+    #[test]
+    fn yaml_payloads_deserialize() {
+        let payload = match yaml_payload("name: test\nnested:\n  list: [1, 2]\n  glob: \"*leaf\"\n")
+        {
+            Ok(payload) => payload,
+            Err(err) => panic!("payload rejected: {}", err.0),
+        };
+
+        assert_eq!(payload.0["name"], "test");
+        assert_eq!(payload.0["nested"]["list"], serde_json::json!([1, 2]));
+        assert_eq!(payload.0["nested"]["glob"], "*leaf");
+    }
+
+    #[test]
+    fn empty_yaml_body_deserializes_as_an_empty_object() {
+        let payload = match yaml_payload("") {
+            Ok(payload) => payload,
+            Err(err) => panic!("payload rejected: {}", err.0),
+        };
+
+        assert_eq!(payload.0, serde_json::json!({}));
+    }
+
+    #[test]
+    fn yaml_alias_expansion_is_rejected() {
+        let leaf = vec!["1"; 1000].join(",");
+        let aliases = vec!["*leaf"; 500].join(",");
+        let body = format!("seed: &leaf [{leaf}]\nx: [{aliases}]\n");
+
+        assert!(yaml_payload(body).is_err());
+    }
+
+    #[test]
+    fn yaml_merge_key_aliases_are_rejected() {
+        assert!(yaml_payload("base: &base\n  a: 1\nderived:\n  <<: *base\n  b: 2\n").is_err());
+    }
+
+    #[test]
+    fn unused_yaml_anchors_are_accepted() {
+        let payload = match yaml_payload("seed: &leaf [1, 2]\nother: 3\n") {
+            Ok(payload) => payload,
+            Err(err) => panic!("payload rejected: {}", err.0),
+        };
+
+        assert_eq!(payload.0["seed"], serde_json::json!([1, 2]));
     }
 }

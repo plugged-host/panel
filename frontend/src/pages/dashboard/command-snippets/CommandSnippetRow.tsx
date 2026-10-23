@@ -19,7 +19,7 @@ interface CommandSnippetRowProps {
   commandSnippet: z.infer<typeof userCommandSnippetSchema>;
   atLimit?: boolean;
   isSelected?: boolean;
-  onSelectionChange?: (selected: boolean) => void;
+  onSelectionChange?: (selected: boolean, range?: boolean) => void;
 }
 
 const CommandSnippetRow = forwardRef<HTMLTableRowElement, CommandSnippetRowProps>(function CommandSnippetRow(

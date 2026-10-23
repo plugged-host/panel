@@ -1,11 +1,17 @@
-import { faChevronDown, faChevronUp, faExclamationCircle } from '@fortawesome/free-solid-svg-icons';
+import { faChevronDown, faChevronUp, faRotateRight, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Code, Collapse, MantineProvider, type MantineThemeOverride, Stack, Text } from '@mantine/core';
 import type { ReactNode } from 'react';
 import { Component, type ErrorInfo } from 'react';
-import { TranslationContext } from 'shared';
+import { globalTranslationHandle } from 'shared';
+import Button from '@/elements/buttons/Button.tsx';
+import ThemeIcon from '@/elements/data-display/ThemeIcon.tsx';
+import { getTranslations } from '@/providers/TranslationProvider.tsx';
+import { useAssetReloadStore } from '@/stores/assetReload.ts';
 import { getGlobalStore } from '@/stores/global.ts';
 
 interface Props {
+  theme: MantineThemeOverride;
   children?: ReactNode;
 }
 
@@ -16,10 +22,36 @@ interface State {
   showDetails: boolean;
 }
 
-class ErrorBoundary extends Component<Props, State> {
-  static contextType = TranslationContext;
-  declare context: React.ContextType<typeof TranslationContext>;
+const fallbacks = {
+  message:
+    'An unexpected error occurred while rendering this page. Try refreshing. If the problem persists, contact your system administrator.',
+  refresh: 'Refresh Page',
+  hideDetails: 'Hide Details',
+  showDetails: 'Show Details',
+  errorMessage: 'Error Message:',
+  stackTrace: 'Stack Trace:',
+  componentStack: 'Component Stack:',
+};
 
+// mounted above TranslationProvider, so translations come from the global handle when one was set up
+function text(key: keyof typeof fallbacks) {
+  return globalTranslationHandle ? getTranslations().t(`elements.errorBoundary.${key}`, {}) : fallbacks[key];
+}
+
+function DetailBlock({ label, content }: { label: string; content: string }) {
+  return (
+    <div>
+      <Text size='xs' fw={600} c='red' mb={4}>
+        {label}
+      </Text>
+      <Code block className='max-h-80 overflow-auto whitespace-pre-wrap wrap-break-word'>
+        {content}
+      </Code>
+    </div>
+  );
+}
+
+class ErrorBoundary extends Component<Props, State> {
   override state: State = {
     hasError: false,
     error: null,
@@ -41,89 +73,62 @@ class ErrorBoundary extends Component<Props, State> {
   };
 
   override render() {
-    if (this.state.hasError) {
-      const { error, errorInfo, showDetails } = this.state;
-      const appDebug = getGlobalStore().settings.app.debug;
-      const _t = (key: string) => this.context?.t(key, {});
-
-      return (
-        <div className='flex items-center justify-center w-full p-6'>
-          <div className='max-w-4xl w-full'>
-            <div className='flex flex-col items-center text-center mb-6'>
-              <div className='w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center mb-4'>
-                <FontAwesomeIcon icon={faExclamationCircle} className='w-6 h-6 text-red-400' />
-              </div>
-              <p className='text-sm text-neutral-400 leading-relaxed'>
-                {this.context?.t('elements.errorBoundary.message', {}) ||
-                  'An unexpected error occurred while rendering this page. Try refreshing. If the problem persists, contact your system administrator.'}
-              </p>
-            </div>
-
-            <div className='flex justify-center mb-4'>
-              <button
-                onClick={() => window.location.reload()}
-                className='px-4 py-2 text-sm font-medium rounded-md bg-(--mantine-color-default) hover:bg-(--mantine-color-default-hover) border border-(--mantine-color-default-border) transition-colors'
-              >
-                Refresh page
-              </button>
-            </div>
-
-            {error && appDebug && (
-              <div className='mt-2 border bg-(--mantine-color-default) border-(--mantine-color-default-border) rounded-lg overflow-hidden'>
-                <button
-                  onClick={this.toggleDetails}
-                  className='w-full flex items-center justify-between px-4 py-3 text-xs text-(--mantine-color-dimmed) hover:bg-(--mantine-color-default-hover) transition-colors'
-                >
-                  <span className='font-medium tracking-wide uppercase'>
-                    {showDetails
-                      ? this.context?.t('elements.errorBoundary.hideDetails', {}) || 'Hide Details'
-                      : this.context?.t('elements.errorBoundary.showDetails', {}) || 'Show Details'}
-                  </span>
-                  <FontAwesomeIcon icon={showDetails ? faChevronUp : faChevronDown} className='h-3 w-auto mr-1' />
-                </button>
-
-                {showDetails && (
-                  <div className='rounded p-3 mt-2 space-y-3'>
-                    <div>
-                      <p className='text-xs font-semibold text-red-400 mb-1'>
-                        {this.context?.t('elements.errorBoundary.errorMessage', {}) || 'Error Message:'}
-                      </p>
-                      <pre className='text-xs whitespace-pre-wrap wrap-break-word bg-(--mantine-color-default-hover) p-2 rounded'>
-                        {error.message || this.context?.t('common.na', {}) || 'N/A'}
-                      </pre>
-                    </div>
-
-                    {error.stack && (
-                      <div>
-                        <p className='text-xs font-semibold text-red-400 mb-1'>
-                          {this.context?.t('elements.errorBoundary.stackTrace', {}) || 'Stack Trace:'}
-                        </p>
-                        <pre className='text-xs whitespace-pre-wrap wrap-break-word bg-(--mantine-color-default-hover) p-2 rounded overflow-x-auto'>
-                          {error.stack}
-                        </pre>
-                      </div>
-                    )}
-
-                    {errorInfo && errorInfo.componentStack && (
-                      <div>
-                        <p className='text-xs font-semibold text-red-400 mb-1'>
-                          {this.context?.t('elements.errorBoundary.componentStack', {}) || 'Component Stack:'}
-                        </p>
-                        <pre className='text-xs whitespace-pre-wrap wrap-break-word bg-(--mantine-color-default-hover) p-2 rounded overflow-x-auto'>
-                          {errorInfo.componentStack}
-                        </pre>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-      );
+    if (!this.state.hasError) {
+      return this.props.children;
     }
 
-    return this.props.children;
+    if (useAssetReloadStore.getState().status !== 'idle') return null;
+
+    const { error, errorInfo, showDetails } = this.state;
+    const appDebug = getGlobalStore().settings.app.debug;
+
+    return (
+      <MantineProvider theme={this.props.theme} defaultColorScheme='dark'>
+        <div className='flex justify-center w-full p-6'>
+          <Stack align='center' gap='sm' className='w-full max-w-4xl'>
+            <ThemeIcon size='xl' radius='md' variant='light' color='red'>
+              <FontAwesomeIcon icon={faTriangleExclamation} />
+            </ThemeIcon>
+            <Text size='sm' c='dimmed' ta='center' className='max-w-xl'>
+              {text('message')}
+            </Text>
+            <Button
+              variant='default'
+              leftSection={<FontAwesomeIcon icon={faRotateRight} />}
+              onClick={() => window.location.reload()}
+            >
+              {text('refresh')}
+            </Button>
+
+            {error && appDebug && (
+              <div className='w-full mt-4 rounded-md border border-(--mantine-color-default-border) bg-(--mantine-color-default) overflow-hidden'>
+                <Button
+                  variant='subtle'
+                  color='gray'
+                  fullWidth
+                  radius={0}
+                  justify='space-between'
+                  onClick={this.toggleDetails}
+                  rightSection={<FontAwesomeIcon icon={showDetails ? faChevronUp : faChevronDown} />}
+                >
+                  {showDetails ? text('hideDetails') : text('showDetails')}
+                </Button>
+
+                <Collapse expanded={showDetails}>
+                  <Stack gap='sm' p='md' pt={0}>
+                    <DetailBlock label={text('errorMessage')} content={error.message || 'N/A'} />
+                    {error.stack && <DetailBlock label={text('stackTrace')} content={error.stack} />}
+                    {errorInfo?.componentStack && (
+                      <DetailBlock label={text('componentStack')} content={errorInfo.componentStack} />
+                    )}
+                  </Stack>
+                </Collapse>
+              </div>
+            )}
+          </Stack>
+        </div>
+      </MantineProvider>
+    );
   }
 }
 

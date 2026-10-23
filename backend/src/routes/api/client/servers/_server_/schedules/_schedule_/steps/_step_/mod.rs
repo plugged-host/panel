@@ -70,16 +70,14 @@ mod patch {
 
         permissions.has_server_permission("schedules.update")?;
 
-        if let Some(action) = &data.action {
-            for permission in action.permissions() {
-                if permissions.has_server_permission(permission).is_err() {
-                    return ApiResponse::error(format!(
-                        "unable to update schedule step that requires permission: {permission}"
-                    ))
-                    .with_status(StatusCode::FORBIDDEN)
-                    .ok();
-                }
-            }
+        if let Some(permission) = permissions
+            .missing_server_permission(data.action.iter().flat_map(|action| action.permissions()))
+        {
+            return ApiResponse::error(format!(
+                "unable to update schedule step that requires permission: {permission}"
+            ))
+            .with_status(StatusCode::FORBIDDEN)
+            .ok();
         }
 
         schedule_step.update(&state, data).await?;
@@ -97,7 +95,7 @@ mod patch {
             )
             .await;
 
-        server.0.batch_sync(&state.database).await;
+        server.0.batch_sync(&state).await;
 
         ApiResponse::new_serialized(Response {}).ok()
     }
@@ -184,7 +182,7 @@ mod delete {
             )
             .await;
 
-        server.0.batch_sync(&state.database).await;
+        server.0.batch_sync(&state).await;
 
         ApiResponse::new_serialized(Response {}).ok()
     }

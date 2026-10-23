@@ -22,6 +22,7 @@ import { useGlobalStore } from '@/stores/global.ts';
 import { useServerStore, useServerStoreApi } from '@/stores/server.ts';
 import StepCreateOrUpdateModal from './modals/StepCreateOrUpdateModal.tsx';
 import StepCard, { StepCardBody } from './StepCard.tsx';
+import { analyzeScheduleVariables } from './variableAnalysis.ts';
 
 interface DndScheduleStep extends z.infer<typeof serverScheduleStepSchema>, DndItem {
   id: string;
@@ -202,6 +203,7 @@ export default function StepsEditor({ schedule }: { schedule: z.infer<typeof ser
 
   const sortedSteps = useMemo(() => [...scheduleSteps].sort((a, b) => a.order - b.order), [scheduleSteps]);
   const blockIssues = useMemo(() => stepBlockIssues(sortedSteps), [sortedSteps]);
+  const variableIssues = useMemo(() => analyzeScheduleVariables(schedule, sortedSteps).steps, [schedule, sortedSteps]);
 
   const canAddElseMap = useMemo(() => {
     const map = new Map<string, boolean>();
@@ -248,10 +250,11 @@ export default function StepsEditor({ schedule }: { schedule: z.infer<typeof ser
             label={scheduleStepLabelMapping[activeStep.action.type]()}
             isActive={activeStep.uuid === runningStepUuid}
             editable
+            variableIssues={variableIssues.get(activeStep.uuid)}
           />
         </div>
       ) : null,
-    [runningStepUuid],
+    [runningStepUuid, variableIssues],
   );
 
   if (!schedule || !scheduleSteps) {
@@ -326,6 +329,7 @@ export default function StepsEditor({ schedule }: { schedule: z.infer<typeof ser
                             schedule={schedule}
                             step={step}
                             isActive={step.uuid === runningStepUuid}
+                            variableIssues={variableIssues.get(step.id)}
                             onStepUpdate={handleStepUpdate}
                             onStepDelete={handleStepDelete}
                             onStepDuplicate={handleStepCreate}

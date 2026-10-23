@@ -130,6 +130,7 @@ mod post {
         }
 
         permissions.has_user_permission("security-keys.create")?;
+        permissions.deny_while_impersonating()?;
 
         let settings = state.settings.get().await?;
         if !settings.webauthn.enabled {

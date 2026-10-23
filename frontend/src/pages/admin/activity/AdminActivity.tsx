@@ -20,9 +20,10 @@ export default function AdminActivity() {
     search,
     setSearch,
     setPage,
+    setPerPage,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.admin.activity.all(filterUserUuid),
-    fetcher: (page, search) => getAdminActivity(filterUserUuid, page, search),
+    fetcher: (page, search, perPage) => getAdminActivity(filterUserUuid, page, search, perPage),
   });
 
   return (
@@ -33,7 +34,14 @@ export default function AdminActivity() {
       contentRight={filterUserUuid ? <ClearUserFilterButton onClick={() => setFilterUserUuid(null)} /> : null}
       registry={window.extensionContext.extensionRegistry.pages.admin.activity.container}
     >
-      <Table columns={activityColumns()} loading={loading} error={error} pagination={activities} onPageSelect={setPage}>
+      <Table
+        columns={activityColumns()}
+        loading={loading}
+        error={error}
+        pagination={activities}
+        onPageSelect={setPage}
+        onPerPageSelect={setPerPage}
+      >
         {activities?.data.map((activity, index) => (
           <ActivityRow
             key={`${activity.created.toISOString()}-${index}`}

@@ -8,6 +8,7 @@ import DebugInformationContainer from './DebugInformationContainer.tsx';
 import ReinstallContainer from './ReinstallContainer.tsx';
 import RenameContainer from './RenameContainer.tsx';
 import TimezoneContainer from './TimezoneContainer.tsx';
+import TrashContainer from './TrashContainer.tsx';
 
 export default function ServerSettings() {
   const { t } = useTranslations();
@@ -37,6 +38,9 @@ export default function ServerSettings() {
         </ServerCan>
         <ServerCan action='settings.timezone'>
           <TimezoneContainer />
+        </ServerCan>
+        <ServerCan action='settings.trash'>
+          <TrashContainer />
         </ServerCan>
         <ServerCan action='settings.install'>
           <ReinstallContainer />

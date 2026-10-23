@@ -58,11 +58,7 @@ mod delete {
     use serde::Serialize;
     use shared::{
         ApiError, GetState,
-        models::{
-            DeletableModel,
-            server::{GetServer, GetServerActivityLogger},
-            user::GetPermissionManager,
-        },
+        models::{DeletableModel, server::GetServerActivityLogger, user::GetPermissionManager},
         response::{ApiResponse, ApiResponseResult},
     };
     use utoipa::ToSchema;
@@ -89,7 +85,6 @@ mod delete {
     pub async fn route(
         state: GetState,
         permissions: GetPermissionManager,
-        server: GetServer,
         activity_logger: GetServerActivityLogger,
         subuser: GetServerSubuser,
     ) -> ApiResponseResult {
@@ -107,56 +102,6 @@ mod delete {
             )
             .await;
 
-        tokio::spawn(async move {
-            tracing::debug!(server = %server.uuid, "removing subuser permissions in wings");
-
-            let node = match server.node.fetch_cached(&state.database).await {
-                Ok(node) => node,
-                Err(err) => {
-                    tracing::error!(server = %server.uuid, "failed to remove subuser permissions in wings: {:?}", err);
-
-                    return;
-                }
-            };
-
-            let api_client = match node.api_client(&state.database).await {
-                Ok(api_client) => api_client,
-                Err(err) => {
-                    tracing::error!(server = %server.uuid, "failed to remove subuser permissions in wings: {:?}", err);
-
-                    return;
-                }
-            };
-
-            if let Err(err) = api_client
-               	.post_servers_server_ws_permissions(
-                    server.uuid,
-                    &wings_api::servers_server_ws_permissions::post::RequestBody {
-                        user_permissions: vec![wings_api::servers_server_ws_permissions::post::RequestBodyUserPermissions {
-                            user: subuser.user.uuid,
-                            permissions: Vec::new(),
-                            ignored_files: Vec::new(),
-                        }]
-                    }
-                )
-                .await
-            {
-                tracing::error!(server = %server.uuid, "failed to remove subuser permissions in wings: {:?}", err);
-            }
-
-            if let Err(err) = api_client
-                .post_servers_server_ws_deny(
-                    server.uuid,
-                    &wings_api::servers_server_ws_deny::post::RequestBody {
-                        jtis: vec![subuser.user.uuid.to_string().into()],
-                    },
-                )
-                .await
-            {
-                tracing::error!(server = %server.uuid, "failed to remove subuser permissions in wings: {:?}", err);
-            }
-        });
-
         ApiResponse::new_serialized(Response {}).ok()
     }
 }
@@ -171,7 +116,7 @@ mod patch {
         models::{
             UpdatableModel,
             server::{GetServer, GetServerActivityLogger},
-            user::{CredentialScope, GetAuthMethod, GetPermissionManager, GetUser},
+            user::{GetPermissionManager, GetUser},
         },
         response::{ApiResponse, ApiResponseResult},
     };
@@ -210,11 +155,9 @@ mod patch {
             example = "123e4567-e89b-12d3-a456-426614174000",
         ),
     ), request_body = inline(Payload))]
-    #[allow(clippy::too_many_arguments)]
     pub async fn route(
         state: GetState,
         permissions: GetPermissionManager,
-        auth: GetAuthMethod,
         user: GetUser,
         server: GetServer,
         activity_logger: GetServerActivityLogger,
@@ -227,20 +170,9 @@ mod patch {
                 .ok();
         }
 
-        if let Some(requested) = &data.permissions
-            && !user.admin
-            && let Some(subuser_permissions) = &server.subuser_permissions
-            && requested.iter().any(|p| !subuser_permissions.contains(p))
-        {
-            return ApiResponse::error("permissions: more permissions than self")
-                .with_status(StatusCode::BAD_REQUEST)
-                .ok();
-        }
-
-        if let Some(requested) = &data.permissions
-            && requested
-                .iter()
-                .any(|p| permissions.has_server_permission(p).is_err())
+        if permissions
+            .missing_server_permission(data.permissions.iter().flatten())
+            .is_some()
         {
             return ApiResponse::error("permissions: more permissions than self")
                 .with_status(StatusCode::BAD_REQUEST)
@@ -288,56 +220,6 @@ mod patch {
                 }),
             )
             .await;
-
-        tokio::spawn(async move {
-            tracing::debug!(server = %server.uuid, "updating subuser permissions in wings");
-
-            let credential_scope = CredentialScope::from(&**auth);
-
-            let node = match server.node.fetch_cached(&state.database).await {
-                Ok(node) => node,
-                Err(err) => {
-                    tracing::error!(server = %server.uuid, "failed to update subuser permissions in wings: {:?}", err);
-
-                    return;
-                }
-            };
-
-            let api_client = match node.api_client(&state.database).await {
-                Ok(api_client) => api_client,
-                Err(err) => {
-                    tracing::error!(server = %server.uuid, "failed to update subuser permissions in wings: {:?}", err);
-
-                    return;
-                }
-            };
-
-            if let Err(err) = api_client
-                .post_servers_server_ws_permissions(
-                    server.uuid,
-                    &wings_api::servers_server_ws_permissions::post::RequestBody {
-                        user_permissions: vec![wings_api::servers_server_ws_permissions::post::RequestBodyUserPermissions {
-                            user: subuser.user.uuid,
-                            permissions: server.wings_subuser_permissions(
-                                match &state.settings.get().await {
-                                    Ok(settings) => settings,
-                                    Err(_) => return,
-                                },
-                                &subuser,
-                                &credential_scope,
-                            )
-                                .into_iter()
-                                .map(compact_str::CompactString::from)
-                                .collect(),
-                            ignored_files: subuser.0.ignored_files,
-                        }]
-                    }
-                )
-                .await
-            {
-                tracing::error!(server = %server.uuid, "failed to update subuser permissions in wings: {:?}", err);
-            }
-        });
 
         ApiResponse::new_serialized(Response {}).ok()
     }

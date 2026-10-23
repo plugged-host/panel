@@ -27,6 +27,7 @@ export default function ServerStatusPoller() {
     interval: 15000,
     enabled: !!uuid && isTransientStatus(status) && pollable,
     silent: true,
+    meta: { progress: false },
   });
 
   useEffect(() => {

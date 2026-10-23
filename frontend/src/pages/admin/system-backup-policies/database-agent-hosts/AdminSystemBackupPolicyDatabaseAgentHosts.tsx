@@ -127,10 +127,12 @@ export default function AdminSystemBackupPolicyDatabaseAgentHosts({
     search,
     setSearch,
     setPage,
+    setPerPage,
     refetch,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.admin.systemBackupPolicies.databaseAgentHosts(systemBackupPolicy.uuid),
-    fetcher: (page, search) => getSystemBackupPolicyDatabaseAgentHosts(systemBackupPolicy.uuid, page, search),
+    fetcher: (page, search, perPage) =>
+      getSystemBackupPolicyDatabaseAgentHosts(systemBackupPolicy.uuid, page, search, perPage),
   });
 
   return (
@@ -165,6 +167,7 @@ export default function AdminSystemBackupPolicyDatabaseAgentHosts({
         loading={loading}
         pagination={systemBackupPolicyDatabaseAgentHosts}
         onPageSelect={setPage}
+        onPerPageSelect={setPerPage}
         error={error}
       >
         {systemBackupPolicyDatabaseAgentHosts?.data.map((systemBackupPolicyDatabaseAgentHost) => (

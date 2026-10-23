@@ -241,6 +241,14 @@ mod patch {
     ) -> ApiResponseResult {
         permissions.has_admin_permission("database-agent-hosts.update")?;
 
+        if data.url.as_ref().is_some_and(|url| {
+            reqwest::Url::parse(url)
+                .ok()
+                .is_none_or(|url| url != database_agent_host.url)
+        }) {
+            permissions.has_admin_permission("database-agent-hosts.read-token")?;
+        }
+
         match database_agent_host.update(&state, data).await {
             Ok(_) => {}
             Err(err) if err.is_unique_violation() => {

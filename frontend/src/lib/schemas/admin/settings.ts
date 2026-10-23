@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { oobeStepKey } from '@/lib/schemas/oobe.ts';
 import { ruleMessage } from '@/lib/schemas/rules.ts';
+import { serverTrashSettingsSchema } from '@/lib/schemas/server/settings.ts';
 import { twoFactorMethod } from '@/lib/schemas/user.ts';
 import { nullableNumber, nullableString } from '@/lib/serialization/transformers.ts';
 import { eggConfigurationRouteItemSchema, hostnameSchema } from '../generic.ts';
@@ -213,6 +214,8 @@ export const adminSettingsServerSchema = z.object({
   allowViewingInstallationLogs: z.boolean(),
   allowAcknowledgingInstallationFailure: z.boolean(),
   allowViewingTransferProgress: z.boolean(),
+  trash: serverTrashSettingsSchema,
+  allowChangingTrashSettings: z.boolean(),
   containerPrelude: z.string().min(1).max(255),
 });
 

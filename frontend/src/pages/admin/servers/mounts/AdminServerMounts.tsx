@@ -24,9 +24,10 @@ export default function AdminServerMounts({ server }: { server: AdminServer }) {
     search,
     setSearch,
     setPage,
+    setPerPage,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.admin.mountAssignments.mountsByServer(server.uuid),
-    fetcher: (page, search) => getServerMounts(server.uuid, page, search),
+    fetcher: (page, search, perPage) => getServerMounts(server.uuid, page, search, perPage),
   });
 
   return (
@@ -50,6 +51,7 @@ export default function AdminServerMounts({ server }: { server: AdminServer }) {
         loading={loading}
         pagination={serverMounts}
         onPageSelect={setPage}
+        onPerPageSelect={setPerPage}
         error={error}
       >
         {serverMounts?.data.map((mount) => (

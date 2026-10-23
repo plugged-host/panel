@@ -11,7 +11,8 @@ mod get {
     use shared::{
         ApiError, GetState,
         models::{
-            IntoAdminApiObject, Pagination, PaginationParamsWithSearch, server::Server,
+            IntoAdminApiObject, Pagination, PaginationParamsWithSearch,
+            server::{AdminApiServer, Server},
             user::GetPermissionManager,
         },
         response::{ApiResponse, ApiResponseResult},
@@ -21,7 +22,7 @@ mod get {
     #[derive(ToSchema, Serialize)]
     struct Response {
         #[schema(inline)]
-        servers: Pagination<shared::models::server::AdminApiServer>,
+        servers: Pagination<AdminApiServer>,
     }
 
     #[utoipa::path(get, path = "/", responses(
@@ -83,8 +84,14 @@ mod post {
     use shared::{
         ApiError, GetState,
         models::{
-            CreatableModel, IntoAdminApiObject, admin_activity::GetAdminActivityLogger,
-            nest_egg_variable::NestEggVariable, server::Server, user::GetPermissionManager,
+            CreatableModel, IntoAdminApiObject,
+            admin_activity::GetAdminActivityLogger,
+            nest_egg_variable::NestEggVariable,
+            server::{
+                AdminApiServer, AdminApiServerLimits, ApiServerFeatureLimits, CreateServerOptions,
+                Server, TrashSettings, validate_labels,
+            },
+            user::GetPermissionManager,
         },
         response::{ApiResponse, ApiResponseResult},
     };
@@ -133,7 +140,7 @@ mod post {
         description: Option<compact_str::CompactString>,
 
         #[garde(dive)]
-        limits: shared::models::server::AdminApiServerLimits,
+        limits: AdminApiServerLimits,
         #[garde(inner(range(min = 0)))]
         pinned_cpus: Vec<i16>,
 
@@ -143,12 +150,15 @@ mod post {
         #[garde(length(chars, min = 2, max = 255))]
         #[schema(min_length = 2, max_length = 255)]
         image: compact_str::CompactString,
-        #[garde(custom(shared::models::server::validate_labels))]
+        #[garde(custom(validate_labels))]
         #[serde(default)]
         labels: indexmap::IndexMap<compact_str::CompactString, compact_str::CompactString>,
         #[garde(skip)]
         #[schema(value_type = Option<String>)]
         timezone: Option<chrono_tz::Tz>,
+        #[garde(dive)]
+        #[schema(inline)]
+        trash: Option<TrashSettings>,
 
         #[garde(skip)]
         hugepages_passthrough_enabled: bool,
@@ -156,7 +166,7 @@ mod post {
         kvm_passthrough_enabled: bool,
 
         #[garde(dive)]
-        feature_limits: shared::models::server::ApiServerFeatureLimits,
+        feature_limits: ApiServerFeatureLimits,
         #[schema(inline)]
         #[garde(dive)]
         variables: Vec<PayloadVariable>,
@@ -164,7 +174,7 @@ mod post {
 
     #[derive(ToSchema, Serialize)]
     struct Response {
-        server: shared::models::server::AdminApiServer,
+        server: AdminApiServer,
     }
 
     #[utoipa::path(post, path = "/", responses(
@@ -240,7 +250,7 @@ mod post {
             server_variables.insert(variable_uuid, data_variable.value.clone().into());
         }
 
-        let options = shared::models::server::CreateServerOptions {
+        let options = CreateServerOptions {
             node_uuid: data.node_uuid,
             owner_uuid: data.owner_uuid,
             egg_uuid: data.egg_uuid,
@@ -258,6 +268,7 @@ mod post {
             image: data.image,
             labels: data.labels,
             timezone: data.timezone,
+            trash: data.trash,
             hugepages_passthrough_enabled: data.hugepages_passthrough_enabled,
             kvm_passthrough_enabled: data.kvm_passthrough_enabled,
             feature_limits: data.feature_limits.clone(),
@@ -299,6 +310,7 @@ mod post {
                     "image": server.image,
                     "labels": server.labels,
                     "timezone": server.timezone,
+                    "trash": server.trash,
 
                     "hugepages_passthrough_enabled": server.hugepages_passthrough_enabled,
                     "kvm_passthrough_enabled": server.kvm_passthrough_enabled,

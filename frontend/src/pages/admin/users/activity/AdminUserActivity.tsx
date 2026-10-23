@@ -19,9 +19,10 @@ export default function AdminUserActivity({ user }: { user: z.infer<typeof admin
     search,
     setSearch,
     setPage,
+    setPerPage,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.admin.users.activity(user.uuid),
-    fetcher: (page, search) => getUserActivity(user.uuid, page, search),
+    fetcher: (page, search, perPage) => getUserActivity(user.uuid, page, search, perPage),
   });
 
   return (
@@ -39,6 +40,7 @@ export default function AdminUserActivity({ user }: { user: z.infer<typeof admin
         error={error}
         pagination={userActivity}
         onPageSelect={setPage}
+        onPerPageSelect={setPerPage}
       >
         {userActivity?.data.map((activity, index) => (
           <ActivityRow key={`${activity.created.toISOString()}-${index}`} activity={activity} accountScoped />

@@ -20,6 +20,17 @@ mod get {
     }
 
     #[derive(ToSchema, Serialize)]
+    struct ResponseInstance {
+        uuid: uuid::Uuid,
+        name: compact_str::CompactString,
+        server_uuid: uuid::Uuid,
+        server_name: compact_str::CompactString,
+        cpu: i32,
+        memory: i64,
+        disk: i64,
+    }
+
+    #[derive(ToSchema, Serialize)]
     struct ResponseLimits {
         memory: i64,
         disk: i64,
@@ -31,6 +42,8 @@ mod get {
         limits: ResponseLimits,
         #[schema(inline)]
         allocated: ResponseStats,
+        #[schema(inline)]
+        instances: Vec<ResponseInstance>,
     }
 
     #[utoipa::path(get, path = "/", responses(
@@ -50,20 +63,50 @@ mod get {
     ) -> ApiResponseResult {
         permissions.has_admin_permission("database-agent-hosts.read")?;
 
-        let allocated = sqlx::query_as_unchecked!(
-            ResponseStats,
-            "SELECT
-                COUNT(*) as instances,
-                COALESCE(SUM(COALESCE(server_database_instances.cpu, t.cpu)), 0)::int8 as cpu,
-                COALESCE(SUM(COALESCE(server_database_instances.memory, t.memory)), 0)::int8 as memory,
-                COALESCE(SUM(COALESCE(server_database_instances.disk, t.disk)), 0)::int8 as disk
-            FROM server_database_instances
-            LEFT JOIN database_agent_templates t ON t.uuid = server_database_instances.database_agent_template_uuid
-            WHERE server_database_instances.database_agent_host_uuid = $1",
-            database_agent_host.uuid
-        )
-        .fetch_one(state.database.read())
-        .await?;
+        let (allocated, instances) = tokio::try_join!(
+            sqlx::query_as_unchecked!(
+                ResponseStats,
+                "SELECT
+                    COUNT(*) as instances,
+                    COALESCE(SUM(COALESCE(server_database_instances.cpu, t.cpu)), 0)::int8 as cpu,
+                    COALESCE(SUM(COALESCE(server_database_instances.memory, t.memory)), 0)::int8 as memory,
+                    COALESCE(SUM(COALESCE(server_database_instances.disk, t.disk)), 0)::int8 as disk
+                FROM server_database_instances
+                LEFT JOIN database_agent_templates t ON t.uuid = server_database_instances.database_agent_template_uuid
+                WHERE server_database_instances.database_agent_host_uuid = $1",
+                database_agent_host.uuid
+            )
+            .fetch_one(state.database.read()),
+            sqlx::query!(
+                "SELECT
+                    server_database_instances.uuid,
+                    server_database_instances.name,
+                    servers.uuid AS server_uuid,
+                    servers.name AS server_name,
+                    COALESCE(server_database_instances.cpu, database_agent_templates.cpu) AS cpu,
+                    COALESCE(server_database_instances.memory, database_agent_templates.memory) AS memory,
+                    COALESCE(server_database_instances.disk, database_agent_templates.disk) AS disk
+                FROM server_database_instances
+                JOIN servers ON servers.uuid = server_database_instances.server_uuid
+                LEFT JOIN database_agent_templates ON database_agent_templates.uuid = server_database_instances.database_agent_template_uuid
+                WHERE server_database_instances.database_agent_host_uuid = $1",
+                database_agent_host.uuid
+            )
+            .fetch_all(state.database.read()),
+        )?;
+
+        let instances = instances
+            .into_iter()
+            .map(|row| ResponseInstance {
+                uuid: row.uuid,
+                name: row.name.into(),
+                server_uuid: row.server_uuid,
+                server_name: row.server_name.into(),
+                cpu: row.cpu.unwrap_or_default(),
+                memory: row.memory.unwrap_or_default(),
+                disk: row.disk.unwrap_or_default(),
+            })
+            .collect();
 
         ApiResponse::new_serialized(Response {
             limits: ResponseLimits {
@@ -71,6 +114,7 @@ mod get {
                 disk: database_agent_host.disk,
             },
             allocated,
+            instances,
         })
         .ok()
     }

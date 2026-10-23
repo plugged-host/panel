@@ -145,6 +145,7 @@ impl ExtensionRouteBuilder {
 }
 
 type RawPermissionMap = IndexMap<&'static str, PermissionGroup>;
+#[derive(Clone)]
 pub struct ExtensionPermissionsBuilder {
     pub user_permissions: RawPermissionMap,
     pub admin_permissions: RawPermissionMap,

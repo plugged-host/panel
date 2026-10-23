@@ -286,6 +286,16 @@ pub fn is_single_component_file_name(name: &str) -> bool {
     }
 }
 
+/// serde-saphyr expands every alias into a full copy of its anchor, so a few hundred KB of
+/// aliases can materialize into many GB; YAML parsed by the panel never needs them.
+pub fn yaml_deserialize_options() -> serde_saphyr::Options {
+    serde_saphyr::options! {
+        alias_limits: serde_saphyr::alias_limits! {
+            max_alias_expansions_per_anchor: 0,
+        },
+    }
+}
+
 #[cfg(target_os = "linux")]
 pub fn process_memory_usage() -> Option<u64> {
     let status = std::fs::read_to_string("/proc/self/status").ok()?;

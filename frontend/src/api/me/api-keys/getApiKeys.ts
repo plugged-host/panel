@@ -3,9 +3,13 @@ import { axiosInstance } from '@/api/axios.ts';
 import { userApiKeySchema } from '@/lib/schemas/user/apiKeys.ts';
 import { parsePaginationFromApi } from '@/lib/serialization/api-transform.ts';
 
-export default async (page: number, search?: string): Promise<Pagination<z.infer<typeof userApiKeySchema>>> => {
+export default async (
+  page: number,
+  search?: string,
+  perPage?: number,
+): Promise<Pagination<z.infer<typeof userApiKeySchema>>> => {
   const { data } = await axiosInstance.get('/api/client/account/api-keys', {
-    params: { page, search },
+    params: { page, per_page: perPage, search },
   });
   return parsePaginationFromApi(userApiKeySchema, data.api_keys);
 };

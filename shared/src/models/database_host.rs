@@ -31,6 +31,29 @@ pub enum DatabasePool {
     Mongodb(mongodb::Client),
 }
 
+impl DatabasePool {
+    pub async fn version(&self) -> Result<String, anyhow::Error> {
+        Ok(match self {
+            Self::Mysql(pool) => {
+                sqlx::query_scalar::<_, String>("SELECT VERSION()")
+                    .fetch_one(pool)
+                    .await?
+            }
+            Self::Postgres(pool) => {
+                sqlx::query_scalar::<_, String>("SHOW server_version")
+                    .fetch_one(pool)
+                    .await?
+            }
+            Self::Mongodb(client) => client
+                .database("admin")
+                .run_command(mongodb::bson::doc! { "buildInfo": 1 })
+                .await?
+                .get_str("version")?
+                .to_string(),
+        })
+    }
+}
+
 type DatabasePoolValue = (std::time::Instant, DatabasePool);
 static DATABASE_CLIENTS: LazyLock<Arc<Mutex<HashMap<uuid::Uuid, DatabasePoolValue>>>> =
     LazyLock::new(|| {
@@ -467,36 +490,20 @@ impl DatabaseHost {
         per_page: i64,
         search: Option<&str>,
     ) -> Result<super::Pagination<Self>, crate::database::DatabaseError> {
-        let offset = (page - 1) * per_page;
-
-        let rows = sqlx::query(sqlx::AssertSqlSafe(format!(
-            r#"
-            SELECT {}, COUNT(*) OVER() AS total_count
-            FROM database_hosts
-            WHERE {search}
-            ORDER BY database_hosts.created
-            LIMIT $2 OFFSET $3
-            "#,
+        super::PaginatedQueryBuilder::new(
             Self::columns_sql(None),
-            search = super::search_sql(1, &["database_hosts.name"], &["database_hosts.uuid"])
-        )))
+            format!(
+                r#"
+                FROM database_hosts
+                WHERE {search}
+                "#,
+                search = super::search_sql(1, &["database_hosts.name"], &["database_hosts.uuid"]),
+            ),
+            "database_hosts.created, database_hosts.uuid",
+        )
         .bind(search)
-        .bind(per_page)
-        .bind(offset)
-        .fetch_all(database.read())
-        .await?;
-
-        Ok(super::Pagination {
-            total: rows
-                .first()
-                .map_or(Ok(0), |row| row.try_get("total_count"))?,
-            per_page,
-            page,
-            data: rows
-                .into_iter()
-                .map(|row| Self::map(None, &row))
-                .try_collect_vec()?,
-        })
+        .fetch(database, page, per_page)
+        .await
     }
 
     pub async fn by_node_uuid(
@@ -550,7 +557,7 @@ impl DatabaseHost {
                     WHERE location_database_hosts.database_host_uuid = database_hosts.uuid AND location_database_hosts.location_uuid = $2
                 )
             )
-            ORDER BY database_hosts.created DESC
+            ORDER BY database_hosts.created DESC, database_hosts.uuid
             "#,
             Self::columns_sql(None)
         )))

@@ -399,13 +399,21 @@ pub struct RetentionDeletionGuard {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct IncomingBackup {
+    pub backup_group_uuid: Option<uuid::Uuid>,
+    pub database_instance_uuid: Option<uuid::Uuid>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum EvictionMode {
     /// Only free slots retention already considers expendable, so an interactive create never
     /// destroys a backup the server's rules still keep.
     Expendable,
     /// Fall back to evicting a single unmanaged or still-retained backup of the same kind, so
-    /// unattended schedules keep running once a server settles on its backup limit.
-    Any,
+    /// unattended schedules keep running once a server settles on its backup limit. Retention is
+    /// evaluated as if the incoming backup already succeeded, so the backup it would displace goes
+    /// first, even when that is a newer one from the same period.
+    Any(IncomingBackup),
 }
 
 #[derive(Debug, Default, Clone, Copy)]
@@ -459,6 +467,17 @@ fn deletion_candidates<'a>(
     retention: &BackupRetention,
     now: chrono::NaiveDateTime,
 ) -> HashSet<uuid::Uuid> {
+    deletion_candidates_with_incoming(backups, retention, None, now)
+}
+
+/// `incoming` is the `(kind, database source)` scope of a backup about to be created, which takes
+/// its retention slot as of `now` without being a candidate itself.
+fn deletion_candidates_with_incoming<'a>(
+    backups: impl IntoIterator<Item = &'a ServerBackup>,
+    retention: &BackupRetention,
+    incoming: Option<(ServerBackupKind, Option<uuid::Uuid>)>,
+    now: chrono::NaiveDateTime,
+) -> HashSet<uuid::Uuid> {
     let mut scopes: HashMap<_, Vec<&ServerBackup>> = HashMap::new();
     let mut candidates = HashSet::new();
 
@@ -486,9 +505,12 @@ fn deletion_candidates<'a>(
             .push(backup);
     }
 
-    for scope in scopes.values() {
+    for (key, scope) in &scopes {
         let retained = retention.retained_backups(
-            scope.iter().map(|backup| (backup.uuid, backup.created)),
+            scope
+                .iter()
+                .map(|backup| (backup.uuid, backup.created))
+                .chain((incoming == Some(*key)).then_some((uuid::Uuid::nil(), now))),
             now,
         );
 
@@ -510,6 +532,7 @@ fn eviction_order<'a>(
     backups: &'a [ServerBackup],
     group_retentions: &HashMap<uuid::Uuid, BackupRetention>,
     kind: ServerBackupKind,
+    incoming: Option<IncomingBackup>,
     now: chrono::NaiveDateTime,
 ) -> Vec<(EvictionTier, &'a ServerBackup)> {
     let mut scopes: HashMap<Option<uuid::Uuid>, Vec<&ServerBackup>> = HashMap::new();
@@ -527,7 +550,14 @@ fn eviction_order<'a>(
         let retention = group_uuid
             .and_then(|uuid| group_retentions.get(&uuid))
             .unwrap_or(&unmanaged);
-        let candidates = deletion_candidates(scope.iter().copied(), retention, now);
+        let candidates = deletion_candidates_with_incoming(
+            scope.iter().copied(),
+            retention,
+            incoming
+                .filter(|incoming| incoming.backup_group_uuid == group_uuid)
+                .map(|incoming| (kind, incoming.database_instance_uuid)),
+            now,
+        );
 
         for backup in scope {
             if backup.locked {
@@ -903,6 +933,10 @@ impl ServerBackup {
             &backups,
             &group_retentions,
             kind,
+            match mode {
+                EvictionMode::Expendable => None,
+                EvictionMode::Any(incoming) => Some(incoming),
+            },
             chrono::Utc::now().naive_utc(),
         );
 
@@ -935,7 +969,7 @@ impl ServerBackup {
             claimed.push((tier, backup));
         }
 
-        if mode == EvictionMode::Any && claimed.is_empty() {
+        if matches!(mode, EvictionMode::Any(_)) && claimed.is_empty() {
             tracing::warn!(
                 server = %server_uuid,
                 kind = ?kind,
@@ -1355,8 +1389,9 @@ impl ServerBackup {
 #[cfg(test)]
 mod tests {
     use super::{
-        BackupRetention, BackupRetentionRule, EvictionTier, RetentionCadence, RetentionForecast,
-        ServerBackup, ServerBackupKind, deletion_candidates, eviction_order, forecast_retention,
+        BackupRetention, BackupRetentionRule, EvictionTier, IncomingBackup, RetentionCadence,
+        RetentionForecast, ServerBackup, ServerBackupKind, deletion_candidates, eviction_order,
+        forecast_retention,
     };
     use crate::models::{
         ByUuid,
@@ -1750,6 +1785,7 @@ mod tests {
         );
     }
 
+    // eviction_order
     #[test]
     fn eviction_prefers_expendable_backups_and_never_offers_locked_ones() {
         let now = date("2026-09-07 12:00:00");
@@ -1781,7 +1817,7 @@ mod tests {
         )]);
 
         assert_eq!(
-            eviction_order(&backups, &retentions, ServerBackupKind::Server, now)
+            eviction_order(&backups, &retentions, ServerBackupKind::Server, None, now)
                 .into_iter()
                 .map(|(tier, backup)| (tier, backup.uuid))
                 .collect::<Vec<_>>(),
@@ -1816,7 +1852,7 @@ mod tests {
         backups[2].completed = Some(now - chrono::Duration::days(2));
 
         let order = |kind| {
-            eviction_order(&backups, &std::collections::HashMap::new(), kind, now)
+            eviction_order(&backups, &std::collections::HashMap::new(), kind, None, now)
                 .into_iter()
                 .map(|(tier, backup)| (tier, backup.uuid))
                 .collect::<Vec<_>>()
@@ -1835,6 +1871,136 @@ mod tests {
                 (EvictionTier::ExpiredFailed, uuid::Uuid::from_u128(3)),
                 (EvictionTier::Ungrouped, uuid::Uuid::from_u128(2)),
             ],
+        );
+    }
+
+    fn daily_group_order(
+        backups: &[ServerBackup],
+        group: uuid::Uuid,
+        daily: u32,
+        kind: ServerBackupKind,
+        incoming: Option<IncomingBackup>,
+        now: chrono::NaiveDateTime,
+    ) -> Vec<(EvictionTier, uuid::Uuid)> {
+        let retentions = HashMap::from([(
+            group,
+            BackupRetention {
+                daily,
+                ..Default::default()
+            },
+        )]);
+
+        eviction_order(backups, &retentions, kind, incoming, now)
+            .into_iter()
+            .map(|(tier, backup)| (tier, backup.uuid))
+            .collect()
+    }
+
+    #[test]
+    fn incoming_backup_pushes_the_oldest_daily_backup_over_retention() {
+        let now = date("2026-09-08 12:00:00");
+        let group = uuid::Uuid::from_u128(900);
+
+        let backups: Vec<_> = (1..=7u128)
+            .map(|id| {
+                let mut backup = backup(id, &format!("2026-09-0{id} 00:00:00"));
+                backup.backup_group_uuid = Some(group);
+                backup
+            })
+            .collect();
+
+        assert_eq!(
+            daily_group_order(&backups, group, 7, ServerBackupKind::Server, None, now),
+            (1..=7)
+                .map(|id| (EvictionTier::Retained, uuid::Uuid::from_u128(id)))
+                .collect::<Vec<_>>(),
+        );
+
+        let incoming = IncomingBackup {
+            backup_group_uuid: Some(group),
+            database_instance_uuid: None,
+        };
+        assert_eq!(
+            daily_group_order(
+                &backups,
+                group,
+                7,
+                ServerBackupKind::Server,
+                Some(incoming),
+                now
+            ),
+            std::iter::once((EvictionTier::OverRetention, uuid::Uuid::from_u128(1)))
+                .chain((2..=7).map(|id| (EvictionTier::Retained, uuid::Uuid::from_u128(id))))
+                .collect::<Vec<_>>(),
+        );
+    }
+
+    #[test]
+    fn incoming_backup_takes_over_the_daily_slot_of_a_same_day_backup() {
+        let now = date("2026-09-07 12:00:00");
+        let group = uuid::Uuid::from_u128(900);
+
+        let mut backups = vec![
+            backup(1, "2026-09-05 00:00:00"),
+            backup(2, "2026-09-06 00:00:00"),
+            backup(3, "2026-09-07 06:00:00"),
+        ];
+        for backup in &mut backups {
+            backup.backup_group_uuid = Some(group);
+        }
+
+        let incoming = IncomingBackup {
+            backup_group_uuid: Some(group),
+            database_instance_uuid: None,
+        };
+        assert_eq!(
+            daily_group_order(
+                &backups,
+                group,
+                3,
+                ServerBackupKind::Server,
+                Some(incoming),
+                now
+            ),
+            vec![
+                (EvictionTier::OverRetention, uuid::Uuid::from_u128(3)),
+                (EvictionTier::Retained, uuid::Uuid::from_u128(1)),
+                (EvictionTier::Retained, uuid::Uuid::from_u128(2)),
+            ],
+        );
+    }
+
+    #[test]
+    fn incoming_database_backup_does_not_displace_server_backups_in_the_same_group() {
+        let now = date("2026-09-08 12:00:00");
+        let group = uuid::Uuid::from_u128(900);
+        let instance = uuid::Uuid::from_u128(500);
+
+        let mut backups: Vec<_> = (1..=7u128)
+            .map(|id| backup(id, &format!("2026-09-0{id} 00:00:00")))
+            .collect();
+        backups.push(backup(8, "2026-09-07 00:00:00"));
+        for backup in &mut backups {
+            backup.backup_group_uuid = Some(group);
+        }
+        backups[7].kind = ServerBackupKind::DatabaseInstance;
+        backups[7].database_type = Some(db_agent_api::DatabaseAgentType::Postgres);
+        backups[7].database_instance_uuid = Some(instance);
+
+        let incoming = IncomingBackup {
+            backup_group_uuid: Some(group),
+            database_instance_uuid: Some(instance),
+        };
+        assert_eq!(
+            daily_group_order(
+                &backups,
+                group,
+                7,
+                ServerBackupKind::DatabaseInstance,
+                Some(incoming),
+                now
+            ),
+            vec![(EvictionTier::Retained, uuid::Uuid::from_u128(8))],
         );
     }
 

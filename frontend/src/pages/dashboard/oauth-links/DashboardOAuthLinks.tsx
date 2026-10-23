@@ -32,10 +32,11 @@ export default function DashboardOAuthLinks() {
     loading,
     error,
     setPage,
+    setPerPage,
     refetch,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.user.oauthLinks.all(),
-    fetcher: getOAuthLinks,
+    fetcher: (page, _search, perPage) => getOAuthLinks(page, perPage),
   });
 
   const {
@@ -109,6 +110,7 @@ export default function DashboardOAuthLinks() {
           loading={loading}
           pagination={oauthLinks}
           onPageSelect={setPage}
+          onPerPageSelect={setPerPage}
           error={error}
         >
           {oauthLinks?.data.map((link) => (
@@ -118,7 +120,7 @@ export default function DashboardOAuthLinks() {
                   oauthLink={link}
                   ref={innerRef as Ref<HTMLTableRowElement>}
                   isSelected={selectedOAuthLinks.has(link.uuid)}
-                  onSelectionChange={(selected) => toggleOAuthLink(link, selected)}
+                  onSelectionChange={(selected, range) => toggleOAuthLink(link, selected, range)}
                 />
               )}
             </SelectionArea.Selectable>

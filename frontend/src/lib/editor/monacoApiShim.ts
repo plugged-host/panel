@@ -1,32 +1,24 @@
-type MonacoGlobal = {
-  Range: new (...args: unknown[]) => unknown;
-  Selection: new (...args: unknown[]) => unknown;
-  SelectionDirection: unknown;
-};
+import { getLoadedMonaco, type Monaco } from '@/lib/editor/monacoLoader.ts';
 
-function runtimeMonaco(): MonacoGlobal {
-  const monaco = (window as unknown as { monaco?: MonacoGlobal }).monaco;
-  if (!monaco) {
-    throw new Error('monaco-editor accessed before the editor loader initialized it');
-  }
-  return monaco;
-}
+// y-monaco statically imports monaco's editor API; this alias defers it to the lazily loaded instance
+// so pulling in the collab binding doesn't drag the whole editor into the importing chunk.
 
 export class Range {
-  constructor(...args: unknown[]) {
-    return new (runtimeMonaco().Range)(...args) as Range;
+  constructor(...args: ConstructorParameters<Monaco['Range']>) {
+    return new (getLoadedMonaco().Range)(...args) as Range;
   }
 }
 
 export class Selection {
-  constructor(...args: unknown[]) {
-    return new (runtimeMonaco().Selection)(...args) as Selection;
+  constructor(...args: ConstructorParameters<Monaco['Selection']>) {
+    return new (getLoadedMonaco().Selection)(...args) as Selection;
   }
 }
 
 export const SelectionDirection = new Proxy(
   {},
   {
-    get: (_target, prop) => (runtimeMonaco().SelectionDirection as Record<string, unknown>)[prop as string],
+    get: (_target, prop) =>
+      (getLoadedMonaco().SelectionDirection as unknown as Record<string, unknown>)[prop as string],
   },
 );

@@ -24,9 +24,11 @@ export default function AdminServerBackups({ server }: { server: AdminServer }) 
     search,
     setSearch,
     setPage,
+    setPerPage,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.admin.backups.byServer(server.uuid),
-    fetcher: (page, search) => getServerBackups(server.uuid, page, search, showPartiallyDetachedServerBackups),
+    fetcher: (page, search, perPage) =>
+      getServerBackups(server.uuid, page, search, showPartiallyDetachedServerBackups, perPage),
     paginationKey: 'backups',
     deps: [showPartiallyDetachedServerBackups],
     refetchInterval: (data) =>
@@ -67,6 +69,7 @@ export default function AdminServerBackups({ server }: { server: AdminServer }) 
         error={error}
         pagination={serverBackups?.backups}
         onPageSelect={setPage}
+        onPerPageSelect={setPerPage}
       >
         {serverBackups?.backups.data.map((backup) => (
           <AdminServerBackupRow key={backup.uuid} server={server} backup={backup} />

@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { adminServerFeatureLimitsSchema } from '@/lib/schemas/admin/servers.ts';
 import { serverAllocationSchema } from '@/lib/schemas/server/allocations.ts';
+import { serverTrashSettingsSchema } from '@/lib/schemas/server/settings.ts';
 import { eggConfigurationRouteItemSchema } from '../generic.ts';
 
 export const serverStatus = z.enum(['installing', 'install_failed', 'restoring_backup', 'backup_restore_failed']);
@@ -73,6 +74,12 @@ export const serverSchema = z.looseObject({
   }),
   autoStartBehavior: z.lazy(() => serverAutostartBehavior),
   timezone: z.string().nullable(),
+  trash: z.object({
+    retention: z.number().int().nonnegative().nullable(),
+    usageThreshold: z.number().int().nonnegative().nullable(),
+    custom: z.boolean(),
+    defaults: serverTrashSettingsSchema,
+  }),
   created: z.coerce.date(),
 });
 

@@ -22,9 +22,10 @@ export default function AdminBackupConfigurationNodes({
     search,
     setSearch,
     setPage,
+    setPerPage,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.admin.backupConfigurations.nodes(backupConfiguration.uuid),
-    fetcher: (page, search) => getBackupConfigurationNodes(backupConfiguration.uuid, page, search),
+    fetcher: (page, search, perPage) => getBackupConfigurationNodes(backupConfiguration.uuid, page, search, perPage),
   });
 
   return (
@@ -41,6 +42,7 @@ export default function AdminBackupConfigurationNodes({
         loading={loading}
         pagination={backupConfigurationNodes}
         onPageSelect={setPage}
+        onPerPageSelect={setPerPage}
         error={error}
       >
         {backupConfigurationNodes?.data.map((node) => (

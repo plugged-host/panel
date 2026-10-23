@@ -11,6 +11,7 @@ import Card from '@/elements/data-display/Card.tsx';
 import TitleCard from '@/elements/data-display/TitleCard.tsx';
 import SemiCircleProgress from '@/elements/feedback/SemiCircleProgress.tsx';
 import Spinner from '@/elements/feedback/Spinner.tsx';
+import Text from '@/elements/typography/Text.tsx';
 import Title from '@/elements/typography/Title.tsx';
 import { formatBytes, formatBytesRate, formatPercent, useStreamChart } from '@/lib/chart.ts';
 import { bytesToString, mbToBytes } from '@/lib/format/size.ts';
@@ -110,7 +111,7 @@ export default function SystemStatistics({ wsPath, labels }: { wsPath: string; l
                 </div>
                 <div className='flex flex-col text-center md:text-right flex-1'>
                   <Title order={2}>{labels.cpu}</Title>
-                  <h2>{labels.cpuThreads(stats.cpu.model, stats.cpu.threads)}</h2>
+                  <Text fw={500}>{labels.cpuThreads(stats.cpu.model, stats.cpu.threads)}</Text>
                 </div>
               </div>
             </Card>
@@ -126,10 +127,12 @@ export default function SystemStatistics({ wsPath, labels }: { wsPath: string; l
                 </div>
                 <div className='flex flex-col text-center md:text-right flex-1'>
                   <Title order={2}>{labels.memory}</Title>
-                  <h2>
+                  <Text fw={500}>
                     {bytesToString(stats.memory.used)} / {bytesToString(stats.memory.total)}
-                  </h2>
-                  <p className='text-xs'>{labels.memoryUsedByProcess(bytesToString(stats.memory.usedProcess))}</p>
+                  </Text>
+                  <Text size='xs' c='dimmed'>
+                    {labels.memoryUsedByProcess(bytesToString(stats.memory.usedProcess))}
+                  </Text>
                 </div>
               </div>
             </Card>
@@ -145,9 +148,9 @@ export default function SystemStatistics({ wsPath, labels }: { wsPath: string; l
                 </div>
                 <div className='flex flex-col text-center md:text-right flex-1'>
                   <Title order={2}>{labels.disk}</Title>
-                  <h2>
+                  <Text fw={500}>
                     {bytesToString(stats.disk.used)} / {bytesToString(stats.disk.total)}
-                  </h2>
+                  </Text>
                 </div>
               </div>
             </Card>
@@ -163,7 +166,7 @@ export default function SystemStatistics({ wsPath, labels }: { wsPath: string; l
                   <div className='flex flex-col items-center md:items-end gap-1 text-sm'>
                     <ChartLegend series={network.series} />
                   </div>
-                  <p className='flex gap-3 text-xs'>
+                  <p className='flex gap-3 text-xs text-(--mantine-color-dimmed)'>
                     <span>{labels.networkIn(bytesToString(stats.network.received))}</span>
                     <span>{labels.networkOut(bytesToString(stats.network.sent))}</span>
                   </p>

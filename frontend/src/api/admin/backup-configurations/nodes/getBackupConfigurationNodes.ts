@@ -7,9 +7,10 @@ export default async (
   backupConfigUuid: string,
   page: number,
   search?: string,
+  perPage?: number,
 ): Promise<Pagination<z.infer<typeof adminNodeSchema>>> => {
   const { data } = await axiosInstance.get(`/api/admin/backup-configurations/${backupConfigUuid}/nodes`, {
-    params: { page, search },
+    params: { page, per_page: perPage, search },
   });
   return parsePaginationFromApi(adminNodeSchema, data.nodes);
 };

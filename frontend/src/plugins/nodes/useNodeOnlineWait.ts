@@ -19,6 +19,7 @@ export function useNodeOnlineWait() {
     retry: false,
     refetchInterval: (query) => (query.state.data ? false : POLL_INTERVAL_MS),
     gcTime: 0,
+    meta: { progress: false },
   });
 
   useEffect(() => {

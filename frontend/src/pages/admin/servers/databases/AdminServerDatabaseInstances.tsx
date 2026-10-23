@@ -17,9 +17,10 @@ export default function AdminServerDatabaseInstances({ server }: { server: Admin
     search,
     setSearch,
     setPage,
+    setPerPage,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.admin.databaseInstances.byServer(server.uuid),
-    fetcher: (page, search) => getServerDatabaseInstances(server.uuid, page, search),
+    fetcher: (page, search, perPage) => getServerDatabaseInstances(server.uuid, page, search, perPage),
   });
 
   return (
@@ -37,6 +38,7 @@ export default function AdminServerDatabaseInstances({ server }: { server: Admin
         error={error}
         pagination={instances}
         onPageSelect={setPage}
+        onPerPageSelect={setPerPage}
       >
         {instances?.data.map((databaseAgent) => (
           <AdminServerDatabaseInstanceRow key={databaseAgent.uuid} server={server} databaseAgent={databaseAgent} />

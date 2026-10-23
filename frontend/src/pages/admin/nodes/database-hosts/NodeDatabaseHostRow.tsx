@@ -12,6 +12,7 @@ import Code from '@/elements/typography/Code.tsx';
 import { databaseTypeLabelMapping } from '@/lib/enums.ts';
 import { queryKeys } from '@/lib/queryKeys.ts';
 import { AdminNode, AdminNodeDatabaseHost } from '@/lib/schemas/admin/nodes.ts';
+import DatabaseHostHealthIcon from '@/pages/admin/database-hosts/DatabaseHostHealthIcon.tsx';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 
@@ -75,6 +76,9 @@ export default function NodeDatabaseHostRow({
               openMenu(e.clientX, e.clientY);
             }}
           >
+            <TableData>
+              <DatabaseHostHealthIcon databaseHost={databaseHost.databaseHost} />
+            </TableData>
             <TableData>
               <TableLink to={`/admin/database-hosts/${databaseHost.databaseHost.uuid}`}>
                 <Code>{databaseHost.databaseHost.uuid}</Code>

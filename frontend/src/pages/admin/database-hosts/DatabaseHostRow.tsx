@@ -5,10 +5,15 @@ import FormattedTimestamp from '@/elements/time/FormattedTimestamp.tsx';
 import Code from '@/elements/typography/Code.tsx';
 import { databaseTypeLabelMapping } from '@/lib/enums.ts';
 import { adminDatabaseHostSchema } from '@/lib/schemas/admin/databaseHosts.ts';
+import DatabaseHostHealthIcon from './DatabaseHostHealthIcon.tsx';
 
 export default function DatabaseHostRow({ databaseHost }: { databaseHost: z.infer<typeof adminDatabaseHostSchema> }) {
   return (
     <TableRow>
+      <TableData>
+        <DatabaseHostHealthIcon databaseHost={databaseHost} />
+      </TableData>
+
       <TableData>
         <TableLink to={`/admin/database-hosts/${databaseHost.uuid}`}>
           <Code>{databaseHost.uuid}</Code>

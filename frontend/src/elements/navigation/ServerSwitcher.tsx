@@ -105,7 +105,7 @@ export default function ServerSwitcher({ className, isServer }: { className?: st
       onSearchChange={servers.setSearch}
       loading={servers.loading}
       renderOption={renderOption}
-      comboboxProps={{ withinPortal: wide }}
+      comboboxProps={{ withinPortal: wide, position: 'top' }}
     />
   );
 }

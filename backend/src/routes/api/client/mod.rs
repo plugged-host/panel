@@ -8,7 +8,7 @@ use axum::{
 use shared::{
     models::{
         ByUuid,
-        user::{AuthMethod, PermissionManager, User, UserImpersonator},
+        user::{AuthMethod, CredentialScope, PermissionManager, User, UserImpersonator},
         user_activity::UserActivityLogger,
         user_api_key::UserApiKey,
         user_session::UserSession,
@@ -22,39 +22,6 @@ use utoipa_axum::router::OpenApiRouter;
 mod account;
 mod permissions;
 pub mod servers;
-
-fn can_impersonate(impersonator: &User, target: &User) -> bool {
-    if impersonator.admin {
-        return true;
-    }
-    if target.admin {
-        return false;
-    }
-
-    let imp_admin = impersonator
-        .role
-        .as_ref()
-        .map(|r| r.admin_permissions.as_slice())
-        .unwrap_or(&[]);
-    let imp_server = impersonator
-        .role
-        .as_ref()
-        .map(|r| r.server_permissions.as_slice())
-        .unwrap_or(&[]);
-    let tgt_admin = target
-        .role
-        .as_ref()
-        .map(|r| r.admin_permissions.as_slice())
-        .unwrap_or(&[]);
-    let tgt_server = target
-        .role
-        .as_ref()
-        .map(|r| r.server_permissions.as_slice())
-        .unwrap_or(&[]);
-
-    tgt_admin.iter().all(|p| imp_admin.contains(p))
-        && tgt_server.iter().all(|p| imp_server.contains(p))
-}
 
 fn check_account_gates(
     user: &User,
@@ -147,7 +114,8 @@ async fn finalize(
     auth_user: User,
     auth_method: AuthMethod,
 ) -> Option<Response> {
-    let auth_permission_manager = PermissionManager::new(&auth_user, &auth_method);
+    let auth_permission_manager =
+        PermissionManager::new(&auth_user, CredentialScope::from(&auth_method));
     let api_key_uuid = auth_method.api_key_uuid();
 
     if auth_permission_manager
@@ -171,16 +139,17 @@ async fn finalize(
             Err(err) => return Some(ApiResponse::from(err).into_response()),
         };
 
-        if !can_impersonate(&auth_user, &user) {
+        if !auth_permission_manager.can_impersonate(&user) {
             return Some(
-                ApiResponse::error("cannot impersonate a user with more permissions")
+                ApiResponse::error("cannot impersonate this user")
                     .with_status(StatusCode::FORBIDDEN)
                     .into_response(),
             );
         }
 
-        req.extensions_mut()
-            .insert(PermissionManager::new(&user, &auth_method));
+        req.extensions_mut().insert(
+            PermissionManager::new(&user, CredentialScope::from(&auth_method)).for_impersonation(),
+        );
         req.extensions_mut().insert(UserActivityLogger {
             state: Arc::clone(state),
             user_uuid: user.uuid,

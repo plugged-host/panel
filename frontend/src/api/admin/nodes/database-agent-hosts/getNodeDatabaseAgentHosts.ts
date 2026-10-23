@@ -7,9 +7,10 @@ export default async (
   nodeUuid: string,
   page: number,
   search?: string,
+  perPage?: number,
 ): Promise<Pagination<z.infer<typeof adminNodeDatabaseAgentHostSchema>>> => {
   const { data } = await axiosInstance.get(`/api/admin/nodes/${nodeUuid}/database-agent-hosts`, {
-    params: { page, search },
+    params: { page, per_page: perPage, search },
   });
   return parsePaginationFromApi(adminNodeDatabaseAgentHostSchema, data.database_agent_hosts);
 };

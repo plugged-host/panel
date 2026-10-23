@@ -7,9 +7,10 @@ export default async (
   eggRepositoryUuid: string,
   page: number,
   search?: string,
+  perPage?: number,
 ): Promise<Pagination<z.infer<typeof adminEggRepositoryEggSchema>>> => {
   const { data } = await axiosInstance.get(`/api/admin/egg-repositories/${eggRepositoryUuid}/eggs`, {
-    params: { page, search },
+    params: { page, per_page: perPage, search },
   });
   return parsePaginationFromApi(adminEggRepositoryEggSchema, data.egg_repository_eggs);
 };

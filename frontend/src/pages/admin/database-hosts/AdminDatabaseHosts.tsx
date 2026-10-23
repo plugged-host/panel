@@ -26,6 +26,7 @@ function DatabaseHostsContainer() {
     search,
     setSearch,
     setPage,
+    setPerPage,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.admin.databaseHosts.all(),
     fetcher: getDatabaseHosts,
@@ -54,6 +55,7 @@ function DatabaseHostsContainer() {
         loading={loading}
         pagination={databaseHosts}
         onPageSelect={setPage}
+        onPerPageSelect={setPerPage}
         error={error}
       >
         {databaseHosts?.data.map((dh) => (

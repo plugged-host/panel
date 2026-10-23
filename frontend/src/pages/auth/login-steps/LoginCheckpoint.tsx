@@ -175,13 +175,13 @@ export default function LoginCheckpoint() {
                       src={twoFactorInformation?.user.avatar}
                       name={twoFactorInformation?.user.username}
                     />
-                    <span className='text-neutral-400'>
+                    <span className='text-(--mantine-color-dimmed)'>
                       {t('pages.auth.login.step.totp.welcomeBack', {
                         username: twoFactorInformation?.user.username ?? '',
                       })}
                     </span>
                   </div>
-                  <Text className=' text-neutral-400!'>{t('pages.auth.login.step.totp.enterCode', {})}</Text>
+                  <Text c='dimmed'>{t('pages.auth.login.step.totp.enterCode', {})}</Text>
                   <Center>
                     <PinInput
                       length={6}
@@ -228,7 +228,7 @@ export default function LoginCheckpoint() {
             <>
               <div>
                 <Title order={2}>{t('pages.auth.login.step.totp.title', {})}</Title>
-                <Text className='text-neutral-400!'>{t('pages.auth.login.step.totpRecovery.subtitle', {})}</Text>
+                <Text c='dimmed'>{t('pages.auth.login.step.totpRecovery.subtitle', {})}</Text>
               </div>
               <Card>
                 <Stack>
@@ -272,7 +272,7 @@ export default function LoginCheckpoint() {
                       src={twoFactorInformation?.user.avatar}
                       name={twoFactorInformation?.user.username}
                     />
-                    <span className='text-neutral-400'>
+                    <span className='text-(--mantine-color-dimmed)'>
                       {t('pages.auth.login.step.totp.welcomeBack', {
                         username: twoFactorInformation?.user.username ?? '',
                       })}
@@ -280,7 +280,7 @@ export default function LoginCheckpoint() {
                   </div>
                   {codeSent ? (
                     <>
-                      <Text className='text-neutral-400!'>{t('pages.auth.login.step.email.enterCode', {})}</Text>
+                      <Text c='dimmed'>{t('pages.auth.login.step.email.enterCode', {})}</Text>
                       <Center>
                         <PinInput
                           length={6}
@@ -312,7 +312,7 @@ export default function LoginCheckpoint() {
                     </>
                   ) : (
                     <>
-                      <Text className='text-neutral-400!'>{t('pages.auth.login.step.email.subtitle', {})}</Text>
+                      <Text c='dimmed'>{t('pages.auth.login.step.email.subtitle', {})}</Text>
                       <Button onClick={doSendCode} loading={sendingCode} size='md' fullWidth>
                         {t('pages.auth.login.step.email.button.sendCode', {})}
                       </Button>

@@ -1,4 +1,4 @@
-import { faServer } from '@fortawesome/free-solid-svg-icons';
+import { faLayerGroup, faServer } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ScrollArea, Stack, Tabs, Text } from '@mantine/core';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -7,8 +7,9 @@ import { z } from 'zod';
 import { getEmptyPaginationSet, httpErrorToHuman } from '@/api/axios.ts';
 import getServerGroups from '@/api/me/servers/groups/getServerGroups.ts';
 import getServers from '@/api/server/getServers.ts';
-import { Pagination } from '@/elements/data-display/Table.tsx';
+import { NoItems, Pagination } from '@/elements/data-display/Table.tsx';
 import { DndBoard, DndSortableList, SortableItem } from '@/elements/dnd/DragAndDrop.tsx';
+import EmptyState from '@/elements/feedback/EmptyState.tsx';
 import Spinner from '@/elements/feedback/Spinner.tsx';
 import TextInput from '@/elements/input/TextInput.tsx';
 import Divider from '@/elements/layout/Divider.tsx';
@@ -67,7 +68,16 @@ function AllServersView({ getServerTo }: { getServerTo: (server: z.infer<typeof 
       {loading ? (
         <Spinner.Centered />
       ) : servers.total === 0 ? (
-        <p className='text-(--mantine-color-dimmed)'>{t('pages.account.home.noServers', {})}</p>
+        debouncedSearch ? (
+          <NoItems />
+        ) : (
+          <EmptyState
+            flush
+            icon={faServer}
+            title={t('pages.account.home.empty.title', {})}
+            description={t('pages.account.home.empty.description', {})}
+          />
+        )
       ) : (
         <div className='gap-4 grid md:grid-cols-2'>
           {servers.data.map((server) => (
@@ -118,9 +128,12 @@ function GroupedServersView({ getServerTo }: { getServerTo: (server: z.infer<typ
 
   if (serverGroups.length === 0) {
     return (
-      <p className='text-gray-400 light:text-gray-600!'>
-        {t('pages.account.home.tabs.groupedServers.page.noGroups', {})}
-      </p>
+      <EmptyState
+        flush
+        icon={faLayerGroup}
+        title={t('pages.account.home.tabs.groupedServers.page.empty.title', {})}
+        description={t('pages.account.home.tabs.groupedServers.page.empty.descriptionReadOnly', {})}
+      />
     );
   }
 

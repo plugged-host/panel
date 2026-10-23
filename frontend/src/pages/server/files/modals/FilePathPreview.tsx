@@ -9,7 +9,7 @@ export default function FilePathPreview({ label, path, mt = true }: { label: Rea
       <span>{label}</span>
       <Code>
         /home/container/
-        <span className='text-cyan-200'>{toContainerPath(path)}</span>
+        <span className='text-(--mantine-color-cyan-text)'>{toContainerPath(path)}</span>
       </Code>
     </p>
   );

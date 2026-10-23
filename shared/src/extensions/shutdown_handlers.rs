@@ -1,6 +1,12 @@
 use crate::State;
 use futures_util::FutureExt;
-use std::{borrow::Cow, collections::HashMap, panic::AssertUnwindSafe, pin::Pin, sync::Arc};
+use std::{
+    borrow::Cow,
+    collections::{HashMap, HashSet},
+    panic::AssertUnwindSafe,
+    pin::Pin,
+    sync::Arc,
+};
 use tokio::sync::{OwnedRwLockReadGuard, RwLock};
 
 pub type ShutdownFunc =
@@ -22,6 +28,25 @@ impl ShutdownHandlerBuilder {
             state,
             tasks: Arc::new(RwLock::new(HashMap::new())),
         }
+    }
+
+    pub(crate) fn share(&self) -> Self {
+        Self {
+            state: self.state.clone(),
+            tasks: Arc::clone(&self.tasks),
+        }
+    }
+
+    pub(crate) async fn handler_names(&self) -> HashSet<&'static str> {
+        self.tasks.read().await.keys().copied().collect()
+    }
+
+    /// Removes every handler not in `keep`.
+    pub(crate) async fn rollback(&self, keep: &HashSet<&'static str>) {
+        self.tasks
+            .write()
+            .await
+            .retain(|name, _| keep.contains(name));
     }
 
     /// Adds a shutdown handler that will be executed when a gradual shutdown is initiated.

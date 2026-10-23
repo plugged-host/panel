@@ -16,6 +16,8 @@ import Badge from '@/elements/data-display/Badge.tsx';
 import StatCard from '@/elements/data-display/StatCard.tsx';
 import Table, { TableData, TableHeaderProps, TableRow } from '@/elements/data-display/Table.tsx';
 import TitleCard from '@/elements/data-display/TitleCard.tsx';
+import ErrorState from '@/elements/feedback/ErrorState.tsx';
+import Spinner from '@/elements/feedback/Spinner.tsx';
 import Group from '@/elements/layout/Group.tsx';
 import Stack from '@/elements/layout/Stack.tsx';
 import Tooltip from '@/elements/overlays/Tooltip.tsx';
@@ -140,7 +142,12 @@ export default function AdminNodeTunnelMetrics({ nodeUuid }: { nodeUuid: string 
 
   const [live, setLive] = useState<z.infer<typeof adminNodeTunnelMetricsSchema> | null>(null);
 
-  const { data: initial, error } = useResource({
+  const {
+    data: initial,
+    error,
+    loading,
+    refetch,
+  } = useResource({
     queryKey: queryKeys.admin.nodes.tunnelMetrics(nodeUuid),
     queryFn: () => getNodeTunnelMetrics(nodeUuid),
   });
@@ -161,11 +168,11 @@ export default function AdminNodeTunnelMetrics({ nodeUuid }: { nodeUuid: string 
   if (!data) {
     return (
       <TitleCard title={t('pages.admin.nodes.tabs.tunnel.page.metrics.title', {})}>
-        <Text c='dimmed' size='sm'>
-          {error
-            ? t('pages.admin.nodes.tabs.tunnel.page.metrics.unreachable', {})
-            : t('pages.admin.nodes.tabs.tunnel.page.metrics.loading', {})}
-        </Text>
+        {error && !loading ? (
+          <ErrorState error={t('pages.admin.nodes.tabs.tunnel.page.metrics.unreachable', {})} onRetry={refetch} />
+        ) : (
+          <Spinner.Centered />
+        )}
       </TitleCard>
     );
   }

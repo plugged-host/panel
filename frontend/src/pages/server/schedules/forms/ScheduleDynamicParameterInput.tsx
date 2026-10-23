@@ -10,6 +10,7 @@ import Tooltip from '@/elements/overlays/Tooltip.tsx';
 import { serverScheduleStepDynamicSchema, serverScheduleStepVariableSchema } from '@/lib/schemas/server/schedules.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useServerStore } from '@/stores/server.ts';
+import { stepWrites, triggerWrites } from '../variableAnalysis.ts';
 
 interface ScheduleDynamicParameterInputProps<
   N extends boolean,
@@ -54,29 +55,12 @@ export default function ScheduleDynamicParameterInput<N extends boolean = false,
       return [];
     }
 
-    const outputVariables = new Set<string>();
-
-    for (const trigger of schedule.triggers) {
-      if ('outputInto' in trigger && trigger.outputInto) {
-        outputVariables.add(trigger.outputInto.variable);
-      }
-    }
-
-    for (const step of scheduleSteps) {
-      if ('outputInto' in step.action && step.action.outputInto) {
-        if (Array.isArray(step.action.outputInto)) {
-          for (const outputInto of step.action.outputInto) {
-            if (!outputInto) continue;
-
-            outputVariables.add(outputInto.variable);
-          }
-        } else {
-          outputVariables.add(step.action.outputInto.variable);
-        }
-      }
-    }
-
-    return [...outputVariables];
+    return [
+      ...new Set([
+        ...triggerWrites(schedule.triggers).map((write) => write.variable),
+        ...scheduleSteps.flatMap((step) => stepWrites(step.action).map((write) => write.variable)),
+      ]),
+    ];
   }, [schedule, scheduleSteps]);
 
   const mode: 'text' | 'variable' = !allowString

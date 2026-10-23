@@ -26,6 +26,7 @@ function LocationsContainer() {
     search,
     setSearch,
     setPage,
+    setPerPage,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.admin.locations.all(),
     fetcher: getLocations,
@@ -55,6 +56,7 @@ function LocationsContainer() {
         error={error}
         pagination={locations}
         onPageSelect={setPage}
+        onPerPageSelect={setPerPage}
       >
         {locations?.data.map((location) => (
           <LocationRow key={location.uuid} location={location} />

@@ -5,7 +5,7 @@ import { BackupsRegistry } from './backups/index.ts';
 import { ConsoleRegistry } from './console.ts';
 import { DatabasesRegistry } from './databases/index.ts';
 import { DevicesRegistry } from './devices.ts';
-import { FilesRegistry } from './files.ts';
+import { FilesRegistry } from './files/index.ts';
 import { MountsRegistry } from './mounts.ts';
 import { NetworkRegistry } from './network/index.ts';
 import { SchedulesRegistry } from './schedules.ts';

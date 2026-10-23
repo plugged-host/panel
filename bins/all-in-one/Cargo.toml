@@ -19,7 +19,8 @@ anyhow = { workspace = true }
 colored = { workspace = true }
 sqlx = { workspace = true }
 zstd = { workspace = true }
-serde_norway = { workspace = true }
+serde-saphyr = { workspace = true }
+serde_json = { workspace = true }
 sysinfo = { workspace = true }
 futures-util = { workspace = true }
 rustix = { workspace = true, features = ["fs"] }

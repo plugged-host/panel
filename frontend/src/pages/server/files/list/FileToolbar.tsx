@@ -6,6 +6,7 @@ import {
   faFolderOpen,
   faFolderPlus,
   faLink,
+  faTrashCan,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { createSearchParams, useNavigate } from 'react-router';
@@ -15,6 +16,7 @@ import { ServerCan } from '@/elements/Can.tsx';
 import ExtensionSlot from '@/elements/ExtensionSlot.tsx';
 import Group from '@/elements/layout/Group.tsx';
 import ContextMenu from '@/elements/overlays/ContextMenu.tsx';
+import Tooltip from '@/elements/overlays/Tooltip.tsx';
 import { useFileManager } from '@/providers/FileManagerProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useServerStore } from '@/stores/server.ts';
@@ -41,6 +43,17 @@ export default function FileToolbar({ onCreateFile }: { onCreateFile?: () => voi
         name='files-fileToolbar-prepended'
       />
       <FileConnectButton />
+      <ServerCan action='files.read'>
+        <Tooltip label={t('pages.server.files.button.trash', {})}>
+          <Button
+            variant='default'
+            aria-label={t('pages.server.files.button.trash', {})}
+            onClick={() => navigate(`/server/${server.uuidShort}/files/trash`)}
+          >
+            <FontAwesomeIcon icon={faTrashCan} />
+          </Button>
+        </Tooltip>
+      </ServerCan>
       {browsingWritableDirectory && (
         <ServerCan action='files.create'>
           <ContextMenu

@@ -26,9 +26,10 @@ export default function AdminLocationDatabaseHosts({ location }: { location: z.i
     search,
     setSearch,
     setPage,
+    setPerPage,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.admin.locations.databaseHosts(location.uuid),
-    fetcher: (page, search) => getLocationDatabaseHosts(location.uuid, page, search),
+    fetcher: (page, search, perPage) => getLocationDatabaseHosts(location.uuid, page, search, perPage),
   });
 
   return (
@@ -61,6 +62,7 @@ export default function AdminLocationDatabaseHosts({ location }: { location: z.i
         error={error}
         pagination={locationDatabaseHosts}
         onPageSelect={setPage}
+        onPerPageSelect={setPerPage}
       >
         {locationDatabaseHosts?.data.map((databaseHost) => (
           <LocationDatabaseHostRow

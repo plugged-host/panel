@@ -30,6 +30,7 @@ export default function DashboardSessions() {
     search,
     setSearch,
     setPage,
+    setPerPage,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.user.sessions.all(),
     fetcher: getSessions,
@@ -94,6 +95,7 @@ export default function DashboardSessions() {
         loading={loading}
         pagination={sessions}
         onPageSelect={setPage}
+        onPerPageSelect={setPerPage}
         error={error}
       >
         {sessions?.data.map((session) => (

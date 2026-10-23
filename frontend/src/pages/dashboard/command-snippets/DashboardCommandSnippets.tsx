@@ -29,6 +29,7 @@ export default function DashboardCommandSnippets() {
     search,
     setSearch,
     setPage,
+    setPerPage,
     refetch,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.user.commandSnippets.all(),
@@ -96,6 +97,7 @@ export default function DashboardCommandSnippets() {
           loading={loading}
           pagination={commandSnippets}
           onPageSelect={setPage}
+          onPerPageSelect={setPerPage}
           error={error}
         >
           {commandSnippets?.data.map((snippet) => (
@@ -106,7 +108,7 @@ export default function DashboardCommandSnippets() {
                   commandSnippet={snippet}
                   ref={innerRef as Ref<HTMLTableRowElement>}
                   isSelected={selectedCommandSnippets.has(snippet.uuid)}
-                  onSelectionChange={(selected) => toggleCommandSnippet(snippet, selected)}
+                  onSelectionChange={(selected, range) => toggleCommandSnippet(snippet, selected, range)}
                 />
               )}
             </SelectionArea.Selectable>

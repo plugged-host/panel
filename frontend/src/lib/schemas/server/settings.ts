@@ -23,3 +23,12 @@ export const serverSettingsRenameSchema = z.object({
 export const serverSettingsTimezoneSchema = z.object({
   timezone: z.preprocess((value) => (value === '' ? null : value), z.string().min(3).max(255).nullable()),
 });
+
+export const serverTrashSettingsSchema = z.object({
+  retention: z.number().int().min(0).max(31536000),
+  usageThreshold: z.number().int().min(0).max(100),
+});
+
+export const serverSettingsTrashSchema = z.object({
+  custom: serverTrashSettingsSchema.nullable(),
+});

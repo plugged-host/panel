@@ -130,14 +130,12 @@ mod post {
 
         permissions.has_server_permission("schedules.update")?;
 
-        for permission in data.action.permissions() {
-            if permissions.has_server_permission(permission).is_err() {
-                return ApiResponse::error(format!(
-                    "unable to create schedule step that requires permission: {permission}"
-                ))
-                .with_status(StatusCode::FORBIDDEN)
-                .ok();
-            }
+        if let Some(permission) = permissions.missing_server_permission(data.action.permissions()) {
+            return ApiResponse::error(format!(
+                "unable to create schedule step that requires permission: {permission}"
+            ))
+            .with_status(StatusCode::FORBIDDEN)
+            .ok();
         }
 
         let steps_lock = state
@@ -195,7 +193,7 @@ mod post {
             )
             .await;
 
-        server.0.batch_sync(&state.database).await;
+        server.0.batch_sync(&state).await;
 
         ApiResponse::new_serialized(Response {
             schedule_step: schedule_step.into_api_object(&state, ()).await?,

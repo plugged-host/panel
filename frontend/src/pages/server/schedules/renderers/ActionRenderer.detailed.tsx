@@ -367,6 +367,9 @@ export function renderDetailed(action: Action, { t, tReact, tItem }: Translation
           <Text size='xs' c='dimmed'>
             {t('pages.server.schedules.steps.deleteFiles.renderer.detail.files', { files: action.files.join(', ') })}
           </Text>
+          <Text size='xs' c='dimmed'>
+            {t('pages.server.schedules.steps.deleteFiles.renderer.detail.trash', { value: yesNo(action.trash) })}
+          </Text>
           <IgnoreFailureText ignoreFailure={action.ignoreFailure} />
         </Stack>
       );

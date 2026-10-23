@@ -10,6 +10,7 @@ mod delete {
         models::{
             ByUuid,
             admin_activity::GetAdminActivityLogger,
+            node::{Node, PermissionsInvalidation},
             user::{GetPermissionManager, User},
             user_recovery_code::UserRecoveryCode,
             user_two_factor_code::UserTwoFactorCode,
@@ -61,6 +62,13 @@ mod delete {
         .await?;
 
         User::invalidate_cached(&state.database, user.uuid).await;
+        Node::invalidate_permissions_everywhere(
+            &state.database,
+            PermissionsInvalidation {
+                users: vec![user.uuid],
+                ..Default::default()
+            },
+        );
 
         activity_logger
             .log(

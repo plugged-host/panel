@@ -13,19 +13,16 @@ interface NodeAllocationRowProps {
   allocation: z.infer<typeof adminNodeAllocationSchema>;
   selectedNodeAllocations: ObjectSet<z.infer<typeof adminNodeAllocationSchema>, 'uuid'>;
   selectedAllMatching: boolean;
-  addSelectedNodeAllocation: (allocation: z.infer<typeof adminNodeAllocationSchema>) => void;
-  removeSelectedNodeAllocation: (allocation: z.infer<typeof adminNodeAllocationSchema>) => void;
+  toggleSelectedNodeAllocation: (
+    allocation: z.infer<typeof adminNodeAllocationSchema>,
+    selected: boolean,
+    range?: boolean,
+  ) => void;
 }
 
 const NodeAllocationRow = memo(
   forwardRef<HTMLTableRowElement, NodeAllocationRowProps>(function NodeAllocationRow(
-    {
-      allocation,
-      selectedNodeAllocations,
-      selectedAllMatching,
-      addSelectedNodeAllocation,
-      removeSelectedNodeAllocation,
-    },
+    { allocation, selectedNodeAllocations, selectedAllMatching, toggleSelectedNodeAllocation },
     ref,
   ) {
     const { t } = useTranslations();
@@ -36,8 +33,8 @@ const NodeAllocationRow = memo(
       <TableRow
         bg={isNodeAllocationSelected ? 'var(--mantine-color-blue-light)' : undefined}
         onClick={(e) => {
-          if (e.ctrlKey || e.metaKey) {
-            addSelectedNodeAllocation(allocation);
+          if (e.ctrlKey || e.metaKey || e.shiftKey) {
+            toggleSelectedNodeAllocation(allocation, true, e.shiftKey);
             return true;
           }
 
@@ -49,13 +46,7 @@ const NodeAllocationRow = memo(
           id={allocation.uuid}
           checked={isNodeAllocationSelected}
           disabled={selectedAllMatching}
-          onChange={() => {
-            if (isNodeAllocationSelected) {
-              removeSelectedNodeAllocation(allocation);
-            } else {
-              addSelectedNodeAllocation(allocation);
-            }
-          }}
+          onChange={(selected, range) => toggleSelectedNodeAllocation(allocation, selected, range)}
         />
 
         <TableData>

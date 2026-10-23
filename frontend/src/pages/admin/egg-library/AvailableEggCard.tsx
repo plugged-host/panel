@@ -1,5 +1,6 @@
 import { faBook, faDownload, faEgg } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Card as MantineCard } from '@mantine/core';
 import { z } from 'zod';
 import Button from '@/elements/buttons/Button.tsx';
 import { AdminCan } from '@/elements/Can.tsx';
@@ -24,6 +25,17 @@ export default function AvailableEggCard({
 
   return (
     <Card>
+      {item.egg.banner && (
+        <MantineCard.Section mb='md'>
+          <img
+            src={item.egg.banner}
+            alt={item.egg.exportedEgg.name}
+            loading='lazy'
+            className='aspect-2/1 w-full object-cover'
+          />
+        </MantineCard.Section>
+      )}
+
       <div className='mb-3 flex items-start gap-3'>
         <div className='flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-(--mantine-color-default-hover) text-(--mantine-color-dimmed)'>
           <FontAwesomeIcon icon={faEgg} className='text-sm' />

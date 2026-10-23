@@ -1,9 +1,12 @@
+import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ModalProps } from '@mantine/core';
 import { useEffect } from 'react';
 import { z } from 'zod';
 import createScheduleStep from '@/api/server/schedules/steps/createScheduleStep.ts';
 import updateScheduleStep from '@/api/server/schedules/steps/updateScheduleStep.ts';
 import Button from '@/elements/buttons/Button.tsx';
+import Alert from '@/elements/feedback/Alert.tsx';
 import Select from '@/elements/input/Select.tsx';
 import Divider from '@/elements/layout/Divider.tsx';
 import Stack from '@/elements/layout/Stack.tsx';
@@ -59,6 +62,8 @@ import StepUpdateStartupVariable from '../steps/StepUpdateStartupVariable.tsx';
 import StepWaitForConsoleLine from '../steps/StepWaitForConsoleLine.tsx';
 import StepWaitForState from '../steps/StepWaitForState.tsx';
 import StepWriteFile from '../steps/StepWriteFile.tsx';
+import VariableIssueList from '../VariableIssueList.tsx';
+import { analyzeScheduleVariables } from '../variableAnalysis.ts';
 
 type Props = ModalProps & {
   schedule: z.infer<typeof serverScheduleSchema>;
@@ -79,6 +84,7 @@ export default function StepCreateOrUpdateModal({
   const { t } = useTranslations();
   const { addToast } = useToast();
   const server = useServerStore((state) => state.server);
+  const scheduleSteps = useServerStore((state) => state.scheduleSteps);
 
   const { form, handleClose, handleSubmit, loading, isDirty } = useModalForm<
     z.infer<typeof serverScheduleStepUpdateSchema>
@@ -125,6 +131,13 @@ export default function StepCreateOrUpdateModal({
       form.resetDirty(values);
     }
   }, [props.opened]);
+
+  const editedStepUuid = propStep?.uuid ?? '';
+  const variableIssues =
+    analyzeScheduleVariables(schedule, [
+      ...scheduleSteps.filter((step) => step.uuid !== editedStepUuid),
+      { uuid: editedStepUuid, order: form.values.order, action: form.values.action },
+    ]).steps.get(editedStepUuid) ?? [];
 
   return (
     <FormModal
@@ -236,6 +249,12 @@ export default function StepCreateOrUpdateModal({
           <StepHttpRequest form={form} />
         ) : (
           <Text c='dimmed'>{t('pages.server.schedules.form.actionType', {})}</Text>
+        )}
+
+        {variableIssues.length > 0 && (
+          <Alert icon={<FontAwesomeIcon icon={faExclamationTriangle} />} color='yellow'>
+            <VariableIssueList issues={variableIssues} />
+          </Alert>
         )}
 
         <ModalFooter>

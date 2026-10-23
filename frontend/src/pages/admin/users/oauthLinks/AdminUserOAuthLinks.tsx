@@ -26,9 +26,10 @@ export default function AdminUserOAuthLinks({ user }: { user: z.infer<typeof adm
     search,
     setSearch,
     setPage,
+    setPerPage,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.admin.users.oauthLinks(user.uuid),
-    fetcher: (page, search) => getUserOAuthLinks(user.uuid, page, search),
+    fetcher: (page, search, perPage) => getUserOAuthLinks(user.uuid, page, search, perPage),
   });
 
   return (
@@ -57,6 +58,7 @@ export default function AdminUserOAuthLinks({ user }: { user: z.infer<typeof adm
         error={error}
         pagination={userOAuthLinks}
         onPageSelect={setPage}
+        onPerPageSelect={setPerPage}
       >
         {userOAuthLinks?.data.map((userOAuthLink) => (
           <UserOAuthLinkRow key={userOAuthLink.uuid} user={user} userOAuthLink={userOAuthLink} />

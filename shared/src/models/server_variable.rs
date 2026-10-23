@@ -192,7 +192,7 @@ impl ServerVariable {
             FROM nest_egg_variables
             LEFT JOIN server_variables ON server_variables.variable_uuid = nest_egg_variables.uuid AND server_variables.server_uuid = $1
             WHERE nest_egg_variables.egg_uuid = $2
-            ORDER BY nest_egg_variables.order_, nest_egg_variables.created
+            ORDER BY nest_egg_variables.order_, nest_egg_variables.created, nest_egg_variables.uuid
             "#,
             Self::columns_sql(None)
         )))

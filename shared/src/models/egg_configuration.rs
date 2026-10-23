@@ -411,40 +411,24 @@ impl EggConfiguration {
         per_page: i64,
         search: Option<&str>,
     ) -> Result<super::Pagination<Self>, crate::database::DatabaseError> {
-        let offset = (page - 1) * per_page;
-
-        let rows = sqlx::query(sqlx::AssertSqlSafe(format!(
-            r#"
-            SELECT {}, COUNT(*) OVER() AS total_count
-            FROM egg_configurations
-            WHERE {search}
-            ORDER BY egg_configurations.order_, egg_configurations.created
-            LIMIT $2 OFFSET $3
-            "#,
+        super::PaginatedQueryBuilder::new(
             Self::columns_sql(None),
-            search = super::search_sql(
-                1,
-                &["egg_configurations.name"],
-                &["egg_configurations.uuid"]
-            )
-        )))
+            format!(
+                r#"
+                FROM egg_configurations
+                WHERE {search}
+                "#,
+                search = super::search_sql(
+                    1,
+                    &["egg_configurations.name"],
+                    &["egg_configurations.uuid"]
+                ),
+            ),
+            "egg_configurations.order_, egg_configurations.created, egg_configurations.uuid",
+        )
         .bind(search)
-        .bind(per_page)
-        .bind(offset)
-        .fetch_all(database.read())
-        .await?;
-
-        Ok(super::Pagination {
-            total: rows
-                .first()
-                .map_or(Ok(0), |row| row.try_get("total_count"))?,
-            per_page,
-            page,
-            data: rows
-                .into_iter()
-                .map(|row| Self::map(None, &row))
-                .try_collect_vec()?,
-        })
+        .fetch(database, page, per_page)
+        .await
     }
 
     pub async fn all<'a>(
@@ -454,7 +438,7 @@ impl EggConfiguration {
             r#"
             SELECT {}
             FROM egg_configurations
-            ORDER BY egg_configurations.order_, egg_configurations.created
+            ORDER BY egg_configurations.order_, egg_configurations.created, egg_configurations.uuid
             "#,
             Self::columns_sql(None)
         )))
@@ -617,7 +601,7 @@ impl DisabledFeatures {
         )
         .await?
         {
-            server.batch_sync(&state.database).await;
+            server.batch_sync(state).await;
         }
 
         Ok(())

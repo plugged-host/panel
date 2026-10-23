@@ -22,7 +22,7 @@ interface AssetRowProps {
   currentDirectory: string;
   isSelected: boolean;
 
-  toggleSelectedAsset: (asset: StorageAsset) => void;
+  toggleSelectedAsset: (asset: StorageAsset, range?: boolean) => void;
   removeSelectedAsset: (asset: StorageAsset) => void;
   invalidateAssets: () => void;
   ref?: Ref<HTMLTableRowElement>;
@@ -116,8 +116,8 @@ export default function AssetRow({
           <TableRow
             bg={isSelected ? 'var(--mantine-color-blue-light)' : undefined}
             onClick={(e) => {
-              if (e.ctrlKey || e.metaKey) {
-                toggleSelectedAsset(asset);
+              if (e.ctrlKey || e.metaKey || e.shiftKey) {
+                toggleSelectedAsset(asset, e.shiftKey);
               }
             }}
             onContextMenu={(e) => {
@@ -126,7 +126,11 @@ export default function AssetRow({
             }}
             ref={ref}
           >
-            <TableSelectionCell id={asset.name} checked={isSelected} onChange={() => toggleSelectedAsset(asset)} />
+            <TableSelectionCell
+              id={asset.name}
+              checked={isSelected}
+              onChange={(_, range) => toggleSelectedAsset(asset, range)}
+            />
 
             <TableData>
               <TableLink to={asset.url} target='_blank'>

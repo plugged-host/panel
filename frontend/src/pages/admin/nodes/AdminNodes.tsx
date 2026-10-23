@@ -36,6 +36,7 @@ function NodesContainer() {
     search,
     setSearch,
     setPage,
+    setPerPage,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.admin.nodes.all(),
     fetcher: getNodes,
@@ -89,7 +90,14 @@ function NodesContainer() {
         <NodeActionBar selectedNodes={selectedNodes} setSelectedNodes={setSelectedNodes} />
 
         <SelectionArea {...selectionAreaProps}>
-          <Table columns={columns} loading={loading} pagination={nodes} onPageSelect={setPage} error={error}>
+          <Table
+            columns={columns}
+            loading={loading}
+            pagination={nodes}
+            onPageSelect={setPage}
+            onPerPageSelect={setPerPage}
+            error={error}
+          >
             {nodes?.data.map((node) => (
               <SelectionArea.Selectable key={node.uuid} item={node}>
                 {(innerRef: Ref<HTMLElement>) => (
@@ -98,7 +106,7 @@ function NodesContainer() {
                     node={node}
                     ref={innerRef as Ref<HTMLTableRowElement>}
                     isSelected={selectedNodes.has(node.uuid)}
-                    onSelectionChange={(selected) => toggleNode(node, selected)}
+                    onSelectionChange={(selected, range) => toggleNode(node, selected, range)}
                   />
                 )}
               </SelectionArea.Selectable>

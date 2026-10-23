@@ -2,7 +2,6 @@ import { faReply } from '@fortawesome/free-solid-svg-icons';
 import { Fragment, Suspense, useEffect, useMemo } from 'react';
 import { Route, Routes } from 'react-router';
 import type { AdminRouteDefinition } from 'shared';
-import getUpdates from '@/api/admin/system/updates/getUpdates.ts';
 import AdminContentContainer from '@/elements/containers/AdminContentContainer.tsx';
 import ExtensionSlot from '@/elements/ExtensionSlot.tsx';
 import ScreenBlock from '@/elements/feedback/ScreenBlock.tsx';
@@ -22,13 +21,13 @@ import { useAdminStore } from '@/stores/admin.tsx';
 export default function AdminRouter({ isNormal }: { isNormal: boolean }) {
   const { t } = useTranslations();
   const { user } = useAuth();
-  const setUpdateInformation = useAdminStore((state) => state.setUpdateInformation);
+  const loadUpdateInformation = useAdminStore((state) => state.loadUpdateInformation);
   const canReadStats = useAdminCan('stats.read');
 
   useEffect(() => {
     if (!canReadStats) return;
 
-    getUpdates().then(setUpdateInformation).catch(console.error);
+    loadUpdateInformation();
   }, [canReadStats]);
 
   const allAdminRoutes = useMemo(() => {

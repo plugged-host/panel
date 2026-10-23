@@ -26,6 +26,7 @@ function SystemBackupPoliciesContainer() {
     search,
     setSearch,
     setPage,
+    setPerPage,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.admin.systemBackupPolicies.all(),
     fetcher: getSystemBackupPolicies,
@@ -54,6 +55,7 @@ function SystemBackupPoliciesContainer() {
         loading={loading}
         pagination={systemBackupPolicies}
         onPageSelect={setPage}
+        onPerPageSelect={setPerPage}
         error={error}
       >
         {systemBackupPolicies?.data.map((systemBackupPolicy) => (

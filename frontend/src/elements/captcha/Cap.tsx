@@ -1,7 +1,7 @@
 import wasmUrl from '@cap.js/wasm/browser/cap_wasm_bg.wasm?url';
 import hashwxUrl from '@cap.js/wasm/browser/hashwx.wasm?url';
 import type { CapSolveEvent, CapWidget } from 'cap-widget';
-import pakoUrl from 'pako/dist/pako_inflate.min.js?url';
+import pakoUrl from 'pako/dist/browser/pako_inflate.umd.min.js?url';
 import { useEffect, useImperativeHandle, useRef } from 'react';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 

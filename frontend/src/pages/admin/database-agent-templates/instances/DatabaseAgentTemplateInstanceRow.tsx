@@ -15,7 +15,7 @@ import { useTranslations } from '@/providers/TranslationProvider.tsx';
 interface DatabaseAgentTemplateInstanceRowProps {
   databaseAgent: z.infer<typeof adminServerDatabaseAgentSchema>;
   isSelected?: boolean;
-  onSelectionChange?: (selected: boolean) => void;
+  onSelectionChange?: (selected: boolean, range?: boolean) => void;
 }
 
 const DatabaseAgentTemplateInstanceRow = forwardRef<HTMLTableRowElement, DatabaseAgentTemplateInstanceRowProps>(
@@ -29,8 +29,8 @@ const DatabaseAgentTemplateInstanceRow = forwardRef<HTMLTableRowElement, Databas
       <TableRow
         bg={isSelected ? 'var(--mantine-color-blue-light)' : undefined}
         onClick={(e) => {
-          if (e.ctrlKey || e.metaKey) {
-            onSelectionChange?.(true);
+          if (e.ctrlKey || e.metaKey || e.shiftKey) {
+            onSelectionChange?.(true, e.shiftKey);
             return true;
           }
 
@@ -41,7 +41,7 @@ const DatabaseAgentTemplateInstanceRow = forwardRef<HTMLTableRowElement, Databas
         <TableSelectionCell
           id={databaseAgent.uuid}
           checked={isSelected}
-          onChange={(selected) => onSelectionChange?.(selected)}
+          onChange={(selected, range) => onSelectionChange?.(selected, range)}
         />
 
         <TableData>{databaseAgent.name}</TableData>

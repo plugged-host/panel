@@ -10,6 +10,7 @@ pub mod client;
 mod languages;
 pub mod remote;
 mod settings;
+mod timezones;
 
 pub fn router(state: &State) -> OpenApiRouter<State> {
     OpenApiRouter::new()
@@ -20,7 +21,10 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
 
                 let mut environment = minijinja::Environment::new();
                 environment.set_auto_escape_callback(|_| minijinja::AutoEscape::Html);
-                environment.add_global("settings", minijinja::Value::from_serialize(&*settings));
+                environment.add_global(
+                    "settings",
+                    minijinja::Value::from(minijinja::value::Serde(&*settings)),
+                );
                 drop(settings);
 
                 let api_html = environment.render_str(
@@ -36,6 +40,7 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         .nest("/settings", settings::router(state))
         .nest("/announcements", announcements::router(state))
         .nest("/languages", languages::router(state))
+        .nest("/timezones", timezones::router(state))
         .nest("/auth", auth::router(state))
         .nest("/client", client::router(state))
         .nest("/admin", admin::router(state))

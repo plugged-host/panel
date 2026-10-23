@@ -1,6 +1,7 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ObjectSet } from '@/lib/objectSet.ts';
 import { StorageAsset } from '@/lib/schemas/admin/assets.ts';
+import { selectionRange } from '@/plugins/selection/selectionRange.ts';
 
 export type AssetSet = ObjectSet<StorageAsset, 'name'>;
 
@@ -28,14 +29,29 @@ export function useAssetSelection(assets: StorageAsset[] | undefined) {
     });
   }, []);
 
-  const toggle = useCallback((asset: StorageAsset) => {
+  const selectableAssetsRef = useRef(selectableAssets);
+  const anchorRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    selectableAssetsRef.current = selectableAssets;
+  });
+
+  const toggle = useCallback((asset: StorageAsset, range = false) => {
     if (asset.isDirectory) return;
+    const affected = range
+      ? selectionRange(selectableAssetsRef.current, anchorRef.current, asset, (entry) => entry.name)
+      : [asset];
+    anchorRef.current = asset.name;
+
     setSelected((prev) => {
       const next = prev.clone();
-      if (next.has(asset)) {
-        next.delete(asset);
-      } else {
-        next.add(asset);
+      const selecting = !next.has(asset);
+      for (const entry of affected) {
+        if (selecting) {
+          next.add(entry);
+        } else {
+          next.delete(entry);
+        }
       }
       return next;
     });

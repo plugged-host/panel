@@ -1,6 +1,7 @@
 import { join } from 'pathe';
-import { Ref, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
+import { CSSProperties, Ref, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { useBeforeUnload, useNavigate, useSearchParams } from 'react-router';
+import { z } from 'zod';
 import loadDirectory from '@/api/server/files/loadDirectory.ts';
 import ConfirmationModal from '@/elements/modals/ConfirmationModal.tsx';
 import { hashContent, readFileDraft, removeFileDraft, storeFileDraft } from '@/lib/files/fileDrafts.ts';
@@ -11,9 +12,11 @@ import {
   resolveFileRenames,
 } from '@/lib/files/fileRenames.ts';
 import { isOpenableFile } from '@/lib/files/files.ts';
+import { removeUserSetting, setUserSettingLocal, useUserSetting } from '@/lib/userSettings.ts';
 import FileTree from '@/pages/server/files/tree/FileTree.tsx';
 import FileTreeEditorPane from '@/pages/server/files/tree/FileTreeEditorPane.tsx';
 import FileTreeEditorSplit from '@/pages/server/files/tree/FileTreeEditorSplit.tsx';
+import FileTreeResizeHandle from '@/pages/server/files/tree/FileTreeResizeHandle.tsx';
 import { TreeDirectoryCapabilities, TreeSelectionItem } from '@/pages/server/files/tree/fileTreeData.ts';
 import {
   FileTreeEditorDragItem,
@@ -58,6 +61,9 @@ export interface FileTreeWorkspaceHandle {
   createFile: () => void;
 }
 
+const FILE_TREE_WIDTH_KEY = 'file_manager::tree_width';
+const fileTreeWidthSchema = z.number().positive().nullable();
+
 export default function FileTreeWorkspace({
   ref,
   initialDirectory,
@@ -75,6 +81,9 @@ export default function FileTreeWorkspace({
   const store = useFileManagerApi();
   const editorPreviewTabs = useFileManagerStore((state) => state.editorPreviewTabs);
   const workspaceRef = useRef<HTMLDivElement>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
+  const treeShellRef = useRef<HTMLDivElement>(null);
+  const [treeWidth] = useUserSetting(FILE_TREE_WIDTH_KEY, fileTreeWidthSchema, null);
   const { getParent } = useCurrentWindow();
   const [workspace, setWorkspace] = useState<FileTreeEditorWorkspaceState>(() => restoreFileTreeWorkspace(server.uuid));
   const [dirtyTabIds, setDirtyTabIds] = useState(
@@ -633,6 +642,14 @@ export default function FileTreeWorkspace({
     }));
   }, []);
 
+  const resizeTree = useCallback(
+    (width: number | null) => {
+      if (width !== null) setUserSettingLocal(FILE_TREE_WIDTH_KEY, width);
+      else if (treeWidth !== null) removeUserSetting(FILE_TREE_WIDTH_KEY);
+    },
+    [treeWidth],
+  );
+
   const handleDirtyChange = useCallback(
     (tabId: string, dirty: boolean) => {
       if (dirty) keepTabOpen(tabId);
@@ -666,11 +683,16 @@ export default function FileTreeWorkspace({
           className='absolute inset-x-0 top-0 max-w-none overflow-x-auto overflow-y-hidden bg-(--mantine-color-body)'
         >
           <div
+            ref={gridRef}
             data-file-manager-workspace-grid
             data-file-manager-tree-visible={fileTreeVisible}
-            className='file-manager-workspace-grid transition-[grid-template-columns] duration-200 ease-in-out motion-reduce:transition-none'
+            className='file-manager-workspace-grid relative transition-[grid-template-columns] duration-200 ease-in-out motion-reduce:transition-none'
+            style={
+              treeWidth !== null ? ({ '--file-manager-tree-width': `${treeWidth}px` } as CSSProperties) : undefined
+            }
           >
             <div
+              ref={treeShellRef}
               data-file-manager-tree-shell
               data-file-manager-tree-collapsed={!fileTreeVisible}
               className={`file-manager-tree-shell w-full min-w-0 overflow-hidden transition-[height,min-height] duration-200 ease-in-out motion-reduce:transition-none ${
@@ -696,6 +718,14 @@ export default function FileTreeWorkspace({
                 }}
               />
             </div>
+            {fileTreeVisible && (
+              <FileTreeResizeHandle
+                gridRef={gridRef}
+                treeRef={treeShellRef}
+                label={t('pages.server.files.tree.resizeFileTree', {})}
+                onResize={resizeTree}
+              />
+            )}
             <FileTreeEditorSplit
               panes={workspace.panes}
               activePaneId={workspace.activePaneId}

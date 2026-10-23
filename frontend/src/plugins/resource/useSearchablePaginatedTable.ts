@@ -3,11 +3,12 @@ import debounce from 'debounce';
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router';
 import { httpErrorToHuman } from '@/api/axios.ts';
+import { useTablePerPage } from '@/plugins/resource/useTablePerPage.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
 
 interface UseSearchablePaginatedTableOptions<T> {
   queryKey: readonly unknown[];
-  fetcher: (page: number, search: string) => Promise<T>;
+  fetcher: (page: number, search: string, perPage: number) => Promise<T>;
   setStoreData?: (data: T) => void;
   paginationKey?: string;
   deps?: unknown[];
@@ -26,8 +27,8 @@ function parseNumber(num: string | null): number | null {
   return Number.isFinite(parsed) && parsed >= 1 ? parsed : null;
 }
 
-export function paginatedTableQueryKey(queryKey: readonly unknown[], page: number, search: string) {
-  return [...queryKey, { page, search }];
+export function paginatedTableQueryKey(queryKey: readonly unknown[], page: number, search: string, perPage: number) {
+  return [...queryKey, { page, search, perPage }];
 }
 
 export function useSearchablePaginatedTable<T>({
@@ -49,6 +50,15 @@ export function useSearchablePaginatedTable<T>({
   const [search, setSearch] = useState(modifyParams ? searchParams.get('search') || '' : '');
   const [page, setPage] = useState(modifyParams ? (parseNumber(searchParams.get('page')) ?? initialPage) : initialPage);
   const [debouncedSearch, setDebouncedSearch] = useState(search);
+  const [perPage, setStoredPerPage] = useTablePerPage();
+
+  const setPerPage = (next: number) => {
+    if (next === perPage) return;
+
+    // keep the first visible item on screen
+    setPage(Math.floor(((page - 1) * perPage) / next) + 1);
+    setStoredPerPage(next);
+  };
 
   useEffect(() => {
     if (!modifyParams) return;
@@ -87,8 +97,8 @@ export function useSearchablePaginatedTable<T>({
   }, [search]);
 
   const { data, isFetching, isPlaceholderData, error, refetch } = useQuery({
-    queryKey: paginatedTableQueryKey([...queryKey, ...deps], page, debouncedSearch),
-    queryFn: () => fetcher(page, debouncedSearch),
+    queryKey: paginatedTableQueryKey([...queryKey, ...deps], page, debouncedSearch, perPage),
+    queryFn: () => fetcher(page, debouncedSearch, perPage),
     placeholderData: keepPreviousData,
     enabled: canRequest,
     refetchInterval:
@@ -143,6 +153,8 @@ export function useSearchablePaginatedTable<T>({
     setSearch,
     page,
     setPage,
+    perPage,
+    setPerPage,
     refetch: () => refetch(),
     invalidate: () => queryClient.invalidateQueries({ queryKey: [...queryKey, ...deps] }),
   };

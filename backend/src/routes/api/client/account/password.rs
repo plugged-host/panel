@@ -46,6 +46,7 @@ mod put {
         }
 
         permissions.has_user_permission("account.password")?;
+        permissions.deny_while_impersonating()?;
 
         if user.frozen {
             return ApiResponse::error("account is frozen")

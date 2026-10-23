@@ -4,6 +4,7 @@ import { ITerminalInitOnlyOptions, ITerminalOptions, Terminal as XTerm } from '@
 import { useEffect, useRef } from 'react';
 import Card from '@/elements/data-display/Card.tsx';
 import Progress from '@/elements/feedback/Progress.tsx';
+import Spinner from '@/elements/feedback/Spinner.tsx';
 import { getXtermTheme } from '@/lib/editor/xterm.ts';
 import { redactConsoleLine } from '@/lib/network/redact.ts';
 import { useRedactAddresses } from '@/plugins/privacy/useRedactAddresses.ts';
@@ -13,7 +14,7 @@ import { useServerStore } from '@/stores/server.ts';
 import '@xterm/xterm/css/xterm.css';
 import '@/lib/editor/xterm.css';
 
-export default function DatabaseInstanceLogs() {
+export default function DatabaseInstanceLogs({ connected }: { connected: boolean }) {
   const { t } = useTranslations();
   const computedColorScheme = useComputedColorScheme('dark');
   const logs = useServerStore((state) => state.databaseInstanceLogs);
@@ -99,6 +100,8 @@ export default function DatabaseInstanceLogs() {
 
   return (
     <Card className='h-[50vh] flex flex-col font-mono text-sm relative isolate p-2!'>
+      {!connected && <Spinner.Centered />}
+
       <div className='flex-1 min-h-0 relative overflow-hidden'>
         <div ref={terminalRef} className='absolute inset-0' />
       </div>

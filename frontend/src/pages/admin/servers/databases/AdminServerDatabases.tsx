@@ -20,9 +20,10 @@ export default function AdminServerDatabases({ server }: { server: AdminServer }
     search,
     setSearch,
     setPage,
+    setPerPage,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.admin.servers.databases(server.uuid),
-    fetcher: (page, search) => getServerDatabases(server.uuid, page, search),
+    fetcher: (page, search, perPage) => getServerDatabases(server.uuid, page, search, perPage),
   });
 
   return (
@@ -41,6 +42,7 @@ export default function AdminServerDatabases({ server }: { server: AdminServer }
           error={error}
           pagination={databases}
           onPageSelect={setPage}
+          onPerPageSelect={setPerPage}
         >
           {databases?.data.map((database) => (
             <AdminServerDatabaseRow key={database.uuid} server={server} database={database} />

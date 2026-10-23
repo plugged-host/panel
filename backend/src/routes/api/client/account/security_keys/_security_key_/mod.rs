@@ -11,6 +11,7 @@ mod delete {
         ApiError, GetState,
         models::{
             ByUuid, DeletableModel,
+            node::{Node, PermissionsInvalidation},
             user::{GetPermissionManager, GetUser, User},
             user_activity::GetUserActivityLogger,
             user_security_key::UserSecurityKey,
@@ -113,6 +114,14 @@ mod delete {
         User::invalidate_cached(&state.database, user.uuid).await;
 
         if security_key.registration.is_none() {
+            Node::invalidate_permissions_everywhere(
+                &state.database,
+                PermissionsInvalidation {
+                    users: vec![user.uuid],
+                    ..Default::default()
+                },
+            );
+
             activity_logger
                 .log(
                     "security-key:delete",

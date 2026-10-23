@@ -94,9 +94,10 @@ export default function AdminMountNestEggs({ mount }: { mount: z.infer<typeof ad
     search,
     setSearch,
     setPage,
+    setPerPage,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.admin.mountAssignments.eggsByMount(mount.uuid),
-    fetcher: (page, search) => getMountNestEggs(mount.uuid, page, search),
+    fetcher: (page, search, perPage) => getMountNestEggs(mount.uuid, page, search, perPage),
   });
 
   return (
@@ -124,6 +125,7 @@ export default function AdminMountNestEggs({ mount }: { mount: z.infer<typeof ad
         loading={loading}
         pagination={mountNestEggs}
         onPageSelect={setPage}
+        onPerPageSelect={setPerPage}
         error={error}
       >
         {mountNestEggs?.data.map((nestEggMount) => (

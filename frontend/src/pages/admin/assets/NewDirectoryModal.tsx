@@ -48,7 +48,7 @@ export default function NewDirectoryModal({ currentDirectory, onNavigate, ...pro
         <span>{t('pages.admin.assets.modal.createDirectory.createdAs', {})}</span>
         <Code>
           assets/
-          <span className='text-cyan-200'>{join(currentDirectory, form.values.name)}</span>
+          <span className='text-(--mantine-color-cyan-text)'>{join(currentDirectory, form.values.name)}</span>
         </Code>
       </p>
 

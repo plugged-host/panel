@@ -22,9 +22,11 @@ export default function AdminBackupConfigurationLocations({
     search,
     setSearch,
     setPage,
+    setPerPage,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.admin.backupConfigurations.locations(backupConfiguration.uuid),
-    fetcher: (page, search) => getBackupConfigurationLocations(backupConfiguration.uuid, page, search),
+    fetcher: (page, search, perPage) =>
+      getBackupConfigurationLocations(backupConfiguration.uuid, page, search, perPage),
   });
 
   return (
@@ -42,6 +44,7 @@ export default function AdminBackupConfigurationLocations({
         error={error}
         pagination={backupConfigurationLocations}
         onPageSelect={setPage}
+        onPerPageSelect={setPerPage}
       >
         {backupConfigurationLocations?.data.map((location) => (
           <LocationRow key={location.uuid} location={location} />

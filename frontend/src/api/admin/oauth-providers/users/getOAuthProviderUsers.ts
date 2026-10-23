@@ -7,9 +7,10 @@ export default async (
   oauthProviderUuid: string,
   page: number,
   search?: string,
+  perPage?: number,
 ): Promise<Pagination<z.infer<typeof adminOAuthUserLinkSchema>>> => {
   const { data } = await axiosInstance.get(`/api/admin/oauth-providers/${oauthProviderUuid}/users`, {
-    params: { page, search },
+    params: { page, per_page: perPage, search },
   });
   return parsePaginationFromApi(adminOAuthUserLinkSchema, data.user_oauth_links);
 };

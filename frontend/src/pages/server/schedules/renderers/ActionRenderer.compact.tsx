@@ -152,9 +152,12 @@ export function renderCompact(action: Action, { t, tReact, tItem }: Translations
     case 'delete_files':
       return (
         <span>
-          {tReact('pages.server.schedules.steps.deleteFiles.renderer.compact', {
-            files: <Code>{action.files.join(', ')}</Code>,
-          })}
+          {tReact(
+            action.trash
+              ? 'pages.server.schedules.steps.deleteFiles.renderer.compactTrash'
+              : 'pages.server.schedules.steps.deleteFiles.renderer.compact',
+            { files: <Code>{action.files.join(', ')}</Code> },
+          )}
         </span>
       );
     case 'rename_files':

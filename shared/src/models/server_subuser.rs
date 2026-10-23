@@ -94,6 +94,31 @@ impl BaseModel for ServerSubuser {
 }
 
 impl ServerSubuser {
+    async fn invalidate_wings_permissions(&self, database: &Arc<crate::database::Database>) {
+        let node = async {
+            self.server
+                .fetch_cached(database)
+                .await?
+                .node
+                .fetch_cached(database)
+                .await
+        }
+        .await;
+
+        match node {
+            Ok(node) => node.invalidate_permissions(
+                database,
+                super::node::PermissionsInvalidation {
+                    users: vec![self.user.uuid],
+                    ..Default::default()
+                },
+            ),
+            Err(err) => {
+                tracing::error!(server = %self.server.uuid, "failed to invalidate permissions in wings: {:?}", err);
+            }
+        }
+    }
+
     fn permissions_cache_key(
         server_uuid: uuid::Uuid,
         user_uuid: uuid::Uuid,
@@ -179,39 +204,23 @@ impl ServerSubuser {
         per_page: i64,
         search: Option<&str>,
     ) -> Result<super::Pagination<Self>, crate::database::DatabaseError> {
-        let offset = (page - 1) * per_page;
-
-        let rows = sqlx::query(sqlx::AssertSqlSafe(format!(
-            r#"
-            SELECT {}, COUNT(*) OVER() AS total_count
-            FROM server_subusers
-            JOIN users ON users.uuid = server_subusers.user_uuid
-            LEFT JOIN roles ON roles.uuid = users.role_uuid
-            WHERE server_subusers.server_uuid = $1 AND {search}
-            ORDER BY server_subusers.created
-            LIMIT $3 OFFSET $4
-            "#,
+        super::PaginatedQueryBuilder::new(
             Self::columns_sql(None),
-            search = super::search_sql(2, &["users.username"], &["users.uuid"])
-        )))
+            format!(
+                r#"
+                FROM server_subusers
+                JOIN users ON users.uuid = server_subusers.user_uuid
+                LEFT JOIN roles ON roles.uuid = users.role_uuid
+                WHERE server_subusers.server_uuid = $1 AND {search}
+                "#,
+                search = super::search_sql(2, &["users.username"], &["users.uuid"]),
+            ),
+            "server_subusers.created, server_subusers.server_uuid, server_subusers.user_uuid",
+        )
         .bind(server_uuid)
         .bind(search)
-        .bind(per_page)
-        .bind(offset)
-        .fetch_all(database.read())
-        .await?;
-
-        Ok(super::Pagination {
-            total: rows
-                .first()
-                .map_or(Ok(0), |row| row.try_get("total_count"))?,
-            per_page,
-            page,
-            data: rows
-                .into_iter()
-                .map(|row| Self::map(None, &row))
-                .try_collect_vec()?,
-        })
+        .fetch(database, page, per_page)
+        .await
     }
 
     pub async fn count_by_server_uuid(
@@ -307,6 +316,8 @@ impl CreatableModel for ServerSubuser {
         transaction.commit().await?;
 
         super::invalidate_cache_keys(&state.database, &result.cache_invalidation_keys()).await;
+
+        result.invalidate_wings_permissions(&state.database).await;
 
         Ok(result)
     }
@@ -412,8 +423,8 @@ impl CreatableModel for ServerSubuser {
                 "added_to_server",
                 &user,
                 minijinja::context! {
-                    user => user,
-                    server => options.server,
+                    user => minijinja::value::Serde(&user),
+                    server => minijinja::value::Serde(&options.server),
                     server_link => format!(
                         "{}/server/{:08x}",
                         settings.app.url,
@@ -448,6 +459,30 @@ impl UpdatableModel for ServerSubuser {
             LazyLock::new(|| Arc::new(ModelHandlerList::default()));
 
         &UPDATE_LISTENERS
+    }
+
+    async fn update(
+        &mut self,
+        state: &crate::State,
+        options: Self::UpdateOptions,
+    ) -> Result<(), crate::database::DatabaseError> {
+        let mut transaction = state.database.write().begin().await?;
+
+        if let Err(err) = self
+            .update_with_transaction(state, options, &mut transaction)
+            .await
+        {
+            transaction.rollback().await?;
+            return Err(err);
+        }
+
+        transaction.commit().await?;
+
+        super::invalidate_cache_keys(&state.database, &self.cache_invalidation_keys()).await;
+
+        self.invalidate_wings_permissions(&state.database).await;
+
+        Ok(())
     }
 
     async fn update_with_transaction(
@@ -495,6 +530,30 @@ impl DeletableModel for ServerSubuser {
         &DELETE_LISTENERS
     }
 
+    async fn delete(
+        &self,
+        state: &crate::State,
+        options: Self::DeleteOptions,
+    ) -> Result<(), anyhow::Error> {
+        let mut transaction = state.database.write().begin().await?;
+
+        if let Err(err) = self
+            .delete_with_transaction(state, options, &mut transaction)
+            .await
+        {
+            transaction.rollback().await?;
+            return Err(err);
+        }
+
+        transaction.commit().await?;
+
+        super::invalidate_cache_keys(&state.database, &self.cache_invalidation_keys()).await;
+
+        self.invalidate_wings_permissions(&state.database).await;
+
+        Ok(())
+    }
+
     async fn delete_with_transaction(
         &self,
         state: &crate::State,
@@ -525,7 +584,7 @@ impl DeletableModel for ServerSubuser {
                 "removed_from_server",
                 &self.user,
                 minijinja::context! {
-                    user => self.user,
+                    user => minijinja::value::Serde(&self.user),
                 },
             )
             .await;

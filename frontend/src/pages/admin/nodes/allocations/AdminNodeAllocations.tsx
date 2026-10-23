@@ -1,6 +1,6 @@
 import { faCheckDouble, faPlus, faX } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Ref, useCallback, useEffect, useMemo, useState } from 'react';
+import { Ref, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { z } from 'zod';
 import getNodeAllocationIps from '@/api/admin/nodes/allocations/getNodeAllocationIps.ts';
 import getNodeAllocations from '@/api/admin/nodes/allocations/getNodeAllocations.ts';
@@ -24,6 +24,7 @@ import { nodeAllocationTableColumns } from '@/lib/tableColumns.ts';
 import { useKeyboardShortcuts } from '@/plugins/quick-actions/useKeyboardShortcuts.ts';
 import { useResource } from '@/plugins/resource/useResource.ts';
 import { useSearchablePaginatedTable } from '@/plugins/resource/useSearchablePaginatedTable.ts';
+import { selectionRange } from '@/plugins/selection/selectionRange.ts';
 import { useSelectionArea } from '@/plugins/selection/useSelectionArea.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import AllocationActionBar from './AllocationActionBar.tsx';
@@ -41,21 +42,30 @@ export default function AdminNodeAllocations({ node }: { node: z.infer<typeof ad
     setSelectedNodeAllocationsState(new ObjectSet('uuid', allocations));
   }, []);
 
-  const addSelectedNodeAllocation = useCallback((allocation: z.infer<typeof adminNodeAllocationSchema>) => {
-    setSelectedNodeAllocationsState((prev) => {
-      const next = new ObjectSet('uuid', prev.values());
-      next.add(allocation);
-      return next;
-    });
-  }, []);
+  const visibleNodeAllocations = useRef<z.infer<typeof adminNodeAllocationSchema>[]>([]);
+  const selectionAnchor = useRef<string | null>(null);
 
-  const removeSelectedNodeAllocation = useCallback((allocation: z.infer<typeof adminNodeAllocationSchema>) => {
-    setSelectedNodeAllocationsState((prev) => {
-      const next = new ObjectSet('uuid', prev.values());
-      next.delete(allocation);
-      return next;
-    });
-  }, []);
+  const toggleSelectedNodeAllocation = useCallback(
+    (allocation: z.infer<typeof adminNodeAllocationSchema>, selected: boolean, range = false) => {
+      const affected = range
+        ? selectionRange(visibleNodeAllocations.current, selectionAnchor.current, allocation, (entry) => entry.uuid)
+        : [allocation];
+      selectionAnchor.current = allocation.uuid;
+
+      setSelectedNodeAllocationsState((prev) => {
+        const next = new ObjectSet('uuid', prev.values());
+        for (const entry of affected) {
+          if (selected) {
+            next.add(entry);
+          } else {
+            next.delete(entry);
+          }
+        }
+        return next;
+      });
+    },
+    [],
+  );
 
   const [openModal, setOpenModal] = useState<'create' | null>(null);
   const [ipFilter, setIpFilter] = useState<string | null>(null);
@@ -83,11 +93,16 @@ export default function AdminNodeAllocations({ node }: { node: z.infer<typeof ad
     debouncedSearch,
     setSearch,
     setPage,
+    setPerPage,
     refetch,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.admin.nodes.allocations(node.uuid),
-    fetcher: (page, search) => getNodeAllocations(node.uuid, page, buildFilter(search)),
+    fetcher: (page, search, perPage) => getNodeAllocations(node.uuid, page, buildFilter(search), perPage),
     deps: [node.uuid, ipFilter, portFrom, portTo, assignedFilter],
+  });
+
+  useEffect(() => {
+    visibleNodeAllocations.current = nodeAllocations?.data ?? [];
   });
 
   const filter = useMemo(() => buildFilter(debouncedSearch), [buildFilter, debouncedSearch]);
@@ -247,6 +262,7 @@ export default function AdminNodeAllocations({ node }: { node: z.infer<typeof ad
           error={error}
           pagination={nodeAllocations}
           onPageSelect={setPage}
+          onPerPageSelect={setPerPage}
         >
           {nodeAllocations?.data.map((allocation) => (
             <SelectionArea.Selectable key={allocation.uuid} item={allocation}>
@@ -257,8 +273,7 @@ export default function AdminNodeAllocations({ node }: { node: z.infer<typeof ad
                   ref={innerRef as Ref<HTMLTableRowElement>}
                   selectedNodeAllocations={selectedNodeAllocations}
                   selectedAllMatching={selectedAllMatching}
-                  addSelectedNodeAllocation={addSelectedNodeAllocation}
-                  removeSelectedNodeAllocation={removeSelectedNodeAllocation}
+                  toggleSelectedNodeAllocation={toggleSelectedNodeAllocation}
                 />
               )}
             </SelectionArea.Selectable>

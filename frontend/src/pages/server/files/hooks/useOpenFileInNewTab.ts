@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { FileOpenMode } from 'shared/src/registries/pages/server/files.ts';
+import { FileOpenMode } from 'shared/src/registries/pages/server/files/index.ts';
 import { fileOpenUrl } from '@/lib/files/files.ts';
 import { openUrl } from '@/lib/network/url.ts';
 import { FileManagerContextType } from '@/providers/contexts/fileManagerContext.ts';

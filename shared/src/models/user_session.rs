@@ -251,37 +251,22 @@ impl UserSession {
         per_page: i64,
         search: Option<&str>,
     ) -> Result<super::Pagination<Self>, crate::database::DatabaseError> {
-        let offset = (page - 1) * per_page;
-
-        let rows = sqlx::query(sqlx::AssertSqlSafe(format!(
-            r#"
-            SELECT {}, COUNT(*) OVER() AS total_count
-            FROM user_sessions
-            WHERE user_sessions.user_uuid = $1 AND {search}
-            ORDER BY user_sessions.created DESC
-            LIMIT $3 OFFSET $4
-            "#,
+        super::PaginatedQueryBuilder::new(
             Self::columns_sql(None),
-            search = super::search_sql(2, &["user_sessions.user_agent"], &["user_sessions.uuid"])
-        )))
+            format!(
+                r#"
+                FROM user_sessions
+                WHERE user_sessions.user_uuid = $1 AND {search}
+                "#,
+                search =
+                    super::search_sql(2, &["user_sessions.user_agent"], &["user_sessions.uuid"]),
+            ),
+            "user_sessions.created DESC, user_sessions.uuid",
+        )
         .bind(user_uuid)
         .bind(search)
-        .bind(per_page)
-        .bind(offset)
-        .fetch_all(database.read())
-        .await?;
-
-        Ok(super::Pagination {
-            total: rows
-                .first()
-                .map_or(Ok(0), |row| row.try_get("total_count"))?,
-            per_page,
-            page,
-            data: rows
-                .into_iter()
-                .map(|row| Self::map(None, &row))
-                .try_collect_vec()?,
-        })
+        .fetch(database, page, per_page)
+        .await
     }
 
     pub async fn delete_by_user_uuid_except(
@@ -484,9 +469,9 @@ impl CreatableModel for UserSession {
                         "session_created",
                         &user,
                         minijinja::context! {
-                            user => user,
-                            ip => options.ip.ip().to_compact_string(),
-                            user_agent => options.user_agent,
+                            user => minijinja::value::Serde(&user),
+                            ip => minijinja::value::Serde(options.ip.ip().to_compact_string()),
+                            user_agent => minijinja::value::Serde(&options.user_agent),
                             sessions_link => format!("{}/account/sessions", settings.app.url),
                         },
                     )

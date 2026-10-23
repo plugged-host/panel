@@ -31,16 +31,16 @@ export default function UserRow({ user }: { user: z.infer<typeof adminFullUserSc
           {user.username}&nbsp;
           {isAdmin(user) && (
             <Tooltip label={t('pages.admin.users.tooltip.admin', {})}>
-              <FontAwesomeIcon icon={faCrown} className='text-yellow-400' />
+              <FontAwesomeIcon icon={faCrown} className='text-(--mantine-color-yellow-text)' />
             </Tooltip>
           )}
           {user.totpEnabled ? (
             <Tooltip label={t('pages.admin.users.tooltip.twoFactorEnabled', {})}>
-              <FontAwesomeIcon icon={faLock} className='text-green-500' />
+              <FontAwesomeIcon icon={faLock} className='text-(--mantine-color-green-text)' />
             </Tooltip>
           ) : (
             <Tooltip label={t('pages.admin.users.tooltip.twoFactorDisabled', {})}>
-              <FontAwesomeIcon icon={faLockOpen} className='text-red-500' />
+              <FontAwesomeIcon icon={faLockOpen} className='text-(--mantine-color-red-text)' />
             </Tooltip>
           )}
         </span>

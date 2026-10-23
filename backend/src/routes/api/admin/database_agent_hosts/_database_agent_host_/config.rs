@@ -14,7 +14,7 @@ mod get {
 
     #[derive(ToSchema, Serialize)]
     struct Response {
-        config: db_agent_api::system_config::get::Response,
+        config: db_agent_api::Config,
         locked_paths: &'static [&'static str],
     }
 
@@ -77,6 +77,12 @@ mod patch {
         permissions.has_admin_permission("database-agent-hosts.update")?;
 
         db_agent_api::strip_config_paths(&mut data);
+        if permissions
+            .has_admin_permission("database-agent-hosts.read-token")
+            .is_err()
+        {
+            shared::censor::strip_censored_paths(&mut data, db_agent_api::SECRET_CONFIG_PATHS);
+        }
 
         let applied = database_agent_host
             .update_configuration(&state.database, &data)

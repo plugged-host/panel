@@ -1,5 +1,6 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import Button from '@/elements/buttons/Button.tsx';
+import { AdminCan } from '@/elements/Can.tsx';
 import AdminSubContentContainer from '@/elements/containers/AdminSubContentContainer.tsx';
 import TitleCard from '@/elements/data-display/TitleCard.tsx';
 import ExtensionSlot from '@/elements/ExtensionSlot.tsx';
@@ -7,6 +8,7 @@ import Group from '@/elements/layout/Group.tsx';
 import Stack from '@/elements/layout/Stack.tsx';
 import { AdminServer } from '@/lib/schemas/admin/servers.ts';
 import { useServerManagementActions } from '@/pages/admin/servers/management/serverManagementActions.tsx';
+import TrashCard from '@/pages/admin/servers/management/TrashCard.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useAdminStore } from '@/stores/admin.tsx';
 
@@ -31,6 +33,10 @@ export default function AdminServerManagement({ server }: { server: AdminServer 
           name='management-managementContainer-prepended'
           props={{ server }}
         />
+
+        <AdminCan action='servers.update'>
+          <TrashCard server={server} />
+        </AdminCan>
 
         {actions.map((action) => (
           <TitleCard

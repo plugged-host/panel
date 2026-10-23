@@ -26,6 +26,7 @@ function BackupConfigurationsContainer() {
     search,
     setSearch,
     setPage,
+    setPerPage,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.admin.backupConfigurations.all(),
     fetcher: getBackupConfigurations,
@@ -54,6 +55,7 @@ function BackupConfigurationsContainer() {
         loading={loading}
         pagination={backupConfigurations}
         onPageSelect={setPage}
+        onPerPageSelect={setPerPage}
         error={error}
       >
         {backupConfigurations?.data.map((bc) => (

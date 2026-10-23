@@ -270,7 +270,7 @@ impl NestEggVariable {
             SELECT {}
             FROM nest_egg_variables
             WHERE nest_egg_variables.egg_uuid = $1
-            ORDER BY nest_egg_variables.order_, nest_egg_variables.created
+            ORDER BY nest_egg_variables.order_, nest_egg_variables.created, nest_egg_variables.uuid
             "#,
             Self::columns_sql(None)
         )))

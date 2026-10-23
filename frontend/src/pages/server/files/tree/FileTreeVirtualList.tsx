@@ -42,6 +42,8 @@ interface FileTreeVirtualListProps {
   onToggleSelection: (item: TreeSelectionItem) => void;
   onStartDrag: (event: React.DragEvent, item: TreeSelectionItem) => void;
   onDragEnd: () => void;
+  onCreateFileIn?: (directory: string, writable: boolean) => void;
+  onCreateDirectoryIn?: (directory: string, writable: boolean) => void;
   onLoadPage: (directory: string, page: number) => Promise<void>;
 }
 
@@ -84,6 +86,8 @@ export default function FileTreeVirtualList({
   onToggleSelection,
   onStartDrag,
   onDragEnd,
+  onCreateFileIn,
+  onCreateDirectoryIn,
   onLoadPage,
 }: FileTreeVirtualListProps) {
   'use no memo'; // The virtualizer's return value cannot be memoized safely; opt this component out of the compiler.
@@ -286,6 +290,8 @@ export default function FileTreeVirtualList({
                         onToggleSelection={onToggleSelection}
                         onStartDrag={onStartDrag}
                         onDragEnd={onDragEnd}
+                        onCreateFileIn={onCreateFileIn}
+                        onCreateDirectoryIn={onCreateDirectoryIn}
                       />
                     )}
                   </VirtualTreeRowContainer>

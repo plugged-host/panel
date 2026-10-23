@@ -26,7 +26,7 @@ interface ScheduleRowProps {
   schedule: z.infer<typeof serverScheduleSchema>;
   atLimit?: boolean;
   isSelected?: boolean;
-  onSelectionChange?: (selected: boolean) => void;
+  onSelectionChange?: (selected: boolean, range?: boolean) => void;
   onClick?: (event: React.MouseEvent) => void;
 }
 
@@ -121,6 +121,7 @@ const ScheduleRow = forwardRef<HTMLTableRowElement, ScheduleRowProps>(function S
                 color: 'gray',
               },
             ],
+            disabled: !schedule.enabled,
             canAccess: useServerCan('schedules.update'),
           },
           {

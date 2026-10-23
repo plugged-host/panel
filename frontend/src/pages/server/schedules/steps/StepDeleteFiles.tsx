@@ -31,6 +31,11 @@ export default function StepDeleteFiles({
         {...form.getInputProps('action.files')}
       />
       <Switch
+        label={t('pages.server.schedules.steps.deleteFiles.form.trash', {})}
+        description={t('pages.server.schedules.steps.deleteFiles.form.trashDescription', {})}
+        {...form.getInputProps('action.trash', { type: 'checkbox' })}
+      />
+      <Switch
         label={t('pages.server.schedules.form.ignoreFailure', {})}
         {...form.getInputProps('action.ignoreFailure', { type: 'checkbox' })}
       />

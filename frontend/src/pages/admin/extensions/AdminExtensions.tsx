@@ -63,6 +63,7 @@ export default function AdminExtensions() {
         opened={!!ext.removalExtension}
         extension={ext.removalExtension}
         onRemove={(removeMigrations) => ext.handleRemove(ext.removalExtension!, removeMigrations)}
+        removing={!!ext.removalExtension && ext.isPending(`remove:${ext.removalExtension.metadataToml.packageName}`)}
         onClose={() => ext.setRemovalExtension(null)}
       />
 
@@ -74,9 +75,11 @@ export default function AdminExtensions() {
         buildFailed={ext.buildFailed}
         failureReason={ext.failureReason}
         failedExtensions={ext.failedExtensions}
+        startFailedExtensions={ext.adminExtensions?.failed ?? {}}
         pendingRestart={ext.pendingRestart}
         isBuilding={ext.isBuilding}
         onRestart={ext.handleRestart}
+        restarting={ext.isPending('restart')}
       />
 
       <ExtensionUploadsCard uploads={ext.uploads} onCancel={ext.handleCancelUpload} />
@@ -87,6 +90,7 @@ export default function AdminExtensions() {
         failedExtensions={ext.failedExtensions}
         onRemove={ext.setRemovalExtension}
         onToggle={ext.handleToggle}
+        isPending={ext.isPending}
       />
 
       {ext.extensionStatus && (
@@ -100,6 +104,7 @@ export default function AdminExtensions() {
           onCancelBuild={ext.handleCancelBuild}
           onRebuild={ext.handleRebuild}
           onRemove={ext.handleRemove}
+          isPending={ext.isPending}
         />
       )}
     </AdminContentContainer>

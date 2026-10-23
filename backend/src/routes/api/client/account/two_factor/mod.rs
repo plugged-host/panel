@@ -122,6 +122,7 @@ mod post {
         shared::Payload(data): shared::Payload<Payload>,
     ) -> ApiResponseResult {
         permissions.has_user_permission("account.two-factor")?;
+        permissions.deny_while_impersonating()?;
 
         if user.totp_enabled {
             return ApiResponse::error("two-factor authentication is already enabled")
@@ -193,6 +194,7 @@ mod delete {
         ApiError, GetState,
         models::{
             ByUuid,
+            node::{Node, PermissionsInvalidation},
             user::{GetPermissionManager, GetUser, User},
             user_activity::GetUserActivityLogger,
             user_recovery_code::UserRecoveryCode,
@@ -228,6 +230,7 @@ mod delete {
         shared::Payload(data): shared::Payload<Payload>,
     ) -> ApiResponseResult {
         permissions.has_user_permission("account.two-factor")?;
+        permissions.deny_while_impersonating()?;
 
         if !user.totp_enabled {
             return ApiResponse::error("two-factor authentication is not enabled")
@@ -308,6 +311,13 @@ mod delete {
         .await?;
 
         User::invalidate_cached(&state.database, user.uuid).await;
+        Node::invalidate_permissions_everywhere(
+            &state.database,
+            PermissionsInvalidation {
+                users: vec![user.uuid],
+                ..Default::default()
+            },
+        );
 
         activity_logger
             .log("account:two-factor.disable", serde_json::json!({}))

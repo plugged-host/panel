@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT\n                COUNT(*) as servers,\n                COALESCE(SUM(cpu), 0)::int8 as cpu,\n                COALESCE(SUM(memory), 0)::int8 as memory,\n                COALESCE(SUM(memory_overhead), 0)::int8 as memory_overhead,\n                COALESCE(SUM(disk), 0)::int8 as disk\n            FROM servers\n            WHERE servers.node_uuid = $1",
+  "query": "SELECT\n                    COUNT(*) as servers,\n                    COALESCE(SUM(cpu), 0)::int8 as cpu,\n                    COALESCE(SUM(memory), 0)::int8 as memory,\n                    COALESCE(SUM(memory_overhead), 0)::int8 as memory_overhead,\n                    COALESCE(SUM(disk), 0)::int8 as disk\n                FROM servers\n                WHERE servers.node_uuid = $1",
   "describe": {
     "columns": [
       {
@@ -47,5 +47,5 @@
       null
     ]
   },
-  "hash": "c81ac839f807259fcdb062aca41ada0768de79f431e9f6dff3b4c99d1f8cfcf0"
+  "hash": "2fc284f3a52ad60245740c3d586b7f90bf71e9317600e31a6a7a1763d3c4415c"
 }

@@ -55,7 +55,7 @@ export default function BackupGroupCard({
                 variant='subtle'
                 color='gray'
                 style={{ cursor: 'grab', flexShrink: 0 }}
-                className='text-gray-400! light:text-gray-500!'
+                className='text-(--mantine-color-dimmed)!'
                 {...dragHandleProps}
               >
                 <FontAwesomeIcon icon={faGripVertical} style={{ fontSize: 16 }} />

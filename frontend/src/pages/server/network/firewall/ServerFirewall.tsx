@@ -1,6 +1,7 @@
 import { faBan, faExclamationTriangle, faPlus, faShieldHalved, faUpload } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ComponentProps, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import { z } from 'zod';
 import { httpErrorToHuman } from '@/api/axios.ts';
 import getFirewall from '@/api/server/firewall/getFirewall.ts';
@@ -124,13 +125,13 @@ export default function ServerFirewall() {
     setSaving(false);
   };
 
-  const appendRule = (rule: Rule) => replace([...rules, { id: `rule-new-${crypto.randomUUID()}`, rule }]);
+  const appendRule = (rule: Rule) => replace([...rules, { id: `rule-new-${uuidv4()}`, rule }]);
 
   const duplicateRule = (id: string) => {
     const index = rules.findIndex((item) => item.id === id);
     if (index === -1) return;
 
-    replace(rules.toSpliced(index + 1, 0, { id: `rule-new-${crypto.randomUUID()}`, rule: rules[index].rule }));
+    replace(rules.toSpliced(index + 1, 0, { id: `rule-new-${uuidv4()}`, rule: rules[index].rule }));
   };
 
   const handleSaveRule = (rule: Rule) => {
@@ -156,7 +157,7 @@ export default function ServerFirewall() {
   };
 
   const applyImportedRules = (imported: Rule[]) =>
-    replace(imported.map((rule) => ({ id: `rule-imported-${crypto.randomUUID()}`, rule })));
+    replace(imported.map((rule) => ({ id: `rule-imported-${uuidv4()}`, rule })));
 
   const resolvePendingImport = (apply: boolean) => {
     const pending = pendingImport.current;

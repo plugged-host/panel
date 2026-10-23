@@ -34,7 +34,7 @@ import DatabaseRecreateModal from './modals/DatabaseRecreateModal.tsx';
 interface DatabaseRowProps {
   database: z.infer<typeof serverDatabaseSchema>;
   isSelected?: boolean;
-  onSelectionChange?: (selected: boolean) => void;
+  onSelectionChange?: (selected: boolean, range?: boolean) => void;
 }
 
 const DatabaseRow = forwardRef<HTMLTableRowElement, DatabaseRowProps>(function DatabaseRow(
@@ -148,9 +148,9 @@ const DatabaseRow = forwardRef<HTMLTableRowElement, DatabaseRowProps>(function D
 
             <TableData>
               {database.isLocked ? (
-                <FontAwesomeIcon className='text-green-500' icon={faLock} />
+                <FontAwesomeIcon className='text-(--mantine-color-green-text)' icon={faLock} />
               ) : (
-                <FontAwesomeIcon className='text-red-500' icon={faLockOpen} />
+                <FontAwesomeIcon className='text-(--mantine-color-red-text)' icon={faLockOpen} />
               )}
             </TableData>
 

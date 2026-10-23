@@ -18,6 +18,7 @@ import Switch from '@/elements/input/Switch.tsx';
 import TagsInput from '@/elements/input/TagsInput.tsx';
 import TextArea from '@/elements/input/TextArea.tsx';
 import TextInput from '@/elements/input/TextInput.tsx';
+import TimezoneInput from '@/elements/input/TimezoneInput.tsx';
 import Divider from '@/elements/layout/Divider.tsx';
 import Tooltip from '@/elements/overlays/Tooltip.tsx';
 import { FieldDef, FieldOption, resolveString } from './types.ts';
@@ -270,6 +271,20 @@ export function FormField<T extends Record<string, unknown>>({ form, field }: Pr
         />
       );
     }
+
+    case 'timezone':
+      return (
+        <TimezoneInput
+          className={colSpanClass}
+          label={fieldLabel(field)}
+          description={resolveString(field.description)}
+          withAsterisk={field.required}
+          withSystemOption={field.withSystemOption}
+          key={f.key(field.name)}
+          {...f.getInputProps(field.name)}
+          {...field.props}
+        />
+      );
 
     case 'localizedtext':
       return (

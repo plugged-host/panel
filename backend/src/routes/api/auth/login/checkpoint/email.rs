@@ -119,8 +119,8 @@ mod post {
                 "two_factor_code",
                 &user,
                 minijinja::context! {
-                    user => user,
-                    code => code,
+                    user => minijinja::value::Serde(&user),
+                    code => minijinja::value::Serde(&code),
                 },
             )
             .await

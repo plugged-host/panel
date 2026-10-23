@@ -26,6 +26,7 @@ function EggRepositoriesContainer() {
     search,
     setSearch,
     setPage,
+    setPerPage,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.admin.eggRepositories.all(),
     fetcher: getEggRepositories,
@@ -55,6 +56,7 @@ function EggRepositoriesContainer() {
         error={error}
         pagination={eggRepositories}
         onPageSelect={setPage}
+        onPerPageSelect={setPerPage}
       >
         {eggRepositories?.data.map((eggRepository) => (
           <EggRepositoryRow key={eggRepository.uuid} eggRepository={eggRepository} />

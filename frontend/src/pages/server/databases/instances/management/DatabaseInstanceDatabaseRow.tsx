@@ -55,7 +55,7 @@ export default function DatabaseInstanceDatabaseRow({
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  const [openModal, setOpenModal] = useState<'export' | 'import' | 'remoteImport' | 'recreate' | 'delete' | null>(null);
+  const [openModal, setOpenModal] = useState<'import' | 'export' | 'remoteImport' | 'recreate' | 'delete' | null>(null);
 
   const {
     data: size,
@@ -68,8 +68,8 @@ export default function DatabaseInstanceDatabaseRow({
     silent: true,
   });
 
-  const canExport = useServerCan('database-instances.export');
   const canImport = useServerCan('database-instances.import');
+  const canExport = useServerCan('database-instances.export');
   const canRecreate = useServerCan('database-instances.recreate');
 
   const doDelete = async () => {
@@ -88,16 +88,16 @@ export default function DatabaseInstanceDatabaseRow({
 
   return (
     <>
-      <DatabaseInstanceDatabaseExportModal
-        instance={instance}
-        database={database}
-        opened={openModal === 'export'}
-        onClose={() => setOpenModal(null)}
-      />
       <DatabaseInstanceDatabaseImportModal
         instance={instance}
         database={database}
         opened={openModal === 'import'}
+        onClose={() => setOpenModal(null)}
+      />
+      <DatabaseInstanceDatabaseExportModal
+        instance={instance}
+        database={database}
+        opened={openModal === 'export'}
         onClose={() => setOpenModal(null)}
       />
       <DatabaseInstanceDatabaseRemoteImportModal
@@ -142,21 +142,21 @@ export default function DatabaseInstanceDatabaseRow({
           },
           {
             type: 'action',
-            icon: faDownload,
-            label: t('common.button.export', {}),
-            disabled: offline,
-            onClick: () => setOpenModal('export'),
-            color: 'gray',
-            canAccess: canExport,
-          },
-          {
-            type: 'action',
             icon: faUpload,
             label: t('common.button.import', {}),
             disabled: offline,
             onClick: () => setOpenModal('import'),
             color: 'gray',
             canAccess: canImport,
+          },
+          {
+            type: 'action',
+            icon: faDownload,
+            label: t('common.button.export', {}),
+            disabled: offline,
+            onClick: () => setOpenModal('export'),
+            color: 'gray',
+            canAccess: canExport,
           },
           {
             type: 'action',
@@ -202,7 +202,7 @@ export default function DatabaseInstanceDatabaseRow({
               </CopyOnClick>
               {!hasUser && (
                 <Tooltip label={t('pages.server.databases.instance.databases.tooltip.noUser', {})}>
-                  <FontAwesomeIcon icon={faWarning} className='ml-2 text-yellow-400' />
+                  <FontAwesomeIcon icon={faWarning} className='ml-2 text-(--mantine-color-yellow-text)' />
                 </Tooltip>
               )}
             </TableData>

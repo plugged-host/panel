@@ -198,6 +198,14 @@ mod patch {
     ) -> ApiResponseResult {
         permissions.has_admin_permission("oauth-providers.update")?;
 
+        if !permissions.is_unrestricted_admin() && data.changes_identity(&oauth_provider) {
+            return ApiResponse::error(
+                "only administrators can change how an oauth provider identifies users or how they may sign in with it",
+            )
+            .with_status(StatusCode::FORBIDDEN)
+            .ok();
+        }
+
         if data.enabled == Some(false)
             && !state
                 .settings

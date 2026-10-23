@@ -218,7 +218,7 @@ impl DatabaseAgentTemplate {
             SELECT {}
             FROM database_agent_templates
             WHERE database_agent_templates.deployment_enabled
-            ORDER BY database_agent_templates.created
+            ORDER BY database_agent_templates.created, database_agent_templates.uuid
             "#,
             Self::columns_sql(None)
         )))
@@ -236,40 +236,24 @@ impl DatabaseAgentTemplate {
         per_page: i64,
         search: Option<&str>,
     ) -> Result<super::Pagination<Self>, crate::database::DatabaseError> {
-        let offset = (page - 1) * per_page;
-
-        let rows = sqlx::query(sqlx::AssertSqlSafe(format!(
-            r#"
-            SELECT {}, COUNT(*) OVER() AS total_count
-            FROM database_agent_templates
-            WHERE {search}
-            ORDER BY database_agent_templates.created
-            LIMIT $2 OFFSET $3
-            "#,
+        super::PaginatedQueryBuilder::new(
             Self::columns_sql(None),
-            search = super::search_sql(
-                1,
-                &["database_agent_templates.name"],
-                &["database_agent_templates.uuid"]
-            )
-        )))
+            format!(
+                r#"
+                FROM database_agent_templates
+                WHERE {search}
+                "#,
+                search = super::search_sql(
+                    1,
+                    &["database_agent_templates.name"],
+                    &["database_agent_templates.uuid"]
+                ),
+            ),
+            "database_agent_templates.created, database_agent_templates.uuid",
+        )
         .bind(search)
-        .bind(per_page)
-        .bind(offset)
-        .fetch_all(database.read())
-        .await?;
-
-        Ok(super::Pagination {
-            total: rows
-                .first()
-                .map_or(Ok(0), |row| row.try_get("total_count"))?,
-            per_page,
-            page,
-            data: rows
-                .into_iter()
-                .map(|row| Self::map(None, &row))
-                .try_collect_vec()?,
-        })
+        .fetch(database, page, per_page)
+        .await
     }
 }
 

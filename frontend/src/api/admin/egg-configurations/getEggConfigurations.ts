@@ -6,9 +6,10 @@ import { parsePaginationFromApi } from '@/lib/serialization/api-transform.ts';
 export default async (
   page: number,
   search?: string,
+  perPage?: number,
 ): Promise<Pagination<z.infer<typeof adminEggConfigurationSchema>>> => {
   const { data } = await axiosInstance.get('/api/admin/egg-configurations', {
-    params: { page, search },
+    params: { page, per_page: perPage, search },
   });
   return parsePaginationFromApi(adminEggConfigurationSchema, data.egg_configurations);
 };

@@ -45,6 +45,11 @@ export function useApplicationFormFields({
   const { t } = useTranslations();
 
   return [
+    {
+      type: 'divider',
+      name: 'generalDivider',
+      label: t('pages.admin.settings.tabs.application.page.section.general', {}),
+    },
     { type: 'text', name: 'name', label: t('common.form.name', {}), required: true },
     {
       type: 'select',
@@ -56,6 +61,20 @@ export function useApplicationFormFields({
         value: l,
       })),
       props: { searchable: true },
+    },
+    { type: 'text', name: 'url', label: t('common.form.url', {}), required: true },
+    {
+      type: 'tags',
+      name: 'additionalUrls',
+      label: t('pages.admin.settings.tabs.application.page.form.additionalUrls', {}),
+      description: t('pages.admin.settings.tabs.application.page.form.additionalUrlsDescription', {}),
+      placeholder: 'e.g. https://panel.example.org',
+      advanced: true,
+    },
+    {
+      type: 'divider',
+      name: 'brandingDivider',
+      label: t('pages.admin.settings.tabs.application.page.section.branding', {}),
     },
     {
       type: 'autocomplete',
@@ -84,28 +103,10 @@ export function useApplicationFormFields({
       options: assetUrls,
       advanced: true,
     },
-    { type: 'text', name: 'url', label: t('common.form.url', {}), required: true },
     {
-      type: 'tags',
-      name: 'additionalUrls',
-      label: t('pages.admin.settings.tabs.application.page.form.additionalUrls', {}),
-      description: t('pages.admin.settings.tabs.application.page.form.additionalUrlsDescription', {}),
-      placeholder: 'e.g. https://panel.example.org',
-      advanced: true,
-    },
-    {
-      type: 'text',
-      name: 'sessionCookie',
-      label: t('pages.admin.settings.tabs.application.page.form.sessionCookie', {}),
-      required: true,
-      advanced: true,
-    },
-    {
-      type: 'number',
-      name: 'sessionDurationSeconds',
-      label: t('pages.admin.settings.tabs.application.page.form.sessionDurationSeconds', {}),
-      required: true,
-      advanced: true,
+      type: 'divider',
+      name: 'authenticationDivider',
+      label: t('pages.admin.settings.tabs.application.page.section.authentication', {}),
     },
     {
       type: 'select',
@@ -125,12 +126,6 @@ export function useApplicationFormFields({
       ],
     },
     {
-      type: 'switch',
-      name: 'emailTwoFactorEnabled',
-      label: t('pages.admin.settings.tabs.application.page.form.emailTwoFactorEnabled', {}),
-      description: t('pages.admin.settings.tabs.application.page.form.emailTwoFactorEnabledDescription', {}),
-    },
-    {
       type: 'multiselect',
       name: 'twoFactorAcceptedMethods',
       label: t('pages.admin.settings.tabs.application.page.form.twoFactorAcceptedMethods', {}),
@@ -146,18 +141,15 @@ export function useApplicationFormFields({
     },
     {
       type: 'switch',
-      name: 'emailVerificationRequired',
-      label: t('pages.admin.settings.tabs.application.page.form.emailVerificationRequired', {}),
-      description: t('pages.admin.settings.tabs.application.page.form.emailVerificationRequiredDescription', {}),
+      name: 'emailTwoFactorEnabled',
+      label: t('pages.admin.settings.tabs.application.page.form.emailTwoFactorEnabled', {}),
+      description: t('pages.admin.settings.tabs.application.page.form.emailTwoFactorEnabledDescription', {}),
     },
     {
       type: 'switch',
-      name: 'telemetryEnabled',
-      label: t('pages.admin.settings.tabs.application.page.form.telemetryEnabled', {}),
-      description: t('pages.admin.settings.tabs.application.page.form.telemetryEnabledDescription', {}),
-      props: {
-        onChange: (e: React.ChangeEvent<HTMLInputElement>) => onTelemetryToggle(e.target.checked),
-      },
+      name: 'emailVerificationRequired',
+      label: t('pages.admin.settings.tabs.application.page.form.emailVerificationRequired', {}),
+      description: t('pages.admin.settings.tabs.application.page.form.emailVerificationRequiredDescription', {}),
     },
     {
       type: 'switch',
@@ -176,6 +168,40 @@ export function useApplicationFormFields({
       props: {
         name: 'passwordLoginEnabled',
         onChange: (e: React.ChangeEvent<HTMLInputElement>) => onPasswordLoginToggle(e.target.checked),
+      },
+    },
+    {
+      type: 'divider',
+      name: 'sessionsDivider',
+      label: t('pages.admin.settings.tabs.application.page.section.sessions', {}),
+      advanced: true,
+    },
+    {
+      type: 'text',
+      name: 'sessionCookie',
+      label: t('pages.admin.settings.tabs.application.page.form.sessionCookie', {}),
+      required: true,
+      advanced: true,
+    },
+    {
+      type: 'number',
+      name: 'sessionDurationSeconds',
+      label: t('pages.admin.settings.tabs.application.page.form.sessionDurationSeconds', {}),
+      required: true,
+      advanced: true,
+    },
+    {
+      type: 'divider',
+      name: 'telemetryDivider',
+      label: t('pages.admin.settings.tabs.application.page.section.telemetry', {}),
+    },
+    {
+      type: 'switch',
+      name: 'telemetryEnabled',
+      label: t('pages.admin.settings.tabs.application.page.form.telemetryEnabled', {}),
+      description: t('pages.admin.settings.tabs.application.page.form.telemetryEnabledDescription', {}),
+      props: {
+        onChange: (e: React.ChangeEvent<HTMLInputElement>) => onTelemetryToggle(e.target.checked),
       },
     },
   ];

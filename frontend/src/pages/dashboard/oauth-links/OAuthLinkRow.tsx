@@ -17,7 +17,7 @@ import { useTranslations } from '@/providers/TranslationProvider.tsx';
 interface OAuthLinkRowProps {
   oauthLink: z.infer<typeof userOAuthLinkSchema>;
   isSelected?: boolean;
-  onSelectionChange?: (selected: boolean) => void;
+  onSelectionChange?: (selected: boolean, range?: boolean) => void;
 }
 
 const OAuthLinkRow = forwardRef<HTMLTableRowElement, OAuthLinkRowProps>(function OAuthLinkRow(

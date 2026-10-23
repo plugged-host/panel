@@ -1,5 +1,5 @@
 import { rectSortingStrategy } from '@dnd-kit/sortable';
-import { faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faPlus, faSliders } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ComponentProps, memo, startTransition, useEffect, useMemo, useState } from 'react';
 import { z } from 'zod';
@@ -10,6 +10,8 @@ import Button from '@/elements/buttons/Button.tsx';
 import { AdminCan } from '@/elements/Can.tsx';
 import AdminSubContentContainer from '@/elements/containers/AdminSubContentContainer.tsx';
 import { DndContainer, DndItem, SortableItem } from '@/elements/dnd/DragAndDrop.tsx';
+import EmptyState from '@/elements/feedback/EmptyState.tsx';
+import ErrorState from '@/elements/feedback/ErrorState.tsx';
 import Spinner from '@/elements/feedback/Spinner.tsx';
 import { adminEggSchema, adminEggVariableSchema } from '@/lib/schemas/admin/eggs.ts';
 import { adminNestSchema } from '@/lib/schemas/admin/nests.ts';
@@ -37,18 +39,25 @@ export default function AdminEggVariables({
   const canUpdate = useAdminCan('eggs.update');
 
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<unknown>(null);
   const [eggVariables, setEggVariables] = useState<z.infer<typeof adminEggVariableSchema>[]>([]);
 
-  useEffect(() => {
+  const loadVariables = () => {
+    setLoading(true);
+    setError(null);
+
     getEggVariables(contextNest.uuid, contextEgg.uuid)
       .then((data) => {
         setEggVariables(data);
       })
       .catch((err) => {
+        setError(err);
         addToast(httpErrorToHuman(err), 'error');
       })
       .finally(() => setLoading(false));
-  }, []);
+  };
+
+  useEffect(loadVariables, []);
 
   const addVariable = () => {
     const newVariable: z.infer<typeof adminEggVariableSchema> = {
@@ -69,6 +78,8 @@ export default function AdminEggVariables({
     setEggVariables([newVariable, ...eggVariables]);
   };
 
+  const isEmpty = !loading && !error && eggVariables.length === 0;
+
   const sortedEggVariables = useMemo(() => [...eggVariables].sort((a, b) => a.order - b.order), [eggVariables]);
 
   const dndEggVariables: DndEggVariable[] = useMemo(
@@ -81,15 +92,35 @@ export default function AdminEggVariables({
       title={t('pages.admin.nests.tabs.eggs.page.tabs.variables.page.title', {})}
       titleOrder={2}
       contentRight={
-        <AdminCan action='eggs.update'>
-          <Button onClick={addVariable} color='blue' leftSection={<FontAwesomeIcon icon={faPlus} />}>
-            {t('common.button.add', {})}
-          </Button>
-        </AdminCan>
+        isEmpty ? undefined : (
+          <AdminCan action='eggs.update'>
+            <Button onClick={addVariable} color='blue' leftSection={<FontAwesomeIcon icon={faPlus} />}>
+              {t('common.button.add', {})}
+            </Button>
+          </AdminCan>
+        )
       }
     >
       {loading ? (
         <Spinner.Centered />
+      ) : error ? (
+        <ErrorState error={httpErrorToHuman(error)} onRetry={loadVariables} />
+      ) : isEmpty ? (
+        <EmptyState
+          icon={faSliders}
+          title={t('pages.admin.nests.tabs.eggs.page.tabs.variables.page.empty.title', {})}
+          description={
+            canUpdate
+              ? t('pages.admin.nests.tabs.eggs.page.tabs.variables.page.empty.description', {})
+              : t('pages.admin.nests.tabs.eggs.page.tabs.variables.page.empty.descriptionReadOnly', {})
+          }
+        >
+          <AdminCan action='eggs.update'>
+            <Button onClick={addVariable} color='blue' leftSection={<FontAwesomeIcon icon={faPlus} />}>
+              {t('common.button.add', {})}
+            </Button>
+          </AdminCan>
+        </EmptyState>
       ) : (
         <DndContainer
           items={dndEggVariables}

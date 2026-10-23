@@ -1,4 +1,4 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { QueryMeta, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef } from 'react';
 import { httpErrorToHuman } from '@/api/axios.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
@@ -12,6 +12,7 @@ interface UsePollingResourceOptions<T> {
   pollInBackground?: boolean;
   retryOnError?: number;
   stopWhen?: (data: T) => boolean;
+  meta?: QueryMeta;
 }
 
 export function usePollingResource<T>({
@@ -23,6 +24,7 @@ export function usePollingResource<T>({
   pollInBackground = false,
   retryOnError = 0,
   stopWhen,
+  meta,
 }: UsePollingResourceOptions<T>) {
   const { addToast } = useToast();
   const queryClient = useQueryClient();
@@ -40,6 +42,7 @@ export function usePollingResource<T>({
       return interval;
     },
     refetchIntervalInBackground: pollInBackground,
+    meta,
   });
 
   useEffect(() => {

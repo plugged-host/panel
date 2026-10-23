@@ -1,9 +1,9 @@
-import { faCheck, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ReactNode } from 'react';
 import Table, { TableHeaderProps } from '@/elements/data-display/Table.tsx';
 import TitleCard from '@/elements/data-display/TitleCard.tsx';
+import ErrorState from '@/elements/feedback/ErrorState.tsx';
 import Spinner from '@/elements/feedback/Spinner.tsx';
+import StatusLine from '@/elements/feedback/StatusLine.tsx';
 import { LazyString } from '@/lib/lazy.ts';
 
 export interface OutdatedResourceTable {
@@ -12,6 +12,7 @@ export interface OutdatedResourceTable {
   data: Pagination<unknown> | undefined;
   columns: LazyString[] | TableHeaderProps[];
   onPageSelect: (page: number) => void;
+  onRetry?: () => void;
 }
 
 export interface OutdatedResourceStatus {
@@ -32,19 +33,21 @@ export default function OutdatedResourceCard({
   status: OutdatedResourceStatus;
   children: ReactNode;
 }) {
-  const { loading, error, data, columns, onPageSelect } = table;
+  const { loading, error, data, columns, onPageSelect, onRetry } = table;
 
   return (
     <TitleCard title={title} icon={icon}>
-      {loading || !data ? (
-        <Spinner.Centered />
+      {!data ? (
+        error && !loading ? (
+          <ErrorState error={error} onRetry={onRetry} />
+        ) : (
+          <Spinner.Centered />
+        )
       ) : !data.total ? (
-        <>
-          <FontAwesomeIcon icon={faCheck} /> {status.upToDate}
-        </>
+        <StatusLine status='ok'>{status.upToDate}</StatusLine>
       ) : (
         <>
-          <FontAwesomeIcon icon={faExclamationTriangle} /> {status.outdated}
+          <StatusLine status='warning'>{status.outdated}</StatusLine>
           <div className='mt-4' />
           <Table columns={columns} loading={loading} error={error} pagination={data} onPageSelect={onPageSelect}>
             {children}

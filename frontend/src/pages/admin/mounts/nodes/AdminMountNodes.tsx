@@ -98,9 +98,10 @@ export default function AdminMountNodes({ mount }: { mount: z.infer<typeof admin
     search,
     setSearch,
     setPage,
+    setPerPage,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.admin.mountAssignments.nodesByMount(mount.uuid),
-    fetcher: (page, search) => getMountNodes(mount.uuid, page, search),
+    fetcher: (page, search, perPage) => getMountNodes(mount.uuid, page, search, perPage),
   });
 
   return (
@@ -128,6 +129,7 @@ export default function AdminMountNodes({ mount }: { mount: z.infer<typeof admin
         loading={loading}
         pagination={mountNodes}
         onPageSelect={setPage}
+        onPerPageSelect={setPerPage}
         error={error}
       >
         {mountNodes?.data.map((nodeMount) => (

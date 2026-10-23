@@ -153,7 +153,7 @@ mod post {
                     "password_reset",
                     &user,
                     minijinja::context! {
-                        user => user,
+                        user => minijinja::value::Serde(&user),
                         reset_link => format!(
                             "{}/auth/reset-password?token={}",
                             settings.app.url_for_host(request_host.as_deref()).trim_end_matches('/'),

@@ -1,5 +1,5 @@
-import type { DiffOnMount, OnMount } from '@monaco-editor/react';
 import { Registry } from 'shared';
+import type { DiffOnMount, OnMount } from '@/lib/editor/monacoLoader.ts';
 
 export class MonacoEditorRegistry implements Registry {
   public mergeFrom(other: this): this {

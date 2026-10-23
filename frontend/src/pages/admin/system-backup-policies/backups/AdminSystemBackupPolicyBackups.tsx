@@ -23,9 +23,10 @@ export default function AdminSystemBackupPolicyBackups({
     search,
     setSearch,
     setPage,
+    setPerPage,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.admin.backups.bySystemBackupPolicy(systemBackupPolicy.uuid),
-    fetcher: (page, search) => getSystemBackupPolicyBackups(systemBackupPolicy.uuid, page, search),
+    fetcher: (page, search, perPage) => getSystemBackupPolicyBackups(systemBackupPolicy.uuid, page, search, perPage),
     paginationKey: 'backups',
     refetchInterval: (data) =>
       data?.backups.data.some((backup) => backup.deletionStatus === 'deleting') ? 5000 : false,
@@ -65,6 +66,7 @@ export default function AdminSystemBackupPolicyBackups({
         error={error}
         pagination={systemBackupPolicyBackups?.backups}
         onPageSelect={setPage}
+        onPerPageSelect={setPerPage}
       >
         {systemBackupPolicyBackups?.backups.data.map((backup) => (
           <NodeServerBackupRow

@@ -23,10 +23,11 @@ export default function AdminNodeTransfers({ node }: { node: z.infer<typeof admi
     search,
     setSearch,
     setPage,
+    setPerPage,
     refetch,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.admin.nodes.transfers(node.uuid),
-    fetcher: (page, search) => getNodeTransferringServers(node.uuid, page, search),
+    fetcher: (page, search, perPage) => getNodeTransferringServers(node.uuid, page, search, perPage),
     paginationKey: 'servers',
   });
 
@@ -109,6 +110,7 @@ export default function AdminNodeTransfers({ node }: { node: z.infer<typeof admi
           error={error}
           pagination={nodeTransferringServers?.servers}
           onPageSelect={setPage}
+          onPerPageSelect={setPerPage}
         >
           {nodeTransferringServers?.servers.data.map((server) => (
             <SelectionArea.Selectable key={server.uuid} item={server}>

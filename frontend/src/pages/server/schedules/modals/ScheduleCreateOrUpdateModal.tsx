@@ -19,8 +19,13 @@ import { ModalFooter } from '@/elements/modals/Modal.tsx';
 import Title from '@/elements/typography/Title.tsx';
 import { mappingToSelectData, scheduleTriggerDefaultMapping, scheduleTriggerLabelMapping } from '@/lib/enums.ts';
 import { queryKeys } from '@/lib/queryKeys.ts';
-import { serverScheduleSchema, serverScheduleUpdateSchema } from '@/lib/schemas/server/schedules.ts';
+import {
+  serverScheduleSchema,
+  serverScheduleTriggerSchema,
+  serverScheduleUpdateSchema,
+} from '@/lib/schemas/server/schedules.ts';
 import { useModalForm } from '@/plugins/form/useModalForm.ts';
+import { useServerCan } from '@/plugins/usePermissions.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useServerStore } from '@/stores/server.ts';
@@ -35,6 +40,7 @@ export default function ScheduleCreateOrUpdateModal({ propSchedule, onScheduleUp
   const { t } = useTranslations();
   const { addToast } = useToast();
   const server = useServerStore((state) => state.server);
+  const canReadConsole = useServerCan('control.read-console');
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -122,8 +128,18 @@ export default function ScheduleCreateOrUpdateModal({ propSchedule, onScheduleUp
                 <Select
                   label={t('pages.server.schedules.form.triggerNumber', { number: index + 1 })}
                   className='flex-1'
-                  data={mappingToSelectData(scheduleTriggerLabelMapping)}
-                  {...form.getInputProps(`triggers.${index}.type`)}
+                  data={mappingToSelectData(scheduleTriggerLabelMapping).map((item) => ({
+                    ...item,
+                    disabled: item.value === 'console_line' && !canReadConsole,
+                  }))}
+                  value={form.values.triggers[index].type}
+                  onChange={(type) =>
+                    type &&
+                    form.setFieldValue(
+                      `triggers.${index}`,
+                      scheduleTriggerDefaultMapping[type as z.infer<typeof serverScheduleTriggerSchema>['type']],
+                    )
+                  }
                 />
 
                 <TriggerInlineForm form={form} index={index} />

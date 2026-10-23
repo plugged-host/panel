@@ -76,6 +76,17 @@ export const adminNodeCapacitySchema = z.object({
     disk: z.number(),
   }),
   allocated: adminNodeAllocatedCapacitySchema,
+  servers: z.array(
+    z.object({
+      uuid: z.string(),
+      name: z.string(),
+      suspended: z.boolean(),
+      cpu: z.number(),
+      memory: z.number(),
+      memoryOverhead: z.number(),
+      disk: z.number(),
+    }),
+  ),
 });
 
 export const adminNodeCapacitiesSchema = z.record(z.string(), adminNodeAllocatedCapacitySchema);

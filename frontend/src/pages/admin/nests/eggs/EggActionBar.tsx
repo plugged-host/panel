@@ -97,7 +97,7 @@ export default function EggActionBar({
 
       <ActionBar opened={selectedEggs.size > 0}>
         <AdminCan action='eggs.update'>
-          <Button onClick={doUpdateUsingRepository} className='col-span-2' disabled={loading} loading={loading}>
+          <Button onClick={doUpdateUsingRepository} className='col-span-2' loading={loading}>
             <FontAwesomeIcon icon={faRefresh} className='mr-2' />{' '}
             {t('pages.admin.nests.tabs.eggs.page.button.updateFromRepository', {})}
           </Button>

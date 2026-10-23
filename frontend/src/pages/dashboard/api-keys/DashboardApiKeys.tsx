@@ -33,6 +33,7 @@ export default function DashboardApiKeys() {
     search,
     setSearch,
     setPage,
+    setPerPage,
     refetch,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.user.apiKeys.all(),
@@ -112,6 +113,7 @@ export default function DashboardApiKeys() {
           loading={loading}
           pagination={apiKeys}
           onPageSelect={setPage}
+          onPerPageSelect={setPerPage}
           error={error}
         >
           {apiKeys?.data.map((key) => (
@@ -122,7 +124,7 @@ export default function DashboardApiKeys() {
                   apiKey={key}
                   ref={innerRef as Ref<HTMLTableRowElement>}
                   isSelected={selectedApiKeys.has(key.uuid)}
-                  onSelectionChange={(selected) => toggleApiKey(key, selected)}
+                  onSelectionChange={(selected, range) => toggleApiKey(key, selected, range)}
                 />
               )}
             </SelectionArea.Selectable>

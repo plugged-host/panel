@@ -51,6 +51,12 @@ mod post {
     ) -> ApiResponseResult {
         permissions.has_server_permission("schedules.update")?;
 
+        if !schedule.enabled {
+            return ApiResponse::error("cannot trigger a disabled schedule")
+                .with_status(StatusCode::BAD_REQUEST)
+                .ok();
+        }
+
         state
             .cache
             .ratelimit(
@@ -65,7 +71,7 @@ mod post {
         let node = server.node.fetch_cached(&state.database).await?;
 
         tokio::spawn(async move {
-            match server.0.sync(&state.database).await {
+            match server.0.sync(&state).await {
                 Ok(_) => {}
                 Err(err) => {
                     tracing::error!(server = %server_uuid, "failed to post server sync: {:?}", err);

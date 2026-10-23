@@ -26,6 +26,7 @@ function EggConfigurationsContainer() {
     search,
     setSearch,
     setPage,
+    setPerPage,
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.admin.eggConfigurations.all(),
     fetcher: getEggConfigurations,
@@ -54,6 +55,7 @@ function EggConfigurationsContainer() {
         error={error}
         pagination={eggConfigurations}
         onPageSelect={setPage}
+        onPerPageSelect={setPerPage}
       >
         {eggConfigurations?.data.map((ec) => (
           <EggConfigurationRow key={ec.uuid} eggConfiguration={ec} />

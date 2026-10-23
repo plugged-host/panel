@@ -25,6 +25,7 @@ const admin = {
     bandwidth: (nodeUuid: string) => ['admin', 'nodes', nodeUuid, 'bandwidth'] as const,
     capacities: () => ['admin', 'nodes', 'capacities'] as const,
     systemOverview: (nodeUuid: string) => ['admin', 'nodes', nodeUuid, 'system', 'overview'] as const,
+    systemStats: (nodeUuid: string) => ['admin', 'nodes', nodeUuid, 'system', 'stats'] as const,
     systemDirect: (nodeUuid: string) => ['admin', 'nodes', nodeUuid, 'system', 'direct'] as const,
     systemIps: (nodeUuid: string) => ['admin', 'nodes', nodeUuid, 'system', 'ips'] as const,
     config: (nodeUuid: string) => ['admin', 'nodes', nodeUuid, 'config'] as const,
@@ -117,6 +118,7 @@ const admin = {
     all: () => ['admin', 'database-hosts'] as const,
     detail: (uuid: string) => ['admin', 'database-hosts', { uuid }] as const,
     databases: (hostUuid: string) => ['admin', 'database-hosts', hostUuid, 'databases'] as const,
+    version: (hostUuid: string) => ['admin', 'database-hosts', hostUuid, 'version'] as const,
   },
 
   databaseAgentHosts: {
@@ -126,6 +128,7 @@ const admin = {
     capacity: (uuid: string) => ['admin', 'database-agent-hosts', uuid, 'capacity'] as const,
     capacities: () => ['admin', 'database-agent-hosts', 'capacities'] as const,
     systemOverview: (uuid: string) => ['admin', 'database-agent-hosts', uuid, 'system', 'overview'] as const,
+    systemStats: (uuid: string) => ['admin', 'database-agent-hosts', uuid, 'system', 'stats'] as const,
   },
 
   databaseAgentTemplates: {
@@ -289,10 +292,11 @@ const server = (serverUuid: string) => ({
     fileLines: (path: string, startLine: number, endLine: number, modified: string, size: number) =>
       ['server', serverUuid, 'files', 'lines', path, { startLine, endLine, modified, size }] as const,
     fileRevisions: (path: string) => ['server', serverUuid, 'files', 'revisions', path] as const,
-    ignoreMatches: (pattern: string) => ['server', serverUuid, 'files', 'ignore-matches', pattern] as const,
+    ignoreMatches: (patterns: string[]) => ['server', serverUuid, 'files', 'ignore-matches', patterns] as const,
     pathSuggestions: (directory: string) => ['server', serverUuid, 'files', 'path-suggestions', directory] as const,
     pathStat: (directory: string, names: string[]) =>
       ['server', serverUuid, 'files', 'path-stat', directory, names] as const,
+    trash: () => ['server', serverUuid, 'files', 'trash'] as const,
   },
   firewall: {
     all: () => ['server', serverUuid, 'firewall'] as const,
@@ -354,4 +358,10 @@ const user = {
   },
 };
 
-export const queryKeys = { admin, server, user };
+const global = {
+  timezones: {
+    all: () => ['global', 'timezones'] as const,
+  },
+};
+
+export const queryKeys = { admin, global, server, user };

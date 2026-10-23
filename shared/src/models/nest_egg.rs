@@ -28,6 +28,12 @@ pub fn validate_startup_commands(
 
     let mut seen_commands = HashSet::new();
     for command in startup_commands.values() {
+        if command.trim().is_empty() {
+            return Err(garde::Error::new(compact_str::format_compact!(
+                "startup commands cannot be empty"
+            )));
+        }
+
         if !seen_commands.insert(command) {
             return Err(garde::Error::new(compact_str::format_compact!(
                 "duplicate startup command: {}",
@@ -45,6 +51,12 @@ pub fn validate_docker_images(
 ) -> Result<(), garde::Error> {
     let mut seen_images = HashSet::new();
     for image in docker_images.values() {
+        if image.trim().is_empty() {
+            return Err(garde::Error::new(compact_str::format_compact!(
+                "docker images cannot be empty"
+            )));
+        }
+
         if !seen_images.insert(image) {
             return Err(garde::Error::new(compact_str::format_compact!(
                 "duplicate docker image: {}",
@@ -276,7 +288,10 @@ impl ExportedNestEgg {
         Ok(if content.starts_with(b"{") {
             serde_json::from_slice(content)?
         } else {
-            serde_norway::from_slice(content)?
+            serde_saphyr::from_slice_with_options(
+                content,
+                crate::utils::yaml_deserialize_options(),
+            )?
         })
     }
 }
@@ -701,7 +716,7 @@ impl NestEgg {
             r#"
             SELECT {}
             FROM nest_eggs
-            ORDER BY nest_eggs.created
+            ORDER BY nest_eggs.created, nest_eggs.uuid
             "#,
             Self::columns_sql(None)
         )))
@@ -720,37 +735,21 @@ impl NestEgg {
         per_page: i64,
         search: Option<&str>,
     ) -> Result<super::Pagination<Self>, crate::database::DatabaseError> {
-        let offset = (page - 1) * per_page;
-
-        let rows = sqlx::query(sqlx::AssertSqlSafe(format!(
-            r#"
-            SELECT {}, COUNT(*) OVER() AS total_count
-            FROM nest_eggs
-            WHERE ($1::uuid IS NULL OR nest_eggs.nest_uuid = $1) AND {search}
-            ORDER BY nest_eggs.name, nest_eggs.created
-            LIMIT $3 OFFSET $4
-            "#,
+        super::PaginatedQueryBuilder::new(
             Self::columns_sql(None),
-            search = super::search_sql(2, &["nest_eggs.name"], &["nest_eggs.uuid"])
-        )))
+            format!(
+                r#"
+                FROM nest_eggs
+                WHERE ($1::uuid IS NULL OR nest_eggs.nest_uuid = $1) AND {search}
+                "#,
+                search = super::search_sql(2, &["nest_eggs.name"], &["nest_eggs.uuid"]),
+            ),
+            "nest_eggs.name, nest_eggs.created",
+        )
         .bind(nest_uuid)
         .bind(search)
-        .bind(per_page)
-        .bind(offset)
-        .fetch_all(database.read())
-        .await?;
-
-        Ok(super::Pagination {
-            total: rows
-                .first()
-                .map_or(Ok(0), |row| row.try_get("total_count"))?,
-            per_page,
-            page,
-            data: rows
-                .into_iter()
-                .map(|row| Self::map(None, &row))
-                .try_collect_vec()?,
-        })
+        .fetch(database, page, per_page)
+        .await
     }
 
     pub async fn by_nest_uuid_with_pagination(
@@ -760,86 +759,55 @@ impl NestEgg {
         per_page: i64,
         search: Option<&str>,
     ) -> Result<super::Pagination<Self>, crate::database::DatabaseError> {
-        let offset = (page - 1) * per_page;
-
-        let rows = sqlx::query(sqlx::AssertSqlSafe(format!(
-            r#"
-            SELECT {}, COUNT(*) OVER() AS total_count
-            FROM nest_eggs
-            WHERE nest_eggs.nest_uuid = $1 AND {search}
-            ORDER BY nest_eggs.created
-            LIMIT $3 OFFSET $4
-            "#,
+        super::PaginatedQueryBuilder::new(
             Self::columns_sql(None),
-            search = super::search_sql(2, &["nest_eggs.name"], &["nest_eggs.uuid"])
-        )))
+            format!(
+                r#"
+                FROM nest_eggs
+                WHERE nest_eggs.nest_uuid = $1 AND {search}
+                "#,
+                search = super::search_sql(2, &["nest_eggs.name"], &["nest_eggs.uuid"]),
+            ),
+            "nest_eggs.created, nest_eggs.uuid",
+        )
         .bind(nest_uuid)
         .bind(search)
-        .bind(per_page)
-        .bind(offset)
-        .fetch_all(database.read())
-        .await?;
-
-        Ok(super::Pagination {
-            total: rows
-                .first()
-                .map_or(Ok(0), |row| row.try_get("total_count"))?,
-            per_page,
-            page,
-            data: rows
-                .into_iter()
-                .map(|row| Self::map(None, &row))
-                .try_collect_vec()?,
-        })
+        .fetch(database, page, per_page)
+        .await
     }
 
     pub async fn by_user_with_pagination(
         database: &crate::database::Database,
-        user: &super::user::User,
+        permissions: &super::user::PermissionManager,
         page: i64,
         per_page: i64,
         search: Option<&str>,
     ) -> Result<super::Pagination<Self>, crate::database::DatabaseError> {
-        let offset = (page - 1) * per_page;
-
-        let rows = sqlx::query(sqlx::AssertSqlSafe(format!(
-            r#"
-            SELECT *, COUNT(*) OVER() AS total_count
-            FROM (
-                SELECT DISTINCT ON (nest_eggs.uuid) {}
-                FROM servers
-                JOIN nest_eggs ON nest_eggs.uuid = servers.egg_uuid
-                LEFT JOIN server_subusers ON server_subusers.server_uuid = servers.uuid AND server_subusers.user_uuid = $1
-                JOIN nests ON nests.uuid = nest_eggs.nest_uuid
-                WHERE (servers.owner_uuid = $1 OR server_subusers.user_uuid = $1 OR $2)
-                    AND {search}
-                ORDER BY nest_eggs.uuid
-            ) AS eggs
-            ORDER BY eggs.created
-            LIMIT $4 OFFSET $5
-            "#,
-            Self::columns_sql(None),
-            search = super::search_sql(3, &["nest_eggs.name"], &["nest_eggs.uuid"])
-        )))
-        .bind(user.uuid)
-        .bind(user.role.as_ref().map_or(user.admin, |r| r.admin_permissions.iter().any(|p| p == "servers.read")))
+        super::PaginatedQueryBuilder::new(
+            "*",
+            format!(
+                r#"
+                FROM (
+                    SELECT DISTINCT ON (nest_eggs.uuid) {}
+                    FROM servers
+                    JOIN nest_eggs ON nest_eggs.uuid = servers.egg_uuid
+                    LEFT JOIN server_subusers ON server_subusers.server_uuid = servers.uuid AND server_subusers.user_uuid = $1
+                    JOIN nests ON nests.uuid = nest_eggs.nest_uuid
+                    WHERE (servers.owner_uuid = $1 OR server_subusers.user_uuid = $1 OR $2)
+                        AND {search}
+                    ORDER BY nest_eggs.uuid
+                ) AS eggs
+                "#,
+                Self::columns_sql(None),
+                search = super::search_sql(3, &["nest_eggs.name"], &["nest_eggs.uuid"]),
+            ),
+            "eggs.created, eggs.uuid",
+        )
+        .bind(permissions.user_uuid())
+        .bind(permissions.has_admin_permission("servers.read").is_ok())
         .bind(search)
-        .bind(per_page)
-        .bind(offset)
-        .fetch_all(database.read())
-        .await?;
-
-        Ok(super::Pagination {
-            total: rows
-                .first()
-                .map_or(Ok(0), |row| row.try_get("total_count"))?,
-            per_page,
-            page,
-            data: rows
-                .into_iter()
-                .map(|row| Self::map(None, &row))
-                .try_collect_vec()?,
-        })
+        .fetch(database, page, per_page)
+        .await
     }
 
     pub async fn by_nest_uuid_uuid(

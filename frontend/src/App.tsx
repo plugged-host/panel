@@ -1,10 +1,16 @@
-import { CSSVariablesResolver, MantineProvider, type MantineThemeOverride, mergeThemeOverrides } from '@mantine/core';
+import {
+  CSSVariablesResolver,
+  MantineProvider,
+  type MantineThemeOverride,
+  mergeThemeOverrides,
+  Text,
+} from '@mantine/core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { createBrowserHistory } from 'history';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { unstable_HistoryRouter as HistoryRouter } from 'react-router';
 import { useShallow } from 'zustand/react/shallow';
+import AssetReloadNotice from '@/elements/feedback/AssetReloadNotice.tsx';
 import Spinner from '@/elements/feedback/Spinner.tsx';
 import getAnnouncements from './api/getAnnouncements.ts';
 import getLanguages from './api/getLanguages.ts';
@@ -18,6 +24,7 @@ import { ToastProvider } from './providers/ToastProvider.tsx';
 import TranslationProvider from './providers/TranslationProvider.tsx';
 import { WindowProvider } from './providers/WindowProvider.tsx';
 import RouterRoutes from './RouterRoutes.tsx';
+import TransitionHistoryRouter from './routers/TransitionHistoryRouter.tsx';
 import { useGlobalStore } from './stores/global.ts';
 
 import '@mantine/core/styles.css';
@@ -105,6 +112,16 @@ export default function App({
     };
   }, []);
 
+  useEffect(() => {
+    if (settings?.app?.icon) {
+      const icons = document.getElementsByClassName('app-icon');
+
+      for (const icon of icons) {
+        (icon as HTMLLinkElement).href = settings.app.icon;
+      }
+    }
+  }, [settings?.app?.icon]);
+
   // plugged.host: Theme v2's accent from the theme colour: Mantine's blue palette and the
   // --phv2-accent* tokens (lib/accent.ts). Theme v2's own blue changes nothing.
   const accent = useMemo(() => accentFor(settings?.app?.themeColor), [settings?.app?.themeColor]);
@@ -127,64 +144,65 @@ export default function App({
     };
   }, [accent]);
 
-  useEffect(() => {
-    if (settings?.app?.icon) {
-      const icons = document.getElementsByClassName('app-icon');
-
-      for (const icon of icons) {
-        (icon as HTMLLinkElement).href = settings.app.icon;
-      }
-    }
-  }, [settings?.app?.icon]);
-
-  return Object.keys(settings).length > 0 ? (
-    <ErrorBoundary>
-      <MantineProvider
-        theme={accentedTheme}
-        cssVariablesResolver={cssVariablesResolver || undefined}
-        defaultColorScheme='dark'
-        forceColorScheme='dark'
-        deduplicateInlineStyles
-      >
-        <QueryClientProvider client={queryClient}>
-          <TranslationProvider>
-            <ToastProvider>
-              <WindowProvider>
-                <CurrentWindowProvider id={null}>
-                  <HistoryContext.Provider value={browserHistory}>
-                    <HistoryRouter history={browserHistory as never}>
-                      <ExtensionSlot
-                        components={window.extensionContext.extensionRegistry.global.prependedComponents}
-                        name='global-prepended'
-                      />
-
-                      <RouterRoutes isNormal />
-
-                      <ExtensionSlot
-                        components={window.extensionContext.extensionRegistry.global.appendedComponents}
-                        name='global-appended'
-                      />
-                    </HistoryRouter>
-                  </HistoryContext.Provider>
-
-                  <ReactQueryDevtools initialIsOpen={false} theme='dark' />
-                </CurrentWindowProvider>
-              </WindowProvider>
-            </ToastProvider>
-          </TranslationProvider>
-        </QueryClientProvider>
-      </MantineProvider>
-    </ErrorBoundary>
-  ) : (
+  return (
     <>
-      <MantineProvider theme={accentedTheme} defaultColorScheme='dark' forceColorScheme='dark' deduplicateInlineStyles>
-        <Spinner.Centered />
-        {loadWarning && (
-          <p className='text-center text-sm text-slate-400 -mt-4'>
-            Having trouble connecting to the server. Retrying...
-          </p>
-        )}
-      </MantineProvider>
+      {Object.keys(settings).length > 0 ? (
+        <ErrorBoundary theme={accentedTheme}>
+          <MantineProvider
+            theme={accentedTheme}
+            cssVariablesResolver={cssVariablesResolver || undefined}
+            defaultColorScheme='dark'
+            forceColorScheme='dark'
+            deduplicateInlineStyles
+          >
+            <QueryClientProvider client={queryClient}>
+              <TranslationProvider>
+                <ToastProvider>
+                  <WindowProvider>
+                    <CurrentWindowProvider id={null}>
+                      <HistoryContext.Provider value={browserHistory}>
+                        <TransitionHistoryRouter history={browserHistory}>
+                          <ExtensionSlot
+                            components={window.extensionContext.extensionRegistry.global.prependedComponents}
+                            name='global-prepended'
+                          />
+
+                          <RouterRoutes isNormal />
+
+                          <ExtensionSlot
+                            components={window.extensionContext.extensionRegistry.global.appendedComponents}
+                            name='global-appended'
+                          />
+                        </TransitionHistoryRouter>
+                      </HistoryContext.Provider>
+
+                      <ReactQueryDevtools initialIsOpen={false} theme='dark' />
+                    </CurrentWindowProvider>
+                  </WindowProvider>
+                </ToastProvider>
+              </TranslationProvider>
+            </QueryClientProvider>
+          </MantineProvider>
+        </ErrorBoundary>
+      ) : (
+        <>
+          <MantineProvider
+            theme={accentedTheme}
+            defaultColorScheme='dark'
+            forceColorScheme='dark'
+            deduplicateInlineStyles
+          >
+            <Spinner.Centered />
+            {loadWarning && (
+              <Text size='sm' c='dimmed' ta='center'>
+                Having trouble connecting to the server. Retrying...
+              </Text>
+            )}
+          </MantineProvider>
+        </>
+      )}
+
+      <AssetReloadNotice />
     </>
   );
 }

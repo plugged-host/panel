@@ -27,11 +27,10 @@ fn import_limits() -> image::Limits {
     limits
 }
 
-pub async fn transcode(
+pub async fn decode(
     data: impl AsRef<[u8]> + Send + 'static,
     limits: image::Limits,
-    enforce_minimum: bool,
-) -> Result<Vec<u8>, anyhow::Error> {
+) -> Result<image::DynamicImage, anyhow::Error> {
     if data.as_ref().is_empty() {
         return Err(DisplayError::new("image: payload cannot be empty").into());
     }
@@ -58,9 +57,17 @@ pub async fn transcode(
 
     reader.limits(limits);
 
-    let image = tokio::task::spawn_blocking(move || reader.decode())
+    Ok(tokio::task::spawn_blocking(move || reader.decode())
         .await?
-        .map_err(|_| DisplayError::new("image: unable to decode"))?;
+        .map_err(|_| DisplayError::new("image: unable to decode"))?)
+}
+
+pub async fn transcode(
+    data: impl AsRef<[u8]> + Send + 'static,
+    limits: image::Limits,
+    enforce_minimum: bool,
+) -> Result<Vec<u8>, anyhow::Error> {
+    let image = decode(data, limits).await?;
 
     if enforce_minimum
         && (!(MIN_UPLOAD_DIMENSION..=MAX_UPLOAD_DIMENSION).contains(&image.width())

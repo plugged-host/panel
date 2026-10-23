@@ -57,6 +57,7 @@
   --animate-progress-indeterminate: progress-indeterminate 1.4s cubic-bezier(0.45, 0, 0.55, 1) infinite;
   --animate-ring-indeterminate: ring-indeterminate 1.4s linear infinite;
   --animate-scrolling-text: scrolling-text 6s ease-in-out infinite;
+  --animate-fade-in: fade-in 0.3s ease-out 0.15s both;
 
   @keyframes progress-indeterminate {
     from {
@@ -74,6 +75,15 @@
     }
     to {
       rotate: 360deg;
+    }
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
     }
   }
 
@@ -126,6 +136,11 @@
     font-weight: 500;
   }
 
+  .file-tree-drop-target-span {
+    background-color: var(--mantine-color-green-light) !important;
+    box-shadow: inset 3px 0 0 var(--mantine-color-green-5) !important;
+  }
+
   .file-tree-root-drop-target {
     border-color: var(--mantine-color-green-5) !important;
     box-shadow: 0 0 0 1px var(--mantine-color-green-5) !important;
@@ -143,14 +158,16 @@
   --file-manager-tree-width: 20rem;
   --file-manager-tree-collapsed-width: 2.75rem;
   --file-manager-tree-min-content-width: 39rem;
-  --file-manager-tree-columns: 20rem 6.5rem 8.5rem 2rem;
+  --file-manager-tree-columns: minmax(20rem, 1fr) 6.5rem 8.5rem 2rem;
 }
 
 .file-manager-workspace-grid {
   display: grid;
   width: 100%;
   min-width: 0;
-  grid-template-columns: var(--file-manager-tree-width) minmax(0, 1fr);
+  grid-template-columns:
+    clamp(14rem, var(--file-manager-tree-width), calc(100% - 20rem - var(--file-manager-workspace-gap)))
+    minmax(0, 1fr);
   gap: var(--file-manager-workspace-gap);
 }
 
@@ -262,7 +279,8 @@
   }
 
   [data-file-manager-editor-pane]:not([data-active]),
-  [data-file-manager-editor-resize-handle] {
+  [data-file-manager-editor-resize-handle],
+  [data-file-manager-tree-resize-handle] {
     display: none;
   }
 

@@ -90,7 +90,7 @@ mod post {
             CreatableModel, IntoApiObject,
             server::{GetServer, GetServerActivityLogger},
             server_subuser::ServerSubuser,
-            user::{GetPermissionManager, GetUser},
+            user::GetPermissionManager,
         },
         response::{ApiResponse, ApiResponseResult},
     };
@@ -136,7 +136,6 @@ mod post {
         state: GetState,
         permissions: GetPermissionManager,
         ip: shared::GetIp,
-        user: GetUser,
         server: GetServer,
         activity_logger: GetServerActivityLogger,
         shared::Payload(data): shared::Payload<Payload>,
@@ -147,22 +146,9 @@ mod post {
                 .ok();
         }
 
-        if !user.admin
-            && let Some(subuser_permissions) = &server.subuser_permissions
-            && !data
-                .permissions
-                .iter()
-                .all(|p| subuser_permissions.contains(p))
-        {
-            return ApiResponse::error("permissions: more permissions than self")
-                .with_status(StatusCode::BAD_REQUEST)
-                .ok();
-        }
-
-        if data
-            .permissions
-            .iter()
-            .any(|p| permissions.has_server_permission(p).is_err())
+        if permissions
+            .missing_server_permission(&data.permissions)
+            .is_some()
         {
             return ApiResponse::error("permissions: more permissions than self")
                 .with_status(StatusCode::BAD_REQUEST)

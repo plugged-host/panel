@@ -11,6 +11,7 @@ import Stack from '@/elements/layout/Stack.tsx';
 import { Modal, ModalFooter } from '@/elements/modals/Modal.tsx';
 import FormattedTimestamp from '@/elements/time/FormattedTimestamp.tsx';
 import Text from '@/elements/typography/Text.tsx';
+import { generateCopyName } from '@/lib/files/files.ts';
 import { bytesToString } from '@/lib/format/size.ts';
 import { serverDirectoryEntrySchema } from '@/lib/schemas/server/files.ts';
 import FileRowIcon from '@/pages/server/files/list/FileRowIcon.tsx';
@@ -39,14 +40,6 @@ type Props = ModalProps & {
 
 function conflictKey(conflict: FileConflict): string {
   return conflict.server ? `${conflict.server.uuid}:${conflict.to}` : conflict.to;
-}
-
-function generateCopyName(name: string): string {
-  const dot = name.lastIndexOf('.');
-  const ext = dot > 0 ? name.slice(dot) : '';
-  const base = dot > 0 ? name.slice(0, dot) : name;
-
-  return `${base} copy${ext}`;
 }
 
 function FileMeta({ entry, label }: { entry: z.infer<typeof serverDirectoryEntrySchema>; label: string }) {

@@ -78,7 +78,7 @@ export default function ResetPassword() {
       <Stack className='w-full'>
         <div>
           <Title order={2}>{t('pages.auth.resetPassword.title', {})}</Title>
-          <Text className='text-neutral-400!'>{t('pages.auth.resetPassword.subtitle', {})}</Text>
+          <Text c='dimmed'>{t('pages.auth.resetPassword.subtitle', {})}</Text>
         </div>
         <Card>
           <form

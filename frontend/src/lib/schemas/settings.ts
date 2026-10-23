@@ -86,6 +86,7 @@ export const publicSettingsSchema = z.object({
     maxDatabaseInstanceUserCount: z.number(),
     allowOverwritingCustomDockerImage: z.boolean(),
     allowAcknowledgingInstallationFailure: z.boolean(),
+    allowChangingTrashSettings: z.boolean(),
     containerPrelude: z.string(),
   }),
   user: z.object({

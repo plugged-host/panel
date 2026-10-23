@@ -148,10 +148,8 @@ mod patch {
     use shared::{
         ApiError, GetState,
         models::{
-            UpdatableModel,
-            admin_activity::GetAdminActivityLogger,
-            role::UpdateRoleOptions,
-            user::{GetPermissionManager, GetUser},
+            UpdatableModel, admin_activity::GetAdminActivityLogger, role::UpdateRoleOptions,
+            user::GetPermissionManager,
         },
         response::{ApiResponse, ApiResponseResult},
     };
@@ -175,56 +173,21 @@ mod patch {
     pub async fn route(
         state: GetState,
         permissions: GetPermissionManager,
-        user: GetUser,
         mut role: GetRole,
         activity_logger: GetAdminActivityLogger,
         shared::Payload(data): shared::Payload<UpdateRoleOptions>,
     ) -> ApiResponseResult {
         permissions.has_admin_permission("roles.update")?;
 
-        if !user.admin {
-            let caller_admin = user
-                .role
-                .as_ref()
-                .map(|r| r.admin_permissions.as_slice())
-                .unwrap_or(&[]);
-            let caller_server = user
-                .role
-                .as_ref()
-                .map(|r| r.server_permissions.as_slice())
-                .unwrap_or(&[]);
-
-            if !role
-                .admin_permissions
-                .iter()
-                .all(|p| caller_admin.contains(p))
-                || !role
-                    .server_permissions
-                    .iter()
-                    .all(|p| caller_server.contains(p))
-            {
-                return ApiResponse::error("permissions: more permissions than self")
-                    .with_status(StatusCode::FORBIDDEN)
-                    .ok();
-            }
-
-            if data
-                .admin_permissions
-                .as_deref()
-                .unwrap_or(&[])
-                .iter()
-                .any(|p| !caller_admin.contains(p))
-                || data
-                    .server_permissions
-                    .as_deref()
-                    .unwrap_or(&[])
-                    .iter()
-                    .any(|p| !caller_server.contains(p))
-            {
-                return ApiResponse::error("permissions: more permissions than self")
-                    .with_status(StatusCode::FORBIDDEN)
-                    .ok();
-            }
+        if !permissions.can_grant(&role.admin_permissions, &role.server_permissions)
+            || !permissions.can_grant(
+                data.admin_permissions.as_deref().unwrap_or_default(),
+                data.server_permissions.as_deref().unwrap_or_default(),
+            )
+        {
+            return ApiResponse::error("permissions: more permissions than self")
+                .with_status(StatusCode::FORBIDDEN)
+                .ok();
         }
 
         match role.update(&state, data).await {

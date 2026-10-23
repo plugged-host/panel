@@ -7,9 +7,11 @@ use compact_str::ToCompactString;
 use futures_util::StreamExt;
 use garde::Validate;
 use serde::{Deserialize, Serialize};
+use sha2::Digest;
 use sqlx::{Row, postgres::PgRow};
 use std::{
-    collections::BTreeMap,
+    collections::{BTreeMap, HashMap, HashSet},
+    io::Read,
     path::PathBuf,
     sync::{Arc, LazyLock},
 };
@@ -17,6 +19,61 @@ use utoipa::ToSchema;
 
 fn default_true() -> bool {
     true
+}
+
+const BANNER_MAX_SOURCE_BYTES: u64 = 8 * 1024 * 1024;
+const BANNER_MAX_WIDTH: u32 = 960;
+const BANNER_MAX_HEIGHT: u32 = 480;
+
+fn is_banner_file_name(name: &str) -> bool {
+    let Some((stem, extension)) = name.rsplit_once('.') else {
+        return false;
+    };
+
+    stem.eq_ignore_ascii_case("banner")
+        && ["png", "jpg", "jpeg", "webp", "gif"]
+            .iter()
+            .any(|e| extension.eq_ignore_ascii_case(e))
+}
+
+fn banner_storage_path(egg_repository_uuid: uuid::Uuid, source: &[u8]) -> String {
+    let mut hasher = sha2::Sha256::new();
+    hasher.update(b"v1");
+    hasher.update(source);
+
+    format!(
+        "publicdata/egg-repositories/{}/banners/{}.webp",
+        egg_repository_uuid,
+        hex::encode(&hasher.finalize()[..16])
+    )
+}
+
+async fn transcode_banner(data: Vec<u8>) -> Result<Vec<u8>, anyhow::Error> {
+    let image = super::user::avatar::decode(data, super::user::avatar::upload_limits()).await?;
+
+    tokio::task::spawn_blocking(move || -> Result<Vec<u8>, anyhow::Error> {
+        let image = if image.width() > BANNER_MAX_WIDTH || image.height() > BANNER_MAX_HEIGHT {
+            image.resize(
+                BANNER_MAX_WIDTH,
+                BANNER_MAX_HEIGHT,
+                image::imageops::FilterType::Triangle,
+            )
+        } else {
+            image
+        };
+        let image = image::DynamicImage::ImageRgba8(image.into_rgba8());
+
+        let mut data = Vec::new();
+        image::codecs::webp::WebPEncoder::new_lossless(&mut data).encode(
+            image.as_bytes(),
+            image.width(),
+            image.height(),
+            image::ExtendedColorType::Rgba8,
+        )?;
+
+        Ok(data)
+    })
+    .await?
 }
 
 fn validate_git_repository(
@@ -32,7 +89,7 @@ fn validate_git_repository(
         gix::url::Scheme::Http | gix::url::Scheme::Https | gix::url::Scheme::Ssh => {}
         _ => {
             return Err(garde::Error::new(
-                "Invalid git repository: only http, https and ssh urls are supported, scp-style urls have to be written as ssh://user@host/path",
+                "Invalid git repository: only http, https, ssh and scp-style (user@host:path) urls are supported",
             ));
         }
     }
@@ -42,6 +99,20 @@ fn validate_git_repository(
     }
 
     Ok(())
+}
+
+/// Stored credentials are only ever sent back to the scheme, host and port they were entered for.
+fn same_origin(a: &str, b: &str) -> bool {
+    match (gix::url::parse(a), gix::url::parse(b)) {
+        (Ok(a), Ok(b)) => {
+            a.scheme == b.scheme
+                && a.port_or_default() == b.port_or_default()
+                && a.host()
+                    .zip(b.host())
+                    .is_some_and(|(a, b)| a.eq_ignore_ascii_case(b))
+        }
+        _ => false,
+    }
 }
 
 #[derive(ToSchema, Validate, Serialize, Deserialize, Clone)]
@@ -333,36 +404,21 @@ impl EggRepository {
         per_page: i64,
         search: Option<&str>,
     ) -> Result<super::Pagination<Self>, crate::database::DatabaseError> {
-        let offset = (page - 1) * per_page;
-
-        let rows = sqlx::query(sqlx::AssertSqlSafe(format!(
-            r#"
-            SELECT {}, COUNT(*) OVER() AS total_count
-            FROM egg_repositories
-            WHERE {search}
-            ORDER BY egg_repositories.created
-            LIMIT $2 OFFSET $3
-            "#,
+        super::PaginatedQueryBuilder::new(
             Self::columns_sql(None),
-            search = super::search_sql(1, &["egg_repositories.name"], &["egg_repositories.uuid"])
-        )))
+            format!(
+                r#"
+                FROM egg_repositories
+                WHERE {search}
+                "#,
+                search =
+                    super::search_sql(1, &["egg_repositories.name"], &["egg_repositories.uuid"]),
+            ),
+            "egg_repositories.created, egg_repositories.uuid",
+        )
         .bind(search)
-        .bind(per_page)
-        .bind(offset)
-        .fetch_all(database.read())
-        .await?;
-
-        Ok(super::Pagination {
-            total: rows
-                .first()
-                .map_or(Ok(0), |row| row.try_get("total_count"))?,
-            per_page,
-            page,
-            data: rows
-                .into_iter()
-                .map(|row| Self::map(None, &row))
-                .try_collect_vec()?,
-        })
+        .fetch(database, page, per_page)
+        .await
     }
 
     pub async fn all_auto_sync(
@@ -373,7 +429,7 @@ impl EggRepository {
             SELECT {}
             FROM egg_repositories
             WHERE egg_repositories.auto_sync
-            ORDER BY egg_repositories.created
+            ORDER BY egg_repositories.created, egg_repositories.uuid
             "#,
             Self::columns_sql(None)
         )))
@@ -399,13 +455,28 @@ impl EggRepository {
         struct FoundEgg {
             path: PathBuf,
             readme: Option<String>,
+            banner: Option<String>,
             exported_egg: super::nest_egg::ExportedNestEgg,
             updated: chrono::DateTime<chrono::Utc>,
         }
+        type NewBanners = HashMap<String, Vec<u8>>;
 
-        let exported_eggs =
-            tokio::task::spawn_blocking(move || -> Result<Vec<FoundEgg>, anyhow::Error> {
+        let egg_repository_uuid = self.uuid;
+        let previous_banners: HashSet<String> =
+            super::egg_repository_egg::EggRepositoryEgg::banners_by_egg_repository_uuid(
+                &state.database,
+                self.uuid,
+            )
+            .await?
+            .into_iter()
+            .collect();
+        let known_banners = previous_banners.clone();
+
+        let (mut exported_eggs, new_banners) = tokio::task::spawn_blocking(
+            move || -> Result<(Vec<FoundEgg>, NewBanners), anyhow::Error> {
                 let mut exported_eggs = Vec::new();
+                let mut banner_files: HashMap<PathBuf, Option<String>> = HashMap::new();
+                let mut new_banners: HashMap<String, Vec<u8>> = HashMap::new();
                 let temp_dir = tempfile::tempdir()?;
                 let filesystem = crate::cap::CapFilesystem::new(temp_dir.path().to_path_buf())?;
 
@@ -465,15 +536,21 @@ impl EggRepository {
                                 Err(_) => continue,
                             }
                         } else {
-                            match serde_norway::from_str(file_content.trim()) {
+                            match serde_saphyr::from_str_with_options(
+                                file_content.trim(),
+                                crate::utils::yaml_deserialize_options(),
+                            ) {
                                 Ok(egg) => egg,
                                 Err(_) => continue,
                             }
                         };
 
                     let mut readme = None;
+                    let mut banner = None;
                     let mut current_path = entry.parent();
-                    'readme: while let Some(path) = current_path {
+                    while let Some(path) = current_path
+                        && (readme.is_none() || banner.is_none())
+                    {
                         let mut dir = filesystem.read_dir(path)?;
 
                         while let Some(Ok((is_dir, entry))) = dir.next_entry() {
@@ -483,14 +560,41 @@ impl EggRepository {
 
                             let path = path.join(&entry);
 
-                            if entry.to_lowercase().contains("readme")
+                            if readme.is_none()
+                                && entry.to_lowercase().contains("readme")
                                 && filesystem
                                     .metadata(&path)
                                     .is_ok_and(|m| m.is_file() && m.len() <= 1024 * 1024)
                                 && let Ok(content) = filesystem.read_to_string(&path)
                             {
                                 readme = Some(content);
-                                break 'readme;
+                            } else if banner.is_none() && is_banner_file_name(&entry) {
+                                banner = banner_files
+                                    .entry(path.clone())
+                                    .or_insert_with(|| {
+                                        if !filesystem.metadata(&path).is_ok_and(|m| {
+                                            m.is_file() && m.len() <= BANNER_MAX_SOURCE_BYTES
+                                        }) {
+                                            return None;
+                                        }
+
+                                        let mut data = Vec::new();
+                                        filesystem
+                                            .open(&path)
+                                            .ok()?
+                                            .take(BANNER_MAX_SOURCE_BYTES)
+                                            .read_to_end(&mut data)
+                                            .ok()?;
+
+                                        let storage_path =
+                                            banner_storage_path(egg_repository_uuid, &data);
+                                        if !known_banners.contains(&storage_path) {
+                                            new_banners.insert(storage_path.clone(), data);
+                                        }
+
+                                        Some(storage_path)
+                                    })
+                                    .clone();
                             }
                         }
 
@@ -500,6 +604,7 @@ impl EggRepository {
                     exported_eggs.push(FoundEgg {
                         path: entry,
                         readme,
+                        banner,
                         exported_egg,
                         updated: chrono::DateTime::from_timestamp(
                             metadata
@@ -516,9 +621,48 @@ impl EggRepository {
 
                 drop(prepare_fetch);
 
-                Ok(exported_eggs)
-            })
-            .await??;
+                Ok((exported_eggs, new_banners))
+            },
+        )
+        .await??;
+
+        let mut failed_banners = HashSet::new();
+        for (path, data) in new_banners {
+            let result = match transcode_banner(data).await {
+                Ok(data) => {
+                    state
+                        .storage
+                        .store_with_cache_control(
+                            &path,
+                            data.as_slice(),
+                            "image/webp",
+                            Some("public, max-age=31536000, immutable"),
+                        )
+                        .await
+                }
+                Err(err) => Err(err),
+            };
+
+            if let Err(err) = result {
+                tracing::warn!(
+                    "failed to store egg repository banner {} for {}: {:?}",
+                    path,
+                    self.git_repository,
+                    err
+                );
+                failed_banners.insert(path);
+            }
+        }
+
+        for egg in exported_eggs.iter_mut() {
+            if egg
+                .banner
+                .as_ref()
+                .is_some_and(|banner| failed_banners.contains(banner))
+            {
+                egg.banner = None;
+            }
+        }
 
         super::egg_repository_egg::EggRepositoryEgg::delete_unused(
             &state.database,
@@ -539,6 +683,7 @@ impl EggRepository {
                 self.uuid,
                 egg.path.to_string_lossy(),
                 egg.readme.as_deref(),
+                egg.banner.as_deref(),
                 &egg.exported_egg,
                 egg.updated.naive_utc(),
             ));
@@ -561,6 +706,18 @@ impl EggRepository {
         .await?;
 
         Self::invalidate_cached(&state.database, self.uuid).await;
+
+        let current_banners: HashSet<String> =
+            super::egg_repository_egg::EggRepositoryEgg::banners_by_egg_repository_uuid(
+                &state.database,
+                self.uuid,
+            )
+            .await?
+            .into_iter()
+            .collect();
+        for banner in previous_banners.difference(&current_banners) {
+            state.storage.remove(Some(banner)).await?;
+        }
 
         Ok(exported_eggs.len())
     }
@@ -735,6 +892,15 @@ impl UpdatableModel for EggRepository {
     ) -> Result<(), crate::database::DatabaseError> {
         options.validate()?;
 
+        if options.credentials.is_none()
+            && options
+                .git_repository
+                .as_deref()
+                .is_some_and(|git_repository| !same_origin(git_repository, &self.git_repository))
+        {
+            options.credentials = Some(EggRepositoryCredentials::None);
+        }
+
         let mut query_builder = UpdateQueryBuilder::new("egg_repositories");
 
         self.run_update_handlers(&mut options, &mut query_builder, state, transaction)
@@ -882,6 +1048,37 @@ impl DeletableModel for EggRepository {
 
         self.run_after_delete_handlers(&options, state, transaction)
             .await?;
+
+        Ok(())
+    }
+    async fn delete(
+        &self,
+        state: &crate::State,
+        options: Self::DeleteOptions,
+    ) -> Result<(), anyhow::Error> {
+        let banners = super::egg_repository_egg::EggRepositoryEgg::banners_by_egg_repository_uuid(
+            &state.database,
+            self.uuid,
+        )
+        .await?;
+
+        let mut transaction = state.database.write().begin().await?;
+
+        if let Err(err) = self
+            .delete_with_transaction(state, options, &mut transaction)
+            .await
+        {
+            transaction.rollback().await?;
+            return Err(err);
+        }
+
+        transaction.commit().await?;
+
+        Self::invalidate_cached(&state.database, self.uuid).await;
+
+        for banner in banners {
+            state.storage.remove(Some(banner)).await?;
+        }
 
         Ok(())
     }

@@ -14,6 +14,7 @@ import { databaseAgentType, databaseType } from '@/lib/schemas/generic.ts';
 import { serverAllocationSchema } from '@/lib/schemas/server/allocations.ts';
 import { serverBackupKind } from '@/lib/schemas/server/backups.ts';
 import { serverAutostartBehavior, serverStatus } from '@/lib/schemas/server/server.ts';
+import { serverTrashSettingsSchema } from '@/lib/schemas/server/settings.ts';
 import { nullableNumber, nullableString } from '@/lib/serialization/transformers.ts';
 
 export const adminServerLimitsSchema = z.object({
@@ -60,6 +61,8 @@ export const adminServerSchema = z.looseObject({
   }),
   autoStartBehavior: z.lazy(() => serverAutostartBehavior),
   timezone: z.preprocess(nullableString, z.string().nullable()),
+  trash: serverTrashSettingsSchema.nullable(),
+  trashDefaults: serverTrashSettingsSchema,
   hugepagesPassthroughEnabled: z.boolean(),
   kvmPassthroughEnabled: z.boolean(),
   created: z.coerce.date(),
@@ -79,6 +82,8 @@ const adminServerBaseOmit = adminServerSchema.omit({
   isTransferring: true,
   autoKill: true,
   autoStartBehavior: true,
+  trash: true,
+  trashDefaults: true,
   created: true,
 });
 
@@ -107,8 +112,13 @@ export const adminServerUpdateSchema = z.lazy(() =>
     eggUuid: z.uuid(),
     backupConfigurationUuid: z.uuid().nullable(),
     suspended: z.boolean().optional(),
+    trash: serverTrashSettingsSchema.nullable().optional(),
   }),
 );
+
+export const adminServerTrashSchema = z.object({
+  trash: serverTrashSettingsSchema.nullable(),
+});
 
 export const adminServerBackupSchema = z.looseObject({
   uuid: z.string(),

@@ -1,5 +1,6 @@
 import { QueryClient } from '@tanstack/react-query';
 import { AxiosError, AxiosRequestConfig } from 'axios';
+import { basename, dirname, join } from 'pathe';
 import { ReactNode } from 'react';
 import { z } from 'zod';
 import uploadAssets from '@/api/admin/assets/uploadAssets.ts';
@@ -12,6 +13,7 @@ import {
   patchUploadChunk,
   withFileParam,
 } from '@/api/server/files/resumableUpload.ts';
+import statFiles from '@/api/server/files/statFiles.ts';
 import {
   applyUploadResolutions,
   findUploadConflicts,
@@ -147,7 +149,14 @@ function handlerFor(destination: UploadDestination): DestinationHandler {
   return handlers[destination.type] as DestinationHandler;
 }
 
-const CHUNK_TARGET_BYTES = 95 * 1024 * 1024; // 95 MiB
+const MAX_REQUEST_BYTES = 95 * 1024 * 1024;
+const MIN_REQUEST_BYTES = 4 * 1024 * 1024;
+const INITIAL_REQUEST_BYTES = 8 * 1024 * 1024;
+const MIN_MEASURED_BYTES = 1024 * 1024;
+const TARGET_REQUEST_MS = 60_000;
+const MAX_BUDGET_GROWTH = 4;
+const MAX_STALLED_ATTEMPTS = 5;
+const MAX_TRANSIENT_RETRIES = 3;
 const FOLDER_CONCURRENCY = 2;
 const FILE_CONCURRENCY = 10;
 const DISCARD_CONCURRENCY = 6;
@@ -163,6 +172,7 @@ const heldFiles = new Map<string, File>();
 const folderFileCounts = new Map<string, number>();
 const pendingProgress = new Map<string, number>();
 const failureToastedBatches = new Set<string>();
+const requestBudgets = new Map<string, number>();
 const settledErrorBatches = new Set<string>();
 let progressFlushTimer: ReturnType<typeof setTimeout> | null = null;
 let fileIndexCounter = 0;
@@ -189,6 +199,35 @@ function unpersistItem(item: UploadItem | undefined): void {
 
 function is429Error(error: AxiosError): boolean {
   return error.response?.status === 429;
+}
+
+function isTransientError(error: AxiosError): boolean {
+  const status = error.response?.status;
+  return status === undefined || status === 408 || status >= 500;
+}
+
+function transientRetryDelay(attempt: number): number {
+  return Math.min(BASE_RETRY_MS * 2 ** attempt, MAX_RETRY_MS);
+}
+
+function requestBudget(destination: UploadDestination): number {
+  return requestBudgets.get(uploadScopeKey(destination)) ?? INITIAL_REQUEST_BYTES;
+}
+
+function recordThroughput(destination: UploadDestination, bytes: number, elapsedMs: number): void {
+  if (bytes < MIN_MEASURED_BYTES || elapsedMs <= 0) return;
+
+  const current = requestBudget(destination);
+  const fitted = (bytes / elapsedMs) * TARGET_REQUEST_MS;
+  const budget = Math.max(MIN_REQUEST_BYTES, Math.min(fitted, current * MAX_BUDGET_GROWTH, MAX_REQUEST_BYTES));
+  requestBudgets.set(uploadScopeKey(destination), Math.floor(budget));
+}
+
+/** A request that was cut off is at least halved: what the browser reports as sent overstates what got through. */
+function recordCutOff(destination: UploadDestination, bytes: number, elapsedMs: number, requestSize: number): void {
+  recordThroughput(destination, bytes, elapsedMs);
+  const budget = Math.max(MIN_REQUEST_BYTES, Math.min(requestBudget(destination), Math.floor(requestSize / 2)));
+  requestBudgets.set(uploadScopeKey(destination), budget);
 }
 
 function get429RetryDelay(error: AxiosError, attempt: number): number {
@@ -243,29 +282,39 @@ class Semaphore {
   }
 }
 
-function chunkFiles(files: File[]): File[][] {
+function requestPacker(files: File[]): (budget: number) => File[] | null {
   const sorted = [...files].sort((a, b) => b.size - a.size);
-  const chunks: File[][] = [];
-  const chunkSizes: number[] = [];
+  let lo = 0;
+  let hi = sorted.length - 1;
 
-  for (const file of sorted) {
-    let placed = false;
-    for (let i = 0; i < chunks.length; i++) {
-      const wouldBe = chunkSizes[i] + file.size;
-      if (wouldBe <= CHUNK_TARGET_BYTES) {
-        chunks[i].push(file);
-        chunkSizes[i] = wouldBe;
-        placed = true;
-        break;
-      }
+  return (budget) => {
+    if (lo > hi) return null;
+
+    const group = [sorted[lo++]];
+    let size = group[0].size;
+    while (lo <= hi && size + sorted[lo].size <= budget) {
+      size += sorted[lo].size;
+      group.push(sorted[lo++]);
     }
-    if (!placed) {
-      chunks.push([file]);
-      chunkSizes.push(file.size);
+    while (lo <= hi && size + sorted[hi].size <= budget) {
+      size += sorted[hi].size;
+      group.push(sorted[hi--]);
     }
+
+    return group;
+  };
+}
+
+function takeRequeuedGroup(requeued: File[], budget: number): File[] {
+  const group = [requeued.pop()!];
+  let size = group[0].size;
+  for (let i = requeued.length - 1; i >= 0; i--) {
+    if (size + requeued[i].size > budget) continue;
+    size += requeued[i].size;
+    group.push(...requeued.splice(i, 1));
   }
 
-  return chunks;
+  return group;
 }
 
 function queueProgress(key: string, uploaded: number): void {
@@ -420,7 +469,7 @@ async function uploadRequest(
   indices: number[],
   batchId: string,
   controller: AbortController,
-): Promise<void> {
+): Promise<File[] | undefined> {
   try {
     setUploads((prev) => {
       const next = new Map(prev);
@@ -441,12 +490,14 @@ async function uploadRequest(
     }
 
     const totalRequestSize = files.reduce((sum, f) => sum + f.size, 0);
+    let sent = 0;
 
     const config: AxiosRequestConfig = {
       signal: controller.signal,
       headers: { 'Content-Type': 'multipart/form-data' },
       onUploadProgress: (event) => {
         const loaded = event.loaded ?? 0;
+        sent = loaded;
 
         for (let i = 0; i < indices.length; i++) {
           const ratio = totalRequestSize === 0 ? 1 : files[i].size / totalRequestSize;
@@ -456,14 +507,30 @@ async function uploadRequest(
     };
 
     const handler = handlerFor(destination);
+    let transientAttempt = 0;
     for (let attempt = 0; ; attempt++) {
+      const startedAt = performance.now();
       try {
         await handler.upload(destination, formData, config);
+        recordThroughput(destination, totalRequestSize, performance.now() - startedAt);
         break;
       } catch (err) {
-        if (!(err instanceof AxiosError) || !is429Error(err) || attempt >= MAX_RETRIES || controller.signal.aborted) {
-          throw err;
+        if (!(err instanceof AxiosError) || controller.signal.aborted) throw err;
+
+        if (isTransientError(err) && transientAttempt < MAX_TRANSIENT_RETRIES) {
+          recordCutOff(destination, sent, performance.now() - startedAt, totalRequestSize);
+
+          if (files.length > 1 && totalRequestSize > requestBudget(destination)) {
+            for (const idx of indices) queueProgress(`file-${idx}`, 0);
+            return files;
+          }
+
+          await sleep(transientRetryDelay(transientAttempt++), controller.signal);
+          attempt--;
+          continue;
         }
+        if (!is429Error(err) || attempt >= MAX_RETRIES) throw err;
+
         setUploads((prev) => {
           const next = new Map(prev);
           for (const idx of indices) {
@@ -504,6 +571,20 @@ async function uploadRequest(
     );
   } finally {
     settleBatches();
+  }
+}
+
+async function completedRemotely(
+  destination: Extract<UploadDestination, { type: 'server' }>,
+  remotePath: string,
+  totalSize: number,
+): Promise<boolean> {
+  const target = join('/', destination.directory, remotePath);
+  try {
+    const entries = await statFiles(destination.serverUuid, dirname(target), [basename(target)]);
+    return entries.some((entry) => entry.name === basename(target) && entry.file && entry.size === totalSize);
+  } catch {
+    return false;
   }
 }
 
@@ -550,47 +631,76 @@ async function runResumableUpload(
     queueProgress(key, Math.min(offset, totalSize));
 
     let finalized = false;
+    let rateLimitAttempt = 0;
+    let stalledAttempts = 0;
     while (!finalized) {
       if (signal.aborted) throw makeCancelled();
 
       const sliceStart = offset;
-      const sliceEnd = Math.min(sliceStart + CHUNK_TARGET_BYTES, totalSize);
+      const sliceEnd = Math.min(sliceStart + requestBudget(destination), totalSize);
       const isLast = sliceEnd >= totalSize;
       const body = file.slice(sliceStart, sliceEnd);
+      const startedAt = performance.now();
+      let sent = 0;
 
-      let sliceDone = false;
-      for (let attempt = 0; !sliceDone; attempt++) {
-        if (signal.aborted) throw makeCancelled();
+      try {
+        offset = await patchUploadChunk(uploadUrl, body, sliceStart, totalSize, isLast, signal, (event) => {
+          sent = event.loaded ?? 0;
+          queueProgress(key, Math.min(sliceStart + sent, totalSize));
+        });
+        recordThroughput(destination, body.size, performance.now() - startedAt);
+        stalledAttempts = 0;
+        if (isLast) finalized = true;
+      } catch (err) {
+        if (!(err instanceof AxiosError) || signal.aborted) throw err;
 
-        try {
-          offset = await patchUploadChunk(uploadUrl, body, sliceStart, totalSize, isLast, signal, (event) =>
-            queueProgress(key, Math.min(sliceStart + (event.loaded ?? 0), totalSize)),
+        const status = err.response?.status;
+        if (status === 401) {
+          uploadUrl = await refreshUrl();
+        } else if (status === 409) {
+          const real = conflictOffset(err.response?.headers as Record<string, unknown> | undefined);
+          offset = real !== null ? Math.min(real, totalSize) : sliceStart;
+        } else if (is429Error(err) && rateLimitAttempt < MAX_RETRIES) {
+          setUploads((prev) => {
+            const entry = prev.get(key);
+            if (!entry) return prev;
+            const next = new Map(prev);
+            next.set(key, { ...entry, retryAttempt: rateLimitAttempt + 1 });
+            return next;
+          });
+          await sleep(get429RetryDelay(err, rateLimitAttempt++), signal);
+        } else if (isTransientError(err)) {
+          const elapsed = performance.now() - startedAt;
+
+          const persisted = await headUploadOffset(uploadUrl, signal).catch(() => null);
+          recordCutOff(
+            destination,
+            persisted !== null && persisted >= sliceStart ? persisted - sliceStart : sent,
+            elapsed,
+            body.size,
           );
-          if (isLast) finalized = true;
-          sliceDone = true;
-        } catch (err) {
-          if (!(err instanceof AxiosError) || signal.aborted) throw err;
-
-          const status = err.response?.status;
-          if (status === 401) {
-            uploadUrl = await refreshUrl();
-            attempt--;
-          } else if (status === 409) {
-            const real = conflictOffset(err.response?.headers as Record<string, unknown> | undefined);
-            offset = real !== null ? Math.min(real, totalSize) : sliceStart;
-            sliceDone = true;
-          } else if (is429Error(err) && attempt < MAX_RETRIES) {
-            setUploads((prev) => {
-              const entry = prev.get(key);
-              if (!entry) return prev;
-              const next = new Map(prev);
-              next.set(key, { ...entry, retryAttempt: attempt + 1 });
-              return next;
-            });
-            await sleep(get429RetryDelay(err, attempt), signal);
+          if (persisted === null) {
+            offset = sliceStart;
+          } else if (
+            persisted < sliceStart &&
+            isLast &&
+            (await completedRemotely(destination, remotePath, totalSize))
+          ) {
+            finalized = true;
+            continue;
           } else {
-            throw err;
+            offset = persisted > totalSize ? 0 : persisted;
+            queueProgress(key, offset);
           }
+
+          if (offset > sliceStart) {
+            stalledAttempts = 0;
+          } else {
+            if (stalledAttempts >= MAX_STALLED_ATTEMPTS) throw err;
+            await sleep(transientRetryDelay(stalledAttempts++), signal);
+          }
+        } else {
+          throw err;
         }
       }
     }
@@ -804,10 +914,10 @@ export async function uploadFiles(destination: UploadDestination, selected: File
 
   const scope = uploadScopeKey(destination);
   const splittingEnabled = destination.type === 'server';
+  const splitThreshold = requestBudget(destination);
+  const isResumable = (file: File) => splittingEnabled && file.size > splitThreshold;
   const resumableFields = (file: File, path: string): Partial<UploadItem> =>
-    splittingEnabled && file.size > CHUNK_TARGET_BYTES
-      ? { resumable: true, remotePath: path, localName: file.name }
-      : {};
+    isResumable(file) ? { resumable: true, remotePath: path, localName: file.name } : {};
 
   const startIndex = fileIndexCounter;
   fileIndexCounter += files.length;
@@ -901,7 +1011,7 @@ export async function uploadFiles(destination: UploadDestination, selected: File
       fileSemaphore.acquire().then(async () => {
         try {
           if (controller.signal.aborted) return;
-          if (splittingEnabled && file.size > CHUNK_TARGET_BYTES) {
+          if (isResumable(file)) {
             await uploadResumableFile(destination, file, index, key, controller);
           } else {
             await uploadRequest(destination, [file], [index], key, controller);
@@ -925,37 +1035,47 @@ export async function uploadFiles(destination: UploadDestination, selected: File
     const batchId = folderBatchIds.get(folder)!;
     const controller = controllers.get(batchId)!;
 
-    let entriesToPack = entries;
-    if (splittingEnabled) {
-      const oversized = entries.filter((e) => e.file.size > CHUNK_TARGET_BYTES);
-      entriesToPack = entries.filter((e) => e.file.size <= CHUNK_TARGET_BYTES);
-
-      for (const entry of oversized) {
-        promises.push(uploadResumableFile(destination, entry.file, entry.index, batchId, controller));
-      }
+    const resumableSemaphore = new Semaphore(FILE_CONCURRENCY);
+    for (const entry of entries.filter((e) => isResumable(e.file))) {
+      promises.push(
+        resumableSemaphore.acquire().then(async () => {
+          try {
+            if (controller.signal.aborted) return;
+            await uploadResumableFile(destination, entry.file, entry.index, batchId, controller);
+          } finally {
+            resumableSemaphore.release();
+          }
+        }),
+      );
     }
 
+    const entriesToPack = entries.filter((e) => !isResumable(e.file));
     if (entriesToPack.length === 0) continue;
-
-    const chunks = chunkFiles(entriesToPack.map((e) => e.file));
 
     const fileToIndex = new Map<File, number>();
     for (const entry of entriesToPack) {
       fileToIndex.set(entry.file, entry.index);
     }
 
-    const semaphore = new Semaphore(FOLDER_CONCURRENCY);
-    for (const chunk of chunks) {
-      const chunkIndices = chunk.map((f) => fileToIndex.get(f)!);
+    const nextGroup = requestPacker(entriesToPack.map((e) => e.file));
+    const requeued: File[] = [];
+    for (let worker = 0; worker < FOLDER_CONCURRENCY; worker++) {
       promises.push(
-        semaphore.acquire().then(async () => {
-          try {
-            if (controller.signal.aborted) return;
-            await uploadRequest(destination, chunk, chunkIndices, batchId, controller);
-          } finally {
-            semaphore.release();
+        (async () => {
+          while (!controller.signal.aborted) {
+            const budget = requestBudget(destination);
+            const group = requeued.length > 0 ? takeRequeuedGroup(requeued, budget) : nextGroup(budget);
+            if (!group) return;
+            const repack = await uploadRequest(
+              destination,
+              group,
+              group.map((f) => fileToIndex.get(f)!),
+              batchId,
+              controller,
+            );
+            if (repack) requeued.push(...repack);
           }
-        }),
+        })(),
       );
     }
   }
