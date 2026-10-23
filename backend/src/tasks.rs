@@ -904,6 +904,28 @@ pub async fn define_background_tasks(
             async |state| shared::noprofit::sync_all(&state).await,
         )
         .await;
+    // plugged.host: node telemetry (shared::node_telemetry): every node once a minute, a week kept.
+    background_task_builder
+        .add_cron_task(
+            "sample_nodes",
+            croner::Cron::from_str("30 * * * * *").unwrap(),
+            async |state| shared::node_telemetry::sample_all(&state).await,
+        )
+        .await;
+    background_task_builder
+        .add_cron_task(
+            "prune_node_telemetry",
+            croner::Cron::from_str("0 15 4 * * *").unwrap(),
+            async |state| {
+                let pruned = shared::node_telemetry::prune(&state.database).await?;
+                if pruned > 0 {
+                    tracing::info!("pruned {} node telemetry samples", pruned);
+                }
+
+                Ok(())
+            },
+        )
+        .await;
     background_task_builder
         .add_cron_task(
             "prune_system_backups",

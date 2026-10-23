@@ -148,6 +148,9 @@ export default function OobeLocation({ onNext, onBack, canGoBack, skipFrom, data
           name: form.values.locationName,
           description: existingLocation.description,
           flag: form.values.locationFlag,
+          tier: existingLocation.tier, // plugged.host
+          sort: existingLocation.sort, // plugged.host
+          public: existingLocation.public, // plugged.host
           backupConfigurationUuid: existingBackupConfig!.uuid,
         });
       } else {
@@ -167,6 +170,9 @@ export default function OobeLocation({ onNext, onBack, canGoBack, skipFrom, data
           name: form.values.locationName,
           description: null,
           flag: form.values.locationFlag,
+          tier: null, // plugged.host
+          sort: 0, // plugged.host
+          public: true, // plugged.host
           backupConfigurationUuid: backupConfig.uuid,
         });
       }

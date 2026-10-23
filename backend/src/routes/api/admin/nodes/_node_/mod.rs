@@ -30,6 +30,7 @@ mod pair;
 mod reset_token;
 mod servers;
 mod system;
+mod telemetry; // plugged.host
 mod token;
 mod transfers;
 // plugged.host: the private network removed (docs/upstream.md)
@@ -269,6 +270,7 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         .nest("/allocations", allocations::router(state))
         .nest("/system", system::router(state))
         .nest("/capacity", capacity::router(state))
+        .nest("/telemetry", telemetry::router(state)) // plugged.host
         .nest("/bandwidth", bandwidth::router(state))
         .nest("/servers", servers::router(state))
         // .nest("/mounts", mounts::router(state))

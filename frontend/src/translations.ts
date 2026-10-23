@@ -3001,6 +3001,14 @@ const baseTranslations = defineTranslations({
               page: {
                 form: {
                   flag: 'Flag',
+                  tier: 'Tier',
+                  tierDescription:
+                    'The plan tier a player needs to put servers here, such as plus or premium. Empty: every player.',
+                  sort: 'Sort Order',
+                  sortDescription: 'Locations with a lower number are listed first.',
+                  public: 'Public',
+                  publicDescription:
+                    'Players can pick public locations for their servers; admins can always use every location.',
                 },
                 modal: {
                   delete: {
@@ -3149,6 +3157,19 @@ const baseTranslations = defineTranslations({
                   memoryDescription: 'The total memory available for servers on this node.',
                   diskDescription: 'The total disk available for servers on this node.',
                   unlimitedTooltip: '0 will not set a limit.',
+                  srvTarget: 'SRV Target',
+                  srvTargetDescription:
+                    "The host name that server subdomains' SRV records point to. Empty uses the node's address.",
+                  deploymentPaused: 'Deployment Paused',
+                  deploymentPausedDescription: 'A paused node takes no new servers until it is unpaused.',
+                  role: 'Role',
+                  roleDescription:
+                    "Game nodes take players' servers. Internal nodes are only used by admins and are never picked for players.",
+                  roleGame: 'Game',
+                  roleInternal: 'Internal',
+                  tags: 'Tags',
+                  tagsDescription:
+                    'Short labels for grouping nodes, such as nvme or ddos-protected: letters, digits, dashes, underscores and dots.',
                 },
                 section: {
                   connection: 'Connection',
@@ -3252,6 +3273,37 @@ const baseTranslations = defineTranslations({
                   networkInLabel: 'Network In',
                   networkOutLabel: 'Network Out',
                 },
+                telemetry: {
+                  title: 'Health and History',
+                  empty: 'No samples yet. The panel checks every node once a minute.',
+                  range: {
+                    hour: '1 hour',
+                    day: '24 hours',
+                    week: '7 days',
+                  },
+                  status: {
+                    answering: 'Answering',
+                    refused: 'Wings not listening',
+                    unreachable: 'Unreachable',
+                  },
+                  label: {
+                    status: 'Status',
+                    responseTime: 'Response Time',
+                    pressure: 'Pressure (5 min)',
+                    failures: 'Missed Checks in a Row',
+                    load: 'Load (1 min)',
+                    serversRunning: 'Servers Running',
+                    lastReachable: 'Last Answered',
+                    sampled: 'Last Check',
+                  },
+                  chart: {
+                    disk: 'Disk Usage',
+                    responseTime: 'Response Time',
+                  },
+                  value: {
+                    milliseconds: '{ms} ms',
+                  },
+                },
               },
             },
             capacity: {
@@ -3267,6 +3319,7 @@ const baseTranslations = defineTranslations({
                   deploymentEnabled: 'Deployment Enabled',
                   deploymentDisabled: 'Deployment Disabled',
                   maintenanceEnabled: 'Under Maintenance',
+                  deploymentPaused: 'Deployment Paused',
                   maintenanceDisabled: 'Not Under Maintenance',
                 },
                 label: {

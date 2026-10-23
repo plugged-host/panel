@@ -29,6 +29,10 @@ export const nodeEmptyFormValues: NodeFormValues = {
   sftpPort: 2022,
   memory: 8192,
   disk: 10240,
+  role: 'game', // plugged.host
+  tags: [], // plugged.host
+  srvTarget: null, // plugged.host
+  deploymentPaused: false, // plugged.host
 };
 
 export const nodeToFormValues = (node: z.infer<typeof adminNodeSchema>): Partial<NodeFormValues> => ({
@@ -44,6 +48,10 @@ export const nodeToFormValues = (node: z.infer<typeof adminNodeSchema>): Partial
   sftpPort: node.sftpPort,
   memory: node.memory,
   disk: node.disk,
+  role: node.role, // plugged.host
+  tags: node.tags, // plugged.host
+  srvTarget: node.srvTarget, // plugged.host
+  deploymentPaused: node.deploymentPaused, // plugged.host
 });
 
 interface NodeFormFieldsOptions {
@@ -142,6 +150,14 @@ export function useNodeFormFields({
       ),
     },
     { type: 'text', name: 'sftpHost', label: t('common.form.sftpHost', {}) },
+    // plugged.host
+    {
+      type: 'text',
+      name: 'srvTarget',
+      label: t('pages.admin.nodes.tabs.general.page.form.srvTarget', {}),
+      description: t('pages.admin.nodes.tabs.general.page.form.srvTargetDescription', {}),
+      props: { placeholder: 'node.example.com' },
+    },
     {
       type: 'number',
       name: 'sftpPort',
@@ -196,5 +212,29 @@ export function useNodeFormFields({
     },
     { type: 'switch', name: 'deploymentEnabled', label: t('common.form.deploymentEnabled', {}) },
     { type: 'switch', name: 'maintenanceEnabled', label: t('common.form.maintenanceEnabled', {}) },
+    // plugged.host
+    {
+      type: 'switch',
+      name: 'deploymentPaused',
+      label: t('pages.admin.nodes.tabs.general.page.form.deploymentPaused', {}),
+      description: t('pages.admin.nodes.tabs.general.page.form.deploymentPausedDescription', {}),
+    },
+    {
+      type: 'select',
+      name: 'role',
+      label: t('pages.admin.nodes.tabs.general.page.form.role', {}),
+      description: t('pages.admin.nodes.tabs.general.page.form.roleDescription', {}),
+      required: true,
+      options: [
+        { label: t('pages.admin.nodes.tabs.general.page.form.roleGame', {}), value: 'game' },
+        { label: t('pages.admin.nodes.tabs.general.page.form.roleInternal', {}), value: 'internal' },
+      ],
+    },
+    {
+      type: 'tags',
+      name: 'tags',
+      label: t('pages.admin.nodes.tabs.general.page.form.tags', {}),
+      description: t('pages.admin.nodes.tabs.general.page.form.tagsDescription', {}),
+    },
   ];
 }

@@ -13,7 +13,7 @@ function ChartBlock({
   className,
   children,
 }: {
-  icon: ReactNode;
+  icon?: ReactNode; // plugged.host: optional, Theme v2 drops heading icons
   title: string;
   value?: ReactNode;
   legend?: ReactNode;
@@ -27,7 +27,8 @@ function ChartBlock({
       <div className='@container border-b border-(--mantine-color-default-border) px-4 py-3'>
         <div className='flex flex-col items-start gap-1 @lg:flex-row @lg:items-center @lg:justify-between @lg:gap-2'>
           <h3 className='flex min-w-0 max-w-full items-center transition-colors duration-100'>
-            <span className='mr-2 shrink-0'>{icon}</span>
+            {/* plugged.host: the icon's gap only when there is one */}
+            {icon && <span className='mr-2 shrink-0'>{icon}</span>}
             <ScrollingText>{title}</ScrollingText>
           </h3>
           {!overlayLabel && value !== undefined && value !== null && (

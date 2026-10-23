@@ -110,6 +110,12 @@ export default function NodeOverview({ node }: { node: Node }) {
             ? t('pages.admin.nodes.tabs.capacity.page.status.maintenanceEnabled', {})
             : t('pages.admin.nodes.tabs.capacity.page.status.maintenanceDisabled', {})}
         </Badge>
+        {/* plugged.host: placement (docs/features/node-telemetry.md) */}
+        {node.deploymentPaused && (
+          <Badge color='yellow' variant='light'>
+            {t('pages.admin.nodes.tabs.capacity.page.status.deploymentPaused', {})}
+          </Badge>
+        )}
       </Group>
 
       <Stack gap='md'>
@@ -163,6 +169,26 @@ export default function NodeOverview({ node }: { node: Node }) {
                   </Text>
                 )}
               </InfoRow>
+              {/* plugged.host: placement (docs/features/node-telemetry.md) */}
+              <InfoRow label={t('pages.admin.nodes.tabs.general.page.form.role', {})}>
+                <Text size='sm'>
+                  {node.role === 'internal'
+                    ? t('pages.admin.nodes.tabs.general.page.form.roleInternal', {})
+                    : t('pages.admin.nodes.tabs.general.page.form.roleGame', {})}
+                </Text>
+              </InfoRow>
+              {node.tags.length > 0 && (
+                <InfoRow label={t('pages.admin.nodes.tabs.general.page.form.tags', {})}>
+                  <Text size='sm'>{node.tags.join(', ')}</Text>
+                </InfoRow>
+              )}
+              {node.srvTarget && (
+                <InfoRow label={t('pages.admin.nodes.tabs.general.page.form.srvTarget', {})}>
+                  <Text size='sm' ff='monospace' className='break-all'>
+                    <RedactedText value={node.srvTarget} />
+                  </Text>
+                </InfoRow>
+              )}
               {node.description && (
                 <InfoRow label={t('common.form.description', {})}>
                   <Text size='sm'>{node.description}</Text>

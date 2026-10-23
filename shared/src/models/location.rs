@@ -21,6 +21,11 @@ pub struct Location {
 
     pub flag: Option<compact_str::CompactString>,
 
+    // plugged.host: a label shown with the location, its place in lists, whether users see it
+    pub tier: Option<compact_str::CompactString>,
+    pub sort: i32,
+    pub public: bool,
+
     pub created: chrono::NaiveDateTime,
 
     extension_data: super::ModelExtensionData,
@@ -65,6 +70,19 @@ impl BaseModel for Location {
                 "locations.flag",
                 compact_str::format_compact!("{prefix}flag"),
             ),
+            // plugged.host
+            (
+                "locations.tier",
+                compact_str::format_compact!("{prefix}tier"),
+            ),
+            (
+                "locations.sort",
+                compact_str::format_compact!("{prefix}sort"),
+            ),
+            (
+                "locations.public",
+                compact_str::format_compact!("{prefix}public"),
+            ),
             (
                 "locations.created",
                 compact_str::format_compact!("{prefix}created"),
@@ -87,6 +105,9 @@ impl BaseModel for Location {
             description: row
                 .try_get(compact_str::format_compact!("{prefix}description").as_str())?,
             flag: row.try_get(compact_str::format_compact!("{prefix}flag").as_str())?,
+            tier: row.try_get(compact_str::format_compact!("{prefix}tier").as_str())?, // plugged.host
+            sort: row.try_get(compact_str::format_compact!("{prefix}sort").as_str())?, // plugged.host
+            public: row.try_get(compact_str::format_compact!("{prefix}public").as_str())?, // plugged.host
             created: row.try_get(compact_str::format_compact!("{prefix}created").as_str())?,
             extension_data: Self::map_extensions(prefix, row)?,
         })
@@ -182,6 +203,9 @@ impl IntoAdminApiObject for Location {
                 name: self.name,
                 description: self.description,
                 flag: self.flag,
+                tier: self.tier,     // plugged.host
+                sort: self.sort,     // plugged.host
+                public: self.public, // plugged.host
                 created: self.created.and_utc(),
             },
             api_object,
@@ -246,6 +270,22 @@ pub struct CreateLocationOptions {
     #[garde(length(chars, min = 2, max = 2))]
     #[schema(min_length = 2, max_length = 2)]
     pub flag: Option<compact_str::CompactString>,
+    // plugged.host
+    #[garde(length(chars, min = 1, max = 32))]
+    #[schema(min_length = 1, max_length = 32)]
+    #[serde(default)]
+    pub tier: Option<compact_str::CompactString>,
+    #[garde(skip)]
+    #[serde(default)]
+    pub sort: i32,
+    #[garde(skip)]
+    #[serde(default = "default_public")]
+    pub public: bool,
+}
+
+// plugged.host
+fn default_public() -> bool {
+    true
 }
 
 #[async_trait::async_trait]
@@ -289,7 +329,10 @@ impl CreatableModel for Location {
             )
             .set("name", &options.name)
             .set("description", &options.description)
-            .set("flag", &options.flag);
+            .set("flag", &options.flag)
+            .set("tier", &options.tier) // plugged.host
+            .set("sort", options.sort) // plugged.host
+            .set("public", options.public); // plugged.host
 
         let row = query_builder
             .returning(&Self::columns_sql(None))
@@ -331,6 +374,19 @@ pub struct UpdateLocationOptions {
         with = "::serde_with::rust::double_option"
     )]
     pub flag: Option<Option<compact_str::CompactString>>,
+    // plugged.host
+    #[garde(length(chars, min = 1, max = 32))]
+    #[schema(min_length = 1, max_length = 32)]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        with = "::serde_with::rust::double_option"
+    )]
+    pub tier: Option<Option<compact_str::CompactString>>,
+    #[garde(skip)]
+    pub sort: Option<i32>,
+    #[garde(skip)]
+    pub public: Option<bool>,
 }
 
 #[async_trait::async_trait]
@@ -388,6 +444,9 @@ impl UpdatableModel for Location {
             .set("name", options.name.as_ref())
             .set("description", options.description.as_ref())
             .set("flag", options.flag.as_ref())
+            .set("tier", options.tier.as_ref()) // plugged.host
+            .set("sort", options.sort) // plugged.host
+            .set("public", options.public) // plugged.host
             .where_eq("uuid", self.uuid);
 
         query_builder.execute(&mut **transaction).await?;
@@ -403,6 +462,16 @@ impl UpdatableModel for Location {
         }
         if let Some(flag) = options.flag {
             self.flag = flag;
+        }
+        // plugged.host
+        if let Some(tier) = options.tier {
+            self.tier = tier;
+        }
+        if let Some(sort) = options.sort {
+            self.sort = sort;
+        }
+        if let Some(public) = options.public {
+            self.public = public;
         }
 
         self.run_after_update_handlers(state, transaction).await?;
@@ -486,7 +555,10 @@ impl DuplicableModel for Location {
             )
             .set("name", &options.name)
             .set("description", &self.description)
-            .set("flag", &self.flag);
+            .set("flag", &self.flag)
+            .set("tier", &self.tier) // plugged.host
+            .set("sort", self.sort) // plugged.host
+            .set("public", self.public); // plugged.host
 
         let row = query_builder
             .returning(&Self::columns_sql(None))
@@ -536,6 +608,11 @@ pub struct AdminApiLocation {
     pub description: Option<compact_str::CompactString>,
 
     pub flag: Option<compact_str::CompactString>,
+
+    // plugged.host
+    pub tier: Option<compact_str::CompactString>,
+    pub sort: i32,
+    pub public: bool,
 
     pub created: chrono::DateTime<chrono::Utc>,
 }

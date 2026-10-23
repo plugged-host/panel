@@ -21,6 +21,7 @@ use utoipa::ToSchema;
 mod allowed_sources;
 mod enrollment;
 mod events;
+pub mod placement; // plugged.host
 pub use allowed_sources::NodeAllowedSources;
 pub use enrollment::NodeEnrollment;
 pub use events::NodeEvent;
@@ -117,6 +118,12 @@ pub struct Node {
     pub token_id: compact_str::CompactString,
     pub token: EncryptedString,
 
+    // plugged.host: role, tags, SRV target, deployment pause (placement.rs)
+    pub role: compact_str::CompactString,
+    pub tags: Vec<compact_str::CompactString>,
+    pub srv_target: Option<compact_str::CompactString>,
+    pub deployment_paused: bool,
+
     pub created: chrono::NaiveDateTime,
 
     extension_data: super::ModelExtensionData,
@@ -182,6 +189,17 @@ impl BaseModel for Node {
                 compact_str::format_compact!("{prefix}token_id"),
             ),
             ("nodes.token", compact_str::format_compact!("{prefix}token")),
+            // plugged.host
+            ("nodes.role", compact_str::format_compact!("{prefix}role")),
+            ("nodes.tags", compact_str::format_compact!("{prefix}tags")),
+            (
+                "nodes.srv_target",
+                compact_str::format_compact!("{prefix}srv_target"),
+            ),
+            (
+                "nodes.deployment_paused",
+                compact_str::format_compact!("{prefix}deployment_paused"),
+            ),
             (
                 "nodes.created",
                 compact_str::format_compact!("{prefix}created"),
@@ -228,6 +246,16 @@ impl BaseModel for Node {
             disk: row.try_get(compact_str::format_compact!("{prefix}disk").as_str())?,
             token_id: row.try_get(compact_str::format_compact!("{prefix}token_id").as_str())?,
             token: row.try_get(compact_str::format_compact!("{prefix}token").as_str())?,
+            // plugged.host
+            role: row.try_get(compact_str::format_compact!("{prefix}role").as_str())?,
+            tags: row
+                .try_get::<Vec<String>, _>(compact_str::format_compact!("{prefix}tags").as_str())?
+                .into_iter()
+                .map(Into::into)
+                .collect(),
+            srv_target: row.try_get(compact_str::format_compact!("{prefix}srv_target").as_str())?,
+            deployment_paused: row
+                .try_get(compact_str::format_compact!("{prefix}deployment_paused").as_str())?,
             created: row.try_get(compact_str::format_compact!("{prefix}created").as_str())?,
             extension_data: Self::map_extensions(prefix, row)?,
         })
@@ -1159,6 +1187,10 @@ impl IntoAdminApiObject for Node {
                 sftp_port: self.sftp_port,
                 memory: self.memory,
                 disk: self.disk,
+                role: self.role,                           // plugged.host
+                tags: self.tags,                           // plugged.host
+                srv_target: self.srv_target,               // plugged.host
+                deployment_paused: self.deployment_paused, // plugged.host
                 created: self.created.and_utc(),
             },
             api_object,
@@ -1248,6 +1280,17 @@ pub struct CreateNodeOptions {
     #[garde(range(min = 0))]
     #[schema(minimum = 0)]
     pub disk: i64,
+    // plugged.host: placement.rs
+    #[garde(custom(placement::validate_role))]
+    #[serde(default = "placement::default_role")]
+    pub role: compact_str::CompactString,
+    #[garde(custom(placement::validate_tags))]
+    #[serde(default)]
+    pub tags: Vec<compact_str::CompactString>,
+    #[garde(length(chars, min = 1, max = 255))]
+    #[schema(min_length = 1, max_length = 255)]
+    #[serde(default)]
+    pub srv_target: Option<compact_str::CompactString>,
 }
 
 #[async_trait::async_trait]
@@ -1302,6 +1345,9 @@ impl CreatableModel for Node {
             .set("sftp_port", options.sftp_port as i32)
             .set("memory", options.memory)
             .set("disk", options.disk)
+            .set("role", &options.role) // plugged.host
+            .set("tags", placement::normalize_tags(&options.tags)) // plugged.host
+            .set("srv_target", &options.srv_target) // plugged.host
             .set("token_id", token_id.clone())
             .set(
                 "token",
@@ -1376,6 +1422,21 @@ pub struct UpdateNodeOptions {
     #[garde(range(min = 0))]
     #[schema(minimum = 0)]
     pub disk: Option<i64>,
+    // plugged.host: placement.rs
+    #[garde(custom(placement::validate_optional_role))]
+    pub role: Option<compact_str::CompactString>,
+    #[garde(custom(placement::validate_optional_tags))]
+    pub tags: Option<Vec<compact_str::CompactString>>,
+    #[garde(length(chars, min = 1, max = 255))]
+    #[schema(min_length = 1, max_length = 255)]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        with = "::serde_with::rust::double_option"
+    )]
+    pub srv_target: Option<Option<compact_str::CompactString>>,
+    #[garde(skip)]
+    pub deployment_paused: Option<bool>,
 }
 
 #[async_trait::async_trait]
@@ -1460,6 +1521,16 @@ impl UpdatableModel for Node {
             .set("sftp_port", options.sftp_port.as_ref().map(|p| *p as i32))
             .set("memory", options.memory.as_ref())
             .set("disk", options.disk.as_ref())
+            .set("role", options.role.as_ref()) // plugged.host
+            .set(
+                "tags",
+                options.tags.as_deref().map(placement::normalize_tags),
+            ) // plugged.host
+            .set(
+                "srv_target",
+                options.srv_target.as_ref().map(|t| t.as_ref()),
+            ) // plugged.host
+            .set("deployment_paused", options.deployment_paused) // plugged.host
             .where_eq("uuid", self.uuid);
 
         query_builder.execute(&mut **transaction).await?;
@@ -1501,6 +1572,22 @@ impl UpdatableModel for Node {
         }
         if let Some(disk) = options.disk {
             self.disk = disk;
+        }
+        // plugged.host
+        if let Some(role) = options.role {
+            self.role = role;
+        }
+        if let Some(tags) = options.tags {
+            self.tags = placement::normalize_tags(&tags)
+                .into_iter()
+                .map(Into::into)
+                .collect();
+        }
+        if let Some(srv_target) = options.srv_target {
+            self.srv_target = srv_target;
+        }
+        if let Some(deployment_paused) = options.deployment_paused {
+            self.deployment_paused = deployment_paused;
         }
 
         self.run_after_update_handlers(state, transaction).await?;
@@ -1601,6 +1688,12 @@ impl DuplicableModel for Node {
             .set("sftp_port", self.sftp_port)
             .set("memory", self.memory)
             .set("disk", self.disk)
+            .set("role", &self.role) // plugged.host
+            .set(
+                "tags",
+                self.tags.iter().map(|t| t.to_string()).collect::<Vec<_>>(),
+            ) // plugged.host
+            .set("srv_target", &self.srv_target) // plugged.host
             .set("token_id", token_id)
             .set(
                 "token",
@@ -1691,6 +1784,13 @@ pub struct AdminApiNode {
 
     pub memory: i64,
     pub disk: i64,
+
+    // plugged.host: placement.rs
+    pub role: compact_str::CompactString,
+    pub tags: Vec<compact_str::CompactString>,
+    pub srv_target: Option<compact_str::CompactString>,
+    /// Set while the node is overloaded: no new servers go to it.
+    pub deployment_paused: bool,
 
     pub created: chrono::DateTime<chrono::Utc>,
 }

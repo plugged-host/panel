@@ -3081,7 +3081,13 @@
             "general": {
               "page": {
                 "form": {
-                  "flag": "Flagge"
+                  "flag": "Flagge",
+                  "tier": "Stufe",
+                  "tierDescription": "Die Tarifstufe, die Spieler für Server hier brauchen, etwa plus oder premium. Leer: alle Spieler.",
+                  "sort": "Reihenfolge",
+                  "sortDescription": "Standorte mit einer kleineren Zahl stehen weiter oben.",
+                  "public": "Öffentlich",
+                  "publicDescription": "Spieler können öffentliche Standorte für ihre Server wählen; Admins können immer jeden Standort nutzen."
                 },
                 "modal": {
                   "delete": {
@@ -3227,7 +3233,17 @@
                   "backupConfigurationPlaceholder": "Vom Standort übernehmen",
                   "memoryDescription": "Der gesamte für Server auf diesem Node verfügbare Arbeitsspeicher.",
                   "diskDescription": "Der gesamte für Server auf diesem Node verfügbare Speicherplatz.",
-                  "unlimitedTooltip": "0 setzt kein Limit."
+                  "unlimitedTooltip": "0 setzt kein Limit.",
+                  "srvTarget": "SRV-Ziel",
+                  "srvTargetDescription": "Der Hostname, auf den die SRV-Einträge der Server-Subdomains zeigen. Leer bedeutet die Adresse des Nodes.",
+                  "deploymentPaused": "Bereitstellung pausiert",
+                  "deploymentPausedDescription": "Ein pausierter Node nimmt keine neuen Server an, bis die Pause aufgehoben wird.",
+                  "role": "Rolle",
+                  "roleDescription": "Game-Nodes nehmen die Server der Spieler auf. Interne Nodes nutzen nur Admins, sie werden nie für Spieler ausgewählt.",
+                  "roleGame": "Game",
+                  "roleInternal": "Intern",
+                  "tags": "Tags",
+                  "tagsDescription": "Kurze Labels zum Gruppieren von Nodes, etwa nvme oder ddos-protected: Buchstaben, Ziffern, Bindestriche, Unterstriche und Punkte."
                 },
                 "section": {
                   "connection": "Verbindung",
@@ -3325,6 +3341,37 @@
                   "diskWrite": "Festplatte Schreiben",
                   "networkInLabel": "Netzwerk Ein",
                   "networkOutLabel": "Netzwerk Aus"
+                },
+                "telemetry": {
+                  "title": "Zustand und Verlauf",
+                  "empty": "Noch keine Messwerte. Das Panel prüft jeden Node einmal pro Minute.",
+                  "range": {
+                    "hour": "1 Stunde",
+                    "day": "24 Stunden",
+                    "week": "7 Tage"
+                  },
+                  "status": {
+                    "answering": "Antwortet",
+                    "refused": "Wings lauscht nicht",
+                    "unreachable": "Nicht erreichbar"
+                  },
+                  "label": {
+                    "status": "Status",
+                    "responseTime": "Antwortzeit",
+                    "pressure": "Auslastung (5 Min.)",
+                    "failures": "Verpasste Prüfungen in Folge",
+                    "load": "Last (1 Min.)",
+                    "serversRunning": "Laufende Server",
+                    "lastReachable": "Zuletzt geantwortet",
+                    "sampled": "Letzte Prüfung"
+                  },
+                  "chart": {
+                    "disk": "Speicherbelegung",
+                    "responseTime": "Antwortzeit"
+                  },
+                  "value": {
+                    "milliseconds": "{ms} ms"
+                  }
                 }
               }
             },
@@ -3340,6 +3387,7 @@
                   "deploymentEnabled": "Deployment aktiviert",
                   "deploymentDisabled": "Deployment deaktiviert",
                   "maintenanceEnabled": "In Wartung",
+                  "deploymentPaused": "Bereitstellung pausiert",
                   "maintenanceDisabled": "Nicht in Wartung"
                 },
                 "label": {

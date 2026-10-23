@@ -13,6 +13,9 @@ export const locationEmptyFormValues: LocationFormValues = {
   name: '',
   description: null,
   flag: null,
+  tier: null, // plugged.host
+  sort: 0, // plugged.host
+  public: true, // plugged.host
   backupConfigurationUuid: null,
 };
 
@@ -20,6 +23,9 @@ export const locationToFormValues = (location: z.infer<typeof adminLocationSchem
   name: location.name,
   description: location.description,
   flag: location.flag,
+  tier: location.tier, // plugged.host
+  sort: location.sort, // plugged.host
+  public: location.public, // plugged.host
   backupConfigurationUuid: location.backupConfiguration?.uuid ?? null,
 });
 
@@ -74,6 +80,26 @@ export function useLocationFormFields(
           {...f.getInputProps('flag')}
         />
       ),
+    },
+    // plugged.host
+    {
+      type: 'text',
+      name: 'tier',
+      label: t('pages.admin.locations.tabs.general.page.form.tier', {}),
+      description: t('pages.admin.locations.tabs.general.page.form.tierDescription', {}),
+    },
+    {
+      type: 'number',
+      name: 'sort',
+      label: t('pages.admin.locations.tabs.general.page.form.sort', {}),
+      description: t('pages.admin.locations.tabs.general.page.form.sortDescription', {}),
+      required: true,
+    },
+    {
+      type: 'switch',
+      name: 'public',
+      label: t('pages.admin.locations.tabs.general.page.form.public', {}),
+      description: t('pages.admin.locations.tabs.general.page.form.publicDescription', {}),
     },
   ];
 }

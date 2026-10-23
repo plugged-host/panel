@@ -16,6 +16,7 @@ import {
   pgSequence,
   pgTable,
   primaryKey,
+  real,
   smallint,
   text,
   timestamp,
@@ -686,6 +687,10 @@ export const locationsTable = pgTable(
     name: varchar({ length: 255 * UTF8_MAX_SCALAR_SIZE }).notNull(),
     description: text(),
     flag: char({ length: 2 }),
+    // plugged.host: a label shown with the location, its place in lists, and whether users see it
+    tier: varchar({ length: 32 }),
+    sort: integer().default(0).notNull(),
+    public: boolean().default(true).notNull(),
     created: timestamp().defaultNow().notNull(),
   },
   (cols) => [
@@ -732,6 +737,12 @@ export const nodesTable = pgTable(
     disk: bigint({ mode: 'number' }).notNull(),
     token_id: char({ length: 16 }).notNull(),
     token: bytea().notNull(),
+    // plugged.host: what the node is for, free labels, the host name SRV records point at, and the
+    // automatic pause of deployment while it is overloaded (docs/features/node-telemetry.md)
+    role: varchar({ length: 32 }).default('game').notNull(),
+    tags: varchar({ length: 64 }).array().default([]).notNull(),
+    srv_target: varchar({ length: 255 }),
+    deployment_paused: boolean().default(false).notNull(),
     created: timestamp().defaultNow().notNull(),
   },
   (cols) => [
@@ -740,6 +751,57 @@ export const nodesTable = pgTable(
     uniqueIndex('nodes_name_idx').on(cols.name),
     uniqueIndex('nodes_token_id_idx').on(cols.token_id),
     uniqueIndex('nodes_token_idx').on(cols.token),
+  ],
+);
+
+// plugged.host: the panel's view of each node, sampled every minute (shared/src/node_telemetry.rs).
+// One row per node with the newest sample and the counters derived from it.
+export const nodeTelemetryTable = pgTable('node_telemetry', {
+  node_uuid: uuid()
+    .references(() => nodesTable.uuid, { onDelete: 'cascade' })
+    .primaryKey()
+    .notNull(),
+  reachable: boolean().notNull(),
+  refused: boolean().default(false).notNull(),
+  response_time_ms: integer(),
+  cpu_percent: real(),
+  cpu_threads: integer(),
+  memory_used: bigint({ mode: 'number' }),
+  memory_total: bigint({ mode: 'number' }),
+  disk_used: bigint({ mode: 'number' }),
+  disk_total: bigint({ mode: 'number' }),
+  load1: real(),
+  servers_running: integer(),
+  pressure: real(),
+  consecutive_failures: integer().default(0).notNull(),
+  consecutive_outages: integer().default(0).notNull(),
+  error: text(),
+  last_reachable: timestamp(),
+  sampled: timestamp().defaultNow().notNull(),
+});
+
+// plugged.host: every sample, kept for a week (the node's Statistics tab, the status page).
+export const nodeTelemetrySamplesTable = pgTable(
+  'node_telemetry_samples',
+  {
+    node_uuid: uuid()
+      .references(() => nodesTable.uuid, { onDelete: 'cascade' })
+      .notNull(),
+    reachable: boolean().notNull(),
+    refused: boolean().default(false).notNull(),
+    response_time_ms: integer(),
+    cpu_percent: real(),
+    memory_used: bigint({ mode: 'number' }),
+    memory_total: bigint({ mode: 'number' }),
+    disk_used: bigint({ mode: 'number' }),
+    disk_total: bigint({ mode: 'number' }),
+    load1: real(),
+    servers_running: integer(),
+    sampled: timestamp().defaultNow().notNull(),
+  },
+  (cols) => [
+    primaryKey({ name: 'node_telemetry_samples_pk', columns: [cols.node_uuid, cols.sampled] }),
+    index('node_telemetry_samples_sampled_idx').on(cols.sampled),
   ],
 );
 

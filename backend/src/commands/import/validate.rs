@@ -964,6 +964,9 @@ impl Validator<'_> {
                     name: name.as_str().into(),
                     description: description.as_deref().map(Into::into),
                     flag: None,
+                    tier: None,   // plugged.host
+                    sort: 0,      // plugged.host
+                    public: true, // plugged.host
                 },
             );
 
@@ -1179,6 +1182,9 @@ impl Validator<'_> {
                         sftp_port: sftp_port.max(1),
                         memory,
                         disk,
+                        role: shared::models::node::placement::default_role(), // plugged.host
+                        tags: Vec::new(),                                      // plugged.host
+                        srv_target: None,                                      // plugged.host
                     },
                 );
             }

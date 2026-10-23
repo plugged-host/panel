@@ -33,7 +33,52 @@ export const adminNodeSchema = z.looseObject({
   sftpPort: z.number().min(0).max(65535),
   memory: z.number().min(0),
   disk: z.number().min(0),
+  // plugged.host: shared/src/models/node/placement.rs
+  role: z.enum(['game', 'internal']),
+  tags: z.array(z.string().min(1).max(64)).max(32),
+  srvTarget: z.preprocess(nullableString, hostnameSchema.nullable()),
+  deploymentPaused: z.boolean(),
   created: z.coerce.date(),
+});
+
+// plugged.host: node telemetry (shared/src/node_telemetry.rs)
+export const adminNodeTelemetrySchema = z.object({
+  reachable: z.boolean(),
+  refused: z.boolean(),
+  responseTimeMs: z.number().nullable(),
+  cpuPercent: z.number().nullable(),
+  cpuThreads: z.number().nullable(),
+  memoryUsed: z.number().nullable(),
+  memoryTotal: z.number().nullable(),
+  diskUsed: z.number().nullable(),
+  diskTotal: z.number().nullable(),
+  load1: z.number().nullable(),
+  serversRunning: z.number().nullable(),
+  pressure: z.number().nullable(),
+  consecutiveFailures: z.number(),
+  consecutiveOutages: z.number(),
+  error: z.string().nullable(),
+  lastReachable: z.coerce.date().nullable(),
+  sampled: z.coerce.date(),
+});
+
+export const adminNodeTelemetryPointSchema = z.object({
+  sampled: z.coerce.date(),
+  reachable: z.number(),
+  responseTimeMs: z.number().nullable(),
+  cpuPercent: z.number().nullable(),
+  memoryUsed: z.number().nullable(),
+  memoryTotal: z.number().nullable(),
+  diskUsed: z.number().nullable(),
+  diskTotal: z.number().nullable(),
+  load1: z.number().nullable(),
+  serversRunning: z.number().nullable(),
+});
+
+export const adminNodeTelemetryHistorySchema = z.object({
+  latest: adminNodeTelemetrySchema.nullable(),
+  bucketMinutes: z.number(),
+  history: z.array(adminNodeTelemetryPointSchema),
 });
 
 export const adminNodeTokenSchema = z.object({

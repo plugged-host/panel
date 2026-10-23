@@ -107,6 +107,10 @@ export default function OobeNode({ onNext, onBack, canGoBack, skipFrom, data }: 
           disk: values.disk,
           locationUuid: existingNode.location.uuid,
           backupConfigurationUuid: existingNode.backupConfiguration?.uuid ?? null,
+          role: existingNode.role, // plugged.host
+          tags: existingNode.tags, // plugged.host
+          srvTarget: existingNode.srvTarget, // plugged.host
+          deploymentPaused: existingNode.deploymentPaused, // plugged.host
         });
 
         nodeIsAIO = isNodeAIO(existingNode);
@@ -132,6 +136,10 @@ export default function OobeNode({ onNext, onBack, canGoBack, skipFrom, data }: 
           disk: values.disk,
           locationUuid: locationUuid!,
           backupConfigurationUuid: null,
+          role: 'game', // plugged.host
+          tags: [], // plugged.host
+          srvTarget: null, // plugged.host
+          deploymentPaused: false, // plugged.host
         });
         setExistingNode(node);
         nodeIsAIO = isNodeAIO(node);

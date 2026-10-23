@@ -9,6 +9,10 @@ export const adminLocationSchema = z.looseObject({
   name: z.string().min(1).max(255),
   description: z.preprocess(nullableString, z.string().max(1024).nullable()),
   flag: z.preprocess(nullableString, z.string().lowercase().length(2).nullable()),
+  // plugged.host: a label shown with the location, its place in lists, whether users see it
+  tier: z.preprocess(nullableString, z.string().min(1).max(32).nullable()),
+  sort: z.number().int(),
+  public: z.boolean(),
   backupConfiguration: z.lazy(() => adminBackupConfigurationSchema).nullable(),
   created: z.string(),
 });

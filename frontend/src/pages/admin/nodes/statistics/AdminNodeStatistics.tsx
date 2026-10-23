@@ -2,6 +2,7 @@ import { z } from 'zod';
 import SystemStatistics from '@/elements/admin/SystemStatistics.tsx';
 import AdminSubContentContainer from '@/elements/containers/AdminSubContentContainer.tsx';
 import { adminNodeSchema } from '@/lib/schemas/admin/nodes.ts';
+import NodeTelemetryHistory from '@/pages/admin/nodes/statistics/NodeTelemetryHistory.tsx'; // plugged.host
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 
 export default function AdminNodeStatistics({ node }: { node: z.infer<typeof adminNodeSchema> }) {
@@ -39,6 +40,8 @@ export default function AdminNodeStatistics({ node }: { node: z.infer<typeof adm
           networkOut: (out) => t('pages.admin.nodes.tabs.statistics.page.label.networkOut', { out }),
         }}
       />
+      {/* plugged.host */}
+      <NodeTelemetryHistory node={node} />
     </AdminSubContentContainer>
   );
 }

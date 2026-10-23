@@ -23,6 +23,7 @@ const admin = {
     token: (uuid: string) => ['admin', 'nodes', uuid, 'token'] as const,
     capacity: (nodeUuid: string) => ['admin', 'nodes', nodeUuid, 'capacity'] as const,
     bandwidth: (nodeUuid: string) => ['admin', 'nodes', nodeUuid, 'bandwidth'] as const,
+    telemetry: (nodeUuid: string, hours: number) => ['admin', 'nodes', nodeUuid, 'telemetry', hours] as const, // plugged.host
     capacities: () => ['admin', 'nodes', 'capacities'] as const,
     systemOverview: (nodeUuid: string) => ['admin', 'nodes', nodeUuid, 'system', 'overview'] as const,
     systemStats: (nodeUuid: string) => ['admin', 'nodes', nodeUuid, 'system', 'stats'] as const,

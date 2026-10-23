@@ -11,6 +11,7 @@ use utoipa::ToSchema;
 
 pub mod client;
 mod extra;
+pub mod fork; // plugged.host
 pub mod setup;
 pub mod tunnel;
 
