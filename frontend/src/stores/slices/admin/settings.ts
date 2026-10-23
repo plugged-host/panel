@@ -241,6 +241,9 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
   },
   recovery: {
     deletedHoldDays: 7,
+    failoverMode: 'manual',
+    failoverAfter: 10,
+    failoverParallel: 3,
   },
 
   updateInformation: null,

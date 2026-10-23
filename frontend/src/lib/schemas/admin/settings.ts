@@ -415,9 +415,12 @@ export const adminSettingsPlacementSchema = z.object({
   unreachableAfter: z.number().int().min(1).max(60),
 });
 
-// plugged.host: deleted servers' copies (shared/src/settings/recovery.rs, docs/features/backups-page.md)
+// plugged.host: deleted servers' copies and node failover (shared/src/settings/recovery.rs, docs/features/backups-page.md, failover.md)
 export const adminSettingsRecoverySchema = z.object({
   deletedHoldDays: z.number().int().min(0).max(90),
+  failoverMode: z.enum(['off', 'manual', 'auto']),
+  failoverAfter: z.number().int().min(3).max(1440),
+  failoverParallel: z.number().int().min(1).max(20),
 });
 
 // plugged.host: the welcome tour (shared/src/settings/tour.rs, docs/features/welcome-tour.md)

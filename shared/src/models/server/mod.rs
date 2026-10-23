@@ -19,6 +19,7 @@ mod events;
 pub use events::ServerEvent;
 
 pub mod firewall;
+pub mod rehome; // plugged.host
 pub mod suspension; // plugged.host
 
 pub type GetServer = crate::extract::ConsumingExtension<Server>;

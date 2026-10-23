@@ -1407,6 +1407,56 @@ export const deletedServersTable = pgTable(
   ],
 );
 
+// plugged.host: a node's servers restored on other nodes from their newest backup, when the node
+// is down (shared/src/node_failover.rs, docs/features/failover.md)
+export const nodeFailoversTable = pgTable(
+  'node_failovers',
+  {
+    uuid: uuid().default(sql`gen_random_uuid()`).primaryKey().notNull(),
+    node_uuid: uuid()
+      .references(() => nodesTable.uuid, { onDelete: 'cascade' })
+      .notNull(),
+    mode: varchar({ length: 16 }).notNull(),
+    status: varchar({ length: 16 }).notNull(),
+    started_by: uuid().references(() => usersTable.uuid, { onDelete: 'set null' }),
+    created: timestamp().defaultNow().notNull(),
+    finished: timestamp(),
+  },
+  (cols) => [
+    index('node_failovers_node_uuid_created_idx').on(cols.node_uuid, cols.created),
+    index('node_failovers_status_idx').on(cols.status),
+  ],
+);
+
+export const serverFailoversTable = pgTable(
+  'server_failovers',
+  {
+    uuid: uuid().default(sql`gen_random_uuid()`).primaryKey().notNull(),
+    node_failover_uuid: uuid()
+      .references(() => nodeFailoversTable.uuid, { onDelete: 'cascade' })
+      .notNull(),
+    // no foreign key: the source node's copy is cleaned up even after the server is deleted
+    server_uuid: uuid().notNull(),
+    server_name: varchar({ length: 255 * UTF8_MAX_SCALAR_SIZE }).notNull(),
+    source_node_uuid: uuid()
+      .references(() => nodesTable.uuid, { onDelete: 'cascade' })
+      .notNull(),
+    destination_node_uuid: uuid().references(() => nodesTable.uuid, { onDelete: 'set null' }),
+    backup_uuid: uuid().references(() => serverBackupsTable.uuid, { onDelete: 'set null' }),
+    status: varchar({ length: 16 }).notNull(),
+    error: text(),
+    created: timestamp().defaultNow().notNull(),
+    updated: timestamp().defaultNow().notNull(),
+    finished: timestamp(),
+    source_cleaned: timestamp(),
+  },
+  (cols) => [
+    index('server_failovers_node_failover_uuid_idx').on(cols.node_failover_uuid),
+    index('server_failovers_status_idx').on(cols.status),
+    index('server_failovers_server_uuid_idx').on(cols.server_uuid),
+  ],
+);
+
 // plugged.host: where each user is in the welcome tour (shared/src/welcome_tour.rs,
 // docs/features/welcome-tour.md)
 export const userWelcomeToursTable = pgTable('user_welcome_tours', {

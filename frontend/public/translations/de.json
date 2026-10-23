@@ -3067,7 +3067,16 @@
                 "title": "Einstellungen der Wiederherstellung",
                 "form": {
                   "deletedHoldDays": "Backups gelöschter Server aufbewahren (Tage)",
-                  "deletedHoldDaysDescription": "Wie lange das neueste System-Backup eines gelöschten Servers auf der Backup-Seite seines Besitzers herunterladbar bleibt. Ältere System-Backups davon werden sofort entfernt. 0 löscht sie mit dem Server."
+                  "deletedHoldDaysDescription": "Wie lange das neueste System-Backup eines gelöschten Servers auf der Backup-Seite seines Besitzers herunterladbar bleibt. Ältere System-Backups davon werden sofort entfernt. 0 löscht sie mit dem Server.",
+                  "failoverMode": "Node-Failover",
+                  "failoverModeDescription": "Ob die Server eines ausgefallenen Nodes auf den anderen Nodes seines Standorts aus ihrem neuesten Backup außerhalb des Nodes wiederhergestellt werden (Reiter „Failover“ des Nodes).",
+                  "failoverModeOff": "Aus",
+                  "failoverModeManual": "Von Hand, im Reiter „Failover“ des Nodes",
+                  "failoverModeAuto": "Automatisch und von Hand",
+                  "failoverAfter": "Automatisches Failover nach (Minuten)",
+                  "failoverAfterDescription": "Wie lange ein Node unerreichbar sein muss (einmal pro Minute geprüft), bevor seine Server per Failover umziehen. Es läuft immer nur ein Failover, und nur, solange die meisten anderen Nodes antworten.",
+                  "failoverParallel": "Gleichzeitig wiederhergestellte Server",
+                  "failoverParallelDescription": "Wie viele Server eines Failovers gleichzeitig verschoben und wiederhergestellt werden."
                 },
                 "toast": {
                   "updated": "Einstellungen der Wiederherstellung aktualisiert."
@@ -4226,6 +4235,65 @@
                     "archiveRate": "Archiv-Rate",
                     "networkRate": "Netzwerk-Rate"
                   }
+                }
+              }
+            },
+            "failover": {
+              "title": "Failover",
+              "page": {
+                "title": "Node-Failover",
+                "description": "Ist dieser Node ausgefallen, können seine Server auf den anderen Nodes seines Standorts aus ihrem neuesten Backup auf einem Speicher wiederhergestellt werden, den die anderen Nodes erreichen (S3, Proxmox Backup Server, ein entferntes restic-Repository). Seit diesem Backup geänderte Dateien gehen verloren, und ein Server bekommt eine neue Adresse, sofern seine Ports auf dem neuen Node nicht frei sind. Ist dieser Node wieder da, werden die alten Kopien darauf entfernt.",
+                "alert": {
+                  "off": "Failover ist in Admin › Einstellungen › Wiederherstellung **ausgeschaltet**."
+                },
+                "empty": "Für diesen Node gab es noch kein Failover.",
+                "button": {
+                  "start": "Failover starten",
+                  "drill": "Probelauf",
+                  "cancel": "Failover abbrechen"
+                },
+                "mode": {
+                  "auto": "Automatisches Failover",
+                  "manual": "Failover",
+                  "drill": "Probelauf"
+                },
+                "status": {
+                  "running": "Läuft",
+                  "done": "Fertig",
+                  "cancelled": "Abgebrochen"
+                },
+                "serverStatus": {
+                  "queued": "Wartend",
+                  "rehoming": "Wird verschoben",
+                  "restoring": "Wird wiederhergestellt",
+                  "done": "Wiederhergestellt",
+                  "failed": "Fehlgeschlagen",
+                  "cancelled": "Abgebrochen"
+                },
+                "table": {
+                  "destination": "Neuer Node",
+                  "backup": "Backup vom",
+                  "cleaned": "Alte Kopie entfernt"
+                },
+                "cleanedPending": "Sobald dieser Node wieder da ist",
+                "modal": {
+                  "start": {
+                    "title": "Failover für diesen Node",
+                    "content": "Alle Server von **{node}** auf den anderen Nodes seines Standorts aus ihrem neuesten Backup wiederherstellen? Nutze das nur, wenn der Node endgültig oder lange ausfällt: Seit dem jeweiligen Backup geänderte Dateien gehen verloren, und ein Server bekommt eine neue Adresse, sofern seine Ports auf dem neuen Node nicht frei sind."
+                  },
+                  "drill": {
+                    "title": "Failover-Probelauf",
+                    "content": "Einen Server auf einem anderen Node dieses Standorts aus seinem neuesten Backup wiederherstellen, um zu prüfen, ob das Failover funktioniert. Der Server wird hier zuerst gestoppt und bleibt danach auf dem neuen Node.",
+                    "warning": "Seit seinem neuesten Backup geänderte Dateien gehen verloren."
+                  },
+                  "cancel": {
+                    "title": "Failover abbrechen",
+                    "content": "Noch nicht verschobene Server bleiben auf diesem Node. Server, die gerade verschoben oder wiederhergestellt werden, werden auf ihrem neuen Node fertig."
+                  }
+                },
+                "toast": {
+                  "started": "Failover gestartet.",
+                  "cancelled": "Failover abgebrochen."
                 }
               }
             },

@@ -24,6 +24,7 @@ mod database_hosts;
 // mod devices;
 mod duplicate;
 mod enrollment;
+mod failover; // plugged.host
 // plugged.host: mounts removed (docs/upstream.md)
 // mod mounts;
 mod lighten; // plugged.host
@@ -273,6 +274,7 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         .nest("/capacity", capacity::router(state))
         .nest("/telemetry", telemetry::router(state)) // plugged.host
         .nest("/lighten", lighten::router(state)) // plugged.host
+        .nest("/failover", failover::router(state)) // plugged.host
         .nest("/bandwidth", bandwidth::router(state))
         .nest("/servers", servers::router(state))
         // .nest("/mounts", mounts::router(state))

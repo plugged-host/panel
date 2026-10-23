@@ -42,6 +42,7 @@ For AI agents: [`AGENTS.md`](../AGENTS.md) at the root has the hard rules in sho
 | **Allowance cuts**: when an account's plan or the games allowance gets smaller, its servers give back what is over, evenly, never below a floor | [features/allowance-cuts.md](features/allowance-cuts.md) |
 | **Backups page and deleted servers**: the newest backup of each server for download, and a deleted server's system backups kept for its owner for 7 days | [features/backups-page.md](features/backups-page.md) |
 | **Welcome tour**: a guide drawn over the server list and the first console (off by default, versioned, replay from the account menu) | [features/welcome-tour.md](features/welcome-tour.md) |
+| **Node failover**: a down node's servers restored on the other nodes of its location from their newest off-node backup, by hand, automatically or as a drill; old copies removed when the node is back | [features/failover.md](features/failover.md) |
 | **Suspension details**: why, since when, by whom and until when a server is suspended, shown to its owner; servers past their deletion time are purged | [features/suspension.md](features/suspension.md) |
 | **Delete a user with their servers** from the user's delete dialog | [features/admin-users.md](features/admin-users.md) |
 | **Status page**: the website, the panel and every node checked each minute, incidents with updates, overrides, 90 days of uptime, served as `/data/*.json` and an RSS feed for a public status page; Admin › Status and Admin › Settings › Status Page | [features/status.md](features/status.md) |

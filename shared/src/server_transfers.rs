@@ -462,15 +462,15 @@ async fn insert(
 }
 
 /// The allocations a server gets on `node`, and the variables its new ports go into.
-struct Picked {
-    primary: Option<uuid::Uuid>,
-    additional: Vec<uuid::Uuid>,
-    variables: HashMap<String, String>,
+pub(crate) struct Picked {
+    pub(crate) primary: Option<uuid::Uuid>,
+    pub(crate) additional: Vec<uuid::Uuid>,
+    pub(crate) variables: HashMap<String, String>,
 }
 
 /// Its own port numbers where `node` has them all free on one address, else what the egg
 /// configuration deploys, else any free ones. `None` when the node has too few free allocations.
-async fn pick_allocations(
+pub(crate) async fn pick_allocations(
     state: &crate::State,
     server: &Server,
     node: &Node,
@@ -580,7 +580,7 @@ async fn pick_allocations(
     }))
 }
 
-fn limits(server: &Server) -> AdminApiServerLimits {
+pub(crate) fn limits(server: &Server) -> AdminApiServerLimits {
     AdminApiServerLimits {
         cpu: server.cpu,
         memory: server.memory,

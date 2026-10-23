@@ -496,6 +496,11 @@ pub(crate) static BASE_ADMIN_PERMISSIONS: LazyLock<IndexMap<&'static str, Permis
                             "transfers",
                             "Allows viewing and managing mass-server transfers between nodes.",
                         ),
+                        // plugged.host: docs/features/failover.md
+                        (
+                            "failover",
+                            "Allows restoring a node's servers on other nodes from their backups, and drills of it.",
+                        ),
                     ]),
                 },
             ),

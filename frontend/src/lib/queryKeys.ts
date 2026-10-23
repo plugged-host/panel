@@ -42,6 +42,7 @@ const admin = {
     databaseAgentHosts: (nodeUuid: string) => ['admin', 'nodes', nodeUuid, 'database-agent-hosts'] as const,
     servers: (nodeUuid: string) => ['admin', 'nodes', nodeUuid, 'servers'] as const,
     transfers: (nodeUuid: string) => ['admin', 'nodes', nodeUuid, 'transfers'] as const,
+    failovers: (nodeUuid: string) => ['admin', 'nodes', nodeUuid, 'failovers'] as const, // plugged.host
     tunnel: (nodeUuid: string) => ['admin', 'nodes', nodeUuid, 'tunnel'] as const,
     tunnelMetrics: (nodeUuid: string) => ['admin', 'nodes', nodeUuid, 'tunnel', 'metrics'] as const,
   },

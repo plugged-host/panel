@@ -924,6 +924,15 @@ pub async fn define_background_tasks(
             async |state| shared::server_transfers::settle(&state).await,
         )
         .await;
+    // plugged.host: node failover (shared::node_failover): automatic ones started, servers moved
+    // along, old copies removed once their node is back
+    background_task_builder
+        .add_cron_task(
+            "settle_failovers",
+            croner::Cron::from_str("*/15 * * * * *").unwrap(),
+            async |state| shared::node_failover::settle(&state).await,
+        )
+        .await;
     // plugged.host: servers giving back a lowered allowance (shared::allowance_cuts)
     background_task_builder
         .add_cron_task(

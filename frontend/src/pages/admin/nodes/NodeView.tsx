@@ -6,6 +6,7 @@ import {
   faDatabase,
   faFileLines,
   faFolderTree,
+  faHeartCrack,
   faHouse,
   faInfoCircle,
   faLayerGroup,
@@ -28,6 +29,7 @@ import AdminNodeConfiguration from './configuration/AdminNodeConfiguration.tsx';
 import AdminNodeDatabaseAgentHosts from './database-agent-hosts/AdminNodeDatabaseAgentHosts.tsx';
 import AdminNodeDatabaseHosts from './database-hosts/AdminNodeDatabaseHosts.tsx';
 import AdminNodeDevices from './devices/AdminNodeDevices.tsx';
+import AdminNodeFailover from './failover/AdminNodeFailover.tsx'; // plugged.host
 import AdminNodeLogs from './logs/AdminNodeLogs.tsx';
 import AdminNodeMounts from './mounts/AdminNodeMounts.tsx';
 import NodeCreateOrUpdate from './NodeCreateOrUpdate.tsx';
@@ -143,6 +145,14 @@ export default function NodeView() {
                 path: `/transfers`,
                 element: <AdminNodeTransfers node={node} />,
                 permission: 'nodes.transfers',
+              },
+              // plugged.host: docs/features/failover.md
+              {
+                name: t('pages.admin.nodes.tabs.failover.title', {}),
+                icon: faHeartCrack,
+                path: `/failover`,
+                element: <AdminNodeFailover node={node} />,
+                permission: 'nodes.read',
               },
               {
                 name: t('pages.admin.nodes.tabs.tunnel.title', {}),

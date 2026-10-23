@@ -58,6 +58,13 @@ pub struct NodeProcesses {
     pub span: f64,
 }
 
+/// `POST /api/system/orphans`.
+#[derive(Debug, ToSchema, Deserialize, Serialize, Clone)]
+pub struct OrphanRemoval {
+    /// The server was still loaded on the node (it had not restarted).
+    pub was_loaded: bool,
+}
+
 /// `GET /api/servers/{server}/processes`.
 #[derive(Debug, ToSchema, Deserialize, Serialize, Clone)]
 pub struct ServerProcesses {
@@ -78,6 +85,12 @@ impl super::client::WingsClient {
             .await
             .map_err(super::client::ApiHttpError::Reqwest)?;
 
+        Self::fork_response(response).await
+    }
+
+    async fn fork_response<T: serde::de::DeserializeOwned>(
+        response: reqwest::Response,
+    ) -> Result<T, super::client::ApiHttpError> {
         let status = response.status();
         if !status.is_success() {
             return Err(super::client::ApiHttpError::Http(
@@ -95,6 +108,23 @@ impl super::client::WingsClient {
             .json()
             .await
             .map_err(super::client::ApiHttpError::Reqwest)
+    }
+
+    /// Removes what a server the panel moved away by node failover left on this node. `server` is
+    /// the server's remote configuration (what `GET /api/remote/servers/{server}` returns).
+    pub async fn post_system_orphans(
+        &self,
+        server: &impl Serialize,
+    ) -> Result<OrphanRemoval, super::client::ApiHttpError> {
+        let response = self
+            .request_raw(reqwest::Method::POST, "/api/system/orphans")
+            .header("Accept", "application/json")
+            .json(server)
+            .send()
+            .await
+            .map_err(super::client::ApiHttpError::Reqwest)?;
+
+        Self::fork_response(response).await
     }
 
     pub async fn get_system_load(&self) -> Result<NodeLoad, super::client::ApiHttpError> {

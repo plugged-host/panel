@@ -41,6 +41,7 @@ pub mod jwt;
 pub mod mail;
 pub mod models;
 pub mod net;
+pub mod node_failover; // plugged.host
 pub mod node_telemetry; // plugged.host
 pub mod noprofit;
 pub mod ntp;

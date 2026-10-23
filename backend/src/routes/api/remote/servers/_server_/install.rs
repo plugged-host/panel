@@ -61,6 +61,12 @@ mod post {
         mut server: GetServer,
         shared::Payload(data): shared::Payload<Payload>,
     ) -> ApiResponseResult {
+        // plugged.host: a failover creates the server without its install script; the install
+        // Wings reports for it must neither end the restore nor mail the owner (docs/features/failover.md)
+        if shared::node_failover::creating(&state.database, server.uuid).await? {
+            return ApiResponse::new_serialized(Response {}).ok();
+        }
+
         server
             .set_status(
                 state.database.write(),

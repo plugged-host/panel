@@ -3067,7 +3067,16 @@
                 "title": "Recovery Settings",
                 "form": {
                   "deletedHoldDays": "Keep Deleted Servers’ Backups (Days)",
-                  "deletedHoldDaysDescription": "How long the newest system backup of a deleted server stays downloadable from its owner’s Backups page. Older system backups of it are removed at once. 0 deletes them with the server."
+                  "deletedHoldDaysDescription": "How long the newest system backup of a deleted server stays downloadable from its owner’s Backups page. Older system backups of it are removed at once. 0 deletes them with the server.",
+                  "failoverMode": "Node Failover",
+                  "failoverModeDescription": "Whether a down node’s servers are restored on the other nodes of its location from their newest backup off the node (the node’s Failover tab).",
+                  "failoverModeOff": "Off",
+                  "failoverModeManual": "By hand, from the node’s Failover tab",
+                  "failoverModeAuto": "Automatically, and by hand",
+                  "failoverAfter": "Automatic Failover After (Minutes)",
+                  "failoverAfterDescription": "How long a node must be unreachable (checked once a minute) before its servers are failed over. One failover runs at a time, and only while most other nodes answer.",
+                  "failoverParallel": "Servers Restored at Once",
+                  "failoverParallelDescription": "How many servers of one failover are moved and restored at the same time."
                 },
                 "toast": {
                   "updated": "Recovery settings updated."
@@ -4226,6 +4235,65 @@
                     "archiveRate": "Archive Rate",
                     "networkRate": "Network Rate"
                   }
+                }
+              }
+            },
+            "failover": {
+              "title": "Failover",
+              "page": {
+                "title": "Node Failover",
+                "description": "When this node is down, its servers can be restored on the other nodes of its location from their newest backup on storage the other nodes reach (S3, Proxmox Backup Server, a remote restic repository). Files changed since that backup are lost, and a server gets a new address unless its ports are free on the new node. Once this node is back, the old copies on it are removed.",
+                "alert": {
+                  "off": "Failover is **off** in Admin › Settings › Recovery."
+                },
+                "empty": "This node has not been failed over.",
+                "button": {
+                  "start": "Fail Over",
+                  "drill": "Drill",
+                  "cancel": "Cancel Failover"
+                },
+                "mode": {
+                  "auto": "Automatic Failover",
+                  "manual": "Failover",
+                  "drill": "Drill"
+                },
+                "status": {
+                  "running": "Running",
+                  "done": "Done",
+                  "cancelled": "Cancelled"
+                },
+                "serverStatus": {
+                  "queued": "Queued",
+                  "rehoming": "Moving",
+                  "restoring": "Restoring",
+                  "done": "Restored",
+                  "failed": "Failed",
+                  "cancelled": "Cancelled"
+                },
+                "table": {
+                  "destination": "New Node",
+                  "backup": "Backup From",
+                  "cleaned": "Old Copy Removed"
+                },
+                "cleanedPending": "Once this node is back",
+                "modal": {
+                  "start": {
+                    "title": "Fail Over This Node",
+                    "content": "Restore every server of **{node}** on the other nodes of its location from its newest backup? Use this only when the node is down for good or for long: files changed since each backup are lost, and a server gets a new address unless its ports are free on the new node."
+                  },
+                  "drill": {
+                    "title": "Failover Drill",
+                    "content": "Restore one server on another node of this location from its newest backup, to check that failover works. The server is stopped here first and stays on the new node afterwards.",
+                    "warning": "Files changed since its newest backup are lost."
+                  },
+                  "cancel": {
+                    "title": "Cancel Failover",
+                    "content": "Servers not moved yet stay on this node. Servers being moved or restored finish on their new node."
+                  }
+                },
+                "toast": {
+                  "started": "Failover started.",
+                  "cancelled": "Failover cancelled."
                 }
               }
             },

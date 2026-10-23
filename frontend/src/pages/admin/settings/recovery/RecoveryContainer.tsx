@@ -1,4 +1,4 @@
-// plugged.host: Admin › Settings › Recovery (docs/features/backups-page.md)
+// plugged.host: Admin › Settings › Recovery (docs/features/backups-page.md, failover.md)
 import { useForm } from '@mantine/form';
 import { zod4Resolver } from 'mantine-form-zod-resolver';
 import { z } from 'zod';
@@ -19,6 +19,9 @@ type RecoveryValues = z.infer<typeof adminSettingsRecoverySchema>;
 
 const recoveryEmptyFormValues: RecoveryValues = {
   deletedHoldDays: 7,
+  failoverMode: 'manual',
+  failoverAfter: 10,
+  failoverParallel: 3,
 };
 
 export default function RecoveryContainer() {
@@ -51,6 +54,35 @@ export default function RecoveryContainer() {
       description: t(`${page}.deletedHoldDaysDescription`, {}),
       required: true,
       props: { min: 0, max: 90 },
+    },
+    {
+      type: 'select',
+      name: 'failoverMode',
+      label: t(`${page}.failoverMode`, {}),
+      description: t(`${page}.failoverModeDescription`, {}),
+      options: [
+        { value: 'off', label: t(`${page}.failoverModeOff`, {}) },
+        { value: 'manual', label: t(`${page}.failoverModeManual`, {}) },
+        { value: 'auto', label: t(`${page}.failoverModeAuto`, {}) },
+      ],
+      required: true,
+      props: { allowDeselect: false },
+    },
+    {
+      type: 'number',
+      name: 'failoverAfter',
+      label: t(`${page}.failoverAfter`, {}),
+      description: t(`${page}.failoverAfterDescription`, {}),
+      required: true,
+      props: { min: 3, max: 1440 },
+    },
+    {
+      type: 'number',
+      name: 'failoverParallel',
+      label: t(`${page}.failoverParallel`, {}),
+      description: t(`${page}.failoverParallelDescription`, {}),
+      required: true,
+      props: { min: 1, max: 20 },
     },
   ];
 

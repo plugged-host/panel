@@ -14,6 +14,7 @@ features need. Like the panel, the fork is edited directly in its source and mer
 | `GET /api/system/load`: load averages, threads, CPU use | Node telemetry | The node has no load figures |
 | `GET /api/system/processes`: every container's processes (CPU, executable, command line, a deleted binary, miner strings found in the executable), each container's outgoing connections and send rate, mapped to its server; and the host's processes. Replaces the Python node agent of plugged.host's Pelican panel: the panel asks, nothing is installed on the node | Abuse protection | The node is not watched for processes and connections; the file scans still run |
 | `GET /api/servers/{uuid}/processes`: the same for one server | Abuse protection (an admin's look at one server) | |
+| `POST /api/system/orphans` with a server's configuration (what `GET /api/remote/servers` gives): removes that server from the node, loaded or not: its files, container and state. The panel no longer lists it on the node, so stock Wings cannot delete it | [Node failover](features/failover.md), once the old node is back | The old copy's files stay on the node; the failover row says so |
 | A schedule's restart step restarts a running server only; a stopped one stays stopped ("server is not running.") | [Start gates](features/start-gates.md) | A scheduled restart could start a stopped server past the gates |
 
 `curl https://node.example.com:8080/api/public/resources` answers:
