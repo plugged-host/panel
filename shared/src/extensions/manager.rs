@@ -114,10 +114,20 @@ impl ExtensionManager {
             super::background_tasks::BackgroundTaskBuilder::new(state.clone());
         let shutdown_handlers_builder =
             super::shutdown_handlers::ShutdownHandlerBuilder::new(state.clone());
+        // plugged.host: without the permissions of the removed features
         let mut permissions_builder = ExtensionPermissionsBuilder::new(
-            crate::permissions::BASE_USER_PERMISSIONS.clone(),
-            crate::permissions::BASE_ADMIN_PERMISSIONS.clone(),
-            crate::permissions::BASE_SERVER_PERMISSIONS.clone(),
+            crate::permissions::offered_permissions(
+                &crate::permissions::BASE_USER_PERMISSIONS,
+                crate::permissions::REMOVED_USER_PERMISSIONS,
+            ),
+            crate::permissions::offered_permissions(
+                &crate::permissions::BASE_ADMIN_PERMISSIONS,
+                crate::permissions::REMOVED_ADMIN_PERMISSIONS,
+            ),
+            crate::permissions::offered_permissions(
+                &crate::permissions::BASE_SERVER_PERMISSIONS,
+                crate::permissions::REMOVED_SERVER_PERMISSIONS,
+            ),
         );
 
         let mut settings_map = crate::settings::Settings::fetch_settings_map(&state.database)

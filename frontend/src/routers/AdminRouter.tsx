@@ -1,5 +1,5 @@
 import { faReply } from '@fortawesome/free-solid-svg-icons';
-import { Fragment, Suspense, useEffect, useMemo } from 'react';
+import { Fragment, Suspense, useMemo } from 'react';
 import { Route, Routes } from 'react-router';
 import type { AdminRouteDefinition } from 'shared';
 import AdminContentContainer from '@/elements/containers/AdminContentContainer.tsx';
@@ -11,24 +11,16 @@ import Sidebar from '@/elements/navigation/Sidebar.tsx';
 import QuickActionsTrigger from '@/elements/quickActions/QuickActionsTrigger.tsx';
 import { resolveString } from '@/lib/lazy.ts';
 import { to } from '@/lib/routes.ts';
-import { checkPermissions, useAdminCan } from '@/plugins/usePermissions.ts';
+import { checkPermissions } from '@/plugins/usePermissions.ts';
 import { useAuth } from '@/providers/AuthProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import AdminPermissionGuard from '@/routers/guards/AdminPermissionGuard.tsx';
 import adminRoutes, { adminSidebarCategoryOrder } from '@/routers/routes/adminRoutes.ts';
-import { useAdminStore } from '@/stores/admin.tsx';
 
 export default function AdminRouter({ isNormal }: { isNormal: boolean }) {
   const { t } = useTranslations();
   const { user } = useAuth();
-  const loadUpdateInformation = useAdminStore((state) => state.loadUpdateInformation);
-  const canReadStats = useAdminCan('stats.read');
-
-  useEffect(() => {
-    if (!canReadStats) return;
-
-    loadUpdateInformation();
-  }, [canReadStats]);
+  // plugged.host: no update checker (docs/upstream.md), so no update information to load
 
   const allAdminRoutes = useMemo(() => {
     const routes = [...adminRoutes, ...window.extensionContext.extensionRegistry.routes.adminRoutes];

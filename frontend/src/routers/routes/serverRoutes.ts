@@ -4,7 +4,6 @@ import {
   faCog,
   faDatabase,
   faFolderOpen,
-  faFolderTree,
   faNetworkWired,
   faPlay,
   faStopwatch,
@@ -17,17 +16,11 @@ import ServerActivity from '@/pages/server/activity/ServerActivity.tsx';
 import ServerBackups from '@/pages/server/backups/ServerBackups.tsx';
 import ServerSystemBackups from '@/pages/server/backups/system/ServerSystemBackups.tsx';
 import DatabaseExplorerView from '@/pages/server/databases/explorer/DatabaseExplorerView.tsx';
-import DatabaseInstanceExplorerView from '@/pages/server/databases/instances/DatabaseInstanceExplorerView.tsx';
-import ServerDatabaseInstances from '@/pages/server/databases/instances/ServerDatabaseInstances.tsx';
 import ServerDatabases from '@/pages/server/databases/ServerDatabases.tsx';
-import ServerDevices from '@/pages/server/devices/ServerDevices.tsx';
 import FileSqliteQuery from '@/pages/server/files/editor/FileSqliteQuery.tsx';
 import ServerFiles from '@/pages/server/files/ServerFiles.tsx';
 import ServerFilesTrash from '@/pages/server/files/trash/ServerFilesTrash.tsx';
-import ServerMounts from '@/pages/server/mounts/ServerMounts.tsx';
-import ServerFirewall from '@/pages/server/network/firewall/ServerFirewall.tsx';
 import ServerNetwork from '@/pages/server/network/ServerNetwork.tsx';
-import ServerTunnel from '@/pages/server/network/tunnel/ServerTunnel.tsx';
 import ScheduleView from '@/pages/server/schedules/ScheduleView.tsx';
 import ServerSchedules from '@/pages/server/schedules/ServerSchedules.tsx';
 import ServerSettings from '@/pages/server/settings/ServerSettings.tsx';
@@ -39,8 +32,9 @@ const ServerConsole = lazy(() => import('@/pages/server/console/ServerConsole.ts
 const PopoutConsole = lazy(() => import('@/pages/server/console/PopoutConsole.tsx'));
 const ServerFilesEditor = lazy(() => import('@/pages/server/files/editor/FileEditor.tsx'));
 const FileRevisionDiff = lazy(() => import('@/pages/server/files/editor/FileRevisionDiff.tsx'));
-const DatabaseInstanceView = lazy(() => import('@/pages/server/databases/instances/DatabaseInstanceView.tsx'));
 
+// plugged.host: no managed database instances, firewall, private network, mounts or devices
+// (docs/upstream.md)
 const routes: ServerRouteDefinition[] = [
   {
     name: () => getTranslations().t('pages.server.console.title', {}),
@@ -92,25 +86,7 @@ const routes: ServerRouteDefinition[] = [
     icon: faDatabase,
     path: '/databases',
     element: ServerDatabases,
-    permission: ['databases.read', 'database-instances.read'],
-  },
-  {
-    name: undefined,
-    path: '/databases/instances',
-    element: ServerDatabaseInstances,
-    permission: 'database-instances.read',
-  },
-  {
-    name: undefined,
-    path: '/databases/instances/:id',
-    element: DatabaseInstanceView,
-    permission: 'database-instances.read',
-  },
-  {
-    name: undefined,
-    path: '/databases/instances/:id/databases/:databaseId/explore',
-    element: DatabaseInstanceExplorerView,
-    permission: 'database-instances.query',
+    permission: 'databases.read',
   },
   {
     name: undefined,
@@ -156,19 +132,7 @@ const routes: ServerRouteDefinition[] = [
     icon: faNetworkWired,
     path: '/network',
     element: ServerNetwork,
-    permission: ['allocations.read', 'firewall.read', 'connections.read'],
-  },
-  {
-    name: undefined,
-    path: '/network/firewall',
-    element: ServerFirewall,
-    permission: 'firewall.read',
-  },
-  {
-    name: undefined,
-    path: '/network/connections',
-    element: ServerTunnel,
-    permission: 'connections.read',
+    permission: 'allocations.read',
   },
   {
     name: () => getTranslations().t('pages.server.startup.title', {}),
@@ -176,19 +140,6 @@ const routes: ServerRouteDefinition[] = [
     path: '/startup',
     element: ServerStartup,
     permission: 'startup.read',
-  },
-  {
-    name: () => getTranslations().t('pages.server.mounts.title', {}),
-    icon: faFolderTree,
-    path: '/mounts',
-    element: ServerMounts,
-    permission: ['mounts.read', 'devices.read'],
-  },
-  {
-    name: undefined,
-    path: '/mounts/devices',
-    element: ServerDevices,
-    permission: 'devices.read',
   },
   {
     name: () => getTranslations().t('pages.server.settings.title', {}),

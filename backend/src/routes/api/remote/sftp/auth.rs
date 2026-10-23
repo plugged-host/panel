@@ -46,8 +46,14 @@ mod post {
     async fn noprofit_user(
         state: &shared::State,
         username: &str,
-    ) -> Result<Option<(&'static shared::noprofit::Config, User, i64)>, anyhow::Error> {
-        let Some(noprofit) = shared::noprofit::config().filter(|noprofit| noprofit.sync_enabled())
+    ) -> Result<Option<(shared::noprofit::Config, User, i64)>, anyhow::Error> {
+        let Some(noprofit) = state
+            .settings
+            .get()
+            .await?
+            .noprofit
+            .config()
+            .filter(|noprofit| noprofit.sync_enabled())
         else {
             return Ok(None);
         };

@@ -20,16 +20,21 @@ mod activity;
 mod announcements;
 mod assets;
 mod backup_configurations;
-mod database_agent_hosts;
-mod database_agent_templates;
+// plugged.host: managed database instances removed (docs/upstream.md)
+// mod database_agent_hosts;
+// plugged.host: managed database instances removed (docs/upstream.md)
+// mod database_agent_templates;
 mod database_hosts;
-mod devices;
+// plugged.host: devices removed (docs/upstream.md)
+// mod devices;
 mod egg_configurations;
 mod egg_repositories;
 mod eggs;
-mod extensions;
+// plugged.host: the Extensions page removed (docs/upstream.md)
+// mod extensions;
 mod locations;
-mod mounts;
+// plugged.host: mounts removed (docs/upstream.md)
+// mod mounts;
 mod nests;
 mod nodes;
 mod oauth_providers;
@@ -89,11 +94,8 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         .nest("/egg-configurations", egg_configurations::router(state))
         .nest("/eggs", eggs::router(state))
         .nest("/database-hosts", database_hosts::router(state))
-        .nest("/database-agent-hosts", database_agent_hosts::router(state))
-        .nest(
-            "/database-agent-templates",
-            database_agent_templates::router(state),
-        )
+        // .nest("/database-agent-hosts", database_agent_hosts::router(state))
+        // .nest("/database-agent-templates", database_agent_templates::router(state))
         .nest(
             "/backup-configurations",
             backup_configurations::router(state),
@@ -103,11 +105,11 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
             system_backup_policies::router(state),
         )
         .nest("/oauth-providers", oauth_providers::router(state))
-        .nest("/mounts", mounts::router(state))
-        .nest("/devices", devices::router(state))
+        // .nest("/mounts", mounts::router(state))
+        // .nest("/devices", devices::router(state))
         .nest("/users", users::router(state))
         .nest("/roles", roles::router(state))
-        .nest("/extensions", extensions::router(state))
+        // .nest("/extensions", extensions::router(state))
         .nest("/activity", activity::router(state))
         .nest("/announcements", announcements::router(state))
         .route_layer(axum::middleware::from_fn_with_state(state.clone(), auth))

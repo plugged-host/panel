@@ -3,6 +3,7 @@ import {
   faBan,
   faDatabase,
   faEnvelopesBulk,
+  faHandshake,
   faLayerGroup,
   faRobot,
   faServer,
@@ -28,6 +29,7 @@ import ApplicationContainer from './application/ApplicationContainer.tsx';
 import CaptchaContainer from './captcha/CaptchaContainer.tsx';
 import EmailContainer from './email/EmailContainer.tsx';
 import MetadataContainer from './metadata/MetadataContainer.tsx';
+import NoprofitContainer from './noprofit/NoprofitContainer.tsx';
 import RatelimitsContainer from './ratelimits/RatelimitsContainer.tsx';
 import ServerContainer from './server/ServerContainer.tsx';
 import StorageContainer from './storage/StorageContainer.tsx';
@@ -94,6 +96,13 @@ export default function AdminSettings() {
               icon: faRobot,
               path: '/captcha',
               element: <CaptchaContainer />,
+            },
+            // plugged.host: noprofit.space, next to the other sign-in settings
+            {
+              name: t('pages.admin.settings.tabs.noprofit.title', {}),
+              icon: faHandshake,
+              path: '/noprofit',
+              element: <NoprofitContainer />,
             },
             {
               name: t('pages.admin.settings.tabs.webauthn.title', {}),

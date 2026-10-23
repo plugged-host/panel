@@ -37,7 +37,7 @@ mod get {
         (status = OK, body = inline(Response)),
     ))]
     pub async fn route(state: GetState, user: GetUser) -> ApiResponseResult {
-        let Some(noprofit) = shared::noprofit::config() else {
+        let Some(noprofit) = state.settings.get().await?.noprofit.config() else {
             return ApiResponse::new_serialized(Response {
                 accounts_url: None,
                 account: None,
@@ -59,7 +59,7 @@ mod get {
             });
 
         ApiResponse::new_serialized(Response {
-            accounts_url: Some(&noprofit.accounts_url),
+            accounts_url: Some(noprofit.accounts_url.as_str()),
             account,
         })
         .ok()

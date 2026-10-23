@@ -278,6 +278,35 @@ mod put {
         exempt_api_keys: Option<Vec<uuid::Uuid>>,
     }
 
+    // plugged.host: noprofit.space (shared/src/settings/noprofit.rs)
+    #[derive(ToSchema, Validate, Deserialize)]
+    pub struct PayloadNoprofit {
+        #[garde(skip)]
+        enabled: Option<bool>,
+        #[garde(url)]
+        accounts_url: Option<compact_str::CompactString>,
+        #[garde(length(chars, min = 1, max = 64))]
+        sso_client: Option<compact_str::CompactString>,
+        #[garde(length(chars, min = 1, max = 128))]
+        #[serde(default, with = "::serde_with::rust::double_option")]
+        sso_audience: Option<Option<compact_str::CompactString>>,
+        #[garde(url)]
+        #[serde(default, with = "::serde_with::rust::double_option")]
+        sso_callback_url: Option<Option<compact_str::CompactString>>,
+        #[garde(skip)]
+        admins_only: Option<bool>,
+        #[garde(skip)]
+        link_by_email: Option<bool>,
+        /// At least 32 characters. An empty string keeps the stored secret, `null` removes it.
+        #[garde(length(chars, max = 512))]
+        #[serde(default, with = "::serde_with::rust::double_option")]
+        sso_secret: Option<Option<compact_str::CompactString>>,
+        /// At least 32 characters. An empty string keeps the stored secret, `null` removes it.
+        #[garde(length(chars, max = 512))]
+        #[serde(default, with = "::serde_with::rust::double_option")]
+        api_secret: Option<Option<compact_str::CompactString>>,
+    }
+
     #[derive(ToSchema, Validate, Deserialize)]
     pub struct Payload {
         #[garde(skip)]
@@ -312,6 +341,10 @@ mod put {
         #[schema(inline)]
         #[garde(dive)]
         ratelimits: Option<PayloadRatelimits>,
+        // plugged.host
+        #[schema(inline)]
+        #[garde(dive)]
+        noprofit: Option<PayloadNoprofit>,
     }
 
     #[derive(ToSchema, Serialize)]
@@ -662,6 +695,69 @@ mod put {
                 }
 
                 settings.ratelimits.exempt_api_keys = exempt_api_keys;
+            }
+        }
+
+        // plugged.host: noprofit.space
+        if let Some(noprofit) = data.noprofit {
+            let was_connected = settings.noprofit.connected();
+
+            if let Some(enabled) = noprofit.enabled {
+                settings.noprofit.enabled = enabled;
+            }
+            if let Some(accounts_url) = noprofit.accounts_url {
+                settings.noprofit.accounts_url = accounts_url.trim_end_matches('/').into();
+            }
+            if let Some(sso_client) = noprofit.sso_client {
+                settings.noprofit.sso_client = sso_client;
+            }
+            if let Some(sso_audience) = noprofit.sso_audience {
+                settings.noprofit.sso_audience = sso_audience;
+            }
+            if let Some(sso_callback_url) = noprofit.sso_callback_url {
+                settings.noprofit.sso_callback_url = sso_callback_url;
+            }
+            if let Some(admins_only) = noprofit.admins_only {
+                settings.noprofit.admins_only = admins_only;
+            }
+            if let Some(link_by_email) = noprofit.link_by_email {
+                settings.noprofit.link_by_email = link_by_email;
+            }
+            let stored_secrets = &mut settings.noprofit;
+            for (secret, stored) in [
+                (noprofit.sso_secret, &mut stored_secrets.sso_secret),
+                (noprofit.api_secret, &mut stored_secrets.api_secret),
+            ] {
+                match secret {
+                    // the placeholder the API shows a stored secret as
+                    Some(Some(secret)) if secret == shared::censor::CENSORED_PLACEHOLDER => {}
+                    Some(Some(secret)) if secret.trim().len() < 32 => {
+                        return ApiResponse::error(
+                            "the noprofit.space secrets must be at least 32 characters",
+                        )
+                        .with_status(StatusCode::BAD_REQUEST)
+                        .ok();
+                    }
+                    Some(secret) => *stored = secret.map(|secret| secret.trim().into()),
+                    None => {}
+                }
+            }
+
+            if settings.noprofit.enabled && !settings.noprofit.connected() {
+                return ApiResponse::error(
+                    "noprofit.space needs its accounts URL, the sign-in client and the sign-in secret",
+                )
+                .with_status(StatusCode::BAD_REQUEST)
+                .ok();
+            }
+            // Users made by noprofit.space have no password: turning it off would lock them out,
+            // the one saving this included.
+            if was_connected && !settings.noprofit.connected() && !user.has_password {
+                return ApiResponse::error(
+                    "noprofit.space sign-in can only be turned off by an admin with a panel password",
+                )
+                .with_status(StatusCode::BAD_REQUEST)
+                .ok();
             }
         }
 

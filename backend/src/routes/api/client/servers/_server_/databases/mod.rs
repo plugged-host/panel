@@ -3,7 +3,8 @@ use utoipa_axum::{router::OpenApiRouter, routes};
 
 mod _database_;
 mod hosts;
-mod instances;
+// plugged.host: managed database instances removed (docs/upstream.md)
+// mod instances;
 
 mod get {
     use axum::{extract::Query, http::StatusCode};
@@ -244,7 +245,7 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
     OpenApiRouter::new()
         .routes(routes!(get::route))
         .routes(routes!(post::route))
-        .nest("/instances", instances::router(state))
+        // .nest("/instances", instances::router(state))
         .nest("/hosts", hosts::router(state))
         .nest("/{database}", _database_::router(state))
         .with_state(state.clone())

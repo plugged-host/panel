@@ -17,13 +17,7 @@ function ErrorState({ error, onRetry, retrying }: { error: string; onRetry?: () 
           {error}
         </Text>
         {onRetry && (
-          <Button
-            variant='default'
-            size='xs'
-            mt='xs'
-            loading={retrying}
-            onClick={onRetry}
-          >
+          <Button variant='default' size='xs' mt='xs' loading={retrying} onClick={onRetry}>
             {t('common.button.retry', {})}
           </Button>
         )}

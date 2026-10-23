@@ -22,6 +22,10 @@ import DashboardSessions from '@/pages/dashboard/sessions/DashboardSessions.tsx'
 import DashboardShortcuts from '@/pages/dashboard/shortcuts/DashboardShortcuts.tsx';
 import DashboardSshKeys from '@/pages/dashboard/ssh-keys/DashboardSshKeys.tsx';
 import { getTranslations } from '@/providers/TranslationProvider.tsx';
+import { useGlobalStore } from '@/stores/global.ts';
+
+// plugged.host: no security keys or OAuth links while noprofit.space owns sign-in
+const noprofitConnected = () => !!useGlobalStore.getState().settings.noprofit?.enabled;
 
 const routes: RouteDefinition[] = [
   {
@@ -36,6 +40,7 @@ const routes: RouteDefinition[] = [
     icon: faUnlockKeyhole,
     path: '/security-keys',
     element: DashboardSecurityKeys,
+    filter: () => !noprofitConnected(),
   },
   {
     name: () => getTranslations().t('pages.account.apiKeys.title', {}),
@@ -70,6 +75,7 @@ const routes: RouteDefinition[] = [
     icon: faFingerprint,
     path: '/oauth-links',
     element: DashboardOAuthLinks,
+    filter: () => !noprofitConnected(),
   },
   {
     name: () => getTranslations().t('pages.account.sessions.title', {}),

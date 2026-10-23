@@ -2557,6 +2557,34 @@
                 }
               }
             },
+            "noprofit": {
+              "title": "noprofit.space",
+              "page": {
+                "title": "noprofit.space Settings",
+                "form": {
+                  "enabled": "Sign in with noprofit.space",
+                  "enabledDescription": "Everyone signs in at noprofit.space. Registration is off, password sign-in is left to admins without a noprofit.space account, and the panel's own OAuth providers and security keys are off.",
+                  "accountsUrl": "Accounts URL",
+                  "ssoClient": "Sign-in Client",
+                  "ssoClientDescription": "The client noprofit.space knows this panel as.",
+                  "ssoSecret": "Sign-in Secret",
+                  "apiSecret": "API Secret",
+                  "secretStored": "A secret is stored. Type a new one to replace it.",
+                  "secretMissing": "Not set. At least 32 characters.",
+                  "adminsOnly": "Admins Only",
+                  "adminsOnlyDescription": "Only noprofit.space admins may sign in.",
+                  "linkByEmail": "Link by Email",
+                  "linkByEmailDescription": "A first sign-in takes over the panel user with the same email instead of refusing it.",
+                  "ssoAudience": "Token Audience",
+                  "ssoAudienceDescription": "Empty: the sign-in client followed by \":sso\".",
+                  "ssoCallbackUrl": "Callback URL",
+                  "ssoCallbackUrlDescription": "Empty: the panel URL followed by /api/auth/noprofit/callback."
+                },
+                "toast": {
+                  "updated": "noprofit.space settings updated."
+                }
+              }
+            },
             "webauthn": {
               "title": "Webauthn",
               "page": {

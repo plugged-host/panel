@@ -105,6 +105,8 @@ mod get {
     ))]
     pub async fn route(state: GetState) -> ApiResponseResult {
         let settings = state.settings.get().await?;
+        // plugged.host: noprofit.space owns sign-in when connected
+        let noprofit_connected = settings.noprofit.connected();
 
         ApiResponse::new_serialized(Response {
             time: chrono::Utc::now(),
@@ -120,8 +122,7 @@ mod get {
                 banner_light: settings.app.banner_light.as_deref(),
                 name: &settings.app.name,
                 language: &settings.app.language,
-                registration_enabled: settings.app.registration_enabled
-                    && !shared::noprofit::enabled(),
+                registration_enabled: settings.app.registration_enabled && !noprofit_connected,
                 password_login_enabled: settings.app.password_login_enabled,
                 email_two_factor_enabled: settings.app.email_two_factor_enabled,
                 email_verification_required: settings.app.email_verification_required,
@@ -131,7 +132,8 @@ mod get {
                 theme_color: &settings.metadata.theme_color,
             },
             webauthn: ResponseWebauthn {
-                enabled: settings.webauthn.enabled,
+                // plugged.host: no security keys while noprofit.space owns sign-in
+                enabled: settings.webauthn.enabled && !noprofit_connected,
                 allow_discoverable: settings.webauthn.allow_discoverable,
             },
             server: ResponseServer {
@@ -173,17 +175,11 @@ mod get {
 
                 route_order: settings.user.route_order.as_deref(),
             },
-            noprofit: match shared::noprofit::config() {
-                Some(noprofit) => ResponseNoprofit {
-                    enabled: true,
-                    accounts_url: Some(&noprofit.accounts_url),
-                    admins_only: noprofit.admins_only,
-                },
-                None => ResponseNoprofit {
-                    enabled: false,
-                    accounts_url: None,
-                    admins_only: false,
-                },
+            noprofit: ResponseNoprofit {
+                enabled: noprofit_connected,
+                accounts_url: noprofit_connected
+                    .then(|| settings.noprofit.accounts_url.trim_end_matches('/')),
+                admins_only: noprofit_connected && settings.noprofit.admins_only,
             },
         })
         .ok()

@@ -2,7 +2,8 @@ use super::State;
 use utoipa_axum::{router::OpenApiRouter, routes};
 
 mod _backup_;
-mod groups;
+// plugged.host: backup groups removed (docs/upstream.md)
+// mod groups;
 mod system;
 mod unlock;
 mod usage;
@@ -668,7 +669,7 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         .routes(routes!(post::route))
         .routes(routes!(delete::route))
         .routes(routes!(patch::route))
-        .nest("/groups", groups::router(state))
+        // .nest("/groups", groups::router(state))
         .nest("/system", system::router(state))
         .nest("/unlock", unlock::router(state))
         .nest("/usage", usage::router(state))

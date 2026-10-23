@@ -758,7 +758,8 @@ pub async fn handle_startup() -> Result<
         env,
     });
 
-    state.updates.init(state.clone());
+    // plugged.host: no update checker (docs/upstream.md)
+    // state.updates.init(state.clone());
 
     let (app, background_task_builder, shutdown_handler_builder) = extensions
         .init(

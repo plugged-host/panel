@@ -2516,6 +2516,34 @@
                 }
               }
             },
+            "noprofit": {
+              "title": "noprofit.space",
+              "page": {
+                "title": "noprofit.space-Einstellungen",
+                "form": {
+                  "enabled": "Mit noprofit.space anmelden",
+                  "enabledDescription": "Alle melden sich bei noprofit.space an. Die Registrierung ist aus, die Anmeldung mit Passwort bleibt Admins ohne noprofit.space-Konto vorbehalten, und die eigenen OAuth-Anbieter und Sicherheitsschlüssel des Panels sind aus.",
+                  "accountsUrl": "Konten-URL",
+                  "ssoClient": "Anmelde-Client",
+                  "ssoClientDescription": "Der Client, unter dem noprofit.space dieses Panel kennt.",
+                  "ssoSecret": "Anmelde-Geheimnis",
+                  "apiSecret": "API-Geheimnis",
+                  "secretStored": "Ein Geheimnis ist gespeichert. Gib ein neues ein, um es zu ersetzen.",
+                  "secretMissing": "Nicht gesetzt. Mindestens 32 Zeichen.",
+                  "adminsOnly": "Nur Admins",
+                  "adminsOnlyDescription": "Nur Admins von noprofit.space dürfen sich anmelden.",
+                  "linkByEmail": "Per E-Mail verknüpfen",
+                  "linkByEmailDescription": "Eine erste Anmeldung übernimmt den Panel-Benutzer mit derselben E-Mail, statt sie abzulehnen.",
+                  "ssoAudience": "Token-Zielgruppe",
+                  "ssoAudienceDescription": "Leer: der Anmelde-Client, gefolgt von \":sso\".",
+                  "ssoCallbackUrl": "Callback-URL",
+                  "ssoCallbackUrlDescription": "Leer: die Panel-URL, gefolgt von /api/auth/noprofit/callback."
+                },
+                "toast": {
+                  "updated": "noprofit.space-Einstellungen aktualisiert."
+                }
+              }
+            },
             "webauthn": {
               "title": "Webauthn",
               "page": {

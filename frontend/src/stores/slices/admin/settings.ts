@@ -178,6 +178,18 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
     exemptIps: [],
     exemptApiKeys: [],
   },
+  // plugged.host: noprofit.space
+  noprofit: {
+    enabled: false,
+    accountsUrl: 'https://accounts.noprofit.space',
+    ssoClient: '',
+    ssoAudience: null,
+    ssoCallbackUrl: null,
+    adminsOnly: false,
+    linkByEmail: true,
+    ssoSecret: null,
+    apiSecret: null,
+  },
 
   updateInformation: null,
   updateInformationError: null,
@@ -194,6 +206,7 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
       webauthn: value.webauthn,
       activity: value.activity,
       ratelimits: value.ratelimits,
+      noprofit: value.noprofit, // plugged.host
     })),
   updateSettings: (value) =>
     set((state) => ({
@@ -207,6 +220,7 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
       ...(value.webauthn ? { webauthn: { ...state.webauthn, ...value.webauthn } } : {}),
       ...(value.activity ? { activity: { ...state.activity, ...value.activity } } : {}),
       ...(value.ratelimits ? { ratelimits: { ...state.ratelimits, ...value.ratelimits } } : {}),
+      ...(value.noprofit ? { noprofit: { ...state.noprofit, ...value.noprofit } } : {}), // plugged.host
     })),
   setUpdateInformation: (value) => set((state) => ({ ...state, updateInformation: value })),
   loadUpdateInformation: async () => {

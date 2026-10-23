@@ -165,8 +165,21 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         .nest("/password", password::router(state))
         .nest("/password-login", password_login::router(state))
         .nest("/two-factor", two_factor::router(state))
-        .nest("/security-keys", security_keys::router(state))
-        .nest("/oauth-links", oauth_links::router(state))
+        // plugged.host: no security keys or OAuth links while noprofit.space owns sign-in
+        .nest(
+            "/security-keys",
+            security_keys::router(state).route_layer(axum::middleware::from_fn_with_state(
+                state.clone(),
+                crate::routes::api::auth::noprofit::off_while_connected,
+            )),
+        )
+        .nest(
+            "/oauth-links",
+            oauth_links::router(state).route_layer(axum::middleware::from_fn_with_state(
+                state.clone(),
+                crate::routes::api::auth::noprofit::off_while_connected,
+            )),
+        )
         .nest("/noprofit", noprofit::router(state))
         .nest("/command-snippets", command_snippets::router(state))
         .nest("/api-keys", api_keys::router(state))

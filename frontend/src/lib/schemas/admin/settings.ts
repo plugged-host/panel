@@ -311,6 +311,26 @@ export const adminSettingsMetadataSchema = z.object({
   indexable: z.boolean(),
 });
 
+// plugged.host: noprofit.space (shared/src/settings/noprofit.rs). A stored secret comes back as an
+// empty string and is kept when sent back empty.
+export const adminSettingsNoprofitSchema = z.object({
+  enabled: z.boolean(),
+  accountsUrl: z.url({ protocol: /^https?$/ }).max(255),
+  ssoClient: z.string().max(64),
+  ssoAudience: z.preprocess(nullableString, z.string().min(1).max(128).nullable()),
+  ssoCallbackUrl: z.preprocess(
+    nullableString,
+    z
+      .url({ protocol: /^https?$/ })
+      .max(255)
+      .nullable(),
+  ),
+  adminsOnly: z.boolean(),
+  linkByEmail: z.boolean(),
+  ssoSecret: z.string().max(512).nullable(),
+  apiSecret: z.string().max(512).nullable(),
+});
+
 export const twoFactorRequirement = z.enum(['admins', 'all_users', 'none']);
 
 export const adminSettingsSchema = z.object({
@@ -327,4 +347,5 @@ export const adminSettingsSchema = z.object({
   user: adminSettingsUserSchema,
   activity: adminSettingsActivitySchema,
   ratelimits: adminSettingsRatelimitsSchema,
+  noprofit: adminSettingsNoprofitSchema, // plugged.host
 });

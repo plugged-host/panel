@@ -22,7 +22,8 @@ type SettingsStoreKey =
   | 'ratelimits'
   | 'storageDriver'
   | 'mailMode'
-  | 'captchaProvider';
+  | 'captchaProvider'
+  | 'noprofit'; // plugged.host
 
 /** Admin store keys whose public projection lives under the same-named global settings key. */
 type GlobalSyncKey = 'app' | 'webauthn' | 'server' | 'user';

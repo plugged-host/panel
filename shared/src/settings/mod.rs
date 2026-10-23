@@ -26,6 +26,7 @@ use utoipa::ToSchema;
 pub mod activity;
 pub mod app;
 pub mod metadata;
+pub mod noprofit; // plugged.host
 pub mod ratelimits;
 pub mod server;
 pub mod user;
@@ -374,6 +375,9 @@ pub struct AppSettings {
     pub activity: activity::AppSettingsActivity,
     #[schema(inline)]
     pub ratelimits: ratelimits::AppSettingsRatelimits,
+    // plugged.host: noprofit.space (optional)
+    #[schema(inline)]
+    pub noprofit: noprofit::AppSettingsNoprofit,
 
     #[serde(skip)]
     pub disabled_extensions: Vec<compact_str::CompactString>,
@@ -658,6 +662,8 @@ impl SettingsSerializeExt for AppSettings {
             .nest("activity", &self.activity)
             .await?
             .nest("ratelimits", &self.ratelimits)
+            .await?
+            .nest("noprofit", &self.noprofit) // plugged.host
             .await?;
 
         for (ext_identifier, ext_settings) in self.extensions.iter() {
@@ -934,6 +940,10 @@ impl SettingsDeserializeExt for AppSettingsDeserializer {
                 .await?,
             ratelimits: deserializer
                 .nest("ratelimits", &ratelimits::AppSettingsRatelimitsDeserializer)
+                .await?,
+            // plugged.host
+            noprofit: deserializer
+                .nest("noprofit", &noprofit::AppSettingsNoprofitDeserializer)
                 .await?,
             disabled_extensions: deserializer
                 .take_raw_setting("disabled_extensions")

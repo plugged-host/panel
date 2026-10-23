@@ -1,20 +1,21 @@
 //! plugged.host: noprofit.space accounts.
 //!
-//! Optional, like the noprofit plugin on plugged.host's Pelican panel. Without
-//! `NOPROFIT_ACCOUNTS_URL` and a `NOPROFIT_SSO_SECRET` of at least 32 characters the panel signs
-//! people in on its own (Calagopus's login and registration). With them noprofit.space owns
-//! sign-in:
+//! Optional, like the noprofit plugin on plugged.host's Pelican panel. While Admin › Settings ›
+//! noprofit.space leaves it off (or misses the accounts URL, the client or a sign-in secret of at
+//! least 32 characters), the panel signs people in on its own (Calagopus's login and
+//! registration). Connected, noprofit.space owns sign-in:
 //!
-//! - everyone signs in at noprofit.space (sign-in client `plugged-host-calagopus`, see
-//!   [`Config::decode_token`]) and an account's first sign-in creates its panel user,
+//! - everyone signs in at noprofit.space (see [`Config::decode_token`]) and an account's first
+//!   sign-in creates its panel user,
 //! - registration is off and password sign-in is left to admins without a noprofit.space account
-//!   (the emergency admin made with `panel-rs users create`),
-//! - with `NOPROFIT_API_SECRET` the panel keeps its users in step by pulling their snapshots
-//!   (profile, admin flag, plan, credits, Discord; [`Config::pull`], every minute), suspends
-//!   the users whose account noprofit.space no longer has, and lets noprofit.space check the SFTP
-//!   passwords of its users, who have none on the panel ([`Config::verify_password`]),
-//! - with `NOPROFIT_ADMINS_ONLY=true` only noprofit.space admins may sign in (while the panel is
-//!   not open to everyone yet).
+//!   (the emergency admin made with `panel-rs users create`); the panel's own OAuth providers and
+//!   security keys are off,
+//! - with the API secret the panel keeps its users in step by pulling their snapshots (profile,
+//!   admin flag, plan, credits, Discord; [`Config::pull`], every minute), suspends the users whose
+//!   account noprofit.space no longer has, and lets noprofit.space check the SFTP passwords of its
+//!   users, who have none on the panel ([`Config::verify_password`]),
+//! - with "admins only" only noprofit.space admins may sign in (while the panel is not open to
+//!   everyone yet).
 //!
 //! The wire formats are noprofit.space's (accounts `App\Services\SignedToken` and
 //! `App\Services\Neo\RequestSignature`): a token is `base64url(json) "." hex(hmac_sha256(secret,
@@ -26,7 +27,6 @@ use hmac::{Hmac, KeyInit, Mac};
 use rand::distr::SampleString;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
-use std::sync::LazyLock;
 
 /// Shorter secrets reject everything, as on noprofit.space.
 const MIN_SECRET_LENGTH: usize = 32;
@@ -38,94 +38,67 @@ pub const PULL_BATCH: usize = 500;
 pub struct Config {
     /// `https://accounts.noprofit.space`, without a trailing slash.
     pub accounts_url: String,
-    /// The sign-in client, `plugged-host-calagopus` unless `NOPROFIT_SSO_CLIENT` says otherwise.
+    /// The sign-in client noprofit.space knows this panel as.
     pub client: String,
-    /// The tokens' audience, `{client}:sso` unless `NOPROFIT_SSO_AUDIENCE` says otherwise.
+    /// The tokens' audience, `{client}:sso` unless the settings say otherwise.
     pub audience: String,
     /// The callback noprofit.space sends tokens to, when it is not `{app url}/api/auth/noprofit/callback`.
     pub callback_url: Option<String>,
     /// Only noprofit.space admins may sign in.
     pub admins_only: bool,
     /// A first sign-in takes over the panel user with the same email (unless that one is linked to
-    /// another account already). On by default; `NOPROFIT_LINK_BY_EMAIL=false` refuses instead.
+    /// another account already).
     pub link_by_email: bool,
     sso_secret: String,
     api_secret: Option<String>,
 }
 
-static CONFIG: LazyLock<Option<Config>> = LazyLock::new(Config::from_env);
-
-/// The noprofit.space configuration, or `None` when the panel signs people in on its own.
-#[inline]
-pub fn config() -> Option<&'static Config> {
-    CONFIG.as_ref()
-}
-
-#[inline]
-pub fn enabled() -> bool {
-    CONFIG.is_some()
-}
-
-fn env_flag(key: &str, default: bool) -> bool {
-    env_string(key)
-        .map(|value| {
-            matches!(
-                value.to_ascii_lowercase().as_str(),
-                "1" | "true" | "yes" | "on"
-            )
-        })
-        .unwrap_or(default)
-}
-
-fn env_string(key: &str) -> Option<String> {
-    std::env::var(key)
-        .ok()
-        .map(|value| value.trim().to_string())
-        .filter(|value| !value.is_empty())
-}
-
 impl Config {
-    fn from_env() -> Option<Self> {
-        let accounts_url = env_string("NOPROFIT_ACCOUNTS_URL")?
-            .trim_end_matches('/')
-            .to_string();
-        let sso_secret = env_string("NOPROFIT_SSO_SECRET")?;
-
-        if sso_secret.len() < MIN_SECRET_LENGTH {
-            tracing::warn!(
-                "NOPROFIT_SSO_SECRET is shorter than {MIN_SECRET_LENGTH} characters, noprofit.space sign-in stays off"
-            );
+    /// The connection the noprofit.space settings describe, or `None` when they leave sign-in to
+    /// the panel (Admin › Settings › noprofit.space, [`crate::settings::noprofit`]).
+    pub fn from_settings(
+        settings: &crate::settings::noprofit::AppSettingsNoprofit,
+    ) -> Option<Self> {
+        if !settings.enabled {
             return None;
         }
 
-        let client =
-            env_string("NOPROFIT_SSO_CLIENT").unwrap_or_else(|| "plugged-host-calagopus".into());
-        let audience =
-            env_string("NOPROFIT_SSO_AUDIENCE").unwrap_or_else(|| format!("{client}:sso"));
-        let api_secret = env_string("NOPROFIT_API_SECRET");
+        let accounts_url = settings.accounts_url.trim().trim_end_matches('/');
+        let client = settings.sso_client.trim();
+        let sso_secret = settings.sso_secret.as_deref().map(str::trim)?;
 
-        if api_secret
-            .as_ref()
-            .is_some_and(|secret| secret.len() < MIN_SECRET_LENGTH)
-        {
-            tracing::warn!(
-                "NOPROFIT_API_SECRET is shorter than {MIN_SECRET_LENGTH} characters, noprofit.space account sync stays off"
-            );
+        if accounts_url.is_empty() || client.is_empty() || sso_secret.len() < MIN_SECRET_LENGTH {
+            return None;
         }
 
         Some(Self {
-            accounts_url,
-            client,
-            audience,
-            callback_url: env_string("NOPROFIT_SSO_CALLBACK"),
-            admins_only: env_flag("NOPROFIT_ADMINS_ONLY", false),
-            link_by_email: env_flag("NOPROFIT_LINK_BY_EMAIL", true),
-            sso_secret,
-            api_secret: api_secret.filter(|secret| secret.len() >= MIN_SECRET_LENGTH),
+            accounts_url: accounts_url.to_string(),
+            client: client.to_string(),
+            audience: settings
+                .sso_audience
+                .as_deref()
+                .map(str::trim)
+                .filter(|audience| !audience.is_empty())
+                .map_or_else(|| format!("{client}:sso"), str::to_string),
+            callback_url: settings
+                .sso_callback_url
+                .as_deref()
+                .map(str::trim)
+                .filter(|url| !url.is_empty())
+                .map(str::to_string),
+            admins_only: settings.admins_only,
+            link_by_email: settings.link_by_email,
+            sso_secret: sso_secret.to_string(),
+            api_secret: settings
+                .api_secret
+                .as_deref()
+                .map(str::trim)
+                .filter(|secret| secret.len() >= MIN_SECRET_LENGTH)
+                .map(str::to_string),
         })
     }
 
-    /// Whether the panel can pull account snapshots (`NOPROFIT_API_SECRET` is set).
+    /// Whether the panel can pull account snapshots (the API secret is set).
     #[inline]
     pub fn sync_enabled(&self) -> bool {
         self.api_secret.is_some()
@@ -221,7 +194,7 @@ impl Config {
         let body = serde_json::to_vec(body)?;
         let headers = self
             .sign_request("POST", path, &body)
-            .ok_or_else(|| anyhow::anyhow!("NOPROFIT_API_SECRET is not set"))?;
+            .ok_or_else(|| anyhow::anyhow!("the noprofit.space API secret is not set"))?;
 
         let mut request = client
             .post(format!("{}{path}", self.accounts_url))
@@ -273,7 +246,7 @@ impl Config {
 
     /// Whether `password` is this account's noprofit.space password, for SFTP password logins:
     /// the account's panel user has no password of its own. `None` when noprofit.space could not
-    /// say (unreachable, throttled, no `NOPROFIT_API_SECRET`), which is no verdict on the password.
+    /// say (unreachable, throttled, no API secret), which is no verdict on the password.
     /// noprofit.space allows 10 wrong guesses per account and minute, across all panels.
     pub async fn verify_password(
         &self,
@@ -686,7 +659,14 @@ pub async fn apply_snapshot(
 pub async fn sync_all(state: &crate::State) -> Result<(), anyhow::Error> {
     use crate::models::{ByUuid, UpdatableModel};
 
-    let Some(noprofit) = config().filter(|noprofit| noprofit.sync_enabled()) else {
+    let Some(noprofit) = state
+        .settings
+        .get()
+        .await?
+        .noprofit
+        .config()
+        .filter(|noprofit| noprofit.sync_enabled())
+    else {
         return Ok(());
     };
 

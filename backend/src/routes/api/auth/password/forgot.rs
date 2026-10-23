@@ -91,7 +91,9 @@ mod post {
 
         // plugged.host: noprofit.space accounts have no password here, and with noprofit.space
         // sign-in only admins sign in with one. Same answer as an unknown email.
-        if user.password_login_disabled || (shared::noprofit::enabled() && !user.admin) {
+        if user.password_login_disabled
+            || (state.settings.get().await?.noprofit.connected() && !user.admin)
+        {
             return ApiResponse::new_serialized(Response {}).ok();
         }
 

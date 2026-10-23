@@ -123,13 +123,14 @@ mod post {
 
         // plugged.host: with noprofit.space sign-in, passwords are for admins without a
         // noprofit.space account (the emergency admin); everyone else signs in there.
-        if shared::noprofit::enabled() && !user.admin {
+        let settings = state.settings.get().await?;
+
+        if settings.noprofit.connected() && !user.admin {
             return ApiResponse::error("sign in with noprofit.space")
                 .with_status(StatusCode::BAD_REQUEST)
                 .ok();
         }
 
-        let settings = state.settings.get().await?;
         let methods = available_methods(&user, &settings);
 
         if two_factor_unprovable(&user, &settings) {
@@ -253,7 +254,14 @@ mod post {
 pub fn router(state: &State) -> OpenApiRouter<State> {
     OpenApiRouter::new()
         .routes(routes!(post::route))
-        .nest("/security-key", security_key::router(state))
+        // plugged.host: no security keys while noprofit.space owns sign-in
+        .nest(
+            "/security-key",
+            security_key::router(state).route_layer(axum::middleware::from_fn_with_state(
+                state.clone(),
+                super::noprofit::off_while_connected,
+            )),
+        )
         .nest("/checkpoint", checkpoint::router(state))
         .with_state(state.clone())
 }

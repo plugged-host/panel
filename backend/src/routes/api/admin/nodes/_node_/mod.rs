@@ -17,19 +17,23 @@ mod backups;
 mod bandwidth;
 mod capacity;
 mod config;
-mod database_agent_hosts;
+// plugged.host: managed database instances removed (docs/upstream.md)
+// mod database_agent_hosts;
 mod database_hosts;
-mod devices;
+// plugged.host: devices removed (docs/upstream.md)
+// mod devices;
 mod duplicate;
 mod enrollment;
-mod mounts;
+// plugged.host: mounts removed (docs/upstream.md)
+// mod mounts;
 mod pair;
 mod reset_token;
 mod servers;
 mod system;
 mod token;
 mod transfers;
-mod tunnel;
+// plugged.host: the private network removed (docs/upstream.md)
+// mod tunnel;
 
 pub async fn auth(
     state: GetState,
@@ -261,16 +265,16 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         .nest("/enrollment", enrollment::router(state))
         .nest("/pair", pair::router(state))
         .nest("/token", token::router(state))
-        .nest("/tunnel", tunnel::router(state))
+        // .nest("/tunnel", tunnel::router(state))
         .nest("/allocations", allocations::router(state))
         .nest("/system", system::router(state))
         .nest("/capacity", capacity::router(state))
         .nest("/bandwidth", bandwidth::router(state))
         .nest("/servers", servers::router(state))
-        .nest("/mounts", mounts::router(state))
-        .nest("/devices", devices::router(state))
+        // .nest("/mounts", mounts::router(state))
+        // .nest("/devices", devices::router(state))
         .nest("/database-hosts", database_hosts::router(state))
-        .nest("/database-agent-hosts", database_agent_hosts::router(state))
+        // .nest("/database-agent-hosts", database_agent_hosts::router(state))
         .nest("/backups", backups::router(state))
         .nest("/config", config::router(state))
         .nest("/duplicate", duplicate::router(state))

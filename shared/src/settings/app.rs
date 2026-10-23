@@ -225,10 +225,11 @@ impl SettingsDeserializeExt for AppSettingsAppDeserializer {
                 .take_raw_setting("session_duration_seconds")
                 .and_then(|s| s.parse::<u64>().ok())
                 .unwrap_or(7 * 24 * 3600),
+            // plugged.host: telemetry is opt-in
             telemetry_enabled: deserializer
                 .take_raw_setting("telemetry_enabled")
                 .map(|s| s == "true")
-                .unwrap_or(true),
+                .unwrap_or(false),
             registration_enabled: deserializer
                 .take_raw_setting("registration_enabled")
                 .map(|s| s == "true")

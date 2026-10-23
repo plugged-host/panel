@@ -40,6 +40,24 @@ fn redirect(location: impl AsRef<str>) -> ApiResponseResult {
         .ok()
 }
 
+/// Route layer for the panel's own OAuth providers and security keys: off while noprofit.space
+/// owns sign-in (the settings keep them, for when it is turned off again).
+pub(crate) async fn off_while_connected(
+    state: GetState,
+    req: axum::extract::Request,
+    next: axum::middleware::Next,
+) -> axum::response::Response {
+    use axum::response::IntoResponse;
+
+    match state.settings.get_as(|s| s.noprofit.connected()).await {
+        Ok(false) => next.run(req).await,
+        Ok(true) => ApiResponse::error("sign-in is managed by noprofit.space")
+            .with_status(StatusCode::NOT_FOUND)
+            .into_response(),
+        Err(err) => ApiResponse::from(err).into_response(),
+    }
+}
+
 fn not_set_up() -> ApiResponseResult {
     ApiResponse::error("noprofit.space sign-in is not set up")
         .with_status(StatusCode::NOT_FOUND)
@@ -60,7 +78,7 @@ async fn redirect_route(
     request_host: shared::GetRequestHost,
     cookies: Cookies,
 ) -> ApiResponseResult {
-    let Some(noprofit) = shared::noprofit::config() else {
+    let Some(noprofit) = state.settings.get().await?.noprofit.config() else {
         return not_set_up();
     };
 
@@ -176,7 +194,7 @@ async fn callback_route(
     cookies: Cookies,
     Query(params): Query<CallbackParams>,
 ) -> ApiResponseResult {
-    let Some(noprofit) = shared::noprofit::config() else {
+    let Some(noprofit) = state.settings.get().await?.noprofit.config() else {
         return not_set_up();
     };
 
@@ -233,7 +251,7 @@ async fn callback_route(
         return fail("noprofit_admins_only");
     }
 
-    let mut user = match resolve_user(&state, noprofit, &snapshot).await? {
+    let mut user = match resolve_user(&state, &noprofit, &snapshot).await? {
         Ok(user) => user,
         Err(code) => return fail(code),
     };

@@ -78,6 +78,9 @@ export default function Login() {
   }, [noprofitLogin, noprofitHalted]);
 
   useEffect(() => {
+    // plugged.host: no OAuth providers while noprofit.space owns sign-in
+    if (settings.noprofit?.enabled) return;
+
     getOAuthProviders().then((oAuthProviders) => {
       setOAuthProviders(oAuthProviders);
     });

@@ -1024,3 +1024,87 @@ pub fn validate_server_permissions(
 ) -> Result<(), garde::Error> {
     get_server_permissions().validate_permissions(permissions)
 }
+
+/// plugged.host: the permissions of the features this panel does not offer (devices, mounts,
+/// managed database instances, backup groups, the private network, the per-server firewall and
+/// the Extensions page; docs/upstream.md). Their routes are not mounted, so nothing checks them,
+/// and they are neither listed nor grantable. A `group` entry removes the whole group, a
+/// `group.permission` entry one permission of a group that stays.
+pub const REMOVED_USER_PERMISSIONS: &[&str] = &[];
+pub const REMOVED_ADMIN_PERMISSIONS: &[&str] = &[
+    "extensions",
+    "database-agent-hosts",
+    "database-agent-templates",
+    "mounts",
+    "devices",
+    "nodes.mounts",
+    "nodes.devices",
+    "nodes.database-agent-hosts",
+    "nodes.tunnel",
+    "servers.mounts",
+    "servers.devices",
+    "eggs.mounts",
+    "eggs.devices",
+];
+pub const REMOVED_SERVER_PERMISSIONS: &[&str] = &[
+    "backup-groups",
+    "database-instances",
+    "firewall",
+    "connections",
+    "mounts",
+    "devices",
+];
+
+/// A base permission map without the [`REMOVED_ADMIN_PERMISSIONS`]-style entries in `removed`.
+pub(crate) fn offered_permissions(
+    map: &IndexMap<&'static str, PermissionGroup>,
+    removed: &[&str],
+) -> IndexMap<&'static str, PermissionGroup> {
+    map.iter()
+        .filter(|(group, _)| !removed.contains(group))
+        .map(|(group, permissions)| {
+            let mut permissions = permissions.clone();
+            permissions.permissions.retain(|permission, _| {
+                !removed
+                    .iter()
+                    .any(|entry| entry.split_once('.') == Some((*group, *permission)))
+            });
+
+            (*group, permissions)
+        })
+        .collect()
+}
+
+#[cfg(test)]
+mod removed_permissions_tests {
+    use super::*;
+
+    #[test]
+    fn removed_permissions_exist_upstream() {
+        // An entry that no longer matches anything means upstream renamed it: update the lists.
+        for (map, removed) in [
+            (&*BASE_USER_PERMISSIONS, REMOVED_USER_PERMISSIONS),
+            (&*BASE_ADMIN_PERMISSIONS, REMOVED_ADMIN_PERMISSIONS),
+            (&*BASE_SERVER_PERMISSIONS, REMOVED_SERVER_PERMISSIONS),
+        ] {
+            let all = flatten_permissions(map);
+            for entry in removed {
+                assert!(
+                    map.contains_key(entry) || all.contains(*entry),
+                    "{entry} is not an upstream permission"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn offered_permissions_drop_groups_and_single_permissions() {
+        let offered = offered_permissions(&BASE_ADMIN_PERMISSIONS, REMOVED_ADMIN_PERMISSIONS);
+        let all = flatten_permissions(&offered);
+
+        assert!(!offered.contains_key("devices"));
+        assert!(!all.contains("nodes.mounts"));
+        assert!(all.contains("nodes.read"));
+        assert!(all.contains("servers.transfer"));
+    }
+}

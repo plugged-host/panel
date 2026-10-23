@@ -22,18 +22,22 @@ mod announcements;
 mod backups;
 mod command;
 mod databases;
-mod devices;
+// plugged.host: devices removed (docs/upstream.md)
+// mod devices;
 mod files;
-mod firewall;
+// plugged.host: the firewall removed (docs/upstream.md)
+// mod firewall;
 mod logs;
-mod mounts;
+// plugged.host: mounts removed (docs/upstream.md)
+// mod mounts;
 mod power;
 mod resources;
 mod schedules;
 mod settings;
 mod startup;
 mod subusers;
-mod tunnel;
+// plugged.host: the private network removed (docs/upstream.md)
+// mod tunnel;
 mod websocket;
 
 #[allow(clippy::too_many_arguments)]
@@ -146,11 +150,11 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         .nest("/subusers", subusers::router(state))
         .nest("/backups", backups::router(state))
         .nest("/allocations", allocations::router(state))
-        .nest("/firewall", firewall::router(state))
-        .nest("/tunnel", tunnel::router(state))
+        // .nest("/firewall", firewall::router(state))
+        // .nest("/tunnel", tunnel::router(state))
         .nest("/databases", databases::router(state))
-        .nest("/mounts", mounts::router(state))
-        .nest("/devices", devices::router(state))
+        // .nest("/mounts", mounts::router(state))
+        // .nest("/devices", devices::router(state))
         .nest("/schedules", schedules::router(state))
         .route_layer(axum::middleware::from_fn_with_state(state.clone(), auth))
         .with_state(state.clone())

@@ -21,6 +21,43 @@ export const checkPermissions = (permissions: string[], action: string | string[
   });
 };
 
+/*
+ * plugged.host: the permissions of the features this panel does not offer, as in
+ * shared/src/permissions.rs (REMOVED_*_PERMISSIONS). They are never granted, not even to admins,
+ * so whatever they gate stays hidden.
+ */
+const removedServerPermissions = [
+  'backup-groups',
+  'database-instances',
+  'firewall',
+  'connections',
+  'mounts',
+  'devices',
+];
+const removedAdminPermissions = [
+  'extensions',
+  'database-agent-hosts',
+  'database-agent-templates',
+  'mounts',
+  'devices',
+  'nodes.mounts',
+  'nodes.devices',
+  'nodes.database-agent-hosts',
+  'nodes.tunnel',
+  'servers.mounts',
+  'servers.devices',
+  'eggs.mounts',
+  'eggs.devices',
+];
+
+const withoutRemoved = (removed: string[], action: string | string[], granted: boolean[]): boolean[] => {
+  const actions = Array.isArray(action) ? action : [action];
+
+  return granted.map(
+    (allowed, i) => allowed && !removed.some((entry) => actions[i] === entry || actions[i].startsWith(`${entry}.`)),
+  );
+};
+
 export const useServerPermissionsFor = (permissions: string[] | undefined, action: string | string[]): boolean[] => {
   const { user } = useAuth();
 
@@ -28,10 +65,10 @@ export const useServerPermissionsFor = (permissions: string[] | undefined, actio
   const actionLength = Array.isArray(action) ? action.length : 1;
 
   if (serverPermissions.includes('*')) {
-    return Array(actionLength).fill(true);
+    return withoutRemoved(removedServerPermissions, action, Array(actionLength).fill(true));
   }
 
-  return checkPermissions(serverPermissions, action);
+  return withoutRemoved(removedServerPermissions, action, checkPermissions(serverPermissions, action));
 };
 
 export const useServerPermissions = (action: string | string[]): boolean[] => {
@@ -44,10 +81,10 @@ export const useAdminPermissions = (action: string | string[]): boolean[] => {
   const actionLength = Array.isArray(action) ? action.length : 1;
 
   if (user?.admin) {
-    return Array(actionLength).fill(true);
+    return withoutRemoved(removedAdminPermissions, action, Array(actionLength).fill(true));
   }
 
-  return checkPermissions(userAdminPermissions, action);
+  return withoutRemoved(removedAdminPermissions, action, checkPermissions(userAdminPermissions, action));
 };
 
 export const useCan = (permissionMatrix: boolean[], matchAny: boolean) => {
