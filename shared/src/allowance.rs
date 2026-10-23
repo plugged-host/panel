@@ -132,6 +132,23 @@ impl Allowance {
     }
 }
 
+/// `limit` grown by `extra`, where it limits anything (0 stays no limit).
+pub fn add_where_limited(limit: Resources, extra: Resources) -> Resources {
+    let add = |limit: i64, extra: i64| {
+        if limit > 0 {
+            limit + extra.max(0)
+        } else {
+            limit
+        }
+    };
+
+    Resources::new(
+        add(limit.cpu, extra.cpu),
+        add(limit.memory, extra.memory),
+        add(limit.disk, extra.disk),
+    )
+}
+
 /// What the account's servers use, and how many it has.
 pub async fn usage(
     database: &crate::database::Database,
@@ -176,7 +193,7 @@ pub async fn for_user(
         )
     };
 
-    let (source, has_plan, limit) = if connected {
+    let (source, has_plan, mut limit) = if connected {
         match crate::noprofit::Link::by_user_uuid(&state.database, user_uuid)
             .await?
             .and_then(|link| link.plan)
@@ -185,8 +202,19 @@ pub async fn for_user(
             None => (AllowanceSource::Plan, false, Resources::default()),
         }
     } else {
-        (AllowanceSource::Settings, true, settings_limit)
+        // What the Resource Store sold the account (with noprofit.space it is in the plan).
+        let extras = crate::economy::extras(&state.database, user_uuid).await?;
+        (
+            AllowanceSource::Settings,
+            true,
+            add_where_limited(settings_limit, extras),
+        )
     };
+    // PlusPlus' CPU, while it runs (docs/features/economy.md).
+    if has_plan {
+        let bonus = crate::economy::cpu_bonus(state, user_uuid).await?;
+        limit = add_where_limited(limit, Resources::new(bonus, 0, 0));
+    }
 
     let (used, servers) = usage(&state.database, user_uuid).await?;
 
@@ -211,6 +239,18 @@ pub async fn lock(state: &crate::State, user_uuid: uuid::Uuid) -> Option<crate::
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn extras_only_grow_limited_resources() {
+        assert_eq!(
+            add_where_limited(Resources::new(100, 0, 2048), Resources::new(50, 1024, 1024)),
+            Resources::new(150, 0, 3072)
+        );
+        assert_eq!(
+            add_where_limited(Resources::new(100, 1, 1), Resources::new(-5, 0, 0)),
+            Resources::new(100, 1, 1)
+        );
+    }
 
     fn allowance(limit: Resources, used: Resources) -> Allowance {
         Allowance {

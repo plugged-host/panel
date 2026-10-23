@@ -3,9 +3,12 @@ import {
   faBriefcase,
   faClipboard,
   faCloud,
+  faCoins, // plugged.host
   faFingerprint,
   faKey,
   faKeyboard,
+  faMedal, // plugged.host
+  faStore, // plugged.host
   faUnlockKeyhole,
   faUser,
   faUserSecret,
@@ -18,11 +21,14 @@ import DashboardApiKeysCreate from '@/pages/dashboard/api-keys/DashboardApiKeysC
 import DashboardApiKeysUpdate from '@/pages/dashboard/api-keys/DashboardApiKeysUpdate.tsx';
 import DashboardBackups from '@/pages/dashboard/backups/DashboardBackups.tsx'; // plugged.host
 import DashboardCommandSnippets from '@/pages/dashboard/command-snippets/DashboardCommandSnippets.tsx';
+import DashboardMembership from '@/pages/dashboard/membership/DashboardMembership.tsx'; // plugged.host
 import DashboardOAuthLinks from '@/pages/dashboard/oauth-links/DashboardOAuthLinks.tsx';
 import DashboardSecurityKeys from '@/pages/dashboard/security-keys/DashboardSecurityKeys.tsx';
 import DashboardSessions from '@/pages/dashboard/sessions/DashboardSessions.tsx';
 import DashboardShortcuts from '@/pages/dashboard/shortcuts/DashboardShortcuts.tsx';
 import DashboardSshKeys from '@/pages/dashboard/ssh-keys/DashboardSshKeys.tsx';
+import DashboardStore from '@/pages/dashboard/store/DashboardStore.tsx'; // plugged.host
+import DashboardTokens from '@/pages/dashboard/tokens/DashboardTokens.tsx'; // plugged.host
 import { getTranslations } from '@/providers/TranslationProvider.tsx';
 import { useGlobalStore } from '@/stores/global.ts';
 
@@ -97,6 +103,28 @@ const routes: RouteDefinition[] = [
     icon: faBoxArchive,
     path: '/backups',
     element: DashboardBackups,
+  },
+  // plugged.host: the economy (docs/features/economy.md)
+  {
+    name: () => getTranslations().t('pages.account.store.title', {}),
+    icon: faStore,
+    path: '/store',
+    element: DashboardStore,
+    filter: () => !!useGlobalStore.getState().settings.economy?.creditsEnabled,
+  },
+  {
+    name: () => getTranslations().t('pages.account.tokens.title', {}),
+    icon: faCoins,
+    path: '/tokens',
+    element: DashboardTokens,
+    filter: () => !!useGlobalStore.getState().settings.economy?.tokensEnabled,
+  },
+  {
+    name: () => getTranslations().t('pages.account.membership.title', {}),
+    icon: faMedal,
+    path: '/membership',
+    element: DashboardMembership,
+    filter: () => !!useGlobalStore.getState().settings.economy?.membershipEnabled,
   },
   {
     name: () => getTranslations().t('pages.account.activity.title', {}),

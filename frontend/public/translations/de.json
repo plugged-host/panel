@@ -828,6 +828,24 @@
           "ignored": "Konfiguration übernommen, außer für diese Einstellungen, die nur in der Konfigurationsdatei auf dem Rechner selbst geändert werden können: {paths}"
         }
       },
+      "economyTransactions": {
+        "empty": "Noch nichts.",
+        "columns": {
+          "what": "Was",
+          "amount": "Betrag",
+          "balance": "Stand",
+          "when": "Wann"
+        },
+        "type": {
+          "starting": "Startguthaben",
+          "daily": "Tägliche Tokens",
+          "store": "Ressourcen-Shop",
+          "plus": "Mitgliedschaft",
+          "plusplus": "Mitgliedschaft",
+          "admin": "Von einem Admin geändert",
+          "earn": "Gesponserter Link"
+        }
+      },
       "chartLegend": {
         "hide": "{series} ausblenden",
         "show": "{series} einblenden"
@@ -2274,6 +2292,96 @@
             "keptUntil": "Aufbewahrt bis"
           }
         },
+        "store": {
+          "title": "Ressourcen-Shop",
+          "description": "Mit Credits kaufst du CPU, Arbeitsspeicher und Speicherplatz für dein Konto, dauerhaft. Ein Schritt kostet weniger, je weniger dein Konto hat, und mehr über seinem Limit.",
+          "balance": "Du hast {credits} Credits.",
+          "unavailable": "Der Shop ist gerade geschlossen. Versuch es später noch einmal.",
+          "resource": {
+            "cpu": "CPU",
+            "memory": "Arbeitsspeicher",
+            "disk": "Speicherplatz"
+          },
+          "has": "Dein Konto hat {amount}.",
+          "price": {
+            "rising": "Die Preise steigen auf dem Weg zu {limit}.",
+            "climbing": "Über {limit} steigen die Preise, über {soft} werden sie steil.",
+            "steep": "Über {soft} sind die Preise steil."
+          },
+          "notSold": "Nicht im Angebot: Dein Konto hat dafür kein Limit.",
+          "offer": "+{amount} für {price}",
+          "history": "Credit-Verlauf",
+          "modal": {
+            "title": "Ressourcen kaufen",
+            "content": "**{amount}** {resource} für **{price}** Credits zu deinem Konto hinzufügen? Hier ausgegebene Credits werden nicht erstattet.",
+            "confirm": "Kaufen"
+          },
+          "toast": {
+            "bought": "{amount} {resource} zu deinem Konto hinzugefügt."
+          }
+        },
+        "tokens": {
+          "title": "Tokens",
+          "description": "Mit Tokens kaufst du die Mitgliedschaften. Du verdienst sie über einen gesponserten Link: Danach kommst du hierher zurück und die Tokens werden gutgeschrieben.",
+          "balance": "Du hast {tokens} Tokens ({earned} bisher verdient).",
+          "disabled": "Tokens sind ausgeschaltet.",
+          "earnTitle": "Tokens verdienen",
+          "earnHint": "Schließ den Link innerhalb von {minutes} Minuten in diesem Browser ab und schließ die Seite nicht, auf die er dich zurückbringt.",
+          "noProviders": "Gerade gibt es keine Möglichkeit, Tokens zu verdienen.",
+          "provider": {
+            "linkvertise": "Linkvertise",
+            "vylo": "Vylo"
+          },
+          "today": "Heute {granted} von {cap}",
+          "noCap": "Kein Tageslimit",
+          "earn": "{reward} verdienen",
+          "scriptBlocked": "Der gesponserte Link konnte nicht geladen werden. Vielleicht blockiert ihn ein Werbeblocker.",
+          "history": "Token-Verlauf",
+          "redemption": {
+            "granted": "{amount} Tokens gutgeschrieben.",
+            "settled": "Dieser Link wurde schon gezählt ({amount} Tokens).",
+            "no_claim": "Dieser Link gehört nicht zu deinem Konto.",
+            "expired": "Dieser Link hat zu lange gedauert. Starte einen neuen.",
+            "no_token": "Der gesponserte Link hat keinen Nachweis zurückgeschickt. Starte einen neuen und schließ ihn ab.",
+            "replay": "Dieser Nachweis wurde schon verwendet.",
+            "capped": "Hierüber hast du heute schon das Maximum verdient.",
+            "invalid": "Der gesponserte Link wurde nicht abgeschlossen. Starte einen neuen."
+          }
+        },
+        "membership": {
+          "title": "Mitgliedschaft",
+          "balance": "Du hast {tokens} Tokens und {credits} Credits.",
+          "disabled": "Mitgliedschaften sind ausgeschaltet.",
+          "plus": {
+            "description": "{name} gehört dir nach dem Kauf dauerhaft: Es öffnet die {name}-Standorte und stellt deine Server in der Startwarteschlange vor kostenlose.",
+            "since": "Du hast {name} seit",
+            "buy": "{name} für {cost} Tokens holen"
+          },
+          "plusplus": {
+            "description": "{name} läuft für eine Weile: alles aus {plus}, dazu die Premium-Standorte, der erste Platz in der Startwarteschlange und keine Werbung. Ein weiterer Kauf verlängert die verbleibende Zeit.",
+            "descriptionCpu": "{name} läuft für eine Weile: alles aus {plus}, dazu die Premium-Standorte, der erste Platz in der Startwarteschlange, keine Werbung und {cpu} % mehr CPU für dein Konto. Ein weiterer Kauf verlängert die verbleibende Zeit.",
+            "until": "{name} läuft bis",
+            "needsPlus": "Braucht zuerst {plus}.",
+            "notSold": "Gerade nicht im Angebot.",
+            "buy": {
+              "tokens": "{days} Tage für {cost} Tokens",
+              "credits": "{days} Tage für {cost} Credits"
+            }
+          },
+          "modal": {
+            "title": "Mitgliedschaft kaufen",
+            "plus": "**{name}** für **{cost}** Tokens holen? Es gehört dir dauerhaft.",
+            "plusplus": {
+              "tokens": "**{days} Tage** **{name}** für **{cost}** Tokens holen?",
+              "credits": "**{days} Tage** **{name}** für **{cost}** Credits holen?"
+            },
+            "confirm": "Kaufen"
+          },
+          "toast": {
+            "plus": "Du hast jetzt {name}.",
+            "plusplus": "{name} gekauft."
+          }
+        },
         "activity": {
           "title": "Aktivität"
         }
@@ -3098,6 +3206,83 @@
                 }
               }
             },
+            "economy": {
+              "title": "Wirtschaft",
+              "page": {
+                "title": "Wirtschaft",
+                "form": {
+                  "secretStored": "Gespeichert. Leer lassen, um es zu behalten.",
+                  "secretMissing": "Nicht gesetzt.",
+                  "creditsSection": "Währungen",
+                  "creditsEnabled": "Credits",
+                  "creditsEnabledDescription": "Mit Credits kauft man CPU, Arbeitsspeicher und Speicherplatz im Ressourcen-Shop und die zweite Mitgliedschaft. Ist noprofit.space verbunden, sind es dessen Credits. Ausgeschaltet ist der Shop ausgeblendet; die Guthaben bleiben.",
+                  "startingCredits": "Startguthaben",
+                  "startingCreditsDescription": "Credits, die jedes Konto einmal bekommt, wenn sein Guthaben zum ersten Mal angezeigt wird (ohne noprofit.space).",
+                  "tokensEnabled": "Tokens",
+                  "tokensEnabledDescription": "Tokens werden über gesponserte Links verdient und kaufen die Mitgliedschaften.",
+                  "dailyTokens": "Tägliche Tokens",
+                  "dailyTokensDescription": "Tokens, die jedes Konto einmal am Tag beim ersten Hinsehen bekommt. 0 gibt keine.",
+                  "membershipSection": "Mitgliedschaften",
+                  "membershipEnabled": "Mitgliedschaften",
+                  "membershipEnabledDescription": "Die erste Mitgliedschaft wird einmal mit Tokens gekauft und öffnet die Standorte mit der Stufe „plus“. Die zweite läuft für eine Weile, braucht die erste und öffnet die Stufe „premium“.",
+                  "plusName": "Name der ersten Mitgliedschaft",
+                  "plusNameDescription": "Was Spieler sehen, etwa Plus.",
+                  "plusplusName": "Name der zweiten Mitgliedschaft",
+                  "plusplusNameDescription": "Was Spieler sehen, etwa PlusPlus.",
+                  "plusTokens": "Erste Mitgliedschaft: Tokens",
+                  "plusplusTokens": "Zweite Mitgliedschaft: Tokens",
+                  "plusplusTokenDays": "Zweite Mitgliedschaft: Tage für Tokens",
+                  "plusplusCredits": "Zweite Mitgliedschaft: Credits",
+                  "plusplusCreditsDescription": "0 verkauft sie nicht für Credits.",
+                  "plusplusCreditDays": "Zweite Mitgliedschaft: Tage für Credits",
+                  "plusplusCpu": "Zweite Mitgliedschaft: zusätzliche CPU (%)",
+                  "plusplusCpuDescription": "Wird zur CPU des Kontos addiert, solange sie läuft. Läuft sie ab, geben die Server sie gleichmäßig zurück und verlassen die Premium-Standorte.",
+                  "storeSection": "Ressourcen-Shop",
+                  "storeNote": "Ohne noprofit.space: was ein Schritt kostet und wo die Preise steigen. Mit noprofit.space gelten dessen Shop und Preise.",
+                  "cpuStep": "CPU-Schritt (%)",
+                  "stepDescription": "Wie viel ein Schritt hinzufügt; 0 verkauft es nicht. Arbeitsspeicher und Speicherplatz in MiB.",
+                  "cpuPrice": "Preis eines CPU-Schritts (Credits)",
+                  "limitCpu": "CPU-Limit (%)",
+                  "memoryStep": "Arbeitsspeicher-Schritt (MiB)",
+                  "memoryPrice": "Preis eines Arbeitsspeicher-Schritts (Credits)",
+                  "limitMemory": "Arbeitsspeicher-Limit (MiB)",
+                  "diskStep": "Speicherplatz-Schritt (MiB)",
+                  "diskPrice": "Preis eines Speicherplatz-Schritts (Credits)",
+                  "limitDisk": "Speicherplatz-Limit (MiB)",
+                  "priceFloor": "Niedrigster Preis (%)",
+                  "priceFloorDescription": "Was ein Schritt auf dem Weg zum Limit mindestens kostet, in Prozent seines Preises.",
+                  "softLimit": "Weiches Limit (%)",
+                  "softLimitDescription": "Wo die Preise steil werden, in Prozent des Limits.",
+                  "softMultiplier": "Preis am weichen Limit (×)",
+                  "softMultiplierDescription": "Was ein Schritt am weichen Limit kostet, als Vielfaches seines Preises.",
+                  "doubling": "Verdopplung alle (%)",
+                  "doublingDescription": "Über dem weichen Limit verdoppelt sich der Preis alle so viele Prozent des Limits.",
+                  "earnSection": "Tokens verdienen",
+                  "claimMinutes": "Minuten für einen Link",
+                  "claimMinutesDescription": "Wie lange ein Spieler Zeit hat, von einem gesponserten Link zurückzukommen.",
+                  "linkvertiseEnabled": "Linkvertise",
+                  "linkvertiseEnabledDescription": "Braucht das Anti-Bypass-API-Token aus dem Linkvertise-Dashboard.",
+                  "linkvertiseToken": "Linkvertise-Anti-Bypass-Token",
+                  "linkvertisePublisher": "Linkvertise-Publisher-ID",
+                  "linkvertisePublisherDescription": "Für das Full Script von Linkvertise auf der Tokens-Seite. Ohne sie wird der Link unten verwendet.",
+                  "linkvertiseWhitelist": "Full-Script-Whitelist",
+                  "linkvertiseWhitelistDescription": "Muster der Links, die das Skript in Linkvertise-Links umwandelt, durch Kommas getrennt. Leer: lvr= (der eigene Link der Tokens-Seite).",
+                  "linkvertiseLink": "Linkvertise-Link",
+                  "linkvertiseLinkDescription": "Ein Linkvertise-Link zum Panel; {returnPlain} oder {returnB64} darin wird durch den Rückweg zur Tokens-Seite ersetzt.",
+                  "reward": "Tokens pro Link",
+                  "dailyCap": "Links pro Tag",
+                  "dailyCapDescription": "Pro Konto; 0 hat kein Limit.",
+                  "vyloEnabled": "Vylo",
+                  "vyloEnabledDescription": "Braucht den API-Schlüssel aus dem Vylo-Dashboard. Für jeden Ausflug wird ein Kurzlink erstellt.",
+                  "vyloApiKey": "Vylo-API-Schlüssel",
+                  "vyloMinSeconds": "Kürzester Ausflug (Sekunden)",
+                  "vyloMinSecondsDescription": "Ein schnellerer Rückweg zählt nicht."
+                },
+                "toast": {
+                  "updated": "Wirtschaftseinstellungen gespeichert."
+                }
+              }
+            },
             "updates": {
               "title": "Updates",
               "page": {
@@ -3622,6 +3807,36 @@
               "title": "Aktivität",
               "page": {
                 "title": "Benutzer Aktivität"
+              }
+            },
+            "economy": {
+              "title": "Wirtschaft",
+              "page": {
+                "title": "Credits, Tokens und Mitgliedschaften",
+                "summary": "{credits} Credits, {tokens} Tokens ({earned} verdient).",
+                "noprofit": "Credits und der Ressourcen-Shop gehören zu noprofit.space: Credits werden dort geändert.",
+                "plusSince": "{name} seit",
+                "noPlus": "Kein {name}.",
+                "plusplusRuns": "{name} läuft bis",
+                "noPlusplus": "Kein {name} aktiv (bisher {purchases} gekauft).",
+                "extras": "Im Ressourcen-Shop gekauft: {cpu} % CPU, {memory} Arbeitsspeicher, {disk} Speicherplatz.",
+                "balances": "Guthaben ändern",
+                "addCredits": "Credits hinzufügen",
+                "addTokens": "Tokens hinzufügen",
+                "addDescription": "Eine negative Zahl zieht etwas ab.",
+                "reason": "Grund",
+                "reasonDescription": "Wird im Verlauf des Benutzers angezeigt.",
+                "memberships": "Mitgliedschaften",
+                "givePlus": "{name} geben",
+                "takePlus": "{name} entziehen",
+                "plusplusUntil": "{name} bis",
+                "setPlusplus": "Ende setzen",
+                "endPlusplus": "{name} jetzt beenden",
+                "creditHistory": "Credit-Verlauf",
+                "tokenHistory": "Token-Verlauf",
+                "toast": {
+                  "updated": "Gespeichert."
+                }
               }
             }
           }

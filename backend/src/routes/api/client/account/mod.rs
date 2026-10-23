@@ -6,8 +6,10 @@ mod api_keys;
 mod avatar;
 mod backups; // plugged.host
 mod command_snippets;
+mod credits; // plugged.host
 mod email;
 mod logout;
+mod membership; // plugged.host
 mod noprofit;
 mod oauth_links;
 mod password;
@@ -16,6 +18,7 @@ mod security_keys;
 mod sessions;
 mod settings;
 mod ssh_keys;
+mod tokens; // plugged.host
 mod tour; // plugged.host
 mod two_factor;
 
@@ -191,5 +194,8 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         .nest("/activity", activity::router(state))
         .nest("/tour", tour::router(state)) // plugged.host
         .nest("/backups", backups::router(state)) // plugged.host
+        .nest("/credits", credits::router(state)) // plugged.host
+        .nest("/tokens", tokens::router(state)) // plugged.host
+        .nest("/membership", membership::router(state)) // plugged.host
         .with_state(state.clone())
 }

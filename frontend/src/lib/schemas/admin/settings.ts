@@ -423,6 +423,62 @@ export const adminSettingsRecoverySchema = z.object({
   failoverParallel: z.number().int().min(1).max(20),
 });
 
+// plugged.host: credits, tokens, memberships, the Resource Store (shared/src/settings/economy.rs, docs/features/economy.md)
+export const adminSettingsEconomySchema = z.object({
+  creditsEnabled: z.boolean(),
+  startingCredits: z.number().int().min(0).max(1_000_000),
+  tokensEnabled: z.boolean(),
+  dailyTokens: z.number().int().min(0).max(100),
+  membershipEnabled: z.boolean(),
+  plusName: z.string().trim().min(1).max(32),
+  plusplusName: z.string().trim().min(1).max(32),
+  plusTokens: z.number().int().min(0).max(100_000),
+  plusplusTokens: z.number().int().min(0).max(100_000),
+  plusplusTokenDays: z.number().int().min(1).max(365),
+  plusplusCredits: z.number().int().min(0).max(1_000_000),
+  plusplusCreditDays: z.number().int().min(1).max(365),
+  plusplusCpu: z.number().int().min(0).max(1000),
+  cpuStep: z.number().int().min(0).max(10_000),
+  cpuPrice: z.number().int().min(0).max(1_000_000),
+  memoryStep: z.number().int().min(0).max(1_048_576),
+  memoryPrice: z.number().int().min(0).max(1_000_000),
+  diskStep: z.number().int().min(0).max(10_485_760),
+  diskPrice: z.number().int().min(0).max(1_000_000),
+  limitCpu: z.number().int().min(1).max(100_000),
+  limitMemory: z.number().int().min(1).max(10_485_760),
+  limitDisk: z.number().int().min(1).max(104_857_600),
+  priceFloor: z.number().int().min(0).max(100),
+  softLimit: z.number().int().min(100).max(1000),
+  softMultiplier: z.number().int().min(1).max(100),
+  doubling: z.number().int().min(1).max(100),
+  claimMinutes: z.number().int().min(1).max(1440),
+  linkvertiseEnabled: z.boolean(),
+  linkvertisePublisher: z.preprocess(
+    nullableString,
+    z
+      .string()
+      .regex(/^[0-9]+$/)
+      .max(20)
+      .nullable(),
+  ),
+  linkvertiseWhitelist: z.preprocess(nullableString, z.string().max(255).nullable()),
+  linkvertiseLink: z.preprocess(
+    nullableString,
+    z
+      .url({ protocol: /^https$/ })
+      .max(1024)
+      .nullable(),
+  ),
+  linkvertiseToken: z.string().max(512).nullable(),
+  linkvertiseReward: z.number().int().min(1).max(1000),
+  linkvertiseDailyCap: z.number().int().min(0).max(1000),
+  vyloEnabled: z.boolean(),
+  vyloApiKey: z.string().max(512).nullable(),
+  vyloReward: z.number().int().min(1).max(1000),
+  vyloDailyCap: z.number().int().min(0).max(1000),
+  vyloMinSeconds: z.number().int().min(0).max(600),
+});
+
 // plugged.host: the welcome tour (shared/src/settings/tour.rs, docs/features/welcome-tour.md)
 export const adminSettingsTourSchema = z.object({
   enabled: z.boolean(),
@@ -457,5 +513,6 @@ export const adminSettingsSchema = z.object({
   placement: adminSettingsPlacementSchema, // plugged.host
   tour: adminSettingsTourSchema, // plugged.host
   recovery: adminSettingsRecoverySchema, // plugged.host
+  economy: adminSettingsEconomySchema, // plugged.host
   updates: adminSettingsUpdatesSchema,
 });

@@ -168,14 +168,20 @@ impl From<serde_json::Error> for CreateError {
     }
 }
 
-/// Whether a player may use a location of `tier`. Every player may use the ones without; the paid
-/// tiers come with the economy (Plus, PlusPlus).
+/// Whether a player may use a location of `tier`. Every player may use the ones without; `plus`
+/// comes with Plus, `premium` with PlusPlus (shared/src/economy.rs).
 pub async fn tier_unlocked(
-    _state: &crate::State,
-    _user: &User,
+    state: &crate::State,
+    user: &User,
     tier: Option<&str>,
 ) -> Result<bool, anyhow::Error> {
-    Ok(tier.is_none_or(str::is_empty))
+    if tier.is_none_or(str::is_empty) {
+        return Ok(true);
+    }
+
+    Ok(crate::economy::membership(&state.database, user.uuid)
+        .await?
+        .unlocks(tier, chrono::Utc::now().naive_utc()))
 }
 
 /// What the create page offers this player.

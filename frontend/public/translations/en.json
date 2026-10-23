@@ -828,6 +828,24 @@
           "ignored": "Configuration applied, except for these settings, which can only be changed in the configuration file on the machine itself: {paths}"
         }
       },
+      "economyTransactions": {
+        "empty": "Nothing yet.",
+        "columns": {
+          "what": "What",
+          "amount": "Amount",
+          "balance": "Balance",
+          "when": "When"
+        },
+        "type": {
+          "starting": "Starting balance",
+          "daily": "Daily tokens",
+          "store": "Resource Store",
+          "plus": "Membership",
+          "plusplus": "Membership",
+          "admin": "Changed by an admin",
+          "earn": "Sponsored link"
+        }
+      },
       "chartLegend": {
         "hide": "Hide {series}",
         "show": "Show {series}"
@@ -2274,6 +2292,96 @@
             "keptUntil": "Kept Until"
           }
         },
+        "store": {
+          "title": "Resource Store",
+          "description": "Credits buy CPU, memory and disk for your account, for good. A step costs less the less your account has, and more past its limit.",
+          "balance": "You have {credits} credits.",
+          "unavailable": "The store is closed right now. Try again later.",
+          "resource": {
+            "cpu": "CPU",
+            "memory": "Memory",
+            "disk": "Disk"
+          },
+          "has": "Your account has {amount}.",
+          "price": {
+            "rising": "Prices rise on the way to {limit}.",
+            "climbing": "Past {limit} prices climb, and get steep past {soft}.",
+            "steep": "Past {soft} prices are steep."
+          },
+          "notSold": "Not sold: your account has no limit on it.",
+          "offer": "+{amount} for {price}",
+          "history": "Credit History",
+          "modal": {
+            "title": "Buy Resources",
+            "content": "Add **{amount}** {resource} to your account for **{price}** credits? Credits spent here are not refunded.",
+            "confirm": "Buy"
+          },
+          "toast": {
+            "bought": "Added {amount} {resource} to your account."
+          }
+        },
+        "tokens": {
+          "title": "Tokens",
+          "description": "Tokens buy the memberships. Earn them by going through a sponsored link: you come back here and the tokens are added.",
+          "balance": "You have {tokens} tokens ({earned} earned so far).",
+          "disabled": "Tokens are turned off.",
+          "earnTitle": "Earn Tokens",
+          "earnHint": "Finish the link within {minutes} minutes, in this browser, and do not close the page it brings you back to.",
+          "noProviders": "There is no way to earn tokens right now.",
+          "provider": {
+            "linkvertise": "Linkvertise",
+            "vylo": "Vylo"
+          },
+          "today": "{granted} of {cap} today",
+          "noCap": "No daily limit",
+          "earn": "Earn {reward}",
+          "scriptBlocked": "The sponsored link could not load. A content blocker may be stopping it.",
+          "history": "Token History",
+          "redemption": {
+            "granted": "{amount} tokens added.",
+            "settled": "This link was already counted ({amount} tokens).",
+            "no_claim": "This link does not belong to your account.",
+            "expired": "This link took too long. Start a new one.",
+            "no_token": "The sponsored link did not send a proof back. Start a new one and finish it.",
+            "replay": "This proof was already used.",
+            "capped": "You earned the most for today from this one.",
+            "invalid": "The sponsored link was not finished. Start a new one."
+          }
+        },
+        "membership": {
+          "title": "Membership",
+          "balance": "You have {tokens} tokens and {credits} credits.",
+          "disabled": "Memberships are turned off.",
+          "plus": {
+            "description": "{name} is yours for good once bought: it opens the {name} locations and puts your servers ahead of free ones in the start queue.",
+            "since": "You have {name} since",
+            "buy": "Get {name} for {cost} tokens"
+          },
+          "plusplus": {
+            "description": "{name} runs for a while: everything in {plus}, plus the premium locations, the front of the start queue and no ads. Buying again adds to the time left.",
+            "descriptionCpu": "{name} runs for a while: everything in {plus}, plus the premium locations, the front of the start queue, no ads and {cpu}% more CPU for your account. Buying again adds to the time left.",
+            "until": "{name} runs until",
+            "needsPlus": "Needs {plus} first.",
+            "notSold": "Not for sale right now.",
+            "buy": {
+              "tokens": "{days} days for {cost} tokens",
+              "credits": "{days} days for {cost} credits"
+            }
+          },
+          "modal": {
+            "title": "Buy Membership",
+            "plus": "Get **{name}** for **{cost}** tokens? It is yours for good.",
+            "plusplus": {
+              "tokens": "Get **{days} days** of **{name}** for **{cost}** tokens?",
+              "credits": "Get **{days} days** of **{name}** for **{cost}** credits?"
+            },
+            "confirm": "Buy"
+          },
+          "toast": {
+            "plus": "You have {name} now.",
+            "plusplus": "{name} bought."
+          }
+        },
         "activity": {
           "title": "Activity"
         }
@@ -3098,6 +3206,83 @@
                 }
               }
             },
+            "economy": {
+              "title": "Economy",
+              "page": {
+                "title": "Economy",
+                "form": {
+                  "secretStored": "Stored. Leave empty to keep it.",
+                  "secretMissing": "Not set.",
+                  "creditsSection": "Currencies",
+                  "creditsEnabled": "Credits",
+                  "creditsEnabledDescription": "Credits buy CPU, memory and disk in the Resource Store, and the second membership. With noprofit.space connected they are its credits. Turned off, the store is hidden; balances are kept.",
+                  "startingCredits": "Starting Credits",
+                  "startingCreditsDescription": "Credits every account gets once, the first time its balance is shown (without noprofit.space).",
+                  "tokensEnabled": "Tokens",
+                  "tokensEnabledDescription": "Tokens are earned through sponsored links and buy the memberships.",
+                  "dailyTokens": "Daily Tokens",
+                  "dailyTokensDescription": "Tokens every account gets once a day, the first time it looks. 0 gives none.",
+                  "membershipSection": "Memberships",
+                  "membershipEnabled": "Memberships",
+                  "membershipEnabledDescription": "The first membership is bought once with tokens and opens the locations with the tier “plus”. The second runs for a while, needs the first, and opens the tier “premium”.",
+                  "plusName": "First Membership’s Name",
+                  "plusNameDescription": "What players see, such as Plus.",
+                  "plusplusName": "Second Membership’s Name",
+                  "plusplusNameDescription": "What players see, such as PlusPlus.",
+                  "plusTokens": "First Membership: Tokens",
+                  "plusplusTokens": "Second Membership: Tokens",
+                  "plusplusTokenDays": "Second Membership: Days for Tokens",
+                  "plusplusCredits": "Second Membership: Credits",
+                  "plusplusCreditsDescription": "0 does not sell it for credits.",
+                  "plusplusCreditDays": "Second Membership: Days for Credits",
+                  "plusplusCpu": "Second Membership: Extra CPU (%)",
+                  "plusplusCpuDescription": "Added to the account’s CPU while it runs. When it runs out, its servers give it back evenly and leave the premium locations.",
+                  "storeSection": "Resource Store",
+                  "storeNote": "Without noprofit.space: what a step costs and where prices climb. With noprofit.space its store and prices are used.",
+                  "cpuStep": "CPU Step (%)",
+                  "stepDescription": "How much one step adds; 0 does not sell it. Memory and disk in MiB.",
+                  "cpuPrice": "CPU Step Price (Credits)",
+                  "limitCpu": "CPU Limit (%)",
+                  "memoryStep": "Memory Step (MiB)",
+                  "memoryPrice": "Memory Step Price (Credits)",
+                  "limitMemory": "Memory Limit (MiB)",
+                  "diskStep": "Disk Step (MiB)",
+                  "diskPrice": "Disk Step Price (Credits)",
+                  "limitDisk": "Disk Limit (MiB)",
+                  "priceFloor": "Lowest Price (%)",
+                  "priceFloorDescription": "The least a step costs on the way to the limit, in percent of its price.",
+                  "softLimit": "Soft Limit (%)",
+                  "softLimitDescription": "Where prices get steep, in percent of the limit.",
+                  "softMultiplier": "Price at the Soft Limit (×)",
+                  "softMultiplierDescription": "What a step costs at the soft limit, as a multiple of its price.",
+                  "doubling": "Doubling Every (%)",
+                  "doublingDescription": "Past the soft limit the price doubles every this many percent of the limit.",
+                  "earnSection": "Earning Tokens",
+                  "claimMinutes": "Minutes to Finish a Link",
+                  "claimMinutesDescription": "How long a player has to come back from a sponsored link.",
+                  "linkvertiseEnabled": "Linkvertise",
+                  "linkvertiseEnabledDescription": "Needs the anti-bypass API token from Linkvertise’s dashboard.",
+                  "linkvertiseToken": "Linkvertise Anti-Bypass Token",
+                  "linkvertisePublisher": "Linkvertise Publisher ID",
+                  "linkvertisePublisherDescription": "For Linkvertise’s Full Script on the Tokens page. Without it, the link below is used.",
+                  "linkvertiseWhitelist": "Full Script Whitelist",
+                  "linkvertiseWhitelistDescription": "Patterns of the links the script turns into Linkvertise links, comma separated. Empty: lvr= (the Tokens page’s own link).",
+                  "linkvertiseLink": "Linkvertise Link",
+                  "linkvertiseLinkDescription": "A Linkvertise link to the panel; {returnPlain} or {returnB64} in it is replaced with the way back to the Tokens page.",
+                  "reward": "Tokens per Link",
+                  "dailyCap": "Links per Day",
+                  "dailyCapDescription": "Per account; 0 has no limit.",
+                  "vyloEnabled": "Vylo",
+                  "vyloEnabledDescription": "Needs the API key from Vylo’s dashboard. A short link is made for every trip.",
+                  "vyloApiKey": "Vylo API Key",
+                  "vyloMinSeconds": "Shortest Trip (Seconds)",
+                  "vyloMinSecondsDescription": "A trip back faster than this does not count."
+                },
+                "toast": {
+                  "updated": "Economy settings saved."
+                }
+              }
+            },
             "updates": {
               "title": "Updates",
               "page": {
@@ -3622,6 +3807,36 @@
               "title": "Activity",
               "page": {
                 "title": "User Activity"
+              }
+            },
+            "economy": {
+              "title": "Economy",
+              "page": {
+                "title": "Credits, Tokens and Memberships",
+                "summary": "{credits} credits, {tokens} tokens ({earned} earned).",
+                "noprofit": "Credits and the Resource Store are noprofit.space’s: change credits there.",
+                "plusSince": "{name} since",
+                "noPlus": "No {name}.",
+                "plusplusRuns": "{name} runs until",
+                "noPlusplus": "No {name} running ({purchases} bought so far).",
+                "extras": "Bought in the Resource Store: {cpu}% CPU, {memory} memory, {disk} disk.",
+                "balances": "Change Balances",
+                "addCredits": "Add Credits",
+                "addTokens": "Add Tokens",
+                "addDescription": "A negative number takes some away.",
+                "reason": "Reason",
+                "reasonDescription": "Shown in the user’s history.",
+                "memberships": "Memberships",
+                "givePlus": "Give {name}",
+                "takePlus": "Take {name} Away",
+                "plusplusUntil": "{name} Until",
+                "setPlusplus": "Set End",
+                "endPlusplus": "End {name} Now",
+                "creditHistory": "Credit History",
+                "tokenHistory": "Token History",
+                "toast": {
+                  "updated": "Saved."
+                }
               }
             }
           }

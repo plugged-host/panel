@@ -4,6 +4,7 @@ import {
   faCircleQuestion, // plugged.host
   faCircleUp,
   faClockRotateLeft, // plugged.host
+  faCoins, // plugged.host
   faDatabase,
   faEnvelopesBulk,
   faGamepad,
@@ -35,6 +36,7 @@ import AbuseContainer from './abuse/AbuseContainer.tsx';
 import ActivityContainer from './activity/ActivityContainer.tsx';
 import ApplicationContainer from './application/ApplicationContainer.tsx';
 import CaptchaContainer from './captcha/CaptchaContainer.tsx';
+import EconomyContainer from './economy/EconomyContainer.tsx'; // plugged.host
 import EmailContainer from './email/EmailContainer.tsx';
 import GamesContainer from './games/GamesContainer.tsx'; // plugged.host
 import MetadataContainer from './metadata/MetadataContainer.tsx';
@@ -188,6 +190,13 @@ export default function AdminSettings() {
               icon: faClockRotateLeft,
               path: '/recovery',
               element: <RecoveryContainer />,
+            },
+            // plugged.host: credits, tokens, memberships, the Resource Store
+            {
+              name: t('pages.admin.settings.tabs.economy.title', {}),
+              icon: faCoins,
+              path: '/economy',
+              element: <EconomyContainer />,
             },
             {
               name: t('pages.admin.settings.tabs.updates.title', {}),

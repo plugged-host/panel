@@ -15,7 +15,8 @@ version:
 | Sign-in | Calagopus's own: passwords, two-factor, security keys, OAuth providers, registration | Everyone signs in at noprofit.space |
 | Profile, email, password | Edited in the panel | Managed on noprofit.space, mirrored into the panel |
 | SFTP passwords | The panel password | The noprofit.space password, checked by noprofit.space |
-| Plan, credits, Discord (later phases) | Settings and the panel's own tables | noprofit.space's, synced every minute |
+| Credits and the Resource Store | The panel's own (`users.credits`, its own prices) | noprofit.space's balance, store and prices ([features/economy.md](features/economy.md)) |
+| Plan, Discord (later phases) | Settings and the panel's own tables | noprofit.space's, synced every minute |
 
 Code that needs one of these asks the settings (`settings.noprofit.connected()`, `.config()`), never
 an environment variable, and has a branch for both cases.
@@ -91,6 +92,16 @@ What the accounts app must implement to work with this panel (tested against its
   `{"valid": bool}`; 422 = wrong, 429 = throttled (no verdict).
 - Snapshot `plan`: `{cpu, memory, disk, base_*, max_*}` (CPU in %, memory and disk in MiB);
   `discord`: `{id, username, avatar}`.
+- `POST /api/v1/internal/calagopus/store` with `{"account_id"}` answers the account's Resource Store:
+  `{credits, catalog: [{resource, step, total, limit, soft_limit, offers: [{steps, amount, price}]}],
+  transactions: [{amount, balance_after, type, description, created_at}]}` (the last 10).
+- `POST /api/v1/internal/calagopus/purchase` with `{"account_id", "resource", "steps", "price"}`
+  buys at that price: 200 `{ok, purchase, ...store}`; 409 `{error: "price_changed", ...store}` when
+  the price moved; 422 `{error: "refused", message}` (not for sale, balance short).
+- `POST /api/v1/internal/calagopus/credits/spend` with `{"account_id", "amount", "type",
+  "description", "idempotency_key"}` takes credits for something bought on the panel (the second
+  membership): 200 `{credits}` (the balance after; a repeated key changes nothing), 422 when the
+  balance is short, 409 when the key belongs to a different spend.
 
 On noprofit.space's side this panel is a client with its own sign-in secret and API secret, both
 equal to the values entered here.

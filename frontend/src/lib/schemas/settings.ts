@@ -119,4 +119,12 @@ export const publicSettingsSchema = z.object({
   tour: z.object({
     enabled: z.boolean(),
   }),
+  // plugged.host: which parts of the economy players see (docs/features/economy.md)
+  economy: z.object({
+    creditsEnabled: z.boolean(),
+    tokensEnabled: z.boolean(),
+    membershipEnabled: z.boolean(),
+    plusName: z.string(),
+    plusplusName: z.string(),
+  }),
 });

@@ -14,6 +14,7 @@ import ResourceView from '@/elements/ResourceView.tsx';
 import FormattedTimestamp from '@/elements/time/FormattedTimestamp.tsx';
 import Text from '@/elements/typography/Text.tsx';
 import Title from '@/elements/typography/Title.tsx';
+import { tierName } from '@/lib/economy.ts';
 import { queryKeys } from '@/lib/queryKeys.ts';
 import { activeTransferStatuses, serverTransferOptionsSchema } from '@/lib/schemas/server/transfer.ts';
 import { useResource } from '@/plugins/resource/useResource.ts';
@@ -185,7 +186,7 @@ function TransferForm({ options, refresh }: { options: Options; refresh: () => v
                 </span>
                 <span className='theme-choice-text'>
                   {!location.unlocked
-                    ? t('pages.account.createServer.locationLocked', { tier: location.tier ?? '' })
+                    ? t('pages.account.createServer.locationLocked', { tier: tierName(location.tier) })
                     : !location.available
                       ? t('pages.account.createServer.locationFull', {})
                       : current

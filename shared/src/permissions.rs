@@ -223,6 +223,24 @@ pub(crate) static BASE_USER_PERMISSIONS: LazyLock<IndexMap<&'static str, Permiss
                     ]),
                 },
             ),
+            // plugged.host: credits, tokens and memberships (docs/features/economy.md)
+            (
+                "economy",
+                PermissionGroup {
+                    description: "Permissions that control the ability to use the account's credits and tokens.",
+                    permissions: IndexMap::from([
+                        (
+                            "read",
+                            "Allows viewing the account's credits, tokens, memberships and their history.",
+                        ),
+                        (
+                            "purchase",
+                            "Allows spending credits and tokens on resources and memberships.",
+                        ),
+                        ("earn", "Allows earning tokens through sponsored links."),
+                    ]),
+                },
+            ),
             (
                 "activity",
                 PermissionGroup {
@@ -367,6 +385,11 @@ pub(crate) static BASE_ADMIN_PERMISSIONS: LazyLock<IndexMap<&'static str, Permis
                             "Allows sending email actions to users, such as password resets, and marking a user's email as verified.",
                         ),
                         ("activity", "Allows viewing a user's activity log."),
+                        // plugged.host: docs/features/economy.md
+                        (
+                            "economy",
+                            "Allows viewing and changing a user's credits, tokens and memberships.",
+                        ),
                         (
                             "oauth-links",
                             "Allows viewing and managing a user's OAuth links.",

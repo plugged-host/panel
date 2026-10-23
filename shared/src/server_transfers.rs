@@ -1002,6 +1002,18 @@ pub async fn lighten(
     Ok(chosen.len())
 }
 
+/// Queues an admin move of the server to `location_uuid` with no one behind it (the panel's own,
+/// a PlusPlus that ran out); [`settle`] starts it.
+pub async fn queue_admin_move(
+    state: &crate::State,
+    server: &Server,
+    location_uuid: uuid::Uuid,
+) -> Result<TransferRequest, sqlx::Error> {
+    let restart = running(state, server).await;
+
+    insert(state, server, None, ORIGIN_ADMIN, location_uuid, restart).await
+}
+
 /// What a location can still take, for Admin › Overview › Capacity.
 #[derive(ToSchema, Serialize)]
 pub struct ApiLocationCapacity {

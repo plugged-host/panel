@@ -29,6 +29,8 @@ pub mod crypt;
 pub mod database;
 pub mod deleted_servers; // plugged.host
 pub mod deserialize;
+pub mod earn; // plugged.host
+pub mod economy; // plugged.host
 pub mod env;
 pub mod events;
 pub mod extensions;
@@ -49,6 +51,7 @@ pub mod ntp;
 pub mod payload;
 pub mod permissions;
 pub mod prelude;
+pub mod pricing; // plugged.host
 pub mod response;
 pub mod retry;
 pub mod server_creation; // plugged.host

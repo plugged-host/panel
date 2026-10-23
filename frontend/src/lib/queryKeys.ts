@@ -9,6 +9,7 @@ const admin = {
     servers: (userUuid: string) => ['admin', 'users', userUuid, 'servers'] as const,
     activity: (userUuid: string) => ['admin', 'users', userUuid, 'activity'] as const,
     oauthLinks: (userUuid: string) => ['admin', 'users', userUuid, 'oauth-links'] as const,
+    economy: (userUuid: string) => ['admin', 'users', userUuid, 'economy'] as const, // plugged.host
   },
 
   roles: {
@@ -391,6 +392,10 @@ const user = {
   },
   welcomeTour: () => ['user', 'welcome-tour'] as const, // plugged.host
   backups: () => ['user', 'backups'] as const, // plugged.host
+  // plugged.host: the economy (docs/features/economy.md)
+  store: () => ['user', 'store'] as const,
+  tokens: () => ['user', 'tokens'] as const,
+  membership: () => ['user', 'membership'] as const,
 };
 
 const global = {

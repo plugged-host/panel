@@ -30,7 +30,8 @@ type SettingsStoreKey =
   | 'games' // plugged.host
   | 'placement' // plugged.host
   | 'tour' // plugged.host
-  | 'recovery'; // plugged.host
+  | 'recovery' // plugged.host
+  | 'economy'; // plugged.host
 
 /** Admin store keys whose public projection lives under the same-named global settings key. */
 type GlobalSyncKey = 'app' | 'webauthn' | 'server' | 'user';

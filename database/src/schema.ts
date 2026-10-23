@@ -168,6 +168,15 @@ export const usersTable = pgTable(
     email_verified: boolean().default(false).notNull(),
     password_login_disabled: boolean().default(false).notNull(),
     language: varchar({ length: 15 }).default('en').notNull(),
+    // plugged.host: the economy (shared/src/economy.rs): credits and the resources they bought
+    // (without noprofit.space), tokens and the day of the last daily token
+    credits: bigint({ mode: 'number' }).default(0).notNull(),
+    extra_cpu: integer().default(0).notNull(),
+    extra_memory: integer().default(0).notNull(),
+    extra_disk: integer().default(0).notNull(),
+    tokens: bigint({ mode: 'number' }).default(0).notNull(),
+    tokens_earned: bigint({ mode: 'number' }).default(0).notNull(),
+    tokens_daily_granted: date({ mode: 'string' }),
     created: timestamp().defaultNow().notNull(),
   },
   (cols) => [
@@ -428,6 +437,84 @@ export const userNoprofitAccountsTable = pgTable(
     created: timestamp().defaultNow().notNull(),
   },
   (cols) => [uniqueIndex('user_noprofit_accounts_account_id_idx').on(cols.account_id)],
+);
+
+// plugged.host: the economy's ledgers, earn claims and memberships (shared/src/economy.rs,
+// shared/src/earn.rs, docs/features/economy.md)
+export const userCreditTransactionsTable = pgTable(
+  'user_credit_transactions',
+  {
+    uuid: uuid().default(sql`gen_random_uuid()`).primaryKey().notNull(),
+    user_uuid: uuid()
+      .references(() => usersTable.uuid, { onDelete: 'cascade' })
+      .notNull(),
+    amount: bigint({ mode: 'number' }).notNull(),
+    balance_after: bigint({ mode: 'number' }).notNull(),
+    type: varchar({ length: 64 }).notNull(),
+    description: varchar({ length: 255 }).notNull(),
+    data: jsonb().notNull(),
+    created: timestamp().defaultNow().notNull(),
+  },
+  (cols) => [index('user_credit_transactions_user_uuid_created_idx').on(cols.user_uuid, cols.created)],
+);
+
+export const userTokenTransactionsTable = pgTable(
+  'user_token_transactions',
+  {
+    uuid: uuid().default(sql`gen_random_uuid()`).primaryKey().notNull(),
+    user_uuid: uuid()
+      .references(() => usersTable.uuid, { onDelete: 'cascade' })
+      .notNull(),
+    amount: bigint({ mode: 'number' }).notNull(),
+    balance_after: bigint({ mode: 'number' }).notNull(),
+    type: varchar({ length: 64 }).notNull(),
+    description: varchar({ length: 255 }).notNull(),
+    data: jsonb().notNull(),
+    created: timestamp().defaultNow().notNull(),
+  },
+  (cols) => [index('user_token_transactions_user_uuid_created_idx').on(cols.user_uuid, cols.created)],
+);
+
+export const userTokenClaimsTable = pgTable(
+  'user_token_claims',
+  {
+    uuid: uuid().default(sql`gen_random_uuid()`).primaryKey().notNull(),
+    user_uuid: uuid()
+      .references(() => usersTable.uuid, { onDelete: 'cascade' })
+      .notNull(),
+    provider: varchar({ length: 32 }).notNull(),
+    nonce: varchar({ length: 64 }).notNull(),
+    token_hash: char({ length: 64 }),
+    status: varchar({ length: 16 }).default('pending').notNull(),
+    amount: integer().default(0).notNull(),
+    reason: varchar({ length: 32 }),
+    ip: inet(),
+    created: timestamp().defaultNow().notNull(),
+    completed: timestamp(),
+  },
+  (cols) => [
+    uniqueIndex('user_token_claims_nonce_idx').on(cols.nonce),
+    uniqueIndex('user_token_claims_provider_token_hash_idx').on(cols.provider, cols.token_hash),
+    index('user_token_claims_user_uuid_provider_status_idx').on(cols.user_uuid, cols.provider, cols.status),
+  ],
+);
+
+export const userMembershipsTable = pgTable(
+  'user_memberships',
+  {
+    user_uuid: uuid()
+      .references(() => usersTable.uuid, { onDelete: 'cascade' })
+      .primaryKey()
+      .notNull(),
+    plus_since: timestamp(),
+    plusplus_until: timestamp(),
+    plusplus_purchases: integer().default(0).notNull(),
+    // a lapse's CPU bonus was handed to user_allowance_cuts / its servers left the premium locations
+    plusplus_cut: timestamp(),
+    plusplus_settled: timestamp(),
+    created: timestamp().defaultNow().notNull(),
+  },
+  (cols) => [index('user_memberships_plusplus_until_idx').on(cols.plusplus_until)],
 );
 
 export const userCommandSnippetsTable = pgTable(

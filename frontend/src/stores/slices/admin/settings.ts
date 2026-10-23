@@ -245,6 +245,48 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
     failoverAfter: 10,
     failoverParallel: 3,
   },
+  // plugged.host
+  economy: {
+    creditsEnabled: true,
+    startingCredits: 0,
+    tokensEnabled: true,
+    dailyTokens: 0,
+    membershipEnabled: true,
+    plusName: 'Plus',
+    plusplusName: 'PlusPlus',
+    plusTokens: 25,
+    plusplusTokens: 10,
+    plusplusTokenDays: 7,
+    plusplusCredits: 150,
+    plusplusCreditDays: 14,
+    plusplusCpu: 50,
+    cpuStep: 50,
+    cpuPrice: 100,
+    memoryStep: 1024,
+    memoryPrice: 150,
+    diskStep: 5120,
+    diskPrice: 75,
+    limitCpu: 600,
+    limitMemory: 24576,
+    limitDisk: 102400,
+    priceFloor: 50,
+    softLimit: 125,
+    softMultiplier: 4,
+    doubling: 5,
+    claimMinutes: 30,
+    linkvertiseEnabled: false,
+    linkvertisePublisher: null,
+    linkvertiseWhitelist: null,
+    linkvertiseLink: null,
+    linkvertiseToken: null,
+    linkvertiseReward: 1,
+    linkvertiseDailyCap: 5,
+    vyloEnabled: false,
+    vyloApiKey: null,
+    vyloReward: 1,
+    vyloDailyCap: 5,
+    vyloMinSeconds: 10,
+  },
   updates: {
     wingsReleaseToken: null,
     dbAgentReleaseToken: null,
@@ -272,6 +314,7 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
       placement: value.placement, // plugged.host
       tour: value.tour, // plugged.host
       recovery: value.recovery, // plugged.host
+      economy: value.economy, // plugged.host
       updates: value.updates,
     })),
   updateSettings: (value) =>
@@ -293,6 +336,7 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
       ...(value.placement ? { placement: { ...state.placement, ...value.placement } } : {}), // plugged.host
       ...(value.tour ? { tour: { ...state.tour, ...value.tour } } : {}), // plugged.host
       ...(value.recovery ? { recovery: { ...state.recovery, ...value.recovery } } : {}), // plugged.host
+      ...(value.economy ? { economy: { ...state.economy, ...value.economy } } : {}), // plugged.host
       ...(value.updates ? { updates: { ...state.updates, ...value.updates } } : {}),
     })),
   setUpdateInformation: (value) => set((state) => ({ ...state, updateInformation: value })),

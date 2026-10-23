@@ -1,0 +1,108 @@
+// plugged.host: credits, tokens, the memberships and the Resource Store (shared/src/economy.rs,
+// shared/src/earn.rs, docs/features/economy.md)
+import { z } from 'zod';
+
+export const economySourceSchema = z.enum(['panel', 'noprofit']);
+
+export const economyTransactionSchema = z.object({
+  amount: z.number(),
+  balanceAfter: z.number(),
+  type: z.string(),
+  description: z.string(),
+  created: z.coerce.date().nullable(),
+});
+
+export const storeResourceSchema = z.enum(['cpu', 'memory', 'disk']);
+
+export const storeCatalogEntrySchema = z.object({
+  resource: storeResourceSchema,
+  step: z.number(),
+  total: z.number(),
+  limit: z.number(),
+  softLimit: z.number(),
+  offers: z.array(
+    z.object({
+      steps: z.number(),
+      amount: z.number(),
+      price: z.number(),
+    }),
+  ),
+});
+
+export const userStoreSchema = z.object({
+  source: economySourceSchema,
+  available: z.boolean(),
+  credits: z.number(),
+  catalog: z.array(storeCatalogEntrySchema),
+  transactions: z.array(economyTransactionSchema),
+});
+
+export const economyPaySchema = z.enum(['tokens', 'credits']);
+
+export const userEconomySchema = z.object({
+  source: economySourceSchema,
+  creditsEnabled: z.boolean(),
+  credits: z.number(),
+  tokensEnabled: z.boolean(),
+  tokens: z.number(),
+  tokensEarned: z.number(),
+  membershipEnabled: z.boolean(),
+  plusName: z.string(),
+  plusplusName: z.string(),
+  plusSince: z.coerce.date().nullable(),
+  plusplusUntil: z.coerce.date().nullable(),
+  priority: z.number(),
+  plusCost: z.number(),
+  plusplusOffers: z.array(
+    z.object({
+      pay: economyPaySchema,
+      cost: z.number(),
+      days: z.number(),
+    }),
+  ),
+  plusplusCpu: z.number(),
+});
+
+export const earnProviderSchema = z.enum(['linkvertise', 'vylo']);
+
+export const userTokensSchema = z.object({
+  enabled: z.boolean(),
+  tokens: z.number(),
+  tokensEarned: z.number(),
+  claimMinutes: z.number(),
+  providers: z.array(
+    z.object({
+      provider: earnProviderSchema,
+      reward: z.number(),
+      dailyCap: z.number(),
+      grantedToday: z.number(),
+      fullScript: z.boolean(),
+      publisher: z.number().nullable(),
+      whitelist: z.array(z.string()),
+    }),
+  ),
+  transactions: z.array(economyTransactionSchema),
+});
+
+export const earnStartSchema = z.object({
+  url: z.string(),
+  nonce: z.string(),
+});
+
+export const redemptionSchema = z.object({
+  status: z.enum(['granted', 'settled', 'no_claim', 'expired', 'no_token', 'replay', 'capped', 'invalid']),
+  amount: z.number(),
+  provider: earnProviderSchema.nullable(),
+});
+
+export const adminUserEconomySchema = userEconomySchema.extend({
+  panelCredits: z.number(),
+  extras: z.object({
+    cpu: z.number(),
+    memory: z.number(),
+    disk: z.number(),
+  }),
+  plusplusPurchases: z.number(),
+  creditTransactions: z.array(economyTransactionSchema),
+  tokenTransactions: z.array(economyTransactionSchema),
+});

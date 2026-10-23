@@ -1,4 +1,10 @@
-import { faBriefcase, faCog, faComputer, faFingerprint } from '@fortawesome/free-solid-svg-icons';
+import {
+  faBriefcase,
+  faCog,
+  faCoins, // plugged.host
+  faComputer,
+  faFingerprint,
+} from '@fortawesome/free-solid-svg-icons';
 import { useParams } from 'react-router';
 import getUser from '@/api/admin/users/getUser.ts';
 import AdminContentContainer from '@/elements/containers/AdminContentContainer.tsx';
@@ -10,6 +16,7 @@ import UserCreateOrUpdate from '@/pages/admin/users/UserCreateOrUpdate.tsx';
 import { useResource } from '@/plugins/resource/useResource.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import AdminUserActivity from './activity/AdminUserActivity.tsx';
+import AdminUserEconomy from './economy/AdminUserEconomy.tsx'; // plugged.host
 import AdminUserOAuthLinks from './oauthLinks/AdminUserOAuthLinks.tsx';
 
 export default function UserView() {
@@ -52,6 +59,14 @@ export default function UserView() {
                 path: `/oauth-links`,
                 element: <AdminUserOAuthLinks user={user} />,
                 permission: 'users.oauth-links',
+              },
+              // plugged.host: credits, tokens, memberships
+              {
+                name: t('pages.admin.users.tabs.economy.title', {}),
+                icon: faCoins,
+                path: `/economy`,
+                element: <AdminUserEconomy user={user} />,
+                permission: 'users.economy',
               },
               {
                 name: t('pages.admin.users.tabs.activity.title', {}),

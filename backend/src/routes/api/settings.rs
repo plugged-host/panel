@@ -97,6 +97,16 @@ mod get {
         enabled: bool,
     }
 
+    /// plugged.host: which parts of the economy players see (docs/features/economy.md).
+    #[derive(ToSchema, Serialize)]
+    struct ResponseEconomy<'a> {
+        credits_enabled: bool,
+        tokens_enabled: bool,
+        membership_enabled: bool,
+        plus_name: &'a str,
+        plusplus_name: &'a str,
+    }
+
     #[derive(ToSchema, Serialize)]
     struct Response<'a> {
         time: chrono::DateTime<chrono::Utc>,
@@ -119,6 +129,8 @@ mod get {
         games: ResponseGames, // plugged.host
         #[schema(inline)]
         tour: ResponseTour, // plugged.host
+        #[schema(inline)]
+        economy: ResponseEconomy<'a>, // plugged.host
     }
 
     #[utoipa::path(get, path = "/", responses(
@@ -215,6 +227,13 @@ mod get {
             },
             tour: ResponseTour {
                 enabled: settings.tour.enabled,
+            },
+            economy: ResponseEconomy {
+                credits_enabled: settings.economy.credits_enabled,
+                tokens_enabled: settings.economy.tokens_enabled,
+                membership_enabled: settings.economy.membership_enabled,
+                plus_name: &settings.economy.plus_name,
+                plusplus_name: &settings.economy.plusplus_name,
             },
         })
         .ok()

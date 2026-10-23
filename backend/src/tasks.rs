@@ -941,6 +941,14 @@ pub async fn define_background_tasks(
             async |state| shared::allowance_cuts::settle(&state).await,
         )
         .await;
+    // plugged.host: PlusPlus that ran out (shared::economy)
+    background_task_builder
+        .add_cron_task(
+            "settle_memberships",
+            croner::Cron::from_str("15 * * * * *").unwrap(),
+            async |state| shared::economy::settle_memberships(&state).await,
+        )
+        .await;
     background_task_builder
         .add_cron_task(
             "prune_node_telemetry",

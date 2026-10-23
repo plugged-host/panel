@@ -16,6 +16,7 @@ import ResourceView from '@/elements/ResourceView.tsx';
 import Anchor from '@/elements/typography/Anchor.tsx';
 import Text from '@/elements/typography/Text.tsx';
 import Title from '@/elements/typography/Title.tsx';
+import { tierName } from '@/lib/economy.ts';
 import { bytesToString, mbToBytes } from '@/lib/format/size.ts';
 import { queryKeys } from '@/lib/queryKeys.ts';
 import { serverCreateAllowanceSchema, serverCreateOptionsSchema } from '@/lib/schemas/server/create.ts';
@@ -194,7 +195,7 @@ function CreateServerForm({ options }: { options: Options }) {
                 </span>
                 <span className='theme-choice-text'>
                   {!location.unlocked
-                    ? t('pages.account.createServer.locationLocked', { tier: location.tier ?? '' })
+                    ? t('pages.account.createServer.locationLocked', { tier: tierName(location.tier) })
                     : !location.available
                       ? t('pages.account.createServer.locationFull', {})
                       : location.latency !== null

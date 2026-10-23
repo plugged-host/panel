@@ -419,6 +419,10 @@ mod put {
         #[schema(inline)]
         #[garde(dive)]
         recovery: Option<shared::settings::recovery::PayloadRecovery>,
+        // plugged.host
+        #[schema(inline)]
+        #[garde(dive)]
+        economy: Option<shared::settings::economy::PayloadEconomy>,
         #[schema(inline)]
         #[garde(dive)]
         updates: Option<PayloadUpdates>,
@@ -925,6 +929,14 @@ mod put {
         // plugged.host: deleted servers' copies
         if let Some(recovery) = data.recovery {
             recovery.apply(&mut settings.recovery);
+        }
+        // plugged.host: credits, tokens, memberships, the Resource Store
+        if let Some(economy) = data.economy
+            && let Err(error) = economy.apply(&mut settings.economy)
+        {
+            return ApiResponse::error(error)
+                .with_status(StatusCode::BAD_REQUEST)
+                .ok();
         }
 
         if !settings.app.password_login_enabled {

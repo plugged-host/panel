@@ -26,6 +26,7 @@ use utoipa::ToSchema;
 pub mod abuse; // plugged.host
 pub mod activity;
 pub mod app;
+pub mod economy; // plugged.host
 pub mod games; // plugged.host
 pub mod metadata;
 pub mod noprofit; // plugged.host
@@ -432,6 +433,9 @@ pub struct AppSettings {
     // plugged.host: deleted servers' copies (and, later, node failover)
     #[schema(inline)]
     pub recovery: recovery::AppSettingsRecovery,
+    // plugged.host: credits, tokens, memberships and the Resource Store
+    #[schema(inline)]
+    pub economy: economy::AppSettingsEconomy,
     #[schema(inline)]
     pub updates: updates::AppSettingsUpdates,
 
@@ -733,6 +737,8 @@ impl SettingsSerializeExt for AppSettings {
             .await?
             .nest("recovery", &self.recovery) // plugged.host
             .await?
+            .nest("economy", &self.economy) // plugged.host
+            .await?
             .nest("updates", &self.updates)
             .await?;
 
@@ -1032,6 +1038,9 @@ impl SettingsDeserializeExt for AppSettingsDeserializer {
                 .await?,
             recovery: deserializer // plugged.host
                 .nest("recovery", &recovery::AppSettingsRecoveryDeserializer)
+                .await?,
+            economy: deserializer // plugged.host
+                .nest("economy", &economy::AppSettingsEconomyDeserializer)
                 .await?,
             updates: deserializer
                 .nest("updates", &updates::AppSettingsUpdatesDeserializer)

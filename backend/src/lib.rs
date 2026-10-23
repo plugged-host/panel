@@ -1133,6 +1133,7 @@ pub async fn handle_startup() -> Result<
                         let settings = state.settings.get().await?;
                         let script_csp = settings.captcha_provider.to_csp_script_src();
                         let style_csp = settings.captcha_provider.to_csp_style_src();
+                        let economy_csp = settings.economy.to_csp_script_src(); // plugged.host
                         if matches!(
                             settings.captcha_provider,
                             shared::settings::CaptchaProvider::Cap { .. }
@@ -1146,7 +1147,7 @@ pub async fn handle_startup() -> Result<
 
                         Some(format!(
                             "default-src 'self'; \
-                                script-src 'self' blob: {script_csp}{nonce_csp}; \
+                                script-src 'self' blob: {script_csp}{nonce_csp}{economy_csp}; \
                                 frame-src *; \
                                 style-src 'self' 'unsafe-inline' {style_csp}; \
                                 connect-src * blob:; \

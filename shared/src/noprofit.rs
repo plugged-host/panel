@@ -301,6 +301,177 @@ impl Config {
             }
         }
     }
+
+    /// The account's Resource Store on noprofit.space: its credits, what each resource costs
+    /// it now and its latest credit history (docs/features/economy.md).
+    pub async fn store(
+        &self,
+        client: &reqwest::Client,
+        account_id: i64,
+    ) -> Result<Store, anyhow::Error> {
+        const PATH: &str = "/api/v1/internal/calagopus/store";
+
+        let response = self
+            .post(
+                client,
+                PATH,
+                &serde_json::json!({ "account_id": account_id }),
+            )
+            .await?;
+        let status = response.status();
+
+        if !status.is_success() {
+            anyhow::bail!("noprofit.space answered {status} to the store");
+        }
+
+        Ok(response.json().await?)
+    }
+
+    /// Buys `steps` steps of a resource at the price the player was shown. A price that moved
+    /// since buys nothing.
+    pub async fn purchase(
+        &self,
+        client: &reqwest::Client,
+        account_id: i64,
+        resource: crate::pricing::StoreResource,
+        steps: i64,
+        price: i64,
+    ) -> Result<Purchase, anyhow::Error> {
+        const PATH: &str = "/api/v1/internal/calagopus/purchase";
+
+        let response = self
+            .post(
+                client,
+                PATH,
+                &serde_json::json!({
+                    "account_id": account_id,
+                    "resource": resource,
+                    "steps": steps,
+                    "price": price,
+                }),
+            )
+            .await?;
+        let status = response.status();
+
+        match status {
+            status if status.is_success() => Ok(Purchase::Done(response.json().await?)),
+            reqwest::StatusCode::CONFLICT => {
+                let answer: serde_json::Value = response.json().await.unwrap_or_default();
+
+                Ok(Purchase::PriceChanged(serde_json::from_value(answer).ok()))
+            }
+            reqwest::StatusCode::UNPROCESSABLE_ENTITY => {
+                let answer: serde_json::Value = response.json().await.unwrap_or_default();
+
+                Ok(Purchase::Refused(
+                    answer
+                        .get("message")
+                        .and_then(serde_json::Value::as_str)
+                        .unwrap_or_default()
+                        .to_string(),
+                ))
+            }
+            status => anyhow::bail!("noprofit.space answered {status} to a store purchase"),
+        }
+    }
+
+    /// Takes `amount` credits off the account for something bought on this panel (a membership).
+    /// Sent again with the same `key`, nothing more is taken. `None` when the balance is short.
+    pub async fn spend_credits(
+        &self,
+        client: &reqwest::Client,
+        account_id: i64,
+        amount: i64,
+        kind: &str,
+        description: &str,
+        key: &str,
+    ) -> Result<Option<i64>, anyhow::Error> {
+        const PATH: &str = "/api/v1/internal/calagopus/credits/spend";
+
+        let response = self
+            .post(
+                client,
+                PATH,
+                &serde_json::json!({
+                    "account_id": account_id,
+                    "amount": amount,
+                    "type": kind,
+                    "description": description,
+                    "idempotency_key": key,
+                }),
+            )
+            .await?;
+        let status = response.status();
+
+        #[derive(Deserialize)]
+        struct Spent {
+            credits: i64,
+        }
+
+        match status {
+            status if status.is_success() => Ok(Some(response.json::<Spent>().await?.credits)),
+            reqwest::StatusCode::UNPROCESSABLE_ENTITY => Ok(None),
+            status => anyhow::bail!("noprofit.space answered {status} to a credit spend"),
+        }
+    }
+}
+
+/// noprofit.space's Resource Store for one account.
+#[derive(Deserialize, Clone, Debug)]
+pub struct Store {
+    pub credits: i64,
+    pub catalog: Vec<crate::pricing::CatalogEntry>,
+    #[serde(default)]
+    pub transactions: Vec<StoreTransaction>,
+}
+
+#[derive(Deserialize, Clone, Debug)]
+pub struct StoreTransaction {
+    pub amount: i64,
+    pub balance_after: i64,
+    #[serde(rename = "type")]
+    pub kind: String,
+    pub description: String,
+    pub created_at: Option<chrono::DateTime<chrono::Utc>>,
+}
+
+pub enum Purchase {
+    Done(Store),
+    /// The price moved; the store as it is now, when noprofit.space sent it.
+    PriceChanged(Option<Store>),
+    /// Not for sale, or the balance is short; noprofit.space's reason.
+    Refused(String),
+}
+
+/// Pulls one linked user's snapshot again and applies it, after something changed their credits
+/// or plan on noprofit.space.
+pub async fn refresh_user(
+    state: &crate::State,
+    user_uuid: uuid::Uuid,
+) -> Result<(), anyhow::Error> {
+    use crate::models::ByUuid;
+
+    let Some(noprofit) = state.settings.get().await?.noprofit.config() else {
+        return Ok(());
+    };
+    let Some(link) = Link::by_user_uuid(&state.database, user_uuid).await? else {
+        return Ok(());
+    };
+    let Some(snapshot) = noprofit
+        .pull(&state.client, &[link.account_id])
+        .await?
+        .into_iter()
+        .find(|snapshot| snapshot.account_id == link.account_id)
+    else {
+        return Ok(());
+    };
+    let Some(mut user) =
+        crate::models::user::User::by_uuid_optional(&state.database, user_uuid).await?
+    else {
+        return Ok(());
+    };
+
+    apply_snapshot(state, &mut user, &snapshot).await
 }
 
 /// `hex(hmac_sha256(secret, METHOD\npath\ntimestamp\nnonce\nhex(sha256(body))))`.
