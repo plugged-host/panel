@@ -56,15 +56,15 @@ fn main() {
     println!("cargo:rustc-env=CARGO_GIT_COMMIT={git_hash}");
     println!("cargo:rustc-env=CARGO_TARGET={target_arch}-{target_env}");
 
-    plugged_host_release(is_git_repo);
+    release(is_git_repo); // plugged.host
 }
 
-/// plugged.host's release, `v{VERSION}.{commit}` (e.g. `v3.0.0.7bc33d4`): the `VERSION` file at
-/// the repository root plus the 7-character commit the build was made from.
-/// `PLUGGED_HOST_RELEASE` at build time overrides it.
-fn plugged_host_release(is_git_repo: bool) {
+/// plugged.host: the release, `v{VERSION}.{commit}` (e.g. `v3.0.0.7bc33d4`): the `VERSION` file
+/// at the repository root plus the 7-character commit the build was made from.
+/// `PANEL_RELEASE` at build time overrides it.
+fn release(is_git_repo: bool) {
     println!("cargo:rerun-if-changed=../VERSION");
-    println!("cargo:rerun-if-env-changed=PLUGGED_HOST_RELEASE");
+    println!("cargo:rerun-if-env-changed=PANEL_RELEASE");
     // Any new commit: HEAD, a loose branch ref (a directory is watched recursively) or packed refs.
     // Watching only the ref HEAD names misses a branch that was packed at clone time and is
     // loose after the next commit.
@@ -88,11 +88,11 @@ fn plugged_host_release(is_git_repo: bool) {
         commit = hash.trim().to_string();
     }
 
-    let release = std::env::var("PLUGGED_HOST_RELEASE")
+    let release = std::env::var("PANEL_RELEASE")
         .ok()
         .filter(|release| !release.trim().is_empty())
         .unwrap_or_else(|| format!("v{version}.{commit}"));
 
-    println!("cargo:rustc-env=PLUGGED_HOST_VERSION={version}");
-    println!("cargo:rustc-env=PLUGGED_HOST_RELEASE={release}");
+    println!("cargo:rustc-env=RELEASE_VERSION={version}");
+    println!("cargo:rustc-env=RELEASE={release}");
 }

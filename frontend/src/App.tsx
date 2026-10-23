@@ -123,7 +123,7 @@ export default function App({
   }, [settings?.app?.icon]);
 
   // plugged.host: Theme v2's accent from the theme colour: Mantine's blue palette and the
-  // --phv2-accent* tokens (lib/accent.ts). Theme v2's own blue changes nothing.
+  // --theme-accent* tokens (lib/accent.ts). Theme v2's own blue changes nothing.
   const accent = useMemo(() => accentFor(settings?.app?.themeColor), [settings?.app?.themeColor]);
   const accentedTheme = useMemo(
     () => (accent ? mergeThemeOverrides(theme, { colors: { blue: accent.palette } }) : theme),

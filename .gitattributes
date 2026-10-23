@@ -1,0 +1,3 @@
+# plugged.host: translation files merge key by key (docs/upstream.md#translations)
+frontend/public/translations/*.json merge=translations
+shared/mails/variables/*.json merge=translations

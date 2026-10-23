@@ -34,7 +34,7 @@ function TitleCard({
       <Group
         id='title-card-header'
         className={classNames('px-4 py-3 md:px-6 md:py-4', titleClassName)}
-        style={{ borderBottom: '1px solid var(--phv2-hairline)' }}
+        style={{ borderBottom: '1px solid var(--theme-hairline)' }}
         gap='sm'
       >
         {leftSection}

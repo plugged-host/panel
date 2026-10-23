@@ -8,7 +8,7 @@ const shim = path.resolve(import.meta.dirname, '../src/lib/icons/FontAwesomeIcon
 
 export function tablerIcons(): Plugin {
   return {
-    name: 'plugged-host:tabler-icons',
+    name: 'tabler-icons',
     enforce: 'pre',
 
     resolveId(id, importer) {

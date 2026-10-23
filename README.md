@@ -15,6 +15,8 @@
 
 </div>
 
+> This is **plugged.host's fork** of Calagopus: what it changes and how to work on it are in [docs/](./docs/README.md). <!-- plugged.host -->
+
 Calagopus is a ground-up reimplementation of [Pterodactyl Panel](https://github.com/pterodactyl/panel) in Rust. It keeps what made the original great - secure, container-based game server management - while aiming for better performance, a refreshed UI, more features, and a cleaner extension model on both the frontend and backend. If you already run Pterodactyl or Pelican, there is a supported migration path.
 
 <div align="center">

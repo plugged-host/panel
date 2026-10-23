@@ -205,7 +205,7 @@ export default function ServerItem({
         {t('pages.server.console.power.modal.forceStop.content', {}).md()}
       </ConfirmationModal>
 
-      {/* plugged.host: Theme v2's server card ("phv2-server", server-entry.blade.php on the Pelican
+      {/* plugged.host: Theme v2's server card ("theme-server", server-entry.blade.php on the Pelican
           panel): a status bar down its left edge, the name over the state, the power menu at the end
           of that row, then CPU, memory and disk as used / limit over a thin bar, and the address.
           Its layout follows its own width (a container query in app.css). */}
@@ -221,7 +221,7 @@ export default function ServerItem({
           >
             <NavLink
               to={to ?? `/server/${server.uuidShort}`}
-              className='ph-server-card'
+              className='theme-server-card'
               data-selected={isSelected || undefined}
               onClick={(e) => {
                 if (sKeyPressedRef?.current) {
@@ -229,13 +229,13 @@ export default function ServerItem({
                 }
               }}
             >
-              <div className='phv2-server'>
-                <span className={classNames('phv2-server-status-bar', statusToColor(stats?.state))} />
+              <div className='theme-server'>
+                <span className={classNames('theme-server-status-bar', statusToColor(stats?.state))} />
 
-                <div className='phv2-server-head'>
+                <div className='theme-server-head'>
                   {showSelection && (
                     <span
-                      className='phv2-server-select'
+                      className='theme-server-select'
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
@@ -255,8 +255,8 @@ export default function ServerItem({
                     </span>
                   )}
 
-                  <div className='phv2-server-title'>
-                    <h2 className='phv2-server-name'>
+                  <div className='theme-server-title'>
+                    <h2 className='theme-server-name'>
                       <ScrollingText className='min-w-0 flex-1'>{server.name}</ScrollingText>
                       {showForeignServerBadge && !server.isOwner && (
                         <Tooltip label={t('pages.account.home.tooltip.foreign', {})}>
@@ -272,12 +272,12 @@ export default function ServerItem({
                           <FontAwesomeIcon
                             size='sm'
                             icon={faInfoCircle}
-                            className='shrink-0 text-(--phv2-text-faint)'
+                            className='shrink-0 text-(--theme-text-faint)'
                           />
                         </Tooltip>
                       )}
                     </h2>
-                    <p className='phv2-server-state'>
+                    <p className='theme-server-state'>
                       {stateBusy && <Spinner size={12} />}
                       {stateFailed && (
                         <FontAwesomeIcon icon={faTriangleExclamation} className='text-(--mantine-color-yellow-text)' />
@@ -286,7 +286,7 @@ export default function ServerItem({
                     </p>
                   </div>
 
-                  <div className='phv2-server-actions'>
+                  <div className='theme-server-actions'>
                     {showGroupAddButton && (
                       <Tooltip
                         label={
@@ -350,28 +350,30 @@ export default function ServerItem({
                   </div>
                 </div>
 
-                {server.description && <p className='phv2-server-description'>{server.description}</p>}
+                {server.description && <p className='theme-server-description'>{server.description}</p>}
 
-                <div className='phv2-server-stats'>
+                <div className='theme-server-stats'>
                   {meters.map((meter) => (
-                    <div key={meter.label} className='phv2-server-stat'>
-                      <div className='phv2-server-stat-info'>
-                        <span className='phv2-server-stat-name'>{meter.label}</span>
-                        <span className='phv2-server-stat-value'>
+                    <div key={meter.label} className='theme-server-stat'>
+                      <div className='theme-server-stat-info'>
+                        <span className='theme-server-stat-name'>{meter.label}</span>
+                        <span className='theme-server-stat-value'>
                           {meter.used === null ? (
-                            <span className='phv2-server-stat-limit'>—</span>
+                            <span className='theme-server-stat-limit'>—</span>
                           ) : (
                             <>
-                              <span className={classNames('phv2-server-stat-used', `phv2-server-stat-${meter.level}`)}>
+                              <span
+                                className={classNames('theme-server-stat-used', `theme-server-stat-${meter.level}`)}
+                              >
                                 {meter.used}
                               </span>{' '}
-                              <span className='phv2-server-stat-limit'>/ {meter.limit}</span>
+                              <span className='theme-server-stat-limit'>/ {meter.limit}</span>
                             </>
                           )}
                         </span>
                       </div>
                       <div
-                        className='phv2-server-track'
+                        className='theme-server-track'
                         role='progressbar'
                         aria-label={`${meter.label}: ${meter.used ?? '—'} / ${meter.limit}`}
                         aria-valuenow={Math.round(meter.percent)}
@@ -379,23 +381,23 @@ export default function ServerItem({
                         aria-valuemax={100}
                       >
                         <span
-                          className={classNames('phv2-server-bar', `phv2-server-bar-${meter.level}`)}
+                          className={classNames('theme-server-bar', `theme-server-bar-${meter.level}`)}
                           style={{ width: `${meter.percent}%` }}
                         />
                       </div>
                     </div>
                   ))}
 
-                  <div className='phv2-server-address'>
-                    <span className='phv2-server-stat-name'>{t('common.stat.network', {})}</span>
+                  <div className='theme-server-address'>
+                    <span className='theme-server-stat-name'>{t('common.stat.network', {})}</span>
                     {server.allocation ? (
                       <CopyOnClick content={formatAllocation(server.allocation)} className='min-w-0'>
-                        <span className='phv2-server-address-value'>
+                        <span className='theme-server-address-value'>
                           <RedactedText value={formatAllocation(server.allocation)} />
                         </span>
                       </CopyOnClick>
                     ) : (
-                      <span className='phv2-server-address-value'>{t('common.server.noAllocation', {})}</span>
+                      <span className='theme-server-address-value'>{t('common.server.noAllocation', {})}</span>
                     )}
                   </div>
                 </div>

@@ -128,7 +128,7 @@ mod get {
                 email_verification_required: settings.app.email_verification_required,
                 two_factor_accepted_methods: &settings.app.two_factor_accepted_methods,
                 debug: state.env.is_debug(),
-                release: shared::PLUGGED_HOST_RELEASE,
+                release: shared::RELEASE,
                 theme_color: &settings.metadata.theme_color,
             },
             webauthn: ResponseWebauthn {

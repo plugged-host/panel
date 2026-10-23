@@ -9,6 +9,7 @@
 # v{VERSION}.{commit}). Commit before building anything that gets deployed: the release names the
 # commit, not the working tree.
 #
+# It stops when a language that must be complete misses an English string (LANGUAGES).
 # The frontend is only rebuilt when its sources (and its workspace's backend-extensions/*/frontend)
 # changed since the last build, uncommitted changes included; FRONTEND=1 forces it.
 set -euo pipefail
@@ -16,13 +17,15 @@ set -euo pipefail
 # `panel-rs version` parses the environment first; it needs these set but connects to nothing.
 release_of() {
   env -i PATH=/usr/bin:/bin APP_ENCRYPTION_KEY=version-check DATABASE_URL=postgresql://version@127.0.0.1:1/version \
-    "$1" version | awk '/^plugged.host /{print $2}'
+    "$1" version | awk '/^release /{print $2}'
 }
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 BUILD_HOST=${BUILD_HOST:-plugged-build}
 BUILD_DIR=${BUILD_DIR:-/root/panel}
-PROFILE=${PROFILE:-plugged-host}
+PROFILE=${PROFILE:-release-fast}
+# The languages that must have every English string (plugged-host/translations.sh).
+LANGUAGES=${LANGUAGES:-de}
 OUT="$ROOT/target/plugged-host"
 
 if [ -n "$(git -C "$ROOT" status --porcelain --untracked-files=no)" ]; then
@@ -39,12 +42,17 @@ ssh "$BUILD_HOST" "set -euo pipefail
   export PATH=/opt/node/bin:\$PATH
   . \$HOME/.cargo/env
   cd '$BUILD_DIR/frontend'
+  pnpm install --frozen-lockfile >/dev/null
+  pnpm -s build:translations
+  if ! pnpm -s coverage:translations $LANGUAGES; then
+    echo 'translations incomplete: plugged-host/translations.sh --missing lists the keys' >&2
+    exit 1
+  fi
   # Its sources and the workspace's other packages (pnpm-workspace.yaml).
   source=\$(find . \$(ls -d ../backend-extensions/*/frontend 2>/dev/null) -name node_modules -prune -o -path ./dist -prune -o -type f -print0 2>/dev/null | sort -z | xargs -0 sha256sum | sha256sum | cut -c1-64)
   stamp='$BUILD_DIR.frontend-source'
   if [ '${FRONTEND:-0}' = 1 ] || [ ! -f dist/index.html ] || [ \"\$(cat \"\$stamp\" 2>/dev/null)\" != \"\$source\" ]; then
     echo '==> building the frontend'
-    pnpm install --frozen-lockfile >/dev/null
     pnpm build >/dev/null
     echo \"\$source\" > \"\$stamp\"
   else

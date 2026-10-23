@@ -14,7 +14,7 @@ import { usageColor, usagePercent } from '@/lib/format/usage.ts';
 /*
  * plugged.host: the Pelican console's stat block ("fi-small-stat-block") on Theme v2's card: the
  * label in gray-400 over the value in white, no icon tile (Theme v2 drops glyph boxes), and the
- * usage as Theme v2's thin bar under it ("phv2-server-track"). `icon` is still accepted, for the
+ * usage as Theme v2's thin bar under it ("theme-server-track"). `icon` is still accepted, for the
  * callers and extensions that pass one.
  */
 export default function StatCard({
@@ -56,19 +56,19 @@ export default function StatCard({
 
   const valueContent = (
     <>
-      {displayValue} {limit && <span className='ph-stat-limit'>/ {limit}</span>}
+      {displayValue} {limit && <span className='theme-stat-limit'>/ {limit}</span>}
     </>
   );
 
   return (
-    <Card className={classNames('ph-stat', className)} style={{ order }} p={0}>
-      <div className='ph-stat-head'>
-        <span className='ph-stat-label'>{label}</span>
-        {details && !loading && <span className='ph-stat-details'>{details}</span>}
+    <Card className={classNames('theme-stat', className)} style={{ order }} p={0}>
+      <div className='theme-stat-head'>
+        <span className='theme-stat-label'>{label}</span>
+        {details && !loading && <span className='theme-stat-details'>{details}</span>}
         {popover && (
           <Popover position='bottom' withArrow shadow='md'>
             <Popover.Target>
-              <Button variant='transparent' size='compact-xs' className='ph-stat-popover' aria-label={label}>
+              <Button variant='transparent' size='compact-xs' className='theme-stat-popover' aria-label={label}>
                 <FontAwesomeIcon icon={popoverIcon} />
               </Button>
             </Popover.Target>
@@ -77,7 +77,7 @@ export default function StatCard({
         )}
       </div>
       <span
-        className='ph-stat-value'
+        className='theme-stat-value'
         style={valueColor ? { color: `var(--mantine-color-${valueColor}-text)` } : undefined}
       >
         {loading ? (
@@ -96,7 +96,7 @@ export default function StatCard({
       </span>
       {percent !== null && (
         <div
-          className='ph-stat-track'
+          className='theme-stat-track'
           role='progressbar'
           aria-label={label}
           aria-valuenow={Math.round(percent)}
@@ -104,7 +104,7 @@ export default function StatCard({
           aria-valuemax={100}
         >
           <span
-            className='ph-stat-bar'
+            className='theme-stat-bar'
             style={{ width: `${percent}%`, backgroundColor: color === 'red' ? 'var(--mantine-color-red-4)' : color }}
           />
         </div>

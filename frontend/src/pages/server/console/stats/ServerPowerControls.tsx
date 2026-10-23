@@ -47,7 +47,7 @@ export default function ServerPowerControls() {
     // plugged.host: the Pelican console's power actions, separate pills at the end of the title row
     // (Start in the accent, Restart gray, Stop and Kill red, each with its Tabler icon); on phones
     // only the icons, as Theme v2 has them.
-    <div className='ph-power flex w-full md:w-fit gap-2'>
+    <div className='theme-power flex w-full md:w-fit gap-2'>
       <ConfirmationModal
         opened={open}
         onClose={() => setOpen(false)}
@@ -77,7 +77,7 @@ export default function ServerPowerControls() {
           leftSection={<FontAwesomeIcon icon={faPlay} />}
           aria-label={t('common.enum.serverPowerAction.start', {})}
         >
-          <span className='ph-power-label'>{t('common.enum.serverPowerAction.start', {})}</span>
+          <span className='theme-power-label'>{t('common.enum.serverPowerAction.start', {})}</span>
         </Button>
       </ServerCan>
       <ServerCan action='control.restart'>
@@ -89,7 +89,7 @@ export default function ServerPowerControls() {
           leftSection={<FontAwesomeIcon icon={faRotateRight} />}
           aria-label={t('common.enum.serverPowerAction.restart', {})}
         >
-          <span className='ph-power-label'>{t('common.enum.serverPowerAction.restart', {})}</span>
+          <span className='theme-power-label'>{t('common.enum.serverPowerAction.restart', {})}</span>
         </Button>
       </ServerCan>
       <ServerCan action='control.stop'>
@@ -105,7 +105,7 @@ export default function ServerPowerControls() {
             killable ? t('common.enum.serverPowerAction.kill', {}) : t('common.enum.serverPowerAction.stop', {})
           }
         >
-          <span className='ph-power-label'>
+          <span className='theme-power-label'>
             {killable ? t('common.enum.serverPowerAction.kill', {}) : t('common.enum.serverPowerAction.stop', {})}
           </span>
         </Button>

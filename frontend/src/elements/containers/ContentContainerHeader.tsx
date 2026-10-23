@@ -21,7 +21,7 @@ export interface ContentContainerHeaderProps {
  * plugged.host: the Pelican panel's page header (Filament's ".fi-header" under Theme v2): the
  * title "text-xl font-semibold" with its subheading in gray-400 underneath, and the page's
  * actions at the end of the same row, the search first, as the table toolbar has it. Below `sm`
- * the actions go under the title. The shapes are ".ph-header*" in app.css.
+ * the actions go under the title. The shapes are ".theme-header*" in app.css.
  */
 export default function ContentContainerHeader({
   title,
@@ -43,24 +43,24 @@ export default function ContentContainerHeader({
 
   const titleBlock = (
     <div className={hoisted ? 'hidden min-w-0 lg:block' : 'min-w-0'}>
-      <Heading className='ph-header-heading'>{title}</Heading>
-      {subtitle ? <p className='ph-header-subheading'>{subtitle}</p> : null}
+      <Heading className='theme-header-heading'>{title}</Heading>
+      {subtitle ? <p className='theme-header-subheading'>{subtitle}</p> : null}
     </div>
   );
 
   return (
     <div className={hoisted && !hasActions ? 'hidden lg:block' : undefined}>
-      <div className='ph-header'>
+      <div className='theme-header'>
         {titleBlock}
         {hasActions && (
-          <div className='ph-header-actions'>
+          <div className='theme-header-actions'>
             {setSearch && (
               <TextInput
                 placeholder={t('common.input.search', {})}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 leftSection={<FontAwesomeIcon icon={faSearch} />}
-                className='ph-header-search'
+                className='theme-header-search'
               />
             )}
             {contentRight}

@@ -7,7 +7,7 @@ import { SpinnerLoader } from '@/elements/feedback/Spinner.tsx';
 import { preloadRouterForPath } from '@/routers/routerImports.ts';
 import { registerAssetReloadHandler } from '@/stores/assetReload.ts';
 import { useGlobalStore } from '@/stores/global.ts';
-import { pluggedHostTheme } from '@/theme.ts';
+import { themeV2 } from '@/theme.ts';
 
 import.meta.glob('../extensions/*/src/app.css', { eager: true });
 
@@ -29,7 +29,7 @@ for (const [path, module] of Object.entries({ ...extensionModulesTs, ...extensio
   }
 }
 
-const baseTheme = mergeThemeOverrides(pluggedHostTheme, {
+const baseTheme = mergeThemeOverrides(themeV2, {
   components: {
     InputWrapper: InputWrapper.extend({
       styles: (_theme, props) =>

@@ -124,7 +124,7 @@ struct CallbackParams {
     token: Option<String>,
 }
 
-/// The account's panel user: the linked one, or (with `NOPROFIT_LINK_BY_EMAIL`) an unlinked user
+/// The account's panel user: the linked one, or (with "link by email" on) an unlinked user
 /// with its email, or a new one. `Err` is the login page's error code.
 async fn resolve_user(
     state: &shared::State,

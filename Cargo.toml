@@ -120,14 +120,14 @@ lto = "fat"
 codegen-units = 1
 strip = true
 
-# plugged-host (plugged-host/build.sh): optimised, without LTO and with parallel and incremental
-# codegen, so a build takes minutes instead of an hour.
-[profile.plugged-host.package."*"]
+# plugged.host: release-fast (docs/development.md): optimised, without LTO and with parallel and
+# incremental codegen, so a build takes minutes instead of an hour.
+[profile.release-fast.package."*"]
 opt-level = 2
 codegen-units = 16
 strip = true
 
-[profile.plugged-host]
+[profile.release-fast]
 inherits = "release"
 opt-level = 2
 lto = "off"

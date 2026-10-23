@@ -74,7 +74,7 @@ function Sidebar({ children, header, footer }: SidebarProps) {
       {/* plugged.host: Filament's sidebar toggle without a topbar, a square button in the top
           corner ("p-4"), on the sidebar's colour */}
       <Card
-        className='lg:hidden! sticky! top-4 z-50 flex-row! items-center justify-center ml-4 mt-4 h-11 w-11 rounded-xl! bg-(--phv2-sidebar)!'
+        className='lg:hidden! sticky! top-4 z-50 flex-row! items-center justify-center ml-4 mt-4 h-11 w-11 rounded-xl! bg-(--theme-sidebar)!'
         p={0}
       >
         <ActionIcon
@@ -239,7 +239,7 @@ function Link({ to, end, icon, name, title = name, className, activeMatches }: L
 // plugged.host: Filament's sidebar groups. A labelled divider is the group's caption over its
 // rows ("fi-sidebar-group-label"), an unlabelled one a hairline between groups.
 function Divider({ label }: { label?: string }) {
-  return label ? <div className='ph-sidebar-group-label'>{label}</div> : <div className='ph-sidebar-divider' />;
+  return label ? <div className='theme-sidebar-group-label'>{label}</div> : <div className='theme-sidebar-divider' />;
 }
 
 // plugged.host: Theme v2's logo block, the panel's logo centred at the top of the sidebar
@@ -249,7 +249,7 @@ function Logo() {
   const closeMobileMenu = useContext(CloseMobileMenuContext);
 
   return (
-    <NavLink to='/' className='ph-sidebar-logo' aria-label={settings.app.name} onClick={() => closeMobileMenu?.()}>
+    <NavLink to='/' className='theme-sidebar-logo' aria-label={settings.app.name} onClick={() => closeMobileMenu?.()}>
       <img src={settings.app.banner ?? settings.app.icon} alt={settings.app.name} />
     </NavLink>
   );
@@ -349,7 +349,7 @@ function Footer() {
         {({ openMenu }) => (
           <button
             type='button'
-            className='ph-sidebar-user'
+            className='theme-sidebar-user'
             id='sidebar-account-card'
             aria-haspopup='menu'
             onClick={(e) => {
@@ -362,8 +362,8 @@ function Footer() {
             }}
           >
             <Avatar size={32} className='select-none shrink-0' src={user.avatar} name={user.username} />
-            <span className='ph-sidebar-user-name'>{displayName}</span>
-            <FontAwesomeIcon icon={faChevronUp} className='ph-sidebar-user-chevron' />
+            <span className='theme-sidebar-user-name'>{displayName}</span>
+            <FontAwesomeIcon icon={faChevronUp} className='theme-sidebar-user-chevron' />
           </button>
         )}
       </ContextMenu>

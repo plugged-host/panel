@@ -252,6 +252,7 @@
         "verify": "Verifizieren",
         "update": "Aktualisieren",
         "close": "Schließen",
+        "copy": "Kopieren",
         "cancel": "Abbrechen",
         "continue": "Weiter",
         "skip": "Überspringen",
@@ -558,7 +559,9 @@
       "table": {
         "selectRow": "Zeile auswählen",
         "pagination": {
-          "results": "Zeige {start} bis {end} von {total} Ergebnissen."
+          "results": "Zeige {start} bis {end} von {total} Ergebnissen.",
+          "perPage": "{count} / Seite",
+          "perPageLabel": "Ergebnisse pro Seite"
         },
         "empty": {
           "title": "Keine Einträge gefunden",
@@ -656,6 +659,7 @@
         "page": "Seite {page}",
         "emptyDirectory": "Dieses Verzeichnis ist leer",
         "ignored": "Ignoriert",
+        "partiallyIgnored": "Teilweise ignoriert",
         "showingFirstEntries": "Die ersten {count} Einträge werden angezeigt"
       },
       "databaseAgentHost": {
@@ -761,7 +765,11 @@
           "started": "Gestartet",
           "stopped": "Gestoppt",
           "restarted": "Neu gestartet",
-          "killed": "Gekillt"
+          "killed": "Gekillt",
+          "suspended": "Suspendiert",
+          "unsuspended": "Entsuspendiert",
+          "clearedState": "Status zurückgesetzt",
+          "deleted": "Gelöscht"
         },
         "compressionLevel": {
           "bestSpeed": "Beste Geschwindigkeit",
@@ -778,6 +786,11 @@
           "gibibytes": "GiB",
           "tebibytes": "TiB",
           "pebibytes": "PiB"
+        },
+        "rate": {
+          "kilobits": "Kbit/s",
+          "megabits": "Mbit/s",
+          "gigabits": "Gbit/s"
         }
       },
       "unlimited": "Unendlich",
@@ -898,7 +911,8 @@
           "themeDark": "Dunkel",
           "themeLight": "Hell",
           "redactAddresses": "Adressen verbergen",
-          "resetDeviceOverrides": "Geräte-Überschreibungen zurücksetzen ({count})"
+          "resetDeviceOverrides": "Geräte-Überschreibungen zurücksetzen ({count})",
+          "openMenu": "Menü öffnen"
         },
         "modal": {
           "logout": {
@@ -1345,7 +1359,18 @@
             "registrationDisabled": "Es konnte kein passender Account gefunden werden und die Registrierung ist derzeit deaktiviert.",
             "userAlreadyExists": "Ein Account mit diesem Benutzernamen oder dieser E-Mail existiert bereits.",
             "securityKeyRequired": "Dieser Account erfordert eine Zwei-Faktor-Authentifizierung, melde dich stattdessen mit einem Sicherheitsschlüssel an.",
-            "passwordLoginDisabled": "Die Anmeldung mit Passwort ist in diesem Panel deaktiviert, nutze stattdessen eine der Optionen unten."
+            "passwordLoginDisabled": "Die Anmeldung mit Passwort ist in diesem Panel deaktiviert, nutze stattdessen eine der Optionen unten.",
+            "noprofitFailed": "Die Anmeldung mit noprofit.space hat nicht geklappt. Bitte versuche es erneut.",
+            "noprofitExpired": "Diese Anmeldung hat zu lange gedauert oder wurde schon verwendet. Bitte versuche es erneut.",
+            "noprofitAdminsOnly": "Dieses Panel ist noch nicht geöffnet: Im Moment können sich nur noprofit.space-Admins anmelden.",
+            "noprofitEmailTaken": "Es gibt schon einen Panel-Account mit deiner noprofit.space-E-Mail. Bitte einen Administrator, ihn zu verknüpfen."
+          },
+          "noprofit": {
+            "title": "Anmelden",
+            "redirecting": "Du wirst zu noprofit.space weitergeleitet…",
+            "retry": "Erneut versuchen",
+            "localLink": "Administrator-Anmeldung",
+            "backLink": "Zurück zur Anmeldung mit noprofit.space"
           },
           "passkey": {
             "error": {
@@ -1610,6 +1635,18 @@
             }
           },
           "containers": {
+            "noprofit": {
+              "title": "noprofit.space",
+              "description": "Du meldest dich mit deinem noprofit.space-Account **{email}** an. Deine E-Mail, dein Passwort und die Zwei-Faktor-Authentifizierung verwaltest du dort.",
+              "credits": "Credits",
+              "plan": "Plan",
+              "planValue": "{cpu} % CPU, {memory} Arbeitsspeicher, {disk} Speicherplatz",
+              "discord": "Discord",
+              "discordNotLinked": "Nicht verknüpft",
+              "button": {
+                "manage": "Auf noprofit.space verwalten"
+              }
+            },
             "password": {
               "title": "Passwort",
               "button": {
@@ -2113,7 +2150,11 @@
         "home": {
           "title": "Startseite",
           "alert": {
-            "newPanelVersion": "Eine neue Version für das Panel ist verfügbar! Du nutzt aktuell {current} und die neueste Version ist {latest}. Du solltest ein Upgrade in Betracht ziehen. [Klicke hier]({upgradeUrl}), um die Upgrade-Anweisungen anzuzeigen."
+            "newPanelVersion": "Eine neue Version für das Panel ist verfügbar! Du nutzt aktuell {current} und die neueste Version ist {latest}. Du solltest ein Upgrade in Betracht ziehen. [Klicke hier]({upgradeUrl}), um die Upgrade-Anweisungen anzuzeigen.",
+            "extensionBuildFailed": {
+              "content": "Der letzte Build der Erweiterungen ist fehlgeschlagen.",
+              "link": "Erweiterungen anzeigen"
+            }
           },
           "tabs": {
             "overview": {
@@ -3713,6 +3754,27 @@
             "clearState": "Serverstatus zurücksetzen",
             "delete": "Server löschen"
           },
+          "bulkActions": {
+            "verb": {
+              "suspend": "Suspendieren",
+              "unsuspend": "Entsuspendieren",
+              "clearState": "Status zurücksetzen",
+              "delete": "Löschen"
+            },
+            "modal": {
+              "title": "Massenaktion bestätigen",
+              "content": "Bist du sicher, dass du **{action}** für **{servers}** ausführen möchtest?",
+              "deleteContent": "Bist du sicher, dass du **{servers}** mit allem darauf endgültig löschen möchtest? Das kann nicht rückgängig gemacht werden.",
+              "form": {
+                "deleteBackups": "Möchtest du die Backups dieser Server löschen?"
+              },
+              "alert": {
+                "forceWarning": "Das erzwungene Löschen entfernt diese Server aus dem Panel, auch wenn ihre Nodes nicht erreichbar sind. Ihre Dateien und Datenbanken werden möglicherweise nicht vollständig bereinigt, sodass verwaiste Daten zurückbleiben."
+              }
+            },
+            "successWithSkipped": "Erfolgreich {servers} {action}. {skippedServers} übersprungen.",
+            "nothingToDo": "Alle ausgewählten Server sind schon in diesem Zustand."
+          },
           "externalIdLookup": {
             "button": "Über externe ID suchen",
             "modal": {
@@ -3827,6 +3889,13 @@
                   "ioWeight": "IO-Gewichtung",
                   "ioWeightDescription": "Die relative IO-Gewichtung des Server-Containers im Vergleich zu anderen Containern.",
                   "ioWeightTooltip": "0-1000. Funktioniert möglicherweise nicht auf allen Systemen.",
+                  "bandwidth": {
+                    "upload": "Upload-Limit",
+                    "download": "Download-Limit",
+                    "description": "0 setzt kein Limit.",
+                    "unavailable": "Der Node unterstützt keine Bandbreitenlimits.",
+                    "disabled": "Bandbreitenlimits sind in der Node-Konfiguration deaktiviert."
+                  },
                   "pinnedCpus": "Angeheftete CPUs",
                   "pinnedCpusDescription": "Die CPU-Kerne, an die dieser Server angeheftet ist.",
                   "pinnedCpusTooltip": "Nach Index, z. B. 0, 1, 2. Leer lassen, um alle Kerne zuzulassen.",
@@ -4576,6 +4645,9 @@
                 },
                 "button": {
                   "testConnection": "Verbindung testen"
+                },
+                "tooltip": {
+                  "errorWhileFetchingVersion": "Fehler beim Abrufen der Version"
                 },
                 "toast": {
                   "tested": "Test erfolgreich abgeschlossen."
@@ -7034,7 +7106,12 @@
             },
             "warning": {
               "unclosedIf": "Einem \"Wenn\"-Block fehlt das zugehörige \"Ende Wenn\". Alle verbleibenden Schritte werden als Teil des Blocks ausgeführt.",
-              "orphanBranch": "Es gibt einen \"Sonst\"-, \"Sonst wenn\"- oder \"Ende Wenn\"-Schritt ohne ein passendes \"Wenn\" davor."
+              "orphanBranch": "Es gibt einen \"Sonst\"-, \"Sonst wenn\"- oder \"Ende Wenn\"-Schritt ohne ein passendes \"Wenn\" davor.",
+              "variable": {
+                "never": "Die Variable \"{variable}\" wird von diesem Zeitplan nie gesetzt und kann daher nicht aufgelöst werden.",
+                "unavailable": "Die Variable \"{variable}\" wird an dieser Stelle weder von einem Auslöser noch von einem vorherigen Schritt gesetzt.",
+                "conditional": "Die Variable \"{variable}\" wird nur bei manchen Ausführungen gesetzt, zum Beispiel in einem anderen Zweig, von einem von mehreren Auslösern oder von einem Schritt, der fehlschlagen kann."
+              }
             },
             "groups": {
               "server": "Server",
@@ -7553,7 +7630,9 @@
           "toast": {
             "downloadStarted": "Download gestartet.",
             "restoringBackup": "Backup wird wiederhergestellt...",
-            "exportStarted": "Backup-Export gestartet."
+            "exportStarted": "Backup-Export gestartet.",
+            "locked": "Backup gesperrt.",
+            "unlocked": "Backup entsperrt."
           },
           "modal": {
             "createBackup": {

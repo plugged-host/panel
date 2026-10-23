@@ -5,7 +5,7 @@ import type { MantineColorsTuple } from '@mantine/core';
  * Support\Accent on the 2.2 branch of the plugins), set here by the panel's theme colour
  * (Admin › Settings › Metadata).
  *
- * theme.ts and app.css are written in blue: Mantine's blue palette and the --phv2-accent*
+ * theme.ts and app.css are written in blue: Mantine's blue palette and the --theme-accent*
  * properties, plus Tailwind's blue utilities that upstream's components use. Any other accent
  * overrides exactly those (App.tsx); blue, the default, overrides nothing, so the panel stays what
  * the stylesheet says.
@@ -254,7 +254,7 @@ export const ACCENT_PRESETS = Object.keys(PALETTES) as AccentPreset[];
 /** Theme v2's own fill (blue-700), the default. */
 export const DEFAULT_ACCENT = '#1d4ed8';
 
-/** What accent text sits on most: the sidebar, --phv2-sidebar. */
+/** What accent text sits on most: the sidebar, --theme-sidebar. */
 const SURFACE = '#1c1e23';
 
 const MIN_CONTRAST = 4.5;
@@ -278,7 +278,7 @@ const GENERATED: Record<Shade, [number, number]> = {
 };
 
 export interface Accent {
-  /** The --phv2-accent* custom properties and Tailwind's blue scale (--color-blue-*), by name. */
+  /** The --theme-accent* custom properties and Tailwind's blue scale (--color-blue-*), by name. */
   tokens: Record<string, string>;
   /** Mantine's primary (blue) palette. */
   palette: MantineColorsTuple;
@@ -453,14 +453,14 @@ export function accentFor(themeColor: string | null | undefined): Accent | null 
 
   return {
     tokens: {
-      '--phv2-accent': toHex(fill),
-      '--phv2-accent-hover': toHex(hover),
-      '--phv2-accent-bright': toHex(bright),
-      '--phv2-accent-glow': toHex(glow),
-      '--phv2-accent-soft': alpha(fill, 0.1),
-      '--phv2-accent-tint': alpha(fill, 0.15),
-      '--phv2-accent-edge': alpha(fill, 0.2),
-      '--phv2-accent-icon': alpha(bright, 0.5),
+      '--theme-accent': toHex(fill),
+      '--theme-accent-hover': toHex(hover),
+      '--theme-accent-bright': toHex(bright),
+      '--theme-accent-glow': toHex(glow),
+      '--theme-accent-soft': alpha(fill, 0.1),
+      '--theme-accent-tint': alpha(fill, 0.15),
+      '--theme-accent-edge': alpha(fill, 0.2),
+      '--theme-accent-icon': alpha(bright, 0.5),
       // Tailwind's blue utilities (text-blue-400 and the like) are the accent too.
       ...Object.fromEntries(Object.entries(palette).map(([shade, color]) => [`--color-blue-${shade}`, toHex(color)])),
     },

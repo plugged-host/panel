@@ -32,7 +32,7 @@ function Container({ children, isNormal }: LayoutProps) {
     >
       <div>
         {impersonating && (
-          <div className='ph-main ph-main-banner'>
+          <div className='theme-main theme-main-banner'>
             <Alert icon={<FontAwesomeIcon icon={faUserCheck} />} color='yellow'>
               {t('elements.container.alert.impersonating', {})}
             </Alert>

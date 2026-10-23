@@ -19,6 +19,7 @@
     "build:translations": "tsx build-translations.mts",
     "diff:translations": "tsx diff-translations.mts",
     "format:translations": "tsx format-translations.mts",
+    "coverage:translations": "tsx coverage-translations.mts",
     "biome:validate": "biome format --css-parse-tailwind-directives=true && biome lint --css-parse-tailwind-directives=true && biome check",
     "biome:fix": "biome format --write --css-parse-tailwind-directives=true && biome lint --write --css-parse-tailwind-directives=true && biome check --write",
     "biome:fix-unsafe": "biome format --write --css-parse-tailwind-directives=true && biome lint --write --css-parse-tailwind-directives=true && biome check --write --unsafe"

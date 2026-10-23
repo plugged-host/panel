@@ -43,6 +43,7 @@ const removedAdminPermissions = [
   'nodes.mounts',
   'nodes.devices',
   'nodes.database-agent-hosts',
+  'locations.database-agent-hosts',
   'nodes.tunnel',
   'servers.mounts',
   'servers.devices',

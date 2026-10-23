@@ -58,7 +58,7 @@ export default function DismissibleAnnouncementAlert({ announcement }: { announc
 
   // plugged.host: in the page column, over the page's header
   return (
-    <div className='ph-main ph-main-banner'>
+    <div className='theme-main theme-main-banner'>
       <Alert
         icon={<FontAwesomeIcon icon={announcementTypeIconMapping[announcement.type]} />}
         key={announcement.uuid}

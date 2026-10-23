@@ -5,13 +5,13 @@
 UPDATE "roles" SET "admin_permissions" = ARRAY(
 	SELECT p FROM unnest("admin_permissions") WITH ORDINALITY AS t(p, n)
 	WHERE split_part(p, '.', 1) <> ALL (ARRAY['extensions', 'database-agent-hosts', 'database-agent-templates', 'mounts', 'devices'])
-		AND p <> ALL (ARRAY['nodes.mounts', 'nodes.devices', 'nodes.database-agent-hosts', 'nodes.tunnel', 'servers.mounts', 'servers.devices', 'eggs.mounts', 'eggs.devices'])
+		AND p <> ALL (ARRAY['nodes.mounts', 'nodes.devices', 'nodes.database-agent-hosts', 'locations.database-agent-hosts', 'nodes.tunnel', 'servers.mounts', 'servers.devices', 'eggs.mounts', 'eggs.devices'])
 	ORDER BY n
 );
 UPDATE "user_api_keys" SET "admin_permissions" = ARRAY(
 	SELECT p FROM unnest("admin_permissions") WITH ORDINALITY AS t(p, n)
 	WHERE split_part(p, '.', 1) <> ALL (ARRAY['extensions', 'database-agent-hosts', 'database-agent-templates', 'mounts', 'devices'])
-		AND p <> ALL (ARRAY['nodes.mounts', 'nodes.devices', 'nodes.database-agent-hosts', 'nodes.tunnel', 'servers.mounts', 'servers.devices', 'eggs.mounts', 'eggs.devices'])
+		AND p <> ALL (ARRAY['nodes.mounts', 'nodes.devices', 'nodes.database-agent-hosts', 'locations.database-agent-hosts', 'nodes.tunnel', 'servers.mounts', 'servers.devices', 'eggs.mounts', 'eggs.devices'])
 	ORDER BY n
 );
 UPDATE "roles" SET "server_permissions" = ARRAY(

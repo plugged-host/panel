@@ -314,13 +314,13 @@
 :root[data-mantine-color-scheme="dark"] {
   --mantine-color-anchor: var(--mantine-color-blue-4);
   /* plugged.host Theme v2 accent: blue-700 fills, blue-500 as text or a ring */
-  --mantine-color-blue-filled: var(--phv2-accent);
-  --mantine-color-blue-filled-hover: var(--phv2-accent-hover);
-  --mantine-color-blue-light: var(--phv2-accent-tint);
-  --mantine-color-blue-light-color: var(--phv2-accent-bright);
-  --mantine-color-blue-light-hover: var(--phv2-accent-edge);
-  --mantine-color-blue-outline: var(--phv2-accent-bright);
-  --mantine-color-blue-outline-hover: color-mix(in srgb, var(--phv2-accent-bright) 5%, transparent);
+  --mantine-color-blue-filled: var(--theme-accent);
+  --mantine-color-blue-filled-hover: var(--theme-accent-hover);
+  --mantine-color-blue-light: var(--theme-accent-tint);
+  --mantine-color-blue-light-color: var(--theme-accent-bright);
+  --mantine-color-blue-light-hover: var(--theme-accent-edge);
+  --mantine-color-blue-outline: var(--theme-accent-bright);
+  --mantine-color-blue-outline-hover: color-mix(in srgb, var(--theme-accent-bright) 5%, transparent);
   --mantine-color-blue-text: var(--mantine-color-blue-4);
   --mantine-color-body: var(--mantine-color-dark-7);
   --mantine-color-bright: var(--mantine-color-white);
@@ -341,11 +341,11 @@
   --mantine-color-dark-outline-hover: rgba(66, 66, 66, 0.05);
   --mantine-color-dark-text: var(--mantine-color-dark-4);
   /* Theme v2 gray buttons: "bg-white/10 hover:bg-white/15" */
-  --mantine-color-default: var(--phv2-raise-2);
+  --mantine-color-default: var(--theme-raise-2);
   /* Filament's dark edges: "border-white/10", "ring-white/10" */
   --mantine-color-default-border: rgb(255 255 255 / 0.1);
   --mantine-color-default-color: var(--mantine-color-white);
-  --mantine-color-default-hover: var(--phv2-raise-3);
+  --mantine-color-default-hover: var(--theme-raise-3);
   --mantine-color-dimmed: var(--mantine-color-dark-2);
   --mantine-color-disabled: var(--mantine-color-dark-6);
   --mantine-color-disabled-border: var(--mantine-color-dark-4);
@@ -362,9 +362,9 @@
   --mantine-color-gray-filled: var(--mantine-color-gray-8);
   --mantine-color-gray-filled-hover: var(--mantine-color-gray-9);
   /* Theme v2 neutral badges and gray buttons: "bg-white/10 text-gray-100", "hover:bg-white/15" */
-  --mantine-color-gray-light: var(--phv2-raise-2);
+  --mantine-color-gray-light: var(--theme-raise-2);
   --mantine-color-gray-light-color: #f3f4f6;
-  --mantine-color-gray-light-hover: var(--phv2-raise-3);
+  --mantine-color-gray-light-hover: var(--theme-raise-3);
   --mantine-color-gray-outline: var(--mantine-color-gray-4);
   --mantine-color-gray-outline-hover: rgba(206, 212, 218, 0.05);
   --mantine-color-gray-text: var(--mantine-color-gray-4);
@@ -459,8 +459,8 @@
    it does not repeat down a long page. */
 html {
   scrollbar-gutter: stable;
-  background-color: var(--phv2-bg-bottom);
-  background-image: linear-gradient(to bottom, var(--phv2-bg-top), var(--phv2-bg-bottom));
+  background-color: var(--theme-bg-bottom);
+  background-image: linear-gradient(to bottom, var(--theme-bg-top), var(--theme-bg-bottom));
   background-attachment: fixed;
 }
 
@@ -574,39 +574,39 @@ strong {
  * plugged.host Theme v2
  *
  * The tokens are the Pelican panel theme's (plugged-host-theme-v2/resources/css/theme.css on
- * the plugins' 2.2 branch); keep the two in step. Dark only: App.tsx forces the dark scheme.
+ * the plugins' 2.2 branch, where they are called --phv2-*; --theme-* here); keep the two in step. Dark only: App.tsx forces the dark scheme.
  * Mantine's palette (theme.ts) and the dark variables above already point at these, so what
  * follows is only what Mantine's theme object cannot say: surfaces, the sidebar and inputs.
  * ============================================================================= */
 
 :root {
   /* accent: blue-700 / blue-800 fills, blue-500 / blue-400 for text and rings */
-  --phv2-accent: #1d4ed8;
-  --phv2-accent-hover: #1e40af;
-  --phv2-accent-bright: #3b82f6;
-  --phv2-accent-glow: #60a5fa;
-  --phv2-accent-soft: rgb(29 78 216 / 0.1);
-  --phv2-accent-tint: rgb(29 78 216 / 0.15);
-  --phv2-accent-edge: rgb(29 78 216 / 0.2);
-  --phv2-accent-icon: rgb(59 130 246 / 0.5);
+  --theme-accent: #1d4ed8;
+  --theme-accent-hover: #1e40af;
+  --theme-accent-bright: #3b82f6;
+  --theme-accent-glow: #60a5fa;
+  --theme-accent-soft: rgb(29 78 216 / 0.1);
+  --theme-accent-tint: rgb(29 78 216 / 0.15);
+  --theme-accent-edge: rgb(29 78 216 / 0.2);
+  --theme-accent-icon: rgb(59 130 246 / 0.5);
 
   /* surfaces */
-  --phv2-bg-top: #101319;
-  --phv2-bg-bottom: #0b0d10;
-  --phv2-sidebar: #1c1e23;
-  --phv2-sunken: rgb(15 17 22 / 0.5);
-  --phv2-dropdown: #181a1e;
-  --phv2-modal: #1a1c20;
-  --phv2-raise: rgb(255 255 255 / 0.05);
-  --phv2-raise-2: rgb(255 255 255 / 0.1);
-  --phv2-raise-3: rgb(255 255 255 / 0.15);
-  --phv2-hairline: rgb(255 255 255 / 0.05);
+  --theme-bg-top: #101319;
+  --theme-bg-bottom: #0b0d10;
+  --theme-sidebar: #1c1e23;
+  --theme-sunken: rgb(15 17 22 / 0.5);
+  --theme-dropdown: #181a1e;
+  --theme-modal: #1a1c20;
+  --theme-raise: rgb(255 255 255 / 0.05);
+  --theme-raise-2: rgb(255 255 255 / 0.1);
+  --theme-raise-3: rgb(255 255 255 / 0.15);
+  --theme-hairline: rgb(255 255 255 / 0.05);
 
   /* text ramp */
-  --phv2-text: #ffffff;
-  --phv2-text-nav: #d1d5db;
-  --phv2-text-muted: #9ca3af;
-  --phv2-text-faint: #71717a;
+  --theme-text: #ffffff;
+  --theme-text-nav: #d1d5db;
+  --theme-text-muted: #9ca3af;
+  --theme-text-faint: #71717a;
 
   color-scheme: dark;
 }
@@ -617,33 +617,33 @@ strong {
   /* Cards: "bg-white/5 rounded-2xl", a fill and no border (a border and a fill never share a box). */
   .mantine-Card-root {
     --paper-border-color: transparent;
-    background-color: var(--phv2-raise);
+    background-color: var(--theme-raise);
   }
 
   /* Inputs: sunken fill, hairline edge, the bright accent as the focus ring. */
   .mantine-Input-input:where(:not([data-variant="unstyled"])) {
-    --input-bg: var(--phv2-sunken);
-    --input-bd: var(--phv2-hairline);
-    --input-bd-focus: var(--phv2-accent-bright);
+    --input-bg: var(--theme-sunken);
+    --input-bd: var(--theme-hairline);
+    --input-bd-focus: var(--theme-accent-bright);
   }
 
   /* Menus and dropdowns: "bg-[#181a1e]". */
   .mantine-Popover-dropdown,
   .mantine-Menu-dropdown,
   .mantine-Combobox-dropdown {
-    background-color: var(--phv2-dropdown);
-    border-color: var(--phv2-hairline);
+    background-color: var(--theme-dropdown);
+    border-color: var(--theme-hairline);
   }
 
   .mantine-Modal-content,
   .mantine-Drawer-content {
-    background-color: var(--phv2-modal);
+    background-color: var(--theme-modal);
   }
 
   /* The sidebar: "bg-[#1c1e23] border-r border-white/5 w-64", the full height of the window. */
   #sidebar-desktop {
-    background-color: var(--phv2-sidebar);
-    border-inline-end: 1px solid var(--phv2-hairline);
+    background-color: var(--theme-sidebar);
+    border-inline-end: 1px solid var(--theme-hairline);
   }
 
   /* Every nav row: "text-gray-300 hover:bg-white/5 rounded-xl", 2.75rem tall like Theme v2's
@@ -651,26 +651,26 @@ strong {
      the --button-* variables inline, hence !important. */
   .sidebar-link.mantine-Button-root {
     --button-height: 2.75rem !important;
-    --button-color: var(--phv2-text-nav) !important;
-    --button-hover: var(--phv2-raise) !important;
-    --button-hover-color: var(--phv2-text) !important;
+    --button-color: var(--theme-text-nav) !important;
+    --button-hover: var(--theme-raise) !important;
+    --button-hover-color: var(--theme-text) !important;
     font-weight: 500 !important;
     justify-content: flex-start;
   }
 
   .sidebar-link.mantine-Button-root svg {
-    color: var(--phv2-text-faint);
+    color: var(--theme-text-faint);
   }
 
   .sidebar-link.mantine-Button-root.active {
-    --button-bg: var(--phv2-accent-soft) !important;
-    --button-hover: var(--phv2-accent-soft) !important;
-    --button-color: var(--phv2-accent-bright) !important;
-    --button-hover-color: var(--phv2-accent-bright) !important;
+    --button-bg: var(--theme-accent-soft) !important;
+    --button-hover: var(--theme-accent-soft) !important;
+    --button-color: var(--theme-accent-bright) !important;
+    --button-hover-color: var(--theme-accent-bright) !important;
   }
 
   .sidebar-link.mantine-Button-root.active svg {
-    color: var(--phv2-accent-icon);
+    color: var(--theme-accent-icon);
   }
 
   /* Section cards (TitleCard): the title sits on the card over a hairline, without a bar of
@@ -678,7 +678,7 @@ strong {
      replace text). */
   #title-card-header {
     background-color: transparent;
-    border-bottom: 1px solid var(--phv2-hairline) !important;
+    border-bottom: 1px solid var(--theme-hairline) !important;
   }
 
   #title-card-icon {
@@ -692,7 +692,7 @@ strong {
   }
 
   #sidebar-account-card:hover {
-    background-color: var(--phv2-raise);
+    background-color: var(--theme-raise);
   }
 }
 
@@ -705,7 +705,7 @@ strong {
  * stroke lands on the 1em the solid glyph covered. Unlayered, like Font Awesome's sheet.
  * ============================================================================= */
 
-.ph-icon {
+.theme-icon {
   display: inline-block;
   box-sizing: content-box;
   flex-shrink: 0;
@@ -715,125 +715,125 @@ strong {
   vertical-align: -0.25em;
 }
 
-.ph-icon-2xs {
+.theme-icon-2xs {
   font-size: 0.625em;
 }
 
-.ph-icon-xs {
+.theme-icon-xs {
   font-size: 0.75em;
 }
 
-.ph-icon-sm {
+.theme-icon-sm {
   font-size: 0.875em;
 }
 
-.ph-icon-lg {
+.theme-icon-lg {
   font-size: 1.25em;
   vertical-align: -0.3em;
 }
 
-.ph-icon-xl {
+.theme-icon-xl {
   font-size: 1.5em;
   vertical-align: -0.35em;
 }
 
-.ph-icon-2xl {
+.theme-icon-2xl {
   font-size: 2em;
   vertical-align: -0.4em;
 }
 
-.ph-icon-1x {
+.theme-icon-1x {
   font-size: 1em;
 }
 
-.ph-icon-2x {
+.theme-icon-2x {
   font-size: 2em;
 }
 
-.ph-icon-3x {
+.theme-icon-3x {
   font-size: 3em;
 }
 
-.ph-icon-4x {
+.theme-icon-4x {
   font-size: 4em;
 }
 
-.ph-icon-5x {
+.theme-icon-5x {
   font-size: 5em;
 }
 
-.ph-icon-6x {
+.theme-icon-6x {
   font-size: 6em;
 }
 
-.ph-icon-7x {
+.theme-icon-7x {
   font-size: 7em;
 }
 
-.ph-icon-8x {
+.theme-icon-8x {
   font-size: 8em;
 }
 
-.ph-icon-9x {
+.theme-icon-9x {
   font-size: 9em;
 }
 
-.ph-icon-10x {
+.theme-icon-10x {
   font-size: 10em;
 }
 
-.ph-icon-pull-left,
-.ph-icon-pull-start {
+.theme-icon-pull-left,
+.theme-icon-pull-start {
   float: inline-start;
   margin-inline-end: 0.3em;
 }
 
-.ph-icon-pull-right,
-.ph-icon-pull-end {
+.theme-icon-pull-right,
+.theme-icon-pull-end {
   float: inline-end;
   margin-inline-start: 0.3em;
 }
 
-.ph-icon-rotate-90 {
+.theme-icon-rotate-90 {
   transform: rotate(90deg);
 }
 
-.ph-icon-rotate-180 {
+.theme-icon-rotate-180 {
   transform: rotate(180deg);
 }
 
-.ph-icon-rotate-270 {
+.theme-icon-rotate-270 {
   transform: rotate(270deg);
 }
 
-.ph-icon-flip-horizontal {
+.theme-icon-flip-horizontal {
   transform: scaleX(-1);
 }
 
-.ph-icon-flip-vertical {
+.theme-icon-flip-vertical {
   transform: scaleY(-1);
 }
 
-.ph-icon-flip-both {
+.theme-icon-flip-both {
   transform: scale(-1);
 }
 
-.ph-icon-spin {
-  animation: ph-icon-spin 2s linear infinite;
+.theme-icon-spin {
+  animation: theme-icon-spin 2s linear infinite;
 }
 
-.ph-icon-spin-reverse {
+.theme-icon-spin-reverse {
   animation-direction: reverse;
 }
 
-@keyframes ph-icon-spin {
+@keyframes theme-icon-spin {
   to {
     rotate: 360deg;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ph-icon-spin {
+  .theme-icon-spin {
     animation-duration: 6s;
   }
 }
@@ -880,7 +880,7 @@ strong {
 
   /* Icon buttons: "rounded-lg text-gray-400 hover:bg-white/5 hover:text-white" (fi-icon-btn). */
   .mantine-ActionIcon-root[data-variant="subtle"] {
-    --ai-hover: var(--phv2-raise);
+    --ai-hover: var(--theme-raise);
   }
 
   .mantine-ActionIcon-root:not(:disabled, [data-disabled], [data-loading]):active {
@@ -902,16 +902,16 @@ strong {
 
   /* -- Inputs: labels "text-sm font-medium text-white", hints "text-gray-400". */
   .mantine-InputWrapper-label {
-    color: var(--phv2-text);
+    color: var(--theme-text);
     font-weight: 500;
   }
 
   .mantine-InputWrapper-description {
-    color: var(--phv2-text-muted);
+    color: var(--theme-text-muted);
   }
 
   .mantine-Input-input::placeholder {
-    color: var(--phv2-text-faint);
+    color: var(--theme-text-faint);
   }
 
   /* Toggles: off "bg-white/15 border-white/12", on the accent fill. */
@@ -921,60 +921,60 @@ strong {
   }
 
   .mantine-Switch-input:checked + .mantine-Switch-track {
-    --switch-bg: var(--phv2-accent);
+    --switch-bg: var(--theme-accent);
     border-color: transparent;
   }
 
   .mantine-Checkbox-input:not(:checked) {
-    background-color: var(--phv2-raise);
+    background-color: var(--theme-raise);
   }
 
   /* -- Dividers and table edges: the hairline. */
   .mantine-Divider-root {
-    --divider-color: var(--phv2-hairline);
+    --divider-color: var(--theme-hairline);
   }
 
   /* -- Tabs (SubNavigation): "bg-gradient-to-r from-white/5 to-transparent rounded-2xl p-2",
      items "rounded-xl px-3 py-2 text-sm text-gray-300 hover:bg-white/10", the active one
      "bg-white/10 text-white", not accent-coloured (fi-tabs under Theme v2). */
-  .ph-tabs .mantine-Tabs-list {
+  .theme-tabs .mantine-Tabs-list {
     gap: 0.25rem;
     flex-wrap: nowrap;
     overflow-x: auto;
     scrollbar-width: none;
     padding: 0.5rem;
     border-radius: 1rem;
-    background-image: linear-gradient(to right, var(--phv2-raise), transparent);
+    background-image: linear-gradient(to right, var(--theme-raise), transparent);
   }
 
-  .ph-tabs .mantine-Tabs-list::before {
+  .theme-tabs .mantine-Tabs-list::before {
     display: none;
   }
 
-  .ph-tabs .mantine-Tabs-tab {
+  .theme-tabs .mantine-Tabs-tab {
     min-height: 2.5rem;
     padding: 0.5rem 0.75rem;
     border: 0;
     border-radius: 0.75rem;
-    color: var(--phv2-text-nav);
+    color: var(--theme-text-nav);
     font-weight: 500;
     transition:
       background-color 150ms ease,
       color 150ms ease;
   }
 
-  .ph-tabs .mantine-Tabs-tab:hover,
-  .ph-tabs .mantine-Tabs-tab[data-active] {
-    background-color: var(--phv2-raise-2);
-    color: var(--phv2-text);
+  .theme-tabs .mantine-Tabs-tab:hover,
+  .theme-tabs .mantine-Tabs-tab[data-active] {
+    background-color: var(--theme-raise-2);
+    color: var(--theme-text);
   }
 
-  .ph-tabs .mantine-Tabs-tabSection {
-    color: var(--phv2-text-faint);
+  .theme-tabs .mantine-Tabs-tabSection {
+    color: var(--theme-text-faint);
   }
 
-  .ph-tabs .mantine-Tabs-tab[data-active] .mantine-Tabs-tabSection {
-    color: var(--phv2-text);
+  .theme-tabs .mantine-Tabs-tab[data-active] .mantine-Tabs-tabSection {
+    color: var(--theme-text);
   }
 
   /* -- Tables (elements/data-display/Table): Filament's on Theme v2's transparent container.
@@ -982,14 +982,14 @@ strong {
      edges, rows "divide-y divide-white/5 hover:bg-white/5", cells "py-4" in Filament, a little
      less here because Calagopus rows carry buttons. */
   .mantine-Table-table {
-    --table-border-color: var(--phv2-hairline);
-    --table-hover-color: var(--phv2-raise);
-    --table-striped-color: var(--phv2-raise);
+    --table-border-color: var(--theme-hairline);
+    --table-hover-color: var(--theme-raise);
+    --table-striped-color: var(--theme-raise);
   }
 
   .mantine-Table-th {
     padding: 0.875rem 0.75rem;
-    color: var(--phv2-text);
+    color: var(--theme-text);
     font-weight: 600;
   }
 
@@ -999,19 +999,19 @@ strong {
   }
 
   @media (min-width: 40rem) {
-    .ph-table .mantine-Table-th:first-child,
-    .ph-table .mantine-Table-td:first-child {
+    .theme-table .mantine-Table-th:first-child,
+    .theme-table .mantine-Table-td:first-child {
       padding-inline-start: 1.5rem;
     }
 
-    .ph-table .mantine-Table-th:last-child,
-    .ph-table .mantine-Table-td:last-child {
+    .theme-table .mantine-Table-th:last-child,
+    .theme-table .mantine-Table-td:last-child {
       padding-inline-end: 1.5rem;
     }
   }
 
   /* The head's white/5 band; sticky, so it needs a solid colour: white/5 on the page floor. */
-  .ph-table .mantine-Table-thead .mantine-Table-th {
+  .theme-table .mantine-Table-thead .mantine-Table-th {
     background-color: #191b1f;
   }
 
@@ -1020,23 +1020,23 @@ strong {
   .mantine-Pagination-control {
     border-color: var(--mantine-color-default-border);
     background-color: transparent;
-    color: var(--phv2-text-nav);
+    color: var(--theme-text-nav);
   }
 
   .mantine-Pagination-control[data-active] {
     border-color: var(--mantine-color-default-border);
-    background-color: var(--phv2-raise);
-    color: var(--phv2-accent-bright);
+    background-color: var(--theme-raise);
+    color: var(--theme-accent-bright);
   }
 
   .mantine-Pagination-control:not([data-active], :disabled, [data-disabled]):hover {
-    background-color: var(--phv2-raise);
-    color: var(--phv2-text);
+    background-color: var(--theme-raise);
+    color: var(--theme-text);
   }
 
   /* -- Progress: Theme v2's thin bars, "bg-white/10" track. */
   .mantine-Progress-root {
-    background-color: var(--phv2-raise-2);
+    background-color: var(--theme-raise-2);
   }
 
   /* -- Callouts (Alert, and the server banners in ServerContentContainer): "rounded-2xl p-4",
@@ -1048,42 +1048,42 @@ strong {
   }
 
   .mantine-Alert-title {
-    color: var(--phv2-text);
+    color: var(--theme-text);
     font-size: 0.875rem;
     font-weight: 600;
   }
 
   .mantine-Alert-message {
-    color: var(--phv2-text-nav);
+    color: var(--theme-text-nav);
   }
 
-  .ph-callout.mantine-Notification-root {
+  .theme-callout.mantine-Notification-root {
     border-radius: 1rem;
     padding: 1rem;
     box-shadow: none;
     background-color: color-mix(in srgb, var(--notification-color) 10%, transparent);
   }
 
-  .ph-callout.mantine-Notification-root::before {
+  .theme-callout.mantine-Notification-root::before {
     display: none;
   }
 
   /* Toasts: Filament's notification, "rounded-xl bg-gray-900 shadow-lg ring-1 ring-white/10". */
-  .mantine-Notification-root:not(.ph-callout) {
+  .mantine-Notification-root:not(.theme-callout) {
     border-radius: 0.75rem;
-    background-color: var(--phv2-modal);
+    background-color: var(--theme-modal);
     box-shadow:
       0 10px 15px -3px rgb(0 0 0 / 0.3),
       0 0 0 1px var(--mantine-color-default-border);
   }
 
   .mantine-Notification-title {
-    color: var(--phv2-text);
+    color: var(--theme-text);
     font-weight: 600;
   }
 
   .mantine-Notification-description {
-    color: var(--phv2-text-nav);
+    color: var(--theme-text-nav);
   }
 
   /* -- Modals: "bg-[#1a1c20] rounded-xl", Filament's p-6 and "text-base font-semibold" heading. */
@@ -1091,11 +1091,11 @@ strong {
     border-radius: 0.75rem;
     box-shadow:
       0 25px 50px -12px rgb(0 0 0 / 0.5),
-      0 0 0 1px var(--phv2-hairline);
+      0 0 0 1px var(--theme-hairline);
   }
 
   .mantine-Modal-header {
-    background-color: var(--phv2-modal);
+    background-color: var(--theme-modal);
     padding: 1.5rem 1.5rem 1rem;
   }
 
@@ -1104,13 +1104,13 @@ strong {
   }
 
   .mantine-Modal-title {
-    color: var(--phv2-text);
+    color: var(--theme-text);
     font-size: 1rem;
     font-weight: 600;
   }
 
   .mantine-Drawer-header {
-    background-color: var(--phv2-modal);
+    background-color: var(--theme-modal);
   }
 
   /* -- Menus: "rounded-md shadow-xl bg-[#181a1e]", items "px-4 py-2 text-sm text-gray-300
@@ -1132,33 +1132,33 @@ strong {
     min-height: 2.25rem;
     padding: 0.5rem 0.75rem;
     border-radius: 0.375rem;
-    color: var(--menu-item-color, var(--phv2-text-nav));
+    color: var(--menu-item-color, var(--theme-text-nav));
     font-size: 0.875rem;
     font-weight: 500;
   }
 
   .mantine-Menu-item:where(:hover, :focus, [data-menu-active]):where(:not(:disabled, [data-disabled])) {
-    background-color: var(--phv2-raise);
-    color: var(--menu-item-color, var(--phv2-text));
+    background-color: var(--theme-raise);
+    color: var(--menu-item-color, var(--theme-text));
   }
 
   /* Plain items' icons in zinc-500 until hovered; coloured ones (logout, stop: Mantine sets
      --menu-item-color inline) keep their colour. */
   .mantine-Menu-item:not([style*="--menu-item-color"]) .mantine-Menu-itemSection {
-    color: var(--phv2-text-faint);
+    color: var(--theme-text-faint);
   }
 
   .mantine-Menu-item:not([style*="--menu-item-color"]):where(:hover, :focus, [data-menu-active])
     .mantine-Menu-itemSection {
-    color: var(--phv2-text);
+    color: var(--theme-text);
   }
 
   .mantine-Menu-label {
-    color: var(--phv2-text-faint);
+    color: var(--theme-text-faint);
   }
 
   .mantine-Menu-divider {
-    border-color: var(--phv2-hairline);
+    border-color: var(--theme-hairline);
   }
 
   /* Combobox options: the same rows. */
@@ -1168,26 +1168,26 @@ strong {
 
   /* -- Tooltips: Filament's dark tooltip, "bg-gray-900 text-white ring-1 ring-white/10 text-xs". */
   .mantine-Tooltip-tooltip {
-    background-color: var(--phv2-dropdown);
-    color: var(--phv2-text);
+    background-color: var(--theme-dropdown);
+    color: var(--theme-text);
     box-shadow: 0 0 0 1px var(--mantine-color-default-border);
     font-size: 0.75rem;
   }
 
   .mantine-Tooltip-arrow {
-    background-color: var(--phv2-dropdown);
+    background-color: var(--theme-dropdown);
   }
 
   /* -- Code and kbd on the sunken surface. */
   .mantine-Code-root {
-    background-color: var(--phv2-raise-2);
-    color: var(--phv2-text-nav);
+    background-color: var(--theme-raise-2);
+    color: var(--theme-text-nav);
   }
 
   .mantine-Kbd-root {
-    background-color: var(--phv2-sunken);
+    background-color: var(--theme-sunken);
     border-color: var(--mantine-color-default-border);
-    color: var(--phv2-text-muted);
+    color: var(--theme-text-muted);
   }
 }
 
@@ -1200,7 +1200,7 @@ strong {
  * ".fi-header-actions": the page's actions at the end of the title row, "gap-3".
  * ============================================================================= */
 
-.ph-main {
+.theme-main {
   width: 100%;
   max-width: 96rem;
   margin-inline: auto;
@@ -1208,23 +1208,23 @@ strong {
 }
 
 @media (min-width: 48rem) {
-  .ph-main {
+  .theme-main {
     padding-inline: 1.5rem;
   }
 }
 
 @media (min-width: 64rem) {
-  .ph-main {
+  .theme-main {
     padding: 2rem 2rem 2rem;
   }
 }
 
 /* The server's state banners above a page's header: the same column, no foot. */
-.ph-main.ph-main-banner {
+.theme-main.theme-main-banner {
   padding-block-end: 0;
 }
 
-.ph-header {
+.theme-header {
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -1232,16 +1232,16 @@ strong {
 }
 
 @media (min-width: 40rem) {
-  .ph-header {
+  .theme-header {
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
   }
 }
 
-.ph-header-heading {
+.theme-header-heading {
   margin: 0;
-  color: var(--phv2-text);
+  color: var(--theme-text);
   font-size: 1.25rem;
   font-weight: 600;
   line-height: 1.75rem;
@@ -1249,19 +1249,19 @@ strong {
 }
 
 /* A page inside a page (a tab's own list): Filament's table heading, "text-base font-semibold". */
-.ph-header :is(h2, h3, h4, h5, h6).ph-header-heading {
+.theme-header :is(h2, h3, h4, h5, h6).theme-header-heading {
   font-size: 1rem;
   line-height: 1.5rem;
 }
 
-.ph-header-subheading {
+.theme-header-subheading {
   margin-block-start: 0.125rem;
-  color: var(--phv2-text-muted);
+  color: var(--theme-text-muted);
   font-size: 0.875rem;
   line-height: 1.25rem;
 }
 
-.ph-header-actions {
+.theme-header-actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -1269,12 +1269,12 @@ strong {
 }
 
 /* The table toolbar's search: "fi-ta-search-field", at the end of the row, 36px tall. */
-.ph-header-search {
+.theme-header-search {
   width: 100%;
 }
 
 @media (min-width: 40rem) {
-  .ph-header-search {
+  .theme-header-search {
     width: 16rem;
   }
 }
@@ -1289,13 +1289,13 @@ strong {
     padding: 0 0.5rem 0.5rem !important;
   }
 
-  .ph-sidebar-logo {
+  .theme-sidebar-logo {
     display: flex;
     justify-content: center;
     padding: 2rem 0.5rem 1rem;
   }
 
-  .ph-sidebar-logo img {
+  .theme-sidebar-logo img {
     width: auto;
     height: 2.5rem;
   }
@@ -1312,7 +1312,7 @@ strong {
     gap: 0.625rem;
   }
 
-  .sidebar-link .ph-icon,
+  .sidebar-link .theme-icon,
   .sidebar-link .svg-inline--fa {
     width: 1.5rem;
     height: 1.5rem;
@@ -1321,43 +1321,43 @@ strong {
   }
 
   /* The quick search row: one of the rows, "transparent until hover" like Theme v2's bell. */
-  .ph-sidebar-search.mantine-Button-root {
+  .theme-sidebar-search.mantine-Button-root {
     --button-height: 2.75rem !important;
     --button-padding-x: 0.875rem !important;
     --button-bg: transparent !important;
-    --button-hover: var(--phv2-raise) !important;
+    --button-hover: var(--theme-raise) !important;
     margin-block-end: 0.25rem;
     font-weight: 500 !important;
   }
 
-  .ph-sidebar-search .mantine-Button-section[data-position="left"] {
+  .theme-sidebar-search .mantine-Button-section[data-position="left"] {
     margin-inline-end: 0.625rem;
-    color: var(--phv2-text-faint);
+    color: var(--theme-text-faint);
   }
 
-  .ph-sidebar-search .mantine-Button-section[data-position="left"] .ph-icon {
+  .theme-sidebar-search .mantine-Button-section[data-position="left"] .theme-icon {
     width: 1.5rem;
     height: 1.5rem;
     vertical-align: middle;
   }
 
   /* Group labels: Filament's "fi-sidebar-group-label", a caption over its rows. */
-  .ph-sidebar-group-label {
+  .theme-sidebar-group-label {
     padding: 1rem 0.875rem 0.375rem;
-    color: var(--phv2-text-faint);
+    color: var(--theme-text-faint);
     font-size: 0.75rem;
     font-weight: 600;
     letter-spacing: 0.05em;
     text-transform: uppercase;
   }
 
-  .ph-sidebar-divider {
+  .theme-sidebar-divider {
     margin: 0.5rem 0.875rem;
-    border-top: 1px solid var(--phv2-hairline);
+    border-top: 1px solid var(--theme-hairline);
   }
 
   /* The avatar row: "py-2 px-3 rounded-xl hover:bg-white/5", avatar, name, chevron. */
-  .ph-sidebar-user {
+  .theme-sidebar-user {
     display: flex;
     width: 100%;
     align-items: center;
@@ -1366,7 +1366,7 @@ strong {
     border: 0;
     border-radius: 0.75rem;
     background-color: transparent;
-    color: var(--phv2-text);
+    color: var(--theme-text);
     font-size: 0.9375rem;
     font-weight: 500;
     text-align: start;
@@ -1376,20 +1376,20 @@ strong {
       transform 100ms ease;
   }
 
-  .ph-sidebar-user:hover {
-    background-color: var(--phv2-raise);
+  .theme-sidebar-user:hover {
+    background-color: var(--theme-raise);
   }
 
-  .ph-sidebar-user:active {
+  .theme-sidebar-user:active {
     transform: scale(0.98);
   }
 
-  .ph-sidebar-user:focus-visible {
-    outline: 2px solid var(--phv2-accent-bright);
+  .theme-sidebar-user:focus-visible {
+    outline: 2px solid var(--theme-accent-bright);
     outline-offset: 2px;
   }
 
-  .ph-sidebar-user-name {
+  .theme-sidebar-user-name {
     flex: 1 1 auto;
     min-width: 0;
     overflow: hidden;
@@ -1397,9 +1397,9 @@ strong {
     white-space: nowrap;
   }
 
-  .ph-sidebar-user-chevron {
+  .theme-sidebar-user-chevron {
     flex: none;
-    color: var(--phv2-text-muted);
+    color: var(--theme-text-muted);
   }
 }
 
@@ -1409,7 +1409,7 @@ strong {
  * "font-semibold text-white", the usage bar "h-1 bg-white/10" with the bright accent.
  * ============================================================================= */
 
-.ph-stat {
+.theme-stat {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
@@ -1417,7 +1417,7 @@ strong {
   padding: 0.875rem 1rem !important;
 }
 
-.ph-stat-head {
+.theme-stat-head {
   display: flex;
   min-width: 0;
   align-items: baseline;
@@ -1425,62 +1425,62 @@ strong {
   gap: 0.5rem;
 }
 
-.ph-stat-label {
+.theme-stat-label {
   flex: none;
-  color: var(--phv2-text-muted);
+  color: var(--theme-text-muted);
   font-size: 0.8125rem;
   font-weight: 500;
   line-height: 1.25rem;
 }
 
-.ph-stat-details {
+.theme-stat-details {
   min-width: 0;
   overflow: hidden;
-  color: var(--phv2-text-faint);
+  color: var(--theme-text-faint);
   font-size: 0.75rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.ph-stat-popover {
+.theme-stat-popover {
   margin-inline-start: auto;
-  color: var(--phv2-text-muted);
+  color: var(--theme-text-muted);
 }
 
-.ph-stat-value {
+.theme-stat-value {
   max-width: 100%;
-  color: var(--phv2-text);
+  color: var(--theme-text);
   font-size: 1rem;
   font-weight: 600;
   line-height: 1.5rem;
   font-variant-numeric: tabular-nums;
 }
 
-.ph-stat-limit {
-  color: var(--phv2-text-muted);
+.theme-stat-limit {
+  color: var(--theme-text-muted);
   font-size: 0.8125rem;
   font-weight: 500;
 }
 
-.ph-stat-track {
+.theme-stat-track {
   height: 4px;
   margin-block-start: 0.375rem;
   overflow: hidden;
   border-radius: 9999px;
-  background-color: var(--phv2-raise-2);
+  background-color: var(--theme-raise-2);
 }
 
-.ph-stat-bar {
+.theme-stat-bar {
   display: block;
   height: 100%;
   border-radius: 9999px;
-  background-color: var(--phv2-accent-bright);
+  background-color: var(--theme-accent-bright);
   transition: width 300ms ease;
 }
 
 /* Phones: the console's power buttons as icons, square pills (Theme v2's console under `sm`). */
 @media (max-width: 39.99rem) {
-  .ph-power .ph-power-label {
+  .theme-power .theme-power-label {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -1489,13 +1489,13 @@ strong {
     white-space: nowrap;
   }
 
-  .ph-power .mantine-Button-section[data-position="left"] {
+  .theme-power .mantine-Button-section[data-position="left"] {
     margin-inline-end: 0;
   }
 }
 
 /* The console: the Pelican panel's terminal, "rgb(19 26 32)" (its xterm theme), opaque. */
-:root[data-mantine-color-scheme="dark"] .ph-console.mantine-Card-root {
+:root[data-mantine-color-scheme="dark"] .theme-console.mantine-Card-root {
   background-color: rgb(19 26 32);
 }
 
@@ -1509,40 +1509,40 @@ strong {
  * with the address on a line of its own; wide (>= 34rem) CPU, memory, disk and address side by side.
  * ============================================================================= */
 
-.ph-server-grid {
+.theme-server-grid {
   display: grid;
   gap: 1rem;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
 }
 
 /* the card: "bg-white/5 rounded-2xl", hover "bg-white/10", no lift */
-.ph-server-card {
+.theme-server-card {
   display: block;
   min-width: 0;
   height: 100%;
-  container: phv2-server / inline-size;
+  container: theme-server / inline-size;
   padding: 1.125rem 1.25rem;
   border-radius: 1rem;
-  background-color: var(--phv2-raise);
+  background-color: var(--theme-raise);
   color: inherit;
   text-decoration: none;
   transition: background-color 150ms ease;
 }
 
-.ph-server-card:hover {
-  background-color: var(--phv2-raise-2);
+.theme-server-card:hover {
+  background-color: var(--theme-raise-2);
 }
 
-.ph-server-card:focus-visible {
-  outline: 2px solid var(--phv2-accent-bright);
+.theme-server-card:focus-visible {
+  outline: 2px solid var(--theme-accent-bright);
   outline-offset: 2px;
 }
 
-.ph-server-card[data-selected] {
-  background-color: var(--phv2-accent-soft);
+.theme-server-card[data-selected] {
+  background-color: var(--theme-accent-soft);
 }
 
-.phv2-server {
+.theme-server {
   position: relative;
   display: flex;
   flex-direction: column;
@@ -1551,7 +1551,7 @@ strong {
   padding-left: 0.875rem;
 }
 
-.phv2-server-status-bar {
+.theme-server-status-bar {
   position: absolute;
   inset-block: 0;
   left: 0;
@@ -1559,47 +1559,47 @@ strong {
   border-radius: 9999px;
 }
 
-.phv2-server-head {
+.theme-server-head {
   display: flex;
   align-items: center;
   gap: 0.75rem;
   min-width: 0;
 }
 
-.phv2-server-title {
+.theme-server-title {
   display: flex;
   flex: 1 1 auto;
   min-width: 0;
   flex-direction: column;
 }
 
-.phv2-server-name {
+.theme-server-name {
   display: flex;
   align-items: center;
   gap: 0.375rem;
   min-width: 0;
   margin: 0;
   overflow: hidden;
-  color: var(--phv2-text);
+  color: var(--theme-text);
   font-size: 1rem;
   font-weight: 600;
   line-height: 1.5rem;
   white-space: nowrap;
 }
 
-.phv2-server-state {
+.theme-server-state {
   display: flex;
   align-items: center;
   gap: 0.375rem;
   min-width: 0;
   overflow: hidden;
-  color: var(--phv2-text-muted);
+  color: var(--theme-text-muted);
   font-size: 0.8125rem;
   line-height: 1.25rem;
   white-space: nowrap;
 }
 
-.phv2-server-actions {
+.theme-server-actions {
   display: flex;
   flex: none;
   align-items: center;
@@ -1607,46 +1607,46 @@ strong {
 }
 
 /* The bulk-select box: shown on hover, and on every card once one is selected; always on touch. */
-.phv2-server-select {
+.theme-server-select {
   display: flex;
   flex: none;
 }
 
 @media (hover: hover) {
-  .ph-server-grid:not(:has(.ph-server-card[data-selected]))
-    .ph-server-card:not(:hover, :focus-within)
-    .phv2-server-select {
+  .theme-server-grid:not(:has(.theme-server-card[data-selected]))
+    .theme-server-card:not(:hover, :focus-within)
+    .theme-server-select {
     display: none;
   }
 }
 
-.phv2-server-description {
+.theme-server-description {
   display: -webkit-box;
   margin: 0;
   overflow: hidden;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
-  color: var(--phv2-text-muted);
+  color: var(--theme-text-muted);
   font-size: 0.8125rem;
   line-height: 1.25rem;
 }
 
 /* Narrow: one line per resource (name left, value right, bar under it). */
-.phv2-server-stats {
+.theme-server-stats {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 0.625rem 1rem;
 }
 
-.phv2-server-stat {
+.theme-server-stat {
   display: flex;
   min-width: 0;
   flex-direction: column;
   gap: 0.3125rem;
 }
 
-.phv2-server-stat-info,
-.phv2-server-address {
+.theme-server-stat-info,
+.theme-server-address {
   display: flex;
   min-width: 0;
   align-items: baseline;
@@ -1656,14 +1656,14 @@ strong {
   line-height: 1.25rem;
 }
 
-.phv2-server-stat-name {
+.theme-server-stat-name {
   flex: none;
-  color: var(--phv2-text-muted);
+  color: var(--theme-text-muted);
   font-size: 0.75rem;
   font-weight: 500;
 }
 
-.phv2-server-stat-value {
+.theme-server-stat-value {
   min-width: 0;
   overflow: hidden;
   font-variant-numeric: tabular-nums;
@@ -1671,55 +1671,55 @@ strong {
   white-space: nowrap;
 }
 
-.phv2-server-stat-used {
-  color: var(--phv2-text);
+.theme-server-stat-used {
+  color: var(--theme-text);
   font-weight: 600;
 }
 
-.phv2-server-stat-warning {
+.theme-server-stat-warning {
   color: var(--mantine-color-yellow-4);
 }
 
-.phv2-server-stat-danger {
+.theme-server-stat-danger {
   color: var(--mantine-color-red-4);
 }
 
-.phv2-server-stat-limit {
-  color: var(--phv2-text-muted);
+.theme-server-stat-limit {
+  color: var(--theme-text-muted);
 }
 
-.phv2-server-track {
+.theme-server-track {
   height: 4px;
   overflow: hidden;
   border-radius: 9999px;
-  background-color: var(--phv2-raise-2);
+  background-color: var(--theme-raise-2);
 }
 
-.phv2-server-bar {
+.theme-server-bar {
   display: block;
   height: 100%;
   border-radius: 9999px;
-  background-color: var(--phv2-accent-bright);
+  background-color: var(--theme-accent-bright);
   transition: width 300ms ease;
 }
 
-.phv2-server-bar-warning {
+.theme-server-bar-warning {
   background-color: var(--mantine-color-yellow-4);
 }
 
-.phv2-server-bar-danger {
+.theme-server-bar-danger {
   background-color: var(--mantine-color-red-4);
 }
 
-.phv2-server-address {
+.theme-server-address {
   cursor: text;
 }
 
-.phv2-server-address-value {
+.theme-server-address-value {
   display: block;
   min-width: 0;
   overflow: hidden;
-  color: var(--phv2-text-nav);
+  color: var(--theme-text-nav);
   font-family: "JetBrains Mono", ui-monospace, monospace;
   font-size: 0.8125rem;
   font-weight: 500;
@@ -1729,30 +1729,30 @@ strong {
 
 /* Medium: CPU, memory and disk as three columns, each name over its value; the address on a
    line of its own underneath. */
-@container phv2-server (min-width: 21rem) {
-  .phv2-server-stats {
+@container theme-server (min-width: 21rem) {
+  .theme-server-stats {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .phv2-server-stat-info {
+  .theme-server-stat-info {
     flex-direction: column;
     align-items: flex-start;
     gap: 0;
   }
 
-  .phv2-server-address {
+  .theme-server-address {
     grid-column: 1 / -1;
     justify-content: flex-start;
   }
 }
 
 /* Wide: the address becomes a fourth column. */
-@container phv2-server (min-width: 34rem) {
-  .phv2-server-stats {
+@container theme-server (min-width: 34rem) {
+  .theme-server-stats {
     grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(0, 1.25fr);
   }
 
-  .phv2-server-address {
+  .theme-server-address {
     grid-column: auto;
     flex-direction: column;
     align-items: flex-start;
@@ -1761,14 +1761,14 @@ strong {
 }
 
 /* The server card in the server sidebar: Theme v2's sunken usage card, "rounded-xl", a link. */
-:root[data-mantine-color-scheme="dark"] .ph-sidebar-server.mantine-Card-root {
+:root[data-mantine-color-scheme="dark"] .theme-sidebar-server.mantine-Card-root {
   margin-block-end: 0.5rem;
   padding: 0.625rem 0.75rem !important;
   border-radius: 0.75rem;
-  background-color: var(--phv2-sunken);
+  background-color: var(--theme-sunken);
   transition: background-color 150ms ease;
 }
 
-:root[data-mantine-color-scheme="dark"] a:hover > .ph-sidebar-server.mantine-Card-root {
-  background-color: var(--phv2-raise);
+:root[data-mantine-color-scheme="dark"] a:hover > .theme-sidebar-server.mantine-Card-root {
+  background-color: var(--theme-raise);
 }

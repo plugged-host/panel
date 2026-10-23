@@ -47,11 +47,11 @@ export default function QuickActionsTrigger() {
       variant='subtle'
       color='gray'
       fullWidth
-      className='ph-sidebar-search'
+      className='theme-sidebar-search'
       leftSection={<FontAwesomeIcon icon={faMagnifyingGlass} />}
       rightSection={hint ? <Kbd size='xs'>{hint}</Kbd> : undefined}
       onClick={() => setOpen(true)}
-      styles={{ label: { width: '100%', color: 'var(--phv2-text-nav)' } }}
+      styles={{ label: { width: '100%', color: 'var(--theme-text-nav)' } }}
     >
       {t('elements.quickActions.trigger', {})}
     </Button>

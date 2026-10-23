@@ -12,7 +12,7 @@ set -euo pipefail
 # `panel-rs version` parses the environment first; it needs these set but connects to nothing.
 release_of() {
   env -i PATH=/usr/bin:/bin APP_ENCRYPTION_KEY=version-check DATABASE_URL=postgresql://version@127.0.0.1:1/version \
-    "$1" version | awk '/^plugged.host /{print $2}'
+    "$1" version | awk '/^release /{print $2}'
 }
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)

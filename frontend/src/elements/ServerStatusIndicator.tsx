@@ -133,7 +133,7 @@ export default function ServerStatusIndicator() {
     <>
       {/* plugged.host: a sunken card like Theme v2's sidebar usage card ("phv2-resources-card") */}
       <NavLink to={`/server/${params.id}`} className='block'>
-        <Card p='xs' className='ph-sidebar-server min-h-fit'>
+        <Card p='xs' className='theme-sidebar-server min-h-fit'>
           <div className='h-5 flex items-center min-w-0'>
             <span className='text-sm font-medium min-w-0 flex-1'>
               <ScrollingText>{server.name}</ScrollingText>

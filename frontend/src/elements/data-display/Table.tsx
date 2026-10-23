@@ -248,7 +248,7 @@ export default function Table({
   return (
     // plugged.host: Filament's table on Theme v2's transparent container ("fi-ta-ctn"): no box of its
     // own, the head a white/5 band with rounded corners, hairlines between the rows (app.css).
-    <div className='ph-table-ctn' style={flush ? undefined : { borderRadius: '0.75rem', overflow: 'hidden' }}>
+    <div className='theme-table-ctn' style={flush ? undefined : { borderRadius: '0.75rem', overflow: 'hidden' }}>
       {!error && pagination && onPageSelect && pagination.total > pagination.perPage && (
         <Pagination
           data={pagination}
@@ -266,7 +266,7 @@ export default function Table({
             verticalSpacing={verticalSpacing}
             highlightOnHover={(pagination?.total ?? 0) > 0 && !loading}
             className={classNames(
-              'ph-table',
+              'theme-table',
               allowSelect ? undefined : 'select-none',
               loading && 'opacity-50 pointer-events-none transition-opacity',
             )}

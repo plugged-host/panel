@@ -30,8 +30,8 @@ ssh "$BUILD_HOST" "set -uo pipefail
       ts) (cd frontend && pnpm install --frozen-lockfile >/dev/null) && run ts sh -c 'cd frontend && pnpm -s typecheck' ;;
       biome) (cd frontend && pnpm install --frozen-lockfile >/dev/null) && run biome sh -c 'cd frontend && pnpm -s biome:validate' ;;
       fmt) run fmt cargo fmt --all --check ;;
-      rust) run rust env SQLX_OFFLINE=true RUSTFLAGS='-C link-arg=-fuse-ld=mold' cargo check --profile plugged-host -p panel-rs ;;
-      test) run test env SQLX_OFFLINE=true RUSTFLAGS='-C link-arg=-fuse-ld=mold' cargo test --profile plugged-host -p shared -p backend ;;
+      rust) run rust env SQLX_OFFLINE=true RUSTFLAGS='-C link-arg=-fuse-ld=mold' cargo check --profile release-fast -p panel-rs ;;
+      test) run test env SQLX_OFFLINE=true RUSTFLAGS='-C link-arg=-fuse-ld=mold' cargo test --profile release-fast -p shared -p backend ;;
       *) echo \"unknown check \$check\"; failed=\"\$failed \$check\" ;;
     esac
   done

@@ -197,7 +197,7 @@ export default function DashboardHomeAll() {
           />
         )
       ) : (
-        <div className='ph-server-grid'>
+        <div className='theme-server-grid'>
           {servers?.data.map((server) => (
             <ServerItem
               key={server.uuid}

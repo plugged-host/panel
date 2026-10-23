@@ -70,16 +70,16 @@ export const FontAwesomeIcon = forwardRef<SVGSVGElement, FontAwesomeIconProps>((
       title={title}
       stroke={1.75}
       className={classNames(
-        'ph-icon',
-        size && `ph-icon-${size}`,
-        (spin || spinPulse || pulse) && 'ph-icon-spin',
-        spinReverse && 'ph-icon-spin-reverse',
-        fixedWidth && 'ph-icon-fw',
-        widthAuto && 'ph-icon-width-auto',
-        listItem && 'ph-icon-li',
-        pull && `ph-icon-pull-${pull}`,
-        rotation && `ph-icon-rotate-${rotation}`,
-        flip && `ph-icon-flip-${flip === true ? 'horizontal' : flip}`,
+        'theme-icon',
+        size && `theme-icon-${size}`,
+        (spin || spinPulse || pulse) && 'theme-icon-spin',
+        spinReverse && 'theme-icon-spin-reverse',
+        fixedWidth && 'theme-icon-fw',
+        widthAuto && 'theme-icon-width-auto',
+        listItem && 'theme-icon-li',
+        pull && `theme-icon-pull-${pull}`,
+        rotation && `theme-icon-rotate-${rotation}`,
+        flip && `theme-icon-flip-${flip === true ? 'horizontal' : flip}`,
         className,
       )}
       {...(rest as object)}

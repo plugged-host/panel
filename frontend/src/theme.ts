@@ -3,7 +3,7 @@ import { Badge, Button, MantineColorsTuple, MantineThemeOverride, Modal, Tabs, T
 /*
  * plugged.host Theme v2 on Mantine. The values are the ones the Pelican panel's theme uses
  * (plugged-host-theme-v2/resources/css/theme.css on the 2.2 branch of the plugins); app.css
- * carries the same --phv2-* tokens, the dark colour-scheme variables and the parts Mantine's
+ * carries the same tokens as --theme-* (--phv2-* there), the dark colour-scheme variables and the parts Mantine's
  * theme object does not reach.
  *
  * The accent is two-tier, as in Theme v2: blue-700 (#1d4ed8) fills, blue-500 (#3b82f6) is the
@@ -42,7 +42,7 @@ const dark: MantineColorsTuple = [
 
 const sans = "'Space Grotesk', ui-sans-serif, system-ui, sans-serif";
 
-export const pluggedHostTheme: MantineThemeOverride = {
+export const themeV2: MantineThemeOverride = {
   primaryColor: 'blue',
   primaryShade: 6,
   colors: { blue, dark },

@@ -42,15 +42,15 @@ export default function ServerConsole() {
       <div
         id='console-infobar'
         className={classNames(
-          'sticky z-20 bg-(--phv2-bg-top) mb-6 py-2 -mx-4 md:-mx-6 lg:-mx-8 pr-4 md:pr-6 lg:px-8 transition-[padding] duration-150',
-          titleHoisted ? 'top-3 lg:top-0 shadow-[0_-0.75rem_0_var(--phv2-bg-top)] lg:shadow-none' : 'top-0',
+          'sticky z-20 bg-(--theme-bg-top) mb-6 py-2 -mx-4 md:-mx-6 lg:-mx-8 pr-4 md:pr-6 lg:px-8 transition-[padding] duration-150',
+          titleHoisted ? 'top-3 lg:top-0 shadow-[0_-0.75rem_0_var(--theme-bg-top)] lg:shadow-none' : 'top-0',
           titleHoisted && infobarStuck ? 'pl-20' : 'pl-4 md:pl-6',
         )}
       >
         <Group justify='space-between' className={classNames({ 'min-h-12 lg:min-h-0': titleHoisted })}>
           <div className={classNames('flex-col min-w-0', titleHoisted ? 'hidden lg:flex' : 'flex')}>
-            <h1 className='ph-header-heading'>{server.name}</h1>
-            {server.description && <p className='ph-header-subheading'>{server.description}</p>}
+            <h1 className='theme-header-heading'>{server.name}</h1>
+            {server.description && <p className='theme-header-subheading'>{server.description}</p>}
           </div>
           <ServerCan action={['control.start', 'control.stop', 'control.restart']} matchAny>
             <ServerPowerControls />
