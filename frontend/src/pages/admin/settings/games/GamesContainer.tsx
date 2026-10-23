@@ -1,4 +1,4 @@
-// plugged.host: Admin › Settings › Games, what players may create and how much
+// plugged.host: Admin › Settings › Hosting › Games, what players may create and how much
 import { useForm } from '@mantine/form';
 import { zod4Resolver } from 'mantine-form-zod-resolver';
 import { z } from 'zod';

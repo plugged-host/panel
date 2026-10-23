@@ -8,7 +8,7 @@ import { Badge, Button, MantineColorsTuple, MantineThemeOverride, Modal, Tabs, T
  *
  * The accent is two-tier, as in Theme v2: blue-700 (#1d4ed8) fills, blue-500 (#3b82f6) is the
  * same accent as text or a ring on a dark surface, where blue-700 would be unreadable. The theme
- * colour (Admin › Settings › Metadata) swaps it for another one (lib/accent.ts, App.tsx).
+ * colour (Admin › Settings › General › Metadata) swaps it for another one (lib/accent.ts, App.tsx).
  */
 
 // Tailwind blue, shifted one rung darker from 200 up so the filled shade (6) is blue-700.

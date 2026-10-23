@@ -1,4 +1,4 @@
-// plugged.host: the status page settings section (Admin › Settings › Status, shared/src/status.rs).
+// plugged.host: status page settings (Settings › General › Status Page, shared/src/status.rs).
 
 use super::{
     ExtensionSettings, SettingsDeserializeExt, SettingsDeserializer, SettingsSerializeExt,

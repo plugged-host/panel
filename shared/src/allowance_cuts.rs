@@ -2,8 +2,8 @@
 //! (docs/features/allowance-cuts.md).
 //!
 //! A decrease is written to `user_allowance_cuts` where it happens (a smaller noprofit.space plan
-//! in [`crate::noprofit::Link::store`], a smaller allowance in Admin › Settings › Games); the
-//! `settle_allowance_cuts` task carries it out: what the account's servers use beyond the new
+//! in [`crate::noprofit::Link::store`], a smaller allowance in Admin › Settings › Hosting › Games);
+//! the `settle_allowance_cuts` task carries it out: what the account's servers use beyond the new
 //! allowance, at most the decrease, comes off all its servers evenly, never below a floor on any
 //! one of them. An account that was over before keeps that part; one with room to spare loses
 //! nothing.

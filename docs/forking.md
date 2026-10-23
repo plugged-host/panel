@@ -8,10 +8,10 @@ it is configured.
 
 | What | Where |
 |---|---|
-| Name | Admin › Settings › Application › Name (`app.name`). The default for new installs is in `shared/src/settings/app.rs` |
-| Icon and banner | Admin › Settings › Application (`app.icon`, `app.banner`, and light variants). Defaults: `frontend/public/plugged.host.png` |
+| Name | Admin › Settings › General › Application › Name (`app.name`). The default for new installs is in `shared/src/settings/app.rs` |
+| Icon and banner | Admin › Settings › General › Application (`app.icon`, `app.banner`, and light variants). Defaults: `frontend/public/plugged.host.png` |
 | Favicons, app manifest | `frontend/public/{favicon.ico,favicon-*.png,apple-touch-icon.png,android-chrome-*.png,site.webmanifest}` |
-| Accent colour | Admin › Settings › Metadata › Theme Color: any colour; the panel derives its shades and keeps text readable (`frontend/src/lib/accent.ts`). Default in `shared/src/settings/metadata.rs` |
+| Accent colour | Admin › Settings › General › Metadata › Theme Color: any colour; the panel derives its shades and keeps text readable (`frontend/src/lib/accent.ts`). Default in `shared/src/settings/metadata.rs` |
 | Surfaces, fonts, radii | The tokens at the top of the Theme v2 section of `frontend/src/app.css` (`--theme-*`) and the palette in `frontend/src/theme.ts` ([features/theme.md](features/theme.md)) |
 | Footer | `frontend/src/elements/Copyright.tsx`: your name and link, the release, "Powered by Calagopus" (keep the credit) |
 | Product names a user sees | Settings with neutral defaults, in the section of the feature that shows them (for example the paid tiers' and the assistant's names, from the economy and AI phases on) |
@@ -37,7 +37,7 @@ your build. Upstream's other languages are maintained on Calagopus's Crowdin and
 | Service | Off by default | How to turn it on |
 |---|---|---|
 | noprofit.space | Yes: the panel signs people in on its own | [noprofit.md](noprofit.md) |
-| Telemetry to calagopus.com | Yes | Admin › Settings › Application |
+| Telemetry to calagopus.com | Yes | Admin › Settings › General › Application |
 | Ads, Discord bots, the AI assistant (later phases) | Yes | Their settings sections |
 
 Nothing in the panel needs plugged.host's machines or accounts.
@@ -62,10 +62,10 @@ SQLX_OFFLINE=true cargo build --profile release-fast -p panel-rs     # target/re
 | `nginx.conf` | The site in front of it |
 | `check.sh`, `format.sh`, `translations.sh`, `generate-migration.sh` | The checks, formatters, coverage and drizzle-kit, run on the build machine |
 
-Order on a fresh server: database and role, environment, binary and unit, start it on the
-loopback, create the first admin (`panel-rs users create --admin true` with the environment
-loaded), set the application URL in Admin › Settings, and only then open the site to the world.
-With an empty users table the first visitor would otherwise get to set it up.
+Order on a fresh server: database and role, environment, binary and unit, start it on the loopback,
+create the first admin (`panel-rs users create --admin true` with the environment loaded), set the
+application URL in Admin › Settings › General, and only then open the site to the world. With an
+empty users table the first visitor would otherwise get to set it up.
 
 Upstream's Docker files (`docker/`, `compose*.yml`) build upstream's images; a fork that wants
 containers builds its own image from its tree.

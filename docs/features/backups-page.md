@@ -60,8 +60,9 @@ Exceptions:
 
 ## Settings
 
-Admin › Settings › Recovery: **Keep Deleted Servers' Backups (Days)** (`recovery::deleted_hold_days`,
-default 7, 0 to 90). 0 records nothing, and an owner's delete removes the system backups too.
+Admin › Settings › Hosting › Recovery: **Keep Deleted Servers' Backups (Days)**
+(`recovery::deleted_hold_days`, default 7, 0 to 90). 0 records nothing, and an owner's delete
+removes the system backups too.
 
 ## Without noprofit.space
 
@@ -74,5 +75,6 @@ Nothing differs.
 - Delete a server from its Settings page: it stays on the page with "Deleted" and "Kept Until"
   (7 days on); its download still works. Within 10 minutes its older system backups are gone
   (Admin › Nodes › Backups), the newest stays.
-- Admin › Settings › Recovery: set 0; delete another server: it does not appear on the page.
+- Admin › Settings › Hosting › Recovery: set 0; delete another server: it does not appear on the
+  page.
 - An API key without `backups.read` gets 403 on the list.

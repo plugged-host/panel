@@ -86,7 +86,7 @@ where, match}`; for `cpu.pinned` the average CPU, the limit, the minutes and the
 
 ## Acting
 
-The mode (Admin › Settings › Abuse) decides:
+The mode (Admin › Settings › Security › Abuse) decides:
 
 - **`suspend`**: a critical finding that is not dismissed suspends the server under a per-server
   lock, with the findings' summaries as the reason and the deletion time set to now plus the
@@ -122,7 +122,7 @@ Permissions: `abuse.read` (see findings), `abuse.manage` (dismiss, resolve, scan
 
 ## Settings
 
-Admin › Settings › Abuse (`shared/src/settings/abuse.rs`, section `abuse`):
+Admin › Settings › Security › Abuse (`shared/src/settings/abuse.rs`, section `abuse`):
 
 | Setting | Default | Means |
 |---|---|---|

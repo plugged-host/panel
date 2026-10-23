@@ -1,4 +1,4 @@
-// plugged.host: Admin › Settings › Games
+// plugged.host: Admin › Settings › Hosting › Games
 import { z } from 'zod';
 import { axiosInstance } from '@/api/axios.ts';
 import { adminSettingsGamesSchema } from '@/lib/schemas/admin/settings.ts';

@@ -2,8 +2,8 @@
 //!
 //! The tour has two parts because it runs on the real pages: the first on the server list, the
 //! second on a server's console, which a new account only reaches once it has a server. The state
-//! is kept per tour version: raising the version in Admin › Settings › Welcome Tour shows it to
-//! everyone again.
+//! is kept per tour version: raising the version in Admin › Settings › Accounts › Welcome Tour
+//! shows it to everyone again.
 
 use serde::{Deserialize, Serialize};
 use sqlx::Row;

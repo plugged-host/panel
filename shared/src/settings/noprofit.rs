@@ -1,4 +1,4 @@
-// plugged.host: the noprofit.space settings section (Admin › Settings › noprofit.space).
+// plugged.host: the noprofit.space settings section (Admin › Settings › Accounts › noprofit.space).
 
 use super::{
     ExtensionSettings, SettingsDeserializeExt, SettingsDeserializer, SettingsSerializeExt,

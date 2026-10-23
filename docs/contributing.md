@@ -31,7 +31,7 @@ Every change to an upstream file carries a comment with `plugged.host` on the ch
 line above it, and every new file starts with a one-line header comment that has it:
 
 ```rust
-// plugged.host: noprofit.space settings section (Admin › Settings › noprofit.space).
+// plugged.host: noprofit.space settings section (Admin › Settings › Accounts › noprofit.space).
 ```
 
 ```ts

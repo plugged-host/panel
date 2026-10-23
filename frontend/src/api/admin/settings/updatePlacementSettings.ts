@@ -1,4 +1,4 @@
-// plugged.host: Admin › Settings › Placement
+// plugged.host: Admin › Settings › Hosting › Placement
 import { z } from 'zod';
 import { axiosInstance } from '@/api/axios.ts';
 import { adminSettingsPlacementSchema } from '@/lib/schemas/admin/settings.ts';

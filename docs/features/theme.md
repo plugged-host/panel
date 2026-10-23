@@ -22,11 +22,12 @@ from `src/elements` already do.
 
 ## Accent colour
 
-Admin › Settings › Metadata › Theme Color sets it: one of Tailwind's palettes (the swatches) or any
-colour. The theme is two-tier: a darker fill (buttons, active rows) and a lighter shade for text and
-rings on dark surfaces. `accentFor()` builds both from the chosen colour, darkens the fill until white
-text on it reaches 4.5:1 contrast and lightens the text shade until it reaches 4.5:1 on the sidebar.
-Blue, the default, changes nothing. The public settings carry it as `app.themeColor`.
+Admin › Settings › General › Metadata › Theme Color sets it: one of Tailwind's palettes (the
+swatches) or any colour. The theme is two-tier: a darker fill (buttons, active rows) and a lighter
+shade for text and rings on dark surfaces. `accentFor()` builds both from the chosen colour, darkens
+the fill until white text on it reaches 4.5:1 contrast and lightens the text shade until it reaches
+4.5:1 on the sidebar. Blue, the default, changes nothing. The public settings carry it as
+`app.themeColor`.
 
 ## Icons
 
@@ -47,6 +48,6 @@ to the map when one is missing.
 
 - The sidebar shows the logo, grouped rows and the avatar row; on a phone it opens from the square
   button at the top.
-- Admin › Settings › Metadata: pick a swatch, then a custom colour such as `#facc15`. Buttons, active
-  rows and links follow; button text stays readable.
+- Admin › Settings › General › Metadata: pick a swatch, then a custom colour such as `#facc15`.
+  Buttons, active rows and links follow; button text stays readable.
 - The server list shows cards with live usage bars; narrowing the window reflows them.

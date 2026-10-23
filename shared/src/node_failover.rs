@@ -10,11 +10,11 @@
 //! 2. `rehoming` → `restoring`: the backup is restored there, the directory emptied first.
 //! 3. `restoring` → `done` or `failed`, from the restore's outcome.
 //!
-//! Once the old node answers again, a `done` server's copy there is removed (the Wings fork's
-//! `POST /api/system/orphans`). A server that failed before its row moved stays on the old node.
-//! Automatic failovers (Admin › Settings › Recovery) start for a node that missed enough checks
-//! in a row, one at a time, and only while most other nodes answer: when many nodes look down at
-//! once, the panel's own network is the likelier cause.
+//! Once the old node answers again, a `done` server's copy there is removed (the Wings fork's `POST
+//! /api/system/orphans`). A server that failed before its row moved stays on the old node.
+//! Automatic failovers (Admin › Settings › Hosting › Recovery) start for a node that missed enough
+//! checks in a row, one at a time, and only while most other nodes answer: when many nodes look
+//! down at once, the panel's own network is the likelier cause.
 
 use crate::{
     models::{
@@ -54,7 +54,7 @@ const RESTORE_TIMEOUT_HOURS: i64 = 6;
 
 #[derive(Debug)]
 pub enum FailoverError {
-    /// Admin › Settings › Recovery has failover off.
+    /// Admin › Settings › Hosting › Recovery has failover off.
     Disabled,
     /// A failover of the node is under way.
     Running,
@@ -69,7 +69,9 @@ pub enum FailoverError {
 impl FailoverError {
     pub fn message(&self) -> String {
         match self {
-            Self::Disabled => "node failover is turned off (Admin › Settings › Recovery)".into(),
+            Self::Disabled => {
+                "node failover is turned off (Admin › Settings › Hosting › Recovery)".into()
+            }
             Self::Running => "a failover of this node is already under way".into(),
             Self::NotOnNode => "that server is not on this node".into(),
             Self::NoServers => "this node has no servers".into(),

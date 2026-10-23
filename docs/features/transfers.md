@@ -8,7 +8,7 @@ the new node); the request around it lives in `server_transfers.rs` and the tabl
 
 ## Settings
 
-Admin › Settings › Games › Moving Servers (`shared/src/settings/games.rs`):
+Admin › Settings › Hosting › Games › Moving Servers (`shared/src/settings/games.rs`):
 
 | Setting | Default | Means |
 |---|---|---|
@@ -117,7 +117,7 @@ Nothing changes. Locations with a tier stay locked for players until the economy
 
 Needs two nodes of the role `game`, best in two locations.
 
-- Admin › Settings › Games: turn "Players Move Servers" on, "Hours Between Moves" 1.
+- Admin › Settings › Hosting › Games: turn "Players Move Servers" on, "Hours Between Moves" 1.
 - As a server's owner: the sidebar shows Move Server; the current location says "Current location".
 - Pick the other location, Move Server, confirm: the console shows the transfer bar with Cancel;
   afterwards the server is on the other node (Admin › Servers), with the same port if it was free

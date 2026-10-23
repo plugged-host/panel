@@ -1,4 +1,4 @@
-// plugged.host: Admin › Settings › noprofit.space
+// plugged.host: Admin › Settings › Accounts › noprofit.space
 import { z } from 'zod';
 import type { FieldDef } from '@/elements/form-engine/index.ts';
 import { adminSettingsNoprofitSchema } from '@/lib/schemas/admin/settings.ts';

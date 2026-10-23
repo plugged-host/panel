@@ -7,9 +7,9 @@ permission) sees them all and a subuser only what they were given.
 | Card | Permission | Shown when |
 |---|---|---|
 | SFTP | `files.sftp` | always |
-| Resources | `settings.resize` | Admin › Settings › Games › "Players Resize Servers" is on, or the viewer is an admin |
+| Resources | `settings.resize` | Admin › Settings › Hosting › Games › "Players Resize Servers" is on, or the viewer is an admin |
 | Software | `settings.software` | the server's egg is a game in the catalog with at least two software choices |
-| Delete Server | `settings.delete` | Admin › Settings › Games › "Players Delete Servers" is on, or the viewer is an admin |
+| Delete Server | `settings.delete` | Admin › Settings › Hosting › Games › "Players Delete Servers" is on, or the viewer is an admin |
 
 ## SFTP
 
@@ -39,8 +39,9 @@ The server's activity log gets `server:settings.resize` with the old and new siz
 
 ## Software
 
-`shared/src/server_software.rs`. The game's software choices from Admin › Settings › Games. The current
-one is read back from the game's variable (an unknown value counts as the first choice). Switching:
+`shared/src/server_software.rs`. The game's software choices from Admin › Settings › Hosting ›
+Games. The current one is read back from the game's variable (an unknown value counts as the first
+choice). Switching:
 
 1. writes the choice to the variable,
 2. takes the choice's startup command and image (or the egg's first),
@@ -76,7 +77,7 @@ changes.
 
 ## Check
 
-- Admin › Settings › Games: turn "Players Resize Servers" and "Players Delete Servers" on.
+- Admin › Settings › Hosting › Games: turn "Players Resize Servers" and "Players Delete Servers" on.
 - As the owner of a server: Settings shows SFTP, Resources, Software (for a game with two or more
   choices) and Delete Server.
 - SFTP: copy host and username, log in with the password the card names.

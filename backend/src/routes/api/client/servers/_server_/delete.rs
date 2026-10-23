@@ -1,4 +1,4 @@
-// plugged.host: owners deleting their own servers, when Admin › Settings › Games allows it
+// plugged.host: owners delete their own servers when Settings › Hosting › Games allows it
 // (docs/features/server-settings.md).
 
 pub mod delete {

@@ -1,4 +1,4 @@
-// plugged.host: Admin › Settings › Placement, the automatic deployment pause
+// plugged.host: Admin › Settings › Hosting › Placement, the automatic deployment pause
 import { useForm } from '@mantine/form';
 import { zod4Resolver } from 'mantine-form-zod-resolver';
 import { z } from 'zod';

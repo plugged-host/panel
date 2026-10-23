@@ -70,7 +70,7 @@ while a failover runs. Admin activity: `node:failover`, `node:failover.cancel`.
 
 ## Settings
 
-Admin › Settings › Recovery:
+Admin › Settings › Hosting › Recovery:
 
 | Field | Key | Default |
 |---|---|---|
@@ -91,6 +91,7 @@ Nothing differs.
 - The old node's Wings no longer lists the server; Old Copy Removed has a time.
 - Drill a server without an off-node backup: Failed, "no finished backup on storage other nodes
   reach"; the server is still on its node.
-- Admin › Settings › Recovery › Node Failover off: the buttons are disabled and the tab says so.
+- Admin › Settings › Hosting › Recovery › Node Failover off: the buttons are disabled and the tab
+  says so.
 - Automatic: stop Wings' machine (not just Wings) on a test node with the setting on and the
   minutes at 3: after about 3 minutes a failover starts; when the node is back, the old copies go.

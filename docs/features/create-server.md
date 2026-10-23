@@ -5,8 +5,8 @@ a plan, name the server and accept the game's EULA when it has one. The panel fi
 free allocations, creates the server and starts it after its install. What an account may create is
 its **allowance**.
 
-It is off until an admin turns it on (Admin › Settings › Games); until then only admins create
-servers, the native way.
+It is off until an admin turns it on (Admin › Settings › Hosting › Games); until then only admins
+create servers, the native way.
 
 ## Plans
 
@@ -17,7 +17,7 @@ server keeps its limits, the plan is only what it was created with.
 
 ## Games
 
-Admin › Settings › Games (`shared/src/settings/games.rs`):
+Admin › Settings › Hosting › Games (`shared/src/settings/games.rs`):
 
 | Setting | Means |
 |---|---|
@@ -101,8 +101,8 @@ The allowance comes from the games settings, the same for every account. Nothing
 
 - Admin › Plans: create two plans, edit one, change the order; hide one and it is gone from the
   create page.
-- Admin › Settings › Games: add a game with two variants and a variable, set a per-account memory
-  limit, turn "Players Create Servers" on and save. Saving an egg twice is refused.
+- Admin › Settings › Hosting › Games: add a game with two variants and a variable, set a per-account
+  memory limit, turn "Players Create Servers" on and save. Saving an egg twice is refused.
 - As a player: "Create server" shows above the server list; create a server, it opens the console,
   installs and starts; with a Minecraft egg, `eula.txt` says `eula=true` and the server starts
   without the EULA prompt.

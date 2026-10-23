@@ -10,11 +10,11 @@
 //!   container and what it connects to, and the node's own processes;
 //! - an admin's "Scan now".
 //!
-//! The mode (Admin › Settings › Abuse) decides what happens: `suspend` suspends a server with a
-//! critical finding that is not dismissed (kind `abuse`, deleted after the configured hours
+//! The mode (Admin › Settings › Security › Abuse) decides what happens: `suspend` suspends a server
+//! with a critical finding that is not dismissed (kind `abuse`, deleted after the configured hours
 //! unless it is unsuspended or a finding on it is dismissed), `report` records and alerts only,
-//! `off` checks nothing. Review findings never suspend. The rules are all here and in
-//! `signatures`; Wings only collects.
+//! `off` checks nothing. Review findings never suspend. The rules are all here and in `signatures`;
+//! Wings only collects.
 
 pub mod inspect;
 pub mod signatures;

@@ -30,13 +30,13 @@ its offers (1, 2 and 4 steps), and the last 10 credit transactions. A purchase i
 dialog and sent with the price the player saw: a price that moved since buys nothing (409, the page
 shows the new prices).
 
-**Without noprofit.space** the account has the games allowance (Admin › Settings › Games) plus
-what it bought (`users.extra_cpu`, `extra_memory`, `extra_disk`); a resource the allowance does not
-limit is not sold. Prices follow one curve per resource, the same as noprofit.space's
+**Without noprofit.space** the account has the games allowance (Admin › Settings › Hosting › Games)
+plus what it bought (`users.extra_cpu`, `extra_memory`, `extra_disk`); a resource the allowance does
+not limit is not sold. Prices follow one curve per resource, the same as noprofit.space's
 (`shared/src/pricing.rs`): from the lowest price up to the step price at the limit, then climbing to
 the soft limit, then doubling. A price is the area under the curve, so four steps at once cost what
-four single ones would. A purchase locks the user row, checks the price and the balance, and
-writes the credits, the resources and the ledger row together.
+four single ones would. A purchase locks the user row, checks the price and the balance, and writes
+the credits, the resources and the ledger row together.
 
 **With noprofit.space** the page shows noprofit.space's store for the account (its credits,
 catalog and history) and buys through it; the account's plan grows there, and the panel pulls the
@@ -125,7 +125,8 @@ User activity: `account:store.purchase`, `account:membership.plus`, `account:mem
 
 ## Settings
 
-Admin › Settings › Economy:
+Admin › Settings › Economy, in three tabs: Resource Store (credits, starting credits, prices),
+Tokens (daily tokens, Linkvertise, Vylo) and Memberships. A tab saves only its own fields.
 
 | Field | Key | Default |
 |---|---|---|
@@ -156,11 +157,11 @@ and `/credits/spend`.
 
 ## Check
 
-- Admin › Settings › Economy: save with the defaults; the Account menu shows Resource Store, Tokens
-  and Membership.
-- Without noprofit.space, with a CPU allowance in Admin › Settings › Games: Admin › Users › a user ›
-  Economy › add 500 credits. Resource Store: +50 % CPU costs 50 credits; buy it; the balance, the
-  history and the create page's allowance show it.
+- Admin › Settings › Economy: save each of the three tabs with the defaults; the Account menu shows
+  Resource Store, Tokens and Membership.
+- Without noprofit.space, with a CPU allowance in Admin › Settings › Hosting › Games: Admin › Users
+  › a user › Economy › add 500 credits. Resource Store: +50 % CPU costs 50 credits; buy it; the
+  balance, the history and the create page's allowance show it.
 - A resource without a limit in the games settings says it is not sold.
 - Admin: add 30 tokens. Membership: buy the first one; a `plus` location opens on the create and
   transfer pages. Buy the second with tokens: it runs for 7 days, a `premium` location opens and the

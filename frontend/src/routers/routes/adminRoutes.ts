@@ -18,9 +18,9 @@ import {
   faServer,
   faShieldHalved,
   faUsers,
-  faWrench,
 } from '@fortawesome/free-solid-svg-icons';
 import { faComputer } from '@fortawesome/free-solid-svg-icons/faComputer';
+import { createElement } from 'react'; // plugged.host
 import type { AdminRouteDefinition } from 'shared';
 import type { LazyString } from '@/lib/lazy.ts';
 import AdminAbuse from '@/pages/admin/abuse/AdminAbuse.tsx';
@@ -40,7 +40,7 @@ import AdminOAuthProviders from '@/pages/admin/oauth-providers/AdminOAuthProvide
 import AdminPlans from '@/pages/admin/plans/AdminPlans.tsx'; // plugged.host
 import AdminRoles from '@/pages/admin/roles/AdminRoles.tsx';
 import AdminServers from '@/pages/admin/servers/AdminServers.tsx';
-import AdminSettings from '@/pages/admin/settings/AdminSettings.tsx';
+import AdminSettings, { AdminSettingsRedirect, settingsGroups } from '@/pages/admin/settings/AdminSettings.tsx'; // plugged.host
 import AdminStatus from '@/pages/admin/status/AdminStatus.tsx';
 import AdminSystemBackupPolicies from '@/pages/admin/system-backup-policies/AdminSystemBackupPolicies.tsx';
 import AdminUsers from '@/pages/admin/users/AdminUsers.tsx';
@@ -49,6 +49,7 @@ import { useGlobalStore } from '@/stores/global.ts';
 
 export const adminSidebarCategoryOrder: { key: string; label: LazyString }[] = [
   { key: 'system', label: () => getTranslations().t('pages.admin.categories.system', {}) },
+  { key: 'settings', label: () => getTranslations().t('pages.admin.categories.settings', {}) }, // plugged.host
   { key: 'infrastructure', label: () => getTranslations().t('pages.admin.categories.infrastructure', {}) },
   { key: 'access', label: () => getTranslations().t('pages.admin.categories.access', {}) },
   { key: 'eggs', label: () => getTranslations().t('pages.admin.categories.eggs', {}) },
@@ -204,14 +205,6 @@ const routes: AdminRouteDefinition[] = [
   },
 
   {
-    name: () => getTranslations().t('pages.admin.settings.title', {}),
-    icon: faWrench,
-    path: '/settings/*',
-    element: AdminSettings,
-    permission: ['settings.*'],
-    category: 'system',
-  },
-  {
     name: () => getTranslations().t('pages.admin.announcements.title', {}),
     icon: faBullhorn,
     path: '/announcements/*',
@@ -235,6 +228,25 @@ const routes: AdminRouteDefinition[] = [
     element: AdminAssets,
     permission: ['assets.*'],
     category: 'system',
+  },
+
+  // plugged.host: the settings as a few pages under "Settings" (AdminSettings.tsx); old links to a
+  // tab of the single settings page are sent to where it went
+  ...settingsGroups.map(
+    (group): AdminRouteDefinition => ({
+      name: group.name,
+      icon: group.icon,
+      path: `/settings/${group.key}/*`,
+      element: () => createElement(AdminSettings, { group }),
+      permission: ['settings.*'],
+      category: 'settings',
+    }),
+  ),
+  {
+    name: undefined,
+    path: '/settings/*',
+    element: AdminSettingsRedirect,
+    permission: ['settings.*'],
   },
 ];
 

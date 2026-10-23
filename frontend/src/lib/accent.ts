@@ -3,7 +3,7 @@ import type { MantineColorsTuple } from '@mantine/core';
 /*
  * plugged.host: Theme v2's accent colour, the Pelican panel's (plugged-host-theme-v2
  * Support\Accent on the 2.2 branch of the plugins), set here by the panel's theme colour
- * (Admin › Settings › Metadata).
+ * (Admin › Settings › General › Metadata).
  *
  * theme.ts and app.css are written in blue: Mantine's blue palette and the --theme-accent*
  * properties, plus Tailwind's blue utilities that upstream's components use. Any other accent

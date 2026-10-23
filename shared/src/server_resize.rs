@@ -22,7 +22,7 @@ pub struct Bounds {
 
 #[derive(ToSchema, Serialize)]
 pub struct ApiResize {
-    /// Resizing is on (Admin › Settings › Games).
+    /// Resizing is on (Admin › Settings › Hosting › Games).
     pub enabled: bool,
     pub current: Resources,
     pub max: Bounds,

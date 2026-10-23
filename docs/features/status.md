@@ -5,8 +5,8 @@ static-shaped files a public status page reads (`/data/*.json`, `/data/feed.xml`
 incidents, force a component's status for a while (overrides) and choose which components are
 listed. The page itself is a separate site; the fork only supplies its data.
 
-The whole feature is off until Admin › Settings › Status Page › "Enable the Status Page" is on.
-While it is off nothing is checked and `/data/*` answers 404.
+The whole feature is off until Admin › Settings › General › Status Page › "Enable the Status Page"
+is on. While it is off nothing is checked and `/data/*` answers 404.
 
 ## Components
 
@@ -73,7 +73,7 @@ status site already reads, so the site works unchanged against this panel.
 
 ## Settings
 
-Admin › Settings › Status Page (`shared/src/settings/status.rs`, section `status`):
+Admin › Settings › General › Status Page (`shared/src/settings/status.rs`, section `status`):
 
 | Setting | Default | Means |
 |---|---|---|
@@ -105,9 +105,9 @@ Nothing changes: the status page only talks to the website, the panel and the no
 
 ## Check
 
-- Admin › Settings › Status Page: turn it on with a Website URL and a Panel URL and save. Within a
-  minute Admin › Status › Components lists the website, the panel and every node, each with a
-  status and "Last Checked".
+- Admin › Settings › General › Status Page: turn it on with a Website URL and a Panel URL and save.
+  Within a minute Admin › Status › Components lists the website, the panel and every node, each with
+  a status and "Last Checked".
 - Open `https://<panel>/data/current.json`: it lists the same components; `history.json`,
   `incidents.json`, `targets.json` and `feed.xml` answer too. Turned off, they answer 404.
 - Admin › Status › Components › a node › Edit: untick Published; it leaves `current.json`.

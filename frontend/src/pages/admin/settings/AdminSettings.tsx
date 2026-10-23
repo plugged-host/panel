@@ -5,31 +5,40 @@ import {
   faCircleUp,
   faClockRotateLeft, // plugged.host
   faCoins, // plugged.host
+  faCubes, // plugged.host
   faDatabase,
   faEnvelopesBulk,
   faGamepad,
   faHandshake,
   faHeartPulse,
   faLayerGroup,
+  faLock, // plugged.host
+  faMedal, // plugged.host
   faRobot,
   faScaleBalanced,
   faServer,
   faShareNodes,
   faShieldHalved,
+  faStore, // plugged.host
   faToolbox,
   faUser,
   faUserCheck,
+  faUserGear, // plugged.host
+  faWrench, // plugged.host
+  IconDefinition, // plugged.host
 } from '@fortawesome/free-solid-svg-icons';
 import { useEffect, useState } from 'react';
+import { Navigate, useParams } from 'react-router'; // plugged.host
 import getSettings from '@/api/admin/settings/getSettings.ts';
 import { httpErrorToHuman } from '@/api/axios.ts';
 import AdminContentContainer from '@/elements/containers/AdminContentContainer.tsx';
 import FormDraftScope from '@/elements/FormDraftScope.tsx';
 import Spinner from '@/elements/feedback/Spinner.tsx';
-import SubNavigation from '@/elements/navigation/SubNavigation.tsx';
+import SubNavigation, { type ItemProp } from '@/elements/navigation/SubNavigation.tsx'; // plugged.host
+import { type LazyString, resolveString } from '@/lib/lazy.ts'; // plugged.host
 import EmailTemplatesContainer from '@/pages/admin/settings/emailTemplates/EmailTemplatesContainer.tsx';
 import { useToast } from '@/providers/ToastProvider.tsx';
-import { useTranslations } from '@/providers/TranslationProvider.tsx';
+import { getTranslations, useTranslations } from '@/providers/TranslationProvider.tsx';
 import { trackActivity } from '@/stores/activity.ts';
 import { useAdminStore } from '@/stores/admin.tsx';
 import AbuseContainer from './abuse/AbuseContainer.tsx';
@@ -52,7 +61,227 @@ import UpdatesContainer from './updates/UpdatesContainer.tsx';
 import UserContainer from './user/UserContainer.tsx';
 import WebauthnContainer from './webauthn/WebauthnContainer.tsx';
 
-export default function AdminSettings() {
+// plugged.host: the settings are split into a few pages, each its own entry under "Settings" in the
+// admin sidebar (docs/upstream.md), instead of one page with every tab.
+export type SettingsGroupKey = 'general' | 'mail' | 'accounts' | 'hosting' | 'security' | 'economy';
+
+type Translate = ReturnType<typeof useTranslations>['t'];
+
+export interface SettingsGroup {
+  key: SettingsGroupKey;
+  icon: IconDefinition;
+  name: LazyString;
+  tabs: (t: Translate) => ItemProp[];
+}
+
+export const settingsGroups: SettingsGroup[] = [
+  {
+    key: 'general',
+    icon: faWrench,
+    name: () => getTranslations().t('pages.admin.settings.groups.general', {}),
+    tabs: (t) => [
+      {
+        name: t('pages.admin.settings.tabs.application.title', {}),
+        icon: faLayerGroup,
+        path: '/',
+        element: <ApplicationContainer />,
+      },
+      {
+        name: t('pages.admin.settings.tabs.metadata.title', {}),
+        icon: faShareNodes,
+        path: '/metadata',
+        element: <MetadataContainer />,
+      },
+      {
+        name: t('pages.admin.settings.tabs.storage.title', {}),
+        icon: faDatabase,
+        path: '/storage',
+        element: <StorageContainer />,
+      },
+      // the public status page
+      {
+        name: t('pages.admin.settings.tabs.status.title', {}),
+        icon: faHeartPulse,
+        path: '/status',
+        element: <StatusContainer />,
+      },
+      {
+        name: t('pages.admin.settings.tabs.updates.title', {}),
+        icon: faCircleUp,
+        path: '/updates',
+        element: <UpdatesContainer />,
+      },
+    ],
+  },
+  {
+    key: 'mail',
+    icon: faAt,
+    name: () => getTranslations().t('pages.admin.settings.groups.mail', {}),
+    tabs: (t) => [
+      {
+        name: t('pages.admin.settings.tabs.mail.title', {}),
+        icon: faAt,
+        path: '/',
+        element: <EmailContainer />,
+      },
+      {
+        name: t('pages.admin.settings.tabs.mailTemplates.title', {}),
+        icon: faEnvelopesBulk,
+        path: '/templates',
+        element: <EmailTemplatesContainer />,
+        permission: 'email-templates.read',
+      },
+    ],
+  },
+  {
+    key: 'accounts',
+    icon: faUserGear,
+    name: () => getTranslations().t('pages.admin.settings.groups.accounts', {}),
+    tabs: (t) => [
+      {
+        name: t('pages.admin.settings.tabs.user.title', {}),
+        icon: faUser,
+        path: '/',
+        element: <UserContainer />,
+      },
+      {
+        name: t('pages.admin.settings.tabs.noprofit.title', {}),
+        icon: faHandshake,
+        path: '/noprofit',
+        element: <NoprofitContainer />,
+      },
+      {
+        name: t('pages.admin.settings.tabs.webauthn.title', {}),
+        icon: faUserCheck,
+        path: '/webauthn',
+        element: <WebauthnContainer />,
+      },
+      {
+        name: t('pages.admin.settings.tabs.tour.title', {}),
+        icon: faCircleQuestion,
+        path: '/tour',
+        element: <TourContainer />,
+      },
+    ],
+  },
+  {
+    key: 'hosting',
+    icon: faCubes,
+    name: () => getTranslations().t('pages.admin.settings.groups.hosting', {}),
+    tabs: (t) => [
+      {
+        name: t('pages.admin.settings.tabs.server.title', {}),
+        icon: faServer,
+        path: '/',
+        element: <ServerContainer />,
+      },
+      // what players may create, the deployment pause, deleted servers' copies
+      {
+        name: t('pages.admin.settings.tabs.games.title', {}),
+        icon: faGamepad,
+        path: '/games',
+        element: <GamesContainer />,
+      },
+      {
+        name: t('pages.admin.settings.tabs.placement.title', {}),
+        icon: faScaleBalanced,
+        path: '/placement',
+        element: <PlacementContainer />,
+      },
+      {
+        name: t('pages.admin.settings.tabs.recovery.title', {}),
+        icon: faClockRotateLeft,
+        path: '/recovery',
+        element: <RecoveryContainer />,
+      },
+    ],
+  },
+  {
+    key: 'security',
+    icon: faLock,
+    name: () => getTranslations().t('pages.admin.settings.groups.security', {}),
+    tabs: (t) => [
+      {
+        name: t('pages.admin.settings.tabs.captcha.title', {}),
+        icon: faRobot,
+        path: '/',
+        element: <CaptchaContainer />,
+      },
+      {
+        name: t('pages.admin.settings.tabs.ratelimits.title', {}),
+        icon: faBan,
+        path: '/ratelimits',
+        element: <RatelimitsContainer />,
+      },
+      {
+        name: t('pages.admin.settings.tabs.abuse.title', {}),
+        icon: faShieldHalved,
+        path: '/abuse',
+        element: <AbuseContainer />,
+      },
+      {
+        name: t('pages.admin.settings.tabs.activity.title', {}),
+        icon: faToolbox,
+        path: '/activity',
+        element: <ActivityContainer />,
+      },
+    ],
+  },
+  {
+    key: 'economy',
+    icon: faCoins,
+    name: () => getTranslations().t('pages.admin.settings.groups.economy', {}),
+    tabs: (t) => [
+      {
+        name: t('pages.admin.settings.tabs.economy.store', {}),
+        icon: faStore,
+        path: '/',
+        element: <EconomyContainer part='store' />,
+      },
+      {
+        name: t('pages.admin.settings.tabs.economy.tokens', {}),
+        icon: faCoins,
+        path: '/tokens',
+        element: <EconomyContainer part='tokens' />,
+      },
+      {
+        name: t('pages.admin.settings.tabs.economy.memberships', {}),
+        icon: faMedal,
+        path: '/memberships',
+        element: <EconomyContainer part='memberships' />,
+      },
+    ],
+  },
+];
+
+// plugged.host: where the tabs of the single settings page went, for old links and bookmarks
+const movedTabs: Record<string, string> = {
+  metadata: 'general/metadata',
+  storage: 'general/storage',
+  status: 'general/status',
+  updates: 'general/updates',
+  'mail-templates': 'mail/templates',
+  user: 'accounts',
+  noprofit: 'accounts/noprofit',
+  webauthn: 'accounts/webauthn',
+  tour: 'accounts/tour',
+  server: 'hosting',
+  games: 'hosting/games',
+  placement: 'hosting/placement',
+  recovery: 'hosting/recovery',
+  captcha: 'security',
+  ratelimits: 'security/ratelimits',
+  abuse: 'security/abuse',
+  activity: 'security/activity',
+};
+
+export function AdminSettingsRedirect() {
+  const tab = (useParams()['*'] ?? '').split('/')[0];
+
+  return <Navigate to={`/admin/settings/${movedTabs[tab] ?? 'general'}`} replace />;
+}
+
+export default function AdminSettings({ group }: { group: SettingsGroup }) {
   const { addToast } = useToast();
   const { t } = useTranslations();
   const setSettings = useAdminStore((state) => state.setSettings);
@@ -68,144 +297,14 @@ export default function AdminSettings() {
       .finally(() => setLoading(false));
   }, []);
 
+  const baseUrl = `/admin/settings/${group.key}`;
+
   return loading ? (
     <Spinner.Centered />
   ) : (
-    <AdminContentContainer title={t('pages.admin.settings.title', {})}>
-      <FormDraftScope baseUrl='/admin/settings'>
-        <SubNavigation
-          baseUrl='/admin/settings'
-          items={[
-            {
-              name: t('pages.admin.settings.tabs.application.title', {}),
-              icon: faLayerGroup,
-              path: '/',
-              element: <ApplicationContainer />,
-            },
-            {
-              name: t('pages.admin.settings.tabs.metadata.title', {}),
-              icon: faShareNodes,
-              path: '/metadata',
-              element: <MetadataContainer />,
-            },
-            {
-              name: t('pages.admin.settings.tabs.storage.title', {}),
-              icon: faDatabase,
-              path: '/storage',
-              element: <StorageContainer />,
-            },
-            {
-              name: t('pages.admin.settings.tabs.mail.title', {}),
-              icon: faAt,
-              path: '/mail',
-              element: <EmailContainer />,
-            },
-            {
-              name: t('pages.admin.settings.tabs.mailTemplates.title', {}),
-              icon: faEnvelopesBulk,
-              path: '/mail-templates',
-              element: <EmailTemplatesContainer />,
-              permission: 'email-templates.read',
-            },
-            {
-              name: t('pages.admin.settings.tabs.captcha.title', {}),
-              icon: faRobot,
-              path: '/captcha',
-              element: <CaptchaContainer />,
-            },
-            // plugged.host: noprofit.space, next to the other sign-in settings
-            {
-              name: t('pages.admin.settings.tabs.noprofit.title', {}),
-              icon: faHandshake,
-              path: '/noprofit',
-              element: <NoprofitContainer />,
-            },
-            {
-              name: t('pages.admin.settings.tabs.webauthn.title', {}),
-              icon: faUserCheck,
-              path: '/webauthn',
-              element: <WebauthnContainer />,
-            },
-            {
-              name: t('pages.admin.settings.tabs.server.title', {}),
-              icon: faServer,
-              path: '/server',
-              element: <ServerContainer />,
-            },
-            {
-              name: t('pages.admin.settings.tabs.user.title', {}),
-              icon: faUser,
-              path: '/user',
-              element: <UserContainer />,
-            },
-            {
-              name: t('pages.admin.settings.tabs.activity.title', {}),
-              icon: faToolbox,
-              path: '/activity',
-              element: <ActivityContainer />,
-            },
-            {
-              name: t('pages.admin.settings.tabs.ratelimits.title', {}),
-              icon: faBan,
-              path: '/ratelimits',
-              element: <RatelimitsContainer />,
-            },
-            // plugged.host: the public status page
-            {
-              name: t('pages.admin.settings.tabs.status.title', {}),
-              icon: faHeartPulse,
-              path: '/status',
-              element: <StatusContainer />,
-            },
-            // plugged.host: abuse protection
-            {
-              name: t('pages.admin.settings.tabs.abuse.title', {}),
-              icon: faShieldHalved,
-              path: '/abuse',
-              element: <AbuseContainer />,
-            },
-            // plugged.host: what players may create, the deployment pause
-            {
-              name: t('pages.admin.settings.tabs.games.title', {}),
-              icon: faGamepad,
-              path: '/games',
-              element: <GamesContainer />,
-            },
-            {
-              name: t('pages.admin.settings.tabs.placement.title', {}),
-              icon: faScaleBalanced,
-              path: '/placement',
-              element: <PlacementContainer />,
-            },
-            // plugged.host: the welcome tour
-            {
-              name: t('pages.admin.settings.tabs.tour.title', {}),
-              icon: faCircleQuestion,
-              path: '/tour',
-              element: <TourContainer />,
-            },
-            // plugged.host: deleted servers' copies
-            {
-              name: t('pages.admin.settings.tabs.recovery.title', {}),
-              icon: faClockRotateLeft,
-              path: '/recovery',
-              element: <RecoveryContainer />,
-            },
-            // plugged.host: credits, tokens, memberships, the Resource Store
-            {
-              name: t('pages.admin.settings.tabs.economy.title', {}),
-              icon: faCoins,
-              path: '/economy',
-              element: <EconomyContainer />,
-            },
-            {
-              name: t('pages.admin.settings.tabs.updates.title', {}),
-              icon: faCircleUp,
-              path: '/updates',
-              element: <UpdatesContainer />,
-            },
-          ]}
-        />
+    <AdminContentContainer title={resolveString(group.name)}>
+      <FormDraftScope baseUrl={baseUrl}>
+        <SubNavigation baseUrl={baseUrl} items={group.tabs(t)} />
       </FormDraftScope>
     </AdminContentContainer>
   );

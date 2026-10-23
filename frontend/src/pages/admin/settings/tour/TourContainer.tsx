@@ -1,4 +1,4 @@
-// plugged.host: Admin › Settings › Welcome Tour (docs/features/welcome-tour.md)
+// plugged.host: Admin › Settings › Accounts › Welcome Tour (docs/features/welcome-tour.md)
 import { useForm } from '@mantine/form';
 import { zod4Resolver } from 'mantine-form-zod-resolver';
 import { z } from 'zod';

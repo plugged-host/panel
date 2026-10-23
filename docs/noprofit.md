@@ -23,7 +23,7 @@ an environment variable, and has a branch for both cases.
 
 ## Setting it up
 
-Admin › Settings › noprofit.space:
+Admin › Settings › Accounts › noprofit.space:
 
 | Field | Meaning |
 |---|---|

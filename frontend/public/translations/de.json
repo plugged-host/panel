@@ -2393,7 +2393,8 @@
           "databases": "Datenbanken",
           "storage": "Speicher",
           "access": "Benutzer & Zugriff",
-          "system": "System"
+          "system": "System",
+          "settings": "Einstellungen"
         },
         "home": {
           "title": "Startseite",
@@ -2581,6 +2582,14 @@
         },
         "settings": {
           "title": "Einstellungen",
+          "groups": {
+            "general": "Allgemein",
+            "mail": "E-Mail",
+            "accounts": "Konten",
+            "hosting": "Hosting",
+            "security": "Sicherheit",
+            "economy": "Wirtschaft"
+          },
           "tabs": {
             "application": {
               "title": "Anwendung",
@@ -3207,13 +3216,16 @@
               }
             },
             "economy": {
-              "title": "Wirtschaft",
+              "store": "Ressourcen-Shop",
+              "tokens": "Tokens",
+              "memberships": "Mitgliedschaften",
               "page": {
-                "title": "Wirtschaft",
+                "storeTitle": "Credits und der Ressourcen-Shop",
+                "tokensTitle": "Tokens und Verdienen",
+                "membershipsTitle": "Mitgliedschaften",
                 "form": {
                   "secretStored": "Gespeichert. Leer lassen, um es zu behalten.",
                   "secretMissing": "Nicht gesetzt.",
-                  "creditsSection": "Währungen",
                   "creditsEnabled": "Credits",
                   "creditsEnabledDescription": "Mit Credits kauft man CPU, Arbeitsspeicher und Speicherplatz im Ressourcen-Shop und die zweite Mitgliedschaft. Ist noprofit.space verbunden, sind es dessen Credits. Ausgeschaltet ist der Shop ausgeblendet; die Guthaben bleiben.",
                   "startingCredits": "Startguthaben",
@@ -3222,7 +3234,6 @@
                   "tokensEnabledDescription": "Tokens werden über gesponserte Links verdient und kaufen die Mitgliedschaften.",
                   "dailyTokens": "Tägliche Tokens",
                   "dailyTokensDescription": "Tokens, die jedes Konto einmal am Tag beim ersten Hinsehen bekommt. 0 gibt keine.",
-                  "membershipSection": "Mitgliedschaften",
                   "membershipEnabled": "Mitgliedschaften",
                   "membershipEnabledDescription": "Die erste Mitgliedschaft wird einmal mit Tokens gekauft und öffnet die Standorte mit der Stufe „plus“. Die zweite läuft für eine Weile, braucht die erste und öffnet die Stufe „premium“.",
                   "plusName": "Name der ersten Mitgliedschaft",
@@ -3237,7 +3248,7 @@
                   "plusplusCreditDays": "Zweite Mitgliedschaft: Tage für Credits",
                   "plusplusCpu": "Zweite Mitgliedschaft: zusätzliche CPU (%)",
                   "plusplusCpuDescription": "Wird zur CPU des Kontos addiert, solange sie läuft. Läuft sie ab, geben die Server sie gleichmäßig zurück und verlassen die Premium-Standorte.",
-                  "storeSection": "Ressourcen-Shop",
+                  "storeSection": "Preise",
                   "storeNote": "Ohne noprofit.space: was ein Schritt kostet und wo die Preise steigen. Mit noprofit.space gelten dessen Shop und Preise.",
                   "cpuStep": "CPU-Schritt (%)",
                   "stepDescription": "Wie viel ein Schritt hinzufügt; 0 verkauft es nicht. Arbeitsspeicher und Speicherplatz in MiB.",
@@ -3448,7 +3459,7 @@
                   "sort": "Reihenfolge",
                   "checked": "Zuletzt geprüft"
                 },
-                "empty": "Noch keine Komponenten. Aktiviere die Statusseite unter Admin › Einstellungen › Statusseite.",
+                "empty": "Noch keine Komponenten. Aktiviere die Statusseite unter Admin › Einstellungen › Allgemein › Statusseite.",
                 "form": {
                   "labelNode": "Der Name eines Nodes ist sein Name auf der Statusseite.",
                   "publishedDescription": "Auf der Statusseite aufgeführt. Die Prüfungen laufen in beiden Fällen weiter.",
@@ -4445,7 +4456,7 @@
                   },
                   "lighten": {
                     "title": "Last verringern",
-                    "description": "Zieht einige Server auf die anderen Nodes von {location} um, wenige gleichzeitig (Admin › Einstellungen › Spiele › Gleichzeitige Umzüge pro Node). Jeder Server bekommt eine neue Adresse.",
+                    "description": "Zieht einige Server auf die anderen Nodes von {location} um, wenige gleichzeitig (Admin › Einstellungen › Hosting › Spiele › Gleichzeitige Umzüge pro Node). Jeder Server bekommt eine neue Adresse.",
                     "form": {
                       "pick": "Server",
                       "count": "Wie viele"
@@ -4490,7 +4501,7 @@
                 "title": "Node-Failover",
                 "description": "Ist dieser Node ausgefallen, können seine Server auf den anderen Nodes seines Standorts aus ihrem neuesten Backup auf einem Speicher wiederhergestellt werden, den die anderen Nodes erreichen (S3, Proxmox Backup Server, ein entferntes restic-Repository). Seit diesem Backup geänderte Dateien gehen verloren, und ein Server bekommt eine neue Adresse, sofern seine Ports auf dem neuen Node nicht frei sind. Ist dieser Node wieder da, werden die alten Kopien darauf entfernt.",
                 "alert": {
-                  "off": "Failover ist in Admin › Einstellungen › Wiederherstellung **ausgeschaltet**."
+                  "off": "Failover ist in Admin › Einstellungen › Hosting › Wiederherstellung **ausgeschaltet**."
                 },
                 "empty": "Für diesen Node gab es noch kein Failover.",
                 "button": {

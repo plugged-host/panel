@@ -1,4 +1,4 @@
-// plugged.host: Admin › Settings › Games
+// plugged.host: Admin › Settings › Hosting › Games
 import { UseFormReturnType } from '@mantine/form';
 import { z } from 'zod';
 import type { FieldDef } from '@/elements/form-engine/index.ts';

@@ -1,4 +1,4 @@
-// plugged.host: Admin › Settings › noprofit.space
+// plugged.host: Admin › Settings › Accounts › noprofit.space
 import { z } from 'zod';
 import { axiosInstance } from '@/api/axios.ts';
 import { adminSettingsNoprofitSchema } from '@/lib/schemas/admin/settings.ts';

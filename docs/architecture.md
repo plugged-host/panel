@@ -114,9 +114,15 @@ to copy), never gathered in a folder of their own.
 - Sections: upstream's `app`, `metadata`, `webauthn`, `server`, `user`, `activity`, `ratelimits`
   (plus the storage, mail and captcha choices), and plugged.host's `noprofit`. Later phases add
   `status`, `abuse`, `economy`, `queue`, `limbo`, `ads`, `games`, `subdomains`, `discord` and `neo`.
-- Each section is a tab in Admin › Settings (`frontend/src/pages/admin/settings/<section>/`), saved
-  by `PUT /api/admin/settings` with that section's payload. Every setting is editable there; the
-  environment holds only what must exist before the database does.
+- Each section is a tab (`frontend/src/pages/admin/settings/<section>/`) on one of the Admin ›
+  Settings pages, saved by `PUT /api/admin/settings` with that section's payload. The pages are
+  groups by topic, each its own entry under "Settings" in the admin sidebar (`settingsGroups` in
+  `AdminSettings.tsx`): General (application, metadata, storage, status page, updates), Mail,
+  Accounts (users, noprofit.space, passkeys, welcome tour), Hosting (servers, games, placement,
+  recovery), Security (captcha, rate limits, abuse, activity) and Economy (store, tokens,
+  memberships: one section in three tabs). A new section joins the group its topic belongs to;
+  a big section is split into tabs that each save their own fields. Every setting is editable
+  there; the environment holds only what must exist before the database does.
 
 ## Background tasks
 

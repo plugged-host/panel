@@ -1,4 +1,4 @@
-// plugged.host: Admin › Settings › Games, the games players can pick and their software choices
+// plugged.host: Settings › Hosting › Games, the games players can pick and their software choices
 import { UseFormReturnType } from '@mantine/form';
 import { z } from 'zod';
 import Button from '@/elements/buttons/Button.tsx';

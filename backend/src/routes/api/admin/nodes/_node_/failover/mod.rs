@@ -19,7 +19,7 @@ mod get {
 
     #[derive(ToSchema, Serialize)]
     struct Response {
-        /// Admin › Settings › Recovery: whether failovers can be started at all.
+        /// Admin › Settings › Hosting › Recovery: whether failovers can be started at all.
         mode: FailoverMode,
         failovers: Vec<AdminApiNodeFailover>,
     }

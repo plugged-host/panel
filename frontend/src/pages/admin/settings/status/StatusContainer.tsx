@@ -1,4 +1,4 @@
-// plugged.host: Admin › Settings › Status
+// plugged.host: Admin › Settings › General › Status Page
 import { useForm } from '@mantine/form';
 import { zod4Resolver } from 'mantine-form-zod-resolver';
 import { z } from 'zod';

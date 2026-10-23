@@ -1,4 +1,4 @@
-// plugged.host: the abuse protection settings section (Admin › Settings › Abuse, shared/src/abuse.rs).
+// plugged.host: abuse protection settings (Settings › Security › Abuse, shared/src/abuse.rs).
 
 use super::{
     ExtensionSettings, SettingsDeserializeExt, SettingsDeserializer, SettingsSerializeExt,

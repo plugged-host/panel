@@ -1,4 +1,4 @@
-// plugged.host: Admin › Settings › Recovery (docs/features/backups-page.md, failover.md)
+// plugged.host: Admin › Settings › Hosting › Recovery (docs/features/backups-page.md, failover.md)
 import { useForm } from '@mantine/form';
 import { zod4Resolver } from 'mantine-form-zod-resolver';
 import { z } from 'zod';

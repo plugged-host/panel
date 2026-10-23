@@ -32,6 +32,7 @@ import {
   IconBrush,
   IconBug,
   IconBuilding,
+  IconBuildingStore, // plugged.host
   IconCalculator,
   IconCalendar,
   IconChartBar,
@@ -57,6 +58,7 @@ import {
   IconCloudDownload,
   IconCloudUpload,
   IconCode,
+  IconCoins, // plugged.host
   IconColumns,
   IconCompass,
   IconCopy,
@@ -133,6 +135,7 @@ import {
   IconMail,
   IconMailCheck,
   IconMailForward,
+  IconMedal, // plugged.host
   IconMenu2,
   IconMinus,
   IconNetwork,
@@ -255,6 +258,7 @@ export const tablerIcons: Record<string, TablerIcon> = {
   'code-branch': IconGitBranch,
   'code-commit': IconGitCommit,
   'code-compare': IconGitCompare,
+  coins: IconCoins, // plugged.host
   compass: IconCompass,
   compress: IconArrowsMinimize,
   computer: IconBrandDocker,
@@ -334,6 +338,7 @@ export const tablerIcons: Record<string, TablerIcon> = {
   'magnifying-glass-chart': IconReportSearch,
   'magnifying-glass-minus': IconZoomOut,
   'magnifying-glass-plus': IconZoomIn,
+  medal: IconMedal, // plugged.host
   memory: IconDeviceDesktopAnalytics,
   microchip: IconCpu,
   minus: IconMinus,
@@ -378,6 +383,7 @@ export const tablerIcons: Record<string, TablerIcon> = {
   stethoscope: IconStethoscope,
   stop: IconPlayerStop,
   stopwatch: IconStopwatch,
+  store: IconBuildingStore, // plugged.host
   table: IconTable,
   'table-columns': IconColumns,
   'table-list': IconLayoutList,

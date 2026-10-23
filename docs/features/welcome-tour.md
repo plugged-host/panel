@@ -2,7 +2,7 @@
 
 A short guide drawn over the real panel: the page is dimmed, the part a step is about stays lit, and
 the step's text sits next to it. Someone told "open Settings" afterwards knows where Settings is.
-Off by default; Admin › Settings › Welcome Tour turns it on.
+Off by default; Admin › Settings › Accounts › Welcome Tour turns it on.
 
 ## The two parts
 
@@ -38,7 +38,7 @@ stay, so turning it on again continues where each user was.
 
 ## Settings
 
-Admin › Settings › Welcome Tour (`tour::enabled`, `tour::version`).
+Admin › Settings › Accounts › Welcome Tour (`tour::enabled`, `tour::version`).
 
 ## Without noprofit.space
 
@@ -46,9 +46,9 @@ Nothing differs; the tour does not mention noprofit.space.
 
 ## Check
 
-- Admin › Settings › Welcome Tour: turn it on and save. On the server list, the tour starts with
-  "Welcome to {app}"; Next lights the sidebar, then the account row at its foot, then Create
-  Server, then the first server card.
+- Admin › Settings › Accounts › Welcome Tour: turn it on and save. On the server list, the tour
+  starts with "Welcome to {app}"; Next lights the sidebar, then the account row at its foot, then
+  Create Server, then the first server card.
 - "Show me {server}" opens that server; its console shows the second part (console, power buttons,
   address, sidebar, Settings, logo). Finish it; reloading shows neither part again.
 - The menu under your name: "Replay welcome tour" starts the first part again on the server list.

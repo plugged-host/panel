@@ -1,4 +1,4 @@
-// plugged.host: Admin › Settings › Abuse
+// plugged.host: Admin › Settings › Security › Abuse
 import { useForm } from '@mantine/form';
 import { zod4Resolver } from 'mantine-form-zod-resolver';
 import { useState } from 'react';

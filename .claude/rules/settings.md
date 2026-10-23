@@ -11,7 +11,8 @@ paths:
 - A section is one file in `shared/src/settings/<section>.rs` (struct + serializer + deserializer,
   copy `noprofit.rs` or `webauthn.rs`), a field and (de)serializer entry in `mod.rs` marked
   `// plugged.host`, a payload struct in `backend/src/routes/api/admin/settings.rs`, and an Admin ›
-  Settings tab in `frontend/src/pages/admin/settings/<section>/` (container + form values, a zod
+  Settings tab in `frontend/src/pages/admin/settings/<section>/`, listed in the group of
+  `settingsGroups` (`AdminSettings.tsx`) its topic belongs to (container + form values, a zod
   schema in `lib/schemas/admin/settings.ts`, store defaults in `stores/slices/admin/settings.ts`,
   the form id in `elements/form-engine/types.ts`).
 - A section with a bigger payload keeps it in its own file with an `apply(self, &mut section)` that

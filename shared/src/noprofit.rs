@@ -1,8 +1,8 @@
 //! plugged.host: noprofit.space accounts.
 //!
 //! Optional, like the noprofit plugin on plugged.host's Pelican panel. While Admin › Settings ›
-//! noprofit.space leaves it off (or misses the accounts URL, the client or a sign-in secret of at
-//! least 32 characters), the panel signs people in on its own (Calagopus's login and
+//! Accounts › noprofit.space leaves it off (or misses the accounts URL, the client or a sign-in
+//! secret of at least 32 characters), the panel signs people in on its own (Calagopus's login and
 //! registration). Connected, noprofit.space owns sign-in:
 //!
 //! - everyone signs in at noprofit.space (see [`Config::decode_token`]) and an account's first
@@ -55,7 +55,7 @@ pub struct Config {
 
 impl Config {
     /// The connection the noprofit.space settings describe, or `None` when they leave sign-in to
-    /// the panel (Admin › Settings › noprofit.space, [`crate::settings::noprofit`]).
+    /// the panel (Admin › Settings › Accounts › noprofit.space, [`crate::settings::noprofit`]).
     pub fn from_settings(
         settings: &crate::settings::noprofit::AppSettingsNoprofit,
     ) -> Option<Self> {

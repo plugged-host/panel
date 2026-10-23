@@ -1,4 +1,4 @@
-// plugged.host: Admin › Settings › Abuse
+// plugged.host: Admin › Settings › Security › Abuse
 import { z } from 'zod';
 import { axiosInstance } from '@/api/axios.ts';
 import { adminSettingsAbuseSchema } from '@/lib/schemas/admin/settings.ts';

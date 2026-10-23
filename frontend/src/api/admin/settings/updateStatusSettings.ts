@@ -1,4 +1,4 @@
-// plugged.host: Admin › Settings › Status
+// plugged.host: Admin › Settings › General › Status Page
 import { z } from 'zod';
 import { axiosInstance } from '@/api/axios.ts';
 import { adminSettingsStatusSchema } from '@/lib/schemas/admin/settings.ts';

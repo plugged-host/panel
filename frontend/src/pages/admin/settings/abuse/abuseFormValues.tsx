@@ -1,4 +1,4 @@
-// plugged.host: Admin › Settings › Abuse
+// plugged.host: Admin › Settings › Security › Abuse
 import { z } from 'zod';
 import type { FieldDef } from '@/elements/form-engine/index.ts';
 import { adminSettingsAbuseSchema } from '@/lib/schemas/admin/settings.ts';

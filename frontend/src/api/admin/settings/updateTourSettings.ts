@@ -1,4 +1,4 @@
-// plugged.host: Admin › Settings › Welcome Tour
+// plugged.host: Admin › Settings › Accounts › Welcome Tour
 import { z } from 'zod';
 import { axiosInstance } from '@/api/axios.ts';
 import { adminSettingsTourSchema } from '@/lib/schemas/admin/settings.ts';

@@ -1,4 +1,4 @@
-// plugged.host: Admin › Settings › noprofit.space
+// plugged.host: Admin › Settings › Accounts › noprofit.space
 import { useState } from 'react';
 import { z } from 'zod';
 import updateNoprofitSettings from '@/api/admin/settings/updateNoprofitSettings.ts';

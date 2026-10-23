@@ -2273,6 +2273,7 @@ const baseTranslations = defineTranslations({
           storage: 'Storage',
           access: 'Users & Access',
           system: 'System',
+          settings: 'Settings',
         },
         home: {
           title: 'Home',
@@ -2468,6 +2469,14 @@ const baseTranslations = defineTranslations({
         },
         settings: {
           title: 'Settings',
+          groups: {
+            general: 'General',
+            mail: 'Mail',
+            accounts: 'Accounts',
+            hosting: 'Hosting',
+            security: 'Security',
+            economy: 'Economy',
+          },
           tabs: {
             application: {
               title: 'Application',
@@ -3167,13 +3176,16 @@ const baseTranslations = defineTranslations({
             },
             // plugged.host
             economy: {
-              title: 'Economy',
+              store: 'Resource Store',
+              tokens: 'Tokens',
+              memberships: 'Memberships',
               page: {
-                title: 'Economy',
+                storeTitle: 'Credits and the Resource Store',
+                tokensTitle: 'Tokens and Earning',
+                membershipsTitle: 'Memberships',
                 form: {
                   secretStored: 'Stored. Leave empty to keep it.',
                   secretMissing: 'Not set.',
-                  creditsSection: 'Currencies',
                   creditsEnabled: 'Credits',
                   creditsEnabledDescription:
                     'Credits buy CPU, memory and disk in the Resource Store, and the second membership. With noprofit.space connected they are its credits. Turned off, the store is hidden; balances are kept.',
@@ -3185,7 +3197,6 @@ const baseTranslations = defineTranslations({
                   dailyTokens: 'Daily Tokens',
                   dailyTokensDescription:
                     'Tokens every account gets once a day, the first time it looks. 0 gives none.',
-                  membershipSection: 'Memberships',
                   membershipEnabled: 'Memberships',
                   membershipEnabledDescription:
                     'The first membership is bought once with tokens and opens the locations with the tier “plus”. The second runs for a while, needs the first, and opens the tier “premium”.',
@@ -3202,7 +3213,7 @@ const baseTranslations = defineTranslations({
                   plusplusCpu: 'Second Membership: Extra CPU (%)',
                   plusplusCpuDescription:
                     'Added to the account’s CPU while it runs. When it runs out, its servers give it back evenly and leave the premium locations.',
-                  storeSection: 'Resource Store',
+                  storeSection: 'Prices',
                   storeNote:
                     'Without noprofit.space: what a step costs and where prices climb. With noprofit.space its store and prices are used.',
                   cpuStep: 'CPU Step (%)',
@@ -3424,7 +3435,7 @@ const baseTranslations = defineTranslations({
                   sort: 'Sort Order',
                   checked: 'Last Checked',
                 },
-                empty: 'No components yet. Turn on the status page in Admin › Settings › Status Page.',
+                empty: 'No components yet. Turn on the status page in Admin › Settings › General › Status Page.',
                 form: {
                   labelNode: "A node's name is its name on the status page.",
                   publishedDescription: 'Listed on the status page. Checks keep running either way.',
@@ -4462,7 +4473,7 @@ const baseTranslations = defineTranslations({
                   lighten: {
                     title: 'Lighten Load',
                     description:
-                      'Moves some of the servers to the other nodes of {location}, a few at a time (Admin › Settings › Games › Moves at Once per Node). Each server gets a new address.',
+                      'Moves some of the servers to the other nodes of {location}, a few at a time (Admin › Settings › Hosting › Games › Moves at Once per Node). Each server gets a new address.',
                     form: {
                       pick: 'Servers',
                       count: 'How Many',
@@ -4510,7 +4521,7 @@ const baseTranslations = defineTranslations({
                 description:
                   'When this node is down, its servers can be restored on the other nodes of its location from their newest backup on storage the other nodes reach (S3, Proxmox Backup Server, a remote restic repository). Files changed since that backup are lost, and a server gets a new address unless its ports are free on the new node. Once this node is back, the old copies on it are removed.',
                 alert: {
-                  off: 'Failover is **off** in Admin › Settings › Recovery.',
+                  off: 'Failover is **off** in Admin › Settings › Hosting › Recovery.',
                 },
                 empty: 'This node has not been failed over.',
                 button: {

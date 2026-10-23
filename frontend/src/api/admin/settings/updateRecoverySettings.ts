@@ -1,4 +1,4 @@
-// plugged.host: Admin › Settings › Recovery
+// plugged.host: Admin › Settings › Hosting › Recovery
 import { z } from 'zod';
 import { axiosInstance } from '@/api/axios.ts';
 import { adminSettingsRecoverySchema } from '@/lib/schemas/admin/settings.ts';

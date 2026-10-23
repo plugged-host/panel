@@ -10,7 +10,7 @@ that part; an account with room to spare loses nothing.
 | Where the allowance went down | Recorded by |
 |---|---|
 | noprofit.space: the account's plan is smaller (a lower tier, a Discord server left, an admin there) | `noprofit::Link::store`, when the account's snapshot is taken on (sign-in, the every-minute sync) |
-| Admin › Settings › Games: CPU, memory or disk per account lowered (without noprofit.space) | the settings route, one row for every account that owns a server |
+| Admin › Settings › Hosting › Games: CPU, memory or disk per account lowered (without noprofit.space) | the settings route, one row for every account that owns a server |
 
 A limit going from a value to none (0) takes nothing; from none to a value takes whatever is over.
 A plan that disappears takes nothing (without a plan an account cannot create or grow servers, and
@@ -47,9 +47,9 @@ The games settings' allowance is the one that goes down (the second row above).
 
 ## Check
 
-- Without noprofit.space, Admin › Settings › Games: allowance 8 GiB memory; an account with two
-  servers of 4 GiB each. Lower the allowance to 6 GiB and save: within a minute each server has
-  3 GiB (Admin › Servers), and both servers' Activity shows `server:allowance.cut`.
+- Without noprofit.space, Admin › Settings › Hosting › Games: allowance 8 GiB memory; an account
+  with two servers of 4 GiB each. Lower the allowance to 6 GiB and save: within a minute each server
+  has 3 GiB (Admin › Servers), and both servers' Activity shows `server:allowance.cut`.
 - An account that uses less than the new allowance keeps its servers as they are.
 - With noprofit.space: lower an account's plan memory there; after the next sync (every minute) its
   servers are brought down the same way.

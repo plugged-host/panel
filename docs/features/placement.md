@@ -51,7 +51,7 @@ as full.
 
 ## Settings
 
-Admin › Settings › Placement (`shared/src/settings/placement.rs`):
+Admin › Settings › Hosting › Placement (`shared/src/settings/placement.rs`):
 
 | Setting | Default | Range |
 |---|---|---|
@@ -68,8 +68,8 @@ Nothing changes: placement only talks to the nodes.
 
 ## Check
 
-- Admin › Settings › Placement: set "Line (%)" to a value under a test node's memory use and
-  save. Within two minutes the node's Overview shows "Deployment Paused (memory)".
+- Admin › Settings › Hosting › Placement: set "Line (%)" to a value under a test node's memory use
+  and save. Within two minutes the node's Overview shows "Deployment Paused (memory)".
 - Set it back to 85: the node reopens once its 5-minute average is under the line.
 - Pause a node by hand on its form: the panel leaves it paused whatever its load.
 - Stop Wings on a test node: after three missed checks it is paused (unreachable); start Wings and
