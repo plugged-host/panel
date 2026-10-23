@@ -5,16 +5,15 @@ import { useShallow } from 'zustand/react/shallow';
 import ConfirmationModal from '@/elements/modals/ConfirmationModal.tsx';
 import { CORE_QUICK_ACTION_CATEGORIES } from '@/lib/quickActions/coreQuickActions.tsx';
 import { useQuickActions } from '@/plugins/quick-actions/useQuickActions.ts';
-import { SocketRequest } from '@/plugins/websocket/useWebsocketEvent.ts';
+import { usePowerAction } from '@/plugins/server/usePowerAction.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useServerStore } from '@/stores/server.ts';
 
 /** Mounted by the server router, so these exist exactly as long as a server is being viewed. */
 export default function ServerQuickActions() {
   const { t } = useTranslations();
-  const { socketInstance, serverState } = useServerStore(
-    useShallow((state) => ({ socketInstance: state.socketInstance, serverState: state.state })),
-  );
+  const { serverState } = useServerStore(useShallow((state) => ({ serverState: state.state })));
+  const powerAction = usePowerAction(); // plugged.host: over the API, through the start gates
 
   const [killConfirmOpen, setKillConfirmOpen] = useState(false);
 
@@ -28,7 +27,7 @@ export default function ServerQuickActions() {
       icon: <FontAwesomeIcon icon={faPlay} />,
       permission: 'control.start',
       isVisible: () => serverState === 'offline',
-      perform: () => socketInstance?.send(SocketRequest.SET_STATE, 'start'),
+      perform: () => powerAction('start'),
     },
     {
       id: 'server.stop',
@@ -37,7 +36,7 @@ export default function ServerQuickActions() {
       icon: <FontAwesomeIcon icon={faStop} />,
       permission: 'control.stop',
       isVisible: () => serverState !== 'offline' && serverState !== 'stopping',
-      perform: () => socketInstance?.send(SocketRequest.SET_STATE, 'stop'),
+      perform: () => powerAction('stop'),
     },
     {
       id: 'server.restart',
@@ -46,7 +45,7 @@ export default function ServerQuickActions() {
       icon: <FontAwesomeIcon icon={faRotateRight} />,
       permission: 'control.restart',
       isVisible: () => serverState === 'running',
-      perform: () => socketInstance?.send(SocketRequest.SET_STATE, 'restart'),
+      perform: () => powerAction('restart'),
     },
     {
       id: 'server.kill',
@@ -67,7 +66,7 @@ export default function ServerQuickActions() {
       title={t('pages.server.console.power.modal.forceStop.title', {})}
       confirm={t('common.button.continue', {})}
       onConfirmed={() => {
-        socketInstance?.send(SocketRequest.SET_STATE, 'kill');
+        powerAction('kill');
         setKillConfirmOpen(false);
       }}
     >

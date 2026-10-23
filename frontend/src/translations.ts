@@ -1455,6 +1455,7 @@ const baseTranslations = defineTranslations({
             deselect: 'Deselect server',
             success: 'Successfully {action} {servers}.',
             partial: 'Successfully {action} {successfulServers}. {failedServers} failed.',
+            held: '{servers} wait before starting: open each to continue.', // plugged.host
             groupActions: 'Group Actions',
           },
         },

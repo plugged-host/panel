@@ -49,6 +49,8 @@ mod post {
         if data.start_on_completion {
             permissions.has_server_permission("control.start")?;
         }
+        // plugged.host: a start after the install would skip the start gates (start_gates.rs)
+        let start_on_completion = data.start_on_completion && permissions.is_admin();
 
         tokio::spawn(async move {
             server
@@ -56,7 +58,7 @@ mod post {
                     &state,
                     ServerInstallOptions {
                         truncate_directory: data.truncate_directory,
-                        start_on_completion: data.start_on_completion,
+                        start_on_completion,
                         ..Default::default()
                     },
                 )
@@ -67,7 +69,7 @@ mod post {
                     "server:settings.install",
                     serde_json::json!({
                         "truncate_directory": data.truncate_directory,
-                        "start_on_completion": data.start_on_completion,
+                        "start_on_completion": start_on_completion,
                     }),
                 )
                 .await;

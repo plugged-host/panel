@@ -7,6 +7,7 @@ import Button from '@/elements/buttons/Button.tsx';
 import { ServerCan } from '@/elements/Can.tsx';
 import { Modal, ModalFooter } from '@/elements/modals/Modal.tsx';
 import Text from '@/elements/typography/Text.tsx';
+import { usePowerAction } from '@/plugins/server/usePowerAction.ts';
 import { useServerCan } from '@/plugins/usePermissions.ts';
 import useWebsocketEvent, { SocketEvent } from '@/plugins/websocket/useWebsocketEvent.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
@@ -16,11 +17,10 @@ import { useServerStore } from '@/stores/server.ts';
 export default function EulaModal() {
   const { t } = useTranslations();
   const { addToast } = useToast();
-  const { server, state, socketInstance } = useServerStore(
-    useShallow((s) => ({ server: s.server, state: s.state, socketInstance: s.socketInstance })),
-  );
+  const { server, state } = useServerStore(useShallow((s) => ({ server: s.server, state: s.state })));
 
   const canRestart = useServerCan('control.restart');
+  const powerAction = usePowerAction(); // plugged.host
 
   const [opened, setOpened] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -52,7 +52,7 @@ export default function EulaModal() {
       setOpened(false);
 
       if (canRestart) {
-        socketInstance?.send('set state', 'restart');
+        powerAction('restart'); // plugged.host: through the start gates
       }
     } catch (error) {
       addToast(httpErrorToHuman(error as object), 'error');

@@ -8,21 +8,21 @@ import { ServerCan } from '@/elements/Can.tsx';
 import ExtensionSlot from '@/elements/ExtensionSlot.tsx';
 import ConfirmationModal from '@/elements/modals/ConfirmationModal.tsx';
 import { serverPowerAction } from '@/lib/schemas/server/server.ts';
-import { SocketRequest } from '@/plugins/websocket/useWebsocketEvent.ts';
+import { usePowerAction } from '@/plugins/server/usePowerAction.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useServerStore } from '@/stores/server.ts';
 
 export default function ServerPowerControls() {
   const { t } = useTranslations();
   const [open, setOpen] = useState(false);
-  const { server, state, socketInstance, socketConnected } = useServerStore(
+  const { server, state, socketConnected } = useServerStore(
     useShallow((s) => ({
       server: s.server,
       state: s.state,
-      socketInstance: s.socketInstance,
       socketConnected: s.socketConnected,
     })),
   );
+  const powerAction = usePowerAction(); // plugged.host: over the API, through the start gates
 
   const killable = state === 'stopping';
 
@@ -31,10 +31,8 @@ export default function ServerPowerControls() {
       return setOpen(true);
     }
 
-    if (socketInstance) {
-      setOpen(false);
-      socketInstance.send(SocketRequest.SET_STATE, action === 'kill-confirmed' ? 'kill' : action);
-    }
+    setOpen(false);
+    powerAction(action === 'kill-confirmed' ? 'kill' : action);
   };
 
   useEffect(() => {

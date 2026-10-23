@@ -2,12 +2,13 @@ use super::State;
 use utoipa_axum::{router::OpenApiRouter, routes};
 
 mod post {
+    use axum::http::StatusCode;
     use serde::{Deserialize, Serialize};
     use shared::{
         ApiError, GetState,
         models::{
             server::{GetServer, GetServerActivityLogger},
-            user::GetPermissionManager,
+            user::{GetPermissionManager, GetUser},
         },
         response::{ApiResponse, ApiResponseResult},
     };
@@ -20,10 +21,18 @@ mod post {
     }
 
     #[derive(ToSchema, Serialize)]
-    struct Response {}
+    struct Response {
+        /// plugged.host: the start gate that holds this start (202), see shared/src/start_gates.rs
+        #[serde(skip_serializing_if = "Option::is_none")]
+        gate: Option<&'static str>,
+        /// plugged.host: where the user goes instead (202)
+        #[serde(skip_serializing_if = "Option::is_none")]
+        url: Option<String>,
+    }
 
     #[utoipa::path(post, path = "/", responses(
         (status = OK, body = inline(Response)),
+        (status = ACCEPTED, body = inline(Response)),
         (status = UNAUTHORIZED, body = ApiError),
     ), params(
         (
@@ -35,6 +44,7 @@ mod post {
     pub async fn route(
         state: GetState,
         permissions: GetPermissionManager,
+        user: GetUser,
         server: GetServer,
         activity_logger: GetServerActivityLogger,
         shared::Payload(data): shared::Payload<Payload>,
@@ -45,6 +55,17 @@ mod post {
             wings_api::ServerPowerAction::Kill => "control.stop",
             wings_api::ServerPowerAction::Restart => "control.restart",
         })?;
+
+        // plugged.host: a start gate may hold the start and send the user to its page instead
+        if let Some(held) = shared::start_gates::run(&state, &server.0, &user.0, data.action).await
+        {
+            return ApiResponse::new_serialized(Response {
+                gate: Some(held.gate),
+                url: Some(held.url),
+            })
+            .with_status(StatusCode::ACCEPTED)
+            .ok();
+        }
 
         tokio::spawn(async move {
             server
@@ -71,7 +92,11 @@ mod post {
                 )
                 .await;
 
-            ApiResponse::new_serialized(Response {}).ok()
+            ApiResponse::new_serialized(Response {
+                gate: None,
+                url: None,
+            })
+            .ok()
         })
         .await?
     }

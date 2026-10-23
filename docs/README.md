@@ -33,6 +33,7 @@ For AI agents: [`AGENTS.md`](../AGENTS.md) at the root has the hard rules in sho
 | **Theme v2**: the look of plugged.host's Pelican panel (royal-blue accent, obsidian surfaces, Space Grotesk + JetBrains Mono, Tabler icons, flat sidebar), dark only, with an admin-chosen accent colour | [features/theme.md](features/theme.md) |
 | **Release** `v{VERSION}.{commit}`, shown in the footer and by `panel-rs version` | [features/release.md](features/release.md) |
 | **noprofit.space** sign-in, account sync and SFTP passwords, optional | [noprofit.md](noprofit.md) |
+| **Start gates**: one place where a server start can be held back (limbo, the start queue, the ad waiting room), with the other ways to start a server closed for non-admins | [features/start-gates.md](features/start-gates.md) |
 | **Removed features**: devices, mounts, the extension manager, the update checker, Tundra's private network, the server firewall, managed database instances, backup groups; telemetry is opt-in | [upstream.md](upstream.md#removed-features) |
 | **German stays complete**: a build fails while a German string is missing | [development.md](development.md#strings) |
 

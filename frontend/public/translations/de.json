@@ -1603,6 +1603,7 @@
             "deselect": "Server abwählen",
             "success": "Erfolgreich {servers} {action}.",
             "partial": "Erfolgreich {successfulServers} {action}. {failedServers} fehlgeschlagen.",
+            "held": "{servers} warten vor dem Start: öffne jeden, um fortzufahren.",
             "groupActions": "Gruppen-Aktionen"
           },
           "empty": {

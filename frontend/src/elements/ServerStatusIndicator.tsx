@@ -22,8 +22,8 @@ import ScrollingText from '@/elements/ScrollingText.tsx';
 import { serverStatusInfo, statusToColor } from '@/lib/domain/server.ts';
 import { formatMilliseconds } from '@/lib/format/time.ts';
 import { serverPowerAction } from '@/lib/schemas/server/server.ts';
+import { usePowerAction } from '@/plugins/server/usePowerAction.ts';
 import { useServerCan } from '@/plugins/usePermissions.ts';
-import { SocketRequest } from '@/plugins/websocket/useWebsocketEvent.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useServerStore } from '@/stores/server.ts';
 
@@ -31,15 +31,15 @@ export default function ServerStatusIndicator() {
   const { t } = useTranslations();
   const params = useParams<'id'>();
   const [open, setOpen] = useState(false);
-  const { server, state, stats, socketInstance, socketConnected } = useServerStore(
+  const { server, state, stats, socketConnected } = useServerStore(
     useShallow((state) => ({
       server: state.server,
       state: state.state,
       stats: state.stats,
-      socketInstance: state.socketInstance,
       socketConnected: state.socketConnected,
     })),
   );
+  const powerAction = usePowerAction(); // plugged.host
 
   const canStart = useServerCan('control.start');
   const canStop = useServerCan('control.stop');
@@ -111,10 +111,8 @@ export default function ServerStatusIndicator() {
       return setOpen(true);
     }
 
-    if (socketInstance) {
-      setOpen(false);
-      socketInstance.send(SocketRequest.SET_STATE, action === 'kill-confirmed' ? 'kill' : action);
-    }
+    setOpen(false);
+    powerAction(action === 'kill-confirmed' ? 'kill' : action); // plugged.host: through the start gates
   };
 
   useEffect(() => {

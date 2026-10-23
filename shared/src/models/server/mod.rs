@@ -1686,6 +1686,8 @@ impl Server {
             }
 
             crate::utils::push_scope_or_star(&mut permissions, scope);
+            // plugged.host: starts go through the power API and its gates (start_gates.rs)
+            crate::start_gates::without_start(&mut permissions);
 
             return permissions;
         }
@@ -1712,6 +1714,7 @@ impl Server {
             scope,
             settings,
         );
+        crate::start_gates::without_start(&mut permissions); // plugged.host
 
         permissions
     }

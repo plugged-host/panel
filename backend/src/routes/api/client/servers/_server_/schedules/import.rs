@@ -119,6 +119,19 @@ mod post {
                 .ok();
             }
 
+            // plugged.host: a schedule runs on Wings, past the start gates (shared/src/start_gates.rs)
+            if !permissions.is_admin()
+                && shared::start_gates::schedule_step_starts(&schedule_step.action)
+            {
+                transaction.rollback().await.ok();
+                return ApiResponse::error(format!(
+                    "schedule step #{} would start the server, which a schedule cannot do",
+                    index + 1
+                ))
+                .with_status(StatusCode::FORBIDDEN)
+                .ok();
+            }
+
             let options = shared::models::server_schedule_step::CreateServerScheduleStepOptions {
                 schedule_uuid: schedule.uuid,
                 action: schedule_step.action.clone(),

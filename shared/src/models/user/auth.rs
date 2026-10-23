@@ -260,6 +260,13 @@ impl PermissionManager {
         self.user_admin && self.scope.is_session()
     }
 
+    /// plugged.host: whether the caller is an administrator, for the rules that bind everyone else
+    /// (the start gates, shared/src/start_gates.rs).
+    #[inline]
+    pub fn is_admin(&self) -> bool {
+        self.user_admin
+    }
+
     /// Administrators may only be written to by other administrators signed in with a session,
     /// no matter which admin permissions a role or api key grants.
     pub fn can_modify_user(&self, user: &super::User) -> Result<(), ApiResponse> {

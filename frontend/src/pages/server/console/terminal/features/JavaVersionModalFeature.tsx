@@ -7,6 +7,7 @@ import { ServerCan } from '@/elements/Can.tsx';
 import Select from '@/elements/input/Select.tsx';
 import { Modal, ModalFooter } from '@/elements/modals/Modal.tsx';
 import Text from '@/elements/typography/Text.tsx';
+import { usePowerAction } from '@/plugins/server/usePowerAction.ts';
 import { useServerCan } from '@/plugins/usePermissions.ts';
 import useWebsocketEvent, { SocketEvent } from '@/plugins/websocket/useWebsocketEvent.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
@@ -33,16 +34,16 @@ const OFFLINE_GRACE_MS = 5000;
 export default function JavaVersionModal() {
   const { t } = useTranslations();
   const { addToast } = useToast();
-  const { server, state, socketInstance, updateServer } = useServerStore(
+  const { server, state, updateServer } = useServerStore(
     useShallow((s) => ({
       server: s.server,
       state: s.state,
-      socketInstance: s.socketInstance,
       updateServer: s.updateServer,
     })),
   );
 
   const canRestart = useServerCan('control.restart');
+  const powerAction = usePowerAction(); // plugged.host
 
   const [opened, setOpened] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -86,7 +87,7 @@ export default function JavaVersionModal() {
       setOpened(false);
 
       if (state === 'offline' && canRestart) {
-        socketInstance?.send('set state', 'restart');
+        powerAction('restart'); // plugged.host: through the start gates
       }
     } catch (error) {
       addToast(httpErrorToHuman(error as object), 'error');

@@ -80,6 +80,18 @@ mod patch {
             .ok();
         }
 
+        // plugged.host: a schedule runs on Wings, past the start gates (shared/src/start_gates.rs)
+        if !permissions.is_admin()
+            && data
+                .action
+                .as_ref()
+                .is_some_and(shared::start_gates::schedule_step_starts)
+        {
+            return ApiResponse::error("a schedule cannot start the server")
+                .with_status(StatusCode::FORBIDDEN)
+                .ok();
+        }
+
         schedule_step.update(&state, data).await?;
 
         activity_logger

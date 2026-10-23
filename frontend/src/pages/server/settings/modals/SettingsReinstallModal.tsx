@@ -10,6 +10,7 @@ import { ModalFooter } from '@/elements/modals/Modal.tsx';
 import { serverSettingsReinstallSchema } from '@/lib/schemas/server/settings.ts';
 import { useModalForm } from '@/plugins/form/useModalForm.ts';
 import { useServerCan } from '@/plugins/usePermissions.ts';
+import { useAuth } from '@/providers/AuthProvider.tsx';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useServerStore } from '@/stores/server.ts';
@@ -20,7 +21,9 @@ export default function SettingsReinstallModal({ ...props }: ModalProps) {
   const server = useServerStore((state) => state.server);
   const updateServer = useServerStore((state) => state.updateServer);
   const navigate = useNavigate();
-  const canStart = useServerCan('control.start');
+  const { user } = useAuth();
+  // plugged.host: only admins start after a reinstall, the start would skip the start gates
+  const canStart = useServerCan('control.start') && !!user?.admin;
 
   const { form, handleClose, handleSubmit, loading, isDirty } = useModalForm<
     z.infer<typeof serverSettingsReinstallSchema>
