@@ -96,6 +96,17 @@ pub struct AppSettingsGames {
     pub allowance_cpu: i32,
     pub allowance_memory: i64,
     pub allowance_disk: i64,
+
+    /// CurseForge's API key for the Minecraft pages; without it CurseForge is not offered
+    /// (docs/features/minecraft.md). Stored encrypted, shown as a placeholder.
+    #[serde(serialize_with = "super::noprofit::serialize_secret")]
+    #[schema(value_type = Option<String>)]
+    pub minecraft_curseforge_key: Option<compact_str::CompactString>,
+    /// SpigotMC (through Spiget) as a source for plugin servers.
+    pub minecraft_spigot: bool,
+    /// The User-Agent sent to Modrinth, CurseForge, Spiget and the loaders' APIs; empty is
+    /// `<name>-panel/<release> (+<url>)`.
+    pub minecraft_user_agent: compact_str::CompactString,
 }
 
 impl Default for AppSettingsGames {
@@ -117,6 +128,9 @@ impl Default for AppSettingsGames {
             allowance_cpu: 0,
             allowance_memory: 0,
             allowance_disk: 0,
+            minecraft_curseforge_key: None,
+            minecraft_spigot: true,
+            minecraft_user_agent: compact_str::CompactString::default(),
         }
     }
 }
@@ -172,6 +186,15 @@ pub struct PayloadGames {
     allowance_memory: Option<i64>,
     #[garde(inner(range(min = 0)))]
     allowance_disk: Option<i64>,
+    /// An empty string or the placeholder keeps the stored key, `null` removes it.
+    #[garde(inner(inner(length(chars, max = 255))))]
+    #[serde(default, with = "::serde_with::rust::double_option")]
+    #[schema(value_type = Option<String>)]
+    minecraft_curseforge_key: Option<Option<compact_str::CompactString>>,
+    #[garde(skip)]
+    minecraft_spigot: Option<bool>,
+    #[garde(inner(length(chars, max = 255)))]
+    minecraft_user_agent: Option<compact_str::CompactString>,
 }
 
 impl PayloadGames {
@@ -240,8 +263,22 @@ impl PayloadGames {
             max_servers,
             allowance_cpu,
             allowance_memory,
-            allowance_disk
+            allowance_disk,
+            minecraft_spigot
         );
+
+        match self.minecraft_curseforge_key {
+            Some(Some(key))
+                if key.trim().is_empty() || key == crate::censor::CENSORED_PLACEHOLDER => {}
+            Some(key) => settings.minecraft_curseforge_key = key.map(|key| key.trim().into()),
+            None => {}
+        }
+        if let Some(user_agent) = self.minecraft_user_agent {
+            if user_agent.chars().any(char::is_control) {
+                return Err("the user agent must be one line".into());
+            }
+            settings.minecraft_user_agent = user_agent.trim().into();
+        }
 
         Ok(())
     }
@@ -259,7 +296,21 @@ impl SettingsSerializeExt for AppSettingsGames {
         &self,
         serializer: SettingsSerializer,
     ) -> Result<SettingsSerializer, anyhow::Error> {
+        let serializer = match &self.minecraft_curseforge_key {
+            Some(key) => {
+                serializer
+                    .write_raw_encrypted_setting("minecraft_curseforge_key", key.clone())
+                    .await?
+            }
+            None => serializer.write_raw_setting("minecraft_curseforge_key", ""),
+        };
+
         Ok(serializer
+            .write_raw_setting(
+                "minecraft_spigot",
+                self.minecraft_spigot.to_compact_string(),
+            )
+            .write_raw_setting("minecraft_user_agent", &*self.minecraft_user_agent)
             .write_raw_setting("create_enabled", self.create_enabled.to_compact_string())
             .write_raw_setting("catalog", serde_json::to_string(&self.catalog)?)
             .write_raw_setting(
@@ -306,6 +357,12 @@ impl SettingsDeserializeExt for AppSettingsGamesDeserializer {
         mut deserializer: SettingsDeserializer<'_>,
     ) -> Result<ExtensionSettings, anyhow::Error> {
         let defaults = AppSettingsGames::default();
+        let minecraft_curseforge_key = match deserializer
+            .take_raw_setting("minecraft_curseforge_key")
+        {
+            Some(key) if !key.is_empty() => Some(deserializer.database.decrypt_base64(key).await?),
+            _ => None,
+        };
 
         macro_rules! parsed {
             ($field:ident) => {
@@ -336,6 +393,11 @@ impl SettingsDeserializeExt for AppSettingsGamesDeserializer {
             allowance_cpu: parsed!(allowance_cpu),
             allowance_memory: parsed!(allowance_memory),
             allowance_disk: parsed!(allowance_disk),
+            minecraft_curseforge_key,
+            minecraft_spigot: parsed!(minecraft_spigot),
+            minecraft_user_agent: deserializer
+                .take_raw_setting("minecraft_user_agent")
+                .unwrap_or_default(),
         }))
     }
 }
@@ -380,6 +442,9 @@ mod tests {
             allowance_cpu: None,
             allowance_memory: None,
             allowance_disk: None,
+            minecraft_curseforge_key: None,
+            minecraft_spigot: None,
+            minecraft_user_agent: None,
         }
     }
 

@@ -44,6 +44,7 @@ pub mod ignore_list;
 pub mod jwt;
 pub mod limbo; // plugged.host
 pub mod mail;
+pub mod minecraft; // plugged.host
 pub mod models;
 pub mod net;
 pub mod node_failover; // plugged.host

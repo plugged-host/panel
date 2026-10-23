@@ -18,6 +18,7 @@ features need. Like the panel, the fork is edited directly in its source and mer
 | A schedule's restart step restarts a running server only; a stopped one stays stopped ("server is not running.") | [Start gates](features/start-gates.md) | A scheduled restart could start a stopped server past the gates |
 | `build.cpu_weight` in a server's configuration: the container's CPU shares (Docker's 2 to 262144, 1024 a default container's), on create and live on every sync. The panel sends 1024 per paid core | [Burst cores](features/economy.md#burst-cores): paid CPU wins over burst when the node is busy | Burst works, but every container weighs the same |
 | `build.cpu_burst`: the part of `cpu_limit` that is burst; `/api/public/resources` leaves it out of the allocated CPU | Burst cores | Allocated CPU counts the burst too |
+| A `.jar` is browsed like a `.zip`: `files/contents?file=/plugins/x.jar/plugin.yml` reads one file inside it | [Minecraft](features/minecraft.md#plugins--mods): what a jar is, without downloading it | Jars are identified by their hashes only |
 
 `curl https://node.example.com:8080/api/public/resources` answers:
 

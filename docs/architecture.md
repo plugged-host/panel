@@ -76,6 +76,7 @@ to copy), never gathered in a folder of their own.
 | Migration | `database/migrations/<timestamp>_<feature>/`, generated (see [development.md](development.md#migrations)) |
 | Model | `shared/src/models/<name>.rs` (or `<name>/mod.rs`), registered in `shared/src/models/mod.rs`, with its event handlers |
 | Shared logic | A file at `shared/src/` root, like `captcha.rs` or `mail.rs` |
+| A game's tools | `shared/src/<game>/` (`minecraft/`), routes under `client/servers/_server_/<game>/`, pages under `pages/server/<game>/`; `frontend/src/lib/domain/games.ts` shows them only on that game's servers (by egg feature) |
 | Settings section | `shared/src/settings/<section>.rs` + its field and (de)serializer in `settings/mod.rs` |
 | Admin settings API | `backend/src/routes/api/admin/settings.rs` (one payload struct per section, or the section file's own with `apply()`) |
 | Public settings | `backend/src/routes/api/settings.rs` (what the frontend may read before sign-in) |
@@ -118,8 +119,8 @@ to copy), never gathered in a folder of their own.
   Settings pages, saved by `PUT /api/admin/settings` with that section's payload. The pages are
   groups by topic, each its own entry under "Settings" in the admin sidebar (`settingsGroups` in
   `AdminSettings.tsx`): General (application, metadata, storage, status page, updates), Mail,
-  Accounts (users, noprofit.space, passkeys, welcome tour), Hosting (servers, games, placement,
-  start queue, limbo, recovery), Security (captcha, rate limits, abuse, activity), Economy (store, tokens,
+  Accounts (users, noprofit.space, passkeys, welcome tour), Hosting (servers, games, Minecraft,
+  placement, start queue, limbo, recovery), Security (captcha, rate limits, abuse, activity), Economy (store, tokens,
   memberships: one section in three tabs) and Ads (placement, Adsterra, Monetag, waiting room, ad
   blockers, in-game: one section in six tabs). A new section joins the group its topic belongs to;
   a big section is split into tabs that each save their own fields. Every setting is editable

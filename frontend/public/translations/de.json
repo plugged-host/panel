@@ -3185,6 +3185,24 @@
                 }
               }
             },
+            "minecraft": {
+              "title": "Minecraft",
+              "page": {
+                "title": "Minecraft",
+                "form": {
+                  "curseforgeKey": "CurseForge-API-Schlüssel",
+                  "curseforgeKeyStored": "Ein Schlüssel ist gespeichert. Lass das Feld leer, um ihn zu behalten.",
+                  "curseforgeKeyMissing": "Ohne Schlüssel wird CurseForge nicht als Quelle angeboten und Jars werden nicht damit abgeglichen. Schlüssel gibt es unter console.curseforge.com.",
+                  "spigot": "SpigotMC",
+                  "spigotDescription": "SpigotMC (über Spiget) als Quelle für Plugins auf Paper-Servern anbieten.",
+                  "userAgent": "User-Agent",
+                  "userAgentDescription": "Wird an Modrinth, CurseForge, SpigotMC und die APIs der Loader gesendet, die einen verlangen, der das Panel nennt. Leer: Name und URL des Panels."
+                },
+                "toast": {
+                  "updated": "Minecraft-Einstellungen aktualisiert."
+                }
+              }
+            },
             "placement": {
               "title": "Platzierung",
               "page": {
@@ -9511,6 +9529,101 @@
           "toast": {
             "requested": "Der Umzug hat begonnen.",
             "cancelled": "Der Umzug wird abgebrochen."
+          }
+        },
+        "minecraft": {
+          "content": {
+            "title": "Plugins & Mods",
+            "subtitle": "{software} · Minecraft {version}",
+            "noLoader": "Die Server-Software ließ sich aus dem Egg dieses Servers nicht ablesen, darum gibt es nichts, wohin Plugins oder Mods installiert werden könnten.",
+            "button": {
+              "open": "Auf {source} öffnen"
+            },
+            "installed": {
+              "title": "Installiert",
+              "identifying": "Erkenne {count} weitere…",
+              "empty": "In /{directory} ist noch nichts installiert. Unter Durchsuchen findest du etwas.",
+              "noMatch": "Kein installiertes Plugin und kein Mod passt zu dieser Suche.",
+              "unknown": "Unbekannt",
+              "missingHint": "Ohne {name} lädt das nicht. Installiere es unter Durchsuchen.",
+              "confidence": {
+                "hash": "Genauer Treffer (Datei-Hash)",
+                "fingerprint": "Genauer Treffer (CurseForge-Fingerprint)",
+                "name": "Über den Namen gefunden",
+                "metadata": "Aus der Jar gelesen",
+                "unknown": "Nicht erkannt"
+              },
+              "badge": {
+                "disabled": "Deaktiviert",
+                "update": "Update: {version}",
+                "missing": "Braucht {name}"
+              },
+              "button": {
+                "enable": "Aktivieren",
+                "disable": "Deaktivieren",
+                "update": "Aktualisieren",
+                "updateTo": "Auf {version} aktualisieren"
+              },
+              "modal": {
+                "delete": {
+                  "title": "{name} löschen?",
+                  "content": "Entfernt `{file}` aus `/{directory}`. Der Server führt es bis zum nächsten Neustart weiter aus.",
+                  "withData": "Auch den Ordner /{folder} löschen",
+                  "withDataDescription": "Seine Konfiguration und Daten. Lass das aus, um sie für eine spätere Installation zu behalten."
+                },
+                "update": {
+                  "title": "{name} auf {version} aktualisieren?",
+                  "content": "Der neue Build wird heruntergeladen und die alte Jar entfernt. Die Konfiguration bleibt, wie sie ist. Starte den Server neu, um ihn zu laden."
+                }
+              },
+              "toast": {
+                "enabled": "{name} aktiviert. Starte den Server neu, um es zu laden.",
+                "disabled": "{name} deaktiviert. Starte den Server neu, um es zu entladen.",
+                "deleted": "{name} gelöscht. Starte den Server neu, um es zu entladen.",
+                "updating": "Das Update von {name} wird heruntergeladen. Starte den Server neu, um es zu laden."
+              }
+            },
+            "browse": {
+              "title": "Durchsuchen",
+              "filter": {
+                "source": "Quelle",
+                "kind": "Art",
+                "version": "Minecraft-Version"
+              },
+              "kind": {
+                "plugin": "Plugins",
+                "mod": "Mods",
+                "modpack": "Modpacks"
+              },
+              "version": {
+                "server": "Die des Servers ({version})",
+                "serverUnknown": "Die des Servers",
+                "any": "Jede Version"
+              },
+              "table": {
+                "project": "Projekt",
+                "downloads": "Downloads"
+              },
+              "empty": "Nichts gefunden. Versuch eine andere Suche oder jede Minecraft-Version: Nicht jeder Autor listet jede Version, die er unterstützt.",
+              "externalHint": "Dieses Plugin ist kostenpflichtig oder liegt außerhalb von SpigotMC, darum kann es nicht von hier installiert werden. Öffne es auf SpigotMC oder such es auf Modrinth.",
+              "badge": {
+                "installed": "Installiert"
+              },
+              "button": {
+                "install": "Installieren",
+                "external": "Extern",
+                "chooseVersion": "Version wählen"
+              },
+              "modal": {
+                "title": "{name} installieren",
+                "noVersions": "Keine Version davon passt zu diesem Server.",
+                "loose": "Kein Build nennt Minecraft {version}, darum werden alle Builds gezeigt. Nimm den neuesten und teste ihn: Die meisten funktionieren trotzdem.",
+                "spigotLatestOnly": "SpigotMC bietet nur den neuesten Build zum Download an."
+              },
+              "toast": {
+                "installed": "{file} wird nach /{directory} heruntergeladen. Starte den Server neu, um es zu laden."
+              }
+            }
           }
         },
         "activity": {

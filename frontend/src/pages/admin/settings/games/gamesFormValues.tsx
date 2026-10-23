@@ -2,7 +2,7 @@
 import { UseFormReturnType } from '@mantine/form';
 import { z } from 'zod';
 import type { FieldDef } from '@/elements/form-engine/index.ts';
-import { adminSettingsGamesSchema } from '@/lib/schemas/admin/settings.ts';
+import { adminSettingsGamesSchema, adminSettingsGamesStoreSchema } from '@/lib/schemas/admin/settings.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import GameCatalogField from './GameCatalogField.tsx';
 
@@ -27,7 +27,13 @@ export const gamesEmptyFormValues: GamesFormValues = {
   allowanceDisk: 0,
 };
 
-export const gamesToFormValues = (games: GamesFormValues): Partial<GamesFormValues> => games;
+// The section also holds the Minecraft tab's fields, which that tab saves.
+export const gamesToFormValues = ({
+  minecraftCurseforgeKey: _key,
+  minecraftSpigot: _spigot,
+  minecraftUserAgent: _userAgent,
+  ...games
+}: z.infer<typeof adminSettingsGamesStoreSchema>): Partial<GamesFormValues> => games;
 
 export function useGamesFormFields(
   form: UseFormReturnType<GamesFormValues>,

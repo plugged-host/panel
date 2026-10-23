@@ -29,6 +29,7 @@ mod files;
 // plugged.host: the firewall removed (docs/upstream.md)
 // mod firewall;
 mod logs;
+mod minecraft; // plugged.host
 // plugged.host: mounts removed (docs/upstream.md)
 // mod mounts;
 mod limbo; // plugged.host
@@ -40,7 +41,7 @@ mod settings;
 mod startup;
 mod subusers;
 mod transfer;
-mod waiting_room; // plugged.host // plugged.host
+mod waiting_room; // plugged.host
 // plugged.host: the private network removed (docs/upstream.md)
 // mod tunnel;
 mod websocket;
@@ -167,6 +168,7 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         .nest("/announcements", announcements::router(state))
         .nest("/resources", resources::router(state))
         .nest("/logs", logs::router(state))
+        .nest("/minecraft", minecraft::router(state)) // plugged.host
         .nest("/websocket", websocket::router(state))
         .nest("/command", command::router(state))
         .nest("/limbo", limbo::router(state)) // plugged.host

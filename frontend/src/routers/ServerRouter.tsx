@@ -20,6 +20,7 @@ import QuickActionsTrigger from '@/elements/quickActions/QuickActionsTrigger.tsx
 import ServerQuickActions from '@/elements/quickActions/ServerQuickActions.tsx';
 import ServerStatusIndicator from '@/elements/ServerStatusIndicator.tsx';
 import { isAdmin } from '@/lib/auth/permissions.ts';
+import { isOtherGameRoute } from '@/lib/domain/games.ts'; // plugged.host
 import { isInLimbo } from '@/lib/domain/limbo.ts'; // plugged.host
 import { getDisabledServerRoutePaths, isConflictingState } from '@/lib/domain/server.ts';
 import { resolveString } from '@/lib/lazy.ts';
@@ -97,6 +98,7 @@ export default function ServerRouter({ isNormal }: { isNormal: boolean }) {
     if (!routeOrder) {
       return allServerRoutes
         .filter((route) => !!route.name && (!route.filter || route.filter()))
+        .filter((route) => !isOtherGameRoute(route.path, server.egg?.features)) // plugged.host
         .map((route) => ({
           type: 'route' as const,
           route,
@@ -109,6 +111,7 @@ export default function ServerRouter({ isNormal }: { isNormal: boolean }) {
         if (item.type === 'route') {
           const route = allServerRoutes.find((r) => r.path === item.path);
           if (!route || !route.name || (route.filter && !route.filter())) return null;
+          if (isOtherGameRoute(route.path, server.egg?.features)) return null; // plugged.host
           return { type: 'route' as const, route, icon: item.icon };
         }
 
@@ -130,7 +133,7 @@ export default function ServerRouter({ isNormal }: { isNormal: boolean }) {
         return null;
       })
       .filter(Boolean);
-  }, [server.eggConfiguration?.routeOrder, allServerRoutes, language]);
+  }, [server.eggConfiguration?.routeOrder, server.egg?.features, allServerRoutes, language]); // plugged.host: features
 
   const accessibleRoutePaths = useMemo(
     () => getAccessibleRoutePaths(allServerRoutes, server.eggConfiguration?.routeOrder),
@@ -313,6 +316,7 @@ export default function ServerRouter({ isNormal }: { isNormal: boolean }) {
                       .filter((route) => !route.filter || route.filter())
                       .filter((route) => !accessibleRoutePaths || accessibleRoutePaths.has(route.path))
                       .filter((route) => !disabledRoutePaths.has(route.path))
+                      .filter((route) => !isOtherGameRoute(route.path, server.egg?.features)) // plugged.host
                       .map(({ path, element: Element, permission }) => (
                         <Route
                           key={path}

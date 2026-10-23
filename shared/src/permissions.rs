@@ -1110,6 +1110,17 @@ pub(crate) static BASE_SERVER_PERMISSIONS: LazyLock<IndexMap<&'static str, Permi
                     ]),
                 },
             ),
+            // plugged.host: docs/features/minecraft.md
+            (
+                "minecraft",
+                PermissionGroup {
+                    description: "Permissions that control the Minecraft pages of a Minecraft server.",
+                    permissions: IndexMap::from([(
+                        "content",
+                        "Allows browsing, installing, updating, turning off and deleting plugins and mods.",
+                    )]),
+                },
+            ),
             (
                 "activity",
                 PermissionGroup {

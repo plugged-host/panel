@@ -226,6 +226,9 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
     allowanceCpu: 0,
     allowanceMemory: 0,
     allowanceDisk: 0,
+    minecraftCurseforgeKey: null,
+    minecraftSpigot: true,
+    minecraftUserAgent: '',
   },
   placement: {
     pauseEnabled: true,

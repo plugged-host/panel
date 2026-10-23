@@ -52,10 +52,11 @@ For AI agents: [`AGENTS.md`](../AGENTS.md) at the root has the hard rules in sho
 | **Status page**: the website, the panel and every node checked each minute, incidents with updates, overrides, 90 days of uptime, served as `/data/*.json` and an RSS feed for a public status page; Admin › Status and Admin › Settings › General › Status Page | [features/status.md](features/status.md) |
 | **Abuse protection**: every server's startup, files and console scanned every three hours, CPU watched every minute and, with the Wings fork, what runs in each container and what it connects to; critical findings suspend (then delete) or only report, Discord alerts; Admin › Abuse and Admin › Settings › Security › Abuse | [features/abuse.md](features/abuse.md) |
 | **Health checks**: background task heartbeats and node telemetry age on Admin › Overview › Health | [features/health.md](features/health.md) |
+| **Minecraft pages** on servers whose egg has the `eula` feature: Plugins & Mods (what is installed, identified by hash or by the jar's descriptor, with updates, missing dependencies, turn off and delete; search and install from Modrinth, CurseForge and SpigotMC); Admin › Settings › Hosting › Minecraft | [features/minecraft.md](features/minecraft.md) |
 | **Removed features**: devices, mounts, the extension manager, the update checker, Tundra's private network, the server firewall, managed database instances, backup groups; telemetry is opt-in | [upstream.md](upstream.md#removed-features) |
 | **German stays complete**: a build fails while a German string is missing | [development.md](development.md#strings) |
 
-More features arrive in phases (Minecraft and FiveM tools, subdomains,
+More features arrive in phases (more Minecraft pages, FiveM tools, subdomains,
 an AI assistant, Discord rewards). Each one gets its page in [features/](features/) in the same
 commit as its code.
 

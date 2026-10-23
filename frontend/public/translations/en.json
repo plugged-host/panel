@@ -3185,6 +3185,24 @@
                 }
               }
             },
+            "minecraft": {
+              "title": "Minecraft",
+              "page": {
+                "title": "Minecraft",
+                "form": {
+                  "curseforgeKey": "CurseForge API Key",
+                  "curseforgeKeyStored": "A key is stored. Leave this empty to keep it.",
+                  "curseforgeKeyMissing": "Without a key, CurseForge is not offered as a source and jars are not matched against it. Keys come from console.curseforge.com.",
+                  "spigot": "SpigotMC",
+                  "spigotDescription": "Offer SpigotMC (through Spiget) as a source of plugins on Paper servers.",
+                  "userAgent": "User Agent",
+                  "userAgentDescription": "Sent to Modrinth, CurseForge, SpigotMC and the loaders' APIs, which ask for one that names the panel. Empty: the panel's name and URL."
+                },
+                "toast": {
+                  "updated": "Minecraft settings updated."
+                }
+              }
+            },
             "placement": {
               "title": "Placement",
               "page": {
@@ -9511,6 +9529,101 @@
           "toast": {
             "requested": "The move has started.",
             "cancelled": "The move is being cancelled."
+          }
+        },
+        "minecraft": {
+          "content": {
+            "title": "Plugins & Mods",
+            "subtitle": "{software} · Minecraft {version}",
+            "noLoader": "The server software could not be told from this server's egg, so there is nothing to install plugins or mods into.",
+            "button": {
+              "open": "Open on {source}"
+            },
+            "installed": {
+              "title": "Installed",
+              "identifying": "Identifying {count} more…",
+              "empty": "Nothing is installed in /{directory} yet. Find something under Browse.",
+              "noMatch": "No installed plugin or mod matches that search.",
+              "unknown": "Unknown",
+              "missingHint": "This will not load without {name}. Install it under Browse.",
+              "confidence": {
+                "hash": "Exact match (file hash)",
+                "fingerprint": "Exact match (CurseForge fingerprint)",
+                "name": "Matched by name",
+                "metadata": "Read from the jar",
+                "unknown": "Not identified"
+              },
+              "badge": {
+                "disabled": "Disabled",
+                "update": "Update: {version}",
+                "missing": "Needs {name}"
+              },
+              "button": {
+                "enable": "Enable",
+                "disable": "Disable",
+                "update": "Update",
+                "updateTo": "Update to {version}"
+              },
+              "modal": {
+                "delete": {
+                  "title": "Delete {name}?",
+                  "content": "Removes `{file}` from `/{directory}`. The server keeps running it until the next restart.",
+                  "withData": "Also delete its folder /{folder}",
+                  "withDataDescription": "Its configs and data. Leave this off to keep them for a later install."
+                },
+                "update": {
+                  "title": "Update {name} to {version}?",
+                  "content": "The new build is downloaded and the old jar removed. The configs stay as they are. Restart the server to load it."
+                }
+              },
+              "toast": {
+                "enabled": "{name} enabled. Restart the server to load it.",
+                "disabled": "{name} disabled. Restart the server to unload it.",
+                "deleted": "{name} deleted. Restart the server to unload it.",
+                "updating": "Downloading the update of {name}. Restart the server to load it."
+              }
+            },
+            "browse": {
+              "title": "Browse",
+              "filter": {
+                "source": "Source",
+                "kind": "Type",
+                "version": "Minecraft Version"
+              },
+              "kind": {
+                "plugin": "Plugins",
+                "mod": "Mods",
+                "modpack": "Modpacks"
+              },
+              "version": {
+                "server": "This Server's ({version})",
+                "serverUnknown": "This Server's",
+                "any": "Any Version"
+              },
+              "table": {
+                "project": "Project",
+                "downloads": "Downloads"
+              },
+              "empty": "Nothing found. Try another search, or any Minecraft version: not every author lists every version they support.",
+              "externalHint": "This plugin is premium or hosted outside SpigotMC, so it cannot be installed from here. Open it on SpigotMC, or look for it on Modrinth.",
+              "badge": {
+                "installed": "Installed"
+              },
+              "button": {
+                "install": "Install",
+                "external": "External",
+                "chooseVersion": "Choose Version"
+              },
+              "modal": {
+                "title": "Install {name}",
+                "noVersions": "No version of it fits this server.",
+                "loose": "No build lists Minecraft {version}, so all builds are shown. Take the newest one and test it: most work anyway.",
+                "spigotLatestOnly": "SpigotMC only offers the latest build for download."
+              },
+              "toast": {
+                "installed": "Downloading {file} into /{directory}. Restart the server to load it."
+              }
+            }
           }
         },
         "activity": {

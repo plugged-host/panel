@@ -405,6 +405,22 @@ export const adminSettingsGamesSchema = z.object({
   allowanceDisk: z.number().int().min(0),
 });
 
+// plugged.host: Admin › Settings › Hosting › Minecraft, part of the games section; an empty key
+// keeps the stored one (docs/features/minecraft.md)
+export const adminSettingsMinecraftSchema = z.object({
+  minecraftCurseforgeKey: z.string().max(255),
+  minecraftSpigot: z.boolean(),
+  minecraftUserAgent: z.string().max(255),
+});
+
+// plugged.host: the games section as the panel sends it: the Games tab's fields and the Minecraft
+// tab's (a stored key comes back as a placeholder)
+export const adminSettingsGamesStoreSchema = adminSettingsGamesSchema.extend({
+  minecraftCurseforgeKey: z.string().max(255).nullable(),
+  minecraftSpigot: z.boolean(),
+  minecraftUserAgent: z.string().max(255),
+});
+
 // plugged.host: the automatic deployment pause (shared/src/settings/placement.rs, docs/features/placement.md)
 export const adminSettingsPlacementSchema = z.object({
   pauseEnabled: z.boolean(),
@@ -588,7 +604,7 @@ export const adminSettingsSchema = z.object({
   noprofit: adminSettingsNoprofitSchema, // plugged.host
   status: adminSettingsStatusSchema, // plugged.host
   abuse: adminSettingsAbuseSchema, // plugged.host
-  games: adminSettingsGamesSchema, // plugged.host
+  games: adminSettingsGamesStoreSchema, // plugged.host
   placement: adminSettingsPlacementSchema, // plugged.host
   tour: adminSettingsTourSchema, // plugged.host
   recovery: adminSettingsRecoverySchema, // plugged.host

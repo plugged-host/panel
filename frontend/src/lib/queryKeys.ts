@@ -273,6 +273,14 @@ const server = (serverUuid: string) => ({
   queue: () => ['server', serverUuid, 'queue'] as const, // plugged.host
   limbo: () => ['server', serverUuid, 'limbo'] as const, // plugged.host
   waitingRoom: () => ['server', serverUuid, 'waiting-room'] as const, // plugged.host
+  // plugged.host: docs/features/minecraft.md
+  minecraft: {
+    content: () => ['server', serverUuid, 'minecraft', 'content'] as const,
+    search: (params: object) => ['server', serverUuid, 'minecraft', 'search', params] as const,
+    versions: (source: string, project: string) =>
+      ['server', serverUuid, 'minecraft', 'versions', { source, project }] as const,
+    installed: () => ['server', serverUuid, 'minecraft', 'installed'] as const,
+  },
   activity: {
     all: (userUuid: string | null) => ['server', serverUuid, 'activity', { uuid: userUuid }] as const,
     byEvent: (userUuid: string | null, event: string) =>

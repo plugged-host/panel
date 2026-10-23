@@ -6,6 +6,7 @@ import {
   faCircleUp,
   faClockRotateLeft, // plugged.host
   faCoins, // plugged.host
+  faCube, // plugged.host
   faCubes, // plugged.host
   faDatabase,
   faEnvelopesBulk,
@@ -57,6 +58,7 @@ import EmailContainer from './email/EmailContainer.tsx';
 import GamesContainer from './games/GamesContainer.tsx'; // plugged.host
 import LimboContainer from './limbo/LimboContainer.tsx'; // plugged.host
 import MetadataContainer from './metadata/MetadataContainer.tsx';
+import MinecraftContainer from './minecraft/MinecraftContainer.tsx'; // plugged.host
 import NoprofitContainer from './noprofit/NoprofitContainer.tsx';
 import PlacementContainer from './placement/PlacementContainer.tsx'; // plugged.host
 import QueueContainer from './queue/QueueContainer.tsx'; // plugged.host
@@ -190,6 +192,13 @@ export const settingsGroups: SettingsGroup[] = [
         icon: faGamepad,
         path: '/games',
         element: <GamesContainer />,
+      },
+      // plugged.host: the Minecraft pages' sources (docs/features/minecraft.md)
+      {
+        name: t('pages.admin.settings.tabs.minecraft.title', {}),
+        icon: faCube,
+        path: '/minecraft',
+        element: <MinecraftContainer />,
       },
       {
         name: t('pages.admin.settings.tabs.placement.title', {}),
