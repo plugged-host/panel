@@ -1,221 +1,307 @@
-// plugged.host: the server's subdomains, DNS names players join with (docs/features/subdomains.md)
-import { faPen, faRotate, faTrash } from '@fortawesome/free-solid-svg-icons';
+// plugged.host: the server's subdomains, DNS names players join with, laid out like the Pelican
+// panel's Subdomains page: a Filament table with its create action in the toolbar, and the create
+// and edit modals (docs/features/subdomains.md)
+import { faCopy, faGlobe, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
+import { FormEvent, ReactNode, useEffect, useState } from 'react';
+import { ClipboardCancelledError } from 'shared';
 import { z } from 'zod';
-import { httpErrorToHuman } from '@/api/axios.ts';
+import { getHttpStatus, httpErrorToHuman } from '@/api/axios.ts';
 import createSubdomain from '@/api/server/subdomains/createSubdomain.ts';
 import deleteSubdomain from '@/api/server/subdomains/deleteSubdomain.ts';
 import getSubdomains from '@/api/server/subdomains/getSubdomains.ts';
 import updateSubdomain from '@/api/server/subdomains/updateSubdomain.ts';
-import ActionIcon from '@/elements/buttons/ActionIcon.tsx';
 import Button from '@/elements/buttons/Button.tsx';
-import CopyOnClick from '@/elements/CopyOnClick.tsx';
+import UnstyledButton from '@/elements/buttons/UnstyledButton.tsx';
 import ServerContentContainer from '@/elements/containers/ServerContentContainer.tsx';
+import Badge from '@/elements/data-display/Badge.tsx';
 import Table, { TableData, TableRow } from '@/elements/data-display/Table.tsx';
+import EmptyState from '@/elements/feedback/EmptyState.tsx';
 import Select from '@/elements/input/Select.tsx';
 import TextInput from '@/elements/input/TextInput.tsx';
-import Group from '@/elements/layout/Group.tsx';
 import Stack from '@/elements/layout/Stack.tsx';
 import ConfirmationModal from '@/elements/modals/ConfirmationModal.tsx';
 import { Modal, ModalFooter } from '@/elements/modals/Modal.tsx';
-import ConditionalTooltip from '@/elements/overlays/ConditionalTooltip.tsx';
 import Tooltip from '@/elements/overlays/Tooltip.tsx';
 import ResourceView from '@/elements/ResourceView.tsx';
-import Code from '@/elements/typography/Code.tsx';
 import Text from '@/elements/typography/Text.tsx';
+import { copyToClipboard } from '@/lib/clipboard/copy.ts';
 import { queryKeys } from '@/lib/queryKeys.ts';
 import { serverSubdomainSchema, serverSubdomainsSchema } from '@/lib/schemas/server/subdomains.ts';
 import { useServerCan } from '@/plugins/usePermissions.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
+import { useGlobalStore } from '@/stores/global.ts';
 import { useServerStore } from '@/stores/server.ts';
 
 type Overview = z.infer<typeof serverSubdomainsSchema>;
 type Subdomain = z.infer<typeof serverSubdomainSchema>;
+type Translate = ReturnType<typeof useTranslations>['t'];
 
 const base = 'pages.server.subdomains';
 const NAME = /^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$/;
+/** How long new records show as processing (`PROPAGATION_MINUTES` in shared/src/subdomains). */
+const PROPAGATION_MS = 3 * 60 * 1000;
+/** The Pelican table polls every 15 s; the processing minutes count down at the same pace. */
+const POLL_MS = 15000;
 
-const validName = (name: string) => name.length >= 2 && NAME.test(name);
+/** English and German both use the singular for exactly one. */
+const plural = (count: number) => (count === 1 ? 'one' : 'other');
 
-function serviceNote(overview: Overview, t: ReturnType<typeof useTranslations>['t']) {
+/** Pelican's ":count token|:count tokens". */
+const tokens = (t: Translate, count: number) => t(`${base}.tokens.${plural(count)}`, { count });
+
+/** Minutes until a new subdomain counts as propagated, `null` once it does (Pelican's `status_label`). */
+function processingMinutes(subdomain: Subdomain, now: number) {
+  const left = Date.parse(subdomain.created) + PROPAGATION_MS - now;
+
+  return subdomain.propagating && left > 0 ? Math.max(1, Math.ceil(left / 60000)) : null;
+}
+
+/** The Name field's helper text for the server's game (Pelican's `helper_*`). */
+function serviceHelper(overview: Overview, port: number | undefined, t: Translate) {
+  // a string, so the port is not printed with a thousands separator
+  const portText = port === undefined ? 'port' : String(port);
+
   switch (overview.service) {
     case 'minecraft':
-      return t(`${base}.create.service.minecraft`, {});
+      return t(`${base}.create.service.minecraft`, { port: portText });
     case 'fivem':
-      return t(`${base}.create.service.fivem`, {});
+      return t(`${base}.create.service.fivem`, { port: portText });
+    case null:
     case 'plain':
-      return t(`${base}.create.service.plain`, { address: overview.address ?? '' });
+      return t(`${base}.create.service.plain`, { address: overview.address ?? t(`${base}.create.serverIp`, {}) });
     default:
       return t(`${base}.create.service.srv`, {});
   }
 }
 
-function CreateModal({ opened, overview, onClose }: { opened: boolean; overview: Overview; onClose: () => void }) {
+/** Filament's copyable column: a click copies the value and says so in a tooltip for two seconds. */
+function CopyCell({ value, message, children }: { value: string; message: string; children: ReactNode }) {
+  const { t } = useTranslations();
+  const { addToast } = useToast();
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (!copied) return;
+    const timer = setTimeout(() => setCopied(false), 2000);
+    return () => clearTimeout(timer);
+  }, [copied]);
+
+  const copy = () => {
+    copyToClipboard(value)
+      .then(() => setCopied(true))
+      .catch((error) => {
+        if (error instanceof ClipboardCancelledError) return;
+        addToast(t('elements.copyOnClick.toast.failed', {}), 'error');
+      });
+  };
+
+  return (
+    <Tooltip label={message} opened={copied}>
+      <UnstyledButton className='theme-copy-cell' onClick={copy}>
+        {children}
+      </UnstyledButton>
+    </Tooltip>
+  );
+}
+
+/** Pelican's `game_label` badge: green for Minecraft, yellow for FiveM / RedM, blue for the rest. */
+function TypeBadge({ subdomain, service }: { subdomain: Subdomain; service: string | null }) {
+  const { t } = useTranslations();
+
+  switch (service) {
+    case 'minecraft':
+      return <Badge color='green'>{t(`${base}.type.minecraft`, {})}</Badge>;
+    case 'fivem':
+      return <Badge color='yellow'>{t(`${base}.type.fivem`, {})}</Badge>;
+    case null:
+    case 'plain':
+      return <Badge color='blue'>{t(`${base}.type.standard`, { type: subdomain.recordType })}</Badge>;
+    default:
+      // Pelican names the other SRV services by their enum case in title case (Teamspeak, Scpsl).
+      return (
+        <Badge color='blue'>
+          {t(`${base}.type.srv`, { service: service.charAt(0).toUpperCase() + service.slice(1) })}
+        </Badge>
+      );
+  }
+}
+
+/** The create form; without the deposit and with the domain fixed, the edit form. */
+function SubdomainModal({
+  opened,
+  overview,
+  editing,
+  onClose,
+}: {
+  opened: boolean;
+  overview: Overview;
+  editing: Subdomain | null;
+  onClose: () => void;
+}) {
   const { t } = useTranslations();
   const { addToast } = useToast();
   const queryClient = useQueryClient();
   const server = useServerStore((state) => state.server);
+  const tokensEnabled = useGlobalStore((state) => state.settings.economy.tokensEnabled);
   const [name, setName] = useState('');
   const [domain, setDomain] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!opened) return;
-    setName('');
-    setDomain(overview.domains[0]?.uuid ?? null);
+    setName(editing?.name ?? '');
+    setDomain(editing ? null : (overview.domains[0]?.uuid ?? null));
+    setError(null);
   }, [opened]);
 
   const trimmed = name.trim().toLowerCase();
-  const domainName = overview.domains.find((choice) => choice.uuid === domain)?.name ?? '';
-  const short = overview.balance !== null && overview.balance < overview.nextCost;
+  const domainName = editing ? editing.domain : (overview.domains.find((choice) => choice.uuid === domain)?.name ?? '');
 
-  const create = () => {
+  const submit = (e: FormEvent) => {
+    e.preventDefault();
+
+    if (trimmed.length < 2) {
+      setError(t(`${base}.create.nameLength`, {}));
+      return;
+    }
+    if (!NAME.test(trimmed)) {
+      setError(t(`${base}.create.nameFormat`, {}));
+      return;
+    }
+    if (!editing && overview.nextCost > 0 && overview.balance !== null && overview.balance < overview.nextCost) {
+      setError(t(`${base}.create.insufficient`, { cost: tokens(t, overview.nextCost), balance: overview.balance }));
+      return;
+    }
+
     setLoading(true);
 
-    createSubdomain(server.uuid, trimmed, domain)
+    (editing ? updateSubdomain(server.uuid, editing.uuid, trimmed) : createSubdomain(server.uuid, trimmed, domain))
       .then((subdomain) => {
-        addToast(t(`${base}.toast.created`, { name: subdomain.fqdn }), 'success');
+        addToast(
+          editing ? t(`${base}.toast.saved`, {}) : t(`${base}.toast.created`, { name: subdomain.fqdn }),
+          'success',
+        );
         onClose();
         queryClient.invalidateQueries({ queryKey: queryKeys.server(server.uuid).subdomains() });
       })
-      .catch((error) => {
-        addToast(httpErrorToHuman(error), 'error');
-      })
-      .finally(() => setLoading(false));
-  };
-
-  return (
-    <Modal opened={opened} onClose={onClose} title={t(`${base}.create.title`, {})}>
-      <Stack gap='md'>
-        <TextInput
-          label={t(`${base}.create.name`, {})}
-          description={t(`${base}.create.nameDescription`, {})}
-          placeholder='play'
-          value={name}
-          onChange={(e) => setName(e.currentTarget.value)}
-          error={trimmed !== '' && !validName(trimmed)}
-          rightSection={
-            overview.domains.length === 1 ? (
-              <Text size='sm' c='dimmed' pe='sm'>
-                .{domainName}
-              </Text>
-            ) : undefined
-          }
-          rightSectionWidth={overview.domains.length === 1 ? `${domainName.length + 3}ch` : undefined}
-          maxLength={63}
-          data-autofocus
-          required
-        />
-        {overview.domains.length > 1 && (
-          <Select
-            label={t(`${base}.create.domain`, {})}
-            data={overview.domains.map((choice) => ({ value: choice.uuid, label: choice.name }))}
-            value={domain}
-            onChange={setDomain}
-            allowDeselect={false}
-            required
-          />
-        )}
-        <Text size='sm' c='dimmed'>
-          {serviceNote(overview, t)}
-        </Text>
-        {overview.nextCost > 0 && (
-          <Text size='sm' c={short ? 'red' : undefined}>
-            {short
-              ? t(`${base}.create.notEnough`, { cost: overview.nextCost, balance: overview.balance ?? 0 })
-              : t(`${base}.create.cost`, { cost: overview.nextCost })}
-            {!short && overview.balance !== null && ` ${t(`${base}.create.balance`, { balance: overview.balance })}`}
-          </Text>
-        )}
-      </Stack>
-
-      <ModalFooter>
-        <Button onClick={create} loading={loading} disabled={!validName(trimmed) || !domain || short}>
-          {t(`${base}.create.button`, {})}
-        </Button>
-        <Button variant='default' onClick={onClose}>
-          {t('common.button.cancel', {})}
-        </Button>
-      </ModalFooter>
-    </Modal>
-  );
-}
-
-function RenameModal({ subdomain, onClose }: { subdomain: Subdomain | null; onClose: () => void }) {
-  const { t } = useTranslations();
-  const { addToast } = useToast();
-  const queryClient = useQueryClient();
-  const server = useServerStore((state) => state.server);
-  const [name, setName] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (subdomain) setName(subdomain.name);
-  }, [subdomain]);
-
-  const trimmed = name.trim().toLowerCase();
-
-  const rename = () => {
-    if (!subdomain) return;
-    setLoading(true);
-
-    updateSubdomain(server.uuid, subdomain.uuid, trimmed)
-      .then((renamed) => {
-        addToast(t(`${base}.toast.renamed`, { name: renamed.fqdn }), 'success');
-        onClose();
-        queryClient.invalidateQueries({ queryKey: queryKeys.server(server.uuid).subdomains() });
-      })
-      .catch((error) => {
-        addToast(httpErrorToHuman(error), 'error');
+      .catch((err) => {
+        // What the form could have caught (a bad, blocked or taken name, too few tokens, the limit)
+        // goes under the field, like Filament's validation; anything else is a toast.
+        const status = getHttpStatus(err);
+        if (status === 400 || status === 409) {
+          setError(httpErrorToHuman(err));
+        } else {
+          addToast(httpErrorToHuman(err), 'error');
+        }
       })
       .finally(() => setLoading(false));
   };
 
   return (
     <Modal
-      opened={subdomain !== null}
+      opened={opened}
       onClose={onClose}
-      title={t(`${base}.rename.title`, { name: subdomain?.fqdn ?? '' })}
+      title={editing ? t(`${base}.edit.title`, {}) : t(`${base}.create.title`, {})}
     >
-      <TextInput
-        label={t(`${base}.create.name`, {})}
-        description={t(`${base}.create.nameDescription`, {})}
-        value={name}
-        onChange={(e) => setName(e.currentTarget.value)}
-        error={trimmed !== '' && !validName(trimmed)}
-        rightSection={
-          <Text size='sm' c='dimmed' pe='sm'>
-            .{subdomain?.domain ?? ''}
-          </Text>
-        }
-        rightSectionWidth={`${(subdomain?.domain.length ?? 0) + 3}ch`}
-        maxLength={63}
-        data-autofocus
-        required
-      />
+      <form onSubmit={submit}>
+        <Stack gap='lg'>
+          {!editing && tokensEnabled && (
+            <div className='theme-sub-deposit'>
+              <div className='theme-sub-deposit-top'>
+                <div>
+                  <span className='theme-sub-deposit-caption'>
+                    {t(`${base}.create.depositCaption`, { number: overview.subdomains.length + 1 })}
+                  </span>
+                  <div className='theme-sub-deposit-amount'>
+                    <strong>{overview.nextCost}</strong>
+                    <span>{t(`${base}.create.refundable.${plural(overview.nextCost)}`, {})}</span>
+                  </div>
+                </div>
+                {/* Only the owner sees their balance; a subuser sees the price alone. */}
+                {overview.balance !== null && (
+                  <div className='theme-sub-deposit-balance'>
+                    <span className='theme-sub-deposit-caption'>{t(`${base}.create.balance`, {})}</span>
+                    <strong>{tokens(t, overview.balance)}</strong>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
-      <ModalFooter>
-        <Button onClick={rename} loading={loading} disabled={!validName(trimmed) || trimmed === subdomain?.name}>
-          {t(`${base}.rename.button`, {})}
-        </Button>
-        <Button variant='default' onClick={onClose}>
-          {t('common.button.cancel', {})}
-        </Button>
-      </ModalFooter>
+          <TextInput
+            label={t(`${base}.create.name`, {})}
+            placeholder={t(`${base}.create.placeholder`, {})}
+            description={serviceHelper(overview, server.allocation?.port, t)}
+            inputWrapperOrder={['label', 'input', 'description', 'error']}
+            value={name}
+            onChange={(e) => {
+              setName(e.currentTarget.value);
+              setError(null);
+            }}
+            error={error}
+            rightSection={
+              <Text size='sm' c='dimmed' pe='sm'>
+                .{domainName}
+              </Text>
+            }
+            rightSectionWidth={`${domainName.length + 3}ch`}
+            maxLength={63}
+            data-autofocus
+            required
+          />
+
+          {overview.domains.length > 1 &&
+            (editing ? (
+              <Select
+                label={t(`${base}.create.domain`, {})}
+                data={[{ value: editing.domain, label: editing.domain }]}
+                value={editing.domain}
+                disabled
+              />
+            ) : (
+              <Select
+                label={t(`${base}.create.domain`, {})}
+                data={overview.domains.map((choice) => ({ value: choice.uuid, label: choice.name }))}
+                value={domain}
+                onChange={setDomain}
+                allowDeselect={false}
+                required
+              />
+            ))}
+        </Stack>
+
+        <ModalFooter>
+          <Button type='submit' loading={loading} disabled={trimmed === '' || (!editing && !domain)}>
+            {editing ? t(`${base}.edit.button`, {}) : t(`${base}.create.button`, {})}
+          </Button>
+          <Button variant='default' onClick={onClose}>
+            {t('common.button.cancel', {})}
+          </Button>
+        </ModalFooter>
+      </form>
     </Modal>
   );
 }
 
 function SubdomainRow({
   subdomain,
-  onRename,
+  service,
+  showDeposit,
+  showActions,
+  now,
+  onEdit,
   onDelete,
 }: {
   subdomain: Subdomain;
-  onRename: () => void;
+  service: string | null;
+  showDeposit: boolean;
+  showActions: boolean;
+  now: number;
+  onEdit: () => void;
   onDelete: () => void;
 }) {
   const { t } = useTranslations();
@@ -225,6 +311,7 @@ function SubdomainRow({
   const canUpdate = useServerCan('subdomains.update');
   const canDelete = useServerCan('subdomains.delete');
   const [repairing, setRepairing] = useState(false);
+  const minutes = processingMinutes(subdomain, now);
 
   const repair = () => {
     setRepairing(true);
@@ -240,66 +327,58 @@ function SubdomainRow({
   return (
     <TableRow>
       <TableData>
-        <CopyOnClick content={subdomain.fqdn}>
-          <Text size='sm' fw={500}>
-            {subdomain.fqdn}
-          </Text>
-        </CopyOnClick>
+        <CopyCell value={subdomain.fqdn} message={t(`${base}.copied`, {})}>
+          {subdomain.fqdn}
+        </CopyCell>
       </TableData>
       <TableData>
-        <CopyOnClick content={subdomain.connect}>
-          <Code>{subdomain.connect}</Code>
-        </CopyOnClick>
-      </TableData>
-      <TableData>
-        <Text size='sm'>{subdomain.recordType}</Text>
-      </TableData>
-      <TableData>
-        <Text size='sm'>
-          {subdomain.tokenCost > 0 ? t(`${base}.deposit`, { count: subdomain.tokenCost }) : t(`${base}.free`, {})}
-        </Text>
-      </TableData>
-      <TableData>
-        {subdomain.propagating ? (
-          <Tooltip label={t(`${base}.status.propagatingTooltip`, {})}>
-            <Text size='sm' c='dimmed'>
-              {t(`${base}.status.propagating`, {})}
-            </Text>
+        {minutes !== null ? (
+          <Tooltip label={t(`${base}.status.processingTooltip`, {})}>
+            <Badge color='yellow'>{t(`${base}.status.processing`, { minutes })}</Badge>
           </Tooltip>
         ) : (
-          <Text size='sm'>{t(`${base}.status.active`, {})}</Text>
+          <Tooltip label={t(`${base}.status.activeTooltip`, {})}>
+            <Badge color='green'>{t(`${base}.status.active`, {})}</Badge>
+          </Tooltip>
         )}
       </TableData>
-      <TableData className='text-end'>
-        <Group gap='xs' justify='flex-end' wrap='nowrap'>
-          {canUpdate && (
-            <>
-              <Tooltip label={t(`${base}.button.repair`, {})}>
-                <ActionIcon
-                  variant='default'
-                  aria-label={t(`${base}.button.repair`, {})}
-                  loading={repairing}
-                  onClick={repair}
-                >
-                  <FontAwesomeIcon icon={faRotate} />
-                </ActionIcon>
-              </Tooltip>
-              <Tooltip label={t(`${base}.button.rename`, {})}>
-                <ActionIcon variant='default' aria-label={t(`${base}.button.rename`, {})} onClick={onRename}>
-                  <FontAwesomeIcon icon={faPen} />
-                </ActionIcon>
-              </Tooltip>
-            </>
-          )}
-          {canDelete && (
-            <Tooltip label={t(`${base}.button.delete`, {})}>
-              <ActionIcon variant='default' aria-label={t(`${base}.button.delete`, {})} onClick={onDelete}>
-                <FontAwesomeIcon icon={faTrash} />
-              </ActionIcon>
-            </Tooltip>
-          )}
-        </Group>
+      <TableData>
+        <TypeBadge subdomain={subdomain} service={service} />
       </TableData>
+      {showDeposit && (
+        <TableData>
+          <Tooltip label={t(`${base}.depositTooltip`, {})}>
+            <Badge color={subdomain.tokenCost > 0 ? 'yellow' : 'gray'}>{tokens(t, subdomain.tokenCost)}</Badge>
+          </Tooltip>
+        </TableData>
+      )}
+      <TableData>
+        <CopyCell value={subdomain.connect} message={t(`${base}.connectionCopied`, {})}>
+          <FontAwesomeIcon icon={faCopy} className='theme-copy-cell-icon' />
+          {subdomain.connect}
+        </CopyCell>
+      </TableData>
+      {showActions && (
+        <TableData className='text-end'>
+          <div className='theme-link-actions'>
+            {canUpdate && (
+              <>
+                <UnstyledButton className='theme-link-action' disabled={repairing} onClick={repair}>
+                  {t(`${base}.button.repair`, {})}
+                </UnstyledButton>
+                <UnstyledButton className='theme-link-action' onClick={onEdit}>
+                  {t(`${base}.button.edit`, {})}
+                </UnstyledButton>
+              </>
+            )}
+            {canDelete && (
+              <UnstyledButton className='theme-link-action' data-danger onClick={onDelete}>
+                {t(`${base}.button.delete`, {})}
+              </UnstyledButton>
+            )}
+          </div>
+        </TableData>
+      )}
     </TableRow>
   );
 }
@@ -309,33 +388,69 @@ function Subdomains({ overview }: { overview: Overview }) {
   const { addToast } = useToast();
   const queryClient = useQueryClient();
   const server = useServerStore((state) => state.server);
-  const [renaming, setRenaming] = useState<Subdomain | null>(null);
+  const tokensEnabled = useGlobalStore((state) => state.settings.economy.tokensEnabled);
+  const canCreate = useServerCan('subdomains.create');
+  const canUpdate = useServerCan('subdomains.update');
+  const canDelete = useServerCan('subdomains.delete');
+  const [creating, setCreating] = useState(false);
+  // The subdomain stays set while its modal closes, so the modal does not change under the animation.
+  const [editing, setEditing] = useState<Subdomain | null>(null);
+  const [editOpened, setEditOpened] = useState(false);
   const [deleting, setDeleting] = useState<Subdomain | null>(null);
+  const [deleteOpened, setDeleteOpened] = useState(false);
+  const [now, setNow] = useState(() => Date.now());
+
+  // Counts the processing minutes down while a subdomain is new.
+  const processing = overview.subdomains.some((subdomain) => subdomain.propagating);
+  useEffect(() => {
+    if (!processing) return;
+    setNow(Date.now());
+    const timer = setInterval(() => setNow(Date.now()), POLL_MS);
+    return () => clearInterval(timer);
+  }, [processing]);
 
   const remove = async () => {
     if (!deleting) return;
 
-    try {
-      const refunded = await deleteSubdomain(server.uuid, deleting.uuid);
-      addToast(
-        refunded > 0
-          ? t(`${base}.toast.deletedRefund`, { name: deleting.fqdn, count: refunded })
-          : t(`${base}.toast.deleted`, { name: deleting.fqdn }),
-        'success',
-      );
-      setDeleting(null);
-      queryClient.invalidateQueries({ queryKey: queryKeys.server(server.uuid).subdomains() });
-    } catch (error) {
-      addToast(httpErrorToHuman(error), 'error');
-    }
+    const refunded = await deleteSubdomain(server.uuid, deleting.uuid);
+    addToast(
+      refunded > 0
+        ? t(`${base}.toast.deletedRefund.${plural(refunded)}`, { count: refunded })
+        : t(`${base}.toast.deleted`, {}),
+      'success',
+    );
+    setDeleteOpened(false);
+    queryClient.invalidateQueries({ queryKey: queryKeys.server(server.uuid).subdomains() });
   };
 
+  // The Pelican panel hides the page while no subdomain can be made; here the reason takes the
+  // table's place, and a server that still has subdomains keeps them listed.
+  if (overview.unavailable && overview.subdomains.length === 0) {
+    return (
+      <EmptyState
+        flush
+        icon={faGlobe}
+        title={t(`${base}.unavailable.${overview.unavailable}`, {})}
+        description={null}
+      />
+    );
+  }
+
+  const full = overview.subdomains.length >= overview.limit;
+  const createTooltip = overview.unavailable
+    ? t(`${base}.unavailable.${overview.unavailable}`, {})
+    : full
+      ? t(`${base}.limitReached`, {})
+      : t(`${base}.button.add`, {});
+  const showActions = canUpdate || canDelete;
+
   return (
-    <Stack gap='md'>
-      <RenameModal subdomain={renaming} onClose={() => setRenaming(null)} />
+    <div>
+      <SubdomainModal opened={creating} overview={overview} editing={null} onClose={() => setCreating(false)} />
+      <SubdomainModal opened={editOpened} overview={overview} editing={editing} onClose={() => setEditOpened(false)} />
       <ConfirmationModal
-        opened={deleting !== null}
-        onClose={() => setDeleting(null)}
+        opened={deleteOpened}
+        onClose={() => setDeleteOpened(false)}
         title={t(`${base}.delete.title`, {})}
         confirm={t(`${base}.button.delete`, {})}
         onConfirmed={remove}
@@ -344,26 +459,38 @@ function Subdomains({ overview }: { overview: Overview }) {
           <Text size='sm'>{t(`${base}.delete.body`, { name: deleting?.fqdn ?? '' })}</Text>
           {deleting && deleting.tokenCost > 0 && (
             <Text size='sm' c='dimmed'>
-              {t(`${base}.delete.refund`, { count: deleting.tokenCost })}
+              {t(`${base}.delete.refund.${plural(deleting.tokenCost)}`, { count: deleting.tokenCost })}
             </Text>
           )}
         </Stack>
       </ConfirmationModal>
 
-      {overview.unavailable && (
-        <Text size='sm' c='dimmed'>
-          {t(`${base}.unavailable.${overview.unavailable}`, {})}
-        </Text>
+      {/* Filament's table toolbar: the create action as an icon at its start, over a hairline. */}
+      {canCreate && (
+        <div className='theme-table-toolbar'>
+          <div className='theme-table-toolbar-actions'>
+            <Tooltip label={createTooltip}>
+              <UnstyledButton
+                className='theme-toolbar-action'
+                aria-label={t(`${base}.button.add`, {})}
+                disabled={!!overview.unavailable || full}
+                onClick={() => setCreating(true)}
+              >
+                <FontAwesomeIcon icon={faPlus} />
+              </UnstyledButton>
+            </Tooltip>
+          </div>
+        </div>
       )}
 
       <Table
         columns={[
-          t(`${base}.table.subdomain`, {}),
-          t(`${base}.table.connect`, {}),
-          t(`${base}.table.type`, {}),
-          t(`${base}.table.deposit`, {}),
+          t(`${base}.table.name`, {}),
           t(`${base}.table.status`, {}),
-          '',
+          t(`${base}.table.type`, {}),
+          ...(tokensEnabled ? [t(`${base}.table.deposit`, {})] : []),
+          t(`${base}.table.connect`, {}),
+          ...(showActions ? [''] : []),
         ]}
         pagination={{
           total: overview.subdomains.length,
@@ -371,41 +498,43 @@ function Subdomains({ overview }: { overview: Overview }) {
           page: 1,
           data: overview.subdomains,
         }}
-        empty={
-          <Text size='sm' c='dimmed'>
-            {t(`${base}.empty`, {})}
-          </Text>
-        }
+        empty={<EmptyState flush icon={faGlobe} title={t(`${base}.empty`, {})} description={null} />}
       >
         {overview.subdomains.map((subdomain) => (
           <SubdomainRow
             key={subdomain.uuid}
             subdomain={subdomain}
-            onRename={() => setRenaming(subdomain)}
-            onDelete={() => setDeleting(subdomain)}
+            service={overview.service}
+            showDeposit={tokensEnabled}
+            showActions={showActions}
+            now={now}
+            onEdit={() => {
+              setEditing(subdomain);
+              setEditOpened(true);
+            }}
+            onDelete={() => {
+              setDeleting(subdomain);
+              setDeleteOpened(true);
+            }}
           />
         ))}
       </Table>
-    </Stack>
+    </div>
   );
 }
 
 export default function ServerSubdomains() {
   const { t } = useTranslations();
   const server = useServerStore((state) => state.server);
-  const canCreate = useServerCan('subdomains.create');
-  const [creating, setCreating] = useState(false);
 
   const query = useQuery({
     queryKey: queryKeys.server(server.uuid).subdomains(),
     queryFn: () => getSubdomains(server.uuid),
-    // new records show as spreading for a few minutes
+    // new records show as processing for a few minutes; the Pelican table polls every 15 s
     refetchInterval: (current) =>
-      current.state.data?.subdomains.some((subdomain) => subdomain.propagating) ? 30000 : false,
+      current.state.data?.subdomains.some((subdomain) => subdomain.propagating) ? POLL_MS : false,
   });
   const overview = query.data;
-  const full = !!overview && overview.subdomains.length >= overview.limit;
-  const blocked = !overview || !!overview.unavailable || full;
 
   return (
     <ServerContentContainer
@@ -413,25 +542,11 @@ export default function ServerSubdomains() {
       subtitle={
         overview ? t(`${base}.subtitle`, { current: overview.subdomains.length, max: overview.limit }) : undefined
       }
-      contentRight={
-        canCreate && overview && !overview.unavailable ? (
-          <ConditionalTooltip enabled={full} label={t(`${base}.full`, { max: overview.limit })}>
-            <Button disabled={blocked} onClick={() => setCreating(true)}>
-              {t(`${base}.button.add`, {})}
-            </Button>
-          </ConditionalTooltip>
-        ) : undefined
-      }
     >
       <ResourceView
         resource={{ data: query.data, loading: query.isLoading, error: query.error, refetch: () => query.refetch() }}
       >
-        {(overview) => (
-          <>
-            <CreateModal opened={creating} overview={overview} onClose={() => setCreating(false)} />
-            <Subdomains overview={overview} />
-          </>
-        )}
+        {(overview) => <Subdomains overview={overview} />}
       </ResourceView>
     </ServerContentContainer>
   );

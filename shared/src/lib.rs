@@ -31,6 +31,7 @@ pub mod database;
 pub mod deleted_servers; // plugged.host
 pub mod deserialize;
 pub mod devboxes; // plugged.host
+pub mod discord; // plugged.host
 pub mod earn; // plugged.host
 pub mod economy; // plugged.host
 pub mod env;

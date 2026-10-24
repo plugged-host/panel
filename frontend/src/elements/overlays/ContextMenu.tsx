@@ -22,7 +22,7 @@ export interface ContextMenuActionItem {
   hidden?: boolean;
   disabled?: boolean;
   onClick?: (e: MouseEvent) => void;
-  color?: 'gray' | 'red';
+  color?: 'gray' | 'red' | 'blue'; // plugged.host: blue for a start action, as Pelican's power menu has it
   items?: (Omit<ContextMenuActionItem, 'items'> | ContextMenuDividerItem)[];
   canAccess?: boolean;
 }
@@ -123,7 +123,7 @@ export const ContextMenuProvider = ({ children }: { children: ReactNode }) => {
                     <Menu.Sub.Item
                       key={idx}
                       leftSection={item.icon ? <FontAwesomeIcon icon={item.icon} /> : undefined}
-                      color={item.color === 'red' ? 'red' : undefined}
+                      color={item.color === 'gray' ? undefined : item.color} // plugged.host: also blue
                       disabled={item.disabled}
                       onClick={(e) => {
                         if (!e.isTrusted) return;
@@ -149,7 +149,7 @@ export const ContextMenuProvider = ({ children }: { children: ReactNode }) => {
                             key={idx.toString() + subIdx.toString()}
                             leftSection={subItem.icon ? <FontAwesomeIcon icon={subItem.icon} /> : undefined}
                             rightSection={subItem.rightSection}
-                            color={subItem.color === 'red' ? 'red' : undefined}
+                            color={subItem.color === 'gray' ? undefined : subItem.color} // plugged.host: also blue
                             disabled={subItem.disabled}
                             onClick={(e) => {
                               if (!e.isTrusted) return;
@@ -171,7 +171,7 @@ export const ContextMenuProvider = ({ children }: { children: ReactNode }) => {
                   key={idx}
                   leftSection={item.icon ? <FontAwesomeIcon icon={item.icon} /> : undefined}
                   rightSection={item.rightSection}
-                  color={item.color === 'red' ? 'red' : undefined}
+                  color={item.color === 'gray' ? undefined : item.color} // plugged.host: also blue
                   disabled={item.disabled}
                   onClick={(e) => {
                     if (!e.isTrusted) return;

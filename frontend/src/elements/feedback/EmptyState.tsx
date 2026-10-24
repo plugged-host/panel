@@ -6,9 +6,9 @@ import Text from '@/elements/typography/Text.tsx';
 import Title from '@/elements/typography/Title.tsx';
 
 export interface EmptyStateProps {
-  icon: IconDefinition;
+  icon?: IconDefinition; // plugged.host: optional, it is not drawn
   title: string;
-  description: ReactNode;
+  description?: ReactNode; // plugged.host: optional, as Filament's (a heading alone)
   flush?: boolean;
   children?: ReactNode;
 }
@@ -21,9 +21,11 @@ function EmptyState({ title, description, flush = false, children }: EmptyStateP
       <Title order={3} fz='md' fw={600} mb={4}>
         {title}
       </Title>
-      <Text c='dimmed' mb='md'>
-        {description}
-      </Text>
+      {description ? (
+        <Text c='dimmed' mb='md'>
+          {description}
+        </Text>
+      ) : null}
       {children}
     </>
   );

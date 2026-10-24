@@ -1,3 +1,4 @@
+import { faDiscord } from '@fortawesome/free-brands-svg-icons'; // plugged.host
 import {
   faAt,
   faBan,
@@ -57,6 +58,7 @@ import AdsContainer from './ads/AdsContainer.tsx'; // plugged.host
 import ApplicationContainer from './application/ApplicationContainer.tsx';
 import CaptchaContainer from './captcha/CaptchaContainer.tsx';
 import DevboxesContainer from './devboxes/DevboxesContainer.tsx'; // plugged.host
+import DiscordContainer from './discord/DiscordContainer.tsx'; // plugged.host
 import EconomyContainer from './economy/EconomyContainer.tsx'; // plugged.host
 import EmailContainer from './email/EmailContainer.tsx';
 import FivemContainer from './fivem/FivemContainer.tsx'; // plugged.host
@@ -166,6 +168,13 @@ export const settingsGroups: SettingsGroup[] = [
         icon: faHandshake,
         path: '/noprofit',
         element: <NoprofitContainer />,
+      },
+      // plugged.host: Discord membership, invite and boost rewards, the bots (docs/features/discord.md)
+      {
+        name: t('pages.admin.settings.tabs.discord.title', {}),
+        icon: faDiscord,
+        path: '/discord',
+        element: <DiscordContainer />,
       },
       {
         name: t('pages.admin.settings.tabs.webauthn.title', {}),

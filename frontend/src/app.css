@@ -1655,11 +1655,219 @@ strong {
   .theme-power .mantine-Button-section[data-position="left"] {
     margin-inline-end: 0;
   }
+
+  .theme-power .mantine-Button-root {
+    flex: none;
+    width: 2.75rem;
+    padding: 0;
+  }
 }
 
-/* The console: the Pelican panel's terminal, "rgb(19 26 32)" (its xterm theme), opaque. */
+/* The console: the Pelican panel's terminal, "rgb(19 26 32)" (its xterm theme), opaque, 10px
+   corners, the screen inset "0.25rem 0.625rem" (pages/server/console/terminal/Console), the
+   command line under it on "bg-gray-900" (ConsoleCommandInput). */
 :root[data-mantine-color-scheme="dark"] .theme-console.mantine-Card-root {
+  overflow: hidden;
+  border-radius: 0.625rem;
   background-color: rgb(19 26 32);
+}
+
+/* The command line: the chevrons, then a borderless field on the row's fill. */
+.theme-console-input {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  background-color: var(--theme-modal);
+}
+
+.theme-console-input:empty {
+  display: none;
+}
+
+:root[data-mantine-color-scheme="dark"] .theme-console-input .mantine-Input-input {
+  --input-bg: transparent;
+  --input-bd: transparent;
+  --input-bd-focus: transparent;
+  --input-disabled-bg: transparent;
+}
+
+/* The console's stat blocks over the terminal (ServerDetails), the Pelican console's six
+   "fi-small-stat-block": "p-3 rounded-lg bg-gray-900", the label in gray-400 and the value
+   "font-semibold" on one line, three to a row once the page is wide enough. */
+.theme-console-overview {
+  container-type: inline-size;
+}
+
+.theme-console-stats {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.5rem;
+}
+
+@container (min-width: 36rem) {
+  .theme-console-stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.theme-console-stat {
+  min-width: 0;
+  padding: 0.75rem;
+  overflow-x: auto;
+  border-radius: 0.5rem;
+  background-color: var(--theme-modal);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.theme-console-stat-row {
+  display: block;
+  width: 100%;
+  text-align: start;
+}
+
+.theme-console-stat-label {
+  color: var(--theme-text-muted);
+  font-weight: 500;
+}
+
+.theme-console-stat-value {
+  color: var(--theme-text);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Phones: the six blocks as one card with a line each (the server cards' narrow layout), and a
+   command line with a real touch target, 16px so iOS does not zoom into it. */
+@media (max-width: 39.99rem) {
+  .theme-console-stats {
+    gap: 0.625rem;
+    padding: 1.125rem 1.25rem;
+    border-radius: 1rem;
+    background-color: var(--theme-raise);
+  }
+
+  .theme-console-stat {
+    padding: 0;
+    overflow: visible;
+    border-radius: 0;
+    background-color: transparent;
+  }
+
+  .theme-console-stat-row {
+    display: flex;
+    min-width: 0;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  .theme-console-stat-label {
+    flex: none;
+    font-size: 0.75rem;
+  }
+
+  .theme-console-stat-value {
+    min-width: 0;
+    overflow: hidden;
+    font-size: 0.8125rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .theme-console-input {
+    min-height: 2.75rem;
+    padding-inline: 0.625rem 0.25rem;
+  }
+
+  :root[data-mantine-color-scheme="dark"] .theme-console-input .mantine-Input-input {
+    font-size: 1rem;
+  }
+}
+
+/* The log check above the console (pages/server/minecraft/LogCheckBanner), the Pelican panel's
+   "neo-logcheck" (plugged-host-ai's log-check.blade.php): problems get a card with the fixes and
+   the actions at its end; a clean log is one quiet line with the link. */
+.theme-logcheck-block {
+  margin-block-end: 1rem;
+}
+
+.theme-logcheck-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  padding: 1rem 1.25rem;
+  border-radius: 1rem;
+  background-color: var(--theme-raise);
+}
+
+.theme-logcheck-title {
+  color: var(--mantine-color-yellow-4);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.25rem;
+}
+
+.theme-logcheck-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-block-start: 0.5rem;
+  padding: 0;
+  list-style: none;
+}
+
+.theme-logcheck-problem {
+  color: var(--theme-text-nav);
+  font-size: 0.875rem;
+  line-height: 1.375rem;
+}
+
+.theme-logcheck-fix {
+  display: block;
+  color: var(--theme-text-muted);
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+}
+
+.theme-logcheck-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.theme-logcheck-quiet {
+  color: var(--theme-text-muted);
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+}
+
+.theme-logcheck-link {
+  color: var(--theme-accent-bright);
+  font-weight: 500;
+}
+
+.theme-logcheck-link:hover {
+  color: var(--theme-accent-glow);
+  text-decoration: underline;
+}
+
+@media (min-width: 40rem) {
+  .theme-logcheck-card {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1.5rem;
+  }
+
+  .theme-logcheck-actions {
+    flex: none;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+  }
 }
 
 /* =============================================================================
@@ -1676,6 +1884,50 @@ strong {
   display: grid;
   gap: 1rem;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+}
+
+/* The list's toolbar, Theme v2's ".fi-ta-header-toolbar": Create server at the start, the search
+   (and an admin's switch) at the end, a hairline under the row. The cards start 1.5rem below it
+   (the toolbar's "mb-2" and the grid's "pt-4"). Below `sm` the search takes a row of its own. */
+.theme-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-block-end: 1.5rem;
+  padding-block-end: 0.75rem;
+  border-block-end: 1px solid var(--theme-hairline);
+}
+
+.theme-toolbar-end {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-inline-start: auto;
+}
+
+@media (max-width: 39.99rem) {
+  .theme-toolbar-end {
+    flex: 1 1 100%;
+  }
+}
+
+/* The pagination under a list (".fi-pagination" in the table's footer): a hairline over it. */
+.theme-list-foot {
+  margin-block-start: 1rem;
+  padding-block-start: 0.75rem;
+  border-block-start: 1px solid var(--theme-hairline);
+}
+
+.theme-list-foot:empty {
+  display: none;
+}
+
+/* The list's empty state (".fi-ta-empty-state", "px-6 py-12"): the heading alone, centred. */
+.theme-server-empty {
+  padding: 1.75rem 1.5rem;
 }
 
 /* the card: "bg-white/5 rounded-2xl", hover "bg-white/10", no lift */
@@ -1720,6 +1972,28 @@ strong {
   left: 0;
   width: 3px;
   border-radius: 9999px;
+  background-color: var(--theme-raise-3);
+}
+
+/* The server's condition (lib/domain/serverCondition.ts), Filament's colour names: "fi-color-*". */
+.theme-server-status-bar[data-color="success"] {
+  background-color: var(--color-server-status-running);
+}
+
+.theme-server-status-bar[data-color="danger"] {
+  background-color: var(--color-server-status-offline);
+}
+
+.theme-server-status-bar[data-color="warning"] {
+  background-color: var(--color-server-status-starting);
+}
+
+.theme-server-status-bar[data-color="info"] {
+  background-color: var(--theme-accent-bright);
+}
+
+.theme-server-status-bar[data-color="primary"] {
+  background-color: var(--theme-accent);
 }
 
 .theme-server-head {
@@ -1997,6 +2271,53 @@ strong {
   color: var(--theme-text-muted);
   font-size: 0.8125rem;
   line-height: 1.25rem;
+}
+
+/* plugged.host: the rows inside an economy list (.theme-eco-list), the Pelican panel's store
+   partial (".ph-eco-tx", ".ph-eco-amount", ".ph-eco-value"): what it is on the left, the number on
+   the right, rows split by hairlines. Used by the Discord rewards page (pages/dashboard/discord). */
+.theme-eco-tx {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-block: 0.75rem;
+}
+
+.theme-eco-tx + .theme-eco-tx {
+  border-block-start: 1px solid var(--theme-hairline);
+}
+
+.theme-eco-empty {
+  padding-block: 1rem;
+}
+
+.theme-eco-value {
+  color: var(--theme-accent-bright);
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 2rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.theme-eco-amount {
+  flex-shrink: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.theme-eco-amount-in {
+  color: var(--mantine-color-green-text);
+}
+
+.theme-eco-amount-out {
+  color: var(--theme-text-muted);
+}
+
+.theme-eco-danger {
+  color: var(--mantine-color-red-text);
 }
 
 /* plugged.host: the welcome tour (elements/WelcomeTour.tsx): the page dimmed like under a modal,
@@ -2326,4 +2647,2019 @@ strong {
 
 .theme-plus-faq details > p {
   padding-block-end: 0.875rem;
+}
+
+/* =============================================================================
+ * plugged.host: neo's chat (elements/neo/, docs/features/neo.md), the Pelican panel's
+ * ".neo-*" (plugged-host-ai's chat-host.blade.php): a neutral launcher pill in the window's
+ * corner, the chat as a panel above it on the modal surface (full screen on phones), flat
+ * rows inside. The send button is the one accent fill.
+ * ============================================================================= */
+.theme-neo {
+  position: fixed;
+  inset-inline-end: 1.25rem;
+  inset-block-end: 1.25rem;
+  z-index: 150;
+  color: var(--theme-text);
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+.theme-neo-launcher {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding-inline: 1rem 1.25rem;
+  border: 1px solid var(--theme-hairline);
+  border-radius: 9999px;
+  background-color: var(--theme-dropdown);
+  color: var(--theme-text);
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    transform 100ms ease;
+}
+
+.theme-neo-launcher:hover {
+  background-color: color-mix(in srgb, var(--theme-dropdown), #fff 5%);
+  border-color: var(--theme-raise-2);
+}
+
+.theme-neo-launcher:active {
+  transform: scale(0.97);
+}
+
+.theme-neo-launcher:focus-visible {
+  outline: 2px solid var(--theme-accent-bright);
+  outline-offset: 2px;
+}
+
+.theme-neo-launcher-dot {
+  position: absolute;
+  inset-block-start: 0.25rem;
+  inset-inline-end: 0.25rem;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  outline: 2px solid var(--theme-dropdown);
+}
+
+.theme-neo-dot-approve {
+  background-color: var(--mantine-color-yellow-filled);
+}
+
+.theme-neo-dot-done {
+  background-color: var(--mantine-color-green-filled);
+}
+
+.theme-neo-launcher-off {
+  width: 2.5rem;
+  height: 2.5rem;
+  min-height: 2.5rem;
+  padding: 0;
+  justify-content: center;
+  color: var(--theme-text-muted);
+  opacity: 0.55;
+}
+
+.theme-neo-launcher-off:hover {
+  opacity: 1;
+}
+
+.theme-neo-panel {
+  position: absolute;
+  inset-inline-end: 0;
+  inset-block-end: 3.6rem;
+  display: flex;
+  flex-direction: column;
+  width: var(--theme-neo-w, 24rem);
+  height: var(--theme-neo-h, min(36rem, calc(100vh - 7rem)));
+  max-width: calc(100vw - 2rem);
+  max-height: calc(100vh - 6rem);
+  overflow: hidden;
+  border: 1px solid var(--theme-hairline);
+  border-radius: 1rem;
+  background-color: var(--theme-modal);
+  color: var(--theme-text);
+  box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.5);
+  animation: theme-neo-in 160ms ease;
+}
+
+/* it takes focus when it opens, so keyboard and screen reader users land in it */
+.theme-neo-panel:focus {
+  outline: none;
+}
+
+@keyframes theme-neo-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-neo-panel {
+    animation: none;
+  }
+}
+
+/* the resize corner, top left (the panel grows up and to the left) */
+.theme-neo-grip {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  z-index: 2;
+  width: 1.25rem;
+  height: 1.25rem;
+  cursor: nwse-resize;
+  touch-action: none;
+}
+
+.theme-neo-grip::before {
+  content: "";
+  position: absolute;
+  inset-block-start: 0.375rem;
+  inset-inline-start: 0.375rem;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-block-start: 2px solid var(--theme-text-faint);
+  border-inline-start: 2px solid var(--theme-text-faint);
+  border-start-start-radius: 0.25rem;
+  opacity: 0.45;
+  transition: opacity 150ms ease;
+}
+
+.theme-neo-grip:hover::before {
+  opacity: 1;
+}
+
+html.theme-neo-resizing,
+html.theme-neo-resizing * {
+  cursor: nwse-resize !important;
+  user-select: none !important;
+}
+
+html.theme-neo-lock,
+html.theme-neo-lock body {
+  overflow: hidden;
+}
+
+.theme-neo-head {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-height: 3.5rem;
+  padding-block: 0.5rem;
+  padding-inline: 1rem 0.5rem;
+  border-block-end: 1px solid var(--theme-hairline);
+}
+
+.theme-neo-head .theme-neo-back {
+  margin-inline-start: -0.5rem;
+}
+
+.theme-neo-head-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.theme-neo-title {
+  color: var(--theme-text);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.theme-neo-sub {
+  overflow: hidden;
+  color: var(--theme-text-muted);
+  font-size: 0.75rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.theme-neo-iconbtn {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.5rem;
+  color: var(--theme-text-muted);
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
+}
+
+.theme-neo-iconbtn:hover {
+  background-color: var(--theme-raise);
+  color: var(--theme-text);
+}
+
+.theme-neo-iconbtn:focus-visible,
+.theme-neo-send:focus-visible,
+.theme-neo-chip:focus-visible,
+.theme-neo-model-btn:focus-visible,
+.theme-neo-hist-open:focus-visible {
+  outline: 2px solid var(--theme-accent-bright);
+  outline-offset: 2px;
+}
+
+.theme-neo-iconbtn:disabled {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.theme-neo-iconbtn.theme-neo-bad {
+  color: var(--mantine-color-red-text);
+}
+
+.theme-neo-body {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 1rem;
+}
+
+.theme-neo-thread {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-height: 100%;
+}
+
+.theme-neo-empty {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-block: auto;
+  padding: 1rem 0.25rem;
+  color: var(--theme-text-muted);
+  font-size: 0.8125rem;
+  text-align: center;
+}
+
+.theme-neo-greet {
+  margin-block-end: 0.25rem;
+  color: var(--theme-text);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.theme-neo-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.theme-neo-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.125rem;
+  padding: 0.375rem 0.875rem;
+  border-radius: 9999px;
+  background-color: var(--theme-raise-2);
+  color: var(--theme-text);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 150ms ease;
+}
+
+.theme-neo-chip:hover {
+  background-color: var(--theme-raise-3);
+}
+
+.theme-neo-chip:disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.theme-neo-msg-images {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.375rem;
+  align-self: flex-end;
+  max-width: 85%;
+}
+
+.theme-neo-msg-images.theme-neo-msg-images-ai {
+  justify-content: flex-start;
+  align-self: flex-start;
+}
+
+.theme-neo-image {
+  display: block;
+  max-width: 10rem;
+  max-height: 10rem;
+  border-radius: 0.75rem;
+  object-fit: cover;
+}
+
+span.theme-neo-image {
+  width: 6rem;
+  height: 6rem;
+  background-color: var(--theme-raise);
+}
+
+.theme-neo-msg-user {
+  align-self: flex-end;
+  max-width: 85%;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.75rem 0.75rem 0.25rem 0.75rem;
+  background-color: var(--theme-raise-2);
+  color: var(--theme-text);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.theme-neo-model-label {
+  color: var(--theme-text-faint);
+  font-size: 0.6875rem;
+}
+
+/* an answer's markdown: Tailwind's preflight took the browser's own spacing and lists away */
+.theme-neo-answer {
+  max-width: 100%;
+  color: var(--theme-text-nav);
+  word-break: break-word;
+}
+
+.theme-neo-answer > :first-child {
+  margin-block-start: 0;
+}
+
+.theme-neo-answer p {
+  margin-block: 0 0.5rem;
+}
+
+.theme-neo-answer p:last-child {
+  margin-block-end: 0;
+}
+
+.theme-neo-answer ul,
+.theme-neo-answer ol {
+  margin-block: 0.25rem 0.5rem;
+  padding-inline-start: 1.125rem;
+  list-style: disc;
+}
+
+.theme-neo-answer ol {
+  list-style: decimal;
+}
+
+.theme-neo-answer li > ul,
+.theme-neo-answer li > ol {
+  margin-block: 0.125rem;
+}
+
+.theme-neo-answer code {
+  padding: 0.0625rem 0.25rem;
+  border-radius: 0.25rem;
+  background-color: var(--theme-sunken);
+  font-family: var(--mantine-font-family-monospace);
+  font-size: 0.75rem;
+}
+
+.theme-neo-answer pre {
+  margin-block: 0.5rem;
+  padding: 0.625rem;
+  overflow-x: auto;
+  border-radius: 0.5rem;
+  background-color: var(--theme-sunken);
+}
+
+.theme-neo-answer pre code {
+  padding: 0;
+  background: none;
+}
+
+.theme-neo-answer a {
+  color: var(--theme-accent-bright);
+  text-decoration: underline;
+}
+
+.theme-neo-answer a:hover {
+  color: var(--theme-accent-glow);
+}
+
+.theme-neo-answer strong {
+  color: var(--theme-text);
+  font-weight: 600;
+}
+
+.theme-neo-answer em {
+  font-style: italic;
+}
+
+.theme-neo-answer del {
+  text-decoration: line-through;
+}
+
+.theme-neo-answer h1,
+.theme-neo-answer h2,
+.theme-neo-answer h3,
+.theme-neo-answer h4,
+.theme-neo-answer h5,
+.theme-neo-answer h6 {
+  margin-block: 0.75rem 0.375rem;
+  color: var(--theme-text);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.theme-neo-answer h1 {
+  font-size: 1.0625rem;
+}
+
+.theme-neo-answer h2 {
+  font-size: 1rem;
+}
+
+.theme-neo-answer h3 {
+  font-size: 0.9375rem;
+}
+
+.theme-neo-answer blockquote {
+  margin-block: 0.5rem;
+  padding-inline-start: 0.75rem;
+  border-inline-start: 2px solid var(--theme-raise-3);
+  color: var(--theme-text-muted);
+}
+
+.theme-neo-answer hr {
+  margin-block: 0.75rem;
+  border: 0;
+  border-block-start: 1px solid var(--theme-hairline);
+}
+
+.theme-neo-answer table {
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  margin-block: 0.5rem;
+  overflow-x: auto;
+  border: 1px solid var(--theme-hairline);
+  border-radius: 0.5rem;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.8125rem;
+}
+
+.theme-neo-answer th,
+.theme-neo-answer td {
+  min-width: 4rem;
+  max-width: 16rem;
+  padding: 0.375rem 0.625rem;
+  text-align: start;
+  vertical-align: top;
+}
+
+.theme-neo-answer th {
+  background-color: var(--theme-raise);
+  color: var(--theme-text);
+  font-weight: 600;
+}
+
+.theme-neo-answer tr + tr td,
+.theme-neo-answer tbody tr:first-child td {
+  border-block-start: 1px solid var(--theme-hairline);
+}
+
+.theme-neo-tile {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.625rem;
+  border-radius: 0.5rem;
+  background-color: var(--theme-raise);
+  color: var(--theme-text-muted);
+  font-size: 0.75rem;
+}
+
+.theme-neo-tile-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--theme-text-nav);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.theme-neo-ok {
+  color: var(--mantine-color-green-text);
+}
+
+.theme-neo-bad {
+  color: var(--mantine-color-red-text);
+}
+
+.theme-neo-warn {
+  color: var(--mantine-color-yellow-text);
+}
+
+.theme-neo-dim {
+  color: var(--theme-text-faint);
+}
+
+/* an approval and a notice: the callouts' 10% tint of the warning colour */
+.theme-neo-card,
+.theme-neo-notice {
+  border-radius: 0.75rem;
+  background-color: color-mix(in srgb, var(--mantine-color-yellow-filled) 10%, transparent);
+}
+
+.theme-neo-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.625rem 0.75rem 0.75rem;
+}
+
+.theme-neo-card .theme-neo-tile {
+  padding: 0;
+  background: none;
+}
+
+.theme-neo-card .theme-neo-tile-label {
+  color: var(--theme-text);
+  font-weight: 500;
+}
+
+.theme-neo-risk {
+  color: var(--mantine-color-yellow-text);
+  font-size: 0.75rem;
+}
+
+.theme-neo-preview summary {
+  color: var(--theme-text-muted);
+  font-size: 0.75rem;
+  list-style: none;
+  cursor: pointer;
+  transition: color 150ms ease;
+}
+
+.theme-neo-preview summary::-webkit-details-marker {
+  display: none;
+}
+
+.theme-neo-preview summary:hover {
+  color: var(--theme-text);
+}
+
+.theme-neo-preview pre {
+  max-height: 10rem;
+  margin-block-start: 0.375rem;
+  padding: 0.5rem;
+  overflow: auto;
+  border-radius: 0.5rem;
+  background-color: var(--theme-sunken);
+  font-family: var(--mantine-font-family-monospace);
+  font-size: 0.75rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.theme-neo-thought pre {
+  color: var(--theme-text-muted);
+  font-family: inherit;
+}
+
+.theme-neo-output {
+  padding-inline: 0.625rem;
+}
+
+.theme-neo-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.theme-neo-row > * {
+  flex: 1;
+}
+
+.theme-neo-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.625rem 0.75rem;
+  color: var(--theme-text-nav);
+  font-size: 0.8125rem;
+}
+
+.theme-neo-notice > svg {
+  margin-block-start: 0.125rem;
+  color: var(--mantine-color-yellow-text);
+}
+
+.theme-neo-notice-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.theme-neo-live-think {
+  display: flex;
+  flex-direction: column-reverse;
+  max-height: 4.5rem;
+  overflow: hidden;
+  color: var(--theme-text-faint);
+  font-size: 0.75rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.theme-neo-typing {
+  display: inline-flex;
+  align-self: flex-start;
+  gap: 0.25rem;
+  padding: 0.625rem 0.75rem;
+  border-radius: 0.75rem;
+  background-color: var(--theme-raise);
+}
+
+.theme-neo-typing i {
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 9999px;
+  background-color: var(--theme-text-muted);
+  animation: theme-neo-dot 1.1s infinite ease-in-out;
+}
+
+.theme-neo-typing i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.theme-neo-typing i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes theme-neo-dot {
+  0%,
+  80%,
+  100% {
+    opacity: 0.25;
+  }
+
+  40% {
+    opacity: 1;
+  }
+}
+
+.theme-neo-foot {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.625rem 0.75rem 0.75rem;
+  border-block-start: 1px solid var(--theme-hairline);
+}
+
+.theme-neo-flash {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding-inline: 0.25rem;
+  color: var(--mantine-color-red-text);
+  font-size: 0.75rem;
+}
+
+.theme-neo-tools {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.theme-neo-model-btn {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 0.25rem;
+  min-height: 1.75rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.5rem;
+  color: var(--theme-text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
+}
+
+.theme-neo-model-btn:hover,
+.theme-neo-model-btn[aria-expanded="true"] {
+  background-color: var(--theme-raise);
+  color: var(--theme-text);
+}
+
+.theme-neo-model-btn:disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.theme-neo-model-name {
+  color: var(--theme-text);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.theme-neo-model-locked .theme-neo-model-name {
+  color: var(--theme-text-muted);
+}
+
+.theme-neo-model-hint {
+  color: var(--theme-text-muted);
+  font-size: 0.75rem;
+}
+
+.theme-neo-meter {
+  display: flex;
+  flex: 1;
+  gap: 0.75rem;
+  min-width: 0;
+  padding-inline: 0.25rem;
+  color: var(--theme-text-faint);
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.theme-neo-meter-note {
+  justify-content: flex-end;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.theme-neo-meter-item {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.theme-neo-bar {
+  flex: 1;
+  height: 0.25rem;
+  overflow: hidden;
+  border-radius: 9999px;
+  background-color: var(--theme-raise);
+}
+
+.theme-neo-bar > i {
+  display: block;
+  min-width: 0.25rem;
+  height: 100%;
+  border-radius: inherit;
+  background-color: var(--theme-accent-bright);
+}
+
+.theme-neo-bar.theme-neo-bar-warn > i {
+  background-color: var(--mantine-color-yellow-filled);
+}
+
+.theme-neo-bar.theme-neo-bar-full > i {
+  background-color: var(--mantine-color-red-4);
+}
+
+.theme-neo-bar.theme-neo-bar-lg {
+  flex: none;
+  height: 0.375rem;
+}
+
+.theme-neo-attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.25rem 0.25rem 0;
+}
+
+.theme-neo-attachment {
+  position: relative;
+  width: 3.5rem;
+  height: 3.5rem;
+}
+
+.theme-neo-attachment img {
+  width: 100%;
+  height: 100%;
+  border-radius: 0.5rem;
+  object-fit: cover;
+}
+
+.theme-neo-attachment-remove {
+  position: absolute;
+  inset-block-start: -0.375rem;
+  inset-inline-end: -0.375rem;
+  display: grid;
+  place-items: center;
+  width: 1.375rem;
+  height: 1.375rem;
+  border: 1px solid var(--theme-hairline);
+  border-radius: 9999px;
+  background-color: var(--theme-modal);
+  color: var(--theme-text-muted);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: color 150ms ease;
+}
+
+.theme-neo-attachment-remove:hover {
+  color: var(--theme-text);
+}
+
+.theme-neo-compose {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.375rem;
+  padding: 0.3rem 0.3rem 0.3rem 0.4rem;
+  border: 1px solid var(--theme-hairline);
+  border-radius: 0.75rem;
+  background-color: var(--theme-sunken);
+  transition: border-color 150ms ease;
+}
+
+.theme-neo-compose:focus-within {
+  border-color: var(--theme-accent-bright);
+}
+
+.theme-neo-input {
+  flex: 1;
+  min-height: 2.2rem;
+  max-height: 10rem;
+  padding: 0.45rem 0.35rem;
+  border: 0;
+  background: transparent;
+  color: var(--theme-text);
+  font-size: 0.875rem;
+  line-height: 1.4;
+  outline: none;
+  resize: none;
+}
+
+.theme-neo-input::placeholder {
+  color: var(--theme-text-faint);
+}
+
+.theme-neo-send {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 9999px;
+  background-color: var(--theme-accent);
+  color: #fff;
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    opacity 150ms ease,
+    transform 100ms ease;
+}
+
+.theme-neo-send:hover {
+  background-color: var(--theme-accent-hover);
+}
+
+.theme-neo-send:active {
+  transform: scale(0.97);
+}
+
+.theme-neo-send:disabled {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.theme-neo-send.theme-neo-send-stop {
+  background-color: var(--theme-raise-2);
+  color: var(--theme-text);
+}
+
+.theme-neo-send.theme-neo-send-stop:hover {
+  background-color: color-mix(in srgb, var(--mantine-color-red-filled) 15%, transparent);
+  color: var(--mantine-color-red-text);
+}
+
+.theme-neo-settings {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.5rem 0.75rem 1rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.theme-neo-set-card {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.75rem;
+  padding: 1rem 0.25rem;
+}
+
+.theme-neo-set-card + .theme-neo-set-card {
+  border-block-start: 1px solid var(--theme-hairline);
+}
+
+.theme-neo-set-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.theme-neo-set-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.theme-neo-set-title {
+  color: var(--theme-text);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.theme-neo-set-hint {
+  color: var(--theme-text-muted);
+  font-size: 0.75rem;
+  line-height: 1.45;
+}
+
+.theme-neo-usage {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.theme-neo-usage-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  color: var(--theme-text-muted);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.theme-neo-small {
+  padding: 0.75rem 0.25rem 0;
+  color: var(--theme-text-faint);
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.theme-neo-small a {
+  color: var(--theme-accent-bright);
+  font-weight: 500;
+}
+
+.theme-neo-small a:hover {
+  color: var(--theme-accent-glow);
+  text-decoration: underline;
+}
+
+.theme-neo-hist {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding-inline-end: 0.25rem;
+  border-radius: 0.75rem;
+  transition: background-color 150ms ease;
+}
+
+.theme-neo-hist:hover {
+  background-color: var(--theme-raise);
+}
+
+.theme-neo-hist-current,
+.theme-neo-hist-current:hover {
+  background-color: var(--theme-accent-soft);
+}
+
+.theme-neo-hist-open {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  min-width: 0;
+  padding: 0.625rem 0.75rem;
+  text-align: start;
+  cursor: pointer;
+}
+
+.theme-neo-hist-open:disabled {
+  cursor: default;
+}
+
+.theme-neo-hist-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.theme-neo-hist-title {
+  overflow: hidden;
+  color: var(--theme-text);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.theme-neo-hist-meta {
+  color: var(--theme-text-faint);
+  font-size: 0.75rem;
+}
+
+.theme-neo-consent {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem 1.25rem;
+  overflow-y: auto;
+  color: var(--theme-text-muted);
+  font-size: 0.8125rem;
+  text-align: center;
+}
+
+.theme-neo-consent h3 {
+  color: var(--theme-text);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.theme-neo-consent ul {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  text-align: start;
+}
+
+.theme-neo-consent a {
+  color: var(--theme-accent-bright);
+}
+
+@media (max-width: 39.99rem) {
+  .theme-neo {
+    inset-inline-end: 0.85rem;
+    inset-block-end: calc(0.85rem + env(safe-area-inset-bottom));
+  }
+
+  .theme-neo-launcher {
+    width: 3rem;
+    height: 3rem;
+    min-height: 3rem;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .theme-neo-launcher-label,
+  .theme-neo-grip {
+    display: none;
+  }
+
+  .theme-neo-panel {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100dvh;
+    max-width: none;
+    max-height: none;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .theme-neo-head {
+    padding-block-start: calc(0.5rem + env(safe-area-inset-top));
+  }
+
+  .theme-neo-foot {
+    padding-block-end: calc(0.75rem + env(safe-area-inset-bottom));
+  }
+
+  .theme-neo-iconbtn,
+  .theme-neo-send {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
+  /* 16px, or iOS zooms into the page when the field takes focus */
+  .theme-neo-input {
+    font-size: 16px;
+  }
+
+  .theme-neo-chip {
+    min-height: 2.75rem;
+    padding: 0.5rem 1rem;
+  }
+
+  .theme-neo-model-btn {
+    min-height: 2.25rem;
+  }
+
+  .theme-neo-msg-user,
+  .theme-neo-msg-images {
+    max-width: 90%;
+  }
+
+  .theme-neo-attachment-remove {
+    width: 1.75rem;
+    height: 1.75rem;
+  }
+}
+
+/* =============================================================================
+ * plugged.host: Filament's aside section (`->aside()`, elements/data-display/AsideSection.tsx):
+ * the heading and description in the first of three columns, the fields on a card over the other
+ * two; one column below md. Filament's helper text sits under the field at text-sm.
+ * ============================================================================= */
+.theme-aside {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: 1rem 1.5rem;
+}
+
+@media (min-width: 48rem) {
+  .theme-aside {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .theme-aside-body {
+    grid-column: span 2 / span 2;
+  }
+}
+
+.theme-aside-head {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.theme-aside-heading {
+  margin: 0;
+  color: var(--theme-text);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.5rem;
+}
+
+.theme-aside-description {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  overflow-wrap: anywhere;
+}
+
+.theme-aside-body {
+  min-width: 0;
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  background-color: var(--theme-raise);
+}
+
+.theme-aside-body .mantine-InputWrapper-description {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+/* =============================================================================
+ * plugged.host: the FiveM pages (pages/server/fivem/, docs/features/fivem.md), the Pelican
+ * plugin's ".phf-*" shapes: full-width rows on a fill, a "now" card, eyebrow labels.
+ * ============================================================================= */
+
+/* A read-only field (Filament's TextEntry): label, value, helper. */
+.theme-fivem-entry {
+  display: grid;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.theme-fivem-entry-label {
+  color: var(--theme-text);
+  font-weight: 500;
+}
+
+.theme-fivem-entry-value {
+  color: var(--theme-text);
+  overflow-wrap: anywhere;
+}
+
+.theme-fivem-entry-hint {
+  color: var(--theme-text-muted);
+}
+
+/* server.cfg's lists: plain input rows under a column head. */
+.theme-fivem-line {
+  display: grid;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.theme-fivem-line[data-list="resources"] {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+}
+
+.theme-fivem-line[data-list="principals"] {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+}
+
+.theme-fivem-line[data-list="aces"] {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 7rem auto;
+}
+
+.theme-fivem-head {
+  color: var(--theme-text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.theme-fivem-check .mantine-Checkbox-label {
+  padding-inline-start: 0.375rem;
+  color: var(--theme-text-nav);
+  font-size: 0.8125rem;
+  white-space: nowrap;
+}
+
+.theme-fivem-x.mantine-ActionIcon-root {
+  --ai-color: var(--theme-text-muted);
+  --ai-hover: var(--theme-raise-2);
+  --ai-hover-color: var(--theme-text);
+}
+
+@media (max-width: 40rem) {
+  .theme-fivem-line[data-list="principals"],
+  .theme-fivem-line[data-list="aces"] {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .theme-fivem-line[data-list="principals"] > :nth-child(2),
+  .theme-fivem-line[data-list="aces"] > :nth-child(2),
+  .theme-fivem-line[data-list="aces"] > :nth-child(3) {
+    grid-column: 1;
+  }
+
+  .theme-fivem-line[data-list="principals"] > :last-child,
+  .theme-fivem-line[data-list="aces"] > :last-child {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .theme-fivem-head {
+    display: none;
+  }
+}
+
+/* The centred box a page shows instead of its rows (no players, no builds, node down). */
+.theme-fivem-empty {
+  padding: 2.5rem 1rem;
+  border-radius: 0.75rem;
+  background-color: var(--theme-raise);
+  color: var(--theme-text-muted);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.theme-fivem-empty[data-shape="card"] {
+  border-radius: 1rem;
+}
+
+.theme-fivem-empty[data-shape="tall"] {
+  padding-block: 3rem;
+}
+
+.theme-fivem-empty strong {
+  display: block;
+  margin-block-end: 0.25rem;
+  color: var(--theme-text);
+  font-size: 0.9375rem;
+}
+
+.theme-fivem-code {
+  color: var(--theme-text);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+}
+
+/* Players: the state line and one row per player. */
+.theme-fivem-state {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--theme-text);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.theme-fivem-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background-color: var(--theme-text-faint);
+}
+
+.theme-fivem-dot[data-online] {
+  background-color: var(--mantine-color-green-4);
+}
+
+.theme-fivem-count {
+  color: var(--theme-text-muted);
+  font-variant-numeric: tabular-nums;
+  font-weight: 400;
+}
+
+.theme-fivem-player {
+  display: grid;
+  grid-template-columns: 3.5rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.875rem 1.25rem;
+  border-radius: 0.75rem;
+  background-color: var(--theme-raise);
+}
+
+.theme-fivem-id {
+  color: var(--theme-text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.theme-fivem-name {
+  overflow: hidden;
+  color: var(--theme-text);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.theme-fivem-ids {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+  margin-block-start: 0.25rem;
+  color: var(--theme-text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+.theme-fivem-ping {
+  color: var(--theme-text-muted);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.theme-fivem-ping[data-slow] {
+  color: var(--mantine-color-yellow-4);
+}
+
+/* Artifacts and Enhanced: the "now" card, its eyebrow labels and the update switch. */
+.theme-fivem-now {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1rem 1.5rem;
+  padding: 1.25rem 1.5rem;
+  border-radius: 1rem;
+  background-color: var(--theme-raise);
+}
+
+.theme-fivem-label {
+  color: var(--theme-text-muted);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.theme-fivem-big {
+  color: var(--theme-text);
+  font-size: 1.125rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.theme-fivem-pending {
+  margin-block-start: 0.5rem;
+  color: var(--mantine-color-yellow-4);
+  font-size: 0.8125rem;
+}
+
+.theme-fivem-seg {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  border-radius: 0.75rem;
+  background-color: var(--theme-sunken);
+}
+
+.theme-fivem-seg button {
+  padding: 0.375rem 0.75rem;
+  border: 0;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--theme-text-nav);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.theme-fivem-seg button:hover:not(:disabled) {
+  color: var(--theme-text);
+}
+
+.theme-fivem-seg button[aria-pressed="true"] {
+  background-color: var(--theme-raise-2);
+  color: var(--theme-text);
+}
+
+.theme-fivem-seg button:disabled {
+  cursor: default;
+}
+
+.theme-fivem-seg button:focus-visible {
+  outline: 2px solid var(--theme-accent-bright);
+  outline-offset: 1px;
+}
+
+.theme-fivem-build {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.75rem;
+  background-color: var(--theme-raise);
+}
+
+.theme-fivem-num {
+  color: var(--theme-text);
+  font-family: var(--font-mono);
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+/* Enhanced: what changes, as rows split by hairlines. */
+.theme-fivem-fact {
+  padding: 1rem 0.25rem;
+  border-block-start: 1px solid var(--theme-hairline);
+}
+
+.theme-fivem-fact:first-child {
+  border-block-start: 0;
+}
+
+.theme-fivem-fact strong {
+  display: block;
+  margin-block-end: 0.25rem;
+  color: var(--theme-text);
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.theme-fivem-fact p {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.875rem;
+  line-height: 1.55;
+}
+
+/* Frameworks: the recipes and the install in progress. */
+.theme-fivem-current {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.875rem;
+}
+
+.theme-fivem-recipe {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1rem 1.25rem;
+  padding: 1.125rem 1.5rem;
+  border-radius: 1rem;
+  background-color: var(--theme-raise);
+}
+
+.theme-fivem-logo {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.75rem;
+  background-color: var(--theme-raise-2);
+  object-fit: cover;
+}
+
+.theme-fivem-recipe-name {
+  color: var(--theme-text);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.theme-fivem-meta {
+  margin-block-start: 0.125rem;
+  color: var(--theme-text-muted);
+  font-size: 0.8125rem;
+}
+
+.theme-fivem-meta code {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+.theme-fivem-desc {
+  margin-block-start: 0.375rem;
+  color: var(--theme-text-nav);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.theme-fivem-run {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  background-color: var(--theme-raise);
+}
+
+.theme-fivem-run-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+}
+
+.theme-fivem-run-title {
+  color: var(--theme-text);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.theme-fivem-run-count {
+  color: var(--theme-text-muted);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.theme-fivem-progress {
+  height: 0.375rem;
+  overflow: hidden;
+  border-radius: 9999px;
+  background-color: var(--theme-sunken);
+}
+
+.theme-fivem-progress > i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background-color: var(--theme-accent-bright);
+  transition: width 0.3s;
+}
+
+.theme-fivem-step {
+  color: var(--theme-text-nav);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  overflow-wrap: anywhere;
+}
+
+.theme-fivem-ok,
+.theme-fivem-err {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.theme-fivem-ok {
+  color: var(--mantine-color-green-4);
+}
+
+.theme-fivem-err {
+  color: var(--mantine-color-red-4);
+  overflow-wrap: anywhere;
+}
+
+.theme-fivem-log {
+  color: var(--theme-text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+@media (max-width: 40rem) {
+  .theme-fivem-player {
+    grid-template-columns: 2.5rem minmax(0, 1fr) auto;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+  }
+
+  .theme-fivem-now {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 1rem;
+  }
+
+  .theme-fivem-build {
+    padding: 0.75rem 1rem;
+  }
+
+  .theme-fivem-recipe {
+    grid-template-columns: 2.5rem minmax(0, 1fr);
+    padding: 1rem;
+  }
+
+  .theme-fivem-logo {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+
+  .theme-fivem-recipe > :last-child {
+    grid-column: 1 / -1;
+  }
+
+  .theme-fivem-run {
+    padding: 1rem;
+  }
+}
+
+/* =============================================================================
+ * plugged.host: Filament's table header and record actions, for the tables of ported pages
+ * (the Minecraft Players page first). Under Theme v2 the table has no box of its own:
+ * ".fi-ta-header" holds the header actions at the end of the row, ".fi-ta-header-toolbar" the
+ * search, each over a hairline; record actions are text links ("fi-link", font-medium,
+ * gray-200 or danger-400, underlined on hover); a boolean column is a check or cross icon
+ * ("size-6", success or danger) and an empty cell Filament's gray "—".
+ * ============================================================================= */
+.theme-table-header,
+.theme-table-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  border-block-end: 1px solid var(--theme-hairline);
+}
+
+.theme-table-header {
+  padding-block: 1rem;
+}
+
+.theme-table-toolbar {
+  margin-block-end: 0.5rem;
+  padding-block: 0.75rem;
+}
+
+/* The header's buttons overhang its padding, so a header with actions is no taller than one
+   without ("sm:-my-1.5" for a default-sized button). */
+@media (min-width: 40rem) {
+  .theme-table-header > * {
+    margin-block: -0.375rem;
+  }
+}
+
+.theme-link-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.25rem;
+}
+
+.theme-link-action {
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.375rem;
+  color: var(--theme-text-nav);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.25rem;
+  transition: color 150ms ease;
+}
+
+.theme-link-action[data-danger] {
+  color: var(--mantine-color-red-text);
+}
+
+.theme-link-action:hover:not(:disabled),
+.theme-link-action:focus-visible {
+  text-decoration: underline;
+}
+
+.theme-link-action:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+/* =============================================================================
+ * plugged.host: the Subdomains page (pages/server/subdomains), the subdomains plugin's table and
+ * create form on the Pelican panel: the toolbar's icon action at the toolbar's start, the
+ * copyable cells and the token deposit.
+ * ============================================================================= */
+/* The toolbar's actions sit at its start (".fi-ta-header-toolbar .fi-ta-actions"). */
+.theme-table-toolbar-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem;
+  margin-inline-end: auto;
+}
+
+/* Theme v2's toolbar icon button: a flat 36px square, the icon 20px in the bright accent, a
+   white/5 fill on hover. */
+.theme-toolbar-action {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.5rem;
+  color: var(--theme-accent-bright);
+  font-size: 1rem;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease,
+    transform 100ms ease;
+}
+
+.theme-toolbar-action:hover:not(:disabled) {
+  background-color: var(--theme-raise);
+  color: var(--theme-accent-glow);
+}
+
+.theme-toolbar-action:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+/* Disabled (the limit is reached): dimmed, and the tooltip around it still says why. */
+.theme-toolbar-action:disabled {
+  cursor: default;
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* Filament's copyable text column: the text is the button; Connect With leads with its copy
+   icon ("size-5 text-gray-400"). */
+.theme-copy-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: var(--theme-text);
+  font-size: 0.875rem;
+  line-height: 1.5rem;
+  text-align: start;
+  cursor: pointer;
+}
+
+.theme-copy-cell-icon {
+  color: var(--theme-text-muted);
+  font-size: 1rem;
+}
+
+/* The token deposit at the top of the create form: a white/5 fill, the caption "text-xs
+   font-semibold uppercase tracking-wider text-gray-400", the amount "text-base font-bold" and
+   the balance "text-sm font-semibold" at the end; without the banner's ring and coin glyphs. */
+.theme-sub-deposit {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  padding: 0.75rem;
+  border-radius: 0.75rem;
+  background-color: var(--theme-raise);
+}
+
+.theme-sub-deposit-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+}
+
+.theme-sub-deposit-caption {
+  display: block;
+  color: var(--theme-text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  line-height: 1rem;
+  text-transform: uppercase;
+}
+
+.theme-sub-deposit-amount {
+  display: flex;
+  align-items: baseline;
+  gap: 0.375rem;
+}
+
+.theme-sub-deposit-amount strong {
+  color: var(--theme-text);
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  line-height: 1.5rem;
+}
+
+.theme-sub-deposit-amount span {
+  color: var(--theme-text-muted);
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+
+.theme-sub-deposit-balance {
+  text-align: end;
+}
+
+.theme-sub-deposit-balance strong {
+  display: block;
+  color: var(--theme-text);
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  line-height: 1.5rem;
+}
+
+/* =============================================================================
+ * plugged.host: the account's Backups page (pages/dashboard/backups), the Pelican panel's backups
+ * portal (plugged-host-storage backup-portal.blade.php): one full-width bar per server with its
+ * name, "egg · node · #id" and the state of its newest copy, the actions at the end of the bar;
+ * below 40rem the actions go under the text. The section titles are ".theme-eco-heading".
+ * ============================================================================= */
+.theme-backups {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.theme-backups-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* A section's title with its explanation underneath. */
+.theme-backups-section-head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.theme-backups-text {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.theme-backups-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* "bg-white/5 rounded-xl", no edge until it is the linked row. */
+.theme-backups-row {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid transparent;
+  border-radius: 0.75rem;
+  background-color: var(--theme-raise);
+  transition:
+    border-color 150ms ease,
+    background-color 150ms ease;
+}
+
+@media (min-width: 40rem) {
+  .theme-backups-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding: 1rem 1.5rem;
+  }
+}
+
+/* Linked from the server's Backups page (?server=…): the selected-row look. */
+.theme-backups-row[data-focused] {
+  border-color: var(--theme-accent-bright);
+  background-color: var(--theme-accent-soft);
+}
+
+.theme-backups-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.theme-backups-name {
+  overflow: hidden;
+  color: var(--theme-text);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.5rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.theme-backups-meta,
+.theme-backups-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.5rem;
+  color: var(--theme-text-muted);
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+}
+
+.theme-backups-status {
+  color: var(--theme-text-nav);
+}
+
+/* The server ID: copies itself on click. */
+.theme-backups-id {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--theme-text-muted);
+  font: inherit;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  cursor: pointer;
+  transition: color 150ms ease;
+}
+
+.theme-backups-id:hover {
+  color: var(--theme-text);
+}
+
+.theme-backups-sep {
+  color: var(--theme-text-faint);
+}
+
+.theme-backups-dot {
+  flex: none;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background-color: var(--theme-text-faint);
+}
+
+.theme-backups-dot[data-ok] {
+  background-color: var(--color-server-status-running);
+}
+
+.theme-backups-actions {
+  display: flex;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* The portal's small gray pill ("btn-secondary btn-sm"); Mantine sets these variables inline. */
+.theme-backups-actions .mantine-Button-root {
+  --button-height: 2.125rem !important;
+  --button-padding-x: 0.875rem !important;
+  --button-fz: 0.8125rem !important;
+}
+
+.theme-backups-link {
+  color: var(--theme-text-nav);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 150ms ease;
+}
+
+.theme-backups-link:hover {
+  color: var(--theme-text);
+}
+
+.theme-backups-id:focus-visible,
+.theme-backups-link:focus-visible {
+  outline: 2px solid var(--theme-accent-bright);
+  outline-offset: 2px;
 }

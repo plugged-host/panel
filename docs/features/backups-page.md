@@ -20,21 +20,38 @@ Players see these copies on the server's System Backups page too (read-only).
 
 ## The page
 
-| Row | Shows |
-|---|---|
-| A live server the user owns (not suspended) | its newest finished, successful backup, system or not; "No backup yet" before the first one |
-| A server the user deleted, while it is held | its newest held system backup, when it was deleted and until when it is kept |
+Laid out like the Pelican panel's backups portal: the heading "Server backups", then **Your
+servers**, one full-width row per server the user owns (not suspended), newest server first. A row
+shows the server's name, `egg · node · #id` (the ID copies itself on click), and the state of its
+newest finished, successful backup, system or not:
 
-Download gives a link like the server's own backup download: a presigned S3 URL, or a link to the
-node that took the backup (that node must be up). The account's activity log gets
-`account:backup.download`. Subusers do not see other people's servers here: the page is the
-owner's.
+| State | Status line | Actions |
+|---|---|---|
+| A backup exists | green dot, "Backup ready · size · 12 minutes ago" | Download, Manage (`/server/{id}`), Backups (`/server/{id}/backups`) |
+| No backup yet | grey dot, "Waiting for the first copy from the node" | Manage, Backups |
+
+With no live server, the section is a card: "No active servers found on this account."
+
+**Deleted servers** follows only while the user has one held: the servers they (or an admin, or
+the suspension purge) deleted, most recently deleted first, with "Deleted 2 days ago · Kept until
+31 Oct · size" and Download as the only action. Its meta line shows the node that took the copy;
+`deleted_servers` keeps no egg, so a deleted server's line has no egg.
+
+Download asks for a link like the server's own backup download: a presigned S3 URL, or a link to
+the node that took the backup (that node must be up). The button then reads "Starting…", then
+"Downloading, see your browser", and ignores clicks for 30 seconds so a second click does not start
+a second download. The account's activity log gets `account:backup.download`. Subusers do not see
+other people's servers here: the page is the owner's.
+
+`/account/backups?server=<id>` highlights that server's row (the selected-row look) and scrolls to
+it. The server's Backups page links there with its **Off-site Backups** header action (a secondary
+button before Create, shown to the server's owner).
 
 API-key permissions: `backups.read` (the list) and `backups.download`.
 
 | Route | Does |
 |---|---|
-| `GET /api/client/account/backups` | `{backups: [{server_uuid, server_name, deleted, kept_until, backup: {uuid, name, bytes, created}}]}` |
+| `GET /api/client/account/backups` | `{backups: [{server_uuid, server_uuid_short, server_name, egg_name, node_name, deleted, kept_until, backup: {uuid, name, bytes, created}}]}`; `egg_name` is null for a deleted server |
 | `GET /api/client/account/backups/{backup}/download` | `{url}`; 404 unless the backup is one the page offers to this user |
 
 ## Deleted servers
@@ -71,10 +88,15 @@ Nothing differs.
 ## Check
 
 - Set up a backup configuration and a system backup policy as above; wait for the first copy.
-- Account › Backups lists every server you own with its newest backup; Download starts a download.
-- Delete a server from its Settings page: it stays on the page with "Deleted" and "Kept Until"
-  (7 days on); its download still works. Within 10 minutes its older system backups are gone
-  (Admin › Nodes › Backups), the newest stays.
+- Account › Backups: "Your servers" lists every server you own, newest first, each with its game,
+  node and `#id` (a click copies it); Download reads "Starting…", then "Downloading, see your
+  browser", and the download starts. Manage and Backups open the server.
+- A new server shows "Waiting for the first copy from the node" until its first backup.
+- A server's Backups page › Off-site Backups opens Account › Backups with that server's row
+  outlined and scrolled into view.
+- Delete a server from its Settings page: it moves to "Deleted servers" with "Deleted …" and "Kept
+  until …" (7 days on); its download still works. Within 10 minutes its older system backups are
+  gone (Admin › Nodes › Backups), the newest stays.
 - Admin › Settings › Hosting › Recovery: set 0; delete another server: it does not appear on the
   page.
 - An API key without `backups.read` gets 403 on the list.

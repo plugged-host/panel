@@ -117,6 +117,14 @@ mod get {
         enabled: bool,
     }
 
+    /// plugged.host: the Discord rewards page and invite links (docs/features/discord.md).
+    #[derive(ToSchema, Serialize)]
+    struct ResponseDiscord<'a> {
+        enabled: bool,
+        /// Empty: no invite links or buttons.
+        invite_url: &'a str,
+    }
+
     #[derive(ToSchema, Serialize)]
     struct Response<'a> {
         time: chrono::DateTime<chrono::Utc>,
@@ -141,6 +149,8 @@ mod get {
         tour: ResponseTour, // plugged.host
         #[schema(inline)]
         economy: ResponseEconomy<'a>, // plugged.host
+        #[schema(inline)]
+        discord: ResponseDiscord<'a>, // plugged.host
         #[schema(inline)]
         ads: shared::ads::ApiAdsSettings, // plugged.host
         #[schema(inline)]
@@ -250,6 +260,10 @@ mod get {
                 membership_enabled: settings.economy.membership_enabled,
                 plus_name: &settings.economy.plus_name,
                 plusplus_name: &settings.economy.plusplus_name,
+            },
+            discord: ResponseDiscord {
+                enabled: settings.discord.active(),
+                invite_url: &settings.discord.invite_url,
             },
             ads: shared::ads::ApiAdsSettings::new(&settings.ads),
             neo: ResponseNeo {

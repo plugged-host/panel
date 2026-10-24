@@ -16,6 +16,9 @@ a flat sidebar with grouped rows, and the user's avatar row at its foot. It is d
 | Sidebar (logo block, groups, avatar row, mobile toggle) | `frontend/src/elements/navigation/Sidebar.tsx` |
 | Dashboard sidebar rows: Pelican's order (Home, Resource Store, the first membership, Tokens, Backups), then the account's pages folded into an "Account" row with an arrow, Admin last | `frontend/src/routers/DashboardRouter.tsx`, the folding row `frontend/src/elements/navigation/SidebarGroup.tsx` (`Sidebar.Group`) |
 | Server list cards | `frontend/src/pages/dashboard/home/ServerItem.tsx` (container queries: one card per row on narrow screens, as many as fit on wide ones) |
+| Server list page, as Pelican's (no All/Grouped tabs; a toolbar row with Create server at its start and the search at its end; the pagination with a per-page choice underneath; bulk selection with S + click only) | `frontend/src/pages/dashboard/home/DashboardHomeAll.tsx`, `.theme-toolbar*`, `.theme-list-foot` in `app.css` |
+| A server's condition (label and status-bar colour, Pelican's `Server::condition`) and the card's numbers (70 % / 90 % marks, "1.2 / 2 GiB", "2h 14m") | `frontend/src/lib/domain/serverCondition.ts`, `frontend/src/lib/format/serverUsage.ts` |
+| Console, as Pelican's: title "Console" with the power buttons (icon squares on phones), the log check above it, six stat blocks (Name, Status, Address, CPU, Memory, Disk), the terminal without a header row (its tools are quick actions; the popout keeps the row), the CPU / Memory / Network charts only while the server runs | `frontend/src/pages/server/console/{ServerConsole.tsx,stats/ServerOverview.tsx,stats/ServerStats.tsx,terminal/Console.tsx,terminal/ConsoleSearch.tsx,terminal/ConsoleCommandInput.tsx}`, `.theme-console*` in `app.css` |
 
 The tokens are CSS custom properties named `--theme-*` (`--theme-accent`, `--theme-accent-bright`,
 `--theme-raise`, `--theme-hairline`, `--theme-text-*` …). Use them instead of new colours; components
@@ -55,3 +58,10 @@ to the map when one is missing.
 - Admin › Settings › General › Metadata: pick a swatch, then a custom colour such as `#facc15`.
   Buttons, active rows and links follow; button text stays readable.
 - The server list shows cards with live usage bars; narrowing the window reflows them.
+- The server list: Create server at the start of the toolbar row, the search at its end, the cards
+  under a hairline, the pagination under them. A card's power button (blue) lists only what the
+  state allows; its status bar is green when running, amber while starting or stopping, red when
+  offline.
+- A console: "Console" with the power buttons, then Name, Status ("Running (2h 14m)"), Address, CPU,
+  Memory and Disk, the terminal with its command line, and the three charts while the server runs.
+  Ctrl+F (or the quick action) opens the search at the terminal's top end.

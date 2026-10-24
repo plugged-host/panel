@@ -37,8 +37,8 @@ The records follow the server (`subdomains::follow`, in the background):
 - after a failover or a limbo restore to another node (`Server::rehome`);
 - after the primary allocation changes, by the owner or an admin.
 
-A subdomain whose records could not be updated keeps its old ones; the owner's Write Records Again
-(the rotate icon) writes them for the current address.
+A subdomain whose records could not be updated keeps its old ones; Write Records Again (a row
+action on the Subdomains page) writes them for the current address.
 
 ## Records in a shared zone
 
@@ -67,8 +67,9 @@ removed again, the row is deleted and the tokens come back. A failed rename keep
   with `*` matching anything.
 - Each name is unique per domain.
 
-The Discord requirement of plugged.host's Pelican plugin (subdomains only for members of the
-Discord server) comes with the Discord feature.
+Admin › Settings › Accounts › Discord can keep new subdomains for owners who linked their Discord
+account or are in the Discord server (`unavailable` is then `discord_link` or `discord_member`,
+creating answers 403); see [discord.md](discord.md#subdomains).
 
 ## Domains
 
@@ -78,13 +79,42 @@ the zone moved to another Cloudflare account) does it again. Deleting a domain d
 subdomains first (records removed, tokens refunded). The token needs Zone › Zone › Read and Zone ›
 DNS › Edit on the zones.
 
-A server picks the domain when there is more than one; with one, the field shows it as a suffix.
+A server picks the domain when there is more than one (the Domain field of the create form); the
+Name field shows the chosen domain as its suffix.
+
+## The page
+
+A server's Subdomains page (`frontend/src/pages/server/subdomains/ServerSubdomains.tsx`) looks like
+the Pelican plugin's Filament table:
+
+- The title "Subdomains" with "{current} of {max} used" under it (Pelican shows the count as a
+  sidebar badge, which this panel has not got).
+- The table's toolbar holds the create action, a plus icon at its start with the tooltip "Create
+  Subdomain", or "Subdomain limit reached" (disabled) when the server has its limit, or the reason
+  the server cannot have one (disabled). It is there for `subdomains.create` only.
+- The columns: Name (click copies the name, "Subdomain copied to clipboard" in a tooltip), Status
+  ("Processing (N min)" in yellow for the first three minutes, counting down every 15 s, then
+  "Active" in green), Type ("Minecraft (SRV)" green, "FiveM / RedM (SRV)" yellow, "Standard (A)" or
+  "<Service> (SRV)" blue), Deposit ("N tokens", yellow when paid, gray when free; only while tokens
+  are on), Connect With (click copies it). Then the row actions as text links: Write Records Again
+  and Edit (`subdomains.update`), Delete (`subdomains.delete`, red).
+- With no subdomains the table says "No Subdomains". While none can be made (`unavailable`) and the
+  server has none, the reason takes the table's place; a server that still has some keeps them
+  listed.
+- Create Subdomain: the deposit (while tokens are on: "Token Deposit • Subdomain #N", the price,
+  and the owner's balance for the owner), the Name with the domain as suffix and a helper for the
+  game (Minecraft and FiveM / RedM name the server's port), the Domain when there are several. A bad
+  name, a name under two characters or too few tokens show under the field when Create is pressed,
+  as do the server's refusals (taken, blocked, the limit); a Cloudflare failure is a toast.
+- Edit Subdomain: the same form without the deposit, the domain fixed; Save changes renames it (the
+  same name writes the records again).
+- Delete asks "Delete Subdomain" with what happens and the tokens that go back.
 
 ## Routes
 
 | Route | Permission | Does |
 |---|---|---|
-| `GET /api/client/servers/{server}/subdomains` | `subdomains.read` | `{subdomains, limit, domains, service, address, unavailable, next_cost, balance}`; `unavailable` is `off`, `unsupported`, `no_domains`, `no_address` or `null`; `balance` only for the owner while tokens are on |
+| `GET /api/client/servers/{server}/subdomains` | `subdomains.read` | `{subdomains, limit, domains, service, address, unavailable, next_cost, balance}`; `unavailable` is `off`, `unsupported`, `no_domains`, `no_address`, `discord_link`, `discord_member` or `null`; `balance` only for the owner while tokens are on |
 | `POST /api/client/servers/{server}/subdomains` | `subdomains.create` | `{name, domain_uuid?}`: 400 bad or blocked name, unknown domain or too few tokens; 409 taken, limit reached, or another record of the name exists; 502 Cloudflare refused |
 | `PATCH /api/client/servers/{server}/subdomains/{subdomain}` | `subdomains.update` | `{name?}`: renames, or without a name writes the records again |
 | `DELETE /api/client/servers/{server}/subdomains/{subdomain}` | `subdomains.delete` | `{refunded}` |
@@ -135,17 +165,27 @@ Nothing changes: the deposit is the panel's tokens, which work without it.
 - The deposit is kept per subdomain and refunded from it, so changing the prices does not change
   refunds of existing subdomains.
 - Settings are a settings tab instead of `.env`; the SRV target is the node's field.
+- The page: the limit is the subtitle instead of a sidebar badge; Write Records Again is an extra
+  row action; the delete confirmation says what happens instead of Filament's "Are you sure you
+  would like to do this?"; the edit form has no deposit; while no subdomain can be made the page
+  says why instead of disappearing; the balance is shown to the owner only; the Deposit column and
+  the deposit go away while tokens are off; the helpers name the real port where Pelican printed
+  `:port`.
 
 ## Checks
 
 - Admin › Settings › Hosting › Subdomains: on, a token with DNS edit rights. Admin › Domains: add
   the zone's domain (Linked); add a domain the token does not see: refused.
-- On a Minecraft server: Subdomains, Add `play`: the page shows `play.<domain>` as Spreading, then
-  Active; Cloudflare shows an A and a `_minecraft._tcp` SRV record with the comment. Join with the
-  name alone.
+- On a Minecraft server: Subdomains, the plus in the table's toolbar, Name `play`, Create: the
+  table shows `play.<domain>` as Processing (3 min) counting down, then Active; Cloudflare shows an
+  A and a `_minecraft._tcp` SRV record with the comment. Join with the name alone. Click the name
+  and the Connect With cell: each is copied, with a tooltip saying so.
 - A FiveM server: `connect <name>` works; the zone has `_cfx._udp` and `_cfx._tcp` records.
-- With tokens on, the second subdomain costs 3; delete it: 3 tokens back (Tokens page shows
-  Subdomain refunded). With too few tokens the Add button in the modal is disabled.
+- With tokens on, the second subdomain costs 3 (the create form's deposit says so); delete it: 3
+  tokens back (Tokens page shows Subdomain refunded). With too few tokens, Create shows
+  "Insufficient tokens!" under the name.
+- At the limit the toolbar's plus is dimmed with the tooltip "Subdomain limit reached".
+- Edit a subdomain, change the name, Save changes: the new name resolves, the old one is gone.
 - Make a record `taken.<domain>` by hand; adding `taken` is refused and the record is untouched.
 - Change the server's primary allocation (or move it to another node): the records follow within a
   few seconds.

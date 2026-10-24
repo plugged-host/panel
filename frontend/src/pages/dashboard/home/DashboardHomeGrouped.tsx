@@ -23,7 +23,6 @@ import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useUserStore } from '@/stores/user.ts';
 import CreateServerButton from '../create/CreateServerButton.tsx'; // plugged.host
 import BulkActionBar from './BulkActionBar.tsx';
-import DashboardHomeTitle from './DashboardHomeTitle.tsx';
 import ServerGroupCreateModal from './modals/ServerGroupCreateModal.tsx';
 import ServerGroupItem from './ServerGroupItem.tsx';
 import ServerItem from './ServerItem.tsx';
@@ -174,7 +173,7 @@ export default function DashboardHomeGrouped() {
       registry={window.extensionContext.extensionRegistry.pages.dashboard.home.containerGrouped}
     >
       <ServerGroupCreateModal opened={openModal === 'create'} onClose={() => setOpenModal(null)} />
-      <DashboardHomeTitle />
+      {/* plugged.host: no All/Grouped tabs, as the Pelican server list has none (the preference picks the view) */}
       <BulkActionBar
         selectedCount={selectedServers.size}
         onClear={() => setSelectedServers(new ObjectSet('uuid'))}

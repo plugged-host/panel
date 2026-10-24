@@ -252,6 +252,20 @@ pub(crate) static BASE_USER_PERMISSIONS: LazyLock<IndexMap<&'static str, Permiss
                     )]),
                 },
             ),
+            // plugged.host: the account's Discord rewards (docs/features/discord.md)
+            (
+                "discord",
+                PermissionGroup {
+                    description: "Permissions that control the ability to see the account's Discord rewards.",
+                    permissions: IndexMap::from([
+                        (
+                            "read",
+                            "Allows viewing the account's Discord membership, invites, boosts and their rewards.",
+                        ),
+                        ("check", "Allows asking Discord for new rewards now."),
+                    ]),
+                },
+            ),
             (
                 "activity",
                 PermissionGroup {

@@ -444,6 +444,10 @@ mod put {
         #[schema(inline)]
         #[garde(dive)]
         subdomains: Option<shared::settings::subdomains::PayloadSubdomains>,
+        // plugged.host: docs/features/discord.md
+        #[schema(inline)]
+        #[garde(dive)]
+        discord: Option<shared::settings::discord::PayloadDiscord>,
         // plugged.host: docs/features/devboxes.md
         #[schema(inline)]
         #[garde(dive)]
@@ -988,6 +992,24 @@ mod put {
         if let Some(subdomains) = data.subdomains {
             subdomains.apply(&mut settings.subdomains);
         }
+        // plugged.host: Discord; a smaller Discord tier is given back by the members' servers
+        let discord_tier = |settings: &shared::settings::AppSettings| {
+            if settings.discord.standalone(settings.noprofit.connected()) {
+                settings.discord.tier()
+            } else {
+                shared::allowance::Resources::default()
+            }
+        };
+        let discord_tier_before = discord_tier(&*settings);
+        let discord_provider_before = settings.discord.oauth_provider_uuid;
+        if let Some(discord) = data.discord
+            && let Err(error) = discord.apply(&mut settings.discord)
+        {
+            return ApiResponse::error(error.message())
+                .with_status(StatusCode::BAD_REQUEST)
+                .ok();
+        }
+        let discord_tier_after = discord_tier(&*settings);
         // plugged.host: devboxes
         if let Some(devboxes) = data.devboxes {
             let panel_host = reqwest::Url::parse(&settings.app.url)
@@ -1069,6 +1091,14 @@ mod put {
             )
             .await?;
         }
+        // plugged.host: docs/features/discord.md
+        shared::discord::members::record_tier_cut(
+            &state.database,
+            discord_provider_before,
+            discord_tier_before,
+            discord_tier_after,
+        )
+        .await?;
 
         activity_logger.log("settings:update", settings_json).await;
 

@@ -1,9 +1,9 @@
 import {
+  faBox, // plugged.host
   faBoxArchive,
   faBriefcase,
   faCode, // plugged.host
   faCog,
-  faCubesStacked, // plugged.host
   faDatabase,
   faEarthAmericas, // plugged.host
   faFileCode, // plugged.host
@@ -14,6 +14,7 @@ import {
   faPlay,
   faPuzzlePiece, // plugged.host
   faRightLeft,
+  faRocket, // plugged.host
   faSliders, // plugged.host
   faStopwatch,
   faTerminal,
@@ -33,6 +34,7 @@ import ServerFiles from '@/pages/server/files/ServerFiles.tsx';
 import ServerFilesTrash from '@/pages/server/files/trash/ServerFilesTrash.tsx';
 import ServerFivemArtifacts from '@/pages/server/fivem/artifacts/ServerFivemArtifacts.tsx'; // plugged.host
 import ServerFivemConfig from '@/pages/server/fivem/config/ServerFivemConfig.tsx'; // plugged.host
+import ServerFivemEnhanced from '@/pages/server/fivem/enhanced/ServerFivemEnhanced.tsx'; // plugged.host
 import ServerFivemFrameworks from '@/pages/server/fivem/frameworks/ServerFivemFrameworks.tsx'; // plugged.host
 import ServerFivemPlayers from '@/pages/server/fivem/players/ServerFivemPlayers.tsx'; // plugged.host
 import ServerLimbo from '@/pages/server/limbo/ServerLimbo.tsx'; // plugged.host
@@ -156,7 +158,22 @@ const routes: ServerRouteDefinition[] = [
     element: ServerMinecraftWorlds,
     permission: 'minecraft.worlds',
   },
-  // plugged.host: FiveM and RedM servers only (lib/domain/games.ts, docs/features/fivem.md)
+  // plugged.host: FiveM and RedM servers only (lib/domain/games.ts, docs/features/fivem.md), in the Pelican panel's
+  // order: the everyday pages, then Artifacts and GTAV Enhanced
+  {
+    name: () => getTranslations().t('pages.server.fivem.frameworks.nav', {}),
+    icon: faLayerGroup,
+    path: '/fivem/frameworks',
+    element: ServerFivemFrameworks,
+    permission: 'fivem.frameworks',
+  },
+  {
+    name: () => getTranslations().t('pages.server.fivem.players.title', {}),
+    icon: faUsers,
+    path: '/fivem/players',
+    element: ServerFivemPlayers,
+    permission: 'fivem.players',
+  },
   {
     name: () => getTranslations().t('pages.server.fivem.config.title', {}),
     icon: faFileCode,
@@ -165,24 +182,17 @@ const routes: ServerRouteDefinition[] = [
     permission: 'fivem.config',
   },
   {
-    name: () => getTranslations().t('pages.server.fivem.frameworks.title', {}),
-    icon: faLayerGroup,
-    path: '/fivem/frameworks',
-    element: ServerFivemFrameworks,
-    permission: 'fivem.frameworks',
-  },
-  {
-    name: () => getTranslations().t('pages.server.fivem.players.title', {}),
-    icon: faUserGroup,
-    path: '/fivem/players',
-    element: ServerFivemPlayers,
-    permission: 'fivem.players',
-  },
-  {
     name: () => getTranslations().t('pages.server.fivem.artifacts.title', {}),
-    icon: faCubesStacked,
+    icon: faBox,
     path: '/fivem/artifacts',
     element: ServerFivemArtifacts,
+    permission: 'fivem.artifacts',
+  },
+  {
+    name: () => getTranslations().t('pages.server.fivem.enhanced.nav', {}),
+    icon: faRocket,
+    path: '/fivem/enhanced',
+    element: ServerFivemEnhanced,
     permission: 'fivem.artifacts',
   },
   {

@@ -744,7 +744,7 @@
           "start": "Starten",
           "stop": "Stoppen",
           "restart": "Neustarten",
-          "kill": "Killen"
+          "kill": "Stopp erzwingen"
         },
         "serverBackupStatus": {
           "starting": "Startet",
@@ -851,7 +851,11 @@
           "limbo": "Server wiederhergestellt",
           "limboRefund": "Wiederherstellung erstattet",
           "subdomain": "Subdomain",
-          "subdomainRefund": "Subdomain erstattet"
+          "subdomainRefund": "Subdomain erstattet",
+          "discordInvite": "Discord-Einladungen",
+          "discordInviteClawback": "Einladung zurückgeholt",
+          "discordInviteDebt": "Geschuldete Einladungs-Credits",
+          "discordBoost": "Discord-Boost"
         }
       },
       "chartLegend": {
@@ -1022,11 +1026,11 @@
           },
           "power": {
             "heading": "Starten, Neustarten, Stoppen",
-            "body": "Die Schaltflächen zum Ein- und Ausschalten dieses Servers. Stoppen lässt das Spiel speichern und sauber herunterfahren; hängt es dabei, wird aus Stoppen „Killen“."
+            "body": "Die Schaltflächen zum Ein- und Ausschalten dieses Servers. Stoppen lässt das Spiel speichern und sauber herunterfahren; hängt es dabei, wird aus Stoppen „Stopp erzwingen“."
           },
           "details": {
-            "heading": "Adresse und Verbrauch",
-            "body": "Die Adresse geben Spieler zum Beitreten ein. Klick darauf, um sie zu kopieren, und schick sie deinen Freunden. Laufzeit, CPU, Arbeitsspeicher und Speicherplatz sind Live-Werte."
+            "heading": "Name, Status und Adresse",
+            "body": "Die Adresse geben Spieler zum Beitreten ein. Klick darauf, um sie zu kopieren, und schick sie deinen Freunden. CPU, Arbeitsspeicher und Speicher sind Live-Werte."
           },
           "sidebar": {
             "heading": "Alles zu diesem Server",
@@ -1321,6 +1325,182 @@
             "closeIn": "Schließen ({seconds})"
           }
         }
+      },
+      "neo": {
+        "name": "neo",
+        "launcher": {
+          "open": "{name} fragen",
+          "working": "Arbeitet…",
+          "approve": "Braucht dich",
+          "done": "Fertig",
+          "off": "{name} ist aus"
+        },
+        "header": {
+          "account": "dein {app}-Assistent",
+          "history": "Frühere Chats",
+          "settings": "{name}-Einstellungen"
+        },
+        "button": {
+          "history": "Frühere Chats",
+          "newChat": "Neuer Chat",
+          "settings": "{name}-Einstellungen",
+          "minimize": "Minimieren ({name} arbeitet weiter)",
+          "back": "Zurück zum Chat",
+          "resize": "Zum Ändern der Größe ziehen, Doppelklick setzt zurück",
+          "send": "Senden",
+          "stop": "Stopp",
+          "attach": "Bilder hinzufügen (oder einfügen oder hineinziehen)",
+          "removeImage": "Bild entfernen",
+          "approve": "Zulassen",
+          "deny": "Ablehnen",
+          "approveAll": "Alle zulassen ({count})",
+          "retry": "Erneut versuchen",
+          "turnOn": "{name} einschalten",
+          "agree": "Verstanden, los",
+          "model": "Modell",
+          "deleteChat": "Diesen Chat löschen",
+          "confirmDelete": "Zum Löschen erneut tippen",
+          "deleteHistory": "Meinen {name}-Verlauf löschen"
+        },
+        "composer": {
+          "placeholder": "Nachricht an {name}…",
+          "imageType": "Nur PNG-, JPEG-, WebP- oder GIF-Bilder bis 20 MB.",
+          "imageLimit": "Bis zu {count} Bilder pro Nachricht.",
+          "imageUnreadable": "{name} konnte dieses Bild nicht lesen. Versuch es mit einem PNG- oder JPEG-Screenshot."
+        },
+        "empty": {
+          "serverTitle": "Was soll ich auf {server} tun?",
+          "serverBody": "Ich lese Konsole und Dateien, nehme die Änderungen vor und prüfe, ob alles läuft.",
+          "accountTitle": "Was kann ich für dich tun?",
+          "accountBody": "Ich kann Server erstellen und anpassen, dein Konto prüfen und Fragen beantworten. Für Arbeit in einem Server öffne mich auf dessen Seite."
+        },
+        "suggestions": {
+          "crash": {
+            "label": "Absturz beheben",
+            "prompt": "Mein Server ist abgestürzt oder startet nicht. Finde die Ursache und behebe sie."
+          },
+          "lag": {
+            "label": "Lags beheben",
+            "prompt": "Mein Server laggt. Finde die Ursache und sorg dafür, dass er flüssiger läuft."
+          },
+          "plugin": {
+            "label": "Plugin hinzufügen",
+            "prompt": "Empfiehl mir ein gutes Plugin oder einen Mod für meinen Server und installiere es."
+          },
+          "backup": {
+            "label": "Backup",
+            "prompt": "Erstelle ein Backup meines Servers."
+          },
+          "create": {
+            "label": "Neuer Server",
+            "prompt": "Erstelle einen neuen Server für mich."
+          },
+          "allowance": {
+            "label": "Mein Kontingent",
+            "prompt": "Wie viel CPU, Arbeitsspeicher und Speicherplatz habe ich noch frei?"
+          },
+          "tokens": {
+            "label": "Tokens verdienen",
+            "prompt": "Wie kann ich Tokens und Credits verdienen?"
+          }
+        },
+        "message": {
+          "image": "Bild",
+          "thought": "Gedanken",
+          "working": "{name} arbeitet…",
+          "showChange": "Änderung anzeigen",
+          "showOutput": "Ausgabe anzeigen",
+          "auto": "ohne Nachfrage ausgeführt"
+        },
+        "status": {
+          "queued": "in Warteschlange",
+          "pendingApproval": "wartet auf dich",
+          "approved": "zugelassen",
+          "executing": "läuft…",
+          "done": "erledigt",
+          "failed": "fehlgeschlagen",
+          "denied": "abgelehnt",
+          "skipped": "nicht ausgeführt"
+        },
+        "risk": {
+          "destructive": "Schwer rückgängig zu machen",
+          "critical": "Nicht rückgängig zu machen oder kostet dich etwas"
+        },
+        "notice": {
+          "limitedShort": "Du hast dein kurzfristiges Limit für {name} erreicht. Es wird {time} zurückgesetzt.",
+          "limitedLong": "Du hast dein langfristiges Limit für {name} erreicht. Es wird {time} zurückgesetzt.",
+          "limitedModel": "Du hast die Nutzung dieses Modells vorerst aufgebraucht. Sie wird {time} zurückgesetzt. Wähle unten ein anderes Modell, um weiterzumachen.",
+          "limitedImages": "Du hast vorerst so viele Bilder gesendet, wie dein Limit erlaubt. Es wird {time} zurückgesetzt.",
+          "modelNotAllowed": "{model} gibt es nur mit {plan}. Wähle unten ein anderes Modell.",
+          "modelUnavailable": "Das gewählte Modell ist gerade nicht verfügbar. Wähle unten ein anderes Modell.",
+          "unavailable": "{name} ist gerade nicht verfügbar. Bitte versuche es gleich noch einmal.",
+          "unlinked": "{name} braucht ein verbundenes noprofit.space-Konto.",
+          "refused": "{name} konnte bei dieser Anfrage nicht helfen.",
+          "rateLimited": "Du sendest sehr schnell Nachrichten. Warte kurz und versuche es erneut.",
+          "connection": "Die Verbindung zu {name} ist abgerissen. Bitte versuche es erneut.",
+          "disabled": "{name} ist ausgeschaltet.",
+          "consent": "Bitte lies und bestätige zuerst den Hinweis.",
+          "noAccess": "Du hast keinen Zugriff mehr auf diesen Server.",
+          "notYours": "Diese Unterhaltung gehört jemand anderem.",
+          "soon": "bald",
+          "model": "Dieses Modell",
+          "plan": "einer Mitgliedschaft"
+        },
+        "blocked": {
+          "disabled": "{name} ist in diesem Panel gerade nicht verfügbar.",
+          "noAccess": "Du kannst {name} auf diesem Server nicht nutzen.",
+          "offBody": "Schalte es wieder ein, um zu chatten und es an deinen Servern arbeiten zu lassen.",
+          "failed": "{name} konnte nicht geladen werden."
+        },
+        "consent": {
+          "title": "Bevor es losgeht",
+          "bodyNamed": "{name} ist ein agentischer KI-Assistent: Es beantwortet nicht nur Fragen, sondern erledigt Aufgaben auf deinen Servern und in deinem Konto für dich. Dafür wird das, was du schreibst, und das, was {name} von deinem Server liest (Konsolenausgabe, Dateiinhalte), an unsere KI-Anbieter gesendet: {providers}. Passwörter und Tokens werden vor dem Senden maskiert.",
+          "bodyGeneric": "{name} ist ein agentischer KI-Assistent: Es beantwortet nicht nur Fragen, sondern erledigt Aufgaben auf deinen Servern und in deinem Konto für dich. Dafür wird das, was du schreibst, und das, was {name} von deinem Server liest (Konsolenausgabe, Dateiinhalte), an die KI-Anbieter dieses Panels gesendet. Passwörter und Tokens werden vor dem Senden maskiert.",
+          "approvals": "{name} fragt, bevor es etwas auf deinem Server ändert. Unter dem Zahnrad kannst du {name} ausschalten oder ohne Nachfrage handeln lassen.",
+          "legal": "Rechtliche Fragen: {email}",
+          "privacy": "Datenschutzanfragen: {email}"
+        },
+        "settings": {
+          "enabled": "{name} aktivieren",
+          "enabledHint": "Ausgeschaltet stoppt {name} überall: Es chattet nicht mehr und handelt nicht mehr auf deinen Servern.",
+          "autoApprove": "{name} Änderungen ohne Nachfrage erlauben",
+          "autoApproveHint": "Ausgeschaltet (empfohlen) fragt {name}, bevor es Dateien bearbeitet oder löscht, Konsolenbefehle ausführt oder einen Server startet oder stoppt. Lesen wird nie abgefragt.",
+          "usage": "Nutzung",
+          "usageHintNoprofit": "Die Limits kommen von deinem noprofit.space-Konto.",
+          "usageHint": "Jeder Balken füllt sich, während du {name} nutzt, und leert sich, wenn sein Fenster zurückgesetzt wird.",
+          "hours": "{hours}-Stunden-Fenster",
+          "days": "{days}-Tage-Fenster",
+          "weekly": "Wöchentlich",
+          "resets": "zurückgesetzt {time}",
+          "notStarted": "nicht begonnen",
+          "unlinked": "{name} ist noch nicht mit deinem noprofit.space-Konto verbunden.",
+          "unavailable": "Die Nutzung ist gerade nicht verfügbar.",
+          "unlimitedModels": "Modelle ohne Balken hier haben kein Nutzungslimit.",
+          "history": "Chatverlauf",
+          "historyHint": "Chats, die du liegen lässt, werden nach einer Weile gelöscht.",
+          "deleted": "Dein {name}-Verlauf wurde gelöscht.",
+          "privacyNamed": "Was du schreibst und was {name} von deinen Servern liest, wird an KI-Anbieter gesendet ({providers}). Geheimnisse werden vorher maskiert.",
+          "privacyGeneric": "Was du schreibst und was {name} von deinen Servern liest, wird an die KI-Anbieter dieses Panels gesendet. Geheimnisse werden vorher maskiert.",
+          "support": "Mit einem Menschen sprechen"
+        },
+        "meter": {
+          "hours": "{hours} Std.",
+          "days": "{days} T.",
+          "week": "Woche",
+          "title": "{window}: {percent}% genutzt · zurückgesetzt {time}",
+          "noLimit": "Kein Nutzungslimit"
+        },
+        "models": {
+          "multiplier": "{multiplier}x Verbrauch",
+          "ownLimit": "Eigenes Nutzungslimit"
+        },
+        "history": {
+          "empty": "Hier gibt es noch keine früheren Chats. Wenn du einen neuen Chat beginnst, bleibt der alte hier erhalten.",
+          "untitled": "Chat ohne Titel",
+          "oneMessage": "1 Nachricht",
+          "messages": "{count} Nachrichten"
+        },
+        "askLog": "mclo.gs hat Probleme in meinem Server-Log gefunden ({url}). Bitte finde die Ursache und behebe sie."
       }
     },
     "pages": {
@@ -1785,7 +1965,16 @@
             "title": "Keine Server",
             "description": "Dieses Konto hat noch keine Server. Server, die dafür erstellt oder als Subuser mit ihm geteilt werden, erscheinen hier."
           },
-          "emptyGroup": "Diese Gruppe ist leer. Ziehe einen Server hierher, um ihn hinzuzufügen."
+          "emptyGroup": "Diese Gruppe ist leer. Ziehe einen Server hierher, um ihn hinzuzufügen.",
+          "emptyAccess": "Es gibt keine Server, auf die du zugreifen darfst.",
+          "card": {
+            "cpu": "CPU",
+            "memory": "RAM",
+            "disk": "Speicher",
+            "loading": "Laden...",
+            "stateUptime": "{state} · {uptime}",
+            "powerActions": "Power-Aktionen"
+          }
         },
         "admin": {
           "title": "Admin"
@@ -2312,15 +2501,24 @@
         },
         "backups": {
           "title": "Backups",
-          "description": "Das neueste Backup jedes deiner Server und der Server, die du in den letzten Tagen gelöscht hast. Lade eines herunter, um eine Kopie deiner Dateien außerhalb des Panels zu behalten.",
-          "empty": "Du hast keine Server, und für keinen gelöschten Server wird ein Backup aufbewahrt.",
-          "deleted": "Gelöscht",
-          "noCopy": "Noch kein Backup",
-          "table": {
-            "server": "Server",
-            "copy": "Neuestes Backup",
-            "keptUntil": "Aufbewahrt bis"
-          }
+          "heading": "Server-Backups",
+          "subtitle": "Lade eine vollständige Kopie deiner Serverdateien herunter: das neueste Backup jedes deiner Server.",
+          "yourServers": "Deine Server",
+          "copyId": "Server-ID kopieren",
+          "idCopied": "Server-ID #{id} kopiert!",
+          "backupReady": "Backup bereit",
+          "waiting": "Warte auf die erste Kopie vom Node",
+          "starting": "Startet…",
+          "downloading": "Wird heruntergeladen, siehe deinen Browser",
+          "manage": "Verwalten",
+          "manageHint": "Server im Panel verwalten",
+          "backups": "Backups",
+          "backupsHint": "Im Backups-Tab des Servers ansehen",
+          "noServers": "Auf diesem Konto wurden keine aktiven Server gefunden.",
+          "deletedTitle": "Gelöschte Server",
+          "deletedText": "Diese Server wurden gelöscht. Ihre letzte Kopie wird bis zum angezeigten Datum aufbewahrt, falls das ein Versehen war, und danach entfernt.",
+          "deletedAgo": "Gelöscht {ago}",
+          "keptUntil": "Aufbewahrt bis {date}"
         },
         "store": {
           "title": "Ressourcen-Shop",
@@ -2494,6 +2692,83 @@
           "toast": {
             "plus": "Du hast jetzt {name}.",
             "plusplus": "{name} gekauft."
+          }
+        },
+        "discord": {
+          "title": "Discord-Belohnungen",
+          "unlinked": {
+            "heading": "Credits auf Discord verdienen",
+            "headingNoCredits": "Deine Einladungen auf Discord",
+            "body": "Lade Freunde auf den {app}-Discord-Server ein und booste ihn, um Credits zu verdienen: {credits} für jeden Freund, der bleibt. Verknüpfe dein Discord-Konto, um loszulegen.",
+            "bodyNoCredits": "Verknüpfe dein Discord-Konto, damit die Freunde gezählt werden, die du auf den {app}-Discord-Server einlädst.",
+            "link": "Discord verknüpfen",
+            "linkNoprofit": "Discord auf noprofit.space verknüpfen"
+          },
+          "join": "Dem Discord-Server beitreten",
+          "open": "Discord-Server öffnen",
+          "earned": "Auf Discord verdiente Credits",
+          "linkedAs": "Verknüpft als {name}",
+          "inServer": "Auf dem Server",
+          "notInServer": "Nicht auf dem Server. Tritt bei, um weiter zu verdienen.",
+          "notChecked": "Noch nicht geprüft",
+          "check": "Nach neuen Belohnungen suchen",
+          "tier": {
+            "text": "Auf dem Server zu sein, gibt deinem Konto {resources} dazu.",
+            "cpu": "{cpu} % CPU",
+            "memory": "{memory} Arbeitsspeicher",
+            "disk": "{disk} Speicherplatz"
+          },
+          "noprofit": {
+            "title": "Discord-Server",
+            "text": "Dein noprofit.space-Konto bekommt die Belohnungen dafür, auf seinen Discord-Servern zu sein und sie zu boosten.",
+            "open": "noprofit.space öffnen"
+          },
+          "invites": {
+            "title": "Freunde einladen",
+            "rule": "{credits} Credits für jeden Freund, der über deinen Einladungslink beitritt und {hours} Stunden bleibt.",
+            "ruleHour": "{credits} Credits für jeden Freund, der über deinen Einladungslink beitritt und {hours} Stunde bleibt.",
+            "ruleNow": "{credits} Credits für jeden Freund, der über deinen Einladungslink beitritt.",
+            "notPaid": "Jeder Freund, der über deinen Einladungslink beitritt, wird hier gezählt.",
+            "age": "Sein Discord-Konto muss mindestens {days} Tage alt sein.",
+            "ageDay": "Sein Discord-Konto muss mindestens {days} Tag alt sein.",
+            "paid": "Ausgezahlt",
+            "friendsNone": "Noch keine Freunde",
+            "friend": "1 Freund",
+            "friends": "{count} Freunde",
+            "waiting": "Wartend",
+            "next": "Der nächste wird {time} ausgezahlt",
+            "nextSoon": "Der nächste wird in wenigen Minuten ausgezahlt",
+            "waitingNone": "Gerade wartet niemand",
+            "left": "Server verlassen",
+            "leftClawback": "Credits für Freunde, die gehen, werden zurückgenommen.",
+            "leftKept": "Freunde, die gegangen sind, zählen nicht mehr.",
+            "tooNew": "Nicht gezählt",
+            "tooNewHint": "Sein Discord-Konto war jünger als {days} Tage, oder es war seine eigene Einladung.",
+            "tooNewHintDay": "Sein Discord-Konto war jünger als {days} Tag, oder es war seine eigene Einladung.",
+            "tooNewOwn": "Es war seine eigene Einladung.",
+            "owed": "Offener Betrag",
+            "owedHint": "Für Freunde, die nach der Auszahlung gegangen sind. Wird von deinen nächsten Einladungsbelohnungen abgezogen.",
+            "how": "Nutze auf dem {app}-Discord-Server „Leute einladen“ und teile diesen Link. Jeder, der über deinen eigenen Link beitritt, zählt für dich."
+          },
+          "boosts": {
+            "title": "Den Server boosten",
+            "boosting": "Du boostest den Server. Danke!",
+            "boostingTwo": "Du boostest den Server mit 2 Boosts. Danke!",
+            "notBoosting": "Du boostest den Server gerade nicht.",
+            "levelOne": "1 Boost",
+            "levelTwo": "2 Boosts",
+            "levelOneCredits": "{credits} Credits",
+            "levelTwoCredits": "{credits} mehr, {total} insgesamt",
+            "received": "Erhalten",
+            "once": "Jede Stufe wird einmal ausgezahlt."
+          },
+          "history": "Belohnungsverlauf",
+          "historyEmpty": "Noch keine Discord-Belohnungen.",
+          "balanceAfter": "danach {balance}",
+          "toast": {
+            "checked": "Bei Discord geprüft.",
+            "paid": "{credits} neue Credits gutgeschrieben.",
+            "nothing": "Alles aktuell, gerade gibt es nichts Neues auszuzahlen."
           }
         },
         "devboxOpen": {
@@ -3337,6 +3612,82 @@
                 },
                 "toast": {
                   "updated": "Subdomain-Einstellungen gespeichert."
+                }
+              }
+            },
+            "discord": {
+              "title": "Discord",
+              "page": {
+                "title": "Discord",
+                "form": {
+                  "enabled": "Discord",
+                  "enabledDescription": "Spieler bekommen eine Seite Discord-Belohnungen, und alles darunter gilt. Braucht die Server-ID.",
+                  "guildId": "Server-ID",
+                  "guildIdDescription": "Die ID des Discord-Servers (Guild): Schalte in Discord den Entwicklermodus ein, dann Rechtsklick auf den Server › Server-ID kopieren.",
+                  "botToken": "Bot-Token",
+                  "botTokenDescription": "Ein Bot auf dem Server mit eingeschaltetem Server Members Intent (Developer Portal › Bot) sowie den Rechten Server verwalten und Rollen verwalten für die Einladungen und die Rolle für zwei Boosts.",
+                  "tokenStored": "Ein Token ist gespeichert. Lass das Feld leer, um ihn zu behalten, oder gib einen neuen ein, um ihn zu ersetzen.",
+                  "tokenMissing": "Noch kein Token.",
+                  "inviteUrl": "Einladungslink",
+                  "inviteUrlDescription": "Wo Spieler dem Server beitreten (https://discord.gg/…). Leer blendet alle Einladungslinks und -knöpfe aus.",
+                  "oauthProvider": "Discord-Anmeldung",
+                  "oauthProviderDescription": "Der OAuth-Anbieter (Admin › OAuth-Anbieter), der mit Discord anmeldet: Das Discord-Konto eines Spielers ist das, das er darüber verknüpft. Wird nicht benutzt, solange noprofit.space verbunden ist.",
+                  "oauthProviderPlaceholder": "Anbieter wählen",
+                  "tier": "Discord-Stufe",
+                  "tierDescription": "Kommt zum Kontingent aller auf dem Server hinzu, wo das Kontingent ein Limit hat (ohne noprofit.space; mit ihm machen das seine Pläne). CPU in % (100 ist ein Thread), Arbeitsspeicher und Speicherplatz in MiB. 0 fügt nichts hinzu.",
+                  "tierCpu": "CPU",
+                  "tierMemory": "Arbeitsspeicher",
+                  "tierDisk": "Speicherplatz",
+                  "invites": "Belohnungen für Einladungen",
+                  "creditsPerInvite": "Credits pro Einladung",
+                  "creditsPerInviteDescription": "Für jedes Mitglied, das über die Einladung von jemandem beitritt und bleibt. Ausgezahlt, solange Credits aktiv sind, ohne noprofit.space.",
+                  "minAccountAgeDays": "Mindestalter des Kontos",
+                  "minAccountAgeDaysDescription": "Tage. Ein Discord-Konto, das beim Beitritt jünger ist, bringt nichts (gegen Zweitkonten).",
+                  "inviteMaturityHours": "Wartezeit",
+                  "inviteMaturityHoursDescription": "Stunden, die eine Belohnung zurückgehalten wird; wer vorher geht, bringt nichts. 0 zahlt sofort.",
+                  "inviteClawback": "Zurückholen",
+                  "inviteClawbackDescription": "Eine bezahlte Einladung, deren Mitglied später geht, wird zurückgeholt: vom Guthaben, und was das nicht deckt, von den nächsten Einladungsbelohnungen des Einladenden.",
+                  "boosts": "Belohnungen für Boosts",
+                  "boostOneCredits": "Ein Boost",
+                  "boostTwoCredits": "Zwei Boosts",
+                  "boostTwoCreditsDescription": "Insgesamt, mit dem ersten. Jede Stufe zahlt einmal pro Konto.",
+                  "boostTwoRoleId": "Rollen-ID für zwei Boosts",
+                  "boostTwoRoleIdDescription": "Discord verrät nicht, wie oft ein Mitglied boostet: Mitglieder mit dieser Rolle zählen als zwei Boosts, und /setboost gibt und nimmt sie. Leer: zwei Boosts nur über /setboost.",
+                  "subdomains": "Subdomains",
+                  "subdomainsRequireLink": "Verknüpftes Discord nötig",
+                  "subdomainsRequireLinkDescription": "Der Besitzer eines Servers braucht für neue Subdomains ein verknüpftes Discord-Konto. Bestehende bleiben.",
+                  "subdomainsRequireMember": "Mitgliedschaft im Server nötig",
+                  "subdomainsRequireMemberDescription": "Der Besitzer eines Servers muss für neue Subdomains auf dem Discord-Server sein. Braucht den Bot-Token.",
+                  "bots": "Bots",
+                  "rewardsBotEnabled": "Einladungs- und Boost-Bot",
+                  "rewardsBotEnabledDescription": "Mit dem Bot-Token: hält fest, wer über wessen Einladung beigetreten ist, und beantwortet /invites, /topinvites und /setboost (nur Administratoren). Aus: Nichts verbindet sich mit Discord.",
+                  "assistantBotEnabled": "Assistenz-Bot",
+                  "assistantBotEnabledDescription": "Mit eigenem Token. Er verbindet sich, sobald der Assistent Teil des Panels ist.",
+                  "assistantBotToken": "Token des Assistenz-Bots",
+                  "moderationBotEnabled": "Moderations-Bot",
+                  "moderationBotEnabledDescription": "Mit eigenem Token. Er verbindet sich, sobald die Moderation Teil des Panels ist.",
+                  "moderationBotToken": "Token des Moderations-Bots"
+                },
+                "status": {
+                  "title": "Bot-Status",
+                  "none": "Kein Bot ist verbunden. Bots laufen nur auf der primären Instanz, ein paar Sekunden nachdem sie eingeschaltet wurden.",
+                  "bot": {
+                    "rewards": "Einladungs- und Boost-Bot",
+                    "assistant": "Assistenz-Bot",
+                    "moderation": "Moderations-Bot"
+                  },
+                  "ready": "verbunden als {name}",
+                  "connecting": "verbindet sich",
+                  "refused": "von Discord abgelehnt, neuer Versuch in einer Stunde oder wenn sich seine Einstellungen ändern",
+                  "reason": {
+                    "token": "der Token ist falsch",
+                    "intents": "die Intents sind nicht erlaubt",
+                    "closed": "Discord hat die Verbindung beendet",
+                    "members_intent": "Server Members Intent aus: Beitritte und Austritte fehlen"
+                  }
+                },
+                "toast": {
+                  "updated": "Discord-Einstellungen gespeichert."
                 }
               }
             },
@@ -5518,12 +5869,16 @@
             },
             "subdomains": {
               "title": "Subdomains",
+              "subdomain": "Subdomain",
+              "free": "Kostenlos",
               "created": "Hinzugefügt",
               "empty": "Dieser Server hat keine Subdomains.",
               "limit": "Subdomain-Limit",
               "limitDescription": "Leer folgt den Subdomain-Einstellungen ({default}).",
               "toast": {
-                "limitSaved": "Subdomain-Limit gespeichert."
+                "limitSaved": "Subdomain-Limit gespeichert.",
+                "deleted": "{name} gelöscht.",
+                "deletedRefund": "{name} gelöscht, {count} Tokens erstattet."
               }
             },
             "logs": {
@@ -7188,6 +7543,8 @@
           "title": "Konsole",
           "input": {
             "placeholder": "Gib einen Befehl ein...",
+            "placeholderOffline": "Server offline...",
+            "offlineTitle": "Es kann kein Befehl gesendet werden, wenn der Server offline ist",
             "ariaLabel": "Konsolenbefehl Eingabe.",
             "prefixPlaceholder": "Präfix, z. B. \"say \""
           },
@@ -7233,6 +7590,10 @@
             "popout": "In separatem Fenster öffnen",
             "commandPrefix": "Befehlspräfix"
           },
+          "search": {
+            "previous": "Vorheriger Treffer",
+            "next": "Nächster Treffer"
+          },
           "quickAction": {
             "search": "Konsole durchsuchen",
             "scrollToBottom": "Nach unten scrollen",
@@ -7277,14 +7638,21 @@
             }
           },
           "details": {
+            "name": "Name",
+            "status": "Status",
+            "statusUptime": "{state} ({uptime})",
             "address": "Adresse",
             "port": "Port",
+            "cpu": "CPU",
+            "memory": "Arbeitsspeicher",
+            "disk": "Speicher",
             "networkIn": "Netzwerk (Eingehend)",
             "networkOut": "Netzwerk (Ausgehend)",
             "networkDetails": "{total} gesamt · {packets} Pakete/s",
             "normalizeCpuLoad": "Normalisiere CPU-Last (skaliert auf max. 100%)"
           },
           "power": {
+            "killTooltip": "Dieser Vorgang kann zu Datenbeschädigung oder Datenverlust führen!",
             "modal": {
               "forceStop": {
                 "title": "Prozess gewaltsam stoppen",
@@ -7293,6 +7661,8 @@
             }
           },
           "stats": {
+            "cpu": "CPU",
+            "memory": "Arbeitsspeicher",
             "offline": "Server ist offline",
             "connecting": "Verbindung wird hergestellt..."
           },
@@ -9174,6 +9544,7 @@
             "exportToFiles": "In Dateien exportieren",
             "createBackup": "Backup erstellen",
             "createGroup": "Backup-Gruppe erstellen",
+            "offsiteBackups": "Externe Backups",
             "moveToGroup": "In Gruppe verschieben",
             "removeFromGroup": "Aus Gruppe entfernen",
             "lock": "Sperren",
@@ -10056,14 +10427,18 @@
             }
           },
           "logCheck": {
-            "clean": "Log-Prüfung: im letzten Log wurden keine Probleme gefunden.",
-            "open": "Auf mclo.gs öffnen",
-            "problems": "Log-Prüfung: Probleme gefunden ({count})",
-            "errors": "Log-Prüfung: Fehlerzeilen im letzten Log ({count})",
+            "clean": "Im Server-Log wurden keine Probleme gefunden.",
+            "open": "Auf mclo.gs ansehen",
+            "problemsOne": "Dein Server-Log hat ein Problem",
+            "problems": "Dein Server-Log hat {count} Probleme",
+            "errorsOne": "Dein Server-Log enthält einen Fehler",
+            "errors": "Dein Server-Log enthält {count} Fehler",
             "fix": "Lösung: {fix}",
-            "more": "Und weitere ({count}) auf mclo.gs.",
-            "errorsBody": "mclo.gs hat kein bekanntes Problem dahinter gefunden. Das ganze Log zeigt, woher sie kommen.",
-            "view": "Log auf mclo.gs ansehen"
+            "more": "…und {count} weitere",
+            "errorsBody": "Es wurde keine bekannte Ursache erkannt, aber neo kann die Fehler lesen und sie beheben.",
+            "errorsBodyNoNeo": "mclo.gs hat kein bekanntes Problem dahinter gefunden. Das ganze Log zeigt, woher sie kommen.",
+            "ask": "neo beheben lassen",
+            "view": "Log ansehen"
           },
           "bedrock": {
             "title": "Bedrock-Spieler",
@@ -10191,20 +10566,38 @@
         "fivem": {
           "config": {
             "title": "Serverkonfiguration",
-            "intro": "Das Formular bearbeitet {file}, die Datei, mit der txAdmin den Server startet. Nur was du änderst, wird geschrieben, alles andere in der Datei bleibt, wie es ist. FXServer liest sie beim Start, starte den Server also neu, um Änderungen zu übernehmen.",
-            "notSetUp": "Es gibt noch keine server.cfg: txAdmin hat diesen Server noch nicht eingerichtet. Öffne die Konsole, dann txAdmin auf dem zweiten Port des Servers, und schließ die Einrichtung ab.",
-            "invalid": "Einige Zeilen haben einen Namen mit Zeichen, die FiveM nicht akzeptiert (nur Buchstaben, Ziffern und . _ - : @ [ ]). Korrigiere oder entferne sie, um zu speichern.",
+            "subtitle": "{file} als Formular oder als Text bearbeiten. Beides schreibt dieselbe Datei.",
+            "invalid": "{list}, Zeile {row}: Namen dürfen nur Buchstaben, Zahlen und . _ - : @ [ ] enthalten. Korrigier oder entfern die Zeile und speichere erneut.",
+            "unreachable": {
+              "title": "Der Server ist nicht erreichbar",
+              "description": "Seine Node antwortet nicht. Versuch es in einer Minute noch einmal."
+            },
+            "empty": {
+              "title": "Noch keine server.cfg",
+              "description": "txAdmin hat diesen Server noch nicht eingerichtet, es gibt also keine server.cfg. Installier hier ein Framework, oder öffne txAdmin über die Konsole und schließ die Einrichtung ab.",
+              "frameworks": "Framework installieren"
+            },
             "lists": {
               "empty": "Noch keine.",
               "remove": "Entfernen",
-              "add": "Zeile hinzufügen",
               "showAll": "Alle {count} anzeigen"
             },
             "toast": {
-              "saved": "server.cfg gespeichert. Starte den Server neu, um sie zu übernehmen."
+              "saved": "server.cfg gespeichert. Starte den Server neu, damit es gilt.",
+              "noChanges": "Nichts geändert",
+              "restarting": "Startet neu"
             },
             "button": {
-              "editText": "Als Text bearbeiten"
+              "save": "Änderungen speichern",
+              "editText": "Als Text bearbeiten",
+              "restart": "Server neu starten"
+            },
+            "restart": {
+              "title": "Server neu starten?",
+              "description": "FXServer liest die server.cfg beim Start, Änderungen gelten also nach einem Neustart. Alle Spieler werden getrennt."
+            },
+            "raw": {
+              "description": "Die ganze Datei, für alles, was das Formular nicht abdeckt. Speichern ersetzt sie genau so."
             },
             "locale": {
               "none": "Standard (keine Sprache)"
@@ -10213,37 +10606,37 @@
               "title": "Identität",
               "description": "Wie dein Server in der FiveM-Serverliste und auf seiner Detailseite erscheint.",
               "hostname": "Hostname",
-              "hostnameDescription": "Wird auf der Detailseite des Servers gezeigt, nachdem ein Spieler ihn angeklickt hat.",
+              "hostnameDescription": "Steht auf der Detailseite, wenn ein Spieler den Server anklickt.",
               "projectName": "Projektname",
-              "projectNameDescription": "Wird in der Serverliste als Servername gezeigt.",
-              "maxClients": "Maximale Spieler",
-              "maxClientsDescription": "Plätze, die der Server reserviert, 1 bis 2048.",
+              "projectNameDescription": "Der Servername in der Serverliste.",
+              "maxClients": "Max. Spieler",
+              "maxClientsDescription": "Plätze, die der Server reserviert.",
               "projectDescription": "Beschreibung",
-              "projectDescriptionDescription": "Wird in der Serverliste neben dem Servernamen gezeigt.",
+              "projectDescriptionDescription": "Steht in der Serverliste neben dem Servernamen.",
               "locale": "Sprache",
-              "localeDescription": "Vom FiveM-Client für Datumsangaben und Zahlen genutzt.",
+              "localeDescription": "Vom FiveM-Client für Datums- und Zahlenformate genutzt.",
               "tags": "Tags",
-              "tagsDescription": "Tags helfen Spielern, deinen Server zu finden.",
-              "tagsPlaceholder": "Tag hinzufügen",
+              "tagsDescription": "Mit Enter oder Komma hinzufügen. Tags helfen Spielern, deinen Server zu finden.",
+              "tagsPlaceholder": "Neue Kennzeichnung",
               "icon": "Server-Icon",
-              "iconDescription": "Ein PNG mit 96x96 Pixeln, als Pfad relativ zum Datenordner des Servers. Wird neben deinem Servernamen gezeigt."
+              "iconDescription": "Ein PNG mit 96x96 Pixeln, als Pfad relativ zum Serverdaten-Ordner. Steht neben deinem Servernamen."
             },
             "network": {
-              "title": "Netzwerk und Build",
+              "title": "Netzwerk & Build",
               "description": "Die Adresse, auf der FXServer lauscht, und der GTA-V-Build, den Spieler brauchen.",
               "endpoints": "Adresse",
-              "noEndpoints": "Von txAdmin gesetzt",
-              "endpointsDescription": "Wird vom Panel verwaltet. Die Ports deines Servers findest du auf der Netzwerk-Seite.",
+              "noEndpoints": "{address} (setzt txAdmin)",
+              "endpointsDescription": "Wird vom Panel verwaltet. Die Ports deines Servers stehen auf der Netzwerk-Seite.",
               "onesync": "OneSync",
-              "onesyncValue": "Von txAdmin verwaltet",
+              "onesyncValue": "Verwaltet von txAdmin",
               "onesyncDescription": "Stell es in txAdmin unter Settings › FXServer ein. txAdmin kommentiert jede onesync-Zeile in der server.cfg aus.",
               "gameBuild": "Spiel-Build erzwingen",
-              "gameBuildDescription": "Lässt jeden Spieler auf diesem Spiel-Build beitreten, damit neuere DLC-Inhalte funktionieren.",
+              "gameBuildDescription": "Alle Spieler treten mit diesem GTA-V-Build bei, damit neuere DLC-Inhalte funktionieren.",
               "gameBuildNone": "Nicht erzwungen (Spieler nutzen ihren eigenen Build)"
             },
             "database": {
               "title": "Datenbank",
-              "description": "Von oxmysql und anderen Ressourcen genutzt, die mysql_connection_string lesen.",
+              "description": "Wird von oxmysql und anderen Ressourcen genutzt, die mysql_connection_string lesen.",
               "use": "Eine deiner Datenbanken nutzen",
               "useDescription": "Füllt die Felder unten mit einer Datenbank von der Datenbanken-Seite.",
               "usePlaceholder": "Datenbank wählen",
@@ -10252,14 +10645,14 @@
               "user": "Benutzername",
               "name": "Datenbank",
               "password": "Passwort",
-              "format": "Format des Verbindungsstrings",
+              "format": "Format der Verbindungszeichenfolge",
               "formatDescription": "Bleib bei URI, außer deine Ressourcen brauchen key=value. key=value kann kein Passwort mit = oder ; enthalten."
             },
             "keys": {
-              "title": "Lizenz- und API-Schlüssel",
+              "title": "Lizenz & API-Schlüssel",
               "description": "Geheimnisse, die dem Server Zugriff auf FiveM, Steam und Tebex geben. Verborgen, bis du sie anzeigst.",
               "license": "FiveM-Lizenzschlüssel",
-              "licenseDescription": "Erforderlich. Kostenlos erhältlich unter",
+              "licenseDescription": "Erforderlich. Kostenlos erhältlich bei",
               "steam": "Steam-Web-API-Schlüssel",
               "steamDescription": "Nur nötig, wenn deine Ressourcen Spieler über Steam erkennen.",
               "tebex": "Tebex-Secret",
@@ -10267,65 +10660,71 @@
             },
             "resources": {
               "title": "Ressourcen",
-              "description": "Die ensure-Zeilen in der server.cfg. Eine deaktivierte Ressource wird auskommentiert, nicht entfernt.",
+              "description": "Die ensure-Zeilen der server.cfg. Eine deaktivierte Ressource wird auskommentiert, nicht entfernt.",
               "name": "Ressource",
-              "enabled": "Aktiviert"
+              "enabled": "Aktiv",
+              "add": "Ressource hinzufügen"
             },
             "principals": {
               "title": "Gruppenmitgliedschaften",
-              "description": "Jede Zeile ist eine add_principal-Zeile: Ein Spieler-Identifier (oder eine Gruppe) tritt einer Gruppe bei.",
+              "description": "Jede Zeile ist ein add_principal: eine Spielerkennung (oder Gruppe) tritt einer Gruppe bei.",
               "child": "Spieler oder Gruppe",
-              "childPlaceholder": "identifier.fivem:1234567",
-              "parent": "Tritt Gruppe bei"
+              "parent": "Tritt Gruppe bei",
+              "add": "Mitgliedschaft hinzufügen"
             },
             "aces": {
-              "title": "Zugriffskontrolle",
-              "description": "Jede Zeile ist eine add_ace-Zeile: Sie erlaubt oder verbietet einer Gruppe einen Befehl oder ein Objekt.",
+              "title": "Zugriffsrechte",
+              "description": "Jede Zeile ist ein add_ace: erlaubt oder verbietet einer Gruppe einen Befehl oder ein Objekt.",
               "principal": "Gruppe",
               "object": "Befehl oder Objekt",
               "access": "Zugriff",
               "allow": "erlauben",
-              "deny": "verbieten"
+              "deny": "verbieten",
+              "add": "Regel hinzufügen"
             }
           },
           "players": {
             "title": "Spieler",
-            "description": "Wer gerade auf dem Server ist, wie FXServer es meldet. Aktualisiert sich alle {seconds} Sekunden.",
-            "unreachable": "Der Server antwortet nicht",
-            "unreachableDescription": "Er ist eventuell offline oder startet noch.",
-            "countSlots": "Online: {count} von {slots}",
-            "count": "Online: {count}",
-            "table": {
-              "id": "ID",
-              "player": "Spieler",
-              "ping": "Ping"
+            "subtitle": "Live-Spielerliste. Aktualisiert sich alle {seconds} Sekunden.",
+            "refresh": "Aktualisieren",
+            "online": "Online",
+            "offline": "Offline",
+            "unreachable": "Server nicht erreichbar",
+            "unreachableDescription": "Der Server ist vielleicht offline oder startet noch.",
+            "countSlots": "{count} / {slots} Spieler",
+            "count": {
+              "none": "Keine Spieler",
+              "one": "{count} Spieler",
+              "other": "{count} Spieler"
             },
-            "noMatch": "Kein Spieler passt. Versuch einen Namen, eine Server-ID oder einen Teil eines Identifiers.",
-            "nobody": "Niemand ist online. Spieler erscheinen hier, sobald sie beitreten.",
+            "search": "Nach Name, ID oder Kennung suchen",
+            "noMatch": "Kein Spieler passt",
+            "noMatchDescription": "Versuch einen Namen, eine Server-ID oder einen Teil einer Kennung.",
+            "nobody": "Niemand ist online",
+            "nobodyDescription": "Spieler erscheinen hier, sobald sie beitreten.",
             "unnamed": "Spieler ohne Namen",
             "pingValue": "{ping} ms"
           },
           "artifacts": {
             "title": "Artifacts",
-            "notOnImage": "Dieser Server läuft noch nicht auf dem FiveM-Image. Ein hier gewählter Build oder eine Edition gilt, sobald ein Administrator ihn auf das Image umstellt.",
-            "notChangeable": "Das Egg dieses Servers hat keine Variable FIVEM_VERSION, sein Build kann hier also nicht geändert werden.",
+            "subtitle": "Der FXServer-Build, auf dem dein Server läuft. Wähl einen aus, oder lass jeden Start den neuesten von Cfx installieren.",
             "installed": {
               "title": "Installiert",
-              "unreachable": "Unbekannt (die Node antwortet nicht)",
-              "none": "Noch nichts: Der nächste Start installiert einen Build.",
-              "unknown": "Unbekannter Build: installiert, bevor das Panel ihn erfasst hat. Der nächste Start hält ihn fest.",
-              "since": "seit {when}"
+              "unreachable": "Unbekannt (Node antwortet nicht)",
+              "unknown": "Unbekannter Build",
+              "unknownDescription": "Installiert, bevor das Panel mitgeschrieben hat. Der nächste Start hält es fest.",
+              "since": "Seit {when}"
             },
             "build": "Build {build}",
             "pending": "Build {build} wird beim nächsten Start installiert.",
             "mode": {
               "title": "Updates",
               "recommended": {
-                "label": "Recommended folgen",
-                "description": "Jeder Start installiert den Build, den Cfx empfiehlt, wenn er sich geändert hat."
+                "label": "Empfohlenem folgen",
+                "description": "Jeder Start installiert den von Cfx empfohlenen Build, wenn er sich geändert hat."
               },
               "latest": {
-                "label": "Latest folgen",
+                "label": "Neuestem folgen",
                 "description": "Jeder Start installiert den neuesten Build von Cfx, wenn er sich geändert hat. Neueste Funktionen, manchmal neueste Fehler."
               },
               "pin": {
@@ -10333,119 +10732,137 @@
                 "description": "Den installierten Build behalten, bis du einen anderen wählst."
               }
             },
-            "builds": "Builds",
-            "table": {
-              "build": "Build",
-              "support": "Support"
+            "search": "Nach Build-Nummer suchen",
+            "count": {
+              "none": "Keine Builds",
+              "one": "{count} Build",
+              "other": "{count} Builds"
             },
             "noMatch": "Kein Build passt zu dieser Nummer.",
             "cfxUnreachable": "Die Build-Liste von Cfx konnte nicht geladen werden. Versuch es in einer Minute noch einmal.",
             "badge": {
-              "recommended": "Recommended",
-              "latest": "Latest",
+              "recommended": "Empfohlen",
+              "latest": "Neuester",
               "installed": "Installiert"
             },
-            "unsupported": "Kein Support mehr",
+            "unsupported": "Ohne Support",
             "supportedUntil": "Von Cfx unterstützt bis {date}",
             "install": {
               "title": "Build {build} installieren?",
               "button": "Installieren",
-              "description": "Dein Server bleibt auf diesem Build, bis du einen anderen wählst. Läuft er, startet er jetzt neu und installiert den Build, das dauert eine Minute."
+              "description": "Dein Server bleibt auf diesem Build, bis du einen anderen wählst. Läuft er, startet er jetzt neu und installiert den Build; das dauert eine Minute."
             },
             "toast": {
-              "restarting": "Der Server startet neu, um es zu übernehmen.",
-              "nextStart": "Es gilt ab dem nächsten Start.",
+              "restarting": "Der Server startet neu und übernimmt es jetzt.",
+              "nextStart": "Es gilt ab dem nächsten Serverstart.",
               "build": "Build {build} gewählt.",
-              "mode": "Updates jetzt: {mode}."
+              "channel": "Updates folgen {channel}."
             },
-            "sourceNote": "Builds werden direkt von Cfx (runtime.fivem.net) geladen. Dieses Panel hostet oder verändert sie nicht und steht in keiner Verbindung zu Rockstar Games oder Cfx.re.",
+            "channel": {
+              "recommended": "dem empfohlenen Build",
+              "latest": "dem neuesten Build"
+            },
+            "enhancedNote": "Dieser Server läuft auf FiveM for GTAV Enhanced, das immer den aktuellen Build von Cfx nutzt. Die Builds hier sind für FiveM (Legacy).",
+            "enhancedLink": "FiveM for GTAV Enhanced öffnen",
+            "sourceNote": "Builds kommen direkt von Cfx (runtime.fivem.net). {app} hostet oder verändert sie nicht und ist nicht mit Rockstar Games oder Cfx.re verbunden."
+          },
+          "enhanced": {
+            "nav": "GTAV Enhanced",
+            "title": "FiveM for GTAV Enhanced",
+            "subtitle": "Lass deinen Server auf der neuen GTAV-Enhanced-Edition von FiveM laufen, oder wechsle jederzeit zurück.",
+            "earlyAccess": "FiveM for GTAV Enhanced ist bei Cfx.re im Early Access. Rechne mit Fehlern und fehlenden Funktionen, und teste es, bevor du deine Community umziehst.",
+            "unavailable": "FiveM for GTAV Enhanced ist auf {app} noch nicht verfügbar. Cfx.re hat es im Early Access, und auf unseren Servern läuft es noch nicht. Das hier ändert sich, sobald es so weit ist.",
+            "redm": "Das ist ein RedM-Server. Von RedM gibt es keine Enhanced-Edition.",
             "edition": {
-              "title": "FiveM for GTAV Enhanced",
               "legacy": "FiveM (Legacy)",
-              "enhanced": "FiveM for GTAV Enhanced",
-              "redm": "Das ist ein RedM-Server. Von RedM gibt es keine Enhanced-Edition.",
-              "runsLegacy": "Dieser Server läuft auf dem normalen FiveM-Server-Build.",
-              "runsEnhanced": "Dieser Server läuft auf dem Enhanced-Server-Build.",
-              "runsEnhancedBuild": "Dieser Server läuft auf Enhanced-Build {build} und aktualisiert sich bei jedem Start auf den neuesten von Cfx.",
-              "earlyAccess": "FiveM for GTAV Enhanced ist bei Cfx.re im Early Access. Rechne mit Fehlern und fehlenden Funktionen, und teste es, bevor du deine Community umziehst.",
-              "switchToEnhanced": "Zu Enhanced wechseln",
-              "switchToLegacy": "Zurück zu Legacy",
-              "confirmEnhanced": "Zu FiveM for GTAV Enhanced wechseln?",
-              "confirmEnhancedDescription": "Danach können nur Spieler mit dem Enhanced-Client beitreten. Deine Serverdateien, die Datenbank und die txAdmin-Daten bleiben, wie sie sind. Ein laufender Server startet jetzt neu.",
-              "confirmLegacy": "Zurück zu FiveM (Legacy) wechseln?",
-              "confirmLegacyDescription": "Spieler brauchen wieder den normalen FiveM-Client. Deine Serverdateien bleiben, wie sie sind. Ein laufender Server startet jetzt neu.",
-              "switchedEnhanced": "Zu Enhanced gewechselt.",
-              "switchedLegacy": "Zurück zu FiveM (Legacy) gewechselt.",
-              "facts": {
-                "client": {
-                  "title": "Spieler brauchen den Enhanced-Client",
-                  "description": "Spieler müssen GTA V Enhanced auf dem PC besitzen und den eigenen Client FiveM for GTAV Enhanced von fivem.net installieren. Legacy-Spieler können einem Enhanced-Server nicht beitreten und umgekehrt. Crossplay gibt es nicht."
-                },
-                "scripts": {
-                  "title": "Skripte und Ressourcen",
-                  "description": "Lua-, JavaScript- und C#-Ressourcen sind laut Cfx.re kompatibel, und server.cfg, die Datenbank und die txAdmin-Daten bleiben unberührt. ESX und QBCore sollten laufen, teste aber alle deine Ressourcen, bevor du deine Community umziehst."
-                },
-                "assets": {
-                  "title": "Assets, MLOs und Fahrzeuge",
-                  "description": "Die meisten Addon-Fahrzeuge, MLOs und Kleidungsstücke laden normal. Enhanced nutzt den neueren Renderer von GTA V, eigene Shader, Grafikpakete und manche Texturpakete können also anders aussehen oder ein Update ihres Erstellers brauchen."
-                },
-                "network": {
-                  "title": "Netzwerk und Leistung",
-                  "description": "Enhanced bringt ein überarbeitetes OneSync mit höheren Sync-Raten, schnellerem Entity-Streaming und Platz für mehr Spieler. Der Voice-Chat nutzt ein neues VOIP-System, externe Voice-Ressourcen brauchen also eventuell Updates."
-                },
-                "switching": {
-                  "title": "Zurückwechseln",
-                  "description": "Du kannst jederzeit zu FiveM (Legacy) zurückwechseln, deine Serverdateien bleiben so oder so erhalten. Die Builds oben gelten nur für Legacy: Enhanced läuft immer auf dem aktuellen Build von Cfx (gerade Build {build})."
-                },
-                "txadmin": {
-                  "title": "txAdmin",
-                  "description": "txAdmin funktioniert auf Enhanced mit denselben Zugangsdaten und Einstellungen weiter. Enhanced bringt ein eigenes, neueres txAdmin mit, es kann also etwas anders aussehen."
-                }
+              "enhanced": "FiveM for GTAV Enhanced"
+            },
+            "runsLegacy": "Dieser Server läuft auf dem normalen FiveM-Server-Build.",
+            "runsEnhanced": "Dieser Server läuft auf dem Enhanced-Server-Build.",
+            "runsEnhancedBuild": "Dieser Server läuft auf Enhanced-Build {build} und aktualisiert bei jedem Start auf den neuesten von Cfx.",
+            "pendingEnhanced": "Wechselt beim nächsten Start zu Enhanced.",
+            "pendingLegacy": "Wechselt beim nächsten Start zurück zu FiveM (Legacy).",
+            "switchToEnhanced": "Zu Enhanced wechseln",
+            "switchToLegacy": "Zurück zu Legacy",
+            "confirmEnhanced": "Zu FiveM for GTAV Enhanced wechseln?",
+            "confirmEnhancedDescription": "Danach können nur noch Spieler mit dem Enhanced-Client beitreten. Serverdateien, Datenbank und txAdmin-Daten bleiben, wie sie sind. Ein laufender Server startet jetzt neu.",
+            "confirmLegacy": "Zurück zu FiveM (Legacy)?",
+            "confirmLegacyDescription": "Spieler brauchen wieder den normalen FiveM-Client. Deine Serverdateien bleiben, wie sie sind. Ein laufender Server startet jetzt neu.",
+            "switchedEnhanced": "Zu Enhanced gewechselt.",
+            "switchedLegacy": "Zurück zu FiveM (Legacy) gewechselt.",
+            "compatibility": "Was sich ändert",
+            "facts": {
+              "client": {
+                "title": "Spieler brauchen den Enhanced-Client",
+                "description": "Spieler müssen GTA V Enhanced auf dem PC besitzen und den separaten Client FiveM for GTAV Enhanced von fivem.net installieren. Legacy-Spieler können einem Enhanced-Server nicht beitreten und umgekehrt. Crossplay gibt es nicht."
+              },
+              "scripts": {
+                "title": "Skripte und Ressourcen",
+                "description": "Lua-, JavaScript- und C#-Ressourcen sind laut Cfx.re kompatibel, und server.cfg, Datenbank und txAdmin-Daten bleiben unberührt. ESX und QBCore sollten funktionieren, aber teste alle deine Ressourcen, bevor du deine Community umziehst."
+              },
+              "assets": {
+                "title": "Assets, MLOs und Fahrzeuge",
+                "description": "Die meisten Addon-Fahrzeuge, MLOs und Kleidungsstücke laden normal. Enhanced nutzt den neueren GTA-V-Renderer, eigene Shader, Grafikpakete und manche Texturpakete können also anders aussehen oder ein Update vom Ersteller brauchen."
+              },
+              "network": {
+                "title": "Netzwerk und Leistung",
+                "description": "Enhanced bringt ein überarbeitetes OneSync mit höheren Sync-Raten, schnellerem Entity-Streaming und Platz für mehr Spieler. Voice-Chat nutzt ein neues VOIP-System, externe Voice-Ressourcen brauchen also eventuell Updates."
+              },
+              "switching": {
+                "title": "Zurückwechseln",
+                "description": "Du kannst jederzeit zurück zu FiveM (Legacy); deine Serverdateien bleiben so oder so erhalten. Die Artifacts-Seite gilt nur für Legacy: Enhanced läuft immer auf dem aktuellen Build von Cfx (gerade Build {build})."
+              },
+              "txadmin": {
+                "title": "txAdmin",
+                "description": "txAdmin funktioniert auf Enhanced weiter, mit denselben Zugangsdaten und Einstellungen. Enhanced bringt ein eigenes, neueres txAdmin mit, es kann also etwas anders aussehen."
               }
             }
           },
           "frameworks": {
-            "title": "Frameworks",
-            "current": "txAdmin läuft gerade auf {folder}. Die Installation legt das Framework in einen neuen Ordner und lässt diesen, wie er ist.",
+            "nav": "Frameworks",
+            "title": "Framework-Installer",
+            "subtitle": "Installier ein FiveM-Framework mit einem Klick. Deine bisherigen Serverdateien bleiben erhalten.",
+            "current": "txAdmin nutzt gerade {folder}. Die Installation legt das Framework in einen neuen Ordner und lässt diesen unverändert.",
             "currentNone": "txAdmin hat diesen Server noch nicht eingerichtet. Die Installation eines Frameworks erledigt das für dich.",
-            "unreachable": "Die Node des Servers antwortet nicht, der aktuelle Ordner ist also unbekannt. Versuch es in einer Minute noch einmal.",
+            "unreachable": "Die Node des Servers antwortet nicht. Versuch es in einer Minute noch einmal.",
             "indexUnreachable": "Die Framework-Liste von txAdmin konnte nicht geladen werden. Versuch es in einer Minute noch einmal.",
             "by": "von {author}",
-            "needsDatabase": "Braucht eine Datenbank (einen deiner Datenbank-Plätze oder eine vorhandene).",
-            "noDatabase": "Braucht eine Datenbank, und dieser Server hat keinen Datenbank-Platz mehr frei.",
-            "sourceNote": "Das sind die offiziellen Rezepte von txAdmin. Jede Datei kommt direkt vom GitHub des Frameworks; dieses Panel hostet oder verändert sie nicht.",
-            "table": {
-              "framework": "Framework"
-            },
+            "needsDatabase": "Braucht eine Datenbank (einen deiner Datenbankplätze).",
+            "noDatabase": "Braucht eine Datenbank, und dieser Server hat keinen Datenbankplatz mehr frei.",
+            "sourceNote": "Das sind die offiziellen Rezepte von txAdmin. Jede Datei kommt direkt aus dem GitHub des Frameworks; {app} hostet oder verändert sie nicht.",
             "install": {
               "title": "{recipe} installieren",
-              "description": "Alles wird in einen neuen Ordner geladen, während dein Server weiterläuft, dann startet der Server darauf neu. Deine aktuellen Dateien bleiben in {folder}.",
+              "description": "Alles wird in einen neuen Ordner geladen, während dein Server weiterläuft, dann startet der Server darauf neu. Deine bisherigen Dateien bleiben in {folder}.",
               "descriptionFresh": "Alles wird in einen neuen Ordner geladen, dann startet der Server darauf neu.",
               "serverName": "Servername",
-              "serverNameDescription": "Kommt in den Hostnamen des Servers. Du kannst ihn später unter Serverkonfiguration ändern.",
+              "serverNameDescription": "Landet im Hostnamen des Servers. Du kannst ihn später in der Serverkonfiguration ändern.",
               "license": "FiveM-Lizenzschlüssel",
-              "licenseDescription": "Von portal.cfx.re (kostenlos). Wird aus deiner aktuellen server.cfg übernommen, wenn sie einen hat.",
+              "licenseDescription": "Von portal.cfx.re (kostenlos). Aus deiner aktuellen server.cfg übernommen, wenn sie einen hat.",
               "database": "Datenbank",
-              "databaseDescription": "Das Framework legt hier seine Tabellen an. Eine neue ist die sichere Wahl.",
+              "databaseDescription": "Hier legt das Framework seine Tabellen an. Eine neue ist die sichere Wahl.",
               "databaseNew": "Eine neue Datenbank",
-              "databaseExisting": "Vorhanden: {name}",
+              "databaseExisting": "Bestehende: {name}",
               "button": "Installieren"
             },
             "progress": {
               "installing": "{recipe} wird installiert",
               "stepOf": "Schritt {step} von {total}",
-              "prepare": "Ordner und Datenbank werden vorbereitet",
+              "prepare": "Vorbereitung",
               "config": "server.cfg wird geschrieben",
-              "restart": "Der Server startet auf dem neuen Ordner neu",
-              "database": "Datenbank {name} angelegt.",
+              "restart": "Server startet auf dem neuen Ordner neu",
+              "database": "Datenbank {name} angelegt",
               "leave": "Du kannst diese Seite verlassen, die Installation läuft weiter.",
-              "done": "{recipe} ist in {folder} installiert, und der Server startet darauf.",
-              "needsAdmin": "txAdmin startet den Server, sobald es einen Admin hat: Öffne die Konsole, dann txAdmin auf dem zweiten Port deines Servers, und registriere dich mit der dort gezeigten PIN.",
+              "done": "In {folder} installiert. Der Server startet darauf.",
+              "needsAdmin": "txAdmin startet den Server, sobald es einen Admin hat: Öffne die Konsole, dann txAdmin auf dem zweiten Port deines Servers, und registriere dich mit der dort angezeigten PIN.",
               "previousKept": "Deine bisherigen Dateien sind noch in {folder}.",
-              "failed": "Die Installation von {recipe} ist fehlgeschlagen",
-              "failedNote": "An deinem Server hat sich nichts geändert: Der neue Ordner und die dafür angelegte Datenbank wurden entfernt, und txAdmin läuft weiter auf deinen bisherigen Dateien.",
+              "failed": "Die Installation wurde abgebrochen.",
+              "failedNote": "Auf deinem Server hat sich nichts geändert: Der neue Ordner und die dafür angelegte Datenbank wurden entfernt, und txAdmin nutzt weiter deine bisherigen Dateien.",
               "console": "Konsole öffnen",
               "back": "Zurück zu den Frameworks"
+            },
+            "toast": {
+              "done": "{recipe} ist auf {server} installiert. Es liegt in {folder}, und der Server startet darauf.",
+              "failed": "Installation von {recipe} auf {server} fehlgeschlagen"
             }
           }
         },
@@ -10453,64 +10870,91 @@
           "title": "Subdomains",
           "subtitle": "{current} von {max} genutzt",
           "button": {
-            "add": "Subdomain hinzufügen",
-            "rename": "Umbenennen",
+            "add": "Subdomain erstellen",
             "repair": "Einträge neu schreiben",
+            "edit": "Bearbeiten",
             "delete": "Löschen"
           },
+          "limitReached": "Subdomain-Limit erreicht",
           "unavailable": {
             "off": "Subdomains sind auf diesem Panel nicht eingerichtet.",
             "unsupported": "Für das Spiel dieses Servers gibt es keine Subdomains.",
             "no_domains": "Für Subdomains ist noch keine Domain eingerichtet.",
-            "no_address": "Dieser Server hat keine Adresse, auf die eine Subdomain zeigen könnte."
+            "no_address": "Dieser Server hat keine Adresse, auf die eine Subdomain zeigen könnte.",
+            "discord_link": "Der Besitzer des Servers muss für Subdomains sein Discord-Konto verknüpfen (Konto › Discord-Belohnungen).",
+            "discord_member": "Der Besitzer des Servers muss für Subdomains dem Discord-Server beitreten."
           },
           "table": {
-            "subdomain": "Subdomain",
+            "name": "Name",
             "connect": "Verbinden mit",
             "type": "Typ",
-            "deposit": "Pfand",
+            "deposit": "Kaution",
             "status": "Status"
           },
-          "deposit": "{count} Tokens",
-          "free": "Kostenlos",
-          "status": {
-            "propagating": "Verbreitet sich",
-            "propagatingTooltip": "In den letzten Minuten angelegt: Manche Spieler erreichen sie vielleicht noch nicht.",
-            "active": "Aktiv"
+          "tokens": {
+            "one": "{count} Token",
+            "other": "{count} Token"
           },
-          "empty": "Noch keine Subdomains. Gib deinem Server einen Namen wie play.example.com, mit dem Spieler beitreten.",
-          "full": "Dieser Server hat alle {max} Subdomains.",
+          "depositTooltip": "Erstattbare Kaution. Wird beim Löschen automatisch deinem Konto gutgeschrieben.",
+          "copied": "Subdomain in die Zwischenablage kopiert",
+          "connectionCopied": "Verbindungsbefehl kopiert!",
+          "status": {
+            "processing": "Wird verarbeitet ({minutes} Min.)",
+            "processingTooltip": "DNS-Änderung wird verteilt. Meist ist sie nach 1 bis 3 Minuten weltweit erreichbar.",
+            "active": "Aktiv",
+            "activeTooltip": "Die Subdomain ist aktiv und verteilt!"
+          },
+          "type": {
+            "minecraft": "Minecraft (SRV)",
+            "fivem": "FiveM / RedM (SRV)",
+            "srv": "{service} (SRV)",
+            "standard": "Standard ({type})"
+          },
+          "empty": "Keine Subdomains",
           "create": {
-            "title": "Subdomain hinzufügen",
+            "title": "Subdomain erstellen",
+            "depositCaption": "Token-Kaution • Subdomain #{number}",
+            "refundable": {
+              "one": "Token (bei Löschung erstattet)",
+              "other": "Token (bei Löschung erstattet)"
+            },
             "name": "Name",
-            "nameDescription": "2 bis 63 Kleinbuchstaben, Ziffern und Bindestriche.",
+            "placeholder": "z. B. play",
             "domain": "Domain",
             "service": {
-              "minecraft": "Spieler treten nur mit dem Namen bei: Ein SRV-Eintrag liefert den Port.",
-              "fivem": "Spieler treten mit „connect“ und dem Namen bei: SRV-Einträge liefern den Port.",
+              "minecraft": "Minecraft: Java Edition erkannt. Die Subdomain leitet Spieler direkt auf deinen Port, ohne dass sie :{port} eingeben müssen.",
+              "fivem": "FiveM / RedM erkannt. Die Subdomain richtet Cfx.re-SRV-Einträge ein, damit Spieler \"connect\" ohne :{port} nutzen können.",
               "srv": "Sie bekommt auch einen SRV-Eintrag mit dem Port, für Spiel-Clients, die danach suchen.",
-              "plain": "Der Name zeigt auf {address}; Spieler geben den Port dazu an."
+              "plain": "Standardserver. Die Subdomain zeigt direkt auf {address}."
             },
-            "cost": "Diese Subdomain kostet {cost} Tokens, bezahlt vom Serverbesitzer und beim Löschen erstattet.",
-            "balance": "Du hast {balance}.",
-            "notEnough": "Diese Subdomain kostet {cost} Tokens, und du hast {balance}.",
-            "button": "Hinzufügen"
+            "serverIp": "die Server-IP",
+            "nameLength": "Der Name muss mindestens 2 Zeichen enthalten.",
+            "nameFormat": "Die Subdomain darf nur Kleinbuchstaben, Zahlen und Bindestriche enthalten (nicht am Anfang oder Ende).",
+            "insufficient": "Nicht genug Token! Diese Subdomain erfordert eine Kaution von {cost}, dein Konto hat aber nur {balance} Token.",
+            "balance": "Dein Kontostand",
+            "button": "Erstellen"
           },
-          "rename": {
-            "title": "{name} umbenennen",
-            "button": "Umbenennen"
+          "edit": {
+            "title": "Subdomain bearbeiten",
+            "button": "Speichern"
           },
           "delete": {
             "title": "Subdomain löschen",
             "body": "{name} löschen? Ihre DNS-Einträge werden entfernt, und Spieler können nicht mehr darüber beitreten.",
-            "refund": "{count} Tokens gehen an den Serverbesitzer zurück."
+            "refund": {
+              "one": "{count} Token geht an den Serverbesitzer zurück.",
+              "other": "{count} Token gehen an den Serverbesitzer zurück."
+            }
           },
           "toast": {
             "created": "{name} ist eingerichtet. Es kann ein paar Minuten dauern, bis alle Spieler sie erreichen.",
-            "renamed": "Umbenannt in {name}.",
+            "saved": "Gespeichert",
             "repaired": "Die Einträge von {name} sind neu geschrieben.",
-            "deleted": "{name} gelöscht.",
-            "deletedRefund": "{name} gelöscht, {count} Tokens erstattet."
+            "deleted": "Subdomain gelöscht.",
+            "deletedRefund": {
+              "one": "Subdomain gelöscht. {count} Token wurde deinem Konto gutgeschrieben.",
+              "other": "Subdomain gelöscht. {count} Token wurden deinem Konto gutgeschrieben."
+            }
           }
         },
         "devbox": {

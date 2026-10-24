@@ -1,137 +1,67 @@
-// plugged.host: the FXServer build a FiveM server runs, how it updates, and its edition (docs/features/fivem.md)
+// plugged.host: the FXServer build a FiveM server runs and how it updates, laid out like the Pelican panel's Artifacts
+// page: what is installed with the update switch, then every build Cfx offers as a row (docs/features/fivem.md).
+// The Enhanced edition has its own page (enhanced/ServerFivemEnhanced.tsx).
+import { faSearch } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useQueryClient } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
+import { NavLink } from 'react-router';
 import { z } from 'zod';
 import { httpErrorToHuman } from '@/api/axios.ts';
 import chooseFivemVersion from '@/api/server/fivem/chooseFivemVersion.ts';
 import getFivemArtifacts from '@/api/server/fivem/getFivemArtifacts.ts';
-import switchFivemEdition from '@/api/server/fivem/switchFivemEdition.ts';
 import Button from '@/elements/buttons/Button.tsx';
 import ServerContentContainer from '@/elements/containers/ServerContentContainer.tsx';
 import Badge from '@/elements/data-display/Badge.tsx';
-import Table, { TableData, TableRow } from '@/elements/data-display/Table.tsx';
-import Choice, { ChoiceSection } from '@/elements/input/Choice.tsx';
-import Group from '@/elements/layout/Group.tsx';
-import Stack from '@/elements/layout/Stack.tsx';
+import Notification from '@/elements/feedback/Notification.tsx';
+import TextInput from '@/elements/input/TextInput.tsx';
 import ConfirmationModal from '@/elements/modals/ConfirmationModal.tsx';
 import ResourceView from '@/elements/ResourceView.tsx';
-import Text from '@/elements/typography/Text.tsx';
-import Title from '@/elements/typography/Title.tsx';
-import { formatTimestamp } from '@/lib/format/time.ts';
+import { formatDateTime } from '@/lib/format/time.ts';
 import { queryKeys } from '@/lib/queryKeys.ts';
-import {
-  FivemVersionChoice,
-  fivemArtifactsSchema,
-  fivemEditionSchema,
-  fivemOutcomeSchema,
-} from '@/lib/schemas/server/fivem.ts';
+import { FivemVersionChoice, fivemArtifactsSchema, fivemOutcomeSchema } from '@/lib/schemas/server/fivem.ts';
 import { useResource } from '@/plugins/resource/useResource.ts';
 import { useServerCan } from '@/plugins/usePermissions.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
+import { useGlobalStore } from '@/stores/global.ts';
 import { useServerStore } from '@/stores/server.ts';
 
 type Artifacts = z.infer<typeof fivemArtifactsSchema>;
-type Edition = z.infer<typeof fivemEditionSchema>;
+type Mode = 'recommended' | 'latest' | 'pin';
 
 const base = 'pages.server.fivem.artifacts';
-const FACTS = ['client', 'scripts', 'assets', 'network', 'switching', 'txadmin'] as const;
+const MODES: Mode[] = ['recommended', 'latest', 'pin'];
 
-function EditionSection({ artifacts, onChanged }: { artifacts: Artifacts; onChanged: () => void }) {
-  const { t } = useTranslations();
-  const { addToast } = useToast();
-  const server = useServerStore((state) => state.server);
-  const [confirming, setConfirming] = useState<Edition | null>(null);
-
-  if (artifacts.redm) {
-    return (
-      <Text size='sm' c='dimmed'>
-        {t(`${base}.edition.redm`, {})}
-      </Text>
-    );
-  }
-
-  const enhanced = artifacts.edition === 'enhanced';
-  if (!enhanced && !artifacts.enhancedAvailable) return null;
-
-  const switchTo = (edition: Edition) =>
-    switchFivemEdition(server.uuid, edition).then((outcome) => {
-      const done =
-        edition === 'enhanced' ? t(`${base}.edition.switchedEnhanced`, {}) : t(`${base}.edition.switchedLegacy`, {});
-      addToast(`${done} ${outcomeText(t, outcome)}`, 'success');
-      setConfirming(null);
-      onChanged();
-    });
-
-  return (
-    <Stack gap='sm'>
-      <ConfirmationModal
-        opened={confirming !== null}
-        onClose={() => setConfirming(null)}
-        title={
-          confirming === 'enhanced' ? t(`${base}.edition.confirmEnhanced`, {}) : t(`${base}.edition.confirmLegacy`, {})
-        }
-        confirm={
-          confirming === 'enhanced'
-            ? t(`${base}.edition.switchToEnhanced`, {})
-            : t(`${base}.edition.switchToLegacy`, {})
-        }
-        confirmColor='blue'
-        onConfirmed={() => (confirming ? switchTo(confirming) : undefined)}
-      >
-        {confirming === 'enhanced'
-          ? t(`${base}.edition.confirmEnhancedDescription`, {})
-          : t(`${base}.edition.confirmLegacyDescription`, {})}
-      </ConfirmationModal>
-
-      <Title order={3} fz='md' fw={600}>
-        {t(`${base}.edition.title`, {})}
-      </Title>
-      <Text size='sm'>
-        {enhanced
-          ? artifacts.enhancedBuild !== null
-            ? t(`${base}.edition.runsEnhancedBuild`, { build: artifacts.enhancedBuild })
-            : t(`${base}.edition.runsEnhanced`, {})
-          : t(`${base}.edition.runsLegacy`, {})}
-      </Text>
-      <Text size='sm' c='dimmed'>
-        {t(`${base}.edition.earlyAccess`, {})}
-      </Text>
-
-      <Stack gap='xs'>
-        {FACTS.map((fact) => (
-          <Stack key={fact} gap={0}>
-            <Text size='sm' fw={500}>
-              {t(`${base}.edition.facts.${fact}.title`, {})}
-            </Text>
-            <Text size='sm' c='dimmed'>
-              {t(`${base}.edition.facts.${fact}.description`, { build: artifacts.enhancedBuild ?? '?' })}
-            </Text>
-          </Stack>
-        ))}
-      </Stack>
-
-      <Group>
-        <Button variant='default' onClick={() => setConfirming(enhanced ? 'legacy' : 'enhanced')}>
-          {enhanced ? t(`${base}.edition.switchToLegacy`, {}) : t(`${base}.edition.switchToEnhanced`, {})}
-        </Button>
-      </Group>
-    </Stack>
-  );
-}
-
-function outcomeText(t: ReturnType<typeof useTranslations>['t'], outcome: z.infer<typeof fivemOutcomeSchema>): string {
+/** "It applies now" or "at the next start", the second line of every change's toast. */
+export function outcomeText(
+  t: ReturnType<typeof useTranslations>['t'],
+  outcome: z.infer<typeof fivemOutcomeSchema>,
+): string {
   return outcome === 'restarting' ? t(`${base}.toast.restarting`, {}) : t(`${base}.toast.nextStart`, {});
 }
 
-function Overview({ artifacts, search }: { artifacts: Artifacts; search: string }) {
+function Overview({ artifacts }: { artifacts: Artifacts }) {
   const { t, language } = useTranslations();
   const { addToast } = useToast();
   const queryClient = useQueryClient();
   const server = useServerStore((state) => state.server);
-  const canChange = useServerCan('fivem.artifacts');
+  const appName = useGlobalStore((state) => state.settings.app.name);
+  const canChange = useServerCan('fivem.artifacts') && artifacts.changeable;
   const [saving, setSaving] = useState(false);
   const [installing, setInstalling] = useState<number | null>(null);
+  const [search, setSearch] = useState('');
+
+  const legacy = artifacts.edition === 'legacy';
+  const installed = artifacts.installed;
+  const installedBuild = installed?.edition === 'legacy' ? installed.build : null;
+  const mode: Mode = artifacts.version === 'recommended' || artifacts.version === 'latest' ? artifacts.version : 'pin';
+  const today = new Date().toISOString().slice(0, 10);
+
+  const rows = useMemo(() => {
+    const digits = search.replace(/\D/g, '');
+    return digits ? artifacts.builds.filter((build) => String(build.build).includes(digits)) : artifacts.builds;
+  }, [artifacts, search]);
 
   const refresh = () => queryClient.invalidateQueries({ queryKey: queryKeys.server(server.uuid).fivem.artifacts() });
 
@@ -140,11 +70,11 @@ function Overview({ artifacts, search }: { artifacts: Artifacts; search: string 
 
     return chooseFivemVersion(server.uuid, choice)
       .then((outcome) => {
-        const message =
-          choice.mode === 'build'
-            ? `${t(`${base}.toast.build`, { build: choice.build })} ${outcomeText(t, outcome)}`
-            : t(`${base}.toast.mode`, { mode: t(`${base}.mode.${choice.mode}.label`, {}) });
-        addToast(message, 'success');
+        const title =
+          choice.mode === 'build' || choice.mode === 'pin'
+            ? t(`${base}.toast.build`, { build: choice.mode === 'build' ? choice.build : (installedBuild ?? '') })
+            : t(`${base}.toast.channel`, { channel: t(`${base}.channel.${choice.mode}`, {}) });
+        addToast(`${title} ${outcomeText(t, outcome)}`, 'success');
         setInstalling(null);
       })
       .catch((error) => {
@@ -156,20 +86,12 @@ function Overview({ artifacts, search }: { artifacts: Artifacts; search: string 
       });
   };
 
-  const rows = useMemo(() => {
-    const query = search.trim();
-    return query ? artifacts.builds.filter((build) => String(build.build).includes(query)) : artifacts.builds;
-  }, [artifacts, search]);
-
-  const mode = artifacts.version === 'recommended' || artifacts.version === 'latest' ? artifacts.version : 'pin';
-  const legacy = artifacts.edition === 'legacy';
   const supportDate = (date: string) =>
     new Date(`${date}T00:00:00`).toLocaleDateString(language, { year: 'numeric', month: 'short', day: 'numeric' });
-  const today = new Date().toISOString().slice(0, 10);
-  const installed = artifacts.installed;
+  const editionLabel = (edition: Artifacts['edition']) => t(`pages.server.fivem.enhanced.edition.${edition}`, {});
 
   return (
-    <Stack gap='xl'>
+    <div className='flex flex-col gap-6'>
       <ConfirmationModal
         opened={installing !== null}
         onClose={() => setInstalling(null)}
@@ -181,137 +103,133 @@ function Overview({ artifacts, search }: { artifacts: Artifacts; search: string 
         {t(`${base}.install.description`, {})}
       </ConfirmationModal>
 
-      <Stack gap='xs'>
-        {!artifacts.onImage && (
-          <Text size='sm' c='dimmed'>
-            {t(`${base}.notOnImage`, {})}
-          </Text>
-        )}
-        {!artifacts.changeable && (
-          <Text size='sm' c='dimmed'>
-            {t(`${base}.notChangeable`, {})}
-          </Text>
-        )}
+      {!legacy && (
+        <Notification className='theme-callout' color='blue'>
+          <p className='theme-eco-text'>{t(`${base}.enhancedNote`, {})}</p>
+          <NavLink
+            to={`/server/${server.uuidShort}/fivem/enhanced`}
+            className='theme-eco-link mt-2 inline-block text-sm'
+          >
+            {t(`${base}.enhancedLink`, {})}
+          </NavLink>
+        </Notification>
+      )}
 
-        <Stack gap={0}>
-          <Text size='sm' fw={500}>
-            {t(`${base}.installed.title`, {})}
-          </Text>
-          <Text size='sm'>
+      <div className='theme-fivem-now'>
+        <div>
+          <div className='theme-fivem-label'>{t(`${base}.installed.title`, {})}</div>
+          <div className='theme-fivem-big'>
             {artifacts.unreachable
               ? t(`${base}.installed.unreachable`, {})
               : installed === null
-                ? t(`${base}.installed.none`, {})
-                : installed.build === null
-                  ? t(`${base}.installed.unknown`, {})
-                  : `${installed.edition === 'enhanced' ? t(`${base}.edition.enhanced`, {}) : t(`${base}.edition.legacy`, {})} · ${t(`${base}.build`, { build: installed.build })}`}
-            {installed?.installedAt
-              ? ` · ${t(`${base}.installed.since`, { when: formatTimestamp(installed.installedAt) })}`
-              : ''}
-          </Text>
-          {artifacts.pending !== null && (
-            <Text size='sm' c='dimmed'>
-              {t(`${base}.pending`, { build: artifacts.pending })}
-            </Text>
-          )}
-        </Stack>
-      </Stack>
-
-      {legacy && artifacts.changeable && (
-        <ChoiceSection title={t(`${base}.mode.title`, {})}>
-          <div className='theme-choice-grid'>
-            {(['recommended', 'latest', 'pin'] as const).map((choice) => (
-              <Choice
-                key={choice}
-                selected={mode === choice}
-                disabled={!canChange || saving}
-                onSelect={() => {
-                  if (mode !== choice) choose({ mode: choice });
-                }}
-              >
-                <span className='theme-choice-title'>{t(`${base}.mode.${choice}.label`, {})}</span>
-                <span className='theme-choice-text'>{t(`${base}.mode.${choice}.description`, {})}</span>
-              </Choice>
-            ))}
+                ? t(`${base}.installed.unknown`, {})
+                : legacy && installedBuild !== null
+                  ? t(`${base}.build`, { build: installedBuild })
+                  : installed.build !== null
+                    ? `${editionLabel(installed.edition)} · ${t(`${base}.build`, { build: installed.build })}`
+                    : editionLabel(installed.edition)}
           </div>
-        </ChoiceSection>
-      )}
+          {installed?.installedAt ? (
+            <div className='theme-eco-muted'>
+              {t(`${base}.installed.since`, { when: formatDateTime(installed.installedAt) })}
+            </div>
+          ) : (
+            installed === null &&
+            !artifacts.unreachable && (
+              <div className='theme-eco-muted'>{t(`${base}.installed.unknownDescription`, {})}</div>
+            )
+          )}
+          {artifacts.pending !== null && !artifacts.unreachable && (
+            <div className='theme-fivem-pending'>{t(`${base}.pending`, { build: artifacts.pending })}</div>
+          )}
+        </div>
+        {legacy && (
+          <div>
+            <div className='theme-fivem-label mb-1.5'>{t(`${base}.mode.title`, {})}</div>
+            <div className='theme-fivem-seg' role='group' aria-label={t(`${base}.mode.title`, {})}>
+              {MODES.map((option) => (
+                <button
+                  key={option}
+                  type='button'
+                  aria-pressed={mode === option}
+                  title={t(`${base}.mode.${option}.description`, {})}
+                  disabled={!canChange || saving || mode === option || (option === 'pin' && installedBuild === null)}
+                  onClick={() => choose({ mode: option })}
+                >
+                  {t(`${base}.mode.${option}.label`, {})}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
 
       {legacy && (
-        <Stack gap='sm'>
-          <Title order={3} fz='md' fw={600}>
-            {t(`${base}.builds`, {})}
-          </Title>
-          <Table
-            columns={[t(`${base}.table.build`, {}), t(`${base}.table.support`, {}), '']}
-            pagination={{ total: rows.length, perPage: Math.max(rows.length, 1), page: 1, data: rows }}
-            empty={
-              <Text size='sm' c='dimmed'>
-                {search.trim() ? t(`${base}.noMatch`, {}) : t(`${base}.cfxUnreachable`, {})}
-              </Text>
-            }
-          >
-            {rows.map((build) => (
-              <TableRow key={build.build}>
-                <TableData>
-                  <Group gap='xs'>
-                    <Text size='sm'>{build.build}</Text>
-                    {build.recommended && (
-                      <Badge color='green' size='xs'>
-                        {t(`${base}.badge.recommended`, {})}
-                      </Badge>
+        <>
+          <div className='flex flex-wrap items-center justify-between gap-3'>
+            <TextInput
+              type='search'
+              inputMode='numeric'
+              aria-label={t(`${base}.search`, {})}
+              placeholder={t(`${base}.search`, {})}
+              leftSection={<FontAwesomeIcon icon={faSearch} />}
+              value={search}
+              onChange={(e) => setSearch(e.currentTarget.value)}
+              className='w-full sm:max-w-80'
+            />
+            <span className='theme-eco-muted'>
+              {t(`${base}.count.${rows.length === 0 ? 'none' : rows.length === 1 ? 'one' : 'other'}`, {
+                count: rows.length,
+              })}
+            </span>
+          </div>
+
+          {rows.length === 0 ? (
+            <div className='theme-fivem-empty'>
+              {search.trim() ? t(`${base}.noMatch`, {}) : t(`${base}.cfxUnreachable`, {})}
+            </div>
+          ) : (
+            <div className='flex flex-col gap-2'>
+              {rows.map((build) => {
+                const ended = build.supportEnds !== null && build.supportEnds < today;
+
+                return (
+                  <div key={build.build} className='theme-fivem-build'>
+                    <div className='min-w-0'>
+                      <div className='flex flex-wrap items-center gap-2'>
+                        <span className='theme-fivem-num'>{t(`${base}.build`, { build: build.build })}</span>
+                        {build.recommended && <Badge color='green'>{t(`${base}.badge.recommended`, {})}</Badge>}
+                        {build.latest && <Badge color='blue'>{t(`${base}.badge.latest`, {})}</Badge>}
+                        {build.installed && <Badge color='gray'>{t(`${base}.badge.installed`, {})}</Badge>}
+                        {ended && <Badge color='yellow'>{t(`${base}.unsupported`, {})}</Badge>}
+                      </div>
+                      {build.supportEnds !== null && !ended && (
+                        <div className='theme-eco-muted'>
+                          {t(`${base}.supportedUntil`, { date: supportDate(build.supportEnds) })}
+                        </div>
+                      )}
+                    </div>
+                    {canChange && !(build.installed && build.selected) && (
+                      <Button variant='default' size='sm' disabled={saving} onClick={() => setInstalling(build.build)}>
+                        {t(`${base}.install.button`, {})}
+                      </Button>
                     )}
-                    {build.latest && (
-                      <Badge color='blue' size='xs'>
-                        {t(`${base}.badge.latest`, {})}
-                      </Badge>
-                    )}
-                    {build.installed && (
-                      <Badge color='gray' size='xs'>
-                        {t(`${base}.badge.installed`, {})}
-                      </Badge>
-                    )}
-                  </Group>
-                </TableData>
-                <TableData>
-                  {build.supportEnds === null ? (
-                    ''
-                  ) : build.supportEnds < today ? (
-                    <Text size='sm' c='red'>
-                      {t(`${base}.unsupported`, {})}
-                    </Text>
-                  ) : (
-                    <Text size='sm' c='dimmed'>
-                      {t(`${base}.supportedUntil`, { date: supportDate(build.supportEnds) })}
-                    </Text>
-                  )}
-                </TableData>
-                <TableData className='text-end'>
-                  {canChange && artifacts.changeable && !build.selected && (
-                    <Button variant='default' size='xs' disabled={saving} onClick={() => setInstalling(build.build)}>
-                      {t(`${base}.install.button`, {})}
-                    </Button>
-                  )}
-                </TableData>
-              </TableRow>
-            ))}
-          </Table>
-        </Stack>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </>
       )}
 
-      {canChange && <EditionSection artifacts={artifacts} onChanged={refresh} />}
-
-      <Text size='xs' c='dimmed'>
-        {t(`${base}.sourceNote`, {})}
-      </Text>
-    </Stack>
+      <p className='theme-eco-muted'>{t(`${base}.sourceNote`, { app: appName })}</p>
+    </div>
   );
 }
 
 export default function ServerFivemArtifacts() {
   const { t } = useTranslations();
   const server = useServerStore((state) => state.server);
-  const [search, setSearch] = useState('');
 
   const artifacts = useResource({
     queryKey: queryKeys.server(server.uuid).fivem.artifacts(),
@@ -319,8 +237,8 @@ export default function ServerFivemArtifacts() {
   });
 
   return (
-    <ServerContentContainer title={t(`${base}.title`, {})} search={search} setSearch={setSearch}>
-      <ResourceView resource={artifacts}>{(data) => <Overview artifacts={data} search={search} />}</ResourceView>
+    <ServerContentContainer title={t(`${base}.title`, {})} subtitle={t(`${base}.subtitle`, {})}>
+      <ResourceView resource={artifacts}>{(data) => <Overview artifacts={data} />}</ResourceView>
     </ServerContentContainer>
   );
 }

@@ -851,7 +851,11 @@
           "limbo": "Server restored",
           "limboRefund": "Restore refunded",
           "subdomain": "Subdomain",
-          "subdomainRefund": "Subdomain refunded"
+          "subdomainRefund": "Subdomain refunded",
+          "discordInvite": "Discord invites",
+          "discordInviteClawback": "Invite taken back",
+          "discordInviteDebt": "Owed invite credits",
+          "discordBoost": "Discord boost"
         }
       },
       "chartLegend": {
@@ -1025,8 +1029,8 @@
             "body": "The power buttons of this server. Stop lets the game save and shut down cleanly; if it hangs while stopping, Stop turns into Kill."
           },
           "details": {
-            "heading": "Address and Usage",
-            "body": "The address is what players type to join. Click it to copy it, then send it to your friends. Uptime, CPU, memory and disk are live."
+            "heading": "Name, Status and Address",
+            "body": "The address is what players type to join. Click it to copy it, then send it to your friends. CPU, memory and disk are live."
           },
           "sidebar": {
             "heading": "Everything About This Server",
@@ -1321,6 +1325,182 @@
             "closeIn": "Close ({seconds})"
           }
         }
+      },
+      "neo": {
+        "name": "neo",
+        "launcher": {
+          "open": "Ask {name}",
+          "working": "Working…",
+          "approve": "Needs you",
+          "done": "Done",
+          "off": "{name} is off"
+        },
+        "header": {
+          "account": "your {app} assistant",
+          "history": "Earlier chats",
+          "settings": "{name} settings"
+        },
+        "button": {
+          "history": "Earlier chats",
+          "newChat": "New chat",
+          "settings": "{name} settings",
+          "minimize": "Minimize ({name} keeps working)",
+          "back": "Back to the chat",
+          "resize": "Drag to resize, double-click to reset",
+          "send": "Send",
+          "stop": "Stop",
+          "attach": "Add images (or paste or drop them)",
+          "removeImage": "Remove image",
+          "approve": "Approve",
+          "deny": "Decline",
+          "approveAll": "Approve all ({count})",
+          "retry": "Try again",
+          "turnOn": "Turn {name} on",
+          "agree": "Got it, start",
+          "model": "Model",
+          "deleteChat": "Delete this chat",
+          "confirmDelete": "Tap again to delete",
+          "deleteHistory": "Delete my {name} history"
+        },
+        "composer": {
+          "placeholder": "Message {name}…",
+          "imageType": "Only PNG, JPEG, WebP or GIF images up to 20 MB.",
+          "imageLimit": "Up to {count} images per message.",
+          "imageUnreadable": "{name} could not read that image. Try a PNG or JPEG screenshot."
+        },
+        "empty": {
+          "serverTitle": "What should I do on {server}?",
+          "serverBody": "I read the console and files, make the changes and check they work.",
+          "accountTitle": "What can I do for you?",
+          "accountBody": "I can create and resize servers, check your account and answer questions. For work inside a server, open me on its page."
+        },
+        "suggestions": {
+          "crash": {
+            "label": "Fix a crash",
+            "prompt": "My server crashed or will not start. Find out why and fix it."
+          },
+          "lag": {
+            "label": "Fix lag",
+            "prompt": "My server is lagging. Find out why and make it run smoother."
+          },
+          "plugin": {
+            "label": "Add a plugin",
+            "prompt": "Recommend and install a good plugin or mod for my server."
+          },
+          "backup": {
+            "label": "Back up",
+            "prompt": "Make a backup of my server."
+          },
+          "create": {
+            "label": "New server",
+            "prompt": "Create a new server for me."
+          },
+          "allowance": {
+            "label": "My allowance",
+            "prompt": "How much CPU, memory and disk do I have left?"
+          },
+          "tokens": {
+            "label": "Earn tokens",
+            "prompt": "How can I earn tokens and credits?"
+          }
+        },
+        "message": {
+          "image": "Image",
+          "thought": "Thinking",
+          "working": "{name} is working…",
+          "showChange": "Show change",
+          "showOutput": "Show output",
+          "auto": "ran without asking"
+        },
+        "status": {
+          "queued": "queued",
+          "pendingApproval": "waiting for you",
+          "approved": "approved",
+          "executing": "running…",
+          "done": "done",
+          "failed": "failed",
+          "denied": "declined",
+          "skipped": "not run"
+        },
+        "risk": {
+          "destructive": "Hard to undo",
+          "critical": "Cannot be undone, or costs you something"
+        },
+        "notice": {
+          "limitedShort": "You have reached your short-term {name} limit. It resets {time}.",
+          "limitedLong": "You have reached your long-term {name} limit. It resets {time}.",
+          "limitedModel": "You have used up this model's usage for now. It resets {time}. Pick another model below to keep going.",
+          "limitedImages": "You have sent as many images as your limit allows for now. It resets {time}.",
+          "modelNotAllowed": "{model} needs {plan}. Pick another model below.",
+          "modelUnavailable": "The model you picked is not available right now. Pick another model below.",
+          "unavailable": "{name} is unavailable right now. Please try again in a moment.",
+          "unlinked": "{name} needs your noprofit.space account to be connected.",
+          "refused": "{name} could not help with that request.",
+          "rateLimited": "You are sending messages very quickly. Wait a moment and try again.",
+          "connection": "The connection to {name} was lost. Please try again.",
+          "disabled": "{name} is turned off.",
+          "consent": "Please read and accept the notice first.",
+          "noAccess": "You no longer have access to this server.",
+          "notYours": "This conversation belongs to someone else.",
+          "soon": "soon",
+          "model": "This model",
+          "plan": "a membership"
+        },
+        "blocked": {
+          "disabled": "{name} is not available on this panel right now.",
+          "noAccess": "You cannot use {name} on this server.",
+          "offBody": "Turn it back on to chat and let it work on your servers.",
+          "failed": "{name} could not be loaded."
+        },
+        "consent": {
+          "title": "Before you start",
+          "bodyNamed": "{name} is an agentic AI assistant: it doesn't just answer, it carries out tasks on your servers and account for you. To do that, what you type and what {name} reads from your server (console output, file contents) is sent to our AI providers: {providers}. Passwords and tokens are masked before anything is sent.",
+          "bodyGeneric": "{name} is an agentic AI assistant: it doesn't just answer, it carries out tasks on your servers and account for you. To do that, what you type and what {name} reads from your server (console output, file contents) is sent to the AI providers this panel uses. Passwords and tokens are masked before anything is sent.",
+          "approvals": "{name} asks before it changes anything on your server. You can turn {name} off, or let it act without asking, under the gear icon.",
+          "legal": "Legal questions: {email}",
+          "privacy": "Privacy requests: {email}"
+        },
+        "settings": {
+          "enabled": "Enable {name}",
+          "enabledHint": "Turning this off stops {name} everywhere: it no longer chats or acts on your servers.",
+          "autoApprove": "Let {name} make changes without asking",
+          "autoApproveHint": "When off (recommended), {name} asks before it edits or deletes files, runs console commands, or starts and stops a server. Reading is never asked.",
+          "usage": "Usage",
+          "usageHintNoprofit": "Limits come from your noprofit.space account.",
+          "usageHint": "Each bar fills as you use {name} and empties when its window resets.",
+          "hours": "{hours}-hour window",
+          "days": "{days}-day window",
+          "weekly": "Weekly",
+          "resets": "resets {time}",
+          "notStarted": "not started",
+          "unlinked": "{name} isn't connected to your noprofit.space account yet.",
+          "unavailable": "Usage is unavailable right now.",
+          "unlimitedModels": "Models without a bar here have no usage limit.",
+          "history": "Chat history",
+          "historyHint": "Chats you leave alone are deleted after a while.",
+          "deleted": "Your {name} history was deleted.",
+          "privacyNamed": "What you type and what {name} reads from your servers is sent to AI providers ({providers}). Secrets are masked first.",
+          "privacyGeneric": "What you type and what {name} reads from your servers is sent to the AI providers this panel uses. Secrets are masked first.",
+          "support": "Talk to a person"
+        },
+        "meter": {
+          "hours": "{hours}h",
+          "days": "{days}d",
+          "week": "Week",
+          "title": "{window}: {percent}% used · resets {time}",
+          "noLimit": "No usage limit"
+        },
+        "models": {
+          "multiplier": "{multiplier}x usage",
+          "ownLimit": "Own usage limit"
+        },
+        "history": {
+          "empty": "No earlier chats here yet. When you start a new chat, the old one is kept here.",
+          "untitled": "Untitled chat",
+          "oneMessage": "1 message",
+          "messages": "{count} messages"
+        },
+        "askLog": "mclo.gs found problems in my server log ({url}). Please find the cause and fix it."
       }
     },
     "pages": {
@@ -1656,7 +1836,7 @@
       "account": {
         "createServer": {
           "title": "Create Server",
-          "button": "Create Server",
+          "button": "Create server",
           "allowance": "Left in your account: {cpu} CPU, {memory} memory, {disk} disk.",
           "disabled": "Creating servers is turned off.",
           "noPlan": "Your account has no plan to create servers with.",
@@ -1686,6 +1866,15 @@
             "description": "This account has no servers yet. Servers created for it, or shared with it as a subuser, show up here."
           },
           "emptyGroup": "This group is empty. Drag a server here to add it.",
+          "emptyAccess": "You don't have access to any servers!",
+          "card": {
+            "cpu": "CPU",
+            "memory": "RAM",
+            "disk": "Disk",
+            "loading": "Loading...",
+            "stateUptime": "{state} · {uptime}",
+            "powerActions": "Power Actions"
+          },
           "title": "Servers",
           "tooltip": {
             "removeFromGroup": "Remove from Group",
@@ -2312,15 +2501,24 @@
         },
         "backups": {
           "title": "Backups",
-          "description": "The newest backup of each of your servers, and of servers you deleted in the last days. Download one to keep a copy of your files outside the panel.",
-          "empty": "You have no servers, and no deleted server has a backup kept.",
-          "deleted": "Deleted",
-          "noCopy": "No backup yet",
-          "table": {
-            "server": "Server",
-            "copy": "Newest Backup",
-            "keptUntil": "Kept Until"
-          }
+          "heading": "Server backups",
+          "subtitle": "Download a full copy of your server files: the newest backup of each of your servers.",
+          "yourServers": "Your servers",
+          "copyId": "Copy server ID",
+          "idCopied": "Server ID #{id} copied!",
+          "backupReady": "Backup ready",
+          "waiting": "Waiting for the first copy from the node",
+          "starting": "Starting…",
+          "downloading": "Downloading, see your browser",
+          "manage": "Manage",
+          "manageHint": "Manage Server in Panel",
+          "backups": "Backups",
+          "backupsHint": "View in Server Backups Tab",
+          "noServers": "No active servers found on this account.",
+          "deletedTitle": "Deleted servers",
+          "deletedText": "These servers were deleted. Their last copy is kept until the date shown, in case that was a mistake, and then removed.",
+          "deletedAgo": "Deleted {ago}",
+          "keptUntil": "Kept until {date}"
         },
         "store": {
           "title": "Resource Store",
@@ -2494,6 +2692,83 @@
           "toast": {
             "plus": "You have {name} now.",
             "plusplus": "{name} bought."
+          }
+        },
+        "discord": {
+          "title": "Discord Rewards",
+          "unlinked": {
+            "heading": "Earn credits on Discord",
+            "headingNoCredits": "Your invites on Discord",
+            "body": "Invite friends to the {app} Discord server and boost it to earn credits: {credits} for every friend who stays. Link your Discord account to start.",
+            "bodyNoCredits": "Link your Discord account to have the friends you invite to the {app} Discord server counted.",
+            "link": "Link Discord",
+            "linkNoprofit": "Link Discord on noprofit.space"
+          },
+          "join": "Join the Discord server",
+          "open": "Open the Discord server",
+          "earned": "Credits earned on Discord",
+          "linkedAs": "Linked as {name}",
+          "inServer": "In the server",
+          "notInServer": "Not in the server. Join to keep earning.",
+          "notChecked": "Not checked yet",
+          "check": "Check for new rewards",
+          "tier": {
+            "text": "Being in the server adds {resources} to your account.",
+            "cpu": "{cpu}% CPU",
+            "memory": "{memory} memory",
+            "disk": "{disk} disk"
+          },
+          "noprofit": {
+            "title": "Discord servers",
+            "text": "Your noprofit.space account gets the rewards for being in its Discord servers and for boosting them.",
+            "open": "Open noprofit.space"
+          },
+          "invites": {
+            "title": "Invite friends",
+            "rule": "{credits} credits for every friend who joins through your invite link and stays {hours} hours.",
+            "ruleHour": "{credits} credits for every friend who joins through your invite link and stays {hours} hour.",
+            "ruleNow": "{credits} credits for every friend who joins through your invite link.",
+            "notPaid": "Every friend who joins through your invite link is counted here.",
+            "age": "Their Discord account must be at least {days} days old.",
+            "ageDay": "Their Discord account must be at least {days} day old.",
+            "paid": "Paid",
+            "friendsNone": "No friends yet",
+            "friend": "1 friend",
+            "friends": "{count} friends",
+            "waiting": "Waiting",
+            "next": "Next one pays {time}",
+            "nextSoon": "Next one pays within a few minutes",
+            "waitingNone": "Nobody waiting right now",
+            "left": "Left the server",
+            "leftClawback": "Credits for friends who leave are taken back.",
+            "leftKept": "Friends who left no longer count.",
+            "tooNew": "Did not count",
+            "tooNewHint": "Their Discord account was younger than {days} days, or it was their own invite.",
+            "tooNewHintDay": "Their Discord account was younger than {days} day, or it was their own invite.",
+            "tooNewOwn": "It was their own invite.",
+            "owed": "Owed back",
+            "owedHint": "For friends who left after you were paid. Taken from your next invite rewards.",
+            "how": "In the {app} Discord server, use Invite People and share that link. Everyone who joins through your own link counts for you."
+          },
+          "boosts": {
+            "title": "Boost the server",
+            "boosting": "You are boosting the server. Thank you!",
+            "boostingTwo": "You are boosting the server with 2 boosts. Thank you!",
+            "notBoosting": "You are not boosting the server right now.",
+            "levelOne": "1 boost",
+            "levelTwo": "2 boosts",
+            "levelOneCredits": "{credits} credits",
+            "levelTwoCredits": "{credits} more, {total} in total",
+            "received": "Received",
+            "once": "Each level pays once."
+          },
+          "history": "Reward history",
+          "historyEmpty": "No Discord rewards yet.",
+          "balanceAfter": "{balance} after",
+          "toast": {
+            "checked": "Checked with Discord.",
+            "paid": "{credits} new credits added.",
+            "nothing": "All caught up, nothing new to pay out."
           }
         },
         "devboxOpen": {
@@ -3337,6 +3612,82 @@
                 },
                 "toast": {
                   "updated": "Subdomain settings saved."
+                }
+              }
+            },
+            "discord": {
+              "title": "Discord",
+              "page": {
+                "title": "Discord",
+                "form": {
+                  "enabled": "Discord",
+                  "enabledDescription": "Players get a Discord Rewards page, and everything below applies. Needs the server ID.",
+                  "guildId": "Server ID",
+                  "guildIdDescription": "The Discord server (guild) ID: turn on Developer Mode in Discord, then right-click the server › Copy Server ID.",
+                  "botToken": "Bot Token",
+                  "botTokenDescription": "A bot in the server with the Server Members intent on (Developer Portal › Bot), and Manage Server and Manage Roles for the invites and the two-boost role.",
+                  "tokenStored": "A token is stored. Leave this empty to keep it, or type a new one to replace it.",
+                  "tokenMissing": "No token yet.",
+                  "inviteUrl": "Invite Link",
+                  "inviteUrlDescription": "Where players join the server (https://discord.gg/…). Empty hides every invite link and button.",
+                  "oauthProvider": "Discord Sign-in",
+                  "oauthProviderDescription": "The OAuth provider (Admin › OAuth Providers) that signs in with Discord: a player's Discord account is the one they link through it. Not used while noprofit.space is connected.",
+                  "oauthProviderPlaceholder": "Choose the provider",
+                  "tier": "Discord Tier",
+                  "tierDescription": "Added to the allowance of everyone in the server, where the allowance has a limit (without noprofit.space; with it, its plans do this). CPU in % (100 is one thread), memory and disk in MiB. 0 adds nothing.",
+                  "tierCpu": "CPU",
+                  "tierMemory": "Memory",
+                  "tierDisk": "Disk",
+                  "invites": "Invite Rewards",
+                  "creditsPerInvite": "Credits per Invite",
+                  "creditsPerInviteDescription": "For every member who joins through someone's invite and stays. Paid while credits are on, without noprofit.space.",
+                  "minAccountAgeDays": "Minimum Account Age",
+                  "minAccountAgeDaysDescription": "Days. A Discord account younger than this when it joins pays nothing (against alts).",
+                  "inviteMaturityHours": "Hold",
+                  "inviteMaturityHoursDescription": "Hours a reward is held; a member who leaves before then pays nothing. 0 pays at once.",
+                  "inviteClawback": "Take Back",
+                  "inviteClawbackDescription": "A paid invite whose member leaves later is taken back: from the balance, and what that cannot cover from the inviter's next invite rewards.",
+                  "boosts": "Boost Rewards",
+                  "boostOneCredits": "One Boost",
+                  "boostTwoCredits": "Two Boosts",
+                  "boostTwoCreditsDescription": "In all, with the first. Each level pays once per account.",
+                  "boostTwoRoleId": "Two-Boost Role ID",
+                  "boostTwoRoleIdDescription": "Discord does not say how often a member boosts: members with this role count as two boosts, and /setboost gives and takes it. Empty: two boosts only through /setboost.",
+                  "subdomains": "Subdomains",
+                  "subdomainsRequireLink": "Linked Discord Required",
+                  "subdomainsRequireLinkDescription": "A server's owner needs a linked Discord account for new subdomains. Existing ones stay.",
+                  "subdomainsRequireMember": "Server Membership Required",
+                  "subdomainsRequireMemberDescription": "A server's owner needs to be in the Discord server for new subdomains. Needs the bot token.",
+                  "bots": "Bots",
+                  "rewardsBotEnabled": "Invite and Boost Bot",
+                  "rewardsBotEnabledDescription": "On the bot token: records who joined through whose invite and answers /invites, /topinvites and /setboost (administrators only). Off: nothing connects to Discord.",
+                  "assistantBotEnabled": "Assistant Bot",
+                  "assistantBotEnabledDescription": "On its own token. It connects once the assistant is part of the panel.",
+                  "assistantBotToken": "Assistant Bot Token",
+                  "moderationBotEnabled": "Moderation Bot",
+                  "moderationBotEnabledDescription": "On its own token. It connects once moderation is part of the panel.",
+                  "moderationBotToken": "Moderation Bot Token"
+                },
+                "status": {
+                  "title": "Bot Status",
+                  "none": "No bot is connected. Bots run on the primary instance only, a few seconds after they are turned on.",
+                  "bot": {
+                    "rewards": "Invite and boost bot",
+                    "assistant": "Assistant bot",
+                    "moderation": "Moderation bot"
+                  },
+                  "ready": "connected as {name}",
+                  "connecting": "connecting",
+                  "refused": "refused by Discord, tried again in an hour or when its settings change",
+                  "reason": {
+                    "token": "the token is wrong",
+                    "intents": "the intents are not allowed",
+                    "closed": "Discord closed the connection",
+                    "members_intent": "Server Members intent off: joins and leaves are missed"
+                  }
+                },
+                "toast": {
+                  "updated": "Discord settings saved."
                 }
               }
             },
@@ -5518,12 +5869,16 @@
             },
             "subdomains": {
               "title": "Subdomains",
+              "subdomain": "Subdomain",
+              "free": "Free",
               "created": "Added",
               "empty": "This server has no subdomains.",
               "limit": "Subdomain Limit",
               "limitDescription": "Empty follows the subdomain settings ({default}).",
               "toast": {
-                "limitSaved": "Subdomain limit saved."
+                "limitSaved": "Subdomain limit saved.",
+                "deleted": "{name} deleted.",
+                "deletedRefund": "{name} deleted, {count} tokens refunded."
               }
             },
             "logs": {
@@ -7188,6 +7543,8 @@
           "title": "Console",
           "input": {
             "placeholder": "Type a command...",
+            "placeholderOffline": "Server Offline...",
+            "offlineTitle": "Can't send command when the server is Offline",
             "ariaLabel": "Console command input.",
             "prefixPlaceholder": "Prefix, e.g. \"say \""
           },
@@ -7233,6 +7590,10 @@
             "popout": "Open in Separate Window",
             "commandPrefix": "Command Prefix"
           },
+          "search": {
+            "previous": "Previous Match",
+            "next": "Next Match"
+          },
           "quickAction": {
             "search": "Search Console",
             "scrollToBottom": "Scroll to Bottom",
@@ -7277,14 +7638,21 @@
             }
           },
           "details": {
+            "name": "Name",
+            "status": "Status",
+            "statusUptime": "{state} ({uptime})",
             "address": "Address",
             "port": "Port",
+            "cpu": "CPU",
+            "memory": "Memory",
+            "disk": "Disk",
             "networkIn": "Network (In)",
             "networkOut": "Network (Out)",
             "networkDetails": "{total} total · {packets} pps",
             "normalizeCpuLoad": "Normalize CPU Load (shifted to max 100%)"
           },
           "power": {
+            "killTooltip": "This can result in data corruption and/or data loss!",
             "modal": {
               "forceStop": {
                 "title": "Forcibly Stop Process",
@@ -7293,6 +7661,8 @@
             }
           },
           "stats": {
+            "cpu": "CPU",
+            "memory": "Memory",
             "offline": "Server is offline",
             "connecting": "Connecting..."
           },
@@ -9174,6 +9544,7 @@
             "exportToFiles": "Export to Files",
             "createBackup": "Create Backup",
             "createGroup": "Create Backup Group",
+            "offsiteBackups": "Off-site Backups",
             "moveToGroup": "Move to Group",
             "removeFromGroup": "Remove from Group",
             "lock": "Lock",
@@ -10056,14 +10427,18 @@
             }
           },
           "logCheck": {
-            "clean": "Log check: no problems found in the latest log.",
-            "open": "Open on mclo.gs",
-            "problems": "Log check: problems found ({count})",
-            "errors": "Log check: error lines in the latest log ({count})",
+            "clean": "No problems found in the server log.",
+            "open": "View on mclo.gs",
+            "problemsOne": "Your server log has a problem",
+            "problems": "Your server log has {count} problems",
+            "errorsOne": "Your server log has an error in it",
+            "errors": "Your server log has {count} errors in it",
             "fix": "Fix: {fix}",
-            "more": "And more ({count}) on mclo.gs.",
-            "errorsBody": "mclo.gs found no known problem behind them. The full log shows where they come from.",
-            "view": "View the log on mclo.gs"
+            "more": "…and {count} more",
+            "errorsBody": "No known cause was recognised, but neo can read the errors and fix it.",
+            "errorsBodyNoNeo": "mclo.gs found no known problem behind them. The full log shows where they come from.",
+            "ask": "Ask neo to fix it",
+            "view": "View log"
           },
           "bedrock": {
             "title": "Bedrock Players",
@@ -10190,21 +10565,39 @@
         },
         "fivem": {
           "config": {
-            "title": "Server Configuration",
-            "intro": "The form edits {file}, the file txAdmin starts the server with. Only what you change is written; everything else in the file stays as it is. FXServer reads it when it starts, so restart the server to apply changes.",
-            "notSetUp": "There is no server.cfg yet: txAdmin has not set this server up. Open the console, then open txAdmin on the server's second port and finish its setup.",
-            "invalid": "Some rows have a name with characters FiveM does not accept (only letters, numbers and . _ - : @ [ ]). Fix or remove them to save.",
+            "title": "Server configuration",
+            "subtitle": "Edit {file} as a form, or as text. Both write the same file.",
+            "invalid": "{list}, row {row}: names can only use letters, numbers and . _ - : @ [ ]. Fix or remove the row, then save again.",
+            "unreachable": {
+              "title": "The server cannot be reached",
+              "description": "Its node is not answering. Try again in a minute."
+            },
+            "empty": {
+              "title": "No server.cfg yet",
+              "description": "txAdmin has not set this server up yet, so there is no server.cfg to edit. Install a framework here, or open txAdmin from the console and finish its setup.",
+              "frameworks": "Install a framework"
+            },
             "lists": {
               "empty": "None yet.",
               "remove": "Remove",
-              "add": "Add Row",
-              "showAll": "Show All {count}"
+              "showAll": "Show all {count}"
             },
             "toast": {
-              "saved": "server.cfg saved. Restart the server to apply it."
+              "saved": "server.cfg saved. Restart the server to apply it.",
+              "noChanges": "Nothing changed",
+              "restarting": "Restarting"
             },
             "button": {
-              "editText": "Edit as Text"
+              "save": "Save changes",
+              "editText": "Edit as text",
+              "restart": "Restart server"
+            },
+            "restart": {
+              "title": "Restart the server?",
+              "description": "FXServer reads server.cfg when it starts, so changes apply after a restart. Everyone online is disconnected."
+            },
+            "raw": {
+              "description": "The whole file, for everything the form does not cover. Saving replaces it as written."
             },
             "locale": {
               "none": "Default (no locale)"
@@ -10214,37 +10607,37 @@
               "description": "How your server appears in the FiveM server list and on its details page.",
               "hostname": "Hostname",
               "hostnameDescription": "Shown on the server details page after a player clicks into it.",
-              "projectName": "Project Name",
+              "projectName": "Project name",
               "projectNameDescription": "Shown as the server name in the server list.",
-              "maxClients": "Max Players",
-              "maxClientsDescription": "Slots reserved by the server, 1 to 2048.",
+              "maxClients": "Max players",
+              "maxClientsDescription": "Slots reserved by the server.",
               "projectDescription": "Description",
               "projectDescriptionDescription": "Shown next to the server name in the server list.",
               "locale": "Locale",
               "localeDescription": "Used by the FiveM client for dates and numbers.",
               "tags": "Tags",
-              "tagsDescription": "Tags help players find your server.",
-              "tagsPlaceholder": "Add a tag",
-              "icon": "Server Icon",
+              "tagsDescription": "Press Enter or comma to add one. Tags help players find your server.",
+              "tagsPlaceholder": "New tag",
+              "icon": "Server icon",
               "iconDescription": "A 96x96 PNG, as a path relative to the server data folder. Shown next to your server name."
             },
             "network": {
-              "title": "Network and Build",
+              "title": "Network & build",
               "description": "The address FXServer listens on, and the GTA V build players need.",
               "endpoints": "Address",
-              "noEndpoints": "Set by txAdmin",
+              "noEndpoints": "{address} (txAdmin sets it)",
               "endpointsDescription": "Managed by the panel. Your server's ports are on the Network page.",
               "onesync": "OneSync",
               "onesyncValue": "Managed by txAdmin",
               "onesyncDescription": "Set it in txAdmin under Settings › FXServer. txAdmin comments out any onesync line in server.cfg.",
-              "gameBuild": "Enforce Game Build",
-              "gameBuildDescription": "Makes every player join on this game build, so newer DLC content works.",
+              "gameBuild": "Enforce game build",
+              "gameBuildDescription": "Makes every player join on this GTA V build, so newer DLC content works.",
               "gameBuildNone": "Not enforced (players use their own build)"
             },
             "database": {
               "title": "Database",
               "description": "Used by oxmysql and other resources that read mysql_connection_string.",
-              "use": "Use One of Your Databases",
+              "use": "Use one of your databases",
               "useDescription": "Fills the fields below from a database on the Databases page.",
               "usePlaceholder": "Choose a database",
               "host": "Host",
@@ -10252,69 +10645,75 @@
               "user": "Username",
               "name": "Database",
               "password": "Password",
-              "format": "Connection String Format",
+              "format": "Connection string format",
               "formatDescription": "Keep URI unless your resources need key=value. key=value cannot hold a password with = or ; in it."
             },
             "keys": {
-              "title": "License and API Keys",
+              "title": "License & API keys",
               "description": "Secrets that give the server access to FiveM, Steam and Tebex. Hidden until you show them.",
-              "license": "FiveM License Key",
+              "license": "FiveM license key",
               "licenseDescription": "Required. Get one for free at",
-              "steam": "Steam Web API Key",
+              "steam": "Steam Web API key",
               "steamDescription": "Only needed if your resources identify players by Steam.",
-              "tebex": "Tebex Secret",
+              "tebex": "Tebex secret",
               "tebexDescription": "Found in your Tebex dashboard under Game Servers."
             },
             "resources": {
               "title": "Resources",
               "description": "The ensure lines in server.cfg. A disabled resource is commented out, not removed.",
               "name": "Resource",
-              "enabled": "Enabled"
+              "enabled": "Enabled",
+              "add": "Add resource"
             },
             "principals": {
-              "title": "Group Memberships",
+              "title": "Group memberships",
               "description": "Each row is an add_principal line: a player identifier (or a group) joins a group.",
               "child": "Player or group",
-              "childPlaceholder": "identifier.fivem:1234567",
-              "parent": "Joins group"
+              "parent": "Joins group",
+              "add": "Add membership"
             },
             "aces": {
-              "title": "Access Control",
+              "title": "Access control",
               "description": "Each row is an add_ace line: allows or denies a group a command or object.",
               "principal": "Group",
               "object": "Command or object",
               "access": "Access",
               "allow": "allow",
-              "deny": "deny"
+              "deny": "deny",
+              "add": "Add rule"
             }
           },
           "players": {
             "title": "Players",
-            "description": "Who is on the server now, as FXServer reports it. Refreshes every {seconds} seconds.",
-            "unreachable": "The server is not answering",
-            "unreachableDescription": "It may be offline or still starting up.",
-            "countSlots": "Online: {count} of {slots}",
-            "count": "Online: {count}",
-            "table": {
-              "id": "ID",
-              "player": "Player",
-              "ping": "Ping"
+            "subtitle": "Live player list. Refreshes every {seconds} seconds.",
+            "refresh": "Refresh",
+            "online": "Online",
+            "offline": "Offline",
+            "countSlots": "{count} / {slots} players",
+            "count": {
+              "none": "No players",
+              "one": "{count} player",
+              "other": "{count} players"
             },
-            "noMatch": "No player matches. Try a name, a server ID or part of an identifier.",
-            "nobody": "Nobody is online. Players show up here as soon as they join.",
+            "search": "Search by name, ID or identifier",
+            "unreachable": "Server unreachable",
+            "unreachableDescription": "The server may be offline or still starting up.",
+            "nobody": "Nobody is online",
+            "nobodyDescription": "Players show up here as soon as they join.",
+            "noMatch": "No player matches",
+            "noMatchDescription": "Try a name, a server ID or part of an identifier.",
             "unnamed": "Unnamed player",
             "pingValue": "{ping} ms"
           },
           "artifacts": {
             "title": "Artifacts",
-            "notOnImage": "This server does not run on the FiveM image yet, so a build or edition chosen here applies once an administrator moves it onto the image.",
-            "notChangeable": "This server's egg has no FIVEM_VERSION variable, so its build cannot be changed here.",
+            "subtitle": "The FXServer build your server runs. Choose one, or let every start install Cfx's newest.",
             "installed": {
               "title": "Installed",
-              "unreachable": "Unknown (the node is not answering)",
-              "none": "Nothing yet: the next start installs a build.",
-              "unknown": "Unknown build: installed before the panel kept track. The next start records it.",
-              "since": "since {when}"
+              "unreachable": "Unknown (node not answering)",
+              "unknown": "Unknown build",
+              "unknownDescription": "Installed before the panel kept track. The next start records it.",
+              "since": "Since {when}"
             },
             "build": "Build {build}",
             "pending": "Build {build} installs at the next start.",
@@ -10329,14 +10728,15 @@
                 "description": "Every start installs Cfx's newest build, if it changed. Newest features, sometimes newest bugs."
               },
               "pin": {
-                "label": "Stay on This Build",
+                "label": "Stay on this build",
                 "description": "Keep the installed build until you pick another one."
               }
             },
-            "builds": "Builds",
-            "table": {
-              "build": "Build",
-              "support": "Support"
+            "search": "Search by build number",
+            "count": {
+              "none": "No builds",
+              "one": "{count} build",
+              "other": "{count} builds"
             },
             "noMatch": "No build matches that number.",
             "cfxUnreachable": "Cfx's build list could not be loaded. Try again in a minute.",
@@ -10353,77 +10753,90 @@
               "description": "Your server stays on this build until you choose another one. If it is running, it restarts now and installs the build; that takes a minute."
             },
             "toast": {
-              "restarting": "The server is restarting to apply it.",
-              "nextStart": "It applies at the next start.",
+              "restarting": "The server is restarting to apply it now.",
+              "nextStart": "It applies the next time the server starts.",
               "build": "Build {build} selected.",
-              "mode": "Updates now: {mode}."
+              "channel": "Updates follow {channel}."
             },
-            "sourceNote": "Builds download straight from Cfx (runtime.fivem.net). This panel does not host or change them and is not affiliated with Rockstar Games or Cfx.re.",
+            "channel": {
+              "recommended": "Recommended",
+              "latest": "Latest"
+            },
+            "enhancedNote": "This server runs FiveM for GTAV Enhanced, which always runs Cfx's current build. Builds here are for FiveM (Legacy).",
+            "enhancedLink": "Open FiveM for GTAV Enhanced",
+            "sourceNote": "Builds download straight from Cfx (runtime.fivem.net). {app} does not host or change them and is not affiliated with Rockstar Games or Cfx.re."
+          },
+          "enhanced": {
+            "nav": "GTAV Enhanced",
+            "title": "FiveM for GTAV Enhanced",
+            "subtitle": "Run your server on the new GTAV Enhanced edition of FiveM, or switch back at any time.",
+            "earlyAccess": "FiveM for GTAV Enhanced is in early access at Cfx.re. Expect bugs and missing features, and test it before moving your community over.",
+            "unavailable": "FiveM for GTAV Enhanced is not available on {app} yet. Cfx.re has it in early access, and it does not run on our servers yet. Here is what will change once it does.",
+            "redm": "This is a RedM server. There is no Enhanced edition of RedM.",
             "edition": {
-              "title": "FiveM for GTAV Enhanced",
               "legacy": "FiveM (Legacy)",
-              "enhanced": "FiveM for GTAV Enhanced",
-              "redm": "This is a RedM server. There is no Enhanced edition of RedM.",
-              "runsLegacy": "This server runs the normal FiveM server build.",
-              "runsEnhanced": "This server runs the Enhanced server build.",
-              "runsEnhancedBuild": "This server runs Enhanced build {build}, and updates to Cfx's newest at every start.",
-              "earlyAccess": "FiveM for GTAV Enhanced is in early access at Cfx.re. Expect bugs and missing features, and test it before moving your community over.",
-              "switchToEnhanced": "Switch to Enhanced",
-              "switchToLegacy": "Switch Back to Legacy",
-              "confirmEnhanced": "Switch to FiveM for GTAV Enhanced?",
-              "confirmEnhancedDescription": "Only players with the Enhanced client can join afterwards. Your server files, database and txAdmin data stay as they are. A running server restarts now.",
-              "confirmLegacy": "Switch back to FiveM (Legacy)?",
-              "confirmLegacyDescription": "Players need the normal FiveM client again. Your server files stay as they are. A running server restarts now.",
-              "switchedEnhanced": "Switched to Enhanced.",
-              "switchedLegacy": "Switched back to FiveM (Legacy).",
-              "facts": {
-                "client": {
-                  "title": "Players need the Enhanced client",
-                  "description": "Players must own GTA V Enhanced on PC and install the separate FiveM for GTAV Enhanced client from fivem.net. Legacy players cannot join an Enhanced server, and the other way round. There is no cross-play."
-                },
-                "scripts": {
-                  "title": "Scripts and resources",
-                  "description": "Lua, JavaScript and C# resources are compatible according to Cfx.re, and server.cfg, the database and txAdmin data stay untouched. ESX and QBCore are expected to work, but test your whole resource set before switching your live community."
-                },
-                "assets": {
-                  "title": "Assets, MLOs and vehicles",
-                  "description": "Most addon vehicles, MLOs and clothing load normally. Enhanced uses the newer GTA V renderer, so custom shaders, graphics packs and some texture packs may look different or need an update from their creator."
-                },
-                "network": {
-                  "title": "Networking and performance",
-                  "description": "Enhanced ships an overhauled OneSync with higher sync rates, faster entity streaming and room for more players. Voice chat uses a new VOIP system, so external voice resources may need updates."
-                },
-                "switching": {
-                  "title": "Switching back",
-                  "description": "You can switch back to FiveM (Legacy) at any time; your server files are kept either way. The builds above only apply to Legacy: Enhanced always runs Cfx's current build (build {build} right now)."
-                },
-                "txadmin": {
-                  "title": "txAdmin",
-                  "description": "txAdmin keeps working on Enhanced with the same login and settings. Enhanced brings its own, newer txAdmin, so it may look slightly different."
-                }
+              "enhanced": "FiveM for GTAV Enhanced"
+            },
+            "runsLegacy": "This server runs the normal FiveM server build.",
+            "runsEnhanced": "This server runs the Enhanced server build.",
+            "runsEnhancedBuild": "This server runs Enhanced build {build}, and updates to Cfx's newest at every start.",
+            "pendingEnhanced": "Switches to Enhanced at the next start.",
+            "pendingLegacy": "Switches back to FiveM (Legacy) at the next start.",
+            "switchToEnhanced": "Switch to Enhanced",
+            "switchToLegacy": "Switch back to Legacy",
+            "confirmEnhanced": "Switch to FiveM for GTAV Enhanced?",
+            "confirmEnhancedDescription": "Only players with the Enhanced client can join afterwards. Your server files, database and txAdmin data stay as they are. A running server restarts now.",
+            "confirmLegacy": "Switch back to FiveM (Legacy)?",
+            "confirmLegacyDescription": "Players need the normal FiveM client again. Your server files stay as they are. A running server restarts now.",
+            "switchedEnhanced": "Switched to Enhanced.",
+            "switchedLegacy": "Switched back to FiveM (Legacy).",
+            "compatibility": "What changes",
+            "facts": {
+              "client": {
+                "title": "Players need the Enhanced client",
+                "description": "Players must own GTA V Enhanced on PC and install the separate FiveM for GTAV Enhanced client from fivem.net. Legacy players cannot join an Enhanced server, and the other way round. There is no cross-play."
+              },
+              "scripts": {
+                "title": "Scripts and resources",
+                "description": "Lua, JavaScript and C# resources are compatible according to Cfx.re, and server.cfg, the database and txAdmin data stay untouched. ESX and QBCore are expected to work, but test your whole resource set before switching your live community."
+              },
+              "assets": {
+                "title": "Assets, MLOs and vehicles",
+                "description": "Most addon vehicles, MLOs and clothing load normally. Enhanced uses the newer GTA V renderer, so custom shaders, graphics packs and some texture packs may look different or need an update from their creator."
+              },
+              "network": {
+                "title": "Networking and performance",
+                "description": "Enhanced ships an overhauled OneSync with higher sync rates, faster entity streaming and room for more players. Voice chat uses a new VOIP system, so external voice resources may need updates."
+              },
+              "switching": {
+                "title": "Switching back",
+                "description": "You can switch back to FiveM (Legacy) at any time; your server files are kept either way. The Artifacts page only applies to Legacy: Enhanced always runs Cfx's current build (build {build} right now)."
+              },
+              "txadmin": {
+                "title": "txAdmin",
+                "description": "txAdmin keeps working on Enhanced with the same login and settings. Enhanced brings its own, newer txAdmin, so it may look slightly different."
               }
             }
           },
           "frameworks": {
-            "title": "Frameworks",
+            "nav": "Frameworks",
+            "title": "Framework installer",
+            "subtitle": "Install a FiveM framework with one click. Your current server files are kept.",
             "current": "txAdmin runs {folder} now. Installing puts the framework in a new folder and keeps this one as it is.",
             "currentNone": "txAdmin has not set this server up yet. Installing a framework does it for you.",
-            "unreachable": "The server's node is not answering, so the current folder is not known. Try again in a minute.",
+            "unreachable": "The server's node is not answering. Try again in a minute.",
             "indexUnreachable": "txAdmin's framework list could not be loaded. Try again in a minute.",
             "by": "by {author}",
-            "needsDatabase": "Needs a database (one of your database slots, or one you have).",
+            "needsDatabase": "Needs a database (one of your database slots).",
             "noDatabase": "Needs a database, and this server has no database slot left.",
-            "sourceNote": "These are txAdmin's official recipes. Every file comes straight from the framework's own GitHub; this panel does not host or change them.",
-            "table": {
-              "framework": "Framework"
-            },
+            "sourceNote": "These are txAdmin's official recipes. Every file comes straight from the framework's own GitHub; {app} does not host or change them.",
             "install": {
               "title": "Install {recipe}",
               "description": "Everything downloads into a new folder while your server keeps running, then the server restarts on it. Your current files stay in {folder}.",
               "descriptionFresh": "Everything downloads into a new folder, then the server restarts on it.",
-              "serverName": "Server Name",
-              "serverNameDescription": "Goes into the server's hostname. You can change it later under Server Configuration.",
-              "license": "FiveM License Key",
+              "serverName": "Server name",
+              "serverNameDescription": "Goes into the server's hostname. You can change it later under Server configuration.",
+              "license": "FiveM license key",
               "licenseDescription": "From portal.cfx.re (free). Filled in from your current server.cfg when it has one.",
               "database": "Database",
               "databaseDescription": "The framework creates its tables here. A new one is the safe choice.",
@@ -10434,18 +10847,22 @@
             "progress": {
               "installing": "Installing {recipe}",
               "stepOf": "Step {step} of {total}",
-              "prepare": "Preparing the folder and the database",
+              "prepare": "Preparing",
               "config": "Writing server.cfg",
               "restart": "Restarting the server on the new folder",
-              "database": "Created the database {name}.",
+              "database": "Created database {name}",
               "leave": "You can leave this page; the install keeps going.",
-              "done": "{recipe} is installed in {folder}, and the server is starting on it.",
+              "done": "Installed into {folder}. The server is starting on it.",
               "needsAdmin": "txAdmin starts the server once it has an admin: open the console, then open txAdmin on your server's second port and register with the PIN shown there.",
               "previousKept": "Your previous files are still in {folder}.",
-              "failed": "Installing {recipe} failed",
+              "failed": "The install stopped.",
               "failedNote": "Nothing changed on your server: the new folder and the database it created were removed, and txAdmin still runs your previous files.",
-              "console": "Open Console",
-              "back": "Back to Frameworks"
+              "console": "Open console",
+              "back": "Back to frameworks"
+            },
+            "toast": {
+              "done": "{recipe} is installed on {server}. It is in {folder}, and the server is starting on it.",
+              "failed": "Installing {recipe} on {server} failed"
             }
           }
         },
@@ -10453,64 +10870,91 @@
           "title": "Subdomains",
           "subtitle": "{current} of {max} used",
           "button": {
-            "add": "Add Subdomain",
-            "rename": "Rename",
+            "add": "Create Subdomain",
             "repair": "Write Records Again",
+            "edit": "Edit",
             "delete": "Delete"
           },
+          "limitReached": "Subdomain limit reached",
           "unavailable": {
             "off": "Subdomains are not set up on this panel.",
             "unsupported": "Subdomains are not offered for this server's game.",
             "no_domains": "No domain is set up for subdomains yet.",
-            "no_address": "This server has no address a subdomain could point at."
+            "no_address": "This server has no address a subdomain could point at.",
+            "discord_link": "The server's owner must link their Discord account (Account › Discord Rewards) for subdomains.",
+            "discord_member": "The server's owner must join the Discord server for subdomains."
           },
           "table": {
-            "subdomain": "Subdomain",
-            "connect": "Connect With",
+            "name": "Name",
+            "status": "Status",
             "type": "Type",
             "deposit": "Deposit",
-            "status": "Status"
+            "connect": "Connect With"
           },
-          "deposit": "{count} tokens",
-          "free": "Free",
+          "tokens": {
+            "one": "{count} token",
+            "other": "{count} tokens"
+          },
+          "depositTooltip": "Refundable deposit. Automatically returned to your account if deleted.",
+          "copied": "Subdomain copied to clipboard",
+          "connectionCopied": "Connection command copied!",
           "status": {
-            "propagating": "Spreading",
-            "propagatingTooltip": "Made in the last few minutes: some players may not reach it yet.",
-            "active": "Active"
+            "processing": "Processing ({minutes} min)",
+            "processingTooltip": "DNS propagation in progress. Changes typically take 1 to 3 minutes to be reachable worldwide.",
+            "active": "Active",
+            "activeTooltip": "Subdomain is active and propagated!"
           },
-          "empty": "No subdomains yet. Give your server a name like play.example.com that players join with.",
-          "full": "This server has all {max} of its subdomains.",
+          "type": {
+            "minecraft": "Minecraft (SRV)",
+            "fivem": "FiveM / RedM (SRV)",
+            "srv": "{service} (SRV)",
+            "standard": "Standard ({type})"
+          },
+          "empty": "No Subdomains",
           "create": {
-            "title": "Add Subdomain",
+            "title": "Create Subdomain",
+            "depositCaption": "Token Deposit • Subdomain #{number}",
+            "refundable": {
+              "one": "token (refundable on deletion)",
+              "other": "tokens (refundable on deletion)"
+            },
+            "balance": "Your Balance",
             "name": "Name",
-            "nameDescription": "2 to 63 lowercase letters, digits and hyphens.",
+            "placeholder": "e.g. play",
             "domain": "Domain",
             "service": {
-              "minecraft": "Players join with the name alone: an SRV record carries the port.",
-              "fivem": "Players join with \"connect\" and the name: SRV records carry the port.",
+              "minecraft": "Minecraft: Java Edition detected. Subdomain will route players directly to your port without typing :{port}.",
+              "fivem": "FiveM / RedM detected. Subdomain will configure Cfx.re SRV records so players can use \"connect\" without typing :{port}.",
               "srv": "It also gets an SRV record with the port, for game clients that look one up.",
-              "plain": "The name points at {address}; players add the port."
+              "plain": "Standard server. Subdomain will point directly to {address}."
             },
-            "cost": "This subdomain costs {cost} tokens, paid by the server owner and refunded when it is deleted.",
-            "balance": "You have {balance}.",
-            "notEnough": "This subdomain costs {cost} tokens, and you have {balance}.",
-            "button": "Add"
+            "serverIp": "server IP",
+            "nameLength": "The name must be at least 2 characters.",
+            "nameFormat": "Subdomain may only contain lowercase letters, numbers, and hyphens (cannot start or end with a hyphen).",
+            "insufficient": "Insufficient tokens! This subdomain requires a deposit of {cost}, but your account only has {balance} tokens.",
+            "button": "Create"
           },
-          "rename": {
-            "title": "Rename {name}",
-            "button": "Rename"
+          "edit": {
+            "title": "Edit Subdomain",
+            "button": "Save changes"
           },
           "delete": {
             "title": "Delete Subdomain",
             "body": "Delete {name}? Its DNS records are removed, and players can no longer join with it.",
-            "refund": "{count} tokens go back to the server owner."
+            "refund": {
+              "one": "{count} token goes back to the server owner.",
+              "other": "{count} tokens go back to the server owner."
+            }
           },
           "toast": {
             "created": "{name} is set up. It can take a few minutes to reach every player.",
-            "renamed": "Renamed to {name}.",
+            "saved": "Saved",
             "repaired": "The records of {name} are written again.",
-            "deleted": "{name} deleted.",
-            "deletedRefund": "{name} deleted, {count} tokens refunded."
+            "deleted": "Subdomain deleted.",
+            "deletedRefund": {
+              "one": "Subdomain deleted. {count} token refunded to your balance.",
+              "other": "Subdomain deleted. {count} tokens refunded to your balance."
+            }
           }
         },
         "devbox": {

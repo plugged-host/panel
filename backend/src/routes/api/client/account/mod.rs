@@ -10,6 +10,7 @@ mod balance; // plugged.host
 mod command_snippets;
 mod credits; // plugged.host
 mod devboxes; // plugged.host
+mod discord; // plugged.host
 mod email;
 mod logout;
 mod membership; // plugged.host
@@ -203,6 +204,7 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         .nest("/credits", credits::router(state)) // plugged.host
         .nest("/tokens", tokens::router(state)) // plugged.host
         .nest("/membership", membership::router(state)) // plugged.host
+        .nest("/discord", discord::router(state)) // plugged.host
         .nest("/devboxes", devboxes::router(state)) // plugged.host
         .nest("/neo", neo::router(state)) // plugged.host
         .with_state(state.clone())

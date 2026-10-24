@@ -518,6 +518,76 @@ export const userMembershipsTable = pgTable(
   (cols) => [index('user_memberships_plusplus_until_idx').on(cols.plusplus_until)],
 );
 
+// plugged.host: the Discord server's members the panel knows of, the invites they brought and the
+// boost levels paid (shared/src/discord, docs/features/discord.md)
+export const discordMembersTable = pgTable(
+  'discord_members',
+  {
+    discord_id: varchar({ length: 32 }).primaryKey().notNull(),
+    // the account the Discord account was linked to at the last check
+    user_uuid: uuid().references(() => usersTable.uuid, { onDelete: 'set null' }),
+    username: varchar({ length: 64 }),
+    avatar: varchar({ length: 64 }),
+    in_guild: boolean().default(false).notNull(),
+    premium_since: timestamp(),
+    boosts: smallint().default(0).notNull(),
+    // clawed-back invite credits the balance could not cover, taken from the next invite rewards
+    invite_debt: bigint({ mode: 'number' }).default(0).notNull(),
+    checked: timestamp(),
+    created: timestamp().defaultNow().notNull(),
+  },
+  (cols) => [
+    uniqueIndex('discord_members_user_uuid_idx').on(cols.user_uuid),
+    index('discord_members_checked_idx').on(cols.checked),
+  ],
+);
+
+export const discordInvitesTable = pgTable(
+  'discord_invites',
+  {
+    uuid: uuid().default(sql`gen_random_uuid()`).primaryKey().notNull(),
+    inviter_discord_id: varchar({ length: 32 }).notNull(),
+    joined_discord_id: varchar({ length: 32 }).notNull(),
+    invite_code: varchar({ length: 32 }),
+    account_created: timestamp().notNull(),
+    joined: timestamp().notNull(),
+    // old enough and not the inviter themselves
+    eligible: boolean().notNull(),
+    matures: timestamp().notNull(),
+    rewarded: timestamp(),
+    credits: bigint({ mode: 'number' }).default(0).notNull(),
+    departed: timestamp(),
+    leave_count: integer().default(0).notNull(),
+    rejoin_count: integer().default(0).notNull(),
+    revoked: timestamp(),
+    revoked_credits: bigint({ mode: 'number' }).default(0).notNull(),
+    last_seen: timestamp(),
+    created: timestamp().defaultNow().notNull(),
+  },
+  (cols) => [
+    uniqueIndex('discord_invites_joined_discord_id_idx').on(cols.joined_discord_id),
+    index('discord_invites_inviter_discord_id_idx').on(cols.inviter_discord_id),
+    index('discord_invites_rewarded_matures_idx').on(cols.rewarded, cols.matures),
+    index('discord_invites_last_seen_idx').on(cols.last_seen),
+  ],
+);
+
+export const discordBoostPayoutsTable = pgTable(
+  'discord_boost_payouts',
+  {
+    uuid: uuid().default(sql`gen_random_uuid()`).primaryKey().notNull(),
+    discord_id: varchar({ length: 32 }).notNull(),
+    user_uuid: uuid().references(() => usersTable.uuid, { onDelete: 'set null' }),
+    level: smallint().notNull(),
+    credits: bigint({ mode: 'number' }).notNull(),
+    created: timestamp().defaultNow().notNull(),
+  },
+  (cols) => [
+    uniqueIndex('discord_boost_payouts_discord_id_level_idx').on(cols.discord_id, cols.level),
+    uniqueIndex('discord_boost_payouts_user_uuid_level_idx').on(cols.user_uuid, cols.level),
+  ],
+);
+
 export const userCommandSnippetsTable = pgTable(
   'user_command_snippets',
   {

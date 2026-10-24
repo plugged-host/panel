@@ -440,7 +440,14 @@ const user = {
   tokens: () => ['user', 'tokens'] as const,
   membership: () => ['user', 'membership'] as const,
   balance: () => ['user', 'balance'] as const,
+  discord: () => ['user', 'discord'] as const, // plugged.host: docs/features/discord.md
   ads: () => ['user', 'ads'] as const, // plugged.host: docs/features/ads.md
+  // plugged.host: neo's chat (docs/features/neo.md)
+  neo: {
+    usage: () => ['user', 'neo', 'usage'] as const,
+    allConversations: () => ['user', 'neo', 'conversations'] as const,
+    conversations: (serverUuid: string | null) => ['user', 'neo', 'conversations', { server: serverUuid }] as const,
+  },
 };
 
 const global = {

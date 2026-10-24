@@ -1001,6 +1001,36 @@ pub async fn define_background_tasks(
             },
         )
         .await;
+    // plugged.host: Discord (shared::discord): the bots' gateway sessions started and stopped as
+    // the settings ask, linked members checked, matured invites paid, departures the bot missed
+    background_task_builder
+        .add_cron_task(
+            "discord_gateway",
+            croner::Cron::from_str("*/15 * * * * *").unwrap(),
+            async |state| shared::discord::gateway::supervise(&state).await,
+        )
+        .await;
+    background_task_builder
+        .add_cron_task(
+            "sync_discord_members",
+            croner::Cron::from_str("0 */5 * * * *").unwrap(),
+            async |state| shared::discord::members::sync(&state).await,
+        )
+        .await;
+    background_task_builder
+        .add_cron_task(
+            "settle_discord_invites",
+            croner::Cron::from_str("30 */5 * * * *").unwrap(),
+            async |state| shared::discord::invites::settle_all(&state).await,
+        )
+        .await;
+    background_task_builder
+        .add_cron_task(
+            "reconcile_discord_invites",
+            croner::Cron::from_str("0 23 * * * *").unwrap(),
+            async |state| shared::discord::invites::reconcile(&state).await,
+        )
+        .await;
     background_task_builder
         .add_cron_task(
             "prune_node_telemetry",

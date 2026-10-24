@@ -449,6 +449,40 @@ export const adminSettingsSubdomainsStoreSchema = adminSettingsSubdomainsSchema.
   cloudflareToken: z.string().max(255).nullable(),
 });
 
+// plugged.host: Discord membership, invite and boost rewards, the bots (shared/src/settings/discord.rs,
+// docs/features/discord.md); an empty token keeps the stored one
+export const adminSettingsDiscordSchema = z.object({
+  enabled: z.boolean(),
+  guildId: z.string().regex(/^(\d{15,20})?$/),
+  botToken: z.string().max(255),
+  inviteUrl: z.union([z.literal(''), z.url({ protocol: /^https$/ }).max(255)]),
+  oauthProviderUuid: z.string().nullable(),
+  tierCpu: z.number().int().min(0).max(3200),
+  tierMemory: z.number().int().min(0).max(262144),
+  tierDisk: z.number().int().min(0).max(1048576),
+  creditsPerInvite: z.number().int().min(0).max(1_000_000),
+  minAccountAgeDays: z.number().int().min(0).max(3650),
+  inviteMaturityHours: z.number().int().min(0).max(720),
+  inviteClawback: z.boolean(),
+  boostOneCredits: z.number().int().min(0).max(10_000_000),
+  boostTwoCredits: z.number().int().min(0).max(10_000_000),
+  boostTwoRoleId: z.string().regex(/^(\d{15,20})?$/),
+  subdomainsRequireLink: z.boolean(),
+  subdomainsRequireMember: z.boolean(),
+  rewardsBotEnabled: z.boolean(),
+  assistantBotEnabled: z.boolean(),
+  assistantBotToken: z.string().max(255),
+  moderationBotEnabled: z.boolean(),
+  moderationBotToken: z.string().max(255),
+});
+
+// plugged.host: the Discord section as the panel sends it (stored tokens come back as placeholders)
+export const adminSettingsDiscordStoreSchema = adminSettingsDiscordSchema.extend({
+  botToken: z.string().max(255).nullable(),
+  assistantBotToken: z.string().max(255).nullable(),
+  moderationBotToken: z.string().max(255).nullable(),
+});
+
 // plugged.host: VS Code devboxes next to game servers (shared/src/settings/devboxes.rs,
 // docs/features/devboxes.md); an empty token keeps the stored one
 export const adminSettingsDevboxesSchema = z.object({
@@ -670,6 +704,7 @@ export const adminSettingsSchema = z.object({
   limbo: adminSettingsLimboSchema, // plugged.host
   ads: adminSettingsAdsSchema, // plugged.host
   subdomains: adminSettingsSubdomainsStoreSchema, // plugged.host
+  discord: adminSettingsDiscordStoreSchema, // plugged.host
   devboxes: adminSettingsDevboxesStoreSchema, // plugged.host
   updates: adminSettingsUpdatesSchema,
 });

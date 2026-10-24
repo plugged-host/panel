@@ -1,4 +1,4 @@
-import { faTerminal, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faAnglesRight, faXmark } from '@fortawesome/free-solid-svg-icons'; // plugged.host: Pelican's chevrons
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { KeyboardEvent, RefObject, useEffect, useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
@@ -43,6 +43,7 @@ export default function ConsoleCommandInput({
     })),
   );
   const disabled = !socketConnected || state === 'offline';
+  const offline = state === 'offline'; // plugged.host: Pelican's "Server Offline..."
 
   const [prefixOpened, setPrefixOpened] = useState(false);
   const [prefixWidth, setPrefixWidth] = useState(0);
@@ -65,7 +66,8 @@ export default function ConsoleCommandInput({
   }, [commandPrefix]);
 
   return (
-    <div className='w-full mt-4 flex flex-row'>
+    // plugged.host: the Pelican console's command line along the terminal's bottom (app.css)
+    <div className='theme-console-input'>
       <ServerCan action='control.console'>
         <Autocomplete
           value={inputValue}
@@ -78,7 +80,12 @@ export default function ConsoleCommandInput({
             inputValueRef.current = value;
             setInputValue(value);
           }}
-          placeholder={t('pages.server.console.input.placeholder', {})}
+          placeholder={
+            offline // plugged.host
+              ? t('pages.server.console.input.placeholderOffline', {})
+              : t('pages.server.console.input.placeholder', {})
+          }
+          title={offline ? t('pages.server.console.input.offlineTitle', {}) : undefined} // plugged.host
           aria-label={t('pages.server.console.input.ariaLabel', {})}
           disabled={disabled}
           onKeyDown={onKeyDown}
@@ -97,7 +104,7 @@ export default function ConsoleCommandInput({
                       onClick={() => setPrefixOpened((o) => !o)}
                     >
                       <FontAwesomeIcon
-                        icon={faTerminal}
+                        icon={faAnglesRight}
                         className={
                           commandPrefix
                             ? 'text-(--mantine-primary-color-filled)'

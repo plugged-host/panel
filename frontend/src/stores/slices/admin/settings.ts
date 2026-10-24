@@ -312,6 +312,31 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
     costMore: 15,
     blockedNames: '',
   },
+  // plugged.host: docs/features/discord.md
+  discord: {
+    enabled: false,
+    guildId: '',
+    botToken: null,
+    inviteUrl: '',
+    oauthProviderUuid: null,
+    tierCpu: 0,
+    tierMemory: 0,
+    tierDisk: 0,
+    creditsPerInvite: 50,
+    minAccountAgeDays: 30,
+    inviteMaturityHours: 6,
+    inviteClawback: true,
+    boostOneCredits: 500,
+    boostTwoCredits: 1250,
+    boostTwoRoleId: '',
+    subdomainsRequireLink: false,
+    subdomainsRequireMember: false,
+    rewardsBotEnabled: false,
+    assistantBotEnabled: false,
+    assistantBotToken: null,
+    moderationBotEnabled: false,
+    moderationBotToken: null,
+  },
   devboxes: {
     enabled: false,
     eggUuid: null,
@@ -429,6 +454,7 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
       limbo: value.limbo, // plugged.host
       ads: value.ads, // plugged.host
       subdomains: value.subdomains, // plugged.host
+      discord: value.discord, // plugged.host
       devboxes: value.devboxes, // plugged.host
       updates: value.updates,
     })),
@@ -456,6 +482,7 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
       ...(value.limbo ? { limbo: { ...state.limbo, ...value.limbo } } : {}), // plugged.host
       ...(value.ads ? { ads: { ...state.ads, ...value.ads } } : {}), // plugged.host
       ...(value.subdomains ? { subdomains: { ...state.subdomains, ...value.subdomains } } : {}), // plugged.host
+      ...(value.discord ? { discord: { ...state.discord, ...value.discord } } : {}), // plugged.host
       ...(value.devboxes ? { devboxes: { ...state.devboxes, ...value.devboxes } } : {}), // plugged.host
       ...(value.updates ? { updates: { ...state.updates, ...value.updates } } : {}),
     })),

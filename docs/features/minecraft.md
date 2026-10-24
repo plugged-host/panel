@@ -307,11 +307,14 @@ it to mclo.gs (`api.mclo.gs/1/log`), which strips IP addresses itself. mclo.gs's
 
 One result per server, kept 24 hours (`minecraft::log_check::<server>`) and shared by everyone
 watching. A log is uploaded only when it changed (MD5), a running server's at most every 2 minutes,
-a stopped server's right away (the log with the crash); one upload at a time per server. A clean log
-shows one dimmed line with a link; problems show as a card with up to three problems and their fixes
-and the link to the whole log on mclo.gs; error lines without a known problem say so. The "Ask neo"
-button comes with Phase 5's AI port. Admin › Settings › Hosting › Minecraft › Log Check turns it off
-(the console then shows nothing).
+a stopped server's right away (the log with the crash); one upload at a time per server. It sits at
+the top of the console page, above the title row, as on the Pelican panel. A clean log shows one quiet
+line with a link; problems show as a card with up to three problems and their fixes, and at its end
+"Ask neo to fix it" and the link to the whole log on mclo.gs; error lines without a known problem say
+so. "Ask neo to fix it" shows when neo is offered (`settings.neo.enabled`) and the user has the
+server's `neo.access`; it sends the window event `neo:ask` with `{ log: <mclo.gs id> }`, which the
+neo chat answers by starting a chat on that log ([neo](neo.md)). Without neo the card only links the
+log. Admin › Settings › Hosting › Minecraft › Log Check turns it off (the console then shows nothing).
 
 ## Routes
 
@@ -421,9 +424,10 @@ Nothing here uses noprofit.space.
   `plugins/` has Geyser and Floodgate; a Bedrock client joins on the shown address. Update Geyser
   keeps the same port.
 - Bedrock on a Fabric server: Geyser-Fabric and Floodgate from Modrinth in `mods/`.
-- The log check: start a server with a broken mod; above the console a card lists the problem and
-  its fix, with a link to mclo.gs where passwords in the log show as `••••`. A clean start shows the
-  one dimmed line. Turning Log Check off in Admin › Settings hides it.
+- The log check: start a server with a broken mod; at the top of the console page a card lists the
+  problem and its fix, with "Ask neo to fix it" (with neo on and `neo.access`) and View log, a link
+  to mclo.gs where passwords in the log show as `••••`. A clean start shows the one quiet line.
+  Turning Log Check off in Admin › Settings hides it.
 - Create a Minecraft server as a player: the server page goes to Set Up Your Server while it
   installs; the console and other pages lead back to it. Pick Fabric and an older version, Java and
   Bedrock, any name, private with two names and an operator: after Set Up and Start the page shows

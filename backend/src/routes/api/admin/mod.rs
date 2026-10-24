@@ -26,6 +26,7 @@ mod backup_configurations;
 // plugged.host: managed database instances removed (docs/upstream.md)
 // mod database_agent_templates;
 mod database_hosts;
+mod discord; // plugged.host
 mod domains; // plugged.host
 // plugged.host: devices removed (docs/upstream.md)
 // mod devices;
@@ -102,6 +103,7 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         .nest("/eggs", eggs::router(state))
         .nest("/database-hosts", database_hosts::router(state))
         .nest("/domains", domains::router(state)) // plugged.host
+        .nest("/discord", discord::router(state)) // plugged.host
         // .nest("/database-agent-hosts", database_agent_hosts::router(state))
         // .nest("/database-agent-templates", database_agent_templates::router(state))
         .nest(

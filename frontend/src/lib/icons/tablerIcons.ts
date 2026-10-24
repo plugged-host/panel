@@ -26,6 +26,7 @@ import {
   IconArrowUp,
   IconAt,
   IconBan,
+  IconBolt, // plugged.host
   IconBook,
   IconBrandDocker,
   IconBriefcase,
@@ -109,6 +110,7 @@ import {
   IconGitCommit,
   IconGitCompare,
   IconGripVertical,
+  IconHandStop, // plugged.host
   IconHash,
   IconHeart,
   IconHeartBroken,
@@ -132,6 +134,7 @@ import {
   IconList,
   IconListCheck, // plugged.host
   IconListDetails,
+  IconLoader2, // plugged.host
   IconLock,
   IconLockOpen,
   IconLockOpen2,
@@ -142,8 +145,10 @@ import {
   IconMailForward,
   IconMedal, // plugged.host
   IconMenu2,
+  IconMessagePlus, // plugged.host
   IconMinus,
   IconNetwork,
+  IconPackage, // plugged.host
   IconPackages,
   IconPencil,
   IconPhoto,
@@ -179,6 +184,7 @@ import {
   IconSignature,
   IconSitemap,
   IconSkull,
+  IconSparkles, // plugged.host
   IconSpeakerphone,
   IconSpy,
   IconStack2,
@@ -232,7 +238,9 @@ export const tablerIcons: Record<string, TablerIcon> = {
   at: IconAt,
   ban: IconBan,
   bars: IconMenu2,
+  bolt: IconBolt, // plugged.host: neo's "ran without asking"
   book: IconBook,
+  box: IconPackage, // plugged.host
   'box-archive': IconArchive,
   'boxes-stacked': IconPackages,
   briefcase: IconBriefcase,
@@ -271,6 +279,7 @@ export const tablerIcons: Record<string, TablerIcon> = {
   'code-commit': IconGitCommit,
   'code-compare': IconGitCompare,
   coins: IconCoins, // plugged.host
+  'comment-medical': IconMessagePlus, // plugged.host: neo's new chat
   compass: IconCompass,
   compress: IconArrowsMinimize,
   computer: IconBrandDocker,
@@ -324,6 +333,7 @@ export const tablerIcons: Record<string, TablerIcon> = {
   globe: IconWorld,
   'graduation-cap': IconLock,
   'grip-vertical': IconGripVertical,
+  hand: IconHandStop, // plugged.host: neo's approvals
   handshake: IconHeartHandshake,
   'hard-drive': IconDeviceSdCard,
   hashtag: IconHash,
@@ -394,6 +404,7 @@ export const tablerIcons: Record<string, TablerIcon> = {
   sitemap: IconSitemap,
   skull: IconSkull,
   sliders: IconAdjustmentsHorizontal,
+  spinner: IconLoader2, // plugged.host: neo working
   star: IconStar,
   stethoscope: IconStethoscope,
   stop: IconPlayerStop,
@@ -423,6 +434,7 @@ export const tablerIcons: Record<string, TablerIcon> = {
   'user-lock': IconUserShield,
   users: IconUsers,
   'user-secret': IconSpy,
+  'wand-magic-sparkles': IconSparkles, // plugged.host: neo
   'window-maximize': IconWindowMaximize,
   'window-restore': IconAppWindow,
   wrench: IconTool,

@@ -169,7 +169,13 @@ pub struct ApiAccountBackupCopy {
 #[derive(ToSchema, Serialize)]
 pub struct ApiAccountBackup {
     pub server_uuid: uuid::Uuid,
+    /// The short ID the panel shows (`#1a2b3c4d`) and its server URLs use (`/server/1a2b3c4d`).
+    pub server_uuid_short: compact_str::CompactString,
     pub server_name: compact_str::CompactString,
+    /// The server's egg; null for a deleted server (`deleted_servers` does not record it).
+    pub egg_name: Option<compact_str::CompactString>,
+    /// The server's node; for a deleted server, the node that took its copy.
+    pub node_name: compact_str::CompactString,
     /// When the server was deleted; null for a server that still exists.
     pub deleted: Option<chrono::DateTime<chrono::Utc>>,
     /// Until when a deleted server's copy can be downloaded.
@@ -193,10 +199,17 @@ fn copy_from(row: &sqlx::postgres::PgRow) -> Result<Option<ApiAccountBackupCopy>
     }))
 }
 
+/// A server's short ID as the panel writes it: `servers.uuid_short` in hex, which is the first
+/// 8 hex digits of the server's UUID (`Server::create()`), so a deleted server has one too.
+fn short_id(uuid_short: i32) -> compact_str::CompactString {
+    compact_str::format_compact!("{uuid_short:08x}")
+}
+
 /// The newest finished, successful server backup among those the condition picks.
 const NEWEST_COPY: &str =
     "SELECT server_backups.uuid AS backup_uuid, server_backups.name AS backup_name,
-        server_backups.bytes AS backup_bytes, server_backups.created AS backup_created
+        server_backups.bytes AS backup_bytes, server_backups.created AS backup_created,
+        server_backups.node_uuid AS backup_node_uuid
     FROM server_backups
     WHERE server_backups.kind = 'SERVER'
         AND server_backups.successful
@@ -204,20 +217,23 @@ const NEWEST_COPY: &str =
         AND server_backups.deleted IS NULL
         AND server_backups.deleting IS NULL";
 
-/// The account's live servers (not suspended) and its deleted servers still held, with their
-/// newest copy each.
+/// The account's live servers (not suspended), newest first, and its deleted servers still held,
+/// most recently deleted first, with their newest copy each.
 pub async fn for_owner(
     database: &crate::database::Database,
     owner_uuid: uuid::Uuid,
 ) -> Result<Vec<ApiAccountBackup>, sqlx::Error> {
     let live = sqlx::query(sqlx::AssertSqlSafe(format!(
-        "SELECT servers.uuid, servers.name, copy.*
+        "SELECT servers.uuid, servers.uuid_short, servers.name, nest_eggs.name AS egg_name,
+            nodes.name AS node_name, copy.*
         FROM servers
+        JOIN nest_eggs ON nest_eggs.uuid = servers.egg_uuid
+        JOIN nodes ON nodes.uuid = servers.node_uuid
         LEFT JOIN LATERAL ({NEWEST_COPY}
             AND server_backups.server_uuid = servers.uuid
             ORDER BY server_backups.created DESC LIMIT 1) copy ON TRUE
         WHERE servers.owner_uuid = $1 AND NOT servers.suspended
-        ORDER BY servers.name"
+        ORDER BY servers.created DESC"
     )))
     .bind(owner_uuid)
     .fetch_all(database.read())
@@ -225,11 +241,12 @@ pub async fn for_owner(
 
     let deleted = sqlx::query(sqlx::AssertSqlSafe(format!(
         "SELECT deleted_servers.uuid, deleted_servers.name, deleted_servers.deleted,
-            deleted_servers.hold_until, copy.*
+            deleted_servers.hold_until, nodes.name AS node_name, copy.*
         FROM deleted_servers
         JOIN LATERAL ({NEWEST_COPY}
             AND server_backups.uuid = ANY(deleted_servers.backups)
             ORDER BY server_backups.created DESC LIMIT 1) copy ON TRUE
+        JOIN nodes ON nodes.uuid = copy.backup_node_uuid
         WHERE deleted_servers.owner_uuid = $1
             AND NOT deleted_servers.suspended
             AND deleted_servers.purged IS NULL
@@ -244,16 +261,23 @@ pub async fn for_owner(
     for row in &live {
         rows.push(ApiAccountBackup {
             server_uuid: row.try_get("uuid")?,
+            server_uuid_short: short_id(row.try_get("uuid_short")?),
             server_name: row.try_get("name")?,
+            egg_name: Some(row.try_get("egg_name")?),
+            node_name: row.try_get("node_name")?,
             deleted: None,
             kept_until: None,
             backup: copy_from(row)?,
         });
     }
     for row in &deleted {
+        let uuid: uuid::Uuid = row.try_get("uuid")?;
         rows.push(ApiAccountBackup {
-            server_uuid: row.try_get("uuid")?,
+            server_uuid: uuid,
+            server_uuid_short: short_id(uuid.as_fields().0 as i32),
             server_name: row.try_get("name")?,
+            egg_name: None,
+            node_name: row.try_get("node_name")?,
             deleted: Some(
                 row.try_get::<chrono::NaiveDateTime, _>("deleted")?
                     .and_utc(),
@@ -330,5 +354,20 @@ mod tests {
         assert_eq!(older_copies(&[a, b, c]), &[b, c]);
         assert!(older_copies(&[a]).is_empty());
         assert!(older_copies(&[]).is_empty());
+    }
+
+    #[test]
+    fn a_short_id_is_the_first_eight_hex_digits_of_the_uuid() {
+        for uuid in [
+            uuid::Uuid::parse_str("1a2b3c4d-0000-4000-8000-000000000000").unwrap(),
+            // a negative uuid_short still reads as the UUID's start
+            uuid::Uuid::parse_str("f00dcafe-0000-4000-8000-000000000000").unwrap(),
+            uuid::Uuid::parse_str("00000001-0000-4000-8000-000000000000").unwrap(),
+        ] {
+            assert_eq!(
+                short_id(uuid.as_fields().0 as i32).as_str(),
+                &uuid.to_string()[..8]
+            );
+        }
     }
 }

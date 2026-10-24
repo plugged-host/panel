@@ -1,8 +1,9 @@
 //! plugged.host: how much a player may use for their own servers (docs/features/create-server.md).
 //!
 //! The limit is the account's noprofit.space plan when noprofit.space is connected, else the games
-//! settings' allowance (the same for every account). What is used is the sum of the servers the
-//! account owns. A limit of 0 puts no limit on that resource, like a node's memory and disk.
+//! settings' allowance (the same for every account) plus what the account bought and the Discord
+//! tier (docs/features/discord.md). What is used is the sum of the servers the account owns. A
+//! limit of 0 puts no limit on that resource, like a node's memory and disk.
 
 use serde::Serialize;
 use sqlx::Row;
@@ -204,10 +205,12 @@ pub async fn for_user(
     } else {
         // What the Resource Store sold the account (with noprofit.space it is in the plan).
         let extras = crate::economy::extras(&state.database, user_uuid).await?;
+        // The Discord tier while the account's Discord is in the server (docs/features/discord.md).
+        let discord = crate::discord::tier(state, user_uuid).await?;
         (
             AllowanceSource::Settings,
             true,
-            add_where_limited(settings_limit, extras),
+            add_where_limited(add_where_limited(settings_limit, extras), discord),
         )
     };
 

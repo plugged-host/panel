@@ -1,13 +1,11 @@
 import {
   faAdd,
-  faEllipsisVertical,
-  faInfoCircle,
   faMinus,
   faPlay,
+  faPowerOff,
   faRotateRight,
   faSkull,
   faStop,
-  faTriangleExclamation,
   faUsers,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -25,16 +23,36 @@ import Tooltip from '@/elements/overlays/Tooltip.tsx';
 import ScrollingText from '@/elements/ScrollingText.tsx';
 import RedactedText from '@/elements/typography/RedactedText.tsx';
 import { isInLimbo } from '@/lib/domain/limbo.ts'; // plugged.host
-import { formatAllocation, serverStatusInfo, statusToColor } from '@/lib/domain/server.ts';
-import { bytesToString, mbToBytes } from '@/lib/format/size.ts';
+import { formatAllocation } from '@/lib/domain/server.ts';
+import { serverCondition } from '@/lib/domain/serverCondition.ts'; // plugged.host
+import { formatSizePair, formatUptimeShort, usageBarPercent, usageLevel } from '@/lib/format/serverUsage.ts'; // plugged.host
 import { serverPowerAction, serverSchema } from '@/lib/schemas/server/server.ts';
 import { useBulkPowerActions } from '@/plugins/server/useBulkPowerActions.ts';
-import { useServerListShowOthers } from '@/plugins/server/useServerListShowOthers.ts';
 import { useServerStats, useServerStatsUnavailable } from '@/plugins/server/useServerStats.ts';
 import { useAuth } from '@/providers/AuthProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useUserStore } from '@/stores/user.ts';
 import ServerAddGroupModal from './modals/ServerAddGroupModal.tsx';
+
+// plugged.host: what the card shows of a limit it does not have, and how long a description gets
+// (Pelican's Str::limit(description, 80, preserveWords: true))
+const UNLIMITED = '∞';
+const DESCRIPTION_LIMIT = 80;
+
+function limitWords(text: string, limit: number): string {
+  if (Array.from(text).length <= limit) return text;
+
+  const characters = Array.from(text.replace(/[\n\r]+/g, ' ').trim());
+  if (characters.length <= limit) return characters.join('');
+
+  const cut = characters.slice(0, limit).join('').trimEnd();
+  if (characters[limit] === ' ') return `${cut}...`;
+
+  // drop the word the limit cut through
+  const lastSpace = cut.search(/\s\S*$/);
+
+  return `${lastSpace > 0 ? cut.slice(0, lastSpace) : cut}...`;
+}
 
 export default function ServerItem({
   server,
@@ -64,7 +82,6 @@ export default function ServerItem({
   const { t } = useTranslations();
   const { user } = useAuth();
   const serverGroups = useUserStore((state) => state.serverGroups);
-  const [serverListShowOthers] = useServerListShowOthers();
 
   const [openModal, setOpenModal] = useState<'add-group' | 'kill' | null>(null);
   const stats = useServerStats(server);
@@ -94,103 +111,73 @@ export default function ServerItem({
     [handleBulkPowerAction, server.uuid],
   );
 
-  const diskLimit = server.limits.disk !== 0 ? bytesToString(mbToBytes(server.limits.disk)) : t('common.unlimited', {});
-  const memoryLimit =
-    server.limits.memory !== 0 ? bytesToString(mbToBytes(server.limits.memory)) : t('common.unlimited', {});
-  // plugged.host: burst cores above the paid CPU
-  const cpuLimit =
-    server.limits.cpu === 0
-      ? t('common.unlimited', {})
-      : server.limits.burstCpu > 0
-        ? t('common.stat.cpuWithBurst', { base: `${server.limits.cpu}%`, burst: `${server.limits.burstCpu}%` })
-        : `${server.limits.cpu}%`;
+  // plugged.host: the card's state line and meters (Theme v2's ThemeV2ServerEntry): "Running · 2h 14m",
+  // "Loading..." until the stats arrive, and "12 / 100%", "1.2 / 2 GiB" with Pelican's 70 % and 90 % marks.
+  const condition = serverCondition(server, state, statsUnavailable);
+  const loading = condition.label === null;
+  const uptime = stats?.uptime ?? 0;
+  const stateLabel =
+    condition.label === null
+      ? t('pages.account.home.card.loading', {})
+      : condition.live && uptime > 0
+        ? t('pages.account.home.card.stateUptime', { state: condition.label, uptime: formatUptimeShort(uptime) })
+        : condition.label;
 
-  // plugged.host: the card's state line and meters (Theme v2's ThemeV2ServerEntry).
-  const limbo = isInLimbo(server.limboState) ? server.limboState : null; // plugged.host: docs/features/limbo.md
-  const stateLabel = server.isSuspended
-    ? t('common.server.state.suspended', {})
-    : limbo
-      ? t(`common.server.state.${limbo === 'parking' || limbo === 'parked' ? limbo : 'restoring'}`, {})
-      : server.isTransferring
-        ? t('common.server.state.transferring', {})
-        : server.nodeMaintenanceEnabled
-          ? t('common.server.state.nodeMaintenance', {})
-          : server.status
-            ? serverStatusInfo[server.status].label()
-            : stats
-              ? t(`common.enum.serverState.${stats.state}`, {})
-              : statsUnavailable
-                ? t('common.server.state.resourcesUnavailable', {})
-                : t('common.enum.serverState.unknown', {});
-  const stateFailed =
-    server.isSuspended ||
-    server.nodeMaintenanceEnabled ||
-    (!!server.status && serverStatusInfo[server.status].failed) ||
-    (!server.status && !stats && statsUnavailable && !limbo);
-  const stateBusy =
-    !stateFailed &&
-    (server.isTransferring ||
-      !!server.status ||
-      (!!limbo && limbo !== 'parked') ||
-      (!stats && !statsUnavailable && !limbo));
-
+  const limbo = isInLimbo(server.limboState); // plugged.host: docs/features/limbo.md
   const showUsage = !!stats && !server.isSuspended && !server.isTransferring && !server.status && !limbo;
-  const meter = (label: string, used: number, limit: number, format: (value: number) => string, unlimited: string) => {
-    const percent = showUsage && limit > 0 ? Math.min(100, Math.max(0, (used / limit) * 100)) : 0;
+  const cpuLimit = server.limits.cpu + server.limits.burstCpu; // plugged.host: burst cores above the paid CPU
+  const cpuUsed = Math.round(stats?.cpuAbsolute ?? 0);
+  const memoryUsed = Math.round((stats?.memoryBytes ?? 0) / 1048576);
+  const diskUsed = Math.round((stats?.diskBytes ?? 0) / 1048576);
+  const [memoryUsedText, memoryLimitText] = formatSizePair(memoryUsed, server.limits.memory, UNLIMITED);
+  const [diskUsedText, diskLimitText] = formatSizePair(diskUsed, server.limits.disk, UNLIMITED);
 
-    return {
-      label,
-      used: showUsage ? format(used) : null,
-      limit: limit > 0 ? format(limit) : unlimited,
-      percent,
-      level: percent >= 95 ? 'danger' : percent >= 80 ? 'warning' : 'normal',
-    };
-  };
+  const meter = (label: string, used: number, limit: number, usedText: string, limitText: string) => ({
+    label,
+    used: showUsage ? usedText : null,
+    limit: limitText,
+    percent: showUsage ? usageBarPercent(used, limit) : 0,
+    level: showUsage ? usageLevel(used, limit) : 'normal',
+  });
   const meters = [
-    {
-      ...meter(
-        t('common.stat.cpu', {}),
-        stats?.cpuAbsolute ?? 0,
-        server.limits.cpu + server.limits.burstCpu, // plugged.host
-        (v) => `${v.toFixed(2)}%`,
-        cpuLimit,
-      ),
-      // plugged.host: says the burst apart
-      ...(server.limits.burstCpu > 0 ? { limit: cpuLimit } : {}),
-    },
     meter(
-      t('common.stat.memoryUsage', {}),
-      stats?.memoryBytes ?? 0,
-      mbToBytes(server.limits.memory),
-      bytesToString,
-      memoryLimit,
+      t('pages.account.home.card.cpu', {}),
+      cpuUsed,
+      server.limits.cpu > 0 ? cpuLimit : 0,
+      cpuUsed.toString(),
+      server.limits.cpu === 0
+        ? UNLIMITED
+        : server.limits.burstCpu > 0
+          ? t('common.stat.cpuWithBurst', { base: `${server.limits.cpu}%`, burst: `${server.limits.burstCpu}%` })
+          : `${server.limits.cpu}%`,
     ),
-    meter(
-      t('common.stat.diskUsage', {}),
-      stats?.diskBytes ?? 0,
-      mbToBytes(server.limits.disk),
-      bytesToString,
-      diskLimit,
-    ),
+    meter(t('pages.account.home.card.memory', {}), memoryUsed, server.limits.memory, memoryUsedText, memoryLimitText),
+    meter(t('pages.account.home.card.disk', {}), diskUsed, server.limits.disk, diskUsedText, diskLimitText),
   ];
 
+  // plugged.host: Pelican's power menu (ListServers::getPowerActionGroup): only the actions the state
+  // allows are listed (Start when offline, Restart, Stop while running, Kill while starting or
+  // stopping), and none while the server is busy elsewhere.
+  const powerHidden = powerBlocked || !state;
   const contextMenuItems: ContextMenuItem[] = useMemo(
     () => [
       {
         type: 'action' as const,
         icon: faPlay,
         label: t('common.enum.serverPowerAction.start', {}),
-        color: 'gray',
+        color: 'blue',
+        hidden: powerHidden || state !== 'offline',
         canAccess: canPower('control.start'),
-        disabled: powerBlocked || bulkActionLoading !== null || state !== 'offline',
+        disabled: bulkActionLoading !== null,
         onClick: () => doPowerAction('start'),
       },
       {
         type: 'action' as const,
         icon: faRotateRight,
         label: t('common.enum.serverPowerAction.restart', {}),
+        hidden: powerHidden,
         canAccess: canPower('control.restart'),
-        disabled: powerBlocked || bulkActionLoading !== null || !state,
+        disabled: bulkActionLoading !== null,
         onClick: () => doPowerAction('restart'),
       },
       {
@@ -198,8 +185,9 @@ export default function ServerItem({
         icon: faStop,
         label: t('common.enum.serverPowerAction.stop', {}),
         color: 'red',
+        hidden: powerHidden || state !== 'running',
         canAccess: canPower('control.stop'),
-        disabled: powerBlocked || bulkActionLoading !== null || !state || state === 'offline',
+        disabled: bulkActionLoading !== null,
         onClick: () => doPowerAction('stop'),
       },
       {
@@ -207,13 +195,13 @@ export default function ServerItem({
         icon: faSkull,
         label: t('common.enum.serverPowerAction.kill', {}),
         color: 'red',
-        hidden: state !== 'stopping',
+        hidden: powerHidden || (state !== 'starting' && state !== 'stopping'),
         canAccess: canPower('control.stop'),
-        disabled: powerBlocked || bulkActionLoading !== null,
+        disabled: bulkActionLoading !== null,
         onClick: () => setOpenModal('kill'),
       },
     ],
-    [t, doPowerAction, canPower, powerBlocked, bulkActionLoading, state],
+    [t, doPowerAction, canPower, powerHidden, bulkActionLoading, state],
   );
 
   return (
@@ -231,9 +219,9 @@ export default function ServerItem({
       </ConfirmationModal>
 
       {/* plugged.host: Theme v2's server card ("theme-server", server-entry.blade.php on the Pelican
-          panel): a status bar down its left edge, the name over the state, the power menu at the end
-          of that row, then CPU, memory and disk as used / limit over a thin bar, and the address.
-          Its layout follows its own width (a container query in app.css). */}
+          panel): a status bar down its left edge in the condition's colour, the name over the state,
+          the power menu at the end of that row, then CPU, memory and disk as used / limit over a thin
+          bar, and the address. Its layout follows its own width (a container query in app.css). */}
       <ContextMenu enabled={showContextMenu} items={contextMenuItems}>
         {({ items, openMenu }) => (
           <div
@@ -255,7 +243,7 @@ export default function ServerItem({
               }}
             >
               <div className='theme-server'>
-                <span className={classNames('theme-server-status-bar', statusToColor(stats?.state))} />
+                <span className='theme-server-status-bar' data-color={condition.color} />
 
                 <div className='theme-server-head'>
                   {showSelection && (
@@ -292,21 +280,9 @@ export default function ServerItem({
                           />
                         </Tooltip>
                       )}
-                      {!serverListShowOthers && serverGroups.every((g) => !g.serverOrder.includes(server.uuid)) && (
-                        <Tooltip label={t('pages.account.home.tooltip.noGroup', {})}>
-                          <FontAwesomeIcon
-                            size='sm'
-                            icon={faInfoCircle}
-                            className='shrink-0 text-(--theme-text-faint)'
-                          />
-                        </Tooltip>
-                      )}
                     </h2>
                     <p className='theme-server-state'>
-                      {stateBusy && <Spinner size={12} />}
-                      {stateFailed && (
-                        <FontAwesomeIcon icon={faTriangleExclamation} className='text-(--mantine-color-yellow-text)' />
-                      )}
+                      {loading && <Spinner size={14} />}
                       <span className='truncate'>{stateLabel}</span>
                     </p>
                   </div>
@@ -354,12 +330,12 @@ export default function ServerItem({
                       </Tooltip>
                     )}
                     {showContextMenu && items.some((item) => !item.hidden && item.canAccess !== false) && (
-                      <Tooltip label={t('common.form.powerAction', {})}>
+                      <Tooltip label={t('pages.account.home.card.powerActions', {})}>
                         <ActionIcon
                           size='input-sm'
                           variant='subtle'
-                          color='gray'
-                          aria-label={t('common.form.powerAction', {})}
+                          color='blue'
+                          aria-label={t('pages.account.home.card.powerActions', {})}
                           loading={bulkActionLoading !== null}
                           onClick={(e) => {
                             e.preventDefault();
@@ -368,14 +344,16 @@ export default function ServerItem({
                             openMenu(rect.left, rect.bottom);
                           }}
                         >
-                          <FontAwesomeIcon icon={faEllipsisVertical} />
+                          <FontAwesomeIcon icon={faPowerOff} size='xl' />
                         </ActionIcon>
                       </Tooltip>
                     )}
                   </div>
                 </div>
 
-                {server.description && <p className='theme-server-description'>{server.description}</p>}
+                {server.description && (
+                  <p className='theme-server-description'>{limitWords(server.description, DESCRIPTION_LIMIT)}</p>
+                )}
 
                 <div className='theme-server-stats'>
                   {meters.map((meter) => (
@@ -401,7 +379,7 @@ export default function ServerItem({
                         className='theme-server-track'
                         role='progressbar'
                         aria-label={`${meter.label}: ${meter.used ?? '—'} / ${meter.limit}`}
-                        aria-valuenow={Math.round(meter.percent)}
+                        aria-valuenow={meter.percent}
                         aria-valuemin={0}
                         aria-valuemax={100}
                       >
@@ -422,7 +400,7 @@ export default function ServerItem({
                         </span>
                       </CopyOnClick>
                     ) : (
-                      <span className='theme-server-address-value'>{t('common.server.noAllocation', {})}</span>
+                      <span className='theme-server-address-value'>{t('common.none', {})}</span>
                     )}
                   </div>
                 </div>

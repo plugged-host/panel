@@ -9,7 +9,8 @@
 //! While tokens are on, a server's n-th subdomain costs the owner tokens by the subdomains
 //! settings' tiers, refunded when it is deleted (with the server too). When the server moves to
 //! another node (a transfer, a failover, a limbo restore) or changes its primary port, [`follow`]
-//! points its records at the new address.
+//! points its records at the new address. The Discord settings can ask the server's owner to link
+//! Discord or to be in the Discord server first ([`crate::discord::subdomain_gate`]).
 
 pub mod cloudflare;
 pub mod records;
@@ -52,6 +53,10 @@ pub enum SubdomainError {
     },
     /// A record of that name exists on Cloudflare that is not this subdomain's.
     InUse(String),
+    /// The Discord settings want the server's owner to link Discord, or to be in the server
+    /// (docs/features/discord.md).
+    DiscordLink,
+    DiscordMember,
     Cloudflare(String),
     Database(anyhow::Error),
 }
@@ -89,6 +94,12 @@ impl SubdomainError {
                 format!("this subdomain costs {cost} tokens, the owner has {balance}")
             }
             Self::InUse(name) => format!("{name} is already in use"),
+            Self::DiscordLink => {
+                "the server's owner must link their Discord account for subdomains".into()
+            }
+            Self::DiscordMember => {
+                "the server's owner must join the Discord server for subdomains".into()
+            }
             Self::Cloudflare(message) => format!("Cloudflare: {message}"),
             Self::Database(err) => format!("{err:#}"),
         }
@@ -97,6 +108,7 @@ impl SubdomainError {
     pub fn status(&self) -> u16 {
         match self {
             Self::Taken | Self::Limit(_) | Self::InUse(_) => 409,
+            Self::DiscordLink | Self::DiscordMember => 403,
             Self::Cloudflare(_) => 502,
             Self::Database(_) => 500,
             _ => 400,
@@ -485,6 +497,10 @@ pub enum Unavailable {
     NoDomains,
     /// The server has no address to point at.
     NoAddress,
+    /// The server's owner has not linked Discord (the Discord settings ask for it).
+    DiscordLink,
+    /// The server's owner is not in the Discord server (the Discord settings ask for it).
+    DiscordMember,
 }
 
 /// A server's Subdomains page.
@@ -538,7 +554,11 @@ pub async fn overview(
     } else if target.is_none() {
         Some(Unavailable::NoAddress)
     } else {
-        None
+        match crate::discord::subdomain_gate(state, server.owner.uuid, false).await? {
+            crate::discord::Gate::Open => None,
+            crate::discord::Gate::NeedsLink => Some(Unavailable::DiscordLink),
+            crate::discord::Gate::NeedsMember => Some(Unavailable::DiscordMember),
+        }
     };
 
     let balance = if tokens_enabled && server.owner.uuid == viewer_uuid {
@@ -785,6 +805,11 @@ pub async fn create(
 ) -> Result<Subdomain, SubdomainError> {
     let context = context(state).await?;
     let service = Service::of_features(&server.egg.features).ok_or(SubdomainError::Unsupported)?;
+    match crate::discord::subdomain_gate(state, server.owner.uuid, true).await? {
+        crate::discord::Gate::Open => {}
+        crate::discord::Gate::NeedsLink => return Err(SubdomainError::DiscordLink),
+        crate::discord::Gate::NeedsMember => return Err(SubdomainError::DiscordMember),
+    }
 
     let name = request.name.trim().to_lowercase();
     if !records::valid_name(&name) {

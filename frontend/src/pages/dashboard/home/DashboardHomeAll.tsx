@@ -1,8 +1,9 @@
-import { faServer } from '@fortawesome/free-solid-svg-icons';
+import { faSearch } from '@fortawesome/free-solid-svg-icons'; // plugged.host
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'; // plugged.host
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { z } from 'zod';
-import { getEmptyPaginationSet, httpErrorToHuman } from '@/api/axios.ts';
+import { httpErrorToHuman } from '@/api/axios.ts'; // plugged.host: without getEmptyPaginationSet
 import getServerGroups from '@/api/me/servers/groups/getServerGroups.ts';
 import getServers from '@/api/server/getServers.ts';
 import { AdPageSlot } from '@/elements/ads/AdPlacements.tsx'; // plugged.host
@@ -12,11 +13,8 @@ import { NoItems, Pagination } from '@/elements/data-display/Table.tsx';
 import EmptyState from '@/elements/feedback/EmptyState.tsx';
 import ErrorState from '@/elements/feedback/ErrorState.tsx';
 import Spinner from '@/elements/feedback/Spinner.tsx';
-import Checkbox from '@/elements/input/Checkbox.tsx';
 import Switch from '@/elements/input/Switch.tsx';
 import TextInput from '@/elements/input/TextInput.tsx';
-import Divider from '@/elements/layout/Divider.tsx';
-import Group from '@/elements/layout/Group.tsx';
 import { ObjectSet } from '@/lib/objectSet.ts';
 import { queryKeys } from '@/lib/queryKeys.ts';
 import { eventKeyMatches } from '@/lib/quickActions/shortcuts.ts';
@@ -29,7 +27,6 @@ import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useUserStore } from '@/stores/user.ts';
 import CreateServerButton from '../create/CreateServerButton.tsx'; // plugged.host
 import BulkActionBar from './BulkActionBar.tsx';
-import DashboardHomeTitle from './DashboardHomeTitle.tsx';
 import ServerItem from './ServerItem.tsx';
 
 export default function DashboardHomeAll() {
@@ -88,14 +85,12 @@ export default function DashboardHomeAll() {
     debouncedSearch,
     setSearch,
     setPage,
+    setPerPage, // plugged.host
   } = useSearchablePaginatedTable({
     queryKey: queryKeys.user.servers.all(),
-    fetcher: (page, search) => getServers(page, search, serverListShowOthers),
+    fetcher: (page, search, perPage) => getServers(page, search, serverListShowOthers, perPage), // plugged.host: per page
     deps: [serverListShowOthers],
   });
-
-  const selectedPageCount = servers?.data.filter((server) => selectedServers.has(server)).length ?? 0;
-  const allSelected = selectedPageCount > 0 && selectedPageCount === servers?.data.length;
 
   const handleServerSelectionChange = (server: z.infer<typeof serverSchema>, selected: boolean) => {
     setSelectedServers((prev) => {
@@ -125,34 +120,14 @@ export default function DashboardHomeAll() {
   return (
     <AccountContentContainer
       title={t('pages.account.home.title', {})}
-      contentRight={<CreateServerButton />} // plugged.host
       registry={window.extensionContext.extensionRegistry.pages.dashboard.home.containerAll}
     >
-      <DashboardHomeTitle />
-      <Group mb='md' justify='space-between'>
-        <Group wrap='nowrap' className='w-full md:w-auto'>
-          <Checkbox
-            aria-label={t('common.button.selectAll', {})}
-            title={t('common.button.selectAll', {})}
-            className='shrink-0'
-            checked={allSelected}
-            indeterminate={selectedPageCount > 0 && !allSelected}
-            disabled={loading || !servers?.data.length}
-            onChange={(e) => {
-              const checked = e.currentTarget.checked;
-              setSelectedServers((previous) => {
-                const next = previous.clone();
-                for (const server of servers?.data ?? []) {
-                  if (checked) {
-                    next.add(server);
-                  } else {
-                    next.delete(server);
-                  }
-                }
-                return next;
-              });
-            }}
-          />
+      {/* plugged.host: the Pelican server list (ListServers under Theme v2): no tabs, one toolbar row
+          over the cards with Create server at its start and the search at its end, the pagination
+          only under the cards. Bulk selection stays on S + click (BulkActionBar). */}
+      <div className='theme-toolbar'>
+        <CreateServerButton />
+        <div className='theme-toolbar-end'>
           <TextInput
             placeholder={t('common.input.search', {})}
             value={search}
@@ -164,26 +139,21 @@ export default function DashboardHomeAll() {
                 navigate(`/server/${firstServer.uuidShort}`);
               }
             }}
-            className='flex-1 min-w-0 md:w-62.5'
+            leftSection={<FontAwesomeIcon icon={faSearch} />}
+            className='theme-header-search'
           />
-        </Group>
-        <AdminCan action='servers.read'>
-          <Switch
-            label={t('pages.account.home.tabs.allServers.page.input.showOtherUsersServers', {})}
-            checked={serverListShowOthers}
-            onChange={(e) => {
-              setPage(1);
-              setServerListShowOthers(e.currentTarget.checked);
-            }}
-          />
-        </AdminCan>
-      </Group>
-      {(servers?.total ?? 0) > (servers?.perPage ?? 0) && (
-        <>
-          <Pagination data={servers ?? getEmptyPaginationSet()} onPageSelect={setPage} />
-          <Divider my='md' />
-        </>
-      )}
+          <AdminCan action='servers.read'>
+            <Switch
+              label={t('pages.account.home.tabs.allServers.page.input.showOtherUsersServers', {})}
+              checked={serverListShowOthers}
+              onChange={(e) => {
+                setPage(1);
+                setServerListShowOthers(e.currentTarget.checked);
+              }}
+            />
+          </AdminCan>
+        </div>
+      </div>
       {loading ? (
         <Spinner.Centered />
       ) : error && !servers ? (
@@ -192,11 +162,9 @@ export default function DashboardHomeAll() {
         debouncedSearch ? (
           <NoItems />
         ) : (
-          <EmptyState
-            icon={faServer}
-            title={t('pages.account.home.empty.title', {})}
-            description={t('pages.account.home.empty.description', {})}
-          />
+          <div className='theme-server-empty' data-tour='servers-empty'>
+            <EmptyState flush title={t('pages.account.home.emptyAccess', {})} />
+          </div>
         )
       ) : (
         <div className='theme-server-grid'>
@@ -205,8 +173,8 @@ export default function DashboardHomeAll() {
               key={server.uuid}
               server={server}
               showContextMenu
-              showGroupAddButton
               showForeignServerBadge
+              showSelection={false}
               isSelected={selectedServers.has(server.uuid)}
               onSelectionChange={(selected) => handleServerSelectionChange(server, selected)}
               onClick={(e) => handleServerClick(server, e)}
@@ -221,11 +189,10 @@ export default function DashboardHomeAll() {
         onAction={onBulkAction}
         loading={bulkActionLoading}
       />
-      {(servers?.total ?? 0) > (servers?.perPage ?? 0) && (
-        <>
-          <Divider my='md' />
-          <Pagination data={servers ?? getEmptyPaginationSet()} onPageSelect={setPage} />
-        </>
+      {servers && servers.total > 0 && (
+        <div className='theme-list-foot'>
+          <Pagination data={servers} onPageSelect={setPage} onPerPageSelect={setPerPage} />
+        </div>
       )}
       <AdPageSlot /> {/* plugged.host: docs/features/ads.md */}
     </AccountContentContainer>

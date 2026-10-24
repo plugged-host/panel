@@ -115,12 +115,12 @@ to copy), never gathered in a folder of their own.
 - Sections: upstream's `app`, `metadata`, `webauthn`, `server`, `user`, `activity`, `ratelimits`
   (plus the storage, mail and captcha choices), and plugged.host's `noprofit`, `status`, `abuse`,
   `economy`, `queue`, `limbo`, `ads`, `games` (with the Minecraft and FiveM tabs), `placement`, `tour`,
-  `recovery`, `subdomains` and `devboxes`. Phase 5 adds `discord` and `neo`.
+  `recovery`, `subdomains`, `devboxes` and `discord`. Phase 5 adds `neo`.
 - Each section is a tab (`frontend/src/pages/admin/settings/<section>/`) on one of the Admin ›
   Settings pages, saved by `PUT /api/admin/settings` with that section's payload. The pages are
   groups by topic, each its own entry under "Settings" in the admin sidebar (`settingsGroups` in
   `AdminSettings.tsx`): General (application, metadata, storage, status page, updates), Mail,
-  Accounts (users, noprofit.space, passkeys, welcome tour), Hosting (servers, games, Minecraft,
+  Accounts (users, noprofit.space, Discord, passkeys, welcome tour), Hosting (servers, games, Minecraft,
   placement, start queue, limbo, recovery), Security (captcha, rate limits, abuse, activity), Economy (store, tokens,
   memberships: one section in three tabs) and Ads (placement, Adsterra, Monetag, waiting room, ad
   blockers, in-game: one section in six tabs). A new section joins the group its topic belongs to;
@@ -137,6 +137,10 @@ to copy), never gathered in a folder of their own.
 
 Both run only on the primary instance. A task returns `Result`; errors are logged and the task
 continues on its next run. Long work belongs in its own task, not in a request.
+
+A long-lived connection (the Discord bots' gateway) is a cron task that starts and stops its own
+tokio tasks as the settings ask (`discord::gateway::supervise`), so it too runs on the primary
+instance only, and keeps its state in the cache for the other instances to show.
 
 ## Events
 

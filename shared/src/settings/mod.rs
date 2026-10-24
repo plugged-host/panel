@@ -28,6 +28,7 @@ pub mod activity;
 pub mod ads; // plugged.host
 pub mod app;
 pub mod devboxes; // plugged.host
+pub mod discord; // plugged.host
 pub mod economy; // plugged.host
 pub mod games; // plugged.host
 pub mod limbo; // plugged.host
@@ -454,6 +455,9 @@ pub struct AppSettings {
     // plugged.host: server subdomains on Cloudflare
     #[schema(inline)]
     pub subdomains: subdomains::AppSettingsSubdomains,
+    // plugged.host: Discord membership, invite and boost rewards, the bots
+    #[schema(inline)]
+    pub discord: discord::AppSettingsDiscord,
     // plugged.host: devboxes, VS Code on a game server
     #[schema(inline)]
     pub devboxes: devboxes::AppSettingsDevboxes,
@@ -770,6 +774,8 @@ impl SettingsSerializeExt for AppSettings {
             .nest("ads", &self.ads) // plugged.host
             .await?
             .nest("subdomains", &self.subdomains) // plugged.host
+            .await?
+            .nest("discord", &self.discord) // plugged.host
             .await?
             .nest("devboxes", &self.devboxes) // plugged.host
             .await?
@@ -1089,6 +1095,9 @@ impl SettingsDeserializeExt for AppSettingsDeserializer {
                 .await?,
             subdomains: deserializer // plugged.host
                 .nest("subdomains", &subdomains::AppSettingsSubdomainsDeserializer)
+                .await?,
+            discord: deserializer // plugged.host
+                .nest("discord", &discord::AppSettingsDiscordDeserializer)
                 .await?,
             devboxes: deserializer // plugged.host
                 .nest("devboxes", &devboxes::AppSettingsDevboxesDeserializer)

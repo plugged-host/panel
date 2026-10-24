@@ -85,6 +85,52 @@ its code: `limited_short`, `limited_long`, `limited_model`, `limited_images` (wi
 `unlinked` (noprofit.space does not know the account), `refused` (the provider's content filter).
 Retry continues the same request once the cause is gone.
 
+## The chat
+
+The chat looks and behaves like the Pelican panel's (`frontend/src/elements/neo/`, mounted once in
+`RouterRoutes.tsx`): a pill in the window's corner ("Ask neo") opens a panel above it; on phones the
+panel covers the screen and the page behind it stops scrolling. The panel can be resized from its
+top-left corner (double-click resets); its size and whether it is open are remembered per browser
+(`neo-chat:size`, `neo-chat:open`).
+
+- **Which chat.** On a server's pages it is that server's chat when the person may use neo there
+  (owner, or a subuser with `neo.access`; an admin is sent every permission, so only their own
+  grant counts, like `may_use_on`), and nothing on the queue's waiting room; elsewhere in the
+  dashboard it is the account's. There is none in the admin area, on the sign-in pages, for a
+  suspended account, or while `neo.enabled` is off (`plugins/useNeo.ts`).
+- **The loop** lives in `stores/neo.ts`, outside the pages: send (or approve, decline, retry), then
+  stream `POST /step` while the result is `continue`, wait `retry_after` (at most 10 s) on `busy`,
+  stop on anything else. A turn keeps running while the chat is minimized or the person moves
+  between pages; the pill then says "Working…", and "Needs you" or "Done" (with a dot) when it
+  ended unseen. Opening the chat (or loading a page with it open) resumes a turn that is still
+  running. Stop cancels, and cancels once more after the step in flight. A `redirect` result (a
+  start gate) closes the chat and goes to the gate's page.
+- **Rows** follow Pelican's: the person's messages as bubbles, answers as markdown (the model's
+  thinking folded away under "Thinking", the model's name below), each tool call as a compact tile
+  with its status (a bolt when it ran without asking; a failed call's output folded away), a call
+  waiting for approval as a card with its risk, its preview ("Show change"), Approve and Decline,
+  and "Approve all (n)" when more than one waits. Notices are worded from their codes, with "Try
+  again" on the last one while the chat is `error`, `limited` or `unlinked` (not after `refused`).
+- **The foot** has the model picker (only with two models or more: each with its description, its
+  usage multiplier, its own limit, the membership it needs; a locked one leads to the membership
+  page when memberships are sold), the usage bars of the windows that apply (the shared windows,
+  or only the picked model's own in limits by model), images waiting to be sent (picked, pasted or
+  dropped; PNG, JPEG, WebP, GIF up to 20 MB, shrunk to 1568 px JPEG in the browser, at most
+  `max_images`), and the message field (Enter sends on a keyboard, Shift+Enter is a new line; on
+  touch screens the button sends). The send button turns into Stop while neo works. A message the
+  backend did not take (blocked, too fast, a turn already running) goes back into the field.
+- **Views.** History (open an earlier chat, delete one with a second tap, start a new one) and
+  settings (the two switches, the usage windows, deleting all of the person's chats, what is sent
+  where, the support link and the legal and privacy contacts) open from the head. Until the person
+  agrees, the chat shows the introduction ("Before you start") instead of the conversation; with
+  neo turned off, a short note and "Turn neo on".
+- **"Ask neo" from a page.** `window.dispatchEvent(new CustomEvent('neo:ask', { detail: { log } }))`
+  with a mclo.gs id or link (the Minecraft log check's "Ask neo to fix it") opens the server's chat
+  and starts a fresh chat: what neo was doing stops, the open chat goes into the history, and the
+  message about the log is sent with `seed` `read_mclogs`, so neo reads the log first. A message
+  that arrives while the chat loads, before the person agreed, or while a turn is still stopping
+  waits and goes out afterwards. On the account's chat the event is ignored.
+
 ## API
 
 The chat routes are the same for the account (`/api/client/account/neo`) and a server

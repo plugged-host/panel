@@ -36,6 +36,7 @@ type SettingsStoreKey =
   | 'limbo' // plugged.host
   | 'ads' // plugged.host
   | 'subdomains' // plugged.host
+  | 'discord' // plugged.host
   | 'devboxes'; // plugged.host
 
 /** Admin store keys whose public projection lives under the same-named global settings key. */

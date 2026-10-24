@@ -3,7 +3,10 @@ import { z } from 'zod';
 
 export const userAccountBackupSchema = z.object({
   serverUuid: z.string(),
+  serverUuidShort: z.string(),
   serverName: z.string(),
+  eggName: z.string().nullable(),
+  nodeName: z.string(),
   deleted: z.coerce.date().nullable(),
   keptUntil: z.coerce.date().nullable(),
   backup: z

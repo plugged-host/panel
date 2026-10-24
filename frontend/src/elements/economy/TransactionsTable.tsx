@@ -17,6 +17,10 @@ const typeKeys = {
   limbo_refund: 'limboRefund',
   subdomain: 'subdomain', // docs/features/subdomains.md
   subdomain_refund: 'subdomainRefund',
+  discord_invite: 'discordInvite', // docs/features/discord.md
+  discord_invite_clawback: 'discordInviteClawback',
+  discord_invite_debt: 'discordInviteDebt',
+  discord_boost: 'discordBoost',
 } as const;
 
 type TypeKey = (typeof typeKeys)[keyof typeof typeKeys] | 'earn';

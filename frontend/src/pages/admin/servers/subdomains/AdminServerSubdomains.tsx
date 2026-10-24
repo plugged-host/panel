@@ -97,8 +97,8 @@ export default function AdminServerSubdomains({ server }: { server: AdminServer 
       const refunded = await deleteServerSubdomain(server.uuid, deleting.uuid);
       addToast(
         refunded > 0
-          ? t('pages.server.subdomains.toast.deletedRefund', { name: deleting.fqdn, count: refunded })
-          : t('pages.server.subdomains.toast.deleted', { name: deleting.fqdn }),
+          ? t(`${base}.toast.deletedRefund`, { name: deleting.fqdn, count: refunded })
+          : t(`${base}.toast.deleted`, { name: deleting.fqdn }),
         'success',
       );
       setDeleting(null);
@@ -121,7 +121,9 @@ export default function AdminServerSubdomains({ server }: { server: AdminServer 
           <Text size='sm'>{t('pages.server.subdomains.delete.body', { name: deleting?.fqdn ?? '' })}</Text>
           {deleting && deleting.tokenCost > 0 && (
             <Text size='sm' c='dimmed'>
-              {t('pages.server.subdomains.delete.refund', { count: deleting.tokenCost })}
+              {t(`pages.server.subdomains.delete.refund.${deleting.tokenCost === 1 ? 'one' : 'other'}`, {
+                count: deleting.tokenCost,
+              })}
             </Text>
           )}
         </Stack>
@@ -132,7 +134,7 @@ export default function AdminServerSubdomains({ server }: { server: AdminServer 
           <Stack gap='lg'>
             <Table
               columns={[
-                t('pages.server.subdomains.table.subdomain', {}),
+                t(`${base}.subdomain`, {}),
                 t('pages.server.subdomains.table.connect', {}),
                 t('pages.server.subdomains.table.type', {}),
                 t('pages.server.subdomains.table.deposit', {}),
@@ -167,8 +169,10 @@ export default function AdminServerSubdomains({ server }: { server: AdminServer 
                   <TableData>
                     <Text size='sm'>
                       {subdomain.tokenCost > 0
-                        ? t('pages.server.subdomains.deposit', { count: subdomain.tokenCost })
-                        : t('pages.server.subdomains.free', {})}
+                        ? t(`pages.server.subdomains.tokens.${subdomain.tokenCost === 1 ? 'one' : 'other'}`, {
+                            count: subdomain.tokenCost,
+                          })
+                        : t(`${base}.free`, {})}
                     </Text>
                   </TableData>
                   <TableData>

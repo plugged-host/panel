@@ -1,15 +1,16 @@
 // plugged.host: the automatic log check above the console, the way Aternos does it: the log goes
-// to mclo.gs and the problems it recognises show here (docs/features/minecraft.md)
+// to mclo.gs and the problems it recognises show here (docs/features/minecraft.md). The look is
+// the Pelican panel's log check (plugged-host-ai's log-check.blade.php, ".theme-logcheck-*" in
+// app.css). "Ask neo to fix it" sends the window event `neo:ask` with the log's mclo.gs id, which
+// the neo chat listens for (docs/features/neo.md).
 import { useQuery } from '@tanstack/react-query';
 import getLogCheck from '@/api/server/minecraft/getLogCheck.ts';
-import Card from '@/elements/data-display/Card.tsx';
-import Stack from '@/elements/layout/Stack.tsx';
-import Anchor from '@/elements/typography/Anchor.tsx';
-import Text from '@/elements/typography/Text.tsx';
+import Button from '@/elements/buttons/Button.tsx';
 import { isOtherGameRoute } from '@/lib/domain/games.ts';
 import { queryKeys } from '@/lib/queryKeys.ts';
 import { useServerCan } from '@/plugins/usePermissions.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
+import { useGlobalStore } from '@/stores/global.ts';
 import { useServerStore } from '@/stores/server.ts';
 
 const SHOWN = 3;
@@ -19,6 +20,10 @@ export default function LogCheckBanner() {
   const server = useServerStore((state) => state.server);
   // the check publishes the log, so it needs what reading the log needs
   const canCheck = useServerCan(['control.console', 'files.read-content'], false);
+  // "Ask neo to fix it": neo is offered and may work on this server
+  const neoEnabled = useGlobalStore((state) => state.settings.neo.enabled);
+  const canUseNeo = useServerCan('neo.access');
+  const canAsk = neoEnabled && canUseNeo;
   const minecraft = !isOtherGameRoute('/minecraft', server.egg?.features);
   const base = 'pages.server.minecraft.logCheck';
 
@@ -35,54 +40,74 @@ export default function LogCheckBanner() {
 
   if (result.problems.length === 0 && result.errors === 0) {
     return (
-      <Text size='sm' c='dimmed' mb='md'>
+      <p className='theme-logcheck-quiet theme-logcheck-block'>
         {t(`${base}.clean`, {})}{' '}
-        <Anchor href={result.url} target='_blank' rel='noopener noreferrer'>
+        <a href={result.url} target='_blank' rel='noopener noreferrer' className='theme-logcheck-link'>
           {t(`${base}.open`, {})}
-        </Anchor>
-      </Text>
+        </a>
+      </p>
     );
   }
 
+  const problems = result.problems.length;
   const shown = result.problems.slice(0, SHOWN);
+  const title =
+    problems > 0
+      ? problems === 1
+        ? t(`${base}.problemsOne`, {})
+        : t(`${base}.problems`, { count: problems })
+      : result.errors === 1
+        ? t(`${base}.errorsOne`, {})
+        : t(`${base}.errors`, { count: result.errors });
 
   return (
-    <Card mb='md' role='status'>
-      <Stack gap='sm'>
-        <Text size='sm' fw={600} c='yellow'>
-          {result.problems.length > 0
-            ? t(`${base}.problems`, { count: result.problems.length })
-            : t(`${base}.errors`, { count: result.errors })}
-        </Text>
+    <div className='theme-logcheck-card theme-logcheck-block' role='status'>
+      <div className='min-w-0'>
+        <p className='theme-logcheck-title'>{title}</p>
 
         {shown.length > 0 ? (
-          <Stack gap='xs'>
-            {shown.map((problem) => (
-              <div key={problem.message}>
-                <Text size='sm'>{problem.message}</Text>
-                {problem.solution && (
-                  <Text size='xs' c='dimmed'>
-                    {t(`${base}.fix`, { fix: problem.solution })}
-                  </Text>
-                )}
-              </div>
-            ))}
-            {result.problems.length > shown.length && (
-              <Text size='xs' c='dimmed'>
-                {t(`${base}.more`, { count: result.problems.length - shown.length })}
-              </Text>
+          <>
+            <ul className='theme-logcheck-list'>
+              {shown.map((problem) => (
+                <li key={problem.message} className='theme-logcheck-problem'>
+                  {problem.message}
+                  {problem.solution && (
+                    <span className='theme-logcheck-fix'>{t(`${base}.fix`, { fix: problem.solution })}</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+            {problems > shown.length && (
+              <p className='theme-logcheck-quiet'>{t(`${base}.more`, { count: problems - shown.length })}</p>
             )}
-          </Stack>
+          </>
         ) : (
-          <Text size='sm' c='dimmed'>
-            {t(`${base}.errorsBody`, {})}
-          </Text>
+          <p className='theme-logcheck-quiet'>
+            {canAsk ? t(`${base}.errorsBody`, {}) : t(`${base}.errorsBodyNoNeo`, {})}
+          </p>
         )}
+      </div>
 
-        <Anchor href={result.url} target='_blank' rel='noopener noreferrer' size='sm'>
+      <div className='theme-logcheck-actions'>
+        {canAsk && (
+          <Button
+            variant='default'
+            onClick={() => {
+              window.dispatchEvent(new CustomEvent('neo:ask', { detail: { log: result.id } }));
+            }}
+          >
+            {t(`${base}.ask`, {})}
+          </Button>
+        )}
+        <a
+          href={result.url}
+          target='_blank'
+          rel='noopener noreferrer'
+          className='theme-logcheck-quiet theme-logcheck-link'
+        >
           {t(`${base}.view`, {})}
-        </Anchor>
-      </Stack>
-    </Card>
+        </a>
+      </div>
+    </div>
   );
 }

@@ -73,7 +73,7 @@ export default function WelcomeTourPanel() {
   } else {
     steps.push({
       key: 'empty',
-      targets: ['#dashboard-root .mantine-Paper-root'],
+      targets: ['[data-tour="servers-empty"]', '#dashboard-root .mantine-Paper-root'],
       heading: t(`${p}.empty.heading`, {}),
       body: t(`${p}.empty.body`, {}),
     });

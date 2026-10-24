@@ -57,10 +57,11 @@ For AI agents: [`AGENTS.md`](../AGENTS.md) at the root has the hard rules in sho
 | **Subdomains**: players name their server (`play.example.com`) under the panel's Cloudflare domains, with SRV records for Minecraft, FiveM and other games; a token deposit per subdomain, refunded on deletion; the records follow the server across moves, failovers and limbo restores; Admin › Domains, Admin › Settings › Hosting › Subdomains, a per-server limit | [features/subdomains.md](features/subdomains.md) |
 | **VS Code devboxes**: a small Linux box next to a game server with its files at `/server`, opened in VS Code over SSH with a connect code or in the browser through an edge; personal or one shared per server, `ph` for the game server's state, console and power within what the person may do; stopped when idle, deleted when unused; abuse findings block the payer; Admin › Settings › Hosting › Devboxes | [features/devboxes.md](features/devboxes.md) |
 | **neo**: the assistant in a chat on the dashboard and on every server, which reads the console and files and acts with the person's own permissions (changes wait for approval unless they allow otherwise), answers streamed while written, images, history, per-person switches, models and limits from provider slots or noprofit.space; Admin › Settings › neo | [features/neo.md](features/neo.md) |
+| **Discord**: players link their Discord account; being in the server adds a tier to their allowance, each boost level pays credits once, friends invited who stay pay credits (held, checked against alts, taken back when they leave); a bot answers `/invites`, `/topinvites` and `/setboost`; subdomains for linked members only, if wanted; one gateway on the primary instance for the bots, off by default; Admin › Settings › Accounts › Discord | [features/discord.md](features/discord.md) |
 | **Removed features**: devices, mounts, the extension manager, the update checker, Tundra's private network, the server firewall, managed database instances, backup groups; telemetry is opt-in | [upstream.md](upstream.md#removed-features) |
 | **German stays complete**: a build fails while a German string is missing | [development.md](development.md#strings) |
 
-More features arrive in phases (an AI assistant, Discord rewards). Each one gets its page in
+More features arrive in phases (an AI assistant). Each one gets its page in
 [features/](features/) in the same commit as its code.
 
 ## Licence

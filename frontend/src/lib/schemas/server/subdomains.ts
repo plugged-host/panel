@@ -19,7 +19,8 @@ export const serverSubdomainsSchema = z.object({
   domains: z.array(z.object({ uuid: z.string(), name: z.string() })),
   service: z.string().nullable(),
   address: z.string().nullable(),
-  unavailable: z.enum(['off', 'unsupported', 'no_domains', 'no_address']).nullable(),
+  // discord_link / discord_member: the Discord settings' gate (docs/features/discord.md)
+  unavailable: z.enum(['off', 'unsupported', 'no_domains', 'no_address', 'discord_link', 'discord_member']).nullable(),
   nextCost: z.number(),
   balance: z.number().nullable(),
 });

@@ -1,96 +1,110 @@
-// plugged.host: who is on a FiveM server now, read from FXServer itself (docs/features/fivem.md)
+// plugged.host: who is on a FiveM server now, read from FXServer itself, laid out like the Pelican panel's live player
+// list (docs/features/fivem.md)
+import { faSearch } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 import { z } from 'zod';
 import getFivemPlayers from '@/api/server/fivem/getFivemPlayers.ts';
+import Button from '@/elements/buttons/Button.tsx';
 import ServerContentContainer from '@/elements/containers/ServerContentContainer.tsx';
-import Table, { TableData, TableRow } from '@/elements/data-display/Table.tsx';
-import Stack from '@/elements/layout/Stack.tsx';
+import TextInput from '@/elements/input/TextInput.tsx';
 import ResourceView from '@/elements/ResourceView.tsx';
-import Code from '@/elements/typography/Code.tsx';
-import Text from '@/elements/typography/Text.tsx';
 import { queryKeys } from '@/lib/queryKeys.ts';
 import { fivemPlayersSchema } from '@/lib/schemas/server/fivem.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useServerStore } from '@/stores/server.ts';
 
+type Live = z.infer<typeof fivemPlayersSchema>;
+
 const base = 'pages.server.fivem.players';
 /** FXServer's player list changes as people join; the browser refreshes about as often. */
 const REFRESH_SECONDS = 12;
 
-function Players({ live, search }: { live: z.infer<typeof fivemPlayersSchema>; search: string }) {
+/** Name, server id or part of an identifier, as the Pelican page matches it ("#12" finds id 12). */
+export function matchesPlayer(player: Live['players'][number], search: string): boolean {
+  const query = search.trim().toLowerCase().replace(/^#/, '');
+  if (!query) return true;
+
+  return `${player.name} ${player.id} ${player.identifiers.join(' ')}`.toLowerCase().includes(query);
+}
+
+function Empty({ title, description }: { title: string; description: string }) {
+  return (
+    <div className='theme-fivem-empty' data-shape='tall'>
+      <strong>{title}</strong>
+      <span>{description}</span>
+    </div>
+  );
+}
+
+function Players({ live }: { live: Live }) {
   const { t } = useTranslations();
+  const [search, setSearch] = useState('');
 
-  const rows = useMemo(() => {
-    const query = search.trim().toLowerCase();
-    if (!query) return live.players;
-
-    return live.players.filter(
-      (player) =>
-        player.name.toLowerCase().includes(query) ||
-        String(player.id) === query ||
-        player.identifiers.some((identifier) => identifier.toLowerCase().includes(query)),
-    );
-  }, [live, search]);
-
-  if (!live.online) {
-    return (
-      <Stack gap={2}>
-        <Text fw={500}>{t(`${base}.unreachable`, {})}</Text>
-        <Text size='sm' c='dimmed'>
-          {t(`${base}.unreachableDescription`, {})}
-        </Text>
-      </Stack>
-    );
-  }
+  const rows = useMemo(() => live.players.filter((player) => matchesPlayer(player, search)), [live, search]);
+  const count = live.slots
+    ? t(`${base}.countSlots`, { count: live.clients, slots: live.slots })
+    : t(`${base}.count.${live.clients === 0 ? 'none' : live.clients === 1 ? 'one' : 'other'}`, { count: live.clients });
 
   return (
-    <Stack gap='md'>
-      <Text size='sm' c='dimmed'>
-        {live.slots !== null
-          ? t(`${base}.countSlots`, { count: live.clients, slots: live.slots })
-          : t(`${base}.count`, { count: live.clients })}
-        {live.hostname ? ` · ${live.hostname}` : ''}
-      </Text>
+    <div className='flex flex-col gap-4'>
+      <div className='flex flex-wrap items-center justify-between gap-x-4 gap-y-3'>
+        <div className='theme-fivem-state'>
+          <span className='theme-fivem-dot' data-online={live.online || undefined} />
+          {live.online ? t(`${base}.online`, {}) : t(`${base}.offline`, {})}
+          {live.online && <span className='theme-fivem-count'>{count}</span>}
+        </div>
+        {live.online && live.clients > 0 && (
+          <TextInput
+            type='search'
+            aria-label={t(`${base}.search`, {})}
+            placeholder={t(`${base}.search`, {})}
+            leftSection={<FontAwesomeIcon icon={faSearch} />}
+            value={search}
+            onChange={(e) => setSearch(e.currentTarget.value)}
+            className='w-full sm:max-w-80'
+          />
+        )}
+      </div>
 
-      <Table
-        columns={[t(`${base}.table.id`, {}), t(`${base}.table.player`, {}), t(`${base}.table.ping`, {})]}
-        pagination={{ total: rows.length, perPage: Math.max(rows.length, 1), page: 1, data: rows }}
-        empty={
-          <Text size='sm' c='dimmed'>
-            {search.trim() ? t(`${base}.noMatch`, {}) : t(`${base}.nobody`, {})}
-          </Text>
-        }
-      >
-        {rows.map((player) => (
-          <TableRow key={player.id}>
-            <TableData>{player.id}</TableData>
-            <TableData>
-              <Stack gap={2}>
-                <Text size='sm'>{player.name || t(`${base}.unnamed`, {})}</Text>
+      {!live.online ? (
+        <Empty title={t(`${base}.unreachable`, {})} description={t(`${base}.unreachableDescription`, {})} />
+      ) : rows.length === 0 ? (
+        search.trim() ? (
+          <Empty title={t(`${base}.noMatch`, {})} description={t(`${base}.noMatchDescription`, {})} />
+        ) : (
+          <Empty title={t(`${base}.nobody`, {})} description={t(`${base}.nobodyDescription`, {})} />
+        )
+      ) : (
+        <div className='flex flex-col gap-2'>
+          {rows.map((player) => (
+            <div key={player.id} className='theme-fivem-player'>
+              <span className='theme-fivem-id'>#{player.id}</span>
+              <div className='min-w-0'>
+                <div className='theme-fivem-name'>{player.name || t(`${base}.unnamed`, {})}</div>
                 {player.identifiers.length > 0 && (
-                  <Text size='xs' c='dimmed'>
+                  <div className='theme-fivem-ids'>
                     {player.identifiers.map((identifier) => (
-                      <Code key={identifier} className='me-1'>
-                        {identifier}
-                      </Code>
+                      <span key={identifier}>{identifier}</span>
                     ))}
-                  </Text>
+                  </div>
                 )}
-              </Stack>
-            </TableData>
-            <TableData>{t(`${base}.pingValue`, { ping: player.ping })}</TableData>
-          </TableRow>
-        ))}
-      </Table>
-    </Stack>
+              </div>
+              <span className='theme-fivem-ping' data-slow={player.ping >= 150 || undefined}>
+                {t(`${base}.pingValue`, { ping: player.ping })}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
 export default function ServerFivemPlayers() {
   const { t } = useTranslations();
   const server = useServerStore((state) => state.server);
-  const [search, setSearch] = useState('');
 
   const query = useQuery({
     queryKey: queryKeys.server(server.uuid).fivem.players(),
@@ -99,14 +113,25 @@ export default function ServerFivemPlayers() {
   });
 
   return (
-    <ServerContentContainer title={t(`${base}.title`, {})} search={search} setSearch={setSearch}>
-      <Text size='sm' c='dimmed' mb='md'>
-        {t(`${base}.description`, { seconds: REFRESH_SECONDS })}
-      </Text>
+    <ServerContentContainer
+      title={t(`${base}.title`, {})}
+      subtitle={t(`${base}.subtitle`, { seconds: REFRESH_SECONDS })}
+      contentRight={
+        <Button
+          variant='default'
+          onClick={() => {
+            query.refetch();
+          }}
+          loading={query.isFetching && !query.isLoading}
+        >
+          {t(`${base}.refresh`, {})}
+        </Button>
+      }
+    >
       <ResourceView
         resource={{ data: query.data, loading: query.isLoading, error: query.error, refetch: () => query.refetch() }}
       >
-        {(live) => <Players live={live} search={search} />}
+        {(live) => <Players live={live} />}
       </ResourceView>
     </ServerContentContainer>
   );

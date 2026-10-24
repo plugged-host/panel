@@ -12,6 +12,7 @@ import {
   useMemo,
   useState,
 } from 'react';
+import { useNavigate } from 'react-router'; // plugged.host
 import { z } from 'zod';
 import { getEmptyPaginationSet, httpErrorToHuman } from '@/api/axios.ts';
 import getBackups from '@/api/server/backups/getBackups.ts';
@@ -91,6 +92,7 @@ export default function ServerBackups({
   const { t, tItem } = useTranslations();
   const { addToast } = useToast();
   const queryClient = useQueryClient();
+  const navigate = useNavigate(); // plugged.host
   const server = useServerStore((state) => state.server);
   const storeBackups = useServerStore((state) => (dataSource === 'store' ? state.backups : EMPTY_BACKUPS));
   const setStoreBackups = useServerStore((state) => state.setBackups);
@@ -485,13 +487,32 @@ export default function ServerBackups({
     );
   }
 
+  // plugged.host: the Pelican panel's "Off-site Backups" header action, a secondary button before
+  // Create: the account's Backups page with this server's row picked out; it lists the owner's
+  // servers only (docs/features/backups-page.md)
+  const pageControls = isEmpty ? undefined : createControl;
+  const offsiteControl = server.isOwner ? (
+    <Button variant='default' onClick={() => navigate(`/account/backups?server=${server.uuidShort}`)}>
+      {t('pages.server.backups.button.offsiteBackups', {})}
+    </Button>
+  ) : null;
+
   return (
     <ServerContentContainer
       title={t('pages.server.backups.title', {})}
       subtitle={subtitle}
       search={search}
       setSearch={isEmpty ? undefined : setSearch}
-      contentRight={isEmpty ? undefined : createControl}
+      contentRight={
+        offsiteControl ? (
+          <>
+            {offsiteControl}
+            {pageControls}
+          </>
+        ) : (
+          pageControls
+        )
+      } // plugged.host
       registry={window.extensionContext.extensionRegistry.pages.server.backups.container}
     >
       <BackupsSubNavigation />

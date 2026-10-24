@@ -175,6 +175,11 @@ export const publicSettingsSchema = z.object({
     plusName: z.string(),
     plusplusName: z.string(),
   }),
+  // plugged.host: the Discord rewards page and invite links (docs/features/discord.md)
+  discord: z.object({
+    enabled: z.boolean(),
+    inviteUrl: z.string(),
+  }),
   // plugged.host: what pages need to show ads (docs/features/ads.md)
   ads: adsSettingsSchema,
   // plugged.host: the chat with neo is offered (docs/features/neo.md)

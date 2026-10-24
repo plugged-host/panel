@@ -1,23 +1,18 @@
-import { faCloudDownload, faMemory, faMicrochip, faPowerOff } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useEffect, useMemo, useRef } from 'react';
 import ChartBlock from '@/elements/charts/ChartBlock.tsx';
 import ChartLegend from '@/elements/charts/ChartLegend.tsx';
 import ChartSyncGroup from '@/elements/charts/ChartSyncGroup.tsx';
 import StreamChart from '@/elements/charts/StreamChart.tsx';
 import ExtensionSlot from '@/elements/ExtensionSlot.tsx';
-import Spinner from '@/elements/feedback/Spinner.tsx';
 import { formatBytes, formatPercent, useStreamChart } from '@/lib/chart.ts';
 import { bitsPerSecondToString, mbToBytes } from '@/lib/format/size.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useServerStore } from '@/stores/server.ts';
-import { useServerStatsPending } from './useServerStatsPending.ts';
 
 export default function ServerStats() {
   const { t } = useTranslations();
   const server = useServerStore((state) => state.server);
   const stats = useServerStore((state) => state.stats);
-  const statsPending = useServerStatsPending();
 
   const networkPrevious = useRef<{
     tx: number;
@@ -90,41 +85,22 @@ export default function ServerStats() {
     };
   }, [stats, offline, cpu.push, memory.push, network.push]);
 
-  const overlayIcon = statsPending ? <Spinner size={24} /> : <FontAwesomeIcon icon={faPowerOff} className='text-2xl' />;
-  const overlayLabel = statsPending
-    ? t('pages.server.console.stats.connecting', {})
-    : offline
-      ? t('pages.server.console.stats.offline', {})
-      : undefined;
+  // plugged.host: the Pelican console's CPU, Memory and Network charts: titles only (no icons, no
+  // value), "gap-6", and not shown at all while the server is offline (its widgets' canView()).
+  if (offline) {
+    return null;
+  }
 
   return (
     <ChartSyncGroup>
-      <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
-        <ChartBlock
-          icon={<FontAwesomeIcon icon={faMicrochip} />}
-          title={t('common.stat.cpuLoad', {})}
-          value={cpu.value}
-          overlayIcon={overlayIcon}
-          overlayLabel={overlayLabel}
-        >
+      <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
+        <ChartBlock title={t('pages.server.console.stats.cpu', {})}>
           <StreamChart {...cpu.props} />
         </ChartBlock>
-        <ChartBlock
-          icon={<FontAwesomeIcon icon={faMemory} />}
-          title={t('common.stat.memoryLoad', {})}
-          value={memory.value}
-          overlayIcon={overlayIcon}
-          overlayLabel={overlayLabel}
-        >
+        <ChartBlock title={t('pages.server.console.stats.memory', {})}>
           <StreamChart {...memory.props} />
         </ChartBlock>
-        <ChartBlock
-          icon={<FontAwesomeIcon icon={faCloudDownload} />}
-          title={t('common.stat.network', {})}
-          legend={<ChartLegend {...network.legend} />}
-          overlayIcon={overlayIcon}
-          overlayLabel={overlayLabel}
-        >
+        <ChartBlock title={t('common.stat.network', {})} legend={<ChartLegend {...network.legend} />}>
           <StreamChart {...network.props} />
         </ChartBlock>
         <ExtensionSlot

@@ -29,6 +29,7 @@ import { useGlobalStore } from '@/stores/global.ts';
 import { useServerStore } from '@/stores/server.ts';
 import openConsolePopout from '../openConsolePopout.ts';
 import ConsoleCommandInput from './ConsoleCommandInput.tsx';
+import ConsoleSearch from './ConsoleSearch.tsx'; // plugged.host
 import CommandHistoryDrawer from './drawers/CommandHistoryDrawer.tsx';
 import FeatureProvider from './features/FeatureProvider.tsx';
 import SshDetailsModal from './modals/SshDetailsModal.tsx';
@@ -384,27 +385,44 @@ export default function Terminal({ popout = false }: { popout?: boolean }) {
       <CommandHistoryDrawer opened={openModal === 'commandHistory'} onClose={() => setOpenModal(null)} />
       <SshDetailsModal opened={openModal === 'sshDetails'} onClose={() => setOpenModal(null)} />
 
-      {/* plugged.host: the Pelican console's terminal colour (".theme-console" in app.css) */}
-      <Card className='theme-console h-full flex flex-col font-mono text-sm relative isolate p-2!'>
-        <TerminalHeader
-          websocketPing={websocketPing}
-          openModal={openModal}
-          setOpenModal={setOpenModal}
-          searchText={searchText}
-          setSearchText={setSearchText}
-          searchAddonRef={searchAddonRef}
-          popout={popout}
-        />
+      {/* plugged.host: the Pelican console's terminal (".theme-console" in app.css): no header row over
+          the screen on the console page (search, font size, SSH and the command history are quick
+          actions; search keeps its shortcut), the screen inset, the command line along the bottom.
+          The popout keeps upstream's header. */}
+      <Card p={0} className='theme-console h-full flex flex-col font-mono text-sm relative isolate'>
+        {popout ? (
+          <div className='px-2.5 pt-2'>
+            <TerminalHeader
+              websocketPing={websocketPing}
+              openModal={openModal}
+              setOpenModal={setOpenModal}
+              searchText={searchText}
+              setSearchText={setSearchText}
+              searchAddonRef={searchAddonRef}
+              popout={popout}
+            />
+          </div>
+        ) : (
+          <ConsoleSearch
+            opened={openModal === 'search'}
+            onChange={(opened) => setOpenModal(opened ? 'search' : null)}
+            searchText={searchText}
+            setSearchText={setSearchText}
+            searchAddonRef={searchAddonRef}
+          />
+        )}
 
         {!socketConnected && <Spinner.Centered />}
 
         <div className='flex-1 min-h-0 relative overflow-hidden'>
-          <div ref={terminalRef} className='absolute inset-0' />
+          {/* plugged.host: inset as Theme v2 pads ".xterm" ("0.25rem 0.625rem"), which FitAddon measures */}
+          <div ref={terminalRef} className='absolute inset-x-2.5 inset-y-1' />
           {selectionMenuTop !== null && <TerminalSelectionMenu top={selectionMenuTop} onCopy={copySelection} />}
         </div>
 
         {imagePulls.size > 0 && (
-          <span className='flex flex-col justify-end mt-4'>
+          // plugged.host: px-2.5, the card has no padding of its own now
+          <span className='flex flex-col justify-end mt-4 px-2.5'>
             {t('pages.server.console.message.pullingImage', {})}
             {[...imagePulls.entries()].map(([id, progress]) => (
               <span key={id} className='flex flex-row w-full items-center whitespace-pre-wrap break-all'>
