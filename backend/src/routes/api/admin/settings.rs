@@ -305,6 +305,11 @@ mod put {
         #[garde(length(chars, max = 512))]
         #[serde(default, with = "::serde_with::rust::double_option")]
         api_secret: Option<Option<compact_str::CompactString>>,
+        /// neo's gateway on noprofit.space (docs/features/neo.md). At least 32 characters. An
+        /// empty string keeps the stored secret, `null` removes it.
+        #[garde(length(chars, max = 512))]
+        #[serde(default, with = "::serde_with::rust::double_option")]
+        neo_secret: Option<Option<compact_str::CompactString>>,
     }
 
     // plugged.host: the status page (shared/src/settings/status.rs)
@@ -443,6 +448,10 @@ mod put {
         #[schema(inline)]
         #[garde(dive)]
         devboxes: Option<shared::settings::devboxes::PayloadDevboxes>,
+        // plugged.host: docs/features/neo.md
+        #[schema(inline)]
+        #[garde(dive)]
+        neo: Option<shared::settings::neo::PayloadNeo>,
         #[schema(inline)]
         #[garde(dive)]
         updates: Option<PayloadUpdates>,
@@ -836,6 +845,7 @@ mod put {
             for (secret, stored) in [
                 (noprofit.sso_secret, &mut stored_secrets.sso_secret),
                 (noprofit.api_secret, &mut stored_secrets.api_secret),
+                (noprofit.neo_secret, &mut stored_secrets.neo_secret), // plugged.host: neo
             ] {
                 match secret {
                     // the placeholder the API shows a stored secret as
@@ -991,6 +1001,14 @@ mod put {
                     .with_status(StatusCode::BAD_REQUEST)
                     .ok();
             }
+        }
+        // plugged.host: neo
+        if let Some(neo) = data.neo
+            && let Err(error) = neo.apply(&mut settings.neo)
+        {
+            return ApiResponse::error(&error.message())
+                .with_status(StatusCode::BAD_REQUEST)
+                .ok();
         }
 
         if !settings.app.password_login_enabled {

@@ -41,6 +41,11 @@ pub struct AppSettingsNoprofit {
     #[serde(serialize_with = "serialize_secret")]
     #[schema(value_type = Option<String>)]
     pub api_secret: Option<compact_str::CompactString>,
+    /// The secret of noprofit.space's neo gateway (its `NEO_GATEWAY_SECRET`), at least 32
+    /// characters. With it, neo runs on noprofit.space (docs/features/neo.md).
+    #[serde(serialize_with = "serialize_secret")]
+    #[schema(value_type = Option<String>)]
+    pub neo_secret: Option<compact_str::CompactString>,
 }
 
 /// A set secret is shown as [`crate::censor::CENSORED_PLACEHOLDER`], an unset one as `null`.
@@ -110,6 +115,7 @@ impl SettingsSerializeExt for AppSettingsNoprofit {
         for (key, secret) in [
             ("sso_secret", &self.sso_secret),
             ("api_secret", &self.api_secret),
+            ("neo_secret", &self.neo_secret),
         ] {
             serializer = match secret {
                 Some(secret) => {
@@ -144,6 +150,12 @@ impl SettingsDeserializeExt for AppSettingsNoprofitDeserializer {
                 None => env_string(env_key),
             });
         }
+        let neo_secret = match deserializer.take_raw_setting("neo_secret") {
+            Some(secret) if !secret.is_empty() => {
+                Some(deserializer.database.decrypt_base64(secret).await?)
+            }
+            _ => None,
+        };
         let api_secret = secrets.pop().flatten();
         let sso_secret = secrets.pop().flatten();
 
@@ -181,6 +193,7 @@ impl SettingsDeserializeExt for AppSettingsNoprofitDeserializer {
                 .unwrap_or(true),
             sso_secret: sso_secret.and_then(|s| s.into_optional()),
             api_secret: api_secret.and_then(|s| s.into_optional()),
+            neo_secret: neo_secret.and_then(|s| s.into_optional()),
         }))
     }
 }

@@ -2117,6 +2117,140 @@ export const devboxBlocksTable = pgTable(
   ],
 );
 
+// plugged.host: neo's chats (docs/features/neo.md). One per person and place (a server, or none
+// for the dashboard) that is not archived; a server's chats go with the server.
+export const neoConversationsTable = pgTable(
+  'neo_conversations',
+  {
+    uuid: uuid().default(sql`gen_random_uuid()`).primaryKey().notNull(),
+    user_uuid: uuid()
+      .references(() => usersTable.uuid, { onDelete: 'cascade' })
+      .notNull(),
+    server_uuid: uuid().references(() => serversTable.uuid, { onDelete: 'cascade' }),
+    title: varchar({ length: 120 * UTF8_MAX_SCALAR_SIZE }),
+    // idle, running, awaiting_approval, limited, unlinked, error
+    status: varchar({ length: 24 }).default('idle').notNull(),
+    step_count: smallint().default(0).notNull(),
+    tokens_used: bigint({ mode: 'number' }).default(0).notNull(),
+    last_provider: varchar({ length: 64 }),
+    last_error: varchar({ length: 255 }),
+    last_activity: timestamp().defaultNow().notNull(),
+    archived: timestamp(),
+    created: timestamp().defaultNow().notNull(),
+  },
+  (cols) => [
+    index('neo_conversations_user_uuid_server_uuid_archived_idx').on(cols.user_uuid, cols.server_uuid, cols.archived),
+    index('neo_conversations_last_activity_idx').on(cols.last_activity),
+  ],
+);
+
+// plugged.host: a chat's messages in order: the user's, neo's (with its tool calls), one row per
+// tool call (its status and output) and notices (limits, errors).
+export const neoMessagesTable = pgTable(
+  'neo_messages',
+  {
+    uuid: uuid().default(sql`gen_random_uuid()`).primaryKey().notNull(),
+    conversation_uuid: uuid()
+      .references(() => neoConversationsTable.uuid, { onDelete: 'cascade' })
+      .notNull(),
+    seq: integer().notNull(),
+    // user, assistant, tool, notice
+    role: varchar({ length: 12 }).notNull(),
+    content: text(),
+    tool_calls: jsonb(),
+    tool_call_id: varchar({ length: 64 }),
+    tool_name: varchar({ length: 64 }),
+    // tool rows: pending_approval, approved, queued, executing, done, failed, denied, skipped
+    status: varchar({ length: 24 }),
+    meta: jsonb(),
+    created: timestamp().defaultNow().notNull(),
+  },
+  (cols) => [uniqueIndex('neo_messages_conversation_uuid_seq_idx').on(cols.conversation_uuid, cols.seq)],
+);
+
+// plugged.host: images attached to a neo chat message, shrunk to a JPEG on upload
+// (docs/features/neo.md); they go with their message.
+export const neoImagesTable = pgTable(
+  'neo_images',
+  {
+    uuid: uuid().default(sql`gen_random_uuid()`).primaryKey().notNull(),
+    message_uuid: uuid()
+      .references(() => neoMessagesTable.uuid, { onDelete: 'cascade' })
+      .notNull(),
+    data: bytea().notNull(),
+    created: timestamp().defaultNow().notNull(),
+  },
+  (cols) => [index('neo_images_message_uuid_idx').on(cols.message_uuid)],
+);
+
+// plugged.host: each person's neo switches, the model picked in the chat and when they agreed to
+// the notice. No row: on, asks first, the default model, not agreed yet.
+export const userNeoSettingsTable = pgTable('user_neo_settings', {
+  user_uuid: uuid()
+    .references(() => usersTable.uuid, { onDelete: 'cascade' })
+    .primaryKey()
+    .notNull(),
+  enabled: boolean().default(true).notNull(),
+  auto_approve: boolean().default(false).notNull(),
+  model: varchar({ length: 16 }),
+  acknowledged: timestamp(),
+  created: timestamp().defaultNow().notNull(),
+});
+
+// plugged.host: neo's 5-hour (short) and weekly (long) token windows when the panel meters neo
+// itself, per user or per Discord account nobody linked.
+export const neoUsageWindowsTable = pgTable(
+  'neo_usage_windows',
+  {
+    uuid: uuid().default(sql`gen_random_uuid()`).primaryKey().notNull(),
+    user_uuid: uuid().references(() => usersTable.uuid, { onDelete: 'cascade' }),
+    discord_id: varchar({ length: 20 }),
+    kind: varchar({ length: 8 }).notNull(),
+    started: timestamp().defaultNow().notNull(),
+    resets: timestamp().defaultNow().notNull(),
+    tokens_used: bigint({ mode: 'number' }).default(0).notNull(),
+  },
+  (cols) => [
+    uniqueIndex('neo_usage_windows_user_uuid_kind_idx')
+      .on(cols.user_uuid, cols.kind)
+      .where(sql`user_uuid IS NOT NULL`),
+    uniqueIndex('neo_usage_windows_discord_id_kind_idx')
+      .on(cols.discord_id, cols.kind)
+      .where(sql`user_uuid IS NULL`),
+    index('neo_usage_windows_resets_idx').on(cols.resets),
+  ],
+);
+
+// plugged.host: every metered neo turn (and failed ones, and provider tests), for the admin's view.
+export const neoUsageEventsTable = pgTable(
+  'neo_usage_events',
+  {
+    uuid: uuid().default(sql`gen_random_uuid()`).primaryKey().notNull(),
+    user_uuid: uuid().references(() => usersTable.uuid, { onDelete: 'set null' }),
+    discord_id: varchar({ length: 20 }),
+    service: varchar({ length: 32 }).notNull(),
+    conversation: varchar({ length: 64 }),
+    provider_slot: smallint(),
+    provider_label: varchar({ length: 64 }),
+    driver: varchar({ length: 16 }),
+    model: varchar({ length: 128 }),
+    prompt_tokens: integer().default(0).notNull(),
+    completion_tokens: integer().default(0).notNull(),
+    charged_tokens: bigint({ mode: 'number' }).default(0).notNull(),
+    finish_reason: varchar({ length: 24 }),
+    // ok, failed, test
+    status: varchar({ length: 16 }).notNull(),
+    attempts: jsonb(),
+    duration_ms: integer().default(0).notNull(),
+    created: timestamp().defaultNow().notNull(),
+  },
+  (cols) => [
+    index('neo_usage_events_user_uuid_created_idx').on(cols.user_uuid, cols.created),
+    index('neo_usage_events_discord_id_idx').on(cols.discord_id),
+    index('neo_usage_events_created_idx').on(cols.created),
+  ],
+);
+
 export const serverSchedulesTable = pgTable(
   'server_schedules',
   {

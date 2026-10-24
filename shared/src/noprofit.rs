@@ -51,6 +51,8 @@ pub struct Config {
     pub link_by_email: bool,
     sso_secret: String,
     api_secret: Option<String>,
+    /// neo's gateway (docs/features/neo.md); its own secret, signed like the API.
+    neo_secret: Option<String>,
 }
 
 impl Config {
@@ -95,7 +97,41 @@ impl Config {
                 .map(str::trim)
                 .filter(|secret| secret.len() >= MIN_SECRET_LENGTH)
                 .map(str::to_string),
+            neo_secret: settings
+                .neo_secret
+                .as_deref()
+                .map(str::trim)
+                .filter(|secret| secret.len() >= MIN_SECRET_LENGTH)
+                .map(str::to_string),
         })
+    }
+
+    /// Whether neo runs on noprofit.space (its gateway secret is set).
+    #[inline]
+    pub fn neo_enabled(&self) -> bool {
+        self.neo_secret.is_some()
+    }
+
+    /// The `X-NP-*` headers for a request to noprofit.space's neo gateway, or `None` without its
+    /// secret.
+    pub fn sign_neo_request(
+        &self,
+        method: &str,
+        path: &str,
+        body: &[u8],
+    ) -> Option<[(&'static str, String); 3]> {
+        let secret = self.neo_secret.as_ref()?;
+        let timestamp = chrono::Utc::now().timestamp().to_string();
+        let nonce = rand::distr::Alphanumeric.sample_string(&mut rand::rng(), 32);
+
+        Some([
+            ("X-NP-Timestamp", timestamp.clone()),
+            ("X-NP-Nonce", nonce.clone()),
+            (
+                "X-NP-Signature",
+                request_signature(secret, method, path, &timestamp, &nonce, body),
+            ),
+        ])
     }
 
     /// Whether the panel can pull account snapshots (the API secret is set).
@@ -937,6 +973,7 @@ mod tests {
             link_by_email: false,
             sso_secret: "test-secret-0123456789abcdef0123456789abcdef".into(),
             api_secret: Some("test-secret-0123456789abcdef0123456789abcdef".into()),
+            neo_secret: None,
         }
     }
 

@@ -1196,6 +1196,17 @@ pub(crate) static BASE_SERVER_PERMISSIONS: LazyLock<IndexMap<&'static str, Permi
                     )]),
                 },
             ),
+            // plugged.host: docs/features/neo.md
+            (
+                "neo",
+                PermissionGroup {
+                    description: "Permissions that control neo, the assistant in the chat, on this server.",
+                    permissions: IndexMap::from([(
+                        "access",
+                        "Allows using neo on this server. neo then acts with the subuser's other permissions, nothing more.",
+                    )]),
+                },
+            ),
             // plugged.host: docs/features/subdomains.md
             (
                 "subdomains",

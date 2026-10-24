@@ -48,6 +48,7 @@ pub mod limbo; // plugged.host
 pub mod mail;
 pub mod minecraft; // plugged.host
 pub mod models;
+pub mod neo; // plugged.host
 pub mod net;
 pub mod node_failover; // plugged.host
 pub mod node_telemetry; // plugged.host

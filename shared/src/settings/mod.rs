@@ -32,6 +32,7 @@ pub mod economy; // plugged.host
 pub mod games; // plugged.host
 pub mod limbo; // plugged.host
 pub mod metadata;
+pub mod neo; // plugged.host
 pub mod noprofit; // plugged.host
 pub mod placement; // plugged.host
 pub mod queue; // plugged.host
@@ -456,6 +457,9 @@ pub struct AppSettings {
     // plugged.host: devboxes, VS Code on a game server
     #[schema(inline)]
     pub devboxes: devboxes::AppSettingsDevboxes,
+    // plugged.host: neo, the assistant
+    #[schema(inline)]
+    pub neo: neo::AppSettingsNeo,
     #[schema(inline)]
     pub updates: updates::AppSettingsUpdates,
 
@@ -768,6 +772,8 @@ impl SettingsSerializeExt for AppSettings {
             .nest("subdomains", &self.subdomains) // plugged.host
             .await?
             .nest("devboxes", &self.devboxes) // plugged.host
+            .await?
+            .nest("neo", &self.neo) // plugged.host
             .await?
             .nest("updates", &self.updates)
             .await?;
@@ -1086,6 +1092,9 @@ impl SettingsDeserializeExt for AppSettingsDeserializer {
                 .await?,
             devboxes: deserializer // plugged.host
                 .nest("devboxes", &devboxes::AppSettingsDevboxesDeserializer)
+                .await?,
+            neo: deserializer // plugged.host
+                .nest("neo", &neo::AppSettingsNeoDeserializer)
                 .await?,
             updates: deserializer
                 .nest("updates", &updates::AppSettingsUpdatesDeserializer)
