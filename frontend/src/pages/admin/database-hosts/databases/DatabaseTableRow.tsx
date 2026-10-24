@@ -12,7 +12,7 @@ import RedactedText from '@/elements/typography/RedactedText.tsx';
 import { databaseTypeLabelMapping } from '@/lib/enums.ts';
 import { bytesToString } from '@/lib/format/size.ts';
 import { adminServerDatabaseBaseSchema } from '@/lib/schemas/admin/servers.ts';
-import { useDatabaseSize } from '@/plugins/useDatabaseSize.ts';
+import { useDatabaseHostDatabaseSize } from '@/plugins/useDatabaseHostDatabaseSize.ts';
 import { useAdminCan } from '@/plugins/usePermissions.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import DatabaseHostDatabaseDeleteModal from './modals/DatabaseHostDatabaseDeleteModal.tsx';
@@ -27,7 +27,7 @@ type Props<P> = {
 export default function DatabaseTableRow<P>({ database, serverUuid, hostUuid, linkColumn, ...contextMenu }: Props<P>) {
   const { t } = useTranslations();
   const [openModal, setOpenModal] = useState<'delete' | null>(null);
-  const { size, loading: sizeLoading } = useDatabaseSize(serverUuid, database.uuid);
+  const { size, loading: sizeLoading } = useDatabaseHostDatabaseSize(hostUuid, database.uuid);
   const canDelete = useAdminCan('database-hosts.delete');
   const host = `${database.host}:${database.port}`;
 
@@ -77,7 +77,7 @@ export default function DatabaseTableRow<P>({ database, serverUuid, hostUuid, li
 
             <TableData>{database.username}</TableData>
 
-            <TableData>{sizeLoading ? <Spinner size={16} /> : bytesToString(size)}</TableData>
+            <TableData>{sizeLoading ? <Spinner size={16} /> : size !== undefined && bytesToString(size)}</TableData>
 
             <TableData>
               <FormattedTimestamp timestamp={database.created} />

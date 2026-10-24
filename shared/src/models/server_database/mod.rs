@@ -283,6 +283,24 @@ impl ServerDatabase {
             .try_collect_vec()
     }
 
+    pub async fn uuids_by_server_uuid_database_host_uuid(
+        database: &crate::database::Database,
+        server_uuid: uuid::Uuid,
+        database_host_uuid: uuid::Uuid,
+    ) -> Result<Vec<uuid::Uuid>, crate::database::DatabaseError> {
+        Ok(sqlx::query_scalar!(
+            r#"
+            SELECT server_databases.uuid
+            FROM server_databases
+            WHERE server_databases.server_uuid = $1 AND server_databases.database_host_uuid = $2
+            "#,
+            server_uuid,
+            database_host_uuid
+        )
+        .fetch_all(database.read())
+        .await?)
+    }
+
     pub async fn count_by_database_host_uuid(
         database: &crate::database::Database,
         database_host_uuid: uuid::Uuid,
@@ -387,39 +405,12 @@ impl ServerDatabase {
         &mut self,
         database: &crate::database::Database,
     ) -> Result<i64, crate::database::DatabaseError> {
-        match self.database_host.get_connection(database).await? {
-            crate::models::database_host::DatabasePool::Mysql(pool) => {
-                let row = sqlx::query(
-                    "SELECT CAST(SUM(data_length + index_length) AS SIGNED) FROM information_schema.tables WHERE table_schema = ?",
-                )
-                .bind(&self.name)
-                .fetch_one(&pool)
-                .await?;
+        let sizes = self
+            .database_host
+            .get_database_sizes(database, std::slice::from_ref(&self.name))
+            .await?;
 
-                Ok(row.get::<Option<i64>, _>(0).unwrap_or(0))
-            }
-            crate::models::database_host::DatabasePool::Postgres(pool) => {
-                let row = sqlx::query("SELECT pg_database_size($1)")
-                    .bind(&self.name)
-                    .fetch_one(&pool)
-                    .await?;
-
-                Ok(row.get::<Option<i64>, _>(0).unwrap_or(0))
-            }
-            crate::models::database_host::DatabasePool::Mongodb(client) => {
-                let cmd = mongodb::bson::doc! { "dbStats": 1, "scale": 1 };
-                let stats = client.database(&self.name).run_command(cmd).await?;
-
-                let size = match stats.get("dataSize") {
-                    Some(mongodb::bson::Bson::Int32(i)) => *i as i64,
-                    Some(mongodb::bson::Bson::Int64(i)) => *i,
-                    Some(mongodb::bson::Bson::Double(f)) => *f as i64,
-                    _ => 0,
-                };
-
-                Ok(size)
-            }
-        }
+        Ok(sizes.get(&self.name).copied().unwrap_or(0))
     }
 
     pub async fn recreate(
@@ -613,6 +604,7 @@ impl IntoApiObject for ServerDatabase {
         let api_object = finish_extendible!(
             ApiServerDatabase {
                 uuid: self.uuid,
+                database_host_uuid: self.database_host.uuid,
                 r#type: self.database_host.r#type,
                 host: self.database_host.public_host.unwrap_or(details.host),
                 port: self
@@ -1107,6 +1099,7 @@ pub struct AdminApiServerDatabase {
 #[schema(title = "ServerDatabase")]
 pub struct ApiServerDatabase {
     pub uuid: uuid::Uuid,
+    pub database_host_uuid: uuid::Uuid,
 
     pub r#type: DatabaseType,
     pub host: compact_str::CompactString,

@@ -3,6 +3,7 @@ use crate::{
     models::{InsertQueryBuilder, UpdateQueryBuilder},
     prelude::*,
 };
+use futures_util::StreamExt;
 use garde::Validate;
 use serde::{Deserialize, Serialize};
 use sqlx::{Row, postgres::PgRow, prelude::Type};
@@ -484,6 +485,145 @@ impl DatabaseHost {
         Ok(pool)
     }
 
+    /// Sizes of every server database on this host, shared between all callers for a few seconds
+    /// so listing databases of many servers on one host only queries the host once.
+    pub async fn get_cached_database_sizes(
+        &mut self,
+        state: &crate::State,
+    ) -> Result<HashMap<uuid::Uuid, i64>, anyhow::Error> {
+        state
+            .cache
+            .cached(
+                &format!("database_host_sizes::{}", self.uuid),
+                15,
+                || async {
+                    let databases = sqlx::query!(
+                        r#"
+                        SELECT server_databases.uuid, server_databases.name
+                        FROM server_databases
+                        WHERE server_databases.database_host_uuid = $1
+                        "#,
+                        self.uuid
+                    )
+                    .fetch_all(state.database.read())
+                    .await?;
+
+                    let names = databases
+                        .iter()
+                        .map(|database| compact_str::CompactString::from(&database.name))
+                        .collect::<Vec<_>>();
+                    let sizes = self.get_database_sizes(&state.database, &names).await?;
+
+                    Ok::<_, crate::database::DatabaseError>(
+                        databases
+                            .into_iter()
+                            .map(|database| {
+                                let size = sizes.get(database.name.as_str()).copied().unwrap_or(0);
+                                (database.uuid, size)
+                            })
+                            .collect::<HashMap<_, _>>(),
+                    )
+                },
+            )
+            .await
+    }
+
+    /// Databases missing from the result have no size the host would report, either because
+    /// they hold nothing yet or because the host credentials cannot read them.
+    pub async fn get_database_sizes(
+        &mut self,
+        database: &crate::database::Database,
+        names: &[compact_str::CompactString],
+    ) -> Result<HashMap<compact_str::CompactString, i64>, crate::database::DatabaseError> {
+        if names.is_empty() {
+            return Ok(HashMap::new());
+        }
+
+        match self.get_connection(database).await? {
+            DatabasePool::Mysql(pool) => {
+                let mut query = sqlx::query(sqlx::AssertSqlSafe(format!(
+                    "SELECT table_schema, CAST(SUM(data_length + index_length) AS SIGNED) FROM information_schema.tables WHERE table_schema IN ({}) GROUP BY table_schema",
+                    vec!["?"; names.len()].join(", ")
+                )));
+                for name in names {
+                    query = query.bind(name.as_str());
+                }
+
+                let rows = query.fetch_all(&pool).await?;
+
+                Ok(rows
+                    .into_iter()
+                    .map(|row| {
+                        Ok::<_, sqlx::Error>((
+                            row.try_get::<String, _>(0)?.into(),
+                            row.try_get::<Option<i64>, _>(1)?.unwrap_or(0),
+                        ))
+                    })
+                    .collect::<Result<_, _>>()?)
+            }
+            DatabasePool::Postgres(pool) => {
+                let rows = sqlx::query(
+                    r#"
+                    SELECT pg_database.datname::text, pg_database_size(pg_database.oid)
+                    FROM pg_database
+                    WHERE pg_database.datname = ANY($1)
+                        AND (has_database_privilege(pg_database.oid, 'CONNECT') OR pg_has_role('pg_read_all_stats', 'MEMBER'))
+                    "#,
+                )
+                .bind(names.iter().map(|name| name.as_str()).collect::<Vec<_>>())
+                .fetch_all(&pool)
+                .await?;
+
+                Ok(rows
+                    .into_iter()
+                    .map(|row| {
+                        Ok::<_, sqlx::Error>((
+                            row.try_get::<String, _>(0)?.into(),
+                            row.try_get::<Option<i64>, _>(1)?.unwrap_or(0),
+                        ))
+                    })
+                    .collect::<Result<_, _>>()?)
+            }
+            DatabasePool::Mongodb(client) => {
+                let mut sizes = futures_util::stream::iter(names.iter().cloned().map(|name| {
+                    let client = client.clone();
+                    async move {
+                        let stats = match client
+                            .database(&name)
+                            .run_command(mongodb::bson::doc! { "dbStats": 1, "scale": 1 })
+                            .await
+                        {
+                            Ok(stats) => stats,
+                            Err(err) => {
+                                tracing::warn!(database = %name, "failed to get database stats: {:?}", err);
+                                return None;
+                            }
+                        };
+
+                        let size = match stats.get("dataSize") {
+                            Some(mongodb::bson::Bson::Int32(i)) => *i as i64,
+                            Some(mongodb::bson::Bson::Int64(i)) => *i,
+                            Some(mongodb::bson::Bson::Double(f)) => *f as i64,
+                            _ => 0,
+                        };
+
+                        Some((name, size))
+                    }
+                }))
+                .buffer_unordered(8);
+
+                let mut result = HashMap::with_capacity(names.len());
+                while let Some(entry) = sizes.next().await {
+                    if let Some((name, size)) = entry {
+                        result.insert(name, size);
+                    }
+                }
+
+                Ok(result)
+            }
+        }
+    }
+
     pub async fn all_with_pagination(
         database: &crate::database::Database,
         page: i64,
@@ -532,6 +672,51 @@ impl DatabaseHost {
         .bind(node.uuid)
         .bind(node.location.uuid)
         .bind(uuid)
+        .fetch_optional(database.read())
+        .await?;
+
+        row.try_map(|row| Self::map(None, &row))
+    }
+
+    /// A host is visible to a server while its node may deploy to it, and for as long as the
+    /// server still has databases on it.
+    pub async fn by_node_server_uuid(
+        database: &crate::database::Database,
+        node: &super::node::Node,
+        server_uuid: uuid::Uuid,
+        uuid: uuid::Uuid,
+    ) -> Result<Option<Self>, crate::database::DatabaseError> {
+        let row = sqlx::query(sqlx::AssertSqlSafe(format!(
+            r#"
+            SELECT {}
+            FROM database_hosts
+            WHERE database_hosts.uuid = $1
+            AND (
+                (
+                    database_hosts.deployment_enabled
+                    AND (
+                        EXISTS (
+                            SELECT 1 FROM node_database_hosts
+                            WHERE node_database_hosts.database_host_uuid = database_hosts.uuid AND node_database_hosts.node_uuid = $2
+                        )
+                        OR EXISTS (
+                            SELECT 1 FROM location_database_hosts
+                            WHERE location_database_hosts.database_host_uuid = database_hosts.uuid AND location_database_hosts.location_uuid = $3
+                        )
+                    )
+                )
+                OR EXISTS (
+                    SELECT 1 FROM server_databases
+                    WHERE server_databases.database_host_uuid = database_hosts.uuid AND server_databases.server_uuid = $4
+                )
+            )
+            "#,
+            Self::columns_sql(None)
+        )))
+        .bind(uuid)
+        .bind(node.uuid)
+        .bind(node.location.uuid)
+        .bind(server_uuid)
         .fetch_optional(database.read())
         .await?;
 

@@ -1,4 +1,4 @@
-import { faCog, faDatabase } from '@fortawesome/free-solid-svg-icons';
+import { faCog, faDatabase, faHouse } from '@fortawesome/free-solid-svg-icons';
 import { useParams } from 'react-router';
 import getDatabaseHost from '@/api/admin/database-hosts/getDatabaseHost.ts';
 import AdminContentContainer from '@/elements/containers/AdminContentContainer.tsx';
@@ -9,6 +9,7 @@ import AdminDatabaseHostDatabases from '@/pages/admin/database-hosts/databases/A
 import { useResource } from '@/plugins/resource/useResource.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import DatabaseHostCreateOrUpdate from './DatabaseHostCreateOrUpdate.tsx';
+import DatabaseHostOverview from './overview/DatabaseHostOverview.tsx';
 
 export default function DatabaseHostView() {
   const { t } = useTranslations();
@@ -32,9 +33,15 @@ export default function DatabaseHostView() {
             registryProps={{ databaseHost }}
             items={[
               {
+                name: t('pages.admin.databaseHosts.tabs.overview.title', {}),
+                icon: faHouse,
+                path: `/`,
+                element: <DatabaseHostOverview databaseHost={databaseHost} />,
+              },
+              {
                 name: t('common.tabs.general', {}),
                 icon: faCog,
-                path: `/`,
+                path: `/settings`,
                 element: <DatabaseHostCreateOrUpdate contextDatabaseHost={databaseHost} />,
               },
               {

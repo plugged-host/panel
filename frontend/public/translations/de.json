@@ -6086,6 +6086,38 @@
                 }
               }
             },
+            "overview": {
+              "title": "Übersicht",
+              "page": {
+                "title": "Datenbank-Host-Übersicht",
+                "status": {
+                  "deploymentEnabled": "Bereitstellung aktiviert",
+                  "deploymentDisabled": "Bereitstellung deaktiviert",
+                  "maintenanceEnabled": "Wartung aktiviert",
+                  "maintenanceDisabled": "Wartung deaktiviert"
+                },
+                "card": {
+                  "hostDetails": "Host-Details",
+                  "systemInfo": "Systeminformationen",
+                  "sizes": "Datenbanken nach Größe"
+                },
+                "label": {
+                  "address": "Adresse",
+                  "publicAddress": "Öffentliche Adresse",
+                  "createdAt": "Erstellt",
+                  "version": "Version",
+                  "unavailable": "Nicht verfügbar",
+                  "databases": "Datenbanken",
+                  "totalSize": "Gesamtgröße",
+                  "share": "Anteil",
+                  "other": "Andere ({databases})",
+                  "noDatabases": "Noch keine Datenbank auf diesem Host speichert Daten."
+                },
+                "alert": {
+                  "maintenance": "Datenbankgrößen sind nicht verfügbar, solange sich der Host im Wartungsmodus befindet."
+                }
+              }
+            },
             "databases": {
               "title": "Datenbanken",
               "page": {

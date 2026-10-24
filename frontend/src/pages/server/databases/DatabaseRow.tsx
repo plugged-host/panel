@@ -11,7 +11,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { forwardRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { z } from 'zod';
-import getDatabaseSize from '@/api/server/databases/getDatabaseSize.ts';
+import getDatabaseHostSizes from '@/api/server/databases/getDatabaseHostSizes.ts';
 import CopyOnClick from '@/elements/CopyOnClick.tsx';
 import { TableData, TableRow, TableSelectionCell } from '@/elements/data-display/Table.tsx';
 import Spinner from '@/elements/feedback/Spinner.tsx';
@@ -48,12 +48,13 @@ const DatabaseRow = forwardRef<HTMLTableRowElement, DatabaseRowProps>(function D
   const host = `${database.host}:${database.port}`;
 
   const {
-    data: size,
-    loading: sizeLoading,
-    refetch: refetchSize,
+    data: sizes,
+    loading: sizesLoading,
+    refetch: refetchSizes,
   } = useResource({
-    queryKey: queryKeys.server(server.uuid).databases.size(database.uuid),
-    queryFn: () => getDatabaseSize(server.uuid, database.uuid),
+    queryKey: queryKeys.server(server.uuid).databases.hostSizes(database.databaseHostUuid),
+    queryFn: () => getDatabaseHostSizes(server.uuid, database.databaseHostUuid),
+    silent: true,
   });
 
   return (
@@ -64,7 +65,7 @@ const DatabaseRow = forwardRef<HTMLTableRowElement, DatabaseRowProps>(function D
         database={database}
         opened={openModal === 'recreate'}
         onClose={() => setOpenModal(null)}
-        onRecreated={refetchSize}
+        onRecreated={refetchSizes}
       />
       <DatabaseDeleteModal database={database} opened={openModal === 'delete'} onClose={() => setOpenModal(null)} />
 
@@ -144,7 +145,13 @@ const DatabaseRow = forwardRef<HTMLTableRowElement, DatabaseRowProps>(function D
 
             <TableData>{database.username}</TableData>
 
-            <TableData>{sizeLoading ? <Spinner size={16} /> : bytesToString(size ?? 0)}</TableData>
+            <TableData>
+              {sizesLoading && sizes === undefined ? (
+                <Spinner size={16} />
+              ) : (
+                sizes?.[database.uuid] !== undefined && bytesToString(sizes[database.uuid])
+              )}
+            </TableData>
 
             <TableData>
               {database.isLocked ? (

@@ -4,6 +4,7 @@ import { ruleMessage } from '@/lib/schemas/rules.ts';
 
 export const serverDatabaseSchema = z.looseObject({
   uuid: z.string(),
+  databaseHostUuid: z.string(),
   name: z.string(),
   isLocked: z.boolean(),
   username: z.string(),

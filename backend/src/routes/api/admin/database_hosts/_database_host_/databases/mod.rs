@@ -2,6 +2,7 @@ use super::State;
 use utoipa_axum::{router::OpenApiRouter, routes};
 
 mod _database_;
+mod sizes;
 
 mod get {
     use crate::routes::api::admin::database_hosts::_database_host_::GetDatabaseHost;
@@ -86,6 +87,7 @@ mod get {
 pub fn router(state: &State) -> OpenApiRouter<State> {
     OpenApiRouter::new()
         .routes(routes!(get::route))
+        .nest("/sizes", sizes::router(state))
         .nest("/{database}", _database_::router(state))
         .with_state(state.clone())
 }

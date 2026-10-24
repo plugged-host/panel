@@ -1,0 +1,64 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT server_databases.uuid, server_databases.name, servers.uuid AS server_uuid, servers.name AS server_name\n            FROM server_databases\n            JOIN servers ON servers.uuid = server_databases.server_uuid\n            WHERE server_databases.database_host_uuid = $1\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "uuid",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "server_databases",
+            "name": "uuid"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "name",
+        "type_info": "Varchar",
+        "origin": {
+          "Table": {
+            "table": "server_databases",
+            "name": "name"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "server_uuid",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "servers",
+            "name": "uuid"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "server_name",
+        "type_info": "Varchar",
+        "origin": {
+          "Table": {
+            "table": "servers",
+            "name": "name"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "5827e95ad0d0247996d9801d135e00f5e61f80c60069d410125ef53a0bad80ab"
+}

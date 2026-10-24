@@ -6216,6 +6216,38 @@ const baseTranslations = defineTranslations({
                 },
               },
             },
+            overview: {
+              title: 'Overview',
+              page: {
+                title: 'Database Host Overview',
+                status: {
+                  deploymentEnabled: 'Deployment Enabled',
+                  deploymentDisabled: 'Deployment Disabled',
+                  maintenanceEnabled: 'Maintenance Enabled',
+                  maintenanceDisabled: 'Maintenance Disabled',
+                },
+                card: {
+                  hostDetails: 'Host Details',
+                  systemInfo: 'System Information',
+                  sizes: 'Databases by Size',
+                },
+                label: {
+                  address: 'Address',
+                  publicAddress: 'Public Address',
+                  createdAt: 'Created',
+                  version: 'Version',
+                  unavailable: 'Unavailable',
+                  databases: 'Databases',
+                  totalSize: 'Total Size',
+                  share: 'Share',
+                  other: 'Other ({databases})',
+                  noDatabases: 'No databases on this host store any data yet.',
+                },
+                alert: {
+                  maintenance: 'Database sizes are unavailable while the host is in maintenance mode.',
+                },
+              },
+            },
             databases: {
               title: 'Databases',
               page: {

@@ -138,6 +138,7 @@ const admin = {
     all: () => ['admin', 'database-hosts'] as const,
     detail: (uuid: string) => ['admin', 'database-hosts', { uuid }] as const,
     databases: (hostUuid: string) => ['admin', 'database-hosts', hostUuid, 'databases'] as const,
+    databaseSizes: (hostUuid: string) => ['admin', 'database-hosts', hostUuid, 'databases', 'sizes'] as const,
     version: (hostUuid: string) => ['admin', 'database-hosts', hostUuid, 'version'] as const,
   },
 
@@ -329,7 +330,7 @@ const server = (serverUuid: string) => ({
     all: () => ['server', serverUuid, 'databases'] as const,
     hosts: () => ['server', serverUuid, 'databases', 'hosts'] as const,
     detail: (databaseUuid: string) => ['server', serverUuid, 'databases', { uuid: databaseUuid }] as const,
-    size: (databaseUuid: string) => ['server', serverUuid, 'databases', databaseUuid, 'size'] as const,
+    hostSizes: (hostUuid: string) => ['server', serverUuid, 'databases', 'hosts', hostUuid, 'sizes'] as const,
     schema: (databaseUuid: string) => ['server', serverUuid, 'databases', databaseUuid, 'schema'] as const,
     rows: (databaseUuid: string) => ['server', serverUuid, 'databases', databaseUuid, 'rows'] as const,
     columnTypes: (databaseUuid: string) => ['server', serverUuid, 'databases', databaseUuid, 'column-types'] as const,
