@@ -108,3 +108,44 @@ export type FivemVersionChoice =
   | { mode: 'latest' }
   | { mode: 'pin' }
   | { mode: 'build'; build: number };
+
+export const fivemRecipeSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: z.string(),
+  author: z.string().nullable(),
+  version: z.string().nullable(),
+  logo: z.string().nullable(),
+  needsDatabase: z.boolean(),
+  tasks: z.number(),
+});
+
+export const fivemFrameworkStepSchema = z.enum(['prepare', 'tasks', 'config', 'restart', 'done', 'failed']);
+
+export const fivemFrameworkInstallSchema = z.object({
+  recipe: z.string(),
+  step: fivemFrameworkStepSchema,
+  task: z.number(),
+  total: z.number(),
+  current: z.string().nullable(),
+  deploy: z.string().nullable(),
+  previous: z.string().nullable(),
+  database: z.string().nullable(),
+  needsAdmin: z.boolean(),
+  error: z.string().nullable(),
+  started: z.string(),
+  updated: z.string(),
+});
+
+export const fivemFrameworksSchema = z.object({
+  game: z.enum(['fivem', 'redm']),
+  current: z.string().nullable(),
+  unreachable: z.boolean(),
+  recipes: z.array(fivemRecipeSchema),
+  install: fivemFrameworkInstallSchema.nullable(),
+  databases: z.array(z.object({ uuid: z.string(), name: z.string() })),
+  canCreateDatabase: z.boolean(),
+  license: z.string().nullable(),
+});
+
+export type FivemDatabaseChoice = { mode: 'new' } | { mode: 'existing'; uuid: string };

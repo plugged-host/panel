@@ -1,12 +1,14 @@
 # FiveM
 
 FiveM and RedM servers get their own pages in the server sidebar: **Server Configuration** (the
-`server.cfg` txAdmin runs, as a form), **Players** (who is on the server now) and **Artifacts** (the
-FXServer build, how it updates, and FiveM for GTAV Enhanced).
+`server.cfg` txAdmin runs, as a form), **Frameworks** (txAdmin's recipes, installed in one click),
+**Players** (who is on the server now) and **Artifacts** (the FXServer build, how it updates, and
+FiveM for GTAV Enhanced).
 
 The code is in `shared/src/fivem/` (`server_cfg.rs` reads and edits `server.cfg` in place,
-`config.rs` the form over it, `txadmin.rs` where txAdmin keeps its files, `players.rs`,
-`artifacts.rs` what Cfx offers, `runtime.rs` the server's build and edition), the routes in
+`config.rs` the form over it, `txadmin.rs` where txAdmin keeps its files, `frameworks.rs` the recipe
+list and the install, `recipe.rs` the recipe runner over Wings, `players.rs`, `artifacts.rs` what
+Cfx offers, `runtime.rs` the server's build and edition), the routes in
 `backend/src/routes/api/client/servers/_server_/fivem/`, the pages in
 `frontend/src/pages/server/fivem/`. Files are read and written through Wings with the Minecraft
 pages' helpers (`shared/src/minecraft/files.rs`).
@@ -90,6 +92,54 @@ the file editor (needs `files.read-content` and `files.update`).
 FXServer reads the file when it starts, so the toast says to restart. The activity log records
 `server:fivem.config.update` with the names of the changed settings and lists, never their values.
 
+## Frameworks
+
+`/server/<id>/fivem/frameworks`, permission `fivem.frameworks` (installing restarts the server, and
+can create a database). GET `/api/client/servers/<id>/fivem/frameworks` (the recipes, the current
+folder, the install), POST the same with `{"recipe": "<id>", "server_name", "license", "database"?:
+{"mode": "new"} | {"mode": "existing", "uuid"}}` (202), DELETE `…/frameworks/install` to clear a
+finished install's outcome.
+
+**The list** is txAdmin's own recipe index (`tabarra/txAdmin-recipes` `indexv4.json`, what txAdmin's
+setup shows under "Popular recipes"): the engine-3 entries tagged for the server's game (`fivem`, or
+`redm` when `server.cfg` says `gamename rdr3`), each recipe's YAML fetched and parsed (with
+`serde-saphyr`) for its name, version, author and whether it needs a database. Index and recipes are
+cached for 10 minutes plus the last good copy for a day. A recipe is named by the start of the
+SHA-256 of its index URL and looked up in the index again when installing, so nothing a browser
+sends becomes a URL the panel fetches.
+
+**Installing** asks what txAdmin's deployer asks: a server name, the Cfx license key (filled in from
+the current `server.cfg` when the user may read it, `fivem.config`) and, for a recipe with
+`connect_database` or `query_database` tasks, a database: a new one from the server's database slots
+(needs `databases.create`, a free slot and a MySQL host on the node) or one of the server's MySQL
+databases (`databases.read`). One install per server at a time. It runs as a background task:
+
+1. **prepare**: a new folder `txData/<Name>_<XXXXXX>.base` (txAdmin's naming), the database (a new
+   one is logged as `server:database.create`), and txAdmin's variables: `serverName`, `svLicense`,
+   `maxClients` (48), `serverEndpoints` (the primary allocation's port, marked "do not modify"),
+   `addPrincipalsMaster` (txAdmin's master admin's linked identities, from `txData/admins.json`),
+   the `recipe*` ones and, with a database, `dbHost`, `dbPort`, `dbUsername`, `dbPassword`, `dbName`
+   and `dbConnectionString` (`mysql://…?charset=utf8mb4`, the host as players' servers reach it);
+2. **tasks**: the recipe's tasks in order, while the server keeps running: `download_github`,
+   `download_file`, `unzip`, `move_path`, `copy_path`, `remove_path`, `ensure_dir`, `write_file`,
+   `replace_string` (template, `all_vars`, literal), `load_vars`, `connect_database`,
+   `query_database` and `waste_time`. Paths stay inside the new folder. Wings does the work
+   (downloads with its pull, extracts, renames, copies); the panel only lists folders and edits small
+   text files, and runs the SQL as the database's own user. Each task has the recipe's timeout,
+   60 seconds to 30 minutes;
+3. **config**: `server.cfg`'s `{{variables}}` filled;
+4. **restart**: txAdmin's config is read (it names the previous folder), the server stops (killed
+   after a minute), txAdmin is pointed at the new folder (with the recipe's `$onesync`), the server
+   moves onto the FiveM image when it is set, and it starts again.
+
+The page polls the install every 3 seconds and shows each step; a finished one says where the new
+and the previous files are, and when txAdmin has no admin yet, how to register one. The activity log
+records `server:fivem.framework.start` and, when done, `server:fivem.framework` with the folder.
+
+**Nothing is lost:** the folder txAdmin ran before is not touched. A failed install removes the new
+folder and the database it created, and txAdmin keeps running the previous folder. An install that
+has not moved for 40 minutes (the panel restarted under it) counts as failed.
+
 ## Players
 
 `/server/<id>/fivem/players`, permission `fivem.players`. GET `/api/client/servers/<id>/fivem/players`.
@@ -131,6 +181,8 @@ builds list is hidden: Enhanced always runs Cfx's current Enhanced build. The ac
 
 - No relay for GitHub archives: Pelican's Wings needed a `Content-Length`, so the panel relayed
   GitHub's archives. wings-rs downloads without one.
+- The install is one background task instead of queued 50-second chunks, and its outcome shows on
+  the page and as a toast instead of in the notification bell.
 - Enhanced is a section of Artifacts, not its own page.
 - The image is a setting (Admin › Settings › Hosting › FiveM) instead of `.env`, and servers move
   onto it when their build or edition changes instead of with a command (`plugged-host:fivem-setup
@@ -149,3 +201,8 @@ builds list is hidden: Enhanced always runs Cfx's current Enhanced build. The ac
   running server (restarts, the marker shows the build after the start).
 - With FiveM for GTAV Enhanced off in Admin › Settings, the Enhanced switch is not offered; a
   server on Enhanced still offers switching back.
+- Frameworks: install ESX Legacy with a new database on a running server: the steps count up, the
+  server restarts at the end on `txData/ESXLegacy_….base`, the old folder is still there, the
+  database shows on the Databases page. Install one with a bad license key on a server with no
+  database slot: refused before anything starts. Make a task fail (remove the node's network
+  mid-download): the new folder and database are gone, txAdmin runs the old folder.

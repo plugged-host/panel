@@ -15,7 +15,6 @@ const CHANGELOG_API: &str = "https://changelogs-live.fivem.net/api/changelog/ver
 const DOWNLOADS_PAGE: &str =
     "https://docs.fivem.net/docs/server-download/?platform=legacy&os=linux";
 const TTL: u64 = 600;
-const STALE_TTL: u64 = 24 * 60 * 60;
 const TIMEOUT: std::time::Duration = std::time::Duration::from_secs(15);
 
 /// The channels `FIVEM_VERSION` can follow; anything else is a build number.
@@ -137,28 +136,6 @@ pub fn parse_downloads(html: &str) -> Option<Downloads> {
     })
 }
 
-async fn remember<T, F, Fut>(state: &crate::State, key: &str, fetch: F) -> Option<T>
-where
-    T: Serialize + serde::de::DeserializeOwned + Send + Sync,
-    F: FnOnce() -> Fut,
-    Fut: std::future::Future<Output = Option<T>>,
-{
-    let fresh = format!("fivem::cfx::{key}");
-    let last = format!("fivem::cfx::{key}::last");
-    if let Ok(Some(value)) = state.cache.get::<T>(&fresh).await {
-        return Some(value);
-    }
-
-    match fetch().await {
-        Some(value) => {
-            state.cache.set(&fresh, TTL, &value).await.ok();
-            state.cache.set(&last, STALE_TTL, &value).await.ok();
-            Some(value)
-        }
-        None => state.cache.get::<T>(&last).await.ok().flatten(),
-    }
-}
-
 async fn get(state: &crate::State, url: &str) -> Option<reqwest::Response> {
     state
         .client
@@ -173,7 +150,7 @@ async fn get(state: &crate::State, url: &str) -> Option<reqwest::Response> {
 }
 
 pub async fn changelog(state: &crate::State) -> Changelog {
-    remember(state, "changelog", || async {
+    super::remember(state, "fivem::cfx::changelog", TTL, || async {
         parse_changelog(&get(state, CHANGELOG_API).await?.json().await.ok()?)
     })
     .await
@@ -181,7 +158,7 @@ pub async fn changelog(state: &crate::State) -> Changelog {
 }
 
 pub async fn downloads(state: &crate::State) -> Downloads {
-    remember(state, "downloads", || async {
+    super::remember(state, "fivem::cfx::downloads", TTL, || async {
         parse_downloads(&get(state, DOWNLOADS_PAGE).await?.text().await.ok()?)
     })
     .await

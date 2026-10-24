@@ -280,6 +280,7 @@ const server = (serverUuid: string) => ({
     config: () => ['server', serverUuid, 'fivem', 'config'] as const,
     players: () => ['server', serverUuid, 'fivem', 'players'] as const,
     artifacts: () => ['server', serverUuid, 'fivem', 'artifacts'] as const,
+    frameworks: () => ['server', serverUuid, 'fivem', 'frameworks'] as const,
   },
   // plugged.host: docs/features/minecraft.md
   minecraft: {

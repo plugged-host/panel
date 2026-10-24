@@ -7,6 +7,7 @@ import {
   faEarthAmericas, // plugged.host
   faFileCode, // plugged.host
   faFolderOpen,
+  faLayerGroup, // plugged.host
   faNetworkWired,
   faPlay,
   faPuzzlePiece, // plugged.host
@@ -29,6 +30,7 @@ import ServerFiles from '@/pages/server/files/ServerFiles.tsx';
 import ServerFilesTrash from '@/pages/server/files/trash/ServerFilesTrash.tsx';
 import ServerFivemArtifacts from '@/pages/server/fivem/artifacts/ServerFivemArtifacts.tsx'; // plugged.host
 import ServerFivemConfig from '@/pages/server/fivem/config/ServerFivemConfig.tsx'; // plugged.host
+import ServerFivemFrameworks from '@/pages/server/fivem/frameworks/ServerFivemFrameworks.tsx'; // plugged.host
 import ServerFivemPlayers from '@/pages/server/fivem/players/ServerFivemPlayers.tsx'; // plugged.host
 import ServerLimbo from '@/pages/server/limbo/ServerLimbo.tsx'; // plugged.host
 import ServerMinecraftBrowse from '@/pages/server/minecraft/content/ServerMinecraftBrowse.tsx'; // plugged.host
@@ -157,6 +159,13 @@ const routes: ServerRouteDefinition[] = [
     path: '/fivem/config',
     element: ServerFivemConfig,
     permission: 'fivem.config',
+  },
+  {
+    name: () => getTranslations().t('pages.server.fivem.frameworks.title', {}),
+    icon: faLayerGroup,
+    path: '/fivem/frameworks',
+    element: ServerFivemFrameworks,
+    permission: 'fivem.frameworks',
   },
   {
     name: () => getTranslations().t('pages.server.fivem.players.title', {}),

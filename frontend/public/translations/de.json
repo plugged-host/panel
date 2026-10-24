@@ -10149,6 +10149,50 @@
                 }
               }
             }
+          },
+          "frameworks": {
+            "title": "Frameworks",
+            "current": "txAdmin läuft gerade auf {folder}. Die Installation legt das Framework in einen neuen Ordner und lässt diesen, wie er ist.",
+            "currentNone": "txAdmin hat diesen Server noch nicht eingerichtet. Die Installation eines Frameworks erledigt das für dich.",
+            "unreachable": "Die Node des Servers antwortet nicht, der aktuelle Ordner ist also unbekannt. Versuch es in einer Minute noch einmal.",
+            "indexUnreachable": "Die Framework-Liste von txAdmin konnte nicht geladen werden. Versuch es in einer Minute noch einmal.",
+            "by": "von {author}",
+            "needsDatabase": "Braucht eine Datenbank (einen deiner Datenbank-Plätze oder eine vorhandene).",
+            "noDatabase": "Braucht eine Datenbank, und dieser Server hat keinen Datenbank-Platz mehr frei.",
+            "sourceNote": "Das sind die offiziellen Rezepte von txAdmin. Jede Datei kommt direkt vom GitHub des Frameworks; dieses Panel hostet oder verändert sie nicht.",
+            "table": {
+              "framework": "Framework"
+            },
+            "install": {
+              "title": "{recipe} installieren",
+              "description": "Alles wird in einen neuen Ordner geladen, während dein Server weiterläuft, dann startet der Server darauf neu. Deine aktuellen Dateien bleiben in {folder}.",
+              "descriptionFresh": "Alles wird in einen neuen Ordner geladen, dann startet der Server darauf neu.",
+              "serverName": "Servername",
+              "serverNameDescription": "Kommt in den Hostnamen des Servers. Du kannst ihn später unter Serverkonfiguration ändern.",
+              "license": "FiveM-Lizenzschlüssel",
+              "licenseDescription": "Von portal.cfx.re (kostenlos). Wird aus deiner aktuellen server.cfg übernommen, wenn sie einen hat.",
+              "database": "Datenbank",
+              "databaseDescription": "Das Framework legt hier seine Tabellen an. Eine neue ist die sichere Wahl.",
+              "databaseNew": "Eine neue Datenbank",
+              "databaseExisting": "Vorhanden: {name}",
+              "button": "Installieren"
+            },
+            "progress": {
+              "installing": "{recipe} wird installiert",
+              "stepOf": "Schritt {step} von {total}",
+              "prepare": "Ordner und Datenbank werden vorbereitet",
+              "config": "server.cfg wird geschrieben",
+              "restart": "Der Server startet auf dem neuen Ordner neu",
+              "database": "Datenbank {name} angelegt.",
+              "leave": "Du kannst diese Seite verlassen, die Installation läuft weiter.",
+              "done": "{recipe} ist in {folder} installiert, und der Server startet darauf.",
+              "needsAdmin": "txAdmin startet den Server, sobald es einen Admin hat: Öffne die Konsole, dann txAdmin auf dem zweiten Port deines Servers, und registriere dich mit der dort gezeigten PIN.",
+              "previousKept": "Deine bisherigen Dateien sind noch in {folder}.",
+              "failed": "Die Installation von {recipe} ist fehlgeschlagen",
+              "failedNote": "An deinem Server hat sich nichts geändert: Der neue Ordner und die dafür angelegte Datenbank wurden entfernt, und txAdmin läuft weiter auf deinen bisherigen Dateien.",
+              "console": "Konsole öffnen",
+              "back": "Zurück zu den Frameworks"
+            }
           }
         },
         "activity": {
