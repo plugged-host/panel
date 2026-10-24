@@ -111,3 +111,50 @@ export const minecraftInstallSchema = z.object({
   project: z.string(),
   version: z.string().optional(),
 });
+
+export const minecraftConfigFieldSchema = z.object({
+  path: z.array(z.string()),
+  kind: z.enum(['toggle', 'number', 'choice', 'text']),
+  value: z.union([z.boolean(), z.number(), z.string(), z.null()]),
+  choices: z.array(z.string()),
+});
+
+export const minecraftConfigFileSchema = z.object({
+  id: z.string(),
+  path: z.string(),
+  format: z.enum(['properties', 'yaml']),
+  fields: z.array(minecraftConfigFieldSchema),
+});
+
+export const minecraftConfigSchema = z.object({
+  files: z.array(minecraftConfigFileSchema),
+});
+
+export const minecraftPlayerSchema = z.object({
+  name: z.string(),
+  uuid: z.string(),
+  whitelisted: z.boolean(),
+  operator: z.number().nullable(),
+  ban: z
+    .object({
+      reason: z.string(),
+      created: z.string(),
+      expires: z.string(),
+      source: z.string(),
+    })
+    .nullable(),
+});
+
+export const minecraftRosterSchema = z.object({
+  players: z.array(minecraftPlayerSchema),
+  enforced: z.boolean(),
+  onlineMode: z.boolean(),
+  level: z.number(),
+  running: z.boolean(),
+});
+
+export const minecraftPlayerListSchema = z.enum(['whitelist', 'operators', 'bans']);
+
+export const minecraftOutcomeSchema = z.object({
+  live: z.boolean(),
+});

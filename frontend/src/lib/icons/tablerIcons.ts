@@ -48,6 +48,7 @@ import {
   IconChevronsRight,
   IconChevronsUp,
   IconChevronUp,
+  IconCircleArrowUp, // plugged.host
   IconCircleCheck,
   IconCircleX,
   IconClearAll,
@@ -66,6 +67,7 @@ import {
   IconCornerLeftUp,
   IconCpu,
   IconCrown,
+  IconCube, // plugged.host
   IconCurrencyDollar,
   IconDatabase,
   IconDeviceDesktop,
@@ -127,6 +129,7 @@ import {
   IconLayoutList,
   IconLink,
   IconList,
+  IconListCheck, // plugged.host
   IconListDetails,
   IconLock,
   IconLockOpen,
@@ -184,6 +187,7 @@ import {
   IconTable,
   IconTag,
   IconTerminal2,
+  IconToggleLeft, // plugged.host
   IconToggleRight,
   IconTool,
   IconTools,
@@ -195,6 +199,7 @@ import {
   IconUserCog,
   IconUserShield,
   IconUsers,
+  IconUsersGroup, // plugged.host
   IconWindowMaximize,
   IconWorld,
   IconX,
@@ -242,6 +247,7 @@ export const tablerIcons: Record<string, TablerIcon> = {
   'chevron-left': IconChevronLeft,
   'chevron-right': IconChevronRight,
   'chevron-up': IconChevronUp,
+  'circle-arrow-up': IconCircleArrowUp, // plugged.host
   'circle-check': IconCircleCheck,
   'circle-exclamation': IconAlertCircle,
   'circle-info': IconInfoCircle,
@@ -266,6 +272,7 @@ export const tablerIcons: Record<string, TablerIcon> = {
   copy: IconCopy,
   crow: IconEggs,
   crown: IconCrown,
+  cube: IconCube, // plugged.host
   cubes: IconPackages,
   'cubes-stacked': IconPackages,
   database: IconDatabase,
@@ -332,6 +339,7 @@ export const tablerIcons: Record<string, TablerIcon> = {
   'layer-group': IconStack2,
   link: IconLink,
   list: IconList,
+  'list-check': IconListCheck, // plugged.host
   'list-ul': IconListDetails,
   lock: IconLock,
   'lock-open': IconLockOpen,
@@ -394,15 +402,18 @@ export const tablerIcons: Record<string, TablerIcon> = {
   'text-slash': IconClearFormatting,
   thumbtack: IconPin,
   'toggle-on': IconToggleRight,
+  'toggle-off': IconToggleLeft, // plugged.host
   toolbox: IconTool,
   'tower-broadcast': IconBroadcast,
   trash: IconTrash,
   'triangle-exclamation': IconAlertTriangle,
+  unlock: IconLockOpen, // plugged.host
   'unlock-keyhole': IconLockOpen2,
   upload: IconUpload,
   'up-right-from-square': IconExternalLink,
   user: IconUser,
   'user-check': IconUserCheck,
+  'user-group': IconUsersGroup, // plugged.host
   'user-gear': IconUserCog,
   'user-lock': IconUserShield,
   users: IconUsers,

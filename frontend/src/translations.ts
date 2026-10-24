@@ -9879,6 +9879,84 @@ const baseTranslations = defineTranslations({
               },
             },
           },
+          settings: {
+            title: 'Game Settings',
+            empty: 'None of the settings files are on the server yet. Start it once so it writes them, then come back.',
+            noMatch: 'No setting in this file matches that search.',
+            propertiesNote:
+              'Comments, the order of the keys and keys not shown here stay as they are. The ports and the RCON password are set by the panel.',
+            yamlNote:
+              'Comments and everything else in the file stay as they are. Lists and values over several lines are not shown here: edit the file as text for those.',
+            button: {
+              editText: 'Edit as Text',
+            },
+            toast: {
+              saved: '{file} saved ({count} changed). Restart the server to apply it.',
+            },
+          },
+          players: {
+            title: 'Players',
+            enforced: 'Only Whitelisted Players',
+            enforcedDescription:
+              'While this is on, only the players on the whitelist can join, and removing someone disconnects them.',
+            offlineMode:
+              'This server does not check accounts with Mojang, so anyone can join under any name. The whitelist matches on the name alone.',
+            stopped: 'The server is stopped: changes go into its files and apply when it starts.',
+            empty: 'Nobody is on the whitelist, an operator or banned yet.',
+            noMatch: 'No player matches that search.',
+            table: {
+              player: 'Player',
+              access: 'Access',
+            },
+            badge: {
+              whitelisted: 'Whitelisted',
+              operator: 'Operator (Level {level})',
+              banned: 'Banned',
+            },
+            button: {
+              add: 'Add Player',
+              whitelist: 'Add to Whitelist',
+              unwhitelist: 'Remove from Whitelist',
+              op: 'Make Operator',
+              deop: 'Remove Operator',
+              ban: 'Ban',
+              pardon: 'Pardon',
+            },
+            form: {
+              name: 'Minecraft Name',
+              nameOnline: 'The name of an existing Minecraft account.',
+              nameOffline: 'This server does not check accounts, so the name is taken as you type it.',
+              nameInvalid: 'A Minecraft name has 1 to 16 letters, digits and underscores.',
+              whitelist: 'Add to the whitelist',
+              operator: 'Make an operator',
+              reason: 'Reason',
+            },
+            modal: {
+              add: {
+                title: 'Add Player',
+              },
+              op: {
+                title: 'Make {name} an operator?',
+                content:
+                  'Operators can run every command, change the game and edit the world. Only give this to people you trust.',
+              },
+              ban: {
+                title: 'Ban {name}?',
+                content: 'They are disconnected and cannot join again until they are pardoned.',
+              },
+            },
+            toast: {
+              whitelisted: '{name} is on the whitelist.',
+              unwhitelisted: '{name} was taken off the whitelist.',
+              opped: '{name} is now an operator.',
+              deopped: '{name} is no longer an operator.',
+              banned: '{name} is banned.',
+              pardoned: '{name} is pardoned.',
+              enforcedOn: 'Whitelist turned on.',
+              enforcedOff: 'Whitelist turned off.',
+              atNextStart: 'It applies when the server starts.',
+            },
+          },
         },
         activity: {
           title: 'Activity',

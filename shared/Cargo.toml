@@ -66,6 +66,7 @@ cidr = { version = "0.3.1", features = ["serde"] }
 garde = { workspace = true }
 indexmap = { workspace = true }
 regex = { workspace = true }
+md5 = "0.8.1" # plugged.host: offline-mode Minecraft player UUIDs
 sentry = { workspace = true }
 sentry-anyhow = { workspace = true }
 sentry-tracing = { workspace = true }

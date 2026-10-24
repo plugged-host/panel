@@ -1,10 +1,13 @@
 //! plugged.host: Minecraft: Java Edition servers: which servers they are, the software and version
 //! they run, and the content sources the Content page browses (docs/features/minecraft.md).
 
+pub mod config;
 pub mod content;
 pub mod curseforge;
+pub mod files;
 pub mod jars;
 pub mod modrinth;
+pub mod players;
 pub mod spigot;
 pub mod versions;
 

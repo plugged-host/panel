@@ -8,8 +8,10 @@ import {
   faPlay,
   faPuzzlePiece, // plugged.host
   faRightLeft,
+  faSliders, // plugged.host
   faStopwatch,
   faTerminal,
+  faUserGroup, // plugged.host
   faUsers,
 } from '@fortawesome/free-solid-svg-icons';
 import { lazy } from 'react';
@@ -25,6 +27,8 @@ import ServerFilesTrash from '@/pages/server/files/trash/ServerFilesTrash.tsx';
 import ServerLimbo from '@/pages/server/limbo/ServerLimbo.tsx'; // plugged.host
 import ServerMinecraftBrowse from '@/pages/server/minecraft/content/ServerMinecraftBrowse.tsx'; // plugged.host
 import ServerMinecraftContent from '@/pages/server/minecraft/content/ServerMinecraftContent.tsx'; // plugged.host
+import ServerMinecraftPlayers from '@/pages/server/minecraft/players/ServerMinecraftPlayers.tsx'; // plugged.host
+import ServerMinecraftSettings from '@/pages/server/minecraft/settings/ServerMinecraftSettings.tsx'; // plugged.host
 import ServerNetwork from '@/pages/server/network/ServerNetwork.tsx';
 import ServerQueue from '@/pages/server/queue/ServerQueue.tsx'; // plugged.host
 import ScheduleView from '@/pages/server/schedules/ScheduleView.tsx';
@@ -103,6 +107,20 @@ const routes: ServerRouteDefinition[] = [
     path: '/minecraft/content/browse',
     element: ServerMinecraftBrowse,
     permission: 'minecraft.content',
+  },
+  {
+    name: () => getTranslations().t('pages.server.minecraft.settings.title', {}),
+    icon: faSliders,
+    path: '/minecraft/settings',
+    element: ServerMinecraftSettings,
+    permission: 'minecraft.settings',
+  },
+  {
+    name: () => getTranslations().t('pages.server.minecraft.players.title', {}),
+    icon: faUserGroup,
+    path: '/minecraft/players',
+    element: ServerMinecraftPlayers,
+    permission: 'minecraft.players',
   },
   {
     name: () => getTranslations().t('pages.server.databases.title', {}),

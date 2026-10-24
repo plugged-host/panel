@@ -280,6 +280,8 @@ const server = (serverUuid: string) => ({
     versions: (source: string, project: string) =>
       ['server', serverUuid, 'minecraft', 'versions', { source, project }] as const,
     installed: () => ['server', serverUuid, 'minecraft', 'installed'] as const,
+    settings: () => ['server', serverUuid, 'minecraft', 'settings'] as const,
+    players: () => ['server', serverUuid, 'minecraft', 'players'] as const,
   },
   activity: {
     all: (userUuid: string | null) => ['server', serverUuid, 'activity', { uuid: userUuid }] as const,

@@ -7,7 +7,7 @@
 //! Modrinth and SpigotMC. The answer is kept 30 days per server, file name and size; the list
 //! identifies a few jars per request until none is left.
 
-use super::{Kind, Loader, Source};
+use super::{Kind, Loader, Source, files::client};
 use crate::models::server::Server;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
@@ -167,19 +167,6 @@ fn identity_key(server: &Server, jar: &JarEntry) -> String {
     }
 
     format!("minecraft::jar::{}::{hex}", server.uuid)
-}
-
-async fn client(
-    state: &crate::State,
-    server: &Server,
-) -> Result<wings_api::client::WingsClient, anyhow::Error> {
-    Ok(server
-        .node
-        .fetch_cached(&state.database)
-        .await?
-        .api_client(&state.database)
-        .await?
-        .ignoring(server.subuser_ignored_files.clone().unwrap_or_default()))
 }
 
 /// The jars and folders of the content folder.

@@ -9624,6 +9624,79 @@
                 "installed": "{file} wird nach /{directory} heruntergeladen. Starte den Server neu, um es zu laden."
               }
             }
+          },
+          "settings": {
+            "title": "Spieleinstellungen",
+            "empty": "Noch keine der Einstellungsdateien liegt auf dem Server. Starte ihn einmal, damit er sie schreibt, und komm dann zurück.",
+            "noMatch": "Keine Einstellung in dieser Datei passt zu dieser Suche.",
+            "propertiesNote": "Kommentare, die Reihenfolge der Schlüssel und hier nicht gezeigte Schlüssel bleiben, wie sie sind. Die Ports und das RCON-Passwort setzt das Panel.",
+            "yamlNote": "Kommentare und alles andere in der Datei bleiben, wie sie sind. Listen und mehrzeilige Werte werden hier nicht gezeigt: Bearbeite dafür die Datei als Text.",
+            "button": {
+              "editText": "Als Text bearbeiten"
+            },
+            "toast": {
+              "saved": "{file} gespeichert ({count} geändert). Starte den Server neu, um es zu übernehmen."
+            }
+          },
+          "players": {
+            "title": "Spieler",
+            "enforced": "Nur Spieler auf der Whitelist",
+            "enforcedDescription": "Solange das an ist, können nur Spieler auf der Whitelist beitreten, und wer entfernt wird, fliegt vom Server.",
+            "offlineMode": "Dieser Server prüft Accounts nicht bei Mojang, darum kann jeder unter jedem Namen beitreten. Die Whitelist vergleicht nur den Namen.",
+            "stopped": "Der Server ist gestoppt: Änderungen gehen in seine Dateien und gelten, sobald er startet.",
+            "empty": "Noch niemand ist auf der Whitelist, Operator oder gebannt.",
+            "noMatch": "Kein Spieler passt zu dieser Suche.",
+            "table": {
+              "player": "Spieler",
+              "access": "Zugang"
+            },
+            "badge": {
+              "whitelisted": "Auf der Whitelist",
+              "operator": "Operator (Level {level})",
+              "banned": "Gebannt"
+            },
+            "button": {
+              "add": "Spieler hinzufügen",
+              "whitelist": "Zur Whitelist hinzufügen",
+              "unwhitelist": "Von der Whitelist entfernen",
+              "op": "Zum Operator machen",
+              "deop": "Operator entziehen",
+              "ban": "Bannen",
+              "pardon": "Entbannen"
+            },
+            "form": {
+              "name": "Minecraft-Name",
+              "nameOnline": "Der Name eines bestehenden Minecraft-Accounts.",
+              "nameOffline": "Dieser Server prüft keine Accounts, darum wird der Name so übernommen, wie du ihn eingibst.",
+              "nameInvalid": "Ein Minecraft-Name hat 1 bis 16 Buchstaben, Ziffern und Unterstriche.",
+              "whitelist": "Zur Whitelist hinzufügen",
+              "operator": "Zum Operator machen",
+              "reason": "Grund"
+            },
+            "modal": {
+              "add": {
+                "title": "Spieler hinzufügen"
+              },
+              "op": {
+                "title": "{name} zum Operator machen?",
+                "content": "Operatoren können jeden Befehl ausführen, das Spiel ändern und die Welt bearbeiten. Gib das nur Leuten, denen du vertraust."
+              },
+              "ban": {
+                "title": "{name} bannen?",
+                "content": "Der Spieler fliegt vom Server und kann erst wieder beitreten, wenn er entbannt ist."
+              }
+            },
+            "toast": {
+              "whitelisted": "{name} ist auf der Whitelist.",
+              "unwhitelisted": "{name} wurde von der Whitelist genommen.",
+              "opped": "{name} ist jetzt Operator.",
+              "deopped": "{name} ist kein Operator mehr.",
+              "banned": "{name} ist gebannt.",
+              "pardoned": "{name} ist entbannt.",
+              "enforcedOn": "Whitelist eingeschaltet.",
+              "enforcedOff": "Whitelist ausgeschaltet.",
+              "atNextStart": "Das gilt, sobald der Server startet."
+            }
           }
         },
         "activity": {

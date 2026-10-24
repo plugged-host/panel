@@ -1115,10 +1115,20 @@ pub(crate) static BASE_SERVER_PERMISSIONS: LazyLock<IndexMap<&'static str, Permi
                 "minecraft",
                 PermissionGroup {
                     description: "Permissions that control the Minecraft pages of a Minecraft server.",
-                    permissions: IndexMap::from([(
-                        "content",
-                        "Allows browsing, installing, updating, turning off and deleting plugins and mods.",
-                    )]),
+                    permissions: IndexMap::from([
+                        (
+                            "content",
+                            "Allows browsing, installing, updating, turning off and deleting plugins and mods.",
+                        ),
+                        (
+                            "settings",
+                            "Allows reading and changing server.properties and the Bukkit, Spigot, Paper and Purpur settings files, secrets in them included.",
+                        ),
+                        (
+                            "players",
+                            "Allows changing the whitelist, the operators and the bans.",
+                        ),
+                    ]),
                 },
             ),
             (
