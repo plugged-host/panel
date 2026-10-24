@@ -66,6 +66,7 @@ import GamesContainer from './games/GamesContainer.tsx'; // plugged.host
 import LimboContainer from './limbo/LimboContainer.tsx'; // plugged.host
 import MetadataContainer from './metadata/MetadataContainer.tsx';
 import MinecraftContainer from './minecraft/MinecraftContainer.tsx'; // plugged.host
+import NeoContainer from './neo/NeoContainer.tsx'; // plugged.host
 import NoprofitContainer from './noprofit/NoprofitContainer.tsx';
 import PlacementContainer from './placement/PlacementContainer.tsx'; // plugged.host
 import QueueContainer from './queue/QueueContainer.tsx'; // plugged.host
@@ -82,7 +83,7 @@ import WebauthnContainer from './webauthn/WebauthnContainer.tsx';
 
 // plugged.host: the settings are split into a few pages, each its own entry under "Settings" in the
 // admin sidebar (docs/upstream.md), instead of one page with every tab.
-export type SettingsGroupKey = 'general' | 'mail' | 'accounts' | 'hosting' | 'security' | 'economy' | 'ads';
+export type SettingsGroupKey = 'general' | 'mail' | 'accounts' | 'hosting' | 'security' | 'economy' | 'ads' | 'ai';
 
 type Translate = ReturnType<typeof useTranslations>['t'];
 
@@ -358,6 +359,20 @@ export const settingsGroups: SettingsGroup[] = [
         icon: faGamepad,
         path: '/in-game',
         element: <AdsContainer part='inGame' />,
+      },
+    ],
+  },
+  // plugged.host: the AI settings, neo's tab (docs/features/neo.md)
+  {
+    key: 'ai',
+    icon: faRobot,
+    name: () => getTranslations().t('pages.admin.settings.groups.ai', {}),
+    tabs: (t) => [
+      {
+        name: t('pages.admin.settings.tabs.neo.title', {}),
+        icon: faRobot,
+        path: '/',
+        element: <NeoContainer />,
       },
     ],
   },

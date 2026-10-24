@@ -332,6 +332,7 @@ mod tests {
             egg_uuid: uuid::Uuid::nil(),
             name: None,
             description: None,
+            icon: None,
             variable: Some("SOFTWARE".into()),
             variants: ["paper", "fabric"]
                 .into_iter()

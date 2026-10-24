@@ -244,6 +244,7 @@ export interface RegisteredFormIds {
   'admin.settings.subdomains': true; // plugged.host
   'admin.settings.discord': true; // plugged.host
   'admin.settings.devboxes': true; // plugged.host
+  'admin.settings.neo': true; // plugged.host
   'admin.domains.create': true; // plugged.host
   'admin.settings.application': true;
   'admin.settings.metadata': true;

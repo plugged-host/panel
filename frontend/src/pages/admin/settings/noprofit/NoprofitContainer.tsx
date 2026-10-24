@@ -5,7 +5,7 @@ import updateNoprofitSettings from '@/api/admin/settings/updateNoprofitSettings.
 import AdminSubContentContainer from '@/elements/containers/AdminSubContentContainer.tsx';
 import { FormEngine, useFormEngine } from '@/elements/form-engine/index.ts';
 import Group from '@/elements/layout/Group.tsx';
-import { adminSettingsNoprofitSchema } from '@/lib/schemas/admin/settings.ts';
+import { adminSettingsNoprofitFormSchema } from '@/lib/schemas/admin/settings.ts';
 import { useFormDraft } from '@/plugins/form/useFormDraft.ts';
 import { useHydrateForm } from '@/plugins/form/useHydrateForm.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
@@ -14,7 +14,7 @@ import SettingsSaveButton from '../SettingsSaveButton.tsx';
 import { useSettingsSection } from '../useSettingsSection.ts';
 import { noprofitEmptyFormValues, noprofitToFormValues, useNoprofitFormFields } from './noprofitFormValues.tsx';
 
-type NoprofitFormValues = z.infer<typeof adminSettingsNoprofitSchema>;
+type NoprofitFormValues = z.infer<typeof adminSettingsNoprofitFormSchema>;
 
 export default function NoprofitContainer() {
   const { t } = useTranslations();
@@ -22,26 +22,39 @@ export default function NoprofitContainer() {
   const [stored, setStored] = useState(() => ({
     ssoSecret: noprofit.ssoSecret !== null,
     apiSecret: noprofit.apiSecret !== null,
+    neoSecret: noprofit.neoSecret !== null,
   }));
 
   const form = useFormEngine<NoprofitFormValues>('admin.settings.noprofit', {
-    schema: adminSettingsNoprofitSchema,
+    schema: adminSettingsNoprofitFormSchema,
     initialValues: noprofitEmptyFormValues,
   });
 
   useHydrateForm(form, noprofit, noprofitToFormValues);
   useFormDraft(form, 'noprofit');
 
+  // The neo secret as the settings store keeps it (the neo tab reads it): typed, kept ('') or none
+  // (null), also when the field stays empty with none stored.
+  const saveSchema = adminSettingsNoprofitFormSchema.transform((values): NoprofitFormValues => {
+    const none = values.clearNeoSecret || (!values.neoSecret && !stored.neoSecret);
+    return { ...values, neoSecret: none ? null : values.neoSecret, clearNeoSecret: false };
+  });
+
   const { loading, submit } = useSettingsSection({
     form,
-    schema: adminSettingsNoprofitSchema,
+    schema: saveSchema,
     storeKey: 'noprofit',
-    // A typed secret is stored from now on.
+    // A typed secret is stored from now on. null removes the stored neo secret, so it is only sent
+    // when there is one to remove.
     update: (values) =>
-      updateNoprofitSettings(values).then(() =>
+      updateNoprofitSettings({
+        ...values,
+        neoSecret: values.neoSecret === null && !stored.neoSecret ? '' : values.neoSecret,
+      }).then(() =>
         setStored((stored) => ({
           ssoSecret: stored.ssoSecret || !!values.ssoSecret,
           apiSecret: stored.apiSecret || !!values.apiSecret,
+          neoSecret: values.neoSecret !== null && (stored.neoSecret || !!values.neoSecret),
         })),
       ),
     successMessage: t('pages.admin.settings.tabs.noprofit.page.toast.updated', {}),

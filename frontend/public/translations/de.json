@@ -834,6 +834,9 @@
       },
       "economyTransactions": {
         "empty": "Noch nichts.",
+        "balanceAfter": "danach {balance}",
+        "earnedWith": "Mit {provider} verdient",
+        "detail": "{type}: {detail}",
         "columns": {
           "what": "Was",
           "amount": "Betrag",
@@ -1836,28 +1839,54 @@
       "account": {
         "createServer": {
           "title": "Server erstellen",
+          "subtitle": "Wähle deine Konfiguration und starte den Server.",
           "button": "Server erstellen",
-          "allowance": "Übrig in deinem Konto: {cpu} CPU, {memory} Arbeitsspeicher, {disk} Speicher.",
           "disabled": "Das Erstellen von Servern ist ausgeschaltet.",
           "noPlan": "Dein Konto hat kein Paket, um Server zu erstellen.",
-          "nothingOffered": "Noch gibt es nichts zu erstellen: Es werden keine Spiele, Standorte oder Pakete angeboten.",
-          "tooMany": "Du hast {max} Server, so viele wie dein Konto erlaubt.",
+          "nothingOffered": "Es gibt derzeit keine Spiele, die du erstellen kannst. Bitte wende dich an einen Panel Admin.",
           "game": "Spiel",
-          "software": "Software",
+          "software": "Server Software",
+          "softwareDescription": "Welche Variante des Spielservers möchtest du nutzen?",
           "location": "Standort",
+          "noLocations": "Es sind keine Standorte konfiguriert. Bitte wende dich an einen Panel Admin.",
           "locationLocked": "Braucht {tier}",
           "locationFull": "Gerade voll",
           "latency": "{ms} ms",
-          "plan": "Paket",
-          "planResources": "{cpu} % CPU, {memory} Arbeitsspeicher, {disk} Speicher",
-          "planTooBig": "Mehr als du übrig hast",
-          "details": "Server",
-          "namePlaceholder": "Mein Server",
-          "eula": "Ich akzeptiere die",
-          "eulaLink": "Minecraft-EULA",
-          "submit": "Server erstellen",
+          "full": "Voll",
+          "noCapacity": "Keine Kapazität für die gewählten Ressourcen",
+          "tiers": {
+            "free": "Kostenlos",
+            "premium": "Premium"
+          },
+          "uptime": {
+            "free": "Keine Verfügbarkeitsgarantie",
+            "plus": "Beste Leistung",
+            "premium": "99,99 % Verfügbarkeit"
+          },
+          "freeTier": "In jedem Paket enthalten",
+          "getTier": "{name} holen",
+          "resources": "Ressourcen",
+          "resourcesDescription": "Wähle ein Paket oder konfiguriere eigene Werte.",
+          "planSize": "{cpu}% CPU · {memory} MB RAM · {disk} MB Speicherplatz",
+          "planUnavailable": "Übersteigt dein verbleibendes Limit",
+          "cpu": "CPU",
+          "memory": "RAM",
+          "disk": "Speicherplatz",
+          "details": "Details",
+          "name": "Server Name",
+          "randomName": "Zufälligen Namen generieren",
+          "eula": "Ich stimme der Minecraft-Endbenutzer-Lizenzvereinbarung (EULA) zu",
+          "eulaDescription": "Mit dem Erstellen dieses Servers stimmst du der Minecraft-EULA zu (https://aka.ms/MinecraftEULA). Die EULA wird automatisch auf dem Server akzeptiert, damit er direkt startet.",
+          "deploy": "Server erstellen",
+          "deploying": "Server wird erstellt...",
+          "reason": {
+            "limit": "Das würde dein Ressourcen- oder Serverlimit übersteigen.",
+            "game": "Bitte wähle ein Spiel.",
+            "location": "Bitte wähle einen gültigen Standort.",
+            "name": "{name} ist erforderlich (höchstens {max} Zeichen)."
+          },
           "toast": {
-            "created": "Server erstellt. Er wird gerade installiert."
+            "failed": "Konnte Server nicht erstellen"
           }
         },
         "home": {
@@ -2522,58 +2551,104 @@
         },
         "store": {
           "title": "Ressourcen-Shop",
-          "description": "Mit Credits kaufst du CPU, Arbeitsspeicher und Speicherplatz für dein Konto, dauerhaft. Ein Schritt kostet weniger, je weniger dein Konto hat, und mehr über seinem Limit.",
-          "balance": "Du hast {credits} Credits.",
-          "unavailable": "Der Shop ist gerade geschlossen. Versuch es später noch einmal.",
+          "subheading": "Gib Credits für mehr CPU, Arbeitsspeicher und Speicherplatz aus. Was du kaufst, behältst du.",
+          "credits": "Credits",
+          "whatCreditsBuy": "Credits kaufen CPU, Arbeitsspeicher und Speicherplatz, dauerhaft.",
+          "balanceHint": "Verdiene Credits, indem du Leute auf unseren Discord-Server einlädst oder ihn boostest.",
+          "earnDiscordRewards": "Discord-Belohnungen verdienen",
+          "resourcesHeading": "Deine Ressourcen",
+          "resourcesHint": "Der helle Teil ist, was deine Server nutzen, der getönte Teil der Rest deines Limits, und der Balken reicht bis dorthin, wo die Preise steil werden. Die ersten Schritte sind günstig; jeder Schritt kostet etwas mehr als der vorige.",
           "resource": {
             "cpu": "CPU",
-            "memory": "Arbeitsspeicher",
+            "memory": "RAM",
             "disk": "Speicherplatz"
           },
-          "has": "Dein Konto hat {amount}.",
+          "ofLimit": "von {limit}",
+          "meterLabel": "{used} von {limit} in Benutzung",
+          "inUse": "{used} in Benutzung",
+          "over": "{amount} über deinem Limit. Verkleinere oder lösche einen Server, um Platz zu schaffen.",
           "price": {
-            "rising": "Die Preise steigen auf dem Weg zu {limit}.",
-            "climbing": "Über {limit} steigen die Preise, über {soft} werden sie steil.",
-            "steep": "Über {soft} sind die Preise steil."
+            "rising": "Bis {limit} werden die Schritte teurer, dort kosten sie den vollen Preis.",
+            "climbing": "Ab {limit} kostet jeder Schritt mehr, ab {soft} deutlich mehr.",
+            "steep": "Ab {soft} kostet jeder Schritt deutlich mehr als der vorige."
           },
-          "notSold": "Nicht im Angebot: Dein Konto hat dafür kein Limit.",
-          "offer": "+{amount} für {price}",
+          "creditsShort": "Cr",
           "history": "Credit-Verlauf",
+          "noTransactions": "Noch keine Credit-Transaktionen vorhanden.",
           "modal": {
             "title": "Ressourcen kaufen",
-            "content": "**{amount}** {resource} für **{price}** Credits zu deinem Konto hinzufügen? Hier ausgegebene Credits werden nicht erstattet.",
+            "item": "+{amount} {resource}",
+            "content": "Möchtest du {item} wirklich für {cost} Credits kaufen?",
             "confirm": "Kaufen"
           },
           "toast": {
-            "bought": "{amount} {resource} zu deinem Konto hinzugefügt."
+            "successful": "Kauf erfolgreich",
+            "failed": "Kauf fehlgeschlagen",
+            "bought": {
+              "cpu": "Dein CPU-Limit wurde erfolgreich um +{amount} für {cost} Credits erhöht.",
+              "memory": "Dein RAM-Limit wurde erfolgreich um +{amount} für {cost} Credits erhöht.",
+              "disk": "Dein Speicherplatz wurde erfolgreich um +{amount} für {cost} Credits erhöht."
+            }
+          },
+          "perks": {
+            "heading": "Mehr Ressourcen freischalten ({count})",
+            "discordLink": {
+              "title": "Discord verknüpfen für {gain}",
+              "body": "Verknüpfe dein Discord-Konto und tritt unseren Discord-Servern bei, um deine Limits kostenlos zu erhöhen.",
+              "cta": "Discord verknüpfen"
+            },
+            "discordJoin": {
+              "title": "Tritt unseren Discord-Servern bei für {gain}",
+              "body": "Jeder unserer Discord-Server, auf dem du bist, gibt deinem Konto RAM, und wenn du auf allen bist, noch mehr.",
+              "cta": "Server ansehen"
+            },
+            "discordEarn": {
+              "title": "{credits} Credits pro eingeladener Person",
+              "body": "Lade mit deinem eigenen Invite-Link Leute in unseren Discord ein und gib die Credits für mehr Ressourcen aus.",
+              "bodyBoost": "Lade mit deinem eigenen Invite-Link Leute ein oder booste den Server für {credits} Credits — und gib alles für mehr Ressourcen aus.",
+              "cta": "Invites ansehen"
+            },
+            "store": {
+              "title": "{price} Credits bringen {amount} mehr RAM",
+              "body": "Du hast {balance} Credits. Gib sie für CPU, RAM oder Speicherplatz aus.",
+              "cta": "Shop öffnen"
+            },
+            "gain": {
+              "cpu": "+{amount} CPU",
+              "memory": "+{amount} RAM",
+              "disk": "+{amount} Speicherplatz",
+              "and": "und"
+            }
           }
         },
         "tokens": {
           "title": "Tokens",
-          "description": "Mit Tokens kaufst du die Mitgliedschaften. Du verdienst sie über einen gesponserten Link: Danach kommst du hierher zurück und die Tokens werden gutgeschrieben.",
-          "balance": "Du hast {tokens} Tokens ({earned} bisher verdient).",
-          "disabled": "Tokens sind ausgeschaltet.",
-          "earnTitle": "Tokens verdienen",
-          "earnHint": "Schließ den Link innerhalb von {minutes} Minuten in diesem Browser ab und schließ die Seite nicht, auf die er dich zurückbringt.",
-          "noProviders": "Gerade gibt es keine Möglichkeit, Tokens zu verdienen.",
+          "subheading": "Tokens verdienen und sehen, wohin sie gingen",
+          "balance": "{count} Tokens",
+          "explainer": "Verdiene Tokens über gesponserte Links. Sie bezahlen {app} {plus}, das Aufwecken eines schlafenden Servers und Subdomains.",
+          "none": "Derzeit ist keine Möglichkeit zum Verdienen von Tokens eingerichtet.",
           "provider": {
             "linkvertise": "Linkvertise",
             "vylo": "Vylo"
           },
-          "today": "Heute {granted} von {cap}",
-          "noCap": "Kein Tageslimit",
-          "earn": "{reward} verdienen",
+          "reward": "{count} Tokens pro Abschluss",
+          "used": "{used} von {cap} heute",
+          "capped": "Komm morgen wieder",
+          "linkUnavailable": "Gerade nicht verfügbar",
+          "earnWith": "Mit {provider} verdienen",
           "scriptBlocked": "Der gesponserte Link konnte nicht geladen werden. Vielleicht blockiert ihn ein Werbeblocker.",
-          "history": "Token-Verlauf",
+          "history": "Letzte Vorgänge",
           "redemption": {
-            "granted": "{amount} Tokens gutgeschrieben.",
-            "settled": "Dieser Link wurde schon gezählt ({amount} Tokens).",
-            "no_claim": "Dieser Link gehört nicht zu deinem Konto.",
-            "expired": "Dieser Link hat zu lange gedauert. Starte einen neuen.",
-            "no_token": "Der gesponserte Link hat keinen Nachweis zurückgeschickt. Starte einen neuen und schließ ihn ab.",
-            "replay": "Dieser Nachweis wurde schon verwendet.",
-            "capped": "Hierüber hast du heute schon das Maximum verdient.",
-            "invalid": "Der gesponserte Link wurde nicht abgeschlossen. Starte einen neuen."
+            "granted": "Hinzugefügt: +{amount} Tokens",
+            "settled": "Das wurde bereits ausgezahlt",
+            "expired": "Das hat zu lange gedauert — bitte erneut versuchen",
+            "no_token": "Der Anbieter hat dich ohne Abschluss-Code zurückgeschickt",
+            "no_claim": "Kein offener Vorgang für dein Konto gefunden",
+            "replay": "Dieser Abschluss-Code wurde schon verwendet",
+            "capped": "Du hast das heutige Limit für diese Möglichkeit erreicht",
+            "throttled": "Zu viele Versuche — bitte etwas langsamer",
+            "invalid": "Das konnte nicht geprüft werden, es gab keine Tokens",
+            "error": "Etwas ist schiefgelaufen. Es wurden keine Tokens hinzugefügt."
           }
         },
         "membership": {
@@ -2986,7 +3061,8 @@
             "hosting": "Hosting",
             "security": "Sicherheit",
             "economy": "Wirtschaft",
-            "ads": "Werbung"
+            "ads": "Werbung",
+            "ai": "KI"
           },
           "tabs": {
             "application": {
@@ -3268,6 +3344,10 @@
                   "ssoClientDescription": "Der Client, unter dem noprofit.space dieses Panel kennt.",
                   "ssoSecret": "Anmelde-Geheimnis",
                   "apiSecret": "API-Geheimnis",
+                  "neoSecret": "Geheimnis des neo-Gateways",
+                  "neoSecretDescription": "Das Geheimnis des neo-Gateways von noprofit.space (dort NEO_GATEWAY_SECRET). Damit läuft neo über das neo-Gateway von noprofit.space, mit dessen Modellen und Limits, statt mit den Modellen unter Einstellungen › KI › neo.",
+                  "clearNeoSecret": "Gespeichertes neo-Geheimnis entfernen",
+                  "clearNeoSecretDescription": "neo läuft dann wieder mit den Modellen unter Einstellungen › KI › neo.",
                   "secretStored": "Ein Geheimnis ist gespeichert. Gib ein neues ein, um es zu ersetzen.",
                   "secretMissing": "Nicht gesetzt. Mindestens 32 Zeichen.",
                   "adminsOnly": "Nur Admins",
@@ -3537,6 +3617,8 @@
                   "removeGame": "Spiel entfernen",
                   "name": "Name",
                   "namePlaceholder": "Der Name des Eggs",
+                  "icon": "Icon",
+                  "iconDescription": "Ein Link zum Bild auf der Karte des Spiels auf der Erstellen-Seite (https://… oder /…). Ohne ihn zeigt die Karte ein Gamepad.",
                   "variable": "Software-Variable",
                   "variableDescription": "Die Egg-Variable, in die die gewählte Software geschrieben wird.",
                   "variants": "Software",
@@ -4071,6 +4153,133 @@
                 },
                 "toast": {
                   "updated": "Wirtschaftseinstellungen gespeichert."
+                }
+              }
+            },
+            "neo": {
+              "title": "neo",
+              "page": {
+                "title": "neo",
+                "onPanel": "Anbieter und Limits unten werden in diesem Panel gespeichert.",
+                "onNoprofit": "noprofit.space betreibt neo (sein neo-Gateway-Geheimnis ist unter Einstellungen › Konten › noprofit.space gesetzt), mit den Modellen und Limits von noprofit.space. Die Modelle und Limits unten werden solange nicht verwendet.",
+                "form": {
+                  "panel": "neo in diesem Panel",
+                  "enabled": "neo aktivieren",
+                  "enabledDescription": "Hauptschalter. Ausgeschaltet ist neo ausgeblendet und lehnt jede Anfrage ab.",
+                  "maxSteps": "Schritte pro Nachricht",
+                  "maxStepsDescription": "Wie viele Modellaufrufe neo für eine Nachricht machen darf, bevor es antworten muss.",
+                  "contextTokens": "Kontextbudget (Tokens)",
+                  "contextTokensDescription": "Wie viel der Unterhaltung pro Aufruf erneut gesendet wird. Jeder Aufruf zählt gegen die Limits des Nutzers.",
+                  "messagesPerMinute": "Nachrichten pro Minute",
+                  "messagesPerMinuteDescription": "Wie viele Nachrichten eine Person neo pro Minute senden darf.",
+                  "toolsPerMinute": "Tool-Ausführungen pro Minute",
+                  "toolsPerMinuteDescription": "Wie viele Tool-Aufrufe neo pro Minute für eine Person ausführen darf.",
+                  "retentionDays": "Unterhaltungen aufbewahren (Tage)",
+                  "retentionDaysDescription": "Chats, in denen so viele Tage niemand geschrieben hat, werden gelöscht.",
+                  "supportUrl": "Link zum menschlichen Support",
+                  "supportUrlDescription": "Wohin neo Leute für menschliche Hilfe schickt, z. B. eine Discord-Einladung oder eine Hilfeseite. Leer: neo nennt keinen Link.",
+                  "legalEmail": "E-Mail für rechtliche Anliegen",
+                  "legalEmailDescription": "neo nennt sie für rechtliche Beschwerden (Missbrauch, Urheberrecht, illegale Inhalte). Leer: neo nennt keine.",
+                  "privacyEmail": "E-Mail für Datenschutz",
+                  "privacyEmailDescription": "neo nennt sie für Datenschutzbeschwerden und Auskunftsanfragen. Leer: neo nennt keine.",
+                  "providerDisclosure": "Den Nutzern genannte KI-Anbieter",
+                  "providerDisclosureDescription": "Erscheint in neos Hinweis bei der ersten Nutzung, z. B. „OpenAI und Anthropic“. Leer: ein allgemeiner Satz über die Anbieter dieses Panels.",
+                  "alwaysConfirmDestructive": "Vor Löschen oder Kill immer fragen",
+                  "alwaysConfirmDestructiveDescription": "Überschreibt die „ohne Nachfrage“-Wahl eines Nutzers für Löschen und Kill.",
+                  "providers": "KI-Anbieter und Limits",
+                  "usage": "Nutzungslimits",
+                  "usageDescription": "Gezählt werden Tokens (Eingabe + Ausgabe) pro Konto. Jedes Modell zählt in den kurzen und langen Fenstern unten, mit seinem Faktor mal seinen Tokens. Ein Fenster beginnt mit der ersten Nachricht, nachdem das letzte abgelaufen ist.",
+                  "gatewayEnabled": "Gateway aktiviert",
+                  "gatewayEnabledDescription": "Aus: neo antwortet nicht, solange es mit den Modellen dieses Panels läuft.",
+                  "plusPercent": "Mit {name} (%)",
+                  "plusPercentDescription": "Die Limits der ersten Mitgliedschaft, in % der Fenster unten (125 = 25 % mehr).",
+                  "plusplusPercent": "Mit {name} (%)",
+                  "plusplusPercentDescription": "Was die zweite Mitgliedschaft zusätzlich zu {plus} bekommt: 125 auf 125 ergibt 156 % der Fenster unten.",
+                  "discordUnlinkedPercent": "neo auf Discord ohne verknüpftes Konto (% dieser Limits)",
+                  "discordUnlinkedPercentDescription": "Nicht verknüpfte Discord-Konten bekommen eigene Fenster mit diesem Anteil. Verknüpfte nutzen die Limits ihres Kontos. 0: neo antwortet nur verknüpften Konten.",
+                  "shortHours": "Kurzes Fenster (Stunden)",
+                  "shortTokens": "Tokens pro kurzem Fenster",
+                  "longDays": "Langes Fenster (Tage)",
+                  "longTokens": "Tokens pro langem Fenster",
+                  "tokensDescription": "0: Niemand kann neo nutzen.",
+                  "defaultCooldown": "Pause nach einem Fehler (Sekunden)",
+                  "defaultCooldownDescription": "So lange wird ein Modell übersprungen, das fehlgeschlagen ist, ohne zu sagen, wann es wieder geht. Ein abgelehnter Schlüssel wird 10 Minuten übersprungen.",
+                  "maxBusyWait": "Längste Wartezeit (Sekunden)",
+                  "maxBusyWaitDescription": "Werden alle Modelle länger übersprungen, meldet neo einen Ausfall, statt um Geduld zu bitten.",
+                  "deadline": "Zeitbudget pro Schritt (Sekunden)",
+                  "deadlineDescription": "So lange darf eine Antwort höchstens dauern, alle Versuche eingerechnet.",
+                  "maxConcurrent": "Gleichzeitige Modellaufrufe",
+                  "maxConcurrentDescription": "Wie viele Modellaufrufe gleichzeitig laufen dürfen, im ganzen Panel.",
+                  "toolsProbe": "Tool-Unterstützung prüfen",
+                  "toolsProbeDescription": "Fragt jedes Modell einmal (6 Stunden gemerkt), ob die Tools einer Anfrage ankommen. Eines, das sie verwirft, bekommt die Tools stattdessen im Prompt beschrieben.",
+                  "rule": {
+                    "supportUrl": "Ein Link, der mit https:// oder http:// beginnt.",
+                    "email": "Eine E-Mail-Adresse.",
+                    "endpoint": "Eine öffentliche https-URL.",
+                    "headers": "Muss ein JSON-Objekt aus Header-Namen und Textwerten sein.",
+                    "json": "Muss ein JSON-Objekt sein.",
+                    "required": "Nötig, solange das Modell an ist."
+                  }
+                },
+                "models": {
+                  "hint": "Wird in neos Chat über die Bezeichnung gewählt. Ein Schritt läuft nur auf dem gewählten Modell, ohne Ausweichen auf ein anderes. Schritte ohne gewähltes Modell gehen an die Modelle für alle, in Slot-Reihenfolge. Ein Modell, das fehlschlägt, wird eine Weile übersprungen.",
+                  "noProviders": "Noch keine Modelle.",
+                  "slotTitle": "Modell {slot}",
+                  "slotTitleLabel": "Modell {slot} · {label}",
+                  "enabled": "Aktiviert",
+                  "label": "Bezeichnung",
+                  "labelDescription": "Der Name des Modells in neos Modellauswahl.",
+                  "description": "Beschreibung",
+                  "descriptionDescription": "Eine kurze Zeile unter dem Namen in der Auswahl, z. B. „Klügstes Modell“.",
+                  "access": "Wer es wählen darf",
+                  "accessEveryone": "Alle",
+                  "accessPlus": "{plus} (und {plusplus})",
+                  "accessPlusplus": "Nur {plusplus}",
+                  "driver": "API-Format",
+                  "driverOpenai": "OpenAI-kompatibel (Chat Completions)",
+                  "driverAnthropic": "Anthropic Messages",
+                  "driverGemini": "Google AI Studio (Gemini API)",
+                  "model": "Modell",
+                  "modelDescription": "Der Modellname, den die API kennt.",
+                  "endpoint": "Endpunkt-URL",
+                  "endpointDescription": "Die API-Basis (z. B. https://api.groq.com/openai/v1, oder https://generativelanguage.googleapis.com/v1beta für Google AI Studio) oder die vollständige URL, nur öffentliches https; der Pfad des Formats wird bei Bedarf ergänzt. Google AI Studio nimmt das Modell aus dem Feld „Modell“ und den Schlüssel aus dem Feld „API-Schlüssel“, nie aus der URL.",
+                  "apiKey": "API-Schlüssel",
+                  "apiKeyStored": "Ein Schlüssel ist gesetzt; leer lassen, um ihn zu behalten.",
+                  "apiKeyMissing": "Nicht gesetzt.",
+                  "apiKeyRemoved": "Der gespeicherte Schlüssel wird beim Speichern entfernt.",
+                  "clearApiKey": "Gespeicherten Schlüssel entfernen",
+                  "maxTokens": "Max. Ausgabe-Tokens",
+                  "timeout": "Zeitlimit (Sekunden)",
+                  "timeoutDescription": "So lange darf ein Aufruf dauern.",
+                  "dailyTokenCap": "Tägliches Token-Limit",
+                  "dailyTokenCapDescription": "0 = kein Limit. Danach wird dieses Modell bis morgen (UTC) übersprungen.",
+                  "vision": "Sieht Bilder",
+                  "visionDescription": "Screenshots gehen zuerst an die Modelle, die Bilder sehen; die anderen bekommen stattdessen einen Hinweis. Gemini- und Claude-Modelle können das, die meisten Groq-Modelle nicht.",
+                  "visionAuto": "Nach API-Format (Gemini und Anthropic ja, OpenAI-kompatibel nein)",
+                  "visionYes": "Ja",
+                  "visionNo": "Nein",
+                  "multiplier": "Verbrauchsfaktor",
+                  "multiplierDescription": "Ein Schritt mit diesem Modell zählt so oft seine Tokens.",
+                  "extraHeaders": "Zusätzliche Header (JSON-Objekt)",
+                  "extraHeadersDescription": "Z. B. {example}. Auth-Header werden automatisch gesetzt. Werte von Headern, deren Name nach Key, Token, Auth, Secret, Cookie oder Session klingt, erscheinen als {mask} und bleiben erhalten, solange dort {mask} steht.",
+                  "extraBody": "Zusätzliche Anfragefelder (JSON-Objekt)",
+                  "extraBodyDescription": "Z. B. {example}. Google AI Studio nimmt nur generationConfig (z. B. {gemini}), safetySettings und cachedContent; andere Felder werden dort weggelassen. Kernfelder (model, messages, tools…) können nicht überschrieben werden.",
+                  "add": "Modell hinzufügen"
+                },
+                "status": {
+                  "tokensToday": "Tokens heute: {tokens}.",
+                  "coolingDown": "Übersprungen bis {time} nach einem Fehler ({error}).",
+                  "lastError": "Letzter Fehler um {time} ({error}).",
+                  "notUsable": "Es antwortet erst, wenn es einen Endpunkt, einen Schlüssel und ein Modell hat."
+                },
+                "test": {
+                  "button": "Anbieter {slot} testen",
+                  "saveFirst": "Erst speichern: Der Test ruft das Modell so auf, wie es gespeichert ist.",
+                  "successful": "Anbieter {slot} hat in {ms} ms geantwortet ({model}, {tokens} Tokens).",
+                  "failed": "Anbieter {slot} nach {ms} ms fehlgeschlagen."
+                },
+                "toast": {
+                  "updated": "neo-Einstellungen gespeichert."
                 }
               }
             },

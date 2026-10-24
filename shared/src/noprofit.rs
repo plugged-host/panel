@@ -459,6 +459,25 @@ pub struct Store {
     pub catalog: Vec<crate::pricing::CatalogEntry>,
     #[serde(default)]
     pub transactions: Vec<StoreTransaction>,
+    /// The account's Discord rewards, when noprofit.space sends them: the store page offers what
+    /// is left of them (docs/features/economy.md#the-resource-store).
+    #[serde(default)]
+    pub discord: Option<StoreDiscord>,
+}
+
+/// What the account's Discord membership adds to its plan and could still add (accounts
+/// `DiscordGuilds::status`), and the credits for invites and boosts.
+#[derive(Deserialize, Clone, Debug, Default, PartialEq, Eq)]
+#[serde(default)]
+pub struct StoreDiscord {
+    /// What the Discord servers the account is in add to its plan.
+    pub bonus: crate::allowance::Resources,
+    /// What being in all of them would add.
+    pub max_bonus: crate::allowance::Resources,
+    /// Credits for each person the account invites to the Discord server (0: none).
+    pub credits_per_invite: i64,
+    /// Credits for a boost (0: none).
+    pub credits_per_boost: i64,
 }
 
 #[derive(Deserialize, Clone, Debug)]

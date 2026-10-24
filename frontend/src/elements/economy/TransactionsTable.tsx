@@ -23,9 +23,9 @@ const typeKeys = {
   discord_boost: 'discordBoost',
 } as const;
 
-type TypeKey = (typeof typeKeys)[keyof typeof typeKeys] | 'earn';
+export type TypeKey = (typeof typeKeys)[keyof typeof typeKeys] | 'earn';
 
-function typeKey(type: string): TypeKey | null {
+export function typeKey(type: string): TypeKey | null {
   if (type.startsWith('earn:')) return 'earn';
 
   return type in typeKeys ? typeKeys[type as keyof typeof typeKeys] : null;

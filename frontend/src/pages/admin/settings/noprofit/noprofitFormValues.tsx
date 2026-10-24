@@ -1,10 +1,10 @@
 // plugged.host: Admin › Settings › Accounts › noprofit.space
 import { z } from 'zod';
 import type { FieldDef } from '@/elements/form-engine/index.ts';
-import { adminSettingsNoprofitSchema } from '@/lib/schemas/admin/settings.ts';
+import { adminSettingsNoprofitFormSchema, adminSettingsNoprofitSchema } from '@/lib/schemas/admin/settings.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 
-type NoprofitFormValues = z.infer<typeof adminSettingsNoprofitSchema>;
+type NoprofitFormValues = z.infer<typeof adminSettingsNoprofitFormSchema>;
 
 export const noprofitEmptyFormValues: NoprofitFormValues = {
   enabled: false,
@@ -16,18 +16,25 @@ export const noprofitEmptyFormValues: NoprofitFormValues = {
   linkByEmail: true,
   ssoSecret: '',
   apiSecret: '',
+  neoSecret: '',
+  clearNeoSecret: false,
 };
 
 // The secrets are never sent to the browser: an empty field keeps the stored one.
-export const noprofitToFormValues = (noprofit: NoprofitFormValues): Partial<NoprofitFormValues> => ({
+export const noprofitToFormValues = (
+  noprofit: z.infer<typeof adminSettingsNoprofitSchema>,
+): Partial<NoprofitFormValues> => ({
   ...noprofit,
   ssoSecret: '',
   apiSecret: '',
+  neoSecret: '',
+  clearNeoSecret: false,
 });
 
 export function useNoprofitFormFields(stored: {
   ssoSecret: boolean;
   apiSecret: boolean;
+  neoSecret: boolean;
 }): FieldDef<NoprofitFormValues>[] {
   const { t } = useTranslations();
 
@@ -68,6 +75,21 @@ export function useNoprofitFormFields(stored: {
       label: t('pages.admin.settings.tabs.noprofit.page.form.apiSecret', {}),
       description: secretDescription(stored.apiSecret),
       props: { autoComplete: 'new-password' },
+    },
+    {
+      type: 'password',
+      name: 'neoSecret',
+      label: t('pages.admin.settings.tabs.noprofit.page.form.neoSecret', {}),
+      description: `${t('pages.admin.settings.tabs.noprofit.page.form.neoSecretDescription', {})} ${secretDescription(stored.neoSecret)}`,
+      props: { autoComplete: 'new-password' },
+      when: (values) => !values.clearNeoSecret,
+    },
+    {
+      type: 'switch',
+      name: 'clearNeoSecret',
+      label: t('pages.admin.settings.tabs.noprofit.page.form.clearNeoSecret', {}),
+      description: t('pages.admin.settings.tabs.noprofit.page.form.clearNeoSecretDescription', {}),
+      when: () => stored.neoSecret,
     },
     {
       type: 'switch',

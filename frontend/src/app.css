@@ -2211,8 +2211,12 @@ strong {
 }
 
 /* =============================================================================
- * plugged.host: choice tiles (pages/dashboard/create/CreateServer): the server card's look as
- * buttons. Selected is the selected card's accent tint; a choice that cannot be taken is dimmed.
+ * plugged.host: choice cards (elements/input/Choice.tsx), the Pelican panel's CardSelect
+ * (plugged-host-servers card-select.blade.php): flat, no ring, no shadow, no hover lift. In a
+ * section card a sunken well with a transparent edge; hover gives the accent edge, selected the
+ * bright accent border on the soft accent fill. On the page floor, outside a card, the well
+ * would vanish, so there the card keeps the raise fill. One that cannot be taken is dimmed; a
+ * locked one (a paid location) is not, it only cannot be picked.
  * ============================================================================= */
 
 .theme-choice-grid {
@@ -2221,25 +2225,61 @@ strong {
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 14rem), 1fr));
 }
 
+/* CardSelect's columns: one, two from sm, three or four from lg. */
+.theme-choice-grid-3,
+.theme-choice-grid-4 {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 40em) {
+  .theme-choice-grid-3,
+  .theme-choice-grid-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 64em) {
+  .theme-choice-grid-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .theme-choice-grid-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
 .theme-choice {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.25rem;
+  gap: 0.125rem;
   min-width: 0;
-  padding: 0.875rem 1rem;
-  border: 0;
-  border-radius: 1rem;
+  padding: 1rem;
+  border: 1px solid transparent;
+  border-radius: 0.75rem;
   background-color: var(--theme-raise);
-  color: inherit;
+  color: var(--theme-text);
   font: inherit;
   text-align: start;
   cursor: pointer;
-  transition: background-color 150ms ease;
+  user-select: none;
+  transition:
+    border-color 150ms ease,
+    background-color 150ms ease;
 }
 
-.theme-choice:hover:not(:disabled) {
+.mantine-Card-root .theme-choice {
+  background-color: var(--theme-sunken);
+}
+
+.theme-choice:hover:not(:disabled, [data-selected], [data-locked]) {
+  border-color: var(--theme-accent-edge);
   background-color: var(--theme-raise-2);
+}
+
+.mantine-Card-root .theme-choice:hover:not(:disabled, [data-selected], [data-locked]) {
+  background-color: var(--theme-raise);
 }
 
 .theme-choice:focus-visible {
@@ -2247,7 +2287,9 @@ strong {
   outline-offset: 2px;
 }
 
-.theme-choice[data-selected] {
+.theme-choice[data-selected],
+.mantine-Card-root .theme-choice[data-selected] {
+  border-color: var(--theme-accent-bright);
   background-color: var(--theme-accent-soft);
 }
 
@@ -2256,20 +2298,305 @@ strong {
   opacity: 0.5;
 }
 
+.theme-choice[data-locked] {
+  cursor: default;
+}
+
+/* A radio before the content (locations, plans). */
+.theme-choice-row {
+  flex-direction: row;
+  gap: 0.75rem;
+}
+
+/* The content centred under a picture (games). */
+.theme-choice-centered {
+  height: 100%;
+  align-items: center;
+  gap: 0.625rem;
+  text-align: center;
+}
+
+.theme-choice-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.theme-choice-centered .theme-choice-body {
+  align-items: center;
+}
+
 .theme-choice-title {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   min-width: 0;
   color: var(--theme-text);
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   font-weight: 600;
-  line-height: 1.375rem;
+  line-height: 1.25rem;
+}
+
+.theme-choice-cornered .theme-choice-title {
+  padding-inline-end: 4.5rem;
 }
 
 .theme-choice-text {
   color: var(--theme-text-muted);
+  font-size: 0.75rem;
+  line-height: 1.125rem;
+}
+
+.theme-choice-centered .theme-choice-text {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+/* A plan's size, "100% CPU · 2048 MB Memory · 10240 MB Disk Space". */
+.theme-choice-meta {
+  margin-block-start: 0.125rem;
+  color: var(--theme-text-nav);
+  font-size: 0.75rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Filament's radio, "size-4 rounded-full ring-white/20", filled with the accent when checked. */
+.theme-choice-radio {
+  position: relative;
+  flex: none;
+  width: 1rem;
+  height: 1rem;
+  margin-block-start: 0.125rem;
+  border: 1px solid var(--theme-raise-3);
+  border-radius: 9999px;
+  background-color: var(--theme-raise);
+}
+
+.theme-choice[data-selected] .theme-choice-radio {
+  border-color: var(--theme-accent-bright);
+  background-color: var(--theme-accent-bright);
+}
+
+.theme-choice[data-selected] .theme-choice-radio::after {
+  position: absolute;
+  inset: 0;
+  width: 0.375rem;
+  height: 0.375rem;
+  margin: auto;
+  border-radius: 9999px;
+  background-color: var(--theme-text);
+  content: "";
+}
+
+/* A game's icon: a 2.5rem picture in a 3rem box, or the gamepad. */
+.theme-choice-logo {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  color: var(--theme-text-muted);
+}
+
+.theme-choice-logo img {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.5rem;
+  object-fit: contain;
+}
+
+.theme-choice-logo .theme-icon {
+  width: 2rem;
+  height: 2rem;
+}
+
+/* A location's 4:3 flag. */
+.theme-choice-flag {
+  display: flex;
+  flex: none;
+  width: 1.5rem;
+  height: 1rem;
+  margin-block-start: 0.125rem;
+  overflow: hidden;
+  border-radius: 0.125rem;
+  outline: 1px solid var(--theme-hairline);
+  outline-offset: -1px;
+}
+
+.theme-choice-flag img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* A location's latency as a stepped signal meter: four bars of rising height, filled up to the
+   strength, coloured by quality (green, green, amber, red). */
+.theme-choice-signal {
+  position: absolute;
+  inset-block-start: 0.75rem;
+  inset-inline-end: 0.75rem;
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 3px;
+  pointer-events: none;
+}
+
+.theme-choice-signal[data-level="great"] {
+  --theme-signal: var(--mantine-color-green-6);
+}
+
+.theme-choice-signal[data-level="good"] {
+  --theme-signal: var(--mantine-color-green-4);
+}
+
+.theme-choice-signal[data-level="ok"] {
+  --theme-signal: var(--mantine-color-yellow-6);
+}
+
+.theme-choice-signal[data-level="poor"] {
+  --theme-signal: var(--mantine-color-red-6);
+}
+
+.theme-choice-signal-ms {
+  align-self: center;
+  margin-inline-end: 0.25rem;
+  color: var(--theme-signal);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.theme-choice-signal-ms span {
+  color: var(--theme-text-muted);
+  font-weight: 400;
+}
+
+.theme-choice-signal-bar {
+  width: 3px;
+  height: 5px;
+  border-radius: 1px;
+  background-color: var(--theme-raise-2);
+}
+
+.theme-choice-signal-bar:nth-of-type(3) {
+  height: 7px;
+}
+
+.theme-choice-signal-bar:nth-of-type(4) {
+  height: 9px;
+}
+
+.theme-choice-signal-bar:nth-of-type(5) {
+  height: 11px;
+}
+
+.theme-choice-signal-bar[data-on] {
+  background-color: var(--theme-signal);
+}
+
+/* A location's tier: a neutral pill with the uptime behind its (i), then what opens it. */
+.theme-choice-tier {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-block-start: 0.5rem;
+}
+
+.theme-choice-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.5rem;
+  background-color: var(--theme-raise-2);
+  color: var(--theme-text-nav);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  line-height: 1rem;
+  text-transform: uppercase;
+}
+
+.theme-choice-badge-info {
+  display: inline-flex;
+  color: var(--theme-text-muted);
+  font-size: 0.6rem;
+  cursor: help;
+}
+
+.theme-choice-unlock {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.75rem;
+  padding: 0 0.75rem;
+  border-radius: 9999px;
+  background-color: var(--theme-raise-2);
+  color: var(--theme-text);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color 150ms ease;
+}
+
+.theme-choice-unlock:hover {
+  background-color: var(--theme-raise-3);
+}
+
+.theme-choice-note {
+  color: var(--theme-text-muted);
+  font-size: 0.75rem;
+}
+
+/* plugged.host: the create page (pages/dashboard/create/CreateServer.tsx), the Pelican panel's:
+   the sections 1.5rem apart, then the deploy row at the end with the reason it is greyed out
+   before it; on a phone the row stacks and the button takes the width. */
+.theme-create-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.theme-deploy {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.theme-deploy-reason {
+  color: var(--mantine-color-red-4);
   font-size: 0.8125rem;
+}
+
+@media (max-width: 40em) {
+  .theme-deploy {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+/* An input's unit after the value (Filament's suffix: "%", "MB"), in the muted text. */
+.theme-input-suffix {
+  color: var(--theme-text-muted);
+  font-size: 0.875rem;
+}
+
+/* plugged.host: a section card's description under its heading (TitleCard), Filament's
+   "text-sm text-gray-400". */
+.theme-section-description {
+  margin: 0.25rem 0 0;
+  color: var(--theme-text-muted);
+  font-size: 0.875rem;
+  font-weight: 400;
   line-height: 1.25rem;
 }
 
@@ -2553,6 +2880,296 @@ strong {
 .theme-eco-link:hover {
   color: var(--theme-accent-glow);
   text-decoration: underline;
+}
+
+.theme-eco-title {
+  margin: 0;
+  color: var(--theme-text);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.25rem;
+}
+
+.theme-eco-value {
+  color: var(--theme-accent-bright);
+  font-size: 1.5rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  line-height: 2rem;
+}
+
+.theme-eco-num {
+  color: var(--theme-text);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.theme-eco-danger {
+  color: var(--mantine-color-red-4);
+}
+
+/* The Resource Store's rows: the meter and its text, then the offers in a column of their own
+   (under the text on a phone). */
+.theme-eco-row {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding-block: 1rem;
+}
+
+.theme-eco-row + .theme-eco-row {
+  border-block-start: 1px solid var(--theme-hairline);
+}
+
+.theme-eco-row-action {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.theme-eco-row-action .mantine-Button-label {
+  width: 100%;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .theme-eco-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+  }
+
+  .theme-eco-row-action {
+    width: 15rem;
+    flex-shrink: 0;
+  }
+}
+
+/* One bar for three numbers: the solid part is what the servers use, the tinted part the rest
+   of the limit, the empty track runs to where prices get steep. Over the limit it turns red. */
+.theme-eco-meter {
+  position: relative;
+  height: 0.5rem;
+  overflow: hidden;
+  border-radius: 9999px;
+  background-color: var(--theme-raise);
+}
+
+.theme-eco-meter > span {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  border-radius: 9999px;
+}
+
+.theme-eco-meter-limit {
+  background-color: var(--theme-accent-tint);
+}
+
+.theme-eco-meter-used {
+  background-color: var(--theme-accent-bright);
+}
+
+.theme-eco-meter-over {
+  background-color: var(--mantine-color-red-4);
+}
+
+/* A currency's history: what and when at the start, the amount at the end. */
+.theme-eco-tx {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-block: 0.75rem;
+}
+
+.theme-eco-tx + .theme-eco-tx {
+  border-block-start: 1px solid var(--theme-hairline);
+}
+
+.theme-eco-amount {
+  flex-shrink: 0;
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.theme-eco-amount-in {
+  color: var(--mantine-color-green-4);
+}
+
+.theme-eco-amount-out {
+  color: var(--theme-text-muted);
+}
+
+.theme-eco-empty {
+  padding-block: 1rem;
+}
+
+/* The Tokens page's sections: rows split by hairlines, the action in a column of its own. */
+.theme-earn-rows > * + * {
+  border-block-start: 1px solid var(--theme-hairline);
+}
+
+.theme-earn-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-block: 1rem;
+}
+
+.theme-earn-row:first-child,
+.theme-earn-tx:first-child {
+  padding-block-start: 0;
+}
+
+.theme-earn-row:last-child,
+.theme-earn-tx:last-child {
+  padding-block-end: 0;
+}
+
+.theme-earn-action {
+  display: flex;
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .theme-earn-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+  }
+
+  .theme-earn-action {
+    width: 15rem;
+    flex-shrink: 0;
+    justify-content: flex-end;
+  }
+}
+
+.theme-earn-tx {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-block: 0.625rem;
+}
+
+.theme-earn-text {
+  color: var(--theme-text);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.theme-earn-small {
+  color: var(--theme-text-faint);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.125rem;
+}
+
+/* Filament's collapsible section: the heading and an arrow on one bar, the content under a
+   hairline once it is open. */
+.theme-collapse-toggle {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  text-align: start;
+}
+
+.theme-collapse-arrow {
+  color: var(--theme-text-faint);
+  transition: transform 150ms ease;
+}
+
+.theme-collapse-toggle[aria-expanded="true"] .theme-collapse-arrow {
+  transform: rotate(180deg);
+}
+
+.theme-collapse-body {
+  padding: 1rem;
+  border-block-start: 1px solid var(--theme-hairline);
+}
+
+@media (min-width: 768px) {
+  .theme-collapse-toggle {
+    padding: 1rem 1.5rem;
+  }
+
+  .theme-collapse-body {
+    padding: 1.5rem;
+  }
+}
+
+/* Rows in a section (the core plugin's ".ph-rows"): title and text at the start, the actions at
+   the end (under the text on a phone), whitespace and one hairline between rows. */
+.theme-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .theme-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+  }
+}
+
+.theme-rows > .theme-row {
+  padding-block: 1rem;
+}
+
+.theme-rows > .theme-row:first-child {
+  padding-block-start: 0;
+}
+
+.theme-rows > .theme-row:last-child {
+  padding-block-end: 0;
+}
+
+.theme-rows > .theme-row + .theme-row {
+  border-block-start: 1px solid var(--theme-hairline);
+}
+
+.theme-row-text {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.theme-row-title {
+  margin: 0;
+  color: var(--theme-text);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.25rem;
+}
+
+.theme-row-body {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.875rem;
+  line-height: 1.375rem;
+}
+
+.theme-row-actions {
+  display: flex;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .theme-plus-plans {

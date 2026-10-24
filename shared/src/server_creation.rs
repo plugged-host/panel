@@ -1,8 +1,9 @@
 //! plugged.host: players creating their own servers (docs/features/create-server.md).
 //!
 //! The create page asks [`options`] what it may offer (the games of the games settings, the public
-//! locations, the plans, the account's allowance) and sends the choice to [`create`], which checks
-//! it against the same rules and then goes the native way: the most eligible node of the location
+//! locations, the plans, the account's allowance; with a size, which locations have room for it)
+//! and sends the choice (a plan, or its own CPU, memory and disk) to [`create`], which checks it
+//! against the same rules and then goes the native way: the most eligible node of the location
 //! (`Node::by_location_uuids_most_eligible`, which skips paused nodes and ranks by load), the
 //! allocations its egg configuration deploys (`NodeAllocation::get_from_deployment`), and
 //! `Server::create`. An account creates one server at a time.
@@ -40,6 +41,8 @@ pub const GAME_ROLE: &str = "game";
 /// An admin deploy's defaults: suspended servers count half, some randomness among equals.
 pub const SUSPENSION_PENALTY: f64 = 0.5;
 pub const RANDOMNESS: f64 = 0.5;
+/// The longest server name a player may give (the Pelican panel's).
+pub const NAME_MAX: usize = 191;
 
 #[derive(ToSchema, Serialize)]
 pub struct ApiGameVariant {
@@ -52,8 +55,13 @@ pub struct ApiGame {
     pub egg_uuid: uuid::Uuid,
     pub name: compact_str::CompactString,
     pub description: Option<compact_str::CompactString>,
+    /// The picture on the game's card (the games settings' icon).
+    pub icon: Option<compact_str::CompactString>,
     /// The player has to accept the game's EULA.
     pub eula: bool,
+    /// The server's setup asks for its software (Minecraft's, docs/features/minecraft.md#setup),
+    /// so the create page does not; the first variant is used until then.
+    pub setup: bool,
     pub variants: Vec<ApiGameVariant>,
 }
 
@@ -66,8 +74,10 @@ pub struct ApiCreateLocation {
     pub tier: Option<compact_str::CompactString>,
     /// The player may use the location's tier.
     pub unlocked: bool,
-    /// A node there takes new servers now.
+    /// A node there takes new servers now; asked with a size, one with room for it.
     pub available: bool,
+    /// No node there takes new servers at all (paused, in maintenance, closed to deployments).
+    pub full: bool,
     /// The fastest answer of its nodes to the panel, in milliseconds.
     pub latency: Option<i32>,
 }
@@ -98,7 +108,10 @@ pub struct CreateRequest {
     pub name: compact_str::CompactString,
     pub egg_uuid: uuid::Uuid,
     pub location_uuid: uuid::Uuid,
-    pub plan_uuid: uuid::Uuid,
+    /// A plan's size; without one, `size`.
+    pub plan_uuid: Option<uuid::Uuid>,
+    /// CPU, memory and disk of the player's own choosing, each at least 1.
+    pub size: Option<Resources>,
     pub variant: Option<compact_str::CompactString>,
     pub eula: bool,
 }
@@ -108,6 +121,8 @@ pub enum CreateError {
     Disabled,
     AccountBlocked,
     Busy,
+    InvalidName,
+    InvalidSize,
     UnknownGame,
     EulaRequired,
     UnknownVariant,
@@ -126,6 +141,8 @@ impl CreateError {
             Self::Disabled => "creating servers is turned off".into(),
             Self::AccountBlocked => "your account cannot create servers".into(),
             Self::Busy => "another server of yours is being created, try again in a moment".into(),
+            Self::InvalidName => format!("the name is required (max {NAME_MAX} characters)"),
+            Self::InvalidSize => "pick a plan, or cpu, memory and disk of at least 1".into(),
             Self::UnknownGame => "this game is not offered".into(),
             Self::EulaRequired => "you have to accept the game's EULA".into(),
             Self::UnknownVariant => "this software is not offered for the game".into(),
@@ -184,8 +201,13 @@ pub async fn tier_unlocked(
         .unlocks(tier, chrono::Utc::now().naive_utc()))
 }
 
-/// What the create page offers this player.
-pub async fn options(state: &crate::State, user: &User) -> Result<ApiCreateOptions, anyhow::Error> {
+/// What the create page offers this player; with `size`, a location is available when a node
+/// there has room for a server that big.
+pub async fn options(
+    state: &crate::State,
+    user: &User,
+    size: Option<Resources>,
+) -> Result<ApiCreateOptions, anyhow::Error> {
     let (enabled, catalog) = {
         let settings = state.settings.get().await?;
         (
@@ -207,7 +229,9 @@ pub async fn options(state: &crate::State, user: &User) -> Result<ApiCreateOptio
             egg_uuid: egg.uuid,
             name: game.name.clone().unwrap_or_else(|| egg.name.clone()),
             description: game.description.clone().or_else(|| egg.description.clone()),
+            icon: game.icon.clone(),
             eula: egg.features.iter().any(|feature| feature == EULA_FEATURE),
+            setup: crate::minecraft::is_minecraft(&egg),
             variants: game
                 .variants
                 .iter()
@@ -219,7 +243,7 @@ pub async fn options(state: &crate::State, user: &User) -> Result<ApiCreateOptio
         });
     }
 
-    let locations = locations(state, user).await?;
+    let locations = locations_for(state, user, size).await?;
 
     let plans = Plan::all_public(&state.database)
         .await?
@@ -252,24 +276,55 @@ pub async fn locations(
     state: &crate::State,
     user: &User,
 ) -> Result<Vec<ApiCreateLocation>, anyhow::Error> {
+    locations_for(state, user, None).await
+}
+
+/// [`locations`], where with `size` a location is available only when one of its open nodes has
+/// the memory and disk left for it, counted like a deploy counts them
+/// (`Node::by_location_uuids_most_eligible`: suspended servers half, parked ones not at all).
+pub async fn locations_for(
+    state: &crate::State,
+    user: &User,
+    size: Option<Resources>,
+) -> Result<Vec<ApiCreateLocation>, anyhow::Error> {
+    let (memory, disk) = size.map_or((0, 0), |size| (size.memory.max(0), size.disk.max(0)));
+
     let rows = sqlx::query(
         r#"
+        WITH server_usage AS (
+            SELECT node_uuid,
+                COALESCE(SUM((memory + memory_overhead) * CASE WHEN suspended THEN $1 ELSE 1.0 END), 0)::BIGINT AS used_memory,
+                COALESCE(SUM(disk * CASE WHEN suspended THEN $1 ELSE 1.0 END), 0)::BIGINT AS used_disk
+            FROM servers
+            WHERE servers.limbo_state IS DISTINCT FROM 'parked'
+            GROUP BY node_uuid
+        )
         SELECT locations.uuid, locations.name, locations.description, locations.flag, locations.tier,
             COUNT(nodes.uuid) FILTER (
                 WHERE nodes.deployment_enabled AND NOT nodes.maintenance_enabled
                 AND NOT nodes.deployment_paused AND nodes.role = 'game'
             ) AS open_nodes,
+            COUNT(nodes.uuid) FILTER (
+                WHERE nodes.deployment_enabled AND NOT nodes.maintenance_enabled
+                AND NOT nodes.deployment_paused AND nodes.role = 'game'
+                AND (nodes.memory = 0 OR COALESCE(u.used_memory, 0) + $2 <= nodes.memory)
+                AND (nodes.disk = 0 OR COALESCE(u.used_disk, 0) + $3 <= nodes.disk)
+            ) AS roomy_nodes,
             MIN(telemetry.response_time_ms) FILTER (
                 WHERE telemetry.reachable AND nodes.role = 'game'
             ) AS latency
         FROM locations
         LEFT JOIN nodes ON nodes.location_uuid = locations.uuid
+        LEFT JOIN server_usage u ON u.node_uuid = nodes.uuid
         LEFT JOIN node_telemetry telemetry ON telemetry.node_uuid = nodes.uuid
         WHERE locations.public
         GROUP BY locations.uuid
         ORDER BY locations.sort, locations.name
         "#,
     )
+    .bind(SUSPENSION_PENALTY)
+    .bind(memory)
+    .bind(disk)
     .fetch_all(state.database.read())
     .await?;
 
@@ -289,12 +344,49 @@ pub async fn locations(
             flag: row.try_get::<Option<String>, _>("flag")?.map(Into::into),
             unlocked: tier_unlocked(state, user, tier.as_deref()).await?,
             tier,
-            available: row.try_get::<i64, _>("open_nodes")? > 0,
+            available: availability(
+                row.try_get("open_nodes")?,
+                row.try_get("roomy_nodes")?,
+                size.is_some(),
+            ),
+            full: row.try_get::<i64, _>("open_nodes")? == 0,
             latency: row.try_get("latency")?,
         });
     }
 
     Ok(locations)
+}
+
+/// Whether a location takes a new server: an open node, and with a size one with room for it.
+fn availability(open_nodes: i64, roomy_nodes: i64, sized: bool) -> bool {
+    if sized {
+        roomy_nodes > 0
+    } else {
+        open_nodes > 0
+    }
+}
+
+/// A server name as given: trimmed, not empty, at most [`NAME_MAX`] characters.
+pub fn valid_name(name: &str) -> Option<&str> {
+    let name = name.trim();
+
+    (!name.is_empty() && name.chars().count() <= NAME_MAX).then_some(name)
+}
+
+/// A size of the player's own choosing: every value at least 1 (0 would be no limit), CPU within
+/// what a server's limit holds.
+fn custom_size(size: Option<Resources>) -> Result<Resources, CreateError> {
+    match size {
+        Some(size)
+            if size.cpu >= 1
+                && size.cpu <= i32::MAX as i64
+                && size.memory >= 1
+                && size.disk >= 1 =>
+        {
+            Ok(size)
+        }
+        _ => Err(CreateError::InvalidSize),
+    }
 }
 
 /// The startup command and image of a variant: an egg's own startup command or image picked by
@@ -340,6 +432,9 @@ pub async fn create(
     if user.suspended || user.frozen {
         return Err(CreateError::AccountBlocked);
     }
+    if valid_name(&request.name).is_none() {
+        return Err(CreateError::InvalidName);
+    }
 
     let Some(_lock) = crate::allowance::lock(state, user.uuid).await else {
         return Err(CreateError::Busy);
@@ -383,22 +478,28 @@ async fn create_locked(
         return Err(CreateError::LocationLocked);
     }
 
-    let plan = Plan::by_uuid_optional(&state.database, request.plan_uuid)
-        .await?
-        .filter(|plan| plan.public)
-        .ok_or(CreateError::UnknownPlan)?;
+    // a plan only fills in the size; without one the player's own values, within the allowance
+    let size = match request.plan_uuid {
+        Some(plan_uuid) => {
+            let plan = Plan::by_uuid_optional(&state.database, plan_uuid)
+                .await?
+                .filter(|plan| plan.public)
+                .ok_or(CreateError::UnknownPlan)?;
+
+            Resources::new(plan.cpu as i64, plan.memory, plan.disk)
+        }
+        None => custom_size(request.size)?,
+    };
 
     let allowance = crate::allowance::for_user(state, user.uuid).await?;
-    allowance
-        .check_new(Resources::new(plan.cpu as i64, plan.memory, plan.disk))
-        .map_err(CreateError::Allowance)?;
+    allowance.check_new(size).map_err(CreateError::Allowance)?;
 
     let limits = AdminApiServerLimits {
-        cpu: plan.cpu,
-        memory: plan.memory,
+        cpu: i32::try_from(size.cpu).map_err(|_| CreateError::InvalidSize)?,
+        memory: size.memory,
         memory_overhead: 0,
         swap: 0,
-        disk: plan.disk,
+        disk: size.disk,
         io_weight: None,
         bandwidth: None,
     };
@@ -531,7 +632,7 @@ async fn create_locked(
             start_on_completion: !setup,
             skip_installer: false,
             external_id: None,
-            name: request.name,
+            name: request.name.trim().into(),
             description: None,
             limits,
             pinned_cpus: Vec::new(),
@@ -639,6 +740,46 @@ mod tests {
         assert_eq!(CreateError::Busy.status(), 429);
         assert_eq!(CreateError::Allowance(Refusal::Memory).status(), 409);
         assert_eq!(CreateError::UnknownPlan.status(), 400);
+        assert_eq!(CreateError::InvalidSize.status(), 400);
+        assert_eq!(CreateError::InvalidName.status(), 400);
         assert!(CreateError::NoNode("x".into()).message().ends_with(": x"));
+        assert!(CreateError::InvalidName.message().contains("191"));
+    }
+
+    #[test]
+    fn names_are_trimmed_and_capped() {
+        assert_eq!(valid_name("  lovebird "), Some("lovebird"));
+        assert_eq!(valid_name("x"), Some("x"));
+        assert_eq!(valid_name("   "), None);
+        assert_eq!(valid_name(""), None);
+        assert!(valid_name(&"a".repeat(NAME_MAX)).is_some());
+        assert!(valid_name(&"a".repeat(NAME_MAX + 1)).is_none());
+        // characters, not bytes
+        assert!(valid_name(&"ä".repeat(NAME_MAX)).is_some());
+    }
+
+    #[test]
+    fn a_custom_size_needs_every_value() {
+        assert_eq!(
+            custom_size(Some(Resources::new(100, 2048, 10240))).unwrap(),
+            Resources::new(100, 2048, 10240)
+        );
+        assert!(custom_size(None).is_err());
+        assert!(custom_size(Some(Resources::new(0, 2048, 10240))).is_err());
+        assert!(custom_size(Some(Resources::new(100, 0, 10240))).is_err());
+        assert!(custom_size(Some(Resources::new(100, 2048, 0))).is_err());
+        assert!(custom_size(Some(Resources::new(-1, 2048, 10240))).is_err());
+        assert!(custom_size(Some(Resources::new(i32::MAX as i64 + 1, 2048, 10240))).is_err());
+    }
+
+    #[test]
+    fn a_size_needs_a_node_with_room() {
+        // without a size: any open node
+        assert!(availability(1, 0, false));
+        assert!(!availability(0, 0, false));
+        // with one: a node with room for it
+        assert!(availability(2, 1, true));
+        assert!(!availability(2, 0, true));
+        assert!(!availability(0, 0, true));
     }
 }

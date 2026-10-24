@@ -122,10 +122,10 @@ to copy), never gathered in a folder of their own.
   `AdminSettings.tsx`): General (application, metadata, storage, status page, updates), Mail,
   Accounts (users, noprofit.space, Discord, passkeys, welcome tour), Hosting (servers, games, Minecraft,
   placement, start queue, limbo, recovery), Security (captcha, rate limits, abuse, activity), Economy (store, tokens,
-  memberships: one section in three tabs) and Ads (placement, Adsterra, Monetag, waiting room, ad
-  blockers, in-game: one section in six tabs). A new section joins the group its topic belongs to;
-  a big section is split into tabs that each save their own fields. Every setting is editable
-  there; the environment holds only what must exist before the database does.
+  memberships: one section in three tabs), Ads (placement, Adsterra, Monetag, waiting room, ad
+  blockers, in-game: one section in six tabs) and AI (neo). A new section joins the group its
+  topic belongs to; a big section is split into tabs that each save their own fields. Every
+  setting is editable there; the environment holds only what must exist before the database does.
 
 ## Background tasks
 

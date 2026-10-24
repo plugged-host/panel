@@ -30,12 +30,36 @@ export const storeCatalogEntrySchema = z.object({
   ),
 });
 
+const storeResourcesSchema = z.object({
+  cpu: z.number(),
+  memory: z.number(),
+  disk: z.number(),
+});
+
+// what the account has not claimed yet (shared/src/economy.rs ApiPerk)
+export const storePerkSchema = z.discriminatedUnion('id', [
+  z.object({ id: z.literal('discord_link'), gain: storeResourcesSchema, url: z.string() }),
+  z.object({ id: z.literal('discord_join'), gain: storeResourcesSchema, url: z.string() }),
+  z.object({ id: z.literal('discord_earn'), perInvite: z.number(), perBoost: z.number(), url: z.string() }),
+  z.object({ id: z.literal('store'), price: z.number(), amount: z.number() }),
+]);
+
 export const userStoreSchema = z.object({
   source: economySourceSchema,
   available: z.boolean(),
   credits: z.number(),
   catalog: z.array(storeCatalogEntrySchema),
   transactions: z.array(economyTransactionSchema),
+  hasPlan: z.boolean(),
+  usage: z.array(
+    z.object({
+      resource: storeResourceSchema,
+      used: z.number(),
+      limit: z.number(),
+    }),
+  ),
+  rewardsUrl: z.string().nullable(),
+  perks: z.array(storePerkSchema),
 });
 
 export const economyPaySchema = z.enum(['tokens', 'credits']);

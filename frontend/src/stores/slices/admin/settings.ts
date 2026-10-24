@@ -189,6 +189,7 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
     linkByEmail: true,
     ssoSecret: null,
     apiSecret: null,
+    neoSecret: null,
   },
   // plugged.host: the status page
   status: {
@@ -359,6 +360,34 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
     caCert: null,
     edgeCert: null,
   },
+  // plugged.host: neo (shared/src/settings/neo.rs)
+  neo: {
+    enabled: false,
+    maxSteps: 25,
+    contextTokens: 24000,
+    messagesPerMinute: 10,
+    toolsPerMinute: 60,
+    alwaysConfirmDestructive: true,
+    retentionDays: 30,
+    supportUrl: '',
+    legalEmail: '',
+    privacyEmail: '',
+    providerDisclosure: '',
+    plusPercent: 125,
+    plusplusPercent: 125,
+    gatewayEnabled: true,
+    shortHours: 5,
+    shortTokens: 3_000_000,
+    longDays: 7,
+    longTokens: 15_000_000,
+    discordUnlinkedPercent: 50,
+    defaultCooldown: 60,
+    maxBusyWait: 60,
+    deadline: 80,
+    maxConcurrent: 4,
+    toolsProbe: true,
+    providers: [],
+  },
   limbo: {
     enabled: false,
     stopMinutes: 2880,
@@ -456,6 +485,7 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
       subdomains: value.subdomains, // plugged.host
       discord: value.discord, // plugged.host
       devboxes: value.devboxes, // plugged.host
+      neo: value.neo, // plugged.host
       updates: value.updates,
     })),
   updateSettings: (value) =>
@@ -484,6 +514,7 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
       ...(value.subdomains ? { subdomains: { ...state.subdomains, ...value.subdomains } } : {}), // plugged.host
       ...(value.discord ? { discord: { ...state.discord, ...value.discord } } : {}), // plugged.host
       ...(value.devboxes ? { devboxes: { ...state.devboxes, ...value.devboxes } } : {}), // plugged.host
+      ...(value.neo ? { neo: { ...state.neo, ...value.neo } } : {}), // plugged.host
       ...(value.updates ? { updates: { ...state.updates, ...value.updates } } : {}),
     })),
   setUpdateInformation: (value) => set((state) => ({ ...state, updateInformation: value })),

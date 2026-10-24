@@ -44,10 +44,29 @@ the store and its price curve; Admin › Nodes and the allowance count the paid 
 
 ## The Resource Store
 
-Account › Resource Store shows the balance, one section per resource with what the account has and
-its offers (1, 2 and 4 steps), and the last 10 credit transactions. A purchase is confirmed in a
-dialog and sent with the price the player saw: a price that moved since buys nothing (409, the page
-shows the new prices).
+Account › Resource Store is laid out like the Pelican panel's, top to bottom:
+
+1. **Unlock more resources (N)**: a bar, closed until opened (the choice is kept in the browser),
+   with the upgrades the account has not claimed yet, each a row with a gray button: linking Discord
+   or joining the rest of the Discord servers for what they add, credits per invited friend (and per
+   boost), and what the next step of memory costs. The bar is gone once the list is empty. The
+   Discord rows need noprofit.space's store to send the account's Discord rewards (`discord`,
+   [noprofit.md](../noprofit.md#wire-format)); without noprofit.space only the memory row is offered.
+2. **Credits**: the balance, what credits buy and, with noprofit.space, how to earn them on Discord
+   with a button to noprofit.space's Discord page.
+3. **Your resources** (only with a plan): one row per resource with one meter for three numbers:
+   the solid part is what the account's servers use, the tinted part the rest of its limit, the
+   track runs to the soft limit where prices get steep (further when the account is past it). Over
+   the limit the number and the meter turn red and the row says how much to shrink. When noprofit.space's
+   plan says how much of a pool the account shares with other services (`total_*`, `elsewhere_*`),
+   the meter shows the whole pool, as the Pelican panel does. Beside it the offers (1, 2 and 4 steps)
+   as gray buttons with their price; under it how the price changes from here. While the store is
+   closed the meters stay, without offers.
+4. **Credit history**: the last 10 transactions as rows (what, when, the balance after, the amount).
+
+A purchase is confirmed ("Are you sure you want to purchase +50% CPU for 100 credits?") and sent
+with the price the player saw: a price that moved since buys nothing (409, the page shows the new
+prices). Either way a toast says how it went.
 
 **Without noprofit.space** the account has the games allowance (Admin › Settings › Hosting › Games)
 plus what it bought (`users.extra_cpu`, `extra_memory`, `extra_disk`); a resource the allowance does
@@ -60,13 +79,18 @@ the credits, the resources and the ledger row together.
 **With noprofit.space** the page shows noprofit.space's store for the account (its credits,
 catalog and history) and buys through it; the account's plan grows there, and the panel pulls the
 account again right after, so the new allowance counts at once. When noprofit.space does not answer
-the store says it is closed.
+the page shows the credits the panel last synced and the meters, and offers nothing. An account
+without a plan sees no resources at all.
 
 ## Tokens
 
-Account › Tokens shows the balance, what was earned so far, the ways to earn and the last 10 token
-transactions. **Daily tokens** (a setting, 0 by default) are given once a day, the first time the
-account looks after midnight UTC.
+Account › Tokens is laid out like the Pelican panel's: the balance and what tokens pay for, the
+ways to earn (one row each: the reward, today's count against the cap, and "Earn with …"; the first
+one's button is the page's filled one, a capped one says "Come back tomorrow", a Full Script link
+that could not be made "Unavailable right now"), and the recent activity (the last 10 token
+transactions, only when there are any). Static links also get a gray button in the page header. The
+way back from a link ends in a toast with the result. **Daily tokens** (a setting, 0 by default) are
+given once a day, the first time the account looks after midnight UTC.
 
 Earning works with claims (`user_token_claims`):
 
@@ -129,7 +153,7 @@ end the second. Admin activity `user:economy`.
 
 | Route | Permission | Does |
 |---|---|---|
-| `GET /api/client/account/credits` | `economy.read` | `{store}`: `source` (`panel`/`noprofit`), `available`, `credits`, `catalog: [{resource, step, total, limit, soft_limit, offers: [{steps, amount, price}]}]`, `transactions` |
+| `GET /api/client/account/credits` | `economy.read` | `{store}`: `source` (`panel`/`noprofit`), `available`, `credits`, `catalog: [{resource, step, total, limit, soft_limit, offers: [{steps, amount, price}]}]`, `transactions`, `has_plan`, `usage: [{resource, used, limit}]` (the meters), `rewards_url` (noprofit.space's Discord page or `null`), `perks: [{id: discord_link\|discord_join, gain, url} \| {id: discord_earn, per_invite, per_boost, url} \| {id: store, price, amount}]` |
 | `POST /api/client/account/credits/store` | `economy.purchase` | `{resource, steps (1–50), price}` → `{store}`; 409 when the price changed or the balance is short, 422 when noprofit.space refused |
 | `GET /api/client/account/tokens` | `economy.read` | `{tokens}`: balance, earned, `claim_minutes`, `providers: [{provider, reward, daily_cap, granted_today, full_script, publisher, whitelist}]`, `transactions` |
 | `POST /api/client/account/tokens/earn` | `economy.earn` | `{provider}` → `{earn: {url, nonce}}`; 409 capped, 429 throttled, 502 the provider made no link |
@@ -194,14 +218,17 @@ and `/credits/spend`.
 - Without noprofit.space, with a CPU allowance in Admin › Settings › Hosting › Games: Admin › Users
   › a user › Economy › add 500 credits. Resource Store: +50 % CPU costs 50 credits; buy it; the
   balance, the history and the create page's allowance show it.
-- A resource without a limit in the games settings says it is not sold.
+- A resource without a limit in the games settings shows its meter without offers.
+- Resource Store: "Unlock more resources (1)" is closed; open it, reload: still open. Its row says
+  what 1 GiB of memory costs and "Open store" scrolls to the resources. Each meter's solid part
+  follows the servers' use; a server bigger than the limit turns the row red.
 - Admin: add 30 tokens. Membership: buy the first one; a `plus` location opens on the create and
   transfer pages. Buy the second with tokens: it runs for 7 days, a `premium` location opens; the
   CPU allowance stays the same (the second membership adds burst cores, not allowance).
 - Admin › Economy › End the second membership now: within a minute, a server on a premium location
   starts moving (its Transfer tab).
-- Linkvertise or Vylo set up with real keys: Earn, finish the link, come back: "1 tokens added";
-  reloading the page that came back does not add more.
+- Linkvertise or Vylo set up with real keys: Earn with …, finish the link, come back: a toast
+  "Added: +1 tokens"; reloading the page that came back does not add more.
 - With noprofit.space: the store shows noprofit.space's balance and prices; a purchase there raises
   the plan at once (create page allowance).
 - Burst cores: with the first membership, a server with 200 % CPU shows "200% + 100% burst" on its

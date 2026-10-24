@@ -5,6 +5,7 @@ mod capacity; // plugged.host
 mod debug;
 mod email;
 mod health;
+mod neo; // plugged.host
 mod overview;
 mod telemetry;
 // plugged.host: the update checker removed (docs/upstream.md)
@@ -18,6 +19,7 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         .nest("/health", health::router(state))
         .nest("/capacity", capacity::router(state)) // plugged.host
         .nest("/email", email::router(state))
+        .nest("/neo", neo::router(state)) // plugged.host
         .nest("/debug", debug::router(state))
         .with_state(state.clone())
 }

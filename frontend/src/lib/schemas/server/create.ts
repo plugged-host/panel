@@ -20,7 +20,9 @@ export const serverCreateGameSchema = z.object({
   eggUuid: z.string(),
   name: z.string(),
   description: z.string().nullable(),
+  icon: z.string().nullable(),
   eula: z.boolean(),
+  setup: z.boolean(),
   variants: z.array(z.object({ value: z.string(), label: z.string() })),
 });
 
@@ -32,6 +34,7 @@ export const serverCreateLocationSchema = z.object({
   tier: z.string().nullable(),
   unlocked: z.boolean(),
   available: z.boolean(),
+  full: z.boolean(),
   latency: z.number().nullable(),
 });
 
@@ -53,11 +56,17 @@ export const serverCreateOptionsSchema = z.object({
   plans: z.array(serverCreatePlanSchema),
 });
 
+// A plan, or the player's own CPU, memory and disk (a plan only fills them in on the page).
 export const serverCreateSchema = z.object({
-  name: z.string().trim().min(3).max(255),
+  name: z.string().trim().min(1).max(191),
   eggUuid: z.string(),
   locationUuid: z.string(),
-  planUuid: z.string(),
+  planUuid: z.string().nullable(),
+  cpu: z.number().int().min(1),
+  memory: z.number().int().min(1),
+  disk: z.number().int().min(1),
   variant: z.string().nullable(),
   eula: z.boolean(),
 });
+
+export type ServerCreateSize = { cpu: number; memory: number; disk: number };

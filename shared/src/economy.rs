@@ -779,6 +779,160 @@ pub struct ApiStore {
     pub credits: i64,
     pub catalog: Vec<CatalogEntry>,
     pub transactions: Vec<ApiTransaction>,
+    /// False when noprofit.space is connected and the account has no plan: no resources to show.
+    pub has_plan: bool,
+    /// One meter per resource (CPU, memory, disk), shown whether or not anything is for sale.
+    pub usage: Vec<ApiStoreUsage>,
+    /// Where credits are earned on Discord (noprofit.space's Discord page); `None` without
+    /// noprofit.space.
+    pub rewards_url: Option<String>,
+    /// What the account has not claimed yet; the page's bar is gone once this is empty.
+    pub perks: Vec<ApiPerk>,
+}
+
+/// A resource's meter: what the account's servers use against its limit.
+#[derive(ToSchema, Serialize, Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ApiStoreUsage {
+    pub resource: StoreResource,
+    pub used: i64,
+    /// 0: no limit.
+    pub limit: i64,
+}
+
+/// An upgrade the account has not claimed yet (the Pelican panel's perk discovery), in the order
+/// the page lists them.
+#[derive(ToSchema, Serialize, Clone, Debug, PartialEq, Eq)]
+#[serde(tag = "id", rename_all = "snake_case")]
+pub enum ApiPerk {
+    /// Linking Discord and joining the Discord servers adds `gain` to the plan.
+    DiscordLink { gain: Resources, url: String },
+    /// Linked: joining the Discord servers the account is not in yet adds `gain`.
+    DiscordJoin { gain: Resources, url: String },
+    /// Credits for each person invited to the Discord server, and for a boost (0: none).
+    DiscordEarn {
+        per_invite: i64,
+        per_boost: i64,
+        url: String,
+    },
+    /// `price` credits buy the next `amount` MiB of memory.
+    Store { price: i64, amount: i64 },
+}
+
+fn amount_of(resources: Resources, resource: StoreResource) -> i64 {
+    match resource {
+        StoreResource::Cpu => resources.cpu,
+        StoreResource::Memory => resources.memory,
+        StoreResource::Disk => resources.disk,
+    }
+}
+
+/// The meters' numbers. A noprofit.space plan that says how much of a pool the account shares with
+/// other services (`total_*`, `elsewhere_*`) shows the whole pool, as the Pelican panel does: what
+/// the other services use counts as used, and the limit is the pool's total.
+pub fn store_usage(
+    limit: Resources,
+    used: Resources,
+    plan: Option<&serde_json::Value>,
+) -> Vec<ApiStoreUsage> {
+    let number = |key: &str| {
+        plan.and_then(|plan| plan.get(key)).and_then(|value| {
+            value
+                .as_i64()
+                .or_else(|| value.as_f64().map(|value| value as i64))
+        })
+    };
+
+    StoreResource::ALL
+        .into_iter()
+        .map(|resource| {
+            let share = amount_of(limit, resource);
+            let mut used = amount_of(used, resource);
+            let mut limit = share;
+
+            if let Some(total) = number(&format!("total_{}", resource.as_str())) {
+                let total = total.max(0);
+                let elsewhere = number(&format!("elsewhere_{}", resource.as_str()))
+                    .unwrap_or(total - share)
+                    .max(0);
+
+                used += elsewhere;
+                limit = total;
+            }
+
+            ApiStoreUsage {
+                resource,
+                used,
+                limit,
+            }
+        })
+        .collect()
+}
+
+/// noprofit.space's side of the perks: its accounts site, whether the account linked Discord, and
+/// the Discord rewards the store answered with (`None`: not sent, so nothing to offer from them).
+struct DiscordRewards<'a> {
+    accounts_url: &'a str,
+    linked: bool,
+    status: Option<&'a crate::noprofit::StoreDiscord>,
+}
+
+/// The perks in the Pelican panel's order (`PerkDiscovery`): what the Discord servers would still
+/// add, credits for invites, then what the next step of memory costs.
+fn perks(
+    has_plan: bool,
+    catalog: &[CatalogEntry],
+    discord: Option<DiscordRewards<'_>>,
+) -> Vec<ApiPerk> {
+    let mut perks = Vec::new();
+
+    if let Some(discord) = discord
+        && let Some(status) = discord.status
+    {
+        let gain = Resources::new(
+            (status.max_bonus.cpu - status.bonus.cpu).max(0),
+            (status.max_bonus.memory - status.bonus.memory).max(0),
+            (status.max_bonus.disk - status.bonus.disk).max(0),
+        );
+
+        if gain != Resources::default() {
+            perks.push(if discord.linked {
+                ApiPerk::DiscordJoin {
+                    gain,
+                    url: format!("{}/discord", discord.accounts_url),
+                }
+            } else {
+                ApiPerk::DiscordLink {
+                    gain,
+                    url: format!("{}/settings", discord.accounts_url),
+                }
+            });
+        }
+
+        // Invites only count for a linked account.
+        if discord.linked && status.credits_per_invite > 0 {
+            perks.push(ApiPerk::DiscordEarn {
+                per_invite: status.credits_per_invite,
+                per_boost: status.credits_per_boost.max(0),
+                url: format!("{}/discord", discord.accounts_url),
+            });
+        }
+    }
+
+    if has_plan
+        && let Some(offer) = catalog
+            .iter()
+            .find(|entry| entry.resource == StoreResource::Memory)
+            .and_then(|entry| entry.offers.first())
+        && offer.price > 0
+        && offer.price < UNAFFORDABLE
+    {
+        perks.push(ApiPerk::Store {
+            price: offer.price,
+            amount: offer.amount,
+        });
+    }
+
+    perks
 }
 
 /// The store without noprofit.space: the games allowance plus what was bought, priced on the
@@ -798,13 +952,23 @@ async fn panel_store(
 
     let (credits, _, _) = balances(&state.database, user_uuid).await?;
     let extras = extras(&state.database, user_uuid).await?;
+    let (used, _) = crate::allowance::usage(&state.database, user_uuid).await?;
+    let catalog = panel_catalog(pricing, base, extras);
 
     Ok(ApiStore {
         source: Source::Panel,
         available: true,
         credits,
-        catalog: panel_catalog(pricing, base, extras),
+        perks: perks(true, &catalog, None),
+        catalog,
         transactions: transactions(&state.database, Currency::Credits, user_uuid, HISTORY).await?,
+        has_plan: true,
+        usage: store_usage(
+            crate::allowance::add_where_limited(base, extras),
+            used,
+            None,
+        ),
+        rewards_url: None,
     })
 }
 
@@ -835,6 +999,10 @@ fn noprofit_store(store: crate::noprofit::Store) -> ApiStore {
             .into_iter()
             .map(ApiTransaction::from)
             .collect(),
+        has_plan: false,
+        usage: Vec::new(),
+        rewards_url: None,
+        perks: Vec::new(),
     }
 }
 
@@ -845,7 +1013,54 @@ fn closed_store(source: Source) -> ApiStore {
         credits: 0,
         catalog: Vec::new(),
         transactions: Vec::new(),
+        has_plan: false,
+        usage: Vec::new(),
+        rewards_url: None,
+        perks: Vec::new(),
     }
+}
+
+/// The store page with noprofit.space: its store for the account (`None` when it did not answer,
+/// or there is no account: closed), with the account's plan, meters and perks.
+async fn noprofit_page(
+    state: &crate::State,
+    user_uuid: uuid::Uuid,
+    accounts_url: &str,
+    link: Option<&crate::noprofit::Link>,
+    answer: Option<crate::noprofit::Store>,
+) -> Result<ApiStore, anyhow::Error> {
+    let (used, _) = crate::allowance::usage(&state.database, user_uuid).await?;
+    let plan = link.and_then(|link| link.plan.as_ref());
+    let discord = answer.as_ref().and_then(|store| store.discord.clone());
+
+    let mut page = match answer {
+        Some(store) => noprofit_store(store),
+        None => ApiStore {
+            credits: link.map_or(0, |link| link.credits),
+            ..closed_store(Source::Noprofit)
+        },
+    };
+
+    page.has_plan = plan.is_some();
+    page.usage = store_usage(
+        plan.map(Resources::from_plan).unwrap_or_default(),
+        used,
+        plan,
+    );
+    page.rewards_url = Some(format!("{accounts_url}/discord"));
+    page.perks = perks(
+        page.has_plan,
+        &page.catalog,
+        Some(DiscordRewards {
+            accounts_url,
+            linked: link
+                .and_then(|link| link.discord.as_ref())
+                .is_some_and(|discord| !discord.is_null()),
+            status: discord.as_ref(),
+        }),
+    );
+
+    Ok(page)
 }
 
 pub async fn store(state: &crate::State, user: &User) -> Result<ApiStore, EconomyError> {
@@ -864,23 +1079,27 @@ pub async fn store(state: &crate::State, user: &User) -> Result<ApiStore, Econom
 
     match noprofit {
         Some(noprofit) => {
-            let Some(link) =
-                crate::noprofit::Link::by_user_uuid(&state.database, user.uuid).await?
-            else {
-                return Ok(closed_store(Source::Noprofit));
+            let link = crate::noprofit::Link::by_user_uuid(&state.database, user.uuid).await?;
+            let answer = match &link {
+                Some(link) => match noprofit.store(&state.client, link.account_id).await {
+                    Ok(store) => Some(store),
+                    Err(err) => {
+                        tracing::warn!(user = %user.uuid, "noprofit.space's store did not answer: {err:#}");
+
+                        None
+                    }
+                },
+                None => None,
             };
 
-            match noprofit.store(&state.client, link.account_id).await {
-                Ok(store) => Ok(noprofit_store(store)),
-                Err(err) => {
-                    tracing::warn!(user = %user.uuid, "noprofit.space's store did not answer: {err:#}");
-
-                    Ok(ApiStore {
-                        credits: link.credits,
-                        ..closed_store(Source::Noprofit)
-                    })
-                }
-            }
+            Ok(noprofit_page(
+                state,
+                user.uuid,
+                &noprofit.accounts_url,
+                link.as_ref(),
+                answer,
+            )
+            .await?)
         }
         None => Ok(panel_store(state, user.uuid, &Pricing::from_settings(&economy), base).await?),
     }
@@ -929,8 +1148,19 @@ pub async fn purchase(
                 if let Err(err) = crate::noprofit::refresh_user(state, user.uuid).await {
                     tracing::warn!(user = %user.uuid, "failed to pull the account after a purchase: {err:#}");
                 }
+                // The plan as it is now, for the meters.
+                let link = crate::noprofit::Link::by_user_uuid(&state.database, user.uuid)
+                    .await?
+                    .unwrap_or(link);
 
-                Ok(noprofit_store(store))
+                Ok(noprofit_page(
+                    state,
+                    user.uuid,
+                    &noprofit.accounts_url,
+                    Some(&link),
+                    Some(store),
+                )
+                .await?)
             }
             crate::noprofit::Purchase::PriceChanged(Some(store)) => {
                 Err(EconomyError::PriceChanged(Box::new(noprofit_store(store))))
@@ -1554,6 +1784,157 @@ mod tests {
         assert!(catalog[1].offers.is_empty());
         assert_eq!(catalog[2].total, 10240);
         assert!(!catalog[2].offers.is_empty());
+    }
+
+    #[test]
+    fn meters_show_the_servers_against_the_limit() {
+        let usage = store_usage(
+            Resources::new(400, 8192, 0),
+            Resources::new(100, 9000, 2048),
+            None,
+        );
+
+        assert_eq!(usage.len(), 3);
+        assert_eq!(
+            usage[0],
+            ApiStoreUsage {
+                resource: StoreResource::Cpu,
+                used: 100,
+                limit: 400
+            }
+        );
+        // over the limit stays over; no limit stays 0
+        assert_eq!((usage[1].used, usage[1].limit), (9000, 8192));
+        assert_eq!((usage[2].used, usage[2].limit), (2048, 0));
+    }
+
+    #[test]
+    fn a_shared_pool_shows_whole() {
+        // noprofit.space's planFor(): this panel's share, the whole pool and what others use of it
+        let plan = serde_json::json!({
+            "cpu": 300, "total_cpu": 400, "elsewhere_cpu": 100,
+            "memory": 6144, "total_memory": 8192.0,
+            "disk": 10240,
+        });
+        let usage = store_usage(
+            Resources::from_plan(&plan),
+            Resources::new(200, 4096, 1024),
+            Some(&plan),
+        );
+
+        assert_eq!((usage[0].used, usage[0].limit), (300, 400));
+        // without elsewhere_*: the pool less this panel's share
+        assert_eq!((usage[1].used, usage[1].limit), (6144, 8192));
+        // no pool: as it is
+        assert_eq!((usage[2].used, usage[2].limit), (1024, 10240));
+    }
+
+    fn store_catalog(memory_price: i64) -> Vec<CatalogEntry> {
+        vec![CatalogEntry {
+            resource: StoreResource::Memory,
+            step: 1024,
+            total: 4096,
+            limit: 24576,
+            soft_limit: 30720,
+            offers: vec![crate::pricing::Offer {
+                steps: 1,
+                amount: 1024,
+                price: memory_price,
+            }],
+        }]
+    }
+
+    #[test]
+    fn the_store_perk_needs_a_plan_and_a_price() {
+        assert_eq!(
+            perks(true, &store_catalog(75), None),
+            vec![ApiPerk::Store {
+                price: 75,
+                amount: 1024
+            }]
+        );
+        assert!(perks(false, &store_catalog(75), None).is_empty());
+        assert!(perks(true, &store_catalog(0), None).is_empty());
+        assert!(perks(true, &store_catalog(UNAFFORDABLE), None).is_empty());
+        assert!(perks(true, &[], None).is_empty());
+    }
+
+    #[test]
+    fn discord_perks_follow_what_is_left_to_claim() {
+        let status = crate::noprofit::StoreDiscord {
+            bonus: Resources::new(0, 1024, 0),
+            max_bonus: Resources::new(0, 3072, 0),
+            credits_per_invite: 25,
+            credits_per_boost: 100,
+        };
+        fn rewards(
+            linked: bool,
+            status: Option<&crate::noprofit::StoreDiscord>,
+        ) -> DiscordRewards<'_> {
+            DiscordRewards {
+                accounts_url: "https://accounts.example.com",
+                linked,
+                status,
+            }
+        }
+
+        // not linked: link it, for what all the servers add; no invites yet
+        assert_eq!(
+            perks(false, &[], Some(rewards(false, Some(&status)))),
+            vec![ApiPerk::DiscordLink {
+                gain: Resources::new(0, 2048, 0),
+                url: "https://accounts.example.com/settings".into()
+            }]
+        );
+
+        // linked: join the rest, then invite; the store last
+        let linked = perks(true, &store_catalog(75), Some(rewards(true, Some(&status))));
+        assert_eq!(linked.len(), 3);
+        assert_eq!(
+            linked[0],
+            ApiPerk::DiscordJoin {
+                gain: Resources::new(0, 2048, 0),
+                url: "https://accounts.example.com/discord".into()
+            }
+        );
+        assert_eq!(
+            linked[1],
+            ApiPerk::DiscordEarn {
+                per_invite: 25,
+                per_boost: 100,
+                url: "https://accounts.example.com/discord".into()
+            }
+        );
+        assert!(matches!(linked[2], ApiPerk::Store { .. }));
+
+        // in every server, no invite credits: nothing from Discord
+        let done = crate::noprofit::StoreDiscord {
+            bonus: status.max_bonus,
+            credits_per_invite: 0,
+            ..status.clone()
+        };
+        assert!(perks(false, &[], Some(rewards(true, Some(&done)))).is_empty());
+        // noprofit.space sent no Discord rewards
+        assert!(perks(false, &[], Some(rewards(true, None))).is_empty());
+    }
+
+    #[test]
+    fn discord_rewards_are_read_leniently() {
+        let store: crate::noprofit::Store = serde_json::from_value(serde_json::json!({
+            "credits": 10,
+            "catalog": [],
+            "discord": {"bonus": {"memory": 1024}, "max_bonus": {"cpu": 50, "memory": 3072}, "boosts": 2},
+        }))
+        .unwrap();
+        let discord = store.discord.unwrap();
+
+        assert_eq!(discord.bonus, Resources::new(0, 1024, 0));
+        assert_eq!(discord.max_bonus, Resources::new(50, 3072, 0));
+        assert_eq!(discord.credits_per_invite, 0);
+
+        let without: crate::noprofit::Store =
+            serde_json::from_value(serde_json::json!({"credits": 0, "catalog": []})).unwrap();
+        assert!(without.discord.is_none());
     }
 
     #[test]

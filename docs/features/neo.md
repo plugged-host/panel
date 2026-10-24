@@ -5,7 +5,7 @@ on them with the person's own permissions, asking before it changes anything unl
 allowed it to go ahead. The chat runs on the account (account questions, the store, servers in
 general) and on each server (that server). Its code is in `shared/src/neo/`; the models it talks
 to (provider slots, the noprofit.space gateway, the usage windows) are described under
-[Models and limits](#models-and-limits) below.
+[Settings](#settings) below.
 
 ## Who can use it
 
@@ -84,6 +84,60 @@ its code: `limited_short`, `limited_long`, `limited_model`, `limited_images` (wi
 `model_not_allowed` (the picked model needs a membership), `model_unavailable`, `unavailable`,
 `unlinked` (noprofit.space does not know the account), `refused` (the provider's content filter).
 Retry continues the same request once the cause is gone.
+
+## Settings
+
+Admin › Settings › AI › neo is one page in Pelican's order (`frontend/src/pages/admin/settings/neo/`):
+
+- **neo on this panel**: the master switch, steps per message, the context budget, messages and
+  tool runs per minute, how long chats are kept, the human support link, the legal and privacy
+  contacts, the AI providers named to users and "always ask before deleting or killing".
+- **AI providers and limits**: up to 6 model slots (`MAX_PROVIDERS`), added and removed freely. A
+  slot has a label and description (the chat's picker), who may pick it (everyone, Plus,
+  PlusPlus), the API format (OpenAI-compatible, Anthropic Messages, Google AI Studio), the model,
+  the endpoint (public https only), the key, max output tokens, a timeout, a daily token cap,
+  whether it sees images, a usage multiplier, and extra headers and request fields as JSON.
+  While noprofit.space runs neo (see below), the page says so and the slots are not used.
+- **Usage limits**: the gateway switch, the memberships' percentages, the share for Discord
+  accounts nobody linked, the short and long token windows, and the failover timings (cooldown
+  after a failure, longest wait before an outage, time budget per turn, concurrent calls, the
+  tool support check).
+
+### Secrets in a slot
+
+- The key never comes back to the browser. An empty field keeps the stored key, "Remove the
+  stored key" deletes it, and a new slot never takes another slot's key. Keys are stored
+  encrypted.
+- Extra headers whose name looks like a secret (`key`, `token`, `auth`, `secret`, `cookie`,
+  `session`) are shown as `••••`. Sent back as `••••`, the stored value stays; `••••` for a header
+  that has no stored value is refused. The database keeps the real values.
+- Header names are letters, digits and dashes (64 at most), values one line of plain text (1024
+  at most), 2048 bytes in all; the key, content type and host headers are refused. Extra
+  request fields may not set the fields the panel sets (`model`, `messages`, `tools`, `stream`,
+  `max_tokens`, `contents`, `systemInstruction`…), and stay within 4096 bytes and 4 levels.
+  Google AI Studio only takes `generationConfig`, `safetySettings` and `cachedContent`.
+
+### Status and test
+
+- `GET /api/admin/system/neo/providers` (`settings.read`): per saved slot, whether it is usable,
+  until when it is skipped after a failure, its tokens today (UTC) and its last error of the
+  past day. The page shows it under the slot's title while the slot has no unsaved changes.
+- `POST /api/admin/system/neo/test` `{slot}` (`settings.update`): one call to the slot as saved
+  (also when it is off), asking for "OK": no failover, no cooldown, no count against anyone's
+  limits, at most 30 seconds. It answers `{successful, duration_ms, model, answer, tokens,
+  status, error}`; the answer and error are cut to 300 characters on one line, with Google keys,
+  the slot's key and its secret header values masked (the status endpoint masks the last error
+  the same way). A slot that is not saved answers 404, one without an endpoint, key or model
+  400. A successful test is recorded as a usage event (service `settings`, status `test`); every
+  test is in the admin activity as `neo:provider-test` `{slot, model, successful, status}`.
+
+### neo on noprofit.space
+
+Admin › Settings › Accounts › noprofit.space has the neo gateway secret (noprofit.space's
+`NEO_GATEWAY_SECRET`, at least 32 characters). While noprofit.space is connected and the secret is
+set (`neo::on_noprofit`), neo runs on noprofit.space's gateway with its models and limits, and the
+slots above are not used. "Remove the stored neo secret" puts neo back on this panel's models
+without disconnecting noprofit.space.
 
 ## The chat
 

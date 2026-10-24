@@ -77,6 +77,7 @@ import {
   IconDeviceFloppy,
   IconDeviceGamepad2,
   IconDeviceSdCard,
+  IconDice5, // plugged.host
   IconDoorEnter,
   IconDots,
   IconDotsVertical,
@@ -292,6 +293,7 @@ export const tablerIcons: Record<string, TablerIcon> = {
   database: IconDatabase,
   desktop: IconDeviceDesktop,
   'diagram-project': IconHierarchy,
+  'dice-five': IconDice5, // plugged.host: the create page's random name
   'dollar-sign': IconCurrencyDollar,
   'door-open': IconDoorEnter,
   download: IconDownload,

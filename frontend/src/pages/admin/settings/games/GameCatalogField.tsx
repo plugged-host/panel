@@ -68,11 +68,20 @@ export default function GameCatalogField({ form }: { form: UseFormReturnType<Gam
             />
           </Group>
 
-          <TextInput
-            label={t('common.form.description', {})}
-            key={form.key(`catalog.${index}.description`)}
-            {...form.getInputProps(`catalog.${index}.description`)}
-          />
+          <Group grow align='flex-start'>
+            <TextInput
+              label={t('common.form.description', {})}
+              key={form.key(`catalog.${index}.description`)}
+              {...form.getInputProps(`catalog.${index}.description`)}
+            />
+            <TextInput
+              label={t('pages.admin.settings.tabs.games.page.catalog.icon', {})}
+              description={t('pages.admin.settings.tabs.games.page.catalog.iconDescription', {})}
+              placeholder='https://'
+              key={form.key(`catalog.${index}.icon`)}
+              {...form.getInputProps(`catalog.${index}.icon`)}
+            />
+          </Group>
 
           <Text size='sm' fw={500}>
             {t('pages.admin.settings.tabs.games.page.catalog.variants', {})}
@@ -133,7 +142,14 @@ export default function GameCatalogField({ form }: { form: UseFormReturnType<Gam
         <Button
           variant='default'
           onClick={() =>
-            form.insertListItem('catalog', { eggUuid: '', name: null, description: null, variable: null, variants: [] })
+            form.insertListItem('catalog', {
+              eggUuid: '',
+              name: null,
+              description: null,
+              icon: null,
+              variable: null,
+              variants: [],
+            })
           }
         >
           {t('pages.admin.settings.tabs.games.page.catalog.addGame', {})}

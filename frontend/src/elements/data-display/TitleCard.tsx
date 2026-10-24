@@ -6,6 +6,7 @@ import Card from '@/elements/data-display/Card.tsx';
 
 export interface TitleCardProps {
   title: string;
+  description?: string; // plugged.host: Filament's section description, under the heading
   icon?: React.ReactNode;
   children: React.ReactNode;
   className?: string;
@@ -18,6 +19,7 @@ export interface TitleCardProps {
 
 function TitleCard({
   title,
+  description, // plugged.host
   icon,
   children,
   className,
@@ -57,9 +59,19 @@ function TitleCard({
             {icon}
           </Box>
         )}
-        <Title order={5} fw={600}>
-          {title}
-        </Title>
+        {/* plugged.host: a description sits under the heading, "text-sm text-gray-400" */}
+        {description ? (
+          <div className='min-w-0'>
+            <Title order={5} fw={600}>
+              {title}
+            </Title>
+            <p className='theme-section-description'>{description}</p>
+          </div>
+        ) : (
+          <Title order={5} fw={600}>
+            {title}
+          </Title>
+        )}
         {rightSection}
       </Group>
       <div className={classNames('p-4 md:p-6 h-full', wrapperClassName)}>{children}</div>

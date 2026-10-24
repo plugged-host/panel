@@ -125,8 +125,9 @@ pub struct NeoProvider {
     /// Tokens a day this slot may use in all (0: no cap).
     #[serde(default)]
     pub daily_token_cap: i64,
-    /// Extra request headers (not the key or content headers).
-    #[serde(default)]
+    /// Extra request headers (not the key or content headers). The API shows the values of
+    /// [secret-looking](header_is_secret) ones as [`HEADER_MASK`]; the database keeps them.
+    #[serde(default, serialize_with = "serialize_headers")]
     pub extra_headers: BTreeMap<String, String>,
     /// Extra request fields (not the ones the driver sets).
     #[serde(default)]
@@ -144,6 +145,33 @@ pub struct NeoProvider {
 
 fn one() -> i32 {
     1
+}
+
+/// What the value of a secret-looking extra header is shown as. Sent back unchanged, it keeps the
+/// stored value.
+pub const HEADER_MASK: &str = "••••";
+
+/// Whether an extra header carries a secret, by its name (`cf-aig-authorization`, `X-Api-Token`).
+pub fn header_is_secret(name: &str) -> bool {
+    let name = name.to_ascii_lowercase();
+
+    ["key", "token", "auth", "secret", "cookie", "session"]
+        .iter()
+        .any(|word| name.contains(word))
+}
+
+fn serialize_headers<S: serde::Serializer>(
+    headers: &BTreeMap<String, String>,
+    serializer: S,
+) -> Result<S::Ok, S::Error> {
+    serializer.collect_map(headers.iter().map(|(name, value)| {
+        let shown = if header_is_secret(name) {
+            HEADER_MASK
+        } else {
+            value.as_str()
+        };
+        (name, shown)
+    }))
 }
 
 impl NeoProvider {
@@ -253,6 +281,25 @@ impl Default for AppSettingsNeo {
 }
 
 impl AppSettingsNeo {
+    /// The slots as the database keeps them: without their keys (stored encrypted apart) and with
+    /// the extra headers' real values (the API masks the secret ones).
+    fn stored_providers(&self) -> Result<String, serde_json::Error> {
+        let providers = self
+            .providers
+            .iter()
+            .map(|p| {
+                let mut value = serde_json::to_value(NeoProvider {
+                    api_key: None,
+                    ..p.clone()
+                })?;
+                value["extra_headers"] = serde_json::to_value(&p.extra_headers)?;
+                Ok(value)
+            })
+            .collect::<Result<Vec<_>, serde_json::Error>>()?;
+
+        serde_json::to_string(&providers)
+    }
+
     /// The usable providers, in slot order.
     pub fn usable_providers(&self) -> impl Iterator<Item = &NeoProvider> {
         self.providers.iter().filter(|provider| provider.usable())
@@ -380,6 +427,9 @@ pub enum PayloadError {
     Endpoint(u8),
     DuplicateSlot(u8),
     Header(u8),
+    HeaderInvalid(u8),
+    HeaderMask(u8),
+    Body(u8),
 }
 
 impl PayloadError {
@@ -393,8 +443,71 @@ impl PayloadError {
             Self::Header(slot) => format!(
                 "model {slot}: extra headers may not set the key, the content type or the host"
             ),
+            Self::HeaderInvalid(slot) => format!(
+                "model {slot}: extra header names are letters, digits and dashes, their values plain text on one line, {MAX_HEADERS_BYTES} bytes in all"
+            ),
+            Self::HeaderMask(slot) => format!(
+                "model {slot}: {HEADER_MASK} keeps a stored header value, and this header has none; type its value"
+            ),
+            Self::Body(slot) => format!(
+                "model {slot}: extra request fields may not set the fields the panel sets (model, messages, tools…), {MAX_BODY_BYTES} bytes and {MAX_BODY_DEPTH} levels at most"
+            ),
         }
     }
+}
+
+/// The most a slot's extra headers may take, as JSON.
+pub const MAX_HEADERS_BYTES: usize = 2048;
+/// The most a slot's extra request fields may take, as JSON, and how deeply they may nest.
+pub const MAX_BODY_BYTES: usize = 4096;
+pub const MAX_BODY_DEPTH: usize = 4;
+
+/// Request fields a slot's extra fields may not set (compared in lower case): the ones the
+/// drivers set. Gemini's `generationConfig` is not among them, its call merges it.
+pub const RESERVED_BODY_FIELDS: &[&str] = &[
+    "model",
+    "messages",
+    "system",
+    "tools",
+    "tool_choice",
+    "stream",
+    "max_tokens",
+    "max_completion_tokens",
+    "n",
+    "thinking",
+    "contents",
+    "systeminstruction",
+    "system_instruction",
+    "toolconfig",
+    "tool_config",
+];
+
+/// Whether an extra header can be sent as it is: a name of letters, digits and dashes (64 at
+/// most) and a value of visible ASCII and spaces (1024 at most), so no request fails on it.
+pub fn header_allowed(name: &str, value: &str) -> bool {
+    (1..=64).contains(&name.len())
+        && name.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'-')
+        && value.len() <= 1024
+        && value
+            .bytes()
+            .all(|b| b == b'\t' || (0x20..0x7f).contains(&b))
+}
+
+fn json_depth(value: &serde_json::Value) -> usize {
+    match value {
+        serde_json::Value::Object(map) => 1 + map.values().map(json_depth).max().unwrap_or(0),
+        serde_json::Value::Array(items) => 1 + items.iter().map(json_depth).max().unwrap_or(0),
+        _ => 0,
+    }
+}
+
+/// Whether a slot's extra request fields leave the driver's own alone and stay small.
+pub fn body_allowed(body: &serde_json::Map<String, serde_json::Value>) -> bool {
+    !body
+        .keys()
+        .any(|key| RESERVED_BODY_FIELDS.contains(&key.to_ascii_lowercase().as_str()))
+        && serde_json::to_string(body).is_ok_and(|json| json.len() <= MAX_BODY_BYTES)
+        && 1 + body.values().map(json_depth).max().unwrap_or(0) <= MAX_BODY_DEPTH
 }
 
 /// Headers a slot's extra headers may not set.
@@ -455,12 +568,43 @@ impl PayloadNeo {
                     }) {
                         return Err(PayloadError::Header(provider.slot));
                     }
+                    if !body_allowed(&provider.extra_body) {
+                        return Err(PayloadError::Body(provider.slot));
+                    }
 
-                    let stored = settings
-                        .providers
-                        .iter()
-                        .find(|p| p.slot == provider.slot)
-                        .and_then(|p| p.api_key.clone());
+                    let stored_slot = settings.providers.iter().find(|p| p.slot == provider.slot);
+                    let mut extra_headers = BTreeMap::new();
+                    for (name, value) in provider.extra_headers {
+                        let name = name.trim().to_string();
+                        if name.is_empty() {
+                            continue;
+                        }
+                        // the mask the API shows a secret value as keeps that value
+                        let value = value.trim();
+                        let value = if value == HEADER_MASK {
+                            match stored_slot.and_then(|p| {
+                                p.extra_headers
+                                    .iter()
+                                    .find(|(stored, _)| stored.eq_ignore_ascii_case(&name))
+                            }) {
+                                Some((_, stored)) => stored.clone(),
+                                None => return Err(PayloadError::HeaderMask(provider.slot)),
+                            }
+                        } else {
+                            value.to_string()
+                        };
+                        if !header_allowed(&name, &value) {
+                            return Err(PayloadError::HeaderInvalid(provider.slot));
+                        }
+                        extra_headers.insert(name, value);
+                    }
+                    if !serde_json::to_string(&extra_headers)
+                        .is_ok_and(|json| json.len() <= MAX_HEADERS_BYTES)
+                    {
+                        return Err(PayloadError::HeaderInvalid(provider.slot));
+                    }
+
+                    let stored = stored_slot.and_then(|p| p.api_key.clone());
                     let api_key = match provider.api_key {
                         Some(key)
                             if key.trim().is_empty()
@@ -484,12 +628,7 @@ impl PayloadNeo {
                         max_tokens: provider.max_tokens,
                         timeout: provider.timeout,
                         daily_token_cap: provider.daily_token_cap,
-                        extra_headers: provider
-                            .extra_headers
-                            .into_iter()
-                            .map(|(name, value)| (name.trim().to_string(), value))
-                            .filter(|(name, _)| !name.is_empty())
-                            .collect(),
+                        extra_headers,
                         extra_body: provider.extra_body,
                         access: provider.access,
                         multiplier: provider.multiplier,
@@ -560,14 +699,7 @@ impl SettingsSerializeExt for AppSettingsNeo {
             .iter()
             .filter_map(|p| p.api_key.as_deref().map(|key| (p.slot.to_string(), key)))
             .collect();
-        let providers: Vec<NeoProvider> = self
-            .providers
-            .iter()
-            .map(|p| NeoProvider {
-                api_key: None,
-                ..p.clone()
-            })
-            .collect();
+        let providers = self.stored_providers()?;
 
         let serializer = if keys.is_empty() {
             serializer.write_raw_setting("provider_keys", "")
@@ -620,7 +752,7 @@ impl SettingsSerializeExt for AppSettingsNeo {
             .write_raw_setting("deadline", self.deadline.to_compact_string())
             .write_raw_setting("max_concurrent", self.max_concurrent.to_compact_string())
             .write_raw_setting("tools_probe", self.tools_probe.to_compact_string())
-            .write_raw_setting("providers", serde_json::to_string(&providers)?))
+            .write_raw_setting("providers", providers))
     }
 }
 
@@ -815,6 +947,97 @@ mod tests {
             Err(PayloadError::DuplicateSlot(3))
         );
         assert!(settings.providers.is_empty());
+    }
+
+    #[test]
+    fn extra_headers_and_fields_are_checked() {
+        assert!(header_allowed("X-Title", "My panel"));
+        assert!(header_allowed("HTTP-Referer", "https://panel.example.com"));
+        assert!(!header_allowed("Bad Header", "x"));
+        assert!(!header_allowed("X-Title", "two\r\nlines"));
+        assert!(!header_allowed("X-Title", HEADER_MASK));
+        assert!(!header_allowed("", "x"));
+        assert!(header_is_secret("cf-aig-authorization"));
+        assert!(header_is_secret("X-Session-Id"));
+        assert!(!header_is_secret("HTTP-Referer"));
+
+        let body = |value: serde_json::Value| value.as_object().unwrap().clone();
+        assert!(body_allowed(&body(serde_json::json!({
+            "reasoning_format": "hidden",
+            "generationConfig": {"thinkingConfig": {"thinkingBudget": 0}},
+        }))));
+        assert!(body_allowed(&body(
+            serde_json::json!({"a": {"b": {"c": [1]}}})
+        )));
+        assert!(!body_allowed(&body(
+            serde_json::json!({"a": {"b": {"c": {"d": [1]}}}})
+        )));
+        assert!(!body_allowed(&body(serde_json::json!({"Messages": []}))));
+        assert!(!body_allowed(&body(
+            serde_json::json!({"systemInstruction": "x"})
+        )));
+        assert!(!body_allowed(&body(
+            serde_json::json!({"note": "x".repeat(MAX_BODY_BYTES)})
+        )));
+
+        let mut settings = AppSettingsNeo::default();
+        let mut bad = provider(1, Some("key"));
+        bad.extra_headers.insert("X Title".into(), "x".into());
+        assert_eq!(
+            payload(vec![bad]).apply(&mut settings),
+            Err(PayloadError::HeaderInvalid(1))
+        );
+        let mut reserved = provider(1, Some("key"));
+        reserved
+            .extra_body
+            .insert("tools".into(), serde_json::json!([]));
+        assert_eq!(
+            payload(vec![reserved]).apply(&mut settings),
+            Err(PayloadError::Body(1))
+        );
+        assert!(settings.providers.is_empty());
+    }
+
+    #[test]
+    fn secret_headers_are_masked_and_kept() {
+        let mut settings = AppSettingsNeo::default();
+        let mut first = provider(1, Some("key"));
+        first
+            .extra_headers
+            .insert("cf-aig-authorization".into(), "Bearer abc".into());
+        first.extra_headers.insert("X-Title".into(), "Panel".into());
+        payload(vec![first]).apply(&mut settings).unwrap();
+
+        let shown = serde_json::to_value(&settings.providers[0]).unwrap();
+        assert_eq!(shown["extra_headers"]["cf-aig-authorization"], HEADER_MASK);
+        assert_eq!(shown["extra_headers"]["X-Title"], "Panel");
+        let stored: serde_json::Value =
+            serde_json::from_str(&settings.stored_providers().unwrap()).unwrap();
+        assert_eq!(
+            stored[0]["extra_headers"]["cf-aig-authorization"],
+            "Bearer abc"
+        );
+        assert!(stored[0]["api_key"].is_null());
+
+        // sent back as the API shows it, the value stays
+        let mut again = provider(1, Some(""));
+        again
+            .extra_headers
+            .insert("CF-AIG-Authorization".into(), HEADER_MASK.into());
+        payload(vec![again]).apply(&mut settings).unwrap();
+        assert_eq!(
+            settings.providers[0].extra_headers["CF-AIG-Authorization"],
+            "Bearer abc"
+        );
+        assert_eq!(settings.providers[0].api_key.as_deref(), Some("key"));
+
+        let mut new = provider(2, None);
+        new.extra_headers
+            .insert("x-api-token".into(), HEADER_MASK.into());
+        assert_eq!(
+            payload(vec![new]).apply(&mut settings),
+            Err(PayloadError::HeaderMask(2))
+        );
     }
 
     #[test]

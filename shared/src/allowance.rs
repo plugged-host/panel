@@ -5,12 +5,13 @@
 //! tier (docs/features/discord.md). What is used is the sum of the servers the account owns. A
 //! limit of 0 puts no limit on that resource, like a node's memory and disk.
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use sqlx::Row;
 use utoipa::ToSchema;
 
-/// CPU in percent of one thread, memory and disk in MiB.
-#[derive(ToSchema, Serialize, Clone, Copy, Debug, Default, PartialEq, Eq)]
+/// CPU in percent of one thread, memory and disk in MiB. Read leniently: a missing one is 0.
+#[derive(ToSchema, Serialize, Deserialize, Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[serde(default)]
 pub struct Resources {
     pub cpu: i64,
     pub memory: i64,

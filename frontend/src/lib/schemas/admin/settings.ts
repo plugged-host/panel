@@ -1,9 +1,11 @@
 import { z } from 'zod';
+import { NEO_MAX_PROVIDERS, parseJsonHeaders, parseJsonObject } from '@/lib/neo.ts'; // plugged.host
 import { oobeStepKey } from '@/lib/schemas/oobe.ts';
 import { ruleMessage } from '@/lib/schemas/rules.ts';
 import { serverTrashSettingsSchema } from '@/lib/schemas/server/settings.ts';
 import { twoFactorMethod } from '@/lib/schemas/user.ts';
 import { nullableNumber, nullableString } from '@/lib/serialization/transformers.ts';
+import { getTranslations } from '@/providers/contexts/translationContext.ts'; // plugged.host
 import { eggConfigurationRouteItemSchema, hostnameSchema } from '../generic.ts';
 
 export const adminSettingsApplicationSchema = z.object({
@@ -329,6 +331,12 @@ export const adminSettingsNoprofitSchema = z.object({
   linkByEmail: z.boolean(),
   ssoSecret: z.string().max(512).nullable(),
   apiSecret: z.string().max(512).nullable(),
+  neoSecret: z.string().max(512).nullable(),
+});
+
+// plugged.host: the noprofit.space tab's form; removing the neo secret puts neo back on this panel's models
+export const adminSettingsNoprofitFormSchema = adminSettingsNoprofitSchema.extend({
+  clearNeoSecret: z.boolean(),
 });
 
 // plugged.host: the status page (shared/src/settings/status.rs, docs/features/status.md)
@@ -382,6 +390,7 @@ export const adminSettingsGameSchema = z.object({
   eggUuid: z.uuid(),
   name: z.preprocess(nullableString, z.string().max(64).nullable()),
   description: z.preprocess(nullableString, z.string().max(255).nullable()),
+  icon: z.preprocess(nullableString, z.string().max(1024).nullable()),
   variable: z.preprocess(nullableString, z.string().max(255).nullable()),
   variants: z.array(adminSettingsGameVariantSchema).max(32),
 });
@@ -511,6 +520,159 @@ export const adminSettingsDevboxesStoreSchema = adminSettingsDevboxesSchema.exte
   cloudflareToken: z.string().max(255).nullable(),
   caCert: z.string().nullable(),
   edgeCert: z.string().nullable(),
+});
+
+// plugged.host: neo (shared/src/settings/neo.rs, docs/features/neo.md), Admin › Settings › AI › neo; an
+// empty contact names none
+const neoOptionalEmail = z
+  .string()
+  .trim()
+  .max(255)
+  .refine(
+    (email) => email === '' || z.email().safeParse(email).success,
+    ruleMessage((t) => t('pages.admin.settings.tabs.neo.page.form.rule.email', {})),
+  );
+
+// plugged.host: one model slot as the neo tab edits it: the key as typed (empty keeps a stored one),
+// extra headers and fields as JSON text
+export const adminSettingsNeoProviderFormSchema = z
+  .object({
+    slot: z.number().int().min(1).max(NEO_MAX_PROVIDERS),
+    enabled: z.boolean(),
+    label: z.string().trim().max(64),
+    description: z.string().trim().max(255),
+    driver: z.enum(['openai', 'anthropic', 'gemini']),
+    endpoint: z
+      .string()
+      .trim()
+      .max(255)
+      .refine(
+        (url) => url === '' || /^https:\/\/[^\s/?#]+/i.test(url),
+        ruleMessage((t) => t('pages.admin.settings.tabs.neo.page.form.rule.endpoint', {})),
+      ),
+    apiKey: z.string().max(1024),
+    keyStored: z.boolean(),
+    clearApiKey: z.boolean(),
+    model: z.string().trim().max(128),
+    maxTokens: z.number().int().min(256).max(128000),
+    timeout: z.number().int().min(5).max(300),
+    dailyTokenCap: z.number().int().min(0),
+    access: z.enum(['everyone', 'plus', 'plusplus']),
+    multiplier: z.number().int().min(1).max(10),
+    vision: z.enum(['auto', 'yes', 'no']),
+    extraHeaders: z
+      .string()
+      .max(4096)
+      .refine(
+        (text) => parseJsonHeaders(text) !== null,
+        ruleMessage((t) => t('pages.admin.settings.tabs.neo.page.form.rule.headers', {})),
+      ),
+    extraBody: z
+      .string()
+      .max(8192)
+      .refine(
+        (text) => parseJsonObject(text) !== null,
+        ruleMessage((t) => t('pages.admin.settings.tabs.neo.page.form.rule.json', {})),
+      ),
+  })
+  .superRefine((provider, ctx) => {
+    // a slot that is off may stay unfinished
+    if (!provider.enabled) {
+      return;
+    }
+    for (const field of ['label', 'endpoint', 'model'] as const) {
+      if (!provider[field].trim()) {
+        ctx.addIssue({
+          code: 'custom',
+          path: [field],
+          message: getTranslations().t('pages.admin.settings.tabs.neo.page.form.rule.required', {}),
+        });
+      }
+    }
+  });
+
+export const adminSettingsNeoSchema = z.object({
+  enabled: z.boolean(),
+  maxSteps: z.number().int().min(1).max(100),
+  contextTokens: z.number().int().min(4000).max(400000),
+  messagesPerMinute: z.number().int().min(1).max(600),
+  toolsPerMinute: z.number().int().min(1).max(600),
+  retentionDays: z.number().int().min(1).max(3650),
+  supportUrl: z
+    .string()
+    .trim()
+    .max(255)
+    .refine(
+      (url) => url === '' || /^https?:\/\/\S+$/i.test(url),
+      ruleMessage((t) => t('pages.admin.settings.tabs.neo.page.form.rule.supportUrl', {})),
+    ),
+  legalEmail: neoOptionalEmail,
+  privacyEmail: neoOptionalEmail,
+  providerDisclosure: z.string().trim().max(255),
+  alwaysConfirmDestructive: z.boolean(),
+  providers: z.array(adminSettingsNeoProviderFormSchema).max(NEO_MAX_PROVIDERS),
+  gatewayEnabled: z.boolean(),
+  plusPercent: z.number().int().min(100).max(1000),
+  plusplusPercent: z.number().int().min(100).max(1000),
+  discordUnlinkedPercent: z.number().int().min(0).max(100),
+  shortHours: z.number().int().min(1).max(168),
+  shortTokens: z.number().int().min(0),
+  longDays: z.number().int().min(1).max(90),
+  longTokens: z.number().int().min(0),
+  defaultCooldown: z.number().int().min(1).max(3600),
+  maxBusyWait: z.number().int().min(1).max(600),
+  deadline: z.number().int().min(10).max(300),
+  maxConcurrent: z.number().int().min(1).max(64),
+  toolsProbe: z.boolean(),
+});
+
+// plugged.host: the neo section as the panel sends it (a stored key comes back as "", secret header
+// values as the mask), in plain types so a value the forms would refuse never stops the settings loading
+export const adminSettingsNeoProviderSchema = z.object({
+  slot: z.number(),
+  enabled: z.boolean(),
+  label: z.string(),
+  description: z.string(),
+  driver: z.enum(['openai', 'anthropic', 'gemini']),
+  endpoint: z.string(),
+  apiKey: z.string().nullable(),
+  model: z.string(),
+  maxTokens: z.number(),
+  timeout: z.number(),
+  dailyTokenCap: z.number(),
+  extraHeaders: z.record(z.string(), z.string()),
+  extraBody: z.record(z.string(), z.unknown()),
+  access: z.enum(['everyone', 'plus', 'plusplus']),
+  multiplier: z.number(),
+  vision: z.boolean().nullable(),
+});
+
+export const adminSettingsNeoStoreSchema = z.object({
+  enabled: z.boolean(),
+  maxSteps: z.number(),
+  contextTokens: z.number(),
+  messagesPerMinute: z.number(),
+  toolsPerMinute: z.number(),
+  alwaysConfirmDestructive: z.boolean(),
+  retentionDays: z.number(),
+  supportUrl: z.string(),
+  legalEmail: z.string(),
+  privacyEmail: z.string(),
+  providerDisclosure: z.string(),
+  plusPercent: z.number(),
+  plusplusPercent: z.number(),
+  gatewayEnabled: z.boolean(),
+  shortHours: z.number(),
+  shortTokens: z.number(),
+  longDays: z.number(),
+  longTokens: z.number(),
+  discordUnlinkedPercent: z.number(),
+  defaultCooldown: z.number(),
+  maxBusyWait: z.number(),
+  deadline: z.number(),
+  maxConcurrent: z.number(),
+  toolsProbe: z.boolean(),
+  providers: z.array(adminSettingsNeoProviderSchema),
 });
 
 // plugged.host: the automatic deployment pause (shared/src/settings/placement.rs, docs/features/placement.md)
@@ -706,5 +868,6 @@ export const adminSettingsSchema = z.object({
   subdomains: adminSettingsSubdomainsStoreSchema, // plugged.host
   discord: adminSettingsDiscordStoreSchema, // plugged.host
   devboxes: adminSettingsDevboxesStoreSchema, // plugged.host
+  neo: adminSettingsNeoStoreSchema, // plugged.host
   updates: adminSettingsUpdatesSchema,
 });

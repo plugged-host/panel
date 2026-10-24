@@ -94,7 +94,12 @@ What the accounts app must implement to work with this panel (tested against its
   `discord`: `{id, username, avatar}`.
 - `POST /api/v1/internal/calagopus/store` with `{"account_id"}` answers the account's Resource Store:
   `{credits, catalog: [{resource, step, total, limit, soft_limit, offers: [{steps, amount, price}]}],
-  transactions: [{amount, balance_after, type, description, created_at}]}` (the last 10).
+  transactions: [{amount, balance_after, type, description, created_at}]}` (the last 10). Optional
+  `discord: {bonus, max_bonus, credits_per_invite, credits_per_boost}` (`bonus` and `max_bonus` as
+  `{cpu, memory, disk}`, accounts `DiscordGuilds::status`: what the Discord servers the account is in
+  add, and what all of them would) lets the store offer what is left of the Discord rewards; without
+  it the store offers none. A snapshot `plan` with `total_*` and `elsewhere_*` (accounts `planFor`)
+  makes the store's meters show the whole pool the account shares with other services.
 - `POST /api/v1/internal/calagopus/purchase` with `{"account_id", "resource", "steps", "price"}`
   buys at that price: 200 `{ok, purchase, ...store}`; 409 `{error: "price_changed", ...store}` when
   the price moved; 422 `{error: "refused", message}` (not for sale, balance short).

@@ -42,6 +42,11 @@ pub struct Game {
     #[garde(inner(length(chars, max = 255)))]
     #[serde(default)]
     pub description: Option<compact_str::CompactString>,
+    /// The picture on the game's card on the create page: a link (`https://…` or `/…`). Without
+    /// one the card shows a gamepad.
+    #[garde(inner(length(chars, max = 1024)))]
+    #[serde(default)]
+    pub icon: Option<compact_str::CompactString>,
     /// The egg variable the software choice is written to (`MC_SOFTWARE`). Without it, or
     /// without variants, the server runs what the egg sets up.
     #[garde(inner(length(chars, max = 255)))]
@@ -243,6 +248,15 @@ impl PayloadGames {
                         game.egg_uuid
                     ));
                 }
+                if let Some(icon) = game.icon.as_deref()
+                    && !icon.trim().is_empty()
+                    && !is_icon_link(icon.trim())
+                {
+                    return Err(format!(
+                        "the icon of the game {} is not a link (https://… or /…)",
+                        game.egg_uuid
+                    ));
+                }
             }
 
             settings.catalog = catalog
@@ -250,6 +264,7 @@ impl PayloadGames {
                 .map(|mut game| {
                     game.name = trimmed(game.name);
                     game.description = trimmed(game.description);
+                    game.icon = trimmed(game.icon);
                     game.variable = trimmed(game.variable);
                     for variant in &mut game.variants {
                         variant.startup = trimmed(variant.startup.take());
@@ -309,6 +324,15 @@ impl PayloadGames {
 
         Ok(())
     }
+}
+
+/// Whether a game's icon is something an `<img>` may load: an http(s) link or a path on the panel,
+/// one word without spaces or control characters.
+fn is_icon_link(icon: &str) -> bool {
+    let lower = icon.to_ascii_lowercase();
+
+    (lower.starts_with("https://") || lower.starts_with("http://") || icon.starts_with('/'))
+        && !icon.chars().any(|c| c.is_control() || c.is_whitespace())
 }
 
 fn trimmed(value: Option<compact_str::CompactString>) -> Option<compact_str::CompactString> {
@@ -449,6 +473,7 @@ mod tests {
             egg_uuid: uuid::Uuid::nil(),
             name: Some("  Minecraft ".into()),
             description: Some("   ".into()),
+            icon: Some(" https://cdn.example.com/minecraft.png ".into()),
             variable: variable.map(Into::into),
             variants: variants
                 .iter()
@@ -499,6 +524,10 @@ mod tests {
         let stored = &settings.catalog[0];
         assert_eq!(stored.name.as_deref(), Some("Minecraft"));
         assert_eq!(stored.description, None);
+        assert_eq!(
+            stored.icon.as_deref(),
+            Some("https://cdn.example.com/minecraft.png")
+        );
         assert_eq!(stored.variants[0].startup, None);
         assert_eq!(settings.max_servers, 3);
         assert!(!settings.create_enabled);
@@ -527,5 +556,26 @@ mod tests {
                 .is_err()
         );
         assert!(settings.catalog.is_empty());
+    }
+
+    #[test]
+    fn icons_are_links_or_nothing() {
+        assert!(is_icon_link("https://cdn.example.com/game.png"));
+        assert!(is_icon_link("HTTP://cdn.example.com/game.png"));
+        assert!(is_icon_link("/icons/game.svg"));
+        assert!(!is_icon_link("javascript:alert(1)"));
+        assert!(!is_icon_link("data:image/png;base64,AAAA"));
+        assert!(!is_icon_link("game.png"));
+        assert!(!is_icon_link("https://cdn.example.com/a game.png"));
+
+        let mut settings = AppSettingsGames::default();
+        let mut bad = game(&[], None);
+        bad.icon = Some("javascript:alert(1)".into());
+        assert!(payload(vec![bad]).apply(&mut settings).is_err());
+
+        let mut empty = game(&[], None);
+        empty.icon = Some("  ".into());
+        payload(vec![empty]).apply(&mut settings).unwrap();
+        assert_eq!(settings.catalog[0].icon, None);
     }
 }
