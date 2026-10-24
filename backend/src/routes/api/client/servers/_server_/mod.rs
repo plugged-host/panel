@@ -23,6 +23,7 @@ mod backups;
 mod command;
 mod databases;
 mod delete; // plugged.host
+mod devbox; // plugged.host
 // plugged.host: devices removed (docs/upstream.md)
 // mod devices;
 mod files;
@@ -182,6 +183,7 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         .nest("/settings", settings::router(state))
         .nest("/startup", startup::router(state))
         .nest("/subdomains", subdomains::router(state)) // plugged.host
+        .nest("/devbox", devbox::router(state)) // plugged.host
         .nest("/subusers", subusers::router(state))
         .nest("/transfer", transfer::router(state)) // plugged.host
         .nest("/backups", backups::router(state))

@@ -155,7 +155,8 @@ pub async fn record_for_everyone(
 
     sqlx::query(
         "INSERT INTO user_allowance_cuts (user_uuid, reason, cpu, memory, disk)
-        SELECT DISTINCT servers.owner_uuid, $1, $2, $3, $4 FROM servers",
+        SELECT DISTINCT servers.owner_uuid, $1, $2, $3, $4 FROM servers
+        WHERE NOT EXISTS (SELECT 1 FROM devboxes WHERE devboxes.server_uuid = servers.uuid)",
     )
     .bind(reason)
     .bind(decrease.cpu)

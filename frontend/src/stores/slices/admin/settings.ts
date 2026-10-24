@@ -312,6 +312,28 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
     costMore: 15,
     blockedNames: '',
   },
+  devboxes: {
+    enabled: false,
+    eggUuid: null,
+    image: '',
+    membersOnly: true,
+    cpu: 200,
+    memory: 2048,
+    disk: 5120,
+    premiumCpu: 400,
+    premiumMemory: 4096,
+    premiumDisk: 10240,
+    idleMinutes: 15,
+    maxHours: 12,
+    runningPerUser: 2,
+    cleanupDays: 14,
+    panelUrl: '',
+    webDomain: '',
+    webOriginIp: '',
+    cloudflareToken: null,
+    caCert: null,
+    edgeCert: null,
+  },
   limbo: {
     enabled: false,
     stopMinutes: 2880,
@@ -408,6 +430,7 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
       limbo: value.limbo, // plugged.host
       ads: value.ads, // plugged.host
       subdomains: value.subdomains, // plugged.host
+      devboxes: value.devboxes, // plugged.host
       updates: value.updates,
     })),
   updateSettings: (value) =>
@@ -434,6 +457,7 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
       ...(value.limbo ? { limbo: { ...state.limbo, ...value.limbo } } : {}), // plugged.host
       ...(value.ads ? { ads: { ...state.ads, ...value.ads } } : {}), // plugged.host
       ...(value.subdomains ? { subdomains: { ...state.subdomains, ...value.subdomains } } : {}), // plugged.host
+      ...(value.devboxes ? { devboxes: { ...state.devboxes, ...value.devboxes } } : {}), // plugged.host
       ...(value.updates ? { updates: { ...state.updates, ...value.updates } } : {}),
     })),
   setUpdateInformation: (value) => set((state) => ({ ...state, updateInformation: value })),

@@ -486,6 +486,16 @@ pub async fn record(
     {
         suspend_for(state, server, &actionable, &mut result).await;
     }
+    if let Target::Server(server) = target
+        && !actionable.is_empty()
+    {
+        // a devbox's person loses their devboxes (docs/features/devboxes.md)
+        let state = state.clone();
+        let server_uuid = server.uuid;
+        tokio::spawn(
+            async move { crate::devboxes::blocks::on_findings(&state, server_uuid).await },
+        );
+    }
 
     if result.suspended || !fresh_critical.is_empty() {
         let summaries: Vec<&str> = if result.suspended {
@@ -613,7 +623,13 @@ async fn suspend_for(
 /// servers are checked now, in the background, instead of at the next full scan. Once an hour
 /// per owner.
 async fn sweep_owner(state: &crate::State, server: &Server, enforce: bool) {
-    let key = format!("abuse::sweep::{}", server.owner.uuid);
+    // a devbox's servers are the system account's: its person's are the ones to check
+    let owner_uuid = crate::devboxes::blocks::person_of(state, server.uuid)
+        .await
+        .ok()
+        .flatten()
+        .unwrap_or(server.owner.uuid);
+    let key = format!("abuse::sweep::{owner_uuid}");
     if state.cache.exists(&key).await.unwrap_or(true) {
         return;
     }
@@ -622,7 +638,6 @@ async fn sweep_owner(state: &crate::State, server: &Server, enforce: bool) {
     }
 
     let state = state.clone();
-    let owner_uuid = server.owner.uuid;
     let caught = server.uuid;
     tokio::spawn(async move {
         let mut page = 1;
@@ -1239,6 +1254,9 @@ pub async fn close_finding(
     }
 
     transaction.commit().await?;
+    if server_uuid.is_some() {
+        crate::devboxes::blocks::on_finding_status(database, finding_uuid, status).await;
+    }
 
     Ok(server_uuid)
 }

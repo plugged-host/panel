@@ -249,6 +249,7 @@ async fn create(
         "SELECT uuid, name FROM servers
         WHERE node_uuid = $1 AND ($2::uuid IS NULL OR uuid = $2)
             AND limbo_state IS DISTINCT FROM 'parked'
+            AND NOT EXISTS (SELECT 1 FROM devboxes WHERE devboxes.server_uuid = servers.uuid)
         ORDER BY name",
     )
     .bind(node_uuid)

@@ -91,6 +91,8 @@ mod get {
         transfer_enabled: bool,
         /// Servers have a Subdomains page (docs/features/subdomains.md).
         subdomains_enabled: bool,
+        /// Servers have a VS Code page (docs/features/devboxes.md).
+        devboxes_enabled: bool,
     }
 
     /// plugged.host: whether the welcome tour runs (docs/features/welcome-tour.md).
@@ -229,6 +231,7 @@ mod get {
                 allow_deleting: settings.games.allow_deleting,
                 transfer_enabled: settings.games.transfer_enabled,
                 subdomains_enabled: settings.subdomains.active(),
+                devboxes_enabled: shared::devboxes::offered(&settings),
             },
             tour: ResponseTour {
                 enabled: settings.tour.enabled,

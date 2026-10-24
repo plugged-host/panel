@@ -8,6 +8,7 @@ mod ads; // plugged.host
 mod announcements;
 pub mod auth;
 pub mod client;
+mod devbox; // plugged.host
 mod icons;
 mod languages;
 pub mod remote;
@@ -49,5 +50,6 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         .nest("/client", client::router(state))
         .nest("/admin", admin::router(state))
         .nest("/remote", remote::router(state))
+        .nest("/devbox", devbox::router(state)) // plugged.host: docs/features/devboxes.md
         .with_state(state.clone())
 }

@@ -1185,6 +1185,17 @@ pub(crate) static BASE_SERVER_PERMISSIONS: LazyLock<IndexMap<&'static str, Permi
                     ]),
                 },
             ),
+            // plugged.host: docs/features/devboxes.md
+            (
+                "devbox",
+                PermissionGroup {
+                    description: "Permissions that control devboxes, VS Code on this server.",
+                    permissions: IndexMap::from([(
+                        "connect",
+                        "Allows a devbox on this server: a Linux box with the server's files, opened in VS Code. Also needs SFTP and every file permission.",
+                    )]),
+                },
+            ),
             // plugged.host: docs/features/subdomains.md
             (
                 "subdomains",

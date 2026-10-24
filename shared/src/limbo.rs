@@ -703,6 +703,7 @@ async fn candidates(
             AND servers.destination_node_uuid IS NULL
             AND (servers.limbo_state IS NULL OR servers.limbo_state = 'stopped')
             AND NOT users.admin
+            AND NOT EXISTS (SELECT 1 FROM devboxes WHERE devboxes.server_uuid = servers.uuid)
             AND servers.last_activity < NOW() - make_interval(mins => $1)
             AND (server_limbo.failed IS NULL OR server_limbo.failed < NOW() - make_interval(hours => $2))
             AND NOT ($3 AND EXISTS (

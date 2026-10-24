@@ -33,6 +33,12 @@ pub struct Record {
     pub id: String,
     #[serde(default)]
     pub comment: Option<String>,
+    #[serde(default, rename = "type")]
+    pub kind: Option<String>,
+    #[serde(default)]
+    pub content: Option<String>,
+    #[serde(default)]
+    pub proxied: Option<bool>,
 }
 
 #[derive(Debug)]

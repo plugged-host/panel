@@ -6,6 +6,7 @@ import {
   faCircleQuestion, // plugged.host
   faCircleUp,
   faClockRotateLeft, // plugged.host
+  faCode, // plugged.host
   faCoins, // plugged.host
   faCube, // plugged.host
   faCubes, // plugged.host
@@ -55,6 +56,7 @@ import ActivityContainer from './activity/ActivityContainer.tsx';
 import AdsContainer from './ads/AdsContainer.tsx'; // plugged.host
 import ApplicationContainer from './application/ApplicationContainer.tsx';
 import CaptchaContainer from './captcha/CaptchaContainer.tsx';
+import DevboxesContainer from './devboxes/DevboxesContainer.tsx'; // plugged.host
 import EconomyContainer from './economy/EconomyContainer.tsx'; // plugged.host
 import EmailContainer from './email/EmailContainer.tsx';
 import FivemContainer from './fivem/FivemContainer.tsx'; // plugged.host
@@ -217,6 +219,13 @@ export const settingsGroups: SettingsGroup[] = [
         icon: faGlobe,
         path: '/subdomains',
         element: <SubdomainsContainer />,
+      },
+      // plugged.host: VS Code devboxes next to game servers (docs/features/devboxes.md)
+      {
+        name: t('pages.admin.settings.tabs.devboxes.title', {}),
+        icon: faCode,
+        path: '/devboxes',
+        element: <DevboxesContainer />,
       },
       {
         name: t('pages.admin.settings.tabs.placement.title', {}),

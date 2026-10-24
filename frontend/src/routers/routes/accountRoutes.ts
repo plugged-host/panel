@@ -21,6 +21,7 @@ import DashboardApiKeysCreate from '@/pages/dashboard/api-keys/DashboardApiKeysC
 import DashboardApiKeysUpdate from '@/pages/dashboard/api-keys/DashboardApiKeysUpdate.tsx';
 import DashboardBackups from '@/pages/dashboard/backups/DashboardBackups.tsx'; // plugged.host
 import DashboardCommandSnippets from '@/pages/dashboard/command-snippets/DashboardCommandSnippets.tsx';
+import DashboardDevboxOpen from '@/pages/dashboard/devbox/DashboardDevboxOpen.tsx'; // plugged.host
 import DashboardMembership from '@/pages/dashboard/membership/DashboardMembership.tsx'; // plugged.host
 import DashboardOAuthLinks from '@/pages/dashboard/oauth-links/DashboardOAuthLinks.tsx';
 import DashboardSecurityKeys from '@/pages/dashboard/security-keys/DashboardSecurityKeys.tsx';
@@ -125,6 +126,12 @@ const routes: RouteDefinition[] = [
     path: '/membership',
     element: DashboardMembership,
     filter: () => !!useGlobalStore.getState().settings.economy?.membershipEnabled,
+  },
+  // plugged.host: back to a devbox in the browser (docs/features/devboxes.md)
+  {
+    name: undefined,
+    path: '/devbox/open',
+    element: DashboardDevboxOpen,
   },
   {
     name: () => getTranslations().t('pages.account.activity.title', {}),

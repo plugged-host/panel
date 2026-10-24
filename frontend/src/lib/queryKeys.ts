@@ -281,6 +281,7 @@ const server = (serverUuid: string) => ({
   limbo: () => ['server', serverUuid, 'limbo'] as const, // plugged.host
   waitingRoom: () => ['server', serverUuid, 'waiting-room'] as const, // plugged.host
   subdomains: () => ['server', serverUuid, 'subdomains'] as const, // plugged.host
+  devbox: () => ['server', serverUuid, 'devbox'] as const, // plugged.host
   // plugged.host: docs/features/fivem.md
   fivem: {
     config: () => ['server', serverUuid, 'fivem', 'config'] as const,

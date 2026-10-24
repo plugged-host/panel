@@ -1882,14 +1882,11 @@ impl Server {
                 self.uuid
             )
             .fetch_all(state.database.read()),
-            sqlx::query!(
-                "SELECT mounts.source, mounts.target, mounts.read_only
-                FROM server_mounts
-                JOIN mounts ON mounts.uuid = server_mounts.mount_uuid
-                WHERE server_mounts.server_uuid = $1",
-                self.uuid
-            )
-            .fetch_all(state.database.read()),
+            // plugged.host: mounts are removed (docs/upstream.md); Wings gets only a devbox's mount
+            // of its game server's volume
+            sqlx::query_scalar::<_, String>(crate::devboxes::provision::MOUNT_SQL)
+                .bind(self.uuid)
+                .fetch_all(state.database.read()),
             sqlx::query(
                 "SELECT devices.source, devices.target, devices.permissions
                 FROM server_devices
@@ -2036,10 +2033,10 @@ impl Server {
                 },
                 mounts: mounts
                     .into_iter()
-                    .map(|m| wings_api::Mount {
-                        source: m.source.into(),
-                        target: m.target.into(),
-                        read_only: m.read_only,
+                    .map(|source| wings_api::Mount {
+                        source: source.into(),
+                        target: crate::devboxes::provision::MOUNT_TARGET.into(), // plugged.host
+                        read_only: false,
                     })
                     .collect(),
                 devices: devices

@@ -2,6 +2,7 @@ use shared::extensions::commands::CliCommandGroupBuilder;
 
 mod backups;
 mod completions;
+mod devboxes; // plugged.host
 mod diagnostics;
 mod extensions;
 mod import;
@@ -42,6 +43,11 @@ pub fn commands(cli: CliCommandGroupBuilder) -> CliCommandGroupBuilder {
         backups::commands,
     )
     .add_group("oobe", "Manage the OOBE for the Panel.", oobe::commands)
+    .add_group(
+        "devboxes",
+        "Manage devboxes within the Panel.",
+        devboxes::commands,
+    ) // plugged.host
     .add_group(
         "import",
         "Import data from other panel software into Calagopus.",

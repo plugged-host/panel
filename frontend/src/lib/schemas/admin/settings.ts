@@ -449,6 +449,36 @@ export const adminSettingsSubdomainsStoreSchema = adminSettingsSubdomainsSchema.
   cloudflareToken: z.string().max(255).nullable(),
 });
 
+// plugged.host: VS Code devboxes next to game servers (shared/src/settings/devboxes.rs,
+// docs/features/devboxes.md); an empty token keeps the stored one
+export const adminSettingsDevboxesSchema = z.object({
+  enabled: z.boolean(),
+  eggUuid: z.string().nullable(),
+  image: z.string().max(255),
+  membersOnly: z.boolean(),
+  cpu: z.number().int().min(25).max(3200),
+  memory: z.number().int().min(256).max(65536),
+  disk: z.number().int().min(512).max(262144),
+  premiumCpu: z.number().int().min(25).max(3200),
+  premiumMemory: z.number().int().min(256).max(65536),
+  premiumDisk: z.number().int().min(512).max(262144),
+  idleMinutes: z.number().int().min(1).max(1440),
+  maxHours: z.number().int().min(1).max(168),
+  runningPerUser: z.number().int().min(1).max(20),
+  cleanupDays: z.number().int().min(1).max(365),
+  panelUrl: z.string().max(255),
+  webDomain: z.string().max(253),
+  webOriginIp: z.string().max(45),
+  cloudflareToken: z.string().max(255),
+});
+
+// plugged.host: the devboxes section as the panel sends it (stored secrets come back as placeholders)
+export const adminSettingsDevboxesStoreSchema = adminSettingsDevboxesSchema.extend({
+  cloudflareToken: z.string().max(255).nullable(),
+  caCert: z.string().nullable(),
+  edgeCert: z.string().nullable(),
+});
+
 // plugged.host: the automatic deployment pause (shared/src/settings/placement.rs, docs/features/placement.md)
 export const adminSettingsPlacementSchema = z.object({
   pauseEnabled: z.boolean(),
@@ -641,5 +671,6 @@ export const adminSettingsSchema = z.object({
   limbo: adminSettingsLimboSchema, // plugged.host
   ads: adminSettingsAdsSchema, // plugged.host
   subdomains: adminSettingsSubdomainsStoreSchema, // plugged.host
+  devboxes: adminSettingsDevboxesStoreSchema, // plugged.host
   updates: adminSettingsUpdatesSchema,
 });

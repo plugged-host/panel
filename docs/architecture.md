@@ -113,8 +113,9 @@ to copy), never gathered in a folder of their own.
   `.save().await?`. Each instance caches the settings for up to a minute, so another instance sees
   a save within that time.
 - Sections: upstream's `app`, `metadata`, `webauthn`, `server`, `user`, `activity`, `ratelimits`
-  (plus the storage, mail and captcha choices), and plugged.host's `noprofit`. Later phases add
-  `status`, `abuse`, `economy`, `queue`, `limbo`, `ads`, `games`, `subdomains`, `discord` and `neo`.
+  (plus the storage, mail and captcha choices), and plugged.host's `noprofit`, `status`, `abuse`,
+  `economy`, `queue`, `limbo`, `ads`, `games` (with the Minecraft and FiveM tabs), `placement`, `tour`,
+  `recovery`, `subdomains` and `devboxes`. Phase 5 adds `discord` and `neo`.
 - Each section is a tab (`frontend/src/pages/admin/settings/<section>/`) on one of the Admin ›
   Settings pages, saved by `PUT /api/admin/settings` with that section's payload. The pages are
   groups by topic, each its own entry under "Settings" in the admin sidebar (`settingsGroups` in

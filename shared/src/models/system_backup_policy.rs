@@ -278,13 +278,14 @@ impl SystemBackupPolicy {
         database: &crate::database::Database,
         limit: i64,
     ) -> Result<Vec<SystemBackupPolicyDueCandidate>, sqlx::Error> {
-        let rows = sqlx::query!(
+        // plugged.host: a runtime query, to leave devbox servers out (docs/features/devboxes.md)
+        let rows = sqlx::query(
             r#"
             SELECT
                 candidates.server_uuid AS server_uuid,
                 candidates.node_uuid AS node_uuid,
-                candidates.last_attempt AS "last_attempt?",
-                candidates.coverage_start AS "coverage_start!"
+                candidates.last_attempt AS last_attempt,
+                candidates.coverage_start AS coverage_start
             FROM (
                 SELECT
                     servers.uuid AS server_uuid,
@@ -325,27 +326,29 @@ impl SystemBackupPolicy {
                     servers.destination_node_uuid IS NULL
                     AND servers.status IS NULL
                     AND coverage.attached IS NOT NULL
+                    AND NOT EXISTS (SELECT 1 FROM devboxes WHERE devboxes.server_uuid = servers.uuid) -- plugged.host
             ) AS candidates
             ORDER BY COALESCE(candidates.last_attempt, candidates.coverage_start) ASC
             LIMIT $2
             "#,
-            self.uuid,
-            limit,
         )
+        .bind(self.uuid)
+        .bind(limit)
         .fetch_all(database.read())
         .await?;
 
-        Ok(rows
-            .into_iter()
-            .map(|row| SystemBackupPolicyDueCandidate {
-                server_uuid: row.server_uuid,
-                node_uuid: row.node_uuid,
-                database_instance_uuid: None,
-                database_agent_host_uuid: None,
-                last_attempt: row.last_attempt,
-                coverage_start: row.coverage_start,
+        rows.into_iter()
+            .map(|row| {
+                Ok(SystemBackupPolicyDueCandidate {
+                    server_uuid: row.try_get("server_uuid")?,
+                    node_uuid: row.try_get("node_uuid")?,
+                    database_instance_uuid: None,
+                    database_agent_host_uuid: None,
+                    last_attempt: row.try_get("last_attempt")?,
+                    coverage_start: row.try_get("coverage_start")?,
+                })
             })
-            .collect())
+            .collect()
     }
 
     async fn due_database_instance_candidates(

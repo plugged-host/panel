@@ -1,6 +1,7 @@
 import {
   faBoxArchive,
   faBriefcase,
+  faCode, // plugged.host
   faCog,
   faCubesStacked, // plugged.host
   faDatabase,
@@ -26,6 +27,7 @@ import ServerBackups from '@/pages/server/backups/ServerBackups.tsx';
 import ServerSystemBackups from '@/pages/server/backups/system/ServerSystemBackups.tsx';
 import DatabaseExplorerView from '@/pages/server/databases/explorer/DatabaseExplorerView.tsx';
 import ServerDatabases from '@/pages/server/databases/ServerDatabases.tsx';
+import ServerDevbox from '@/pages/server/devbox/ServerDevbox.tsx'; // plugged.host
 import FileSqliteQuery from '@/pages/server/files/editor/FileSqliteQuery.tsx';
 import ServerFiles from '@/pages/server/files/ServerFiles.tsx';
 import ServerFilesTrash from '@/pages/server/files/trash/ServerFilesTrash.tsx';
@@ -244,6 +246,15 @@ const routes: ServerRouteDefinition[] = [
     element: ServerSubdomains,
     permission: 'subdomains.read',
     filter: () => !!useGlobalStore.getState().settings.games?.subdomainsEnabled,
+  },
+  // plugged.host: a devbox with the server's files (docs/features/devboxes.md)
+  {
+    name: () => getTranslations().t('pages.server.devbox.title', {}),
+    icon: faCode,
+    path: '/devbox',
+    element: ServerDevbox,
+    permission: 'devbox.connect',
+    filter: () => !!useGlobalStore.getState().settings.games?.devboxesEnabled,
   },
   {
     name: () => getTranslations().t('pages.server.startup.title', {}),

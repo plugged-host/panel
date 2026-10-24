@@ -958,6 +958,7 @@ pub async fn lighten(
         SELECT servers.uuid FROM servers
         WHERE servers.node_uuid = $1 AND servers.destination_node_uuid IS NULL
             AND servers.status IS NULL
+            AND NOT EXISTS (SELECT 1 FROM devboxes WHERE devboxes.server_uuid = servers.uuid)
             AND NOT EXISTS (
                 SELECT 1 FROM server_transfer_requests requests
                 WHERE requests.server_uuid = servers.uuid

@@ -439,6 +439,10 @@ mod put {
         #[schema(inline)]
         #[garde(dive)]
         subdomains: Option<shared::settings::subdomains::PayloadSubdomains>,
+        // plugged.host: docs/features/devboxes.md
+        #[schema(inline)]
+        #[garde(dive)]
+        devboxes: Option<shared::settings::devboxes::PayloadDevboxes>,
         #[schema(inline)]
         #[garde(dive)]
         updates: Option<PayloadUpdates>,
@@ -973,6 +977,20 @@ mod put {
         // plugged.host: subdomains
         if let Some(subdomains) = data.subdomains {
             subdomains.apply(&mut settings.subdomains);
+        }
+        // plugged.host: devboxes
+        if let Some(devboxes) = data.devboxes {
+            let panel_host = reqwest::Url::parse(&settings.app.url)
+                .ok()
+                .and_then(|url| url.host_str().map(str::to_string));
+            let app_name = settings.app.name.to_string();
+            if let Err(error) =
+                devboxes.apply(&mut settings.devboxes, panel_host.as_deref(), &app_name)
+            {
+                return ApiResponse::error(error.message())
+                    .with_status(StatusCode::BAD_REQUEST)
+                    .ok();
+            }
         }
 
         if !settings.app.password_login_enabled {

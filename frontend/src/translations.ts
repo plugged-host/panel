@@ -2296,6 +2296,14 @@ const baseTranslations = defineTranslations({
             plusplus: '{name} bought.',
           },
         },
+        devboxOpen: {
+          title: 'VS Code',
+          opening: 'Opening the devbox…',
+          missing: 'This devbox no longer exists.',
+          button: {
+            servers: 'Your Servers',
+          },
+        },
         activity: {
           title: 'Activity',
         },
@@ -3208,6 +3216,73 @@ const baseTranslations = defineTranslations({
                 },
                 toast: {
                   updated: 'Subdomain settings saved.',
+                },
+              },
+            },
+            devboxes: {
+              title: 'Devboxes',
+              page: {
+                title: 'Devboxes',
+                form: {
+                  enabled: 'Devboxes',
+                  enabledDescription:
+                    'Servers get a VS Code page: a devbox next to the game server with its files at /server, reached over SSH or in the browser. Needs abuse protection on and the devbox egg below.',
+                  egg: 'Devbox Egg',
+                  eggDescription:
+                    'The egg devbox servers are made from (docs/eggs/devbox.json, imported into any nest).',
+                  eggPlaceholder: 'Choose the egg',
+                  image: 'Image',
+                  imageDescription:
+                    "Empty uses the egg's first image. A digest (…@sha256:…) pins one build. Running devboxes pick a change up at their next start.",
+                  membersOnly: 'Members Only',
+                  membersOnlyDescription: 'Only members get a devbox (Economy › Memberships). Off: everyone.',
+                  resources: 'Resources',
+                  resourcesDescription:
+                    "On top of the game server's: CPU in % (100 is one thread), memory and disk in MiB.",
+                  cpu: 'CPU',
+                  memory: 'Memory',
+                  disk: 'Disk',
+                  premiumDescription: 'For a devbox paid by someone with the second membership.',
+                  premiumCpu: 'CPU (Second Membership)',
+                  premiumMemory: 'Memory (Second Membership)',
+                  premiumDisk: 'Disk (Second Membership)',
+                  lifecycle: 'Lifecycle',
+                  idleMinutes: 'Idle Stop',
+                  idleMinutesDescription: 'Minutes without a connection before a devbox stops.',
+                  maxHours: 'Longest Run',
+                  maxHoursDescription: 'Hours after its start a devbox stops, connected or not.',
+                  runningPerUser: 'Running per Person',
+                  runningPerUserDescription:
+                    'Devboxes one person may have running at once: their own and the shared ones on servers they own.',
+                  cleanupDays: 'Cleanup',
+                  cleanupDaysDescription: 'Days without use after which a stopped devbox is deleted with its home.',
+                  panelUrl: 'Panel URL for Devboxes',
+                  panelUrlDescription: "Where devboxes reach the panel. Empty: the panel's URL (Application).",
+                  browser: 'VS Code in the Browser',
+                  webDomain: 'Browser Domain',
+                  webDomainDescription:
+                    "Each devbox answers at https://<name>.<this domain> through the edge. A domain of its own, never the panel's. Empty switches the browser version off.",
+                  webOriginIp: 'Edge Address',
+                  webOriginIpDescription:
+                    "The edge's public IPv4. Each devbox gets a proxied DNS record pointing at it.",
+                  cloudflareToken: 'Cloudflare API Token',
+                  cloudflareTokenStored:
+                    'A token is stored. Leave this empty to keep it, or type a new one to replace it.',
+                  cloudflareTokenMissing:
+                    'No token: the subdomains token is used. It needs Zone › DNS › Edit on the browser domain.',
+                },
+                certificates: 'Certificates',
+                certificatesStored:
+                  "The devbox CA and the edge's certificate exist. Write them to the edge with panel-rs devboxes edge-certificates --dir <directory>. Replacing them needs the edge's files written again, and running devboxes a restart.",
+                certificatesMissing:
+                  'No certificates yet. VS Code in the browser needs them: the edge and the devboxes check each other with them.',
+                button: {
+                  createCertificates: 'Create Certificates',
+                  replaceCertificates: 'Replace Certificates',
+                },
+                toast: {
+                  updated: 'Devbox settings saved.',
+                  certificates: 'Certificates made. Write them to the edge again.',
                 },
               },
             },
@@ -10646,6 +10721,55 @@ const baseTranslations = defineTranslations({
             repaired: 'The records of {name} are written again.',
             deleted: '{name} deleted.',
             deletedRefund: '{name} deleted, {count} tokens refunded.',
+          },
+        },
+        devbox: {
+          title: 'VS Code',
+          hidden: "VS Code isn't offered on this server.",
+          locked: 'VS Code on your servers comes with a membership.',
+          lockedShared: "This server's shared devbox needs a membership on the owner's account.",
+          about:
+            "Work on this server's files in VS Code. A devbox is a small Linux box with the server's files at /server, a terminal and the ph tool for the server's console and power.",
+          aboutPersonal: 'This devbox is yours alone: everyone else on the server gets their own.',
+          aboutShared: "This server's devbox is shared: the owner and every subuser with access work in the same one.",
+          idle: 'It stops after {minutes} minutes without a connection.',
+          starting: 'Starting the devbox…',
+          stopping: 'Stopping the devbox…',
+          failed: "The devbox didn't come up. Stop it and start it again.",
+          mountMissing:
+            "The devbox runs, but the server's files aren't in it: this server's node doesn't allow that yet. Let the panel's admins know.",
+          ready: 'The devbox is running.',
+          connections: 'Open connections: {count}',
+          port: 'Port',
+          code: 'Connect Code',
+          codeHelp:
+            'Type the connect code when SSH asks for a password. It is yours for this start: a stop or a new start makes a new one.',
+          sshCommand: 'SSH Command',
+          hostKey: 'Host Key',
+          button: {
+            start: 'Start',
+            stop: 'Stop',
+            vscode: 'Open in VS Code',
+            browser: 'Open in Browser',
+            membership: 'See Memberships',
+          },
+          shared: {
+            title: 'Shared Devbox',
+            enabled: 'One Devbox for Everyone',
+            enabledDescription:
+              "The owner and the subusers work in one devbox, paid by the owner's membership, instead of one each. Everyone's own devbox on this server is deleted.",
+            rights: 'What ph in the shared devbox may do on the server:',
+            right: {
+              status: 'See its state and resources',
+              logs: 'Read the console',
+              console: 'Send console commands',
+              power: 'Start, stop and restart it',
+            },
+          },
+          toast: {
+            starting: 'Starting the devbox.',
+            stopping: 'Stopping the devbox.',
+            saved: 'Saved.',
           },
         },
         activity: {

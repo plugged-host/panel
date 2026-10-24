@@ -2050,6 +2050,73 @@ export const serverSubdomainsTable = pgTable(
   ],
 );
 
+// plugged.host: devboxes next to game servers (docs/features/devboxes.md). The game server and the
+// person carry no foreign keys: a devbox owns a server Wings runs, which only its removal (through
+// Wings) may delete, never a cascade.
+export const devboxesTable = pgTable(
+  'devboxes',
+  {
+    uuid: uuid().default(sql`gen_random_uuid()`).primaryKey().notNull(),
+    game_server_uuid: uuid().notNull(),
+    // NULL: the game server's shared devbox
+    user_uuid: uuid(),
+    server_uuid: uuid().references(() => serversTable.uuid, { onDelete: 'set null' }),
+    node_uuid: uuid(),
+    // the game server's volume on the node, given to Wings as the /server mount
+    mount_source: varchar({ length: 4096 }),
+    slug: varchar({ length: 24 }).notNull(),
+    // sha256 of the bearer token of the current start, NULL while stopped
+    token_hash: varchar({ length: 64 }),
+    // the secret the start's connect codes come from, encrypted
+    code_secret: text(),
+    stopping: timestamp(),
+    boot_status: varchar({ length: 32 }),
+    boot_detail: varchar({ length: 255 }),
+    host_key: varchar({ length: 100 }),
+    version: varchar({ length: 40 }),
+    connections: integer().default(0).notNull(),
+    shared_rights: jsonb(),
+    // who could sign in at the last start: a shared devbox starts over when one of them loses access
+    people: uuid().array(),
+    started: timestamp(),
+    booted: timestamp(),
+    last_seen: timestamp(),
+    last_used: timestamp(),
+    created: timestamp().defaultNow().notNull(),
+  },
+  (cols) => [
+    uniqueIndex('devboxes_slug_idx').on(cols.slug),
+    uniqueIndex('devboxes_server_uuid_idx').on(cols.server_uuid),
+    uniqueIndex('devboxes_token_hash_idx').on(cols.token_hash),
+    uniqueIndex('devboxes_game_server_uuid_user_uuid_idx')
+      .on(cols.game_server_uuid, cols.user_uuid)
+      .where(sql`user_uuid IS NOT NULL`),
+    uniqueIndex('devboxes_game_server_uuid_shared_idx').on(cols.game_server_uuid).where(sql`user_uuid IS NULL`),
+    index('devboxes_user_uuid_idx').on(cols.user_uuid),
+  ],
+);
+
+// plugged.host: people who may not use devboxes because of a critical abuse finding on one
+export const devboxBlocksTable = pgTable(
+  'devbox_blocks',
+  {
+    uuid: uuid().default(sql`gen_random_uuid()`).primaryKey().notNull(),
+    user_uuid: uuid()
+      .references(() => usersTable.uuid, { onDelete: 'cascade' })
+      .notNull(),
+    // no foreign keys: the finding and its server may be deleted, the block stays
+    finding_uuid: uuid().notNull(),
+    server_uuid: uuid(),
+    rule: varchar({ length: 64 }),
+    lifted: timestamp(),
+    created: timestamp().defaultNow().notNull(),
+  },
+  (cols) => [
+    uniqueIndex('devbox_blocks_user_uuid_finding_uuid_idx').on(cols.user_uuid, cols.finding_uuid),
+    index('devbox_blocks_finding_uuid_idx').on(cols.finding_uuid),
+  ],
+);
+
 export const serverSchedulesTable = pgTable(
   'server_schedules',
   {

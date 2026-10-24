@@ -959,6 +959,15 @@ pub async fn define_background_tasks(
             async |state| shared::limbo::settle(&state).await,
         )
         .await;
+    // plugged.host: devboxes (shared::devboxes::reconcile): idle and max-runtime stops, stops
+    // finished, moved or unused devboxes removed, stray devbox containers killed
+    background_task_builder
+        .add_cron_task(
+            "reconcile_devboxes",
+            croner::Cron::from_str("40 * * * * *").unwrap(),
+            async |state| shared::devboxes::reconcile::run(&state).await,
+        )
+        .await;
     // plugged.host: the in-game ad (shared::ads)
     background_task_builder
         .add_cron_task(
