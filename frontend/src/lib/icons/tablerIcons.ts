@@ -197,6 +197,7 @@ import {
   IconUpload,
   IconUser,
   IconUserCheck,
+  IconUserCircle, // plugged.host
   IconUserCog,
   IconUserShield,
   IconUsers,
@@ -256,6 +257,7 @@ export const tablerIcons: Record<string, TablerIcon> = {
   'circle-info': IconInfoCircle,
   'circle-play': IconPlayerPlay,
   'circle-question': IconHelpCircle,
+  'circle-user': IconUserCircle, // plugged.host
   'circle-xmark': IconCircleX,
   clipboard: IconClipboard,
   clock: IconClock,

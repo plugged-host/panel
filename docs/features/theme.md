@@ -14,6 +14,7 @@ a flat sidebar with grouped rows, and the user's avatar row at its foot. It is d
 | Fonts | `frontend/src/assets/fonts/` (self-hosted, Latin + Latin Extended) |
 | Icons | `frontend/src/lib/icons/` + `frontend/vite-plugins/tabler-icons.ts` |
 | Sidebar (logo block, groups, avatar row, mobile toggle) | `frontend/src/elements/navigation/Sidebar.tsx` |
+| Dashboard sidebar rows: Pelican's order (Home, Resource Store, the first membership, Tokens, Backups), then the account's pages folded into an "Account" row with an arrow, Admin last | `frontend/src/routers/DashboardRouter.tsx`, the folding row `frontend/src/elements/navigation/SidebarGroup.tsx` (`Sidebar.Group`) |
 | Server list cards | `frontend/src/pages/dashboard/home/ServerItem.tsx` (container queries: one card per row on narrow screens, as many as fit on wide ones) |
 
 The tokens are CSS custom properties named `--theme-*` (`--theme-accent`, `--theme-accent-bright`,
@@ -48,6 +49,9 @@ to the map when one is missing.
 
 - The sidebar shows the logo, grouped rows and the avatar row; on a phone it opens from the square
   button at the top.
+- The dashboard sidebar lists Home, Resource Store, the membership, Tokens and Backups first, then
+  "Account" with an arrow: a click folds its pages open or shut, and the choice is kept after a
+  reload. On one of the account's pages it is open. Admin (admins only) is the last row.
 - Admin › Settings › General › Metadata: pick a swatch, then a custom colour such as `#facc15`.
   Buttons, active rows and links follow; button text stays readable.
 - The server list shows cards with live usage bars; narrowing the window reflows them.

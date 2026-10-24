@@ -1356,6 +1356,30 @@ strong {
     border-top: 1px solid var(--theme-hairline);
   }
 
+  /* The Account row: one of the rows with an arrow at its end that turns when the group opens
+     (Filament's collapsible group, "fi-sidebar-group-collapse-btn"); its rows sit a step in. */
+  .theme-sidebar-group-name {
+    flex: 1 1 auto;
+    min-width: 0;
+    text-align: start;
+  }
+
+  .sidebar-link .theme-sidebar-group-arrow.theme-icon,
+  .sidebar-link .theme-sidebar-group-arrow.svg-inline--fa {
+    width: 1rem;
+    height: 1rem;
+    color: var(--theme-text-muted);
+    transition: transform 150ms ease;
+  }
+
+  .theme-sidebar-group-toggle.open .theme-sidebar-group-arrow {
+    transform: rotate(180deg);
+  }
+
+  .theme-sidebar-group-items {
+    padding-inline-start: 0.75rem;
+  }
+
   /* The avatar row: "py-2 px-3 rounded-xl hover:bg-white/5", avatar, name, chevron. */
   .theme-sidebar-user {
     display: flex;
@@ -2137,4 +2161,169 @@ strong {
   max-width: 100%;
   height: auto;
   border-radius: 0.5rem;
+}
+
+/* =============================================================================
+ * plugged.host: the economy pages' surfaces, the Pelican panel's store partial (".ph-eco-*"),
+ * and its Plus page (".ph-plus-*"): plan cards side by side, the comparison table, the questions.
+ * A card is a fill without a border; rows inside it are split by hairlines.
+ * ============================================================================= */
+.theme-eco-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 1rem;
+  border-radius: 1rem;
+  background-color: var(--theme-raise);
+}
+
+.theme-eco-list {
+  display: flex;
+  flex-direction: column;
+  padding: 0.25rem 1rem;
+  border-radius: 1rem;
+  background-color: var(--theme-raise);
+}
+
+@media (min-width: 640px) {
+  .theme-eco-card {
+    padding: 1.5rem;
+  }
+
+  .theme-eco-list {
+    padding-inline: 1.5rem;
+  }
+}
+
+.theme-eco-heading {
+  margin: 0;
+  color: var(--theme-text);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.5rem;
+}
+
+.theme-eco-text {
+  margin: 0;
+  color: var(--theme-text-nav);
+  font-size: 0.875rem;
+  line-height: 1.375rem;
+}
+
+.theme-eco-muted {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+}
+
+.theme-eco-small {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.75rem;
+  line-height: 1.125rem;
+}
+
+.theme-eco-link {
+  color: var(--theme-accent-bright);
+  font-weight: 500;
+}
+
+.theme-eco-link:hover {
+  color: var(--theme-accent-glow);
+  text-decoration: underline;
+}
+
+.theme-plus-plans {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .theme-plus-plans {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.theme-plus-plan-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.theme-plus-price {
+  color: var(--theme-text);
+  font-size: 1.5rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  line-height: 2rem;
+}
+
+.theme-plus-perks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.theme-plus-perks li {
+  color: var(--theme-text-nav);
+  font-size: 0.875rem;
+  line-height: 1.375rem;
+}
+
+.theme-plus-offer .mantine-Button-label {
+  width: 100%;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.theme-plus-offer-cost {
+  font-variant-numeric: tabular-nums;
+  font-weight: 400;
+}
+
+.theme-plus-compare {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(0, 1fr));
+  column-gap: 0.75rem;
+}
+
+.theme-plus-compare > div {
+  padding-block: 0.75rem;
+  color: var(--theme-text-nav);
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+}
+
+.theme-plus-compare > .theme-plus-head {
+  color: var(--theme-text);
+  font-weight: 600;
+}
+
+.theme-plus-compare > .theme-plus-rowhead {
+  color: var(--theme-text-muted);
+}
+
+.theme-plus-compare > div:nth-child(n + 5) {
+  border-block-start: 1px solid var(--theme-hairline);
+}
+
+.theme-plus-faq summary {
+  padding-block: 0.875rem;
+  color: var(--theme-text);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.theme-plus-faq details + details {
+  border-block-start: 1px solid var(--theme-hairline);
+}
+
+.theme-plus-faq details > p {
+  padding-block-end: 0.875rem;
 }

@@ -40,6 +40,12 @@ export const userStoreSchema = z.object({
 
 export const economyPaySchema = z.enum(['tokens', 'credits']);
 
+const devboxSizeSchema = z.object({
+  cpu: z.number(),
+  memory: z.number(),
+  disk: z.number(),
+});
+
 export const userEconomySchema = z.object({
   source: economySourceSchema,
   creditsEnabled: z.boolean(),
@@ -64,6 +70,15 @@ export const userEconomySchema = z.object({
   plusBurstCores: z.number(),
   plusplusBurstCores: z.number(),
   burstCores: z.number(),
+  neoPlusPercent: z.number().nullable(),
+  neoPlusplusPercent: z.number().nullable(),
+  devbox: z
+    .object({
+      membersOnly: z.boolean(),
+      standard: devboxSizeSchema,
+      premium: devboxSizeSchema,
+    })
+    .nullable(),
 });
 
 export const earnProviderSchema = z.enum(['linkvertise', 'vylo']);

@@ -952,6 +952,7 @@
           "resetDeviceOverrides": "Geräte-Überschreibungen zurücksetzen ({count})",
           "openMenu": "Menü öffnen"
         },
+        "profileSettings": "Profileinstellungen",
         "modal": {
           "logout": {
             "title": "Abmelden",
@@ -2379,30 +2380,114 @@
         },
         "membership": {
           "title": "Mitgliedschaft",
-          "balance": "Du hast {tokens} Tokens und {credits} Credits.",
-          "disabled": "Mitgliedschaften sind ausgeschaltet.",
-          "burst": "Burst: Jeder deiner Server darf bis zu {cpu} % mehr CPU nutzen als sein Limit, solange sein Node sie übrig hat.",
+          "pageTitle": "{app} {name}",
+          "subtitle": "Bessere Standorte, kein Warten in der Schlange und keine Werbung im Spiel. Einmal gekauft, gehört es dir.",
+          "unavailable": "{name} ist gerade nicht erhältlich.",
+          "plusplusActive": {
+            "heading": "{name} ist aktiv",
+            "body": "Es läuft bis {until}."
+          },
+          "owned": {
+            "heading": "Du hast {app} {name}",
+            "body": "{name}-Standorte, Vorrang in der Start-Warteschlange und keine Werbung im Spiel gehören dir dauerhaft. {plusplus} legt noch etwas drauf."
+          },
           "plus": {
-            "description": "{name} gehört dir nach dem Kauf dauerhaft: Es öffnet die {name}-Standorte und stellt deine Server in der Startwarteschlange vor kostenlose.",
-            "since": "Du hast {name} seit",
-            "buy": "{name} für {cost} Tokens holen"
+            "pitch": "Alles, was die meisten Server brauchen, einmalig und ohne Verlängerung.",
+            "term": "Einmalig, dauerhaft",
+            "get": "{name} holen",
+            "owned": "Gekauft"
           },
           "plusplus": {
-            "description": "{name} läuft für eine Weile: alles aus {plus}, dazu die Premium-Standorte, der erste Platz in der Startwarteschlange und keine Werbung. Ein weiterer Kauf verlängert die verbleibende Zeit.",
-            "until": "{name} läuft bis",
-            "needsPlus": "Braucht zuerst {plus}.",
-            "notSold": "Gerade nicht im Angebot.",
-            "buy": {
-              "tokens": "{days} Tage für {cost} Tokens",
-              "credits": "{days} Tage für {cost} Credits"
+            "pitch": "Das Add-on für Server, die am meisten brauchen: Premium-Hardware, nirgends Werbung und mehr CPU.",
+            "term": "für {tokens}, oder Credits für {credits}",
+            "termTokens": "für {tokens}",
+            "needsPlus": "{name} braucht zuerst {app} {plus}.",
+            "extendHint": "Ein erneuter Kauf vor dem Ende verlängert die Restzeit.",
+            "notSold": "Gerade nicht im Angebot."
+          },
+          "days": "{days} Tage",
+          "duration": {
+            "day": "einen Tag",
+            "days": "{count} Tage",
+            "week": "eine Woche",
+            "twoWeeks": "zwei Wochen",
+            "weeks": "{count} Wochen"
+          },
+          "cost": {
+            "tokens": "{cost} Tokens",
+            "credits": "{cost} Credits"
+          },
+          "balance": "Du hast {balance} Tokens.",
+          "earnLink": "Mehr Tokens holen",
+          "perks": {
+            "plusLocations": "Die {name}-Standorte",
+            "priority": "Vorrang in der Start-Warteschlange, wenn ein Node ausgelastet ist",
+            "noGameAds": "Keine Werbung im Spiel auf deinen Minecraft-Servern",
+            "burst": "Jeder Server darf bis zu +{cpu} % CPU nutzen, solange sein Node Luft hat",
+            "neoPlus": "{percent} % mehr neo-Nutzung (KI)",
+            "devbox": "VS Code auf deinem Server: {cpu} vCPU, {memory} RAM, {disk} Speicher",
+            "everythingInPlus": "Alles aus {name}",
+            "premiumLocations": "Die Premium-Standorte",
+            "noAds": "Nirgends Werbung: keine Banner, Popups, kein Warteschirm vor dem Start und keine Werbung im Spiel",
+            "frontOfQueue": "Ganz vorne in der Start-Warteschlange, noch vor {name}",
+            "neoPlusplus": "Insgesamt {percent} % mehr neo-Nutzung (KI)",
+            "devboxPlusplus": "Eine größere VS-Code-Devbox: {cpu} vCPU, {memory} RAM, {disk} Speicher"
+          },
+          "compare": {
+            "heading": "Was du bekommst",
+            "free": "Kostenlos",
+            "rows": {
+              "locations": "Standorte",
+              "queue": "Start-Warteschlange auf einem vollen Node",
+              "gameAds": "Werbung im Spiel (Minecraft)",
+              "panelAds": "Werbung im Panel",
+              "cpu": "CPU",
+              "ai": "neo-Nutzung (KI)",
+              "devbox": "VS Code auf deinem Server"
+            },
+            "cells": {
+              "locationsFree": "Kostenlos",
+              "locationsPlus": "Kostenlos und {plus}",
+              "locationsPlusplus": "Kostenlos, {plus} und Premium",
+              "queueFree": "Wartet in der Schlange",
+              "queuePlus": "Vor kostenlos",
+              "queuePlusplus": "Ganz vorne",
+              "gameAdsFree": "Eine kurze Nachricht pro Stunde",
+              "none": "Keine",
+              "yes": "Ja",
+              "no": "Nein",
+              "cpu": "Dein Kontingent",
+              "cpuBurst": "Dein Kontingent, Burst +{cpu} %",
+              "aiFree": "Standard",
+              "percent": "+{percent} %",
+              "devbox": "{cpu} vCPU, {memory} RAM, {disk} Speicher"
+            }
+          },
+          "faq": {
+            "heading": "Fragen",
+            "once": {
+              "question": "Ist {plus} ein Abo?",
+              "answer": "Nein. {plus} bezahlst du einmal und behältst es. Nur {plusplus} läuft eine feste Zeit, und nichts verlängert sich von selbst."
+            },
+            "expiry": {
+              "question": "Was passiert, wenn {plusplus} endet?",
+              "answer": "{plus} behältst du. Server auf Premium-Standorten ziehen an einen anderen Standort um, und deine Server bekommen nur noch den Burst von {plus}. Kauf {plusplus} vor dem Ende erneut, um beides zu behalten."
+            },
+            "tokens": {
+              "question": "Wie bekomme ich Tokens?",
+              "answer": "Auf der Seite „Tokens“ in der Seitenleiste, über gesponserte Links."
+            },
+            "credits": {
+              "question": "Kann ich mit Credits bezahlen?",
+              "answer": "{plusplus} ja: Credits kaufen jeweils {duration}. {plus} selbst bezahlst du mit Tokens."
             }
           },
           "modal": {
             "title": "Mitgliedschaft kaufen",
-            "plus": "**{name}** für **{cost}** Tokens holen? Es gehört dir dauerhaft.",
+            "plus": "**{cost}** Tokens für **{name}** ausgeben? Es gehört dir dauerhaft.",
             "plusplus": {
-              "tokens": "**{days} Tage** **{name}** für **{cost}** Tokens holen?",
-              "credits": "**{days} Tage** **{name}** für **{cost}** Credits holen?"
+              "tokens": "**{cost}** Tokens für **{days} Tage** **{name}** ausgeben?",
+              "credits": "**{cost}** Credits für **{days} Tage** **{name}** ausgeben?"
             },
             "confirm": "Kaufen"
           },

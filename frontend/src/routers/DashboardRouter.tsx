@@ -1,4 +1,4 @@
-import { faArrowUpRightFromSquare, faGraduationCap, faServer } from '@fortawesome/free-solid-svg-icons';
+import { faArrowUpRightFromSquare, faCircleUser, faGraduationCap, faServer } from '@fortawesome/free-solid-svg-icons';
 import { Suspense, useMemo } from 'react';
 import { Route, Routes } from 'react-router';
 import { AdLayoutFoot, AdLayoutTop } from '@/elements/ads/AdLayout.tsx'; // plugged.host
@@ -23,6 +23,10 @@ import { useAuth } from '@/providers/AuthProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import accountRoutes from '@/routers/routes/accountRoutes.ts';
 import { useGlobalStore } from '@/stores/global.ts';
+
+// plugged.host: the account pages the Pelican panel's sidebar shows as rows of their own, in its
+// order (Resource Store, Plus, Tokens, Backups); the others fold under Account.
+const MAIN_PATHS = ['/store', '/membership', '/tokens', '/backups'];
 
 export default function DashboardRouter({ isNormal }: { isNormal: boolean }) {
   const { t, language } = useTranslations();
@@ -75,6 +79,24 @@ export default function DashboardRouter({ isNormal }: { isNormal: boolean }) {
     [allAccountRoutes, routeOrder],
   );
 
+  // plugged.host: the Pelican panel's rows at the top, in its order; the account's own pages fold
+  // under one Account row; Admin last.
+  const mainRoutes = useMemo(
+    () =>
+      MAIN_PATHS.map((path) => allAccountRoutes.find((route) => route.path === path)).filter(
+        (route) =>
+          !!route &&
+          !!route.name &&
+          (!route.filter || route.filter()) &&
+          (!accessibleRoutePaths || accessibleRoutePaths.has(route.path)),
+      ),
+    [allAccountRoutes, accessibleRoutePaths],
+  );
+  const accountItems = useMemo(
+    () => sidebarItems.filter((item) => item?.type !== 'route' || !MAIN_PATHS.includes(item.route.path)),
+    [sidebarItems],
+  );
+
   return (
     <div className='lg:flex h-full'>
       {isNormal && (
@@ -86,17 +108,6 @@ export default function DashboardRouter({ isNormal }: { isNormal: boolean }) {
                 <>
                   <QuickActionsTrigger />
                   <div className='mt-2' />
-                  <Sidebar.Link
-                    to='/'
-                    end
-                    icon={faServer}
-                    name={t('pages.account.home.title', {})}
-                    activeMatches={['/grouped']}
-                  />
-                  {isAdmin(user) && (
-                    <Sidebar.Link to='/admin' end icon={faGraduationCap} name={t('pages.account.admin.title', {})} />
-                  )}
-                  <Sidebar.Divider />
                 </>
               )}
             </>
@@ -110,40 +121,79 @@ export default function DashboardRouter({ isNormal }: { isNormal: boolean }) {
             </>
           }
         >
-          {!user?.suspended &&
-            sidebarItems.map((item, index) => {
-              if (!item) return null;
+          {!user?.suspended && (
+            <>
+              <Sidebar.Link
+                to='/'
+                end
+                icon={faServer}
+                name={t('pages.account.home.title', {})}
+                activeMatches={['/grouped', '/create']}
+              />
+              {mainRoutes.map(
+                (route) =>
+                  route && (
+                    <Sidebar.Link
+                      key={route.path}
+                      to={to(route.path, '/account')}
+                      end={route.exact}
+                      icon={route.icon}
+                      name={resolveString(route.name)}
+                      activeMatches={route.activeMatches}
+                    />
+                  ),
+              )}
 
-              if (item.type === 'divider') {
-                return <Sidebar.Divider key={`divider-${index}`} label={item.label} />;
-              }
+              <Sidebar.Group
+                id='account'
+                icon={faCircleUser}
+                name={t('pages.account.account.title', {})}
+                activeMatches={accountItems.flatMap((item) =>
+                  item?.type === 'route'
+                    ? [{ path: to(item.route.path, '/account'), end: item.route.path === '/' }]
+                    : [],
+                )}
+              >
+                {accountItems.map((item, index) => {
+                  if (!item) return null;
 
-              if (item.type === 'redirect') {
-                return (
-                  <Sidebar.Link
-                    key={`redirect-${index}`}
-                    to={item.destination}
-                    icon={faArrowUpRightFromSquare}
-                    customIcon={item.icon}
-                    name={item.name}
-                  />
-                );
-              }
+                  if (item.type === 'divider') {
+                    return <Sidebar.Divider key={`divider-${index}`} label={item.label} />;
+                  }
 
-              const { route } = item;
+                  if (item.type === 'redirect') {
+                    return (
+                      <Sidebar.Link
+                        key={`redirect-${index}`}
+                        to={item.destination}
+                        icon={faArrowUpRightFromSquare}
+                        customIcon={item.icon}
+                        name={item.name}
+                      />
+                    );
+                  }
 
-              return (
-                <Sidebar.Link
-                  key={route.path}
-                  to={to(route.path, '/account')}
-                  end={route.exact}
-                  icon={route.icon}
-                  customIcon={item.icon}
-                  name={resolveString(route.name)}
-                  activeMatches={route.activeMatches}
-                />
-              );
-            })}
+                  const { route } = item;
+
+                  return (
+                    <Sidebar.Link
+                      key={route.path}
+                      to={to(route.path, '/account')}
+                      end={route.exact}
+                      icon={route.icon}
+                      customIcon={item.icon}
+                      name={route.path === '/' ? t('elements.sidebar.profileSettings', {}) : resolveString(route.name)}
+                      activeMatches={route.activeMatches}
+                    />
+                  );
+                })}
+              </Sidebar.Group>
+
+              {isAdmin(user) && (
+                <Sidebar.Link to='/admin' end icon={faGraduationCap} name={t('pages.account.admin.title', {})} />
+              )}
+            </>
+          )}
         </Sidebar>
       )}
 

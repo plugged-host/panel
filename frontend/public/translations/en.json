@@ -952,6 +952,7 @@
           "resetDeviceOverrides": "Reset Device Overrides ({count})",
           "openMenu": "Open Menu"
         },
+        "profileSettings": "Profile Settings",
         "modal": {
           "logout": {
             "title": "Logout",
@@ -2379,30 +2380,114 @@
         },
         "membership": {
           "title": "Membership",
-          "balance": "You have {tokens} tokens and {credits} credits.",
-          "disabled": "Memberships are turned off.",
-          "burst": "Burst: each of your servers may use up to {cpu}% more CPU than its limit while its node has it to spare.",
+          "pageTitle": "{app} {name}",
+          "subtitle": "Better locations, no waiting in line and no ads in your game. Bought once, yours for good.",
+          "unavailable": "{name} is not on sale at the moment.",
+          "plusplusActive": {
+            "heading": "{name} is active",
+            "body": "It runs until {until}."
+          },
+          "owned": {
+            "heading": "You have {app} {name}",
+            "body": "{name} locations, priority in the start queue and no in-game ads are yours for good. {plusplus} adds more on top."
+          },
           "plus": {
-            "description": "{name} is yours for good once bought: it opens the {name} locations and puts your servers ahead of free ones in the start queue.",
-            "since": "You have {name} since",
-            "buy": "Get {name} for {cost} tokens"
+            "pitch": "Everything most servers need, once, with no renewals.",
+            "term": "Once, for good",
+            "get": "Get {name}",
+            "owned": "Owned"
           },
           "plusplus": {
-            "description": "{name} runs for a while: everything in {plus}, plus the premium locations, the front of the start queue and no ads. Buying again adds to the time left.",
-            "until": "{name} runs until",
-            "needsPlus": "Needs {plus} first.",
-            "notSold": "Not for sale right now.",
-            "buy": {
-              "tokens": "{days} days for {cost} tokens",
-              "credits": "{days} days for {cost} credits"
+            "pitch": "The add-on for servers that need the most: Premium hardware, no ads anywhere and more CPU.",
+            "term": "{tokens}, or credits for {credits}",
+            "termTokens": "{tokens}",
+            "needsPlus": "{name} needs {app} {plus} first.",
+            "extendHint": "Buying again before it ends adds to the time left.",
+            "notSold": "Not for sale right now."
+          },
+          "days": "{days} days",
+          "duration": {
+            "day": "a day",
+            "days": "{count} days",
+            "week": "a week",
+            "twoWeeks": "two weeks",
+            "weeks": "{count} weeks"
+          },
+          "cost": {
+            "tokens": "{cost} tokens",
+            "credits": "{cost} credits"
+          },
+          "balance": "You have {balance} tokens.",
+          "earnLink": "Get more tokens",
+          "perks": {
+            "plusLocations": "The {name} locations",
+            "priority": "Priority in the start queue when a node is busy",
+            "noGameAds": "No in-game ads on your Minecraft servers",
+            "burst": "Each server bursts up to +{cpu}% CPU while its node has room",
+            "neoPlus": "{percent}% more neo (AI) usage",
+            "devbox": "VS Code on your server: {cpu} vCPU, {memory} RAM, {disk} disk",
+            "everythingInPlus": "Everything in {name}",
+            "premiumLocations": "The Premium locations",
+            "noAds": "No ads anywhere: no banners, popups, waiting screen before a start or in-game ads",
+            "frontOfQueue": "The front of the start queue, ahead of {name}",
+            "neoPlusplus": "{percent}% more neo (AI) usage in all",
+            "devboxPlusplus": "A bigger VS Code devbox: {cpu} vCPU, {memory} RAM, {disk} disk"
+          },
+          "compare": {
+            "heading": "What you get",
+            "free": "Free",
+            "rows": {
+              "locations": "Locations",
+              "queue": "Start queue on a busy node",
+              "gameAds": "In-game ads (Minecraft)",
+              "panelAds": "Ads in the panel",
+              "cpu": "CPU",
+              "ai": "neo (AI) usage",
+              "devbox": "VS Code on your server"
+            },
+            "cells": {
+              "locationsFree": "Free",
+              "locationsPlus": "Free and {plus}",
+              "locationsPlusplus": "Free, {plus} and Premium",
+              "queueFree": "Waits in line",
+              "queuePlus": "Ahead of free",
+              "queuePlusplus": "At the front",
+              "gameAdsFree": "A short message every hour",
+              "none": "None",
+              "yes": "Yes",
+              "no": "No",
+              "cpu": "Your allowance",
+              "cpuBurst": "Your allowance, bursting +{cpu}%",
+              "aiFree": "Standard",
+              "percent": "+{percent}%",
+              "devbox": "{cpu} vCPU, {memory} RAM, {disk} disk"
+            }
+          },
+          "faq": {
+            "heading": "Questions",
+            "once": {
+              "question": "Is {plus} a subscription?",
+              "answer": "No. You pay for {plus} once and keep it. Only {plusplus} runs for a set time, and nothing renews by itself."
+            },
+            "expiry": {
+              "question": "What happens when {plusplus} ends?",
+              "answer": "You keep {plus}. Servers on Premium locations move to another location, and your servers burst only as far as {plus} allows. Buy {plusplus} again before it ends to keep both."
+            },
+            "tokens": {
+              "question": "How do I get tokens?",
+              "answer": "On the Tokens page in the sidebar, by completing sponsored links."
+            },
+            "credits": {
+              "question": "Can I pay with credits?",
+              "answer": "{plusplus}, yes: credits buy {duration} at a time. {plus} itself is paid with tokens."
             }
           },
           "modal": {
             "title": "Buy Membership",
-            "plus": "Get **{name}** for **{cost}** tokens? It is yours for good.",
+            "plus": "Spend **{cost}** tokens on **{name}**? It is yours for good.",
             "plusplus": {
-              "tokens": "Get **{days} days** of **{name}** for **{cost}** tokens?",
-              "credits": "Get **{days} days** of **{name}** for **{cost}** credits?"
+              "tokens": "Spend **{cost}** tokens on **{days} days** of **{name}**?",
+              "credits": "Spend **{cost}** credits on **{days} days** of **{name}**?"
             },
             "confirm": "Buy"
           },

@@ -22,6 +22,7 @@ import Button from '@/elements/buttons/Button.tsx';
 import CloseButton from '@/elements/buttons/CloseButton.tsx';
 import Avatar from '@/elements/data-display/Avatar.tsx';
 import Card from '@/elements/data-display/Card.tsx';
+import SidebarGroup from '@/elements/navigation/SidebarGroup.tsx'; // plugged.host
 import ContextMenu, { ContextMenuItem } from '@/elements/overlays/ContextMenu.tsx';
 import Drawer from '@/elements/overlays/Drawer.tsx';
 import { useLogoutConfirmation } from '@/elements/useLogoutConfirmation.tsx';
@@ -398,6 +399,7 @@ function Footer() {
 export default makeComponentHookable(Sidebar, {
   Link: makeComponentHookable(Link),
   Divider: makeComponentHookable(Divider),
+  Group: makeComponentHookable(SidebarGroup), // plugged.host
   Logo: makeComponentHookable(Logo),
   Footer: makeComponentHookable(Footer),
 });

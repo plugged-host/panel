@@ -121,7 +121,8 @@ const routes: RouteDefinition[] = [
     filter: () => !!useGlobalStore.getState().settings.economy?.tokensEnabled,
   },
   {
-    name: () => getTranslations().t('pages.account.membership.title', {}),
+    name: () =>
+      useGlobalStore.getState().settings.economy?.plusName || getTranslations().t('pages.account.membership.title', {}), // plugged.host: named like the Pelican panel's row
     icon: faMedal,
     path: '/membership',
     element: DashboardMembership,

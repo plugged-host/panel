@@ -92,7 +92,11 @@ a publisher id and a token (`backend/src/lib.rs`).
 
 ## Memberships
 
-Account › Membership shows both, what they give and their prices. Buying locks the membership row;
+Account › Membership is laid out like the Pelican panel's Plus page: the two memberships side by
+side (pitch, price, term, what each gives, the buy buttons), a table of what each adds over the free
+tier (locations, start queue, in-game ads, panel ads, CPU, neo usage, the devbox while devboxes are
+on), and the questions people ask before buying. The second membership's term reads like Pelican's
+("a week, or credits for two weeks"), from the two offers' days. Buying locks the membership row;
 the tokens or credits and the membership change together or not at all. With noprofit.space,
 credits for the second membership are taken by noprofit.space (`/credits/spend`) with an
 idempotency key per purchase, so a retry after a failure is not charged twice.

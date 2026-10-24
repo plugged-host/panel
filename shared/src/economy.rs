@@ -541,13 +541,67 @@ pub struct ApiEconomy {
     pub plusplus_burst_cores: i64,
     /// What the account's servers get now.
     pub burst_cores: i64,
+    /// More neo usage than the free limits, in %, with the first membership and with the second
+    /// (the total); `None` while neo is not offered.
+    pub neo_plus_percent: Option<i64>,
+    pub neo_plusplus_percent: Option<i64>,
+    /// The devbox each membership gets, while devboxes are offered.
+    pub devbox: Option<ApiMembershipDevbox>,
+}
+
+/// A devbox's resources: CPU in % of one thread, memory and disk in MiB.
+#[derive(ToSchema, Serialize, Clone, Debug)]
+pub struct ApiDevboxSize {
+    pub cpu: i64,
+    pub memory: i64,
+    pub disk: i64,
+}
+
+#[derive(ToSchema, Serialize, Clone, Debug)]
+pub struct ApiMembershipDevbox {
+    /// Only members get one; otherwise everyone gets the standard one.
+    pub members_only: bool,
+    pub standard: ApiDevboxSize,
+    /// With the second membership.
+    pub premium: ApiDevboxSize,
 }
 
 /// The account's economy. Gives the daily tokens and the starting credits when they are due.
 pub async fn summary(state: &crate::State, user: &User) -> Result<ApiEconomy, anyhow::Error> {
-    let (economy, connected) = {
+    let (economy, connected, neo_percents, devbox) = {
         let settings = state.settings.get().await?;
-        (settings.economy.clone(), settings.noprofit.connected())
+        let neo_percents = crate::neo::offered(&settings).then(|| {
+            use crate::settings::neo::NeoPlan;
+
+            (
+                settings.neo.usage_percent(NeoPlan::Plus) - 100,
+                settings.neo.usage_percent(NeoPlan::Plusplus) - 100,
+            )
+        });
+        let devbox = crate::devboxes::offered(&settings).then(|| {
+            let devboxes = &settings.devboxes;
+
+            ApiMembershipDevbox {
+                members_only: devboxes.members_only,
+                standard: ApiDevboxSize {
+                    cpu: devboxes.cpu.max(0) as i64,
+                    memory: devboxes.memory.max(0) as i64,
+                    disk: devboxes.disk.max(0) as i64,
+                },
+                premium: ApiDevboxSize {
+                    cpu: devboxes.premium_cpu.max(0) as i64,
+                    memory: devboxes.premium_memory.max(0) as i64,
+                    disk: devboxes.premium_disk.max(0) as i64,
+                },
+            }
+        });
+
+        (
+            settings.economy.clone(),
+            settings.noprofit.connected(),
+            neo_percents,
+            devbox,
+        )
     };
 
     grant_daily_tokens(state, user.uuid).await?;
@@ -610,6 +664,9 @@ pub async fn summary(state: &crate::State, user: &User) -> Result<ApiEconomy, an
         plus_burst_cores: economy.plus_burst_cores.max(0) as i64,
         plusplus_burst_cores: economy.plusplus_burst_cores.max(0) as i64,
         burst_cores,
+        neo_plus_percent: neo_percents.map(|(plus, _)| plus),
+        neo_plusplus_percent: neo_percents.map(|(_, plusplus)| plusplus),
+        devbox,
     })
 }
 
