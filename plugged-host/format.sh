@@ -6,6 +6,7 @@ set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 BUILD_HOST=${BUILD_HOST:-plugged-build}
 BUILD_DIR=${BUILD_DIR:-/root/panel}
+LIST=/tmp/$(basename "$BUILD_DIR")-formatted
 
 echo "==> copying the tree to $BUILD_HOST:$BUILD_DIR"
 rsync -a --delete --exclude target --exclude node_modules --exclude frontend/dist "$ROOT/" "$BUILD_HOST:$BUILD_DIR/"
@@ -19,8 +20,8 @@ ssh "$BUILD_HOST" "set -euo pipefail
   marker=\$(mktemp); sleep 1
   cargo fmt --all
   (cd frontend && pnpm install --frozen-lockfile >/dev/null && pnpm -s exec biome check --write --css-parse-tailwind-directives=true >/dev/null || true)
-  find . -type f -newer \"\$marker\" -not -path './target/*' -not -path '*/node_modules/*' -not -path './frontend/dist/*' -not -path './.git/*' | sed 's|^\./||' > /tmp/panel-formatted
+  find . -type f -newer \"\$marker\" -not -path './target/*' -not -path '*/node_modules/*' -not -path './frontend/dist/*' -not -path './.git/*' | sed 's|^\./||' > $LIST
   rm -f \"\$marker\""
 
-rsync -a --files-from=<(ssh "$BUILD_HOST" cat /tmp/panel-formatted) "$BUILD_HOST:$BUILD_DIR/" "$ROOT/"
-ssh "$BUILD_HOST" cat /tmp/panel-formatted | sed 's/^/formatted: /'
+rsync -a --files-from=<(ssh "$BUILD_HOST" cat $LIST) "$BUILD_HOST:$BUILD_DIR/" "$ROOT/"
+ssh "$BUILD_HOST" cat $LIST | sed 's/^/formatted: /'

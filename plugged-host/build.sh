@@ -59,7 +59,7 @@ ssh "$BUILD_HOST" "set -euo pipefail
     echo '==> frontend unchanged, keeping its build'
   fi
   cd '$BUILD_DIR'
-  SQLX_OFFLINE=true RUSTFLAGS='-C link-arg=-fuse-ld=mold' cargo build --profile '$PROFILE' -p panel-rs"
+  flock /root/.panel-cargo.lock env SQLX_OFFLINE=true RUSTFLAGS='-C link-arg=-fuse-ld=mold' cargo build --profile '$PROFILE' -p panel-rs"
 
 mkdir -p "$OUT"
 rsync -a "$BUILD_HOST:$BUILD_DIR/target/$PROFILE/panel-rs" "$OUT/panel-rs.new"
