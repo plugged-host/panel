@@ -1,0 +1,1 @@
+ALTER TABLE "user_memberships" DROP COLUMN "plusplus_cut";

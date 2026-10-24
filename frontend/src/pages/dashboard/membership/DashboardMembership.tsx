@@ -142,13 +142,7 @@ export default function DashboardMembership() {
 
                 <Section title={economy.plusplusName}>
                   <Text size='sm' c='dimmed'>
-                    {economy.plusplusCpu > 0
-                      ? t(`${page}.plusplus.descriptionCpu`, {
-                          name: economy.plusplusName,
-                          plus: economy.plusName,
-                          cpu: economy.plusplusCpu,
-                        })
-                      : t(`${page}.plusplus.description`, { name: economy.plusplusName, plus: economy.plusName })}
+                    {t(`${page}.plusplus.description`, { name: economy.plusplusName, plus: economy.plusName })}
                   </Text>
                   {economy.plusplusBurstCores > 0 && (
                     <Text size='sm' c='dimmed'>

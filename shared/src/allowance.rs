@@ -193,7 +193,7 @@ pub async fn for_user(
         )
     };
 
-    let (source, has_plan, mut limit) = if connected {
+    let (source, has_plan, limit) = if connected {
         match crate::noprofit::Link::by_user_uuid(&state.database, user_uuid)
             .await?
             .and_then(|link| link.plan)
@@ -210,11 +210,6 @@ pub async fn for_user(
             add_where_limited(settings_limit, extras),
         )
     };
-    // PlusPlus' CPU, while it runs (docs/features/economy.md).
-    if has_plan {
-        let bonus = crate::economy::cpu_bonus(state, user_uuid).await?;
-        limit = add_where_limited(limit, Resources::new(bonus, 0, 0));
-    }
 
     let (used, servers) = usage(&state.database, user_uuid).await?;
 

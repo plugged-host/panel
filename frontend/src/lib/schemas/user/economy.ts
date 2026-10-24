@@ -61,7 +61,6 @@ export const userEconomySchema = z.object({
       days: z.number(),
     }),
   ),
-  plusplusCpu: z.number(),
   plusBurstCores: z.number(),
   plusplusBurstCores: z.number(),
   burstCores: z.number(),

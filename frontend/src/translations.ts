@@ -2272,8 +2272,6 @@ const baseTranslations = defineTranslations({
           plusplus: {
             description:
               '{name} runs for a while: everything in {plus}, plus the premium locations, the front of the start queue and no ads. Buying again adds to the time left.',
-            descriptionCpu:
-              '{name} runs for a while: everything in {plus}, plus the premium locations, the front of the start queue, no ads and {cpu}% more CPU for your account. Buying again adds to the time left.',
             until: '{name} runs until',
             needsPlus: 'Needs {plus} first.',
             notSold: 'Not for sale right now.',
@@ -3609,9 +3607,6 @@ const baseTranslations = defineTranslations({
                   plusplusCredits: 'Second Membership: Credits',
                   plusplusCreditsDescription: '0 does not sell it for credits.',
                   plusplusCreditDays: 'Second Membership: Days for Credits',
-                  plusplusCpu: 'Second Membership: Extra CPU (%)',
-                  plusplusCpuDescription:
-                    'Added to the account’s CPU while it runs. When it runs out, its servers give it back evenly and leave the premium locations.',
                   plusBurstCores: 'First Membership: Burst Cores',
                   plusBurstCoresDescription:
                     'CPU above each server’s limit, 100% per core, used while the node has it to spare. Outside the allowance and the store; paid CPU wins when the node is busy.',

@@ -2389,7 +2389,6 @@
           },
           "plusplus": {
             "description": "{name} läuft für eine Weile: alles aus {plus}, dazu die Premium-Standorte, der erste Platz in der Startwarteschlange und keine Werbung. Ein weiterer Kauf verlängert die verbleibende Zeit.",
-            "descriptionCpu": "{name} läuft für eine Weile: alles aus {plus}, dazu die Premium-Standorte, der erste Platz in der Startwarteschlange, keine Werbung und {cpu} % mehr CPU für dein Konto. Ein weiterer Kauf verlängert die verbleibende Zeit.",
             "until": "{name} läuft bis",
             "needsPlus": "Braucht zuerst {plus}.",
             "notSold": "Gerade nicht im Angebot.",
@@ -3589,8 +3588,6 @@
                   "plusplusCredits": "Zweite Mitgliedschaft: Credits",
                   "plusplusCreditsDescription": "0 verkauft sie nicht für Credits.",
                   "plusplusCreditDays": "Zweite Mitgliedschaft: Tage für Credits",
-                  "plusplusCpu": "Zweite Mitgliedschaft: zusätzliche CPU (%)",
-                  "plusplusCpuDescription": "Wird zur CPU des Kontos addiert, solange sie läuft. Läuft sie ab, geben die Server sie gleichmäßig zurück und verlassen die Premium-Standorte.",
                   "plusBurstCores": "Erste Mitgliedschaft: Burst-Kerne",
                   "plusBurstCoresDescription": "CPU über dem Limit jedes Servers, 100 % pro Kern, genutzt solange der Node sie übrig hat. Außerhalb des Kontingents und des Shops; bezahlte CPU gewinnt, wenn der Node ausgelastet ist.",
                   "plusplusBurstCores": "Zweite Mitgliedschaft: Burst-Kerne",

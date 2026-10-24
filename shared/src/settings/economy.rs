@@ -38,8 +38,6 @@ pub struct AppSettingsEconomy {
     /// Credits PlusPlus costs; 0 does not sell it for credits.
     pub plusplus_credits: i32,
     pub plusplus_credit_days: i32,
-    /// CPU (%) PlusPlus adds to the account's allowance while it runs.
-    pub plusplus_cpu: i32,
     /// Burst cores on each of the account's servers with the first membership: CPU above the
     /// paid limit (100 % per core) a server may use while the node has it to spare.
     pub plus_burst_cores: i32,
@@ -108,7 +106,6 @@ impl Default for AppSettingsEconomy {
             plusplus_token_days: 7,
             plusplus_credits: 150,
             plusplus_credit_days: 14,
-            plusplus_cpu: 50,
             plus_burst_cores: 1,
             plusplus_burst_cores: 2,
             cpu_step: 50,
@@ -189,8 +186,6 @@ pub struct PayloadEconomy {
     plusplus_credits: Option<i32>,
     #[garde(inner(range(min = 1, max = 365)))]
     plusplus_credit_days: Option<i32>,
-    #[garde(inner(range(min = 0, max = 1000)))]
-    plusplus_cpu: Option<i32>,
     #[garde(inner(range(min = 0, max = 16)))]
     plus_burst_cores: Option<i32>,
     #[garde(inner(range(min = 0, max = 16)))]
@@ -297,7 +292,6 @@ impl PayloadEconomy {
             plusplus_token_days,
             plusplus_credits,
             plusplus_credit_days,
-            plusplus_cpu,
             plus_burst_cores,
             plusplus_burst_cores,
             cpu_step,
@@ -387,7 +381,6 @@ impl SettingsSerializeExt for AppSettingsEconomy {
             ("plusplus_token_days", self.plusplus_token_days),
             ("plusplus_credits", self.plusplus_credits),
             ("plusplus_credit_days", self.plusplus_credit_days),
-            ("plusplus_cpu", self.plusplus_cpu),
             ("plus_burst_cores", self.plus_burst_cores),
             ("plusplus_burst_cores", self.plusplus_burst_cores),
             ("cpu_step", self.cpu_step),
@@ -508,7 +501,6 @@ impl SettingsDeserializeExt for AppSettingsEconomyDeserializer {
             plusplus_token_days: read!(plusplus_token_days),
             plusplus_credits: read!(plusplus_credits),
             plusplus_credit_days: read!(plusplus_credit_days),
-            plusplus_cpu: read!(plusplus_cpu),
             plus_burst_cores: read!(plus_burst_cores),
             plusplus_burst_cores: read!(plusplus_burst_cores),
             cpu_step: read!(cpu_step),

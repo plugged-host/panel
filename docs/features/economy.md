@@ -17,7 +17,6 @@ PlusPlus); in code, tables and routes they are `plus` and `plusplus`:
 | Location tier it opens | `plus` | `premium` (and `plus`) |
 | Start queue priority | 1 | 2 |
 | Burst cores on every server | 1 | 2 (the total, not 1 + 2) |
-| More CPU | | the settings' extra CPU while it runs |
 
 A location's tier is set on the location ([node-telemetry.md](node-telemetry.md)); a tier the
 economy does not know stays closed to players (`server_creation::tier_unlocked`). Admins place
@@ -100,12 +99,10 @@ idempotency key per purchase, so a retry after a failure is not charged twice.
 
 When the second membership runs out, the `settle_memberships` task (every minute):
 
-1. records an [allowance cut](allowance-cuts.md) of its extra CPU (reason `plusplus`), once per
-   lapse: the account's servers give back what is over, evenly;
-2. queues an admin move of every server on a `premium` location to a location the owner may use
+1. queues an admin move of every server on a `premium` location to a location the owner may use
    and that takes servers: the same country first, then `plus` locations, then the fastest
    ([transfers.md](transfers.md));
-3. counts the lapse as settled once no server is left on a premium location; until then it comes
+2. counts the lapse as settled once no server is left on a premium location; until then it comes
    back, so a full location is tried again. Buying again before that stops it.
 
 ## The sidebar
@@ -134,7 +131,7 @@ end the second. Admin activity `user:economy`.
 | `POST /api/client/account/tokens/earn` | `economy.earn` | `{provider}` → `{earn: {url, nonce}}`; 409 capped, 429 throttled, 502 the provider made no link |
 | `POST /api/client/account/tokens/redeem` | `economy.earn` | `{claim, params}` → `{redemption: {status, amount, provider}}`, status `granted`, `settled`, `no_claim`, `expired`, `no_token`, `replay`, `capped`, `invalid` |
 | `GET /api/client/account/balance` | `economy.read` | `{balance}`: `credits` and `tokens` (`null` when off), `allowance` (the create page's) |
-| `GET /api/client/account/membership` | `economy.read` | `{economy}`: balances, both memberships, their prices, the extra CPU, the burst cores of each and the account's now, the queue priority |
+| `GET /api/client/account/membership` | `economy.read` | `{economy}`: balances, both memberships, their prices, the burst cores of each and the account's now, the queue priority |
 | `POST /api/client/account/membership/plus` | `economy.purchase` | `{economy}`; 409 owned or short |
 | `POST /api/client/account/membership/plusplus` | `economy.purchase` | `{pay: tokens\|credits}` → `{economy}`; 403 without the first membership |
 | `GET /api/admin/users/{user}/economy` | `users.economy` | The user's economy and both histories |
@@ -151,7 +148,7 @@ User activity: `account:store.purchase`, `account:membership.plus`, `account:mem
 | `users.tokens`, `tokens_earned`, `tokens_daily_granted` | Tokens, all earned so far, the day the daily tokens were given |
 | `user_credit_transactions`, `user_token_transactions` | The ledgers: amount, balance after, type, description, data |
 | `user_token_claims` | Earn trips: nonce, provider, proof hash, status, reason, amount |
-| `user_memberships` | `plus_since`, `plusplus_until`, purchases, `plusplus_cut` and `plusplus_settled` of the last lapse |
+| `user_memberships` | `plus_since`, `plusplus_until`, purchases and `plusplus_settled` of the last lapse |
 | `users.burst_cores` | The burst cores the account's servers get now (kept by `sync_burst`) |
 
 ## Settings
@@ -170,7 +167,6 @@ Tokens (daily tokens, Linkvertise, Vylo) and Memberships. A tab saves only its o
 | First membership: tokens | `economy::plus_tokens` | 25 |
 | Second: tokens and days | `economy::plusplus_tokens`, `plusplus_token_days` | 10, 7 |
 | Second: credits (0 = not for credits) and days | `economy::plusplus_credits`, `plusplus_credit_days` | 150, 14 |
-| Second: extra CPU (%) | `economy::plusplus_cpu` | 50 |
 | Burst cores: first, second (the total) | `economy::plus_burst_cores`, `plusplus_burst_cores` (0 to 16) | 1, 2 |
 | Store steps and prices | `economy::{cpu,memory,disk}_{step,price}` | 50 % / 100, 1024 MiB / 150, 5120 MiB / 75 |
 | Store limits | `economy::limit_{cpu,memory,disk}` | 600 %, 24576 MiB, 102400 MiB |
@@ -196,10 +192,10 @@ and `/credits/spend`.
   balance, the history and the create page's allowance show it.
 - A resource without a limit in the games settings says it is not sold.
 - Admin: add 30 tokens. Membership: buy the first one; a `plus` location opens on the create and
-  transfer pages. Buy the second with tokens: it runs for 7 days, a `premium` location opens and the
-  CPU allowance is 50 % higher.
+  transfer pages. Buy the second with tokens: it runs for 7 days, a `premium` location opens; the
+  CPU allowance stays the same (the second membership adds burst cores, not allowance).
 - Admin › Economy › End the second membership now: within a minute, a server on a premium location
-  starts moving (its Transfer tab) and CPU over the allowance comes off.
+  starts moving (its Transfer tab).
 - Linkvertise or Vylo set up with real keys: Earn, finish the link, come back: "1 tokens added";
   reloading the page that came back does not add more.
 - With noprofit.space: the store shows noprofit.space's balance and prices; a purchase there raises

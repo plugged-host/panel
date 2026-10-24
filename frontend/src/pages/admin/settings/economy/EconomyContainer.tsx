@@ -67,7 +67,6 @@ const partFields: Record<EconomyPart, (keyof EconomyValues)[]> = {
     'plusplusTokenDays',
     'plusplusCredits',
     'plusplusCreditDays',
-    'plusplusCpu',
     'plusBurstCores',
     'plusplusBurstCores',
   ],
@@ -330,7 +329,6 @@ export default function EconomyContainer({ part }: { part: EconomyPart }) {
         membership,
       ),
       number('plusplusCreditDays', t(`${page}.plusplusCreditDays`, {}), null, 1, 365, membership),
-      number('plusplusCpu', t(`${page}.plusplusCpu`, {}), t(`${page}.plusplusCpuDescription`, {}), 0, 1000, membership),
       number(
         'plusBurstCores',
         t(`${page}.plusBurstCores`, {}),

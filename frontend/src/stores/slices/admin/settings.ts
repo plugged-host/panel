@@ -368,7 +368,6 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
     plusplusTokenDays: 7,
     plusplusCredits: 150,
     plusplusCreditDays: 14,
-    plusplusCpu: 50,
     plusBurstCores: 1,
     plusplusBurstCores: 2,
     cpuStep: 50,

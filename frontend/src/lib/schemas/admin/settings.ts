@@ -588,7 +588,6 @@ export const adminSettingsEconomySchema = z.object({
   plusplusTokenDays: z.number().int().min(1).max(365),
   plusplusCredits: z.number().int().min(0).max(1_000_000),
   plusplusCreditDays: z.number().int().min(1).max(365),
-  plusplusCpu: z.number().int().min(0).max(1000),
   plusBurstCores: z.number().int().min(0).max(16),
   plusplusBurstCores: z.number().int().min(0).max(16),
   cpuStep: z.number().int().min(0).max(10_000),

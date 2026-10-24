@@ -40,9 +40,6 @@ pub const TYPE_PLUS: &str = "plus";
 pub const TYPE_PLUSPLUS: &str = "plusplus";
 pub const TYPE_ADMIN: &str = "admin";
 
-/// The allowance cut a PlusPlus that ran out leaves (shared/src/allowance_cuts.rs).
-pub const REASON_PLUSPLUS: &str = "plusplus";
-
 /// Transactions shown on a page.
 pub const HISTORY: i64 = 10;
 
@@ -271,27 +268,6 @@ async fn sync_burst_now(state: &crate::State, user_uuid: uuid::Uuid) {
     if let Err(err) = sync_burst(state, Some(user_uuid)).await {
         tracing::warn!(user = %user_uuid, "failed to sync the burst cores: {err:#}");
     }
-}
-
-/// CPU (%) PlusPlus adds to the account's allowance while it runs.
-pub async fn cpu_bonus(state: &crate::State, user_uuid: uuid::Uuid) -> Result<i64, anyhow::Error> {
-    let bonus = state.settings.get().await?.economy.plusplus_cpu.max(0) as i64;
-    if bonus == 0 {
-        return Ok(0);
-    }
-
-    let now = chrono::Utc::now().naive_utc();
-
-    Ok(
-        if membership(&state.database, user_uuid)
-            .await?
-            .has_plusplus(now)
-        {
-            bonus
-        } else {
-            0
-        },
-    )
 }
 
 /// The resources bought in the store without noprofit.space.
@@ -560,7 +536,6 @@ pub struct ApiEconomy {
     pub priority: u8,
     pub plus_cost: i64,
     pub plusplus_offers: Vec<ApiPlusPlusOffer>,
-    pub plusplus_cpu: i64,
     /// Burst cores on every server with Plus, and with PlusPlus (the total).
     pub plus_burst_cores: i64,
     pub plusplus_burst_cores: i64,
@@ -632,7 +607,6 @@ pub async fn summary(state: &crate::State, user: &User) -> Result<ApiEconomy, an
         priority: membership.priority(now),
         plus_cost: economy.plus_tokens.max(0) as i64,
         plusplus_offers,
-        plusplus_cpu: economy.plusplus_cpu.max(0) as i64,
         plus_burst_cores: economy.plus_burst_cores.max(0) as i64,
         plusplus_burst_cores: economy.plusplus_burst_cores.max(0) as i64,
         burst_cores,
@@ -1309,17 +1283,14 @@ pub fn destination_order(
     )
 }
 
-/// Carries out every PlusPlus that ran out: the CPU it added goes to the allowance cuts once,
-/// and every server on a premium location moves to another location the owner may use (an
-/// admin move, a few at a time). A lapse is settled once no server is left on a premium
+/// Carries out every PlusPlus that ran out: every server on a premium location moves to another
+/// location the owner may use (an admin move, a few at a time). A lapse is settled once no server is left on a premium
 /// location; until then the task comes back, so a full location is tried again. Buying PlusPlus
 /// again before that stops it. Then every account's burst cores are brought in line
 /// ([`sync_burst`]).
 pub async fn settle_memberships(state: &crate::State) -> Result<(), anyhow::Error> {
-    let bonus = state.settings.get().await?.economy.plusplus_cpu.max(0) as i64;
-
     let due = sqlx::query(
-        "SELECT user_uuid, plusplus_until, plusplus_cut FROM user_memberships
+        "SELECT user_uuid, plusplus_until FROM user_memberships
         WHERE plusplus_until IS NOT NULL AND plusplus_until <= NOW()
             AND (plusplus_settled IS NULL OR plusplus_settled < plusplus_until)
         ORDER BY plusplus_until
@@ -1330,10 +1301,8 @@ pub async fn settle_memberships(state: &crate::State) -> Result<(), anyhow::Erro
 
     for row in due {
         let user_uuid: uuid::Uuid = row.try_get("user_uuid")?;
-        let until: chrono::NaiveDateTime = row.try_get("plusplus_until")?;
-        let cut: Option<chrono::NaiveDateTime> = row.try_get("plusplus_cut")?;
 
-        if let Err(err) = settle_lapse(state, user_uuid, until, cut, bonus).await {
+        if let Err(err) = settle_lapse(state, user_uuid).await {
             tracing::warn!(user = %user_uuid, "failed to settle a lapsed PlusPlus: {err:#}");
         }
     }
@@ -1342,30 +1311,10 @@ pub async fn settle_memberships(state: &crate::State) -> Result<(), anyhow::Erro
     sync_burst(state, None).await
 }
 
-async fn settle_lapse(
-    state: &crate::State,
-    user_uuid: uuid::Uuid,
-    until: chrono::NaiveDateTime,
-    cut: Option<chrono::NaiveDateTime>,
-    bonus: i64,
-) -> Result<(), anyhow::Error> {
+async fn settle_lapse(state: &crate::State, user_uuid: uuid::Uuid) -> Result<(), anyhow::Error> {
     let Some(user) = User::by_uuid_optional(&state.database, user_uuid).await? else {
         return Ok(());
     };
-
-    if cut.is_none_or(|cut| cut < until) {
-        crate::allowance_cuts::record(
-            &state.database,
-            user_uuid,
-            Resources::new(bonus, 0, 0),
-            REASON_PLUSPLUS,
-        )
-        .await?;
-        sqlx::query("UPDATE user_memberships SET plusplus_cut = NOW() WHERE user_uuid = $1")
-            .bind(user_uuid)
-            .execute(state.database.write())
-            .await?;
-    }
 
     // The owner's servers on premium locations, and whether a move of each is under way.
     let servers = sqlx::query(

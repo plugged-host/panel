@@ -511,8 +511,7 @@ export const userMembershipsTable = pgTable(
     plus_since: timestamp(),
     plusplus_until: timestamp(),
     plusplus_purchases: integer().default(0).notNull(),
-    // a lapse's CPU bonus was handed to user_allowance_cuts / its servers left the premium locations
-    plusplus_cut: timestamp(),
+    // a lapse's servers left the premium locations
     plusplus_settled: timestamp(),
     created: timestamp().defaultNow().notNull(),
   },
