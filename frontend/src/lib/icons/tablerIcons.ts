@@ -107,6 +107,7 @@ import {
   IconFolderOpen,
   IconFolderPlus,
   IconFolders,
+  IconGavel,
   IconGitBranch,
   IconGitCommit,
   IconGitCompare,
@@ -330,6 +331,7 @@ export const tablerIcons: Record<string, TablerIcon> = {
   'folder-tree': IconFolders,
   font: IconTypography,
   gamepad: IconDeviceGamepad2, // plugged.host
+  gavel: IconGavel, // plugged.host: rux's settings tab
   gear: IconSettings,
   gears: IconSettings2,
   globe: IconWorld,

@@ -1010,6 +1010,14 @@ pub async fn define_background_tasks(
             async |state| shared::discord::gateway::supervise(&state).await,
         )
         .await;
+    // plugged.host: rux (shared::rux): due giveaway draws, lost orders, the tools' and watch's ticks
+    background_task_builder
+        .add_cron_task(
+            "rux",
+            croner::Cron::from_str("*/10 * * * * *").unwrap(),
+            async |state| shared::rux::tick(&state).await,
+        )
+        .await;
     background_task_builder
         .add_cron_task(
             "sync_discord_members",

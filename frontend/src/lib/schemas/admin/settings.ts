@@ -492,6 +492,88 @@ export const adminSettingsDiscordStoreSchema = adminSettingsDiscordSchema.extend
   moderationBotToken: z.string().max(255).nullable(),
 });
 
+// plugged.host: rux, the moderation bot (shared/src/settings/rux.rs, docs/features/rux.md)
+const discordId = z.string().regex(/^(\d{15,20})?$/);
+const ruxDomains = z.array(z.string().max(253)).max(20);
+const ruxDuration = z
+  .string()
+  .max(16)
+  .regex(/^\s*(\d+\s*[smhdw])+\s*$/i);
+
+export const adminSettingsRuxServerSchema = z.object({
+  id: z.string().regex(/^\d{15,20}$/),
+  name: z.string().max(64),
+  about: z.string().max(255),
+  giveawayChannelId: discordId,
+  modLogChannelId: discordId,
+  trustedDomains: ruxDomains,
+});
+
+// an empty secret keeps the stored one
+export const adminSettingsRuxSchema = z.object({
+  name: z
+    .string()
+    .min(1)
+    .max(32)
+    .regex(/^[\p{L}\p{N}_-]+$/u),
+  guildId: discordId,
+  giveawayChannelId: discordId,
+  modLogChannelId: discordId,
+  trustedDomains: ruxDomains,
+  servers: z.array(adminSettingsRuxServerSchema).max(9),
+  timezone: z.string().min(1).max(64),
+  locale: z.enum(['en', 'de']),
+  giveawayMaxCredits: z.number().int().min(1).max(1_000_000),
+  giveawayMaxWinners: z.number().int().min(1).max(500),
+  giveawayMaxDays: z.number().int().min(1).max(365),
+  creditGranters: z.array(z.string().regex(/^\d{15,20}$/)).max(20),
+  creditMaxPerGrant: z.number().int().min(1).max(1_000_000),
+  warnTimeoutAt: z.number().int().min(0).max(100),
+  warnTimeout: ruxDuration,
+  warnBanAt: z.number().int().min(0).max(100),
+  warnBan: ruxDuration,
+  ruleCooldownSeconds: z.number().int().min(0).max(86400),
+  watchGuidelines: z.boolean(),
+  spamEnabled: z.boolean(),
+  spamFloodMessages: z.number().int().min(2).max(100),
+  spamFloodSeconds: z.number().int().min(1).max(600),
+  spamDuplicates: z.number().int().min(2).max(100),
+  spamDuplicateSeconds: z.number().int().min(1).max(3600),
+  spamMentions: z.number().int().min(2).max(100),
+  spamEmoji: z.number().int().min(2).max(500),
+  messagesPerMinute: z.number().int().min(1).max(120),
+  maxSteps: z.number().int().min(2).max(30),
+  historyMinutes: z.number().int().min(1).max(1440),
+  // noprofit.space's secrets are 32 characters at least
+  noprofitSecret: z.union([z.literal(''), z.string().min(32).max(255)]),
+});
+
+// plugged.host: the rux section as the panel sends it (a stored secret comes back as a placeholder);
+// its texts are loose, so that one the form's patterns would refuse never breaks loading the settings
+export const adminSettingsRuxStoreSchema = adminSettingsRuxSchema.extend({
+  name: z.string(),
+  guildId: z.string(),
+  giveawayChannelId: z.string(),
+  modLogChannelId: z.string(),
+  trustedDomains: z.array(z.string()),
+  servers: z.array(
+    z.object({
+      id: z.string(),
+      name: z.string(),
+      about: z.string(),
+      giveawayChannelId: z.string(),
+      modLogChannelId: z.string(),
+      trustedDomains: z.array(z.string()),
+    }),
+  ),
+  timezone: z.string(),
+  locale: z.string(),
+  creditGranters: z.array(z.string()),
+  warnTimeout: z.string(),
+  warnBan: z.string(),
+  noprofitSecret: z.string().nullable(),
+});
+
 // plugged.host: VS Code devboxes next to game servers (shared/src/settings/devboxes.rs,
 // docs/features/devboxes.md); an empty token keeps the stored one
 export const adminSettingsDevboxesSchema = z.object({
@@ -867,6 +949,7 @@ export const adminSettingsSchema = z.object({
   ads: adminSettingsAdsSchema, // plugged.host
   subdomains: adminSettingsSubdomainsStoreSchema, // plugged.host
   discord: adminSettingsDiscordStoreSchema, // plugged.host
+  rux: adminSettingsRuxStoreSchema, // plugged.host
   devboxes: adminSettingsDevboxesStoreSchema, // plugged.host
   neo: adminSettingsNeoStoreSchema, // plugged.host
   updates: adminSettingsUpdatesSchema,

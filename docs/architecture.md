@@ -115,12 +115,12 @@ to copy), never gathered in a folder of their own.
 - Sections: upstream's `app`, `metadata`, `webauthn`, `server`, `user`, `activity`, `ratelimits`
   (plus the storage, mail and captcha choices), and plugged.host's `noprofit`, `status`, `abuse`,
   `economy`, `queue`, `limbo`, `ads`, `games` (with the Minecraft and FiveM tabs), `placement`, `tour`,
-  `recovery`, `subdomains`, `devboxes` and `discord`. Phase 5 adds `neo`.
+  `recovery`, `subdomains`, `devboxes`, `discord` and `rux`. Phase 5 adds `neo`.
 - Each section is a tab (`frontend/src/pages/admin/settings/<section>/`) on one of the Admin ›
   Settings pages, saved by `PUT /api/admin/settings` with that section's payload. The pages are
   groups by topic, each its own entry under "Settings" in the admin sidebar (`settingsGroups` in
   `AdminSettings.tsx`): General (application, metadata, storage, status page, updates), Mail,
-  Accounts (users, noprofit.space, Discord, passkeys, welcome tour), Hosting (servers, games, Minecraft,
+  Accounts (users, noprofit.space, Discord, rux, passkeys, welcome tour), Hosting (servers, games, Minecraft,
   placement, start queue, limbo, recovery), Security (captcha, rate limits, abuse, activity), Economy (store, tokens,
   memberships: one section in three tabs), Ads (placement, Adsterra, Monetag, waiting room, ad
   blockers, in-game: one section in six tabs) and AI (neo). A new section joins the group its

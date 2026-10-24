@@ -338,6 +338,39 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
     moderationBotEnabled: false,
     moderationBotToken: null,
   },
+  // plugged.host: rux, the moderation bot (shared/src/settings/rux.rs)
+  rux: {
+    name: 'rux',
+    guildId: '',
+    giveawayChannelId: '',
+    modLogChannelId: '',
+    trustedDomains: [],
+    servers: [],
+    timezone: 'UTC',
+    locale: 'en',
+    giveawayMaxCredits: 10_000,
+    giveawayMaxWinners: 25,
+    giveawayMaxDays: 60,
+    creditGranters: [],
+    creditMaxPerGrant: 10_000,
+    warnTimeoutAt: 3,
+    warnTimeout: '24h',
+    warnBanAt: 5,
+    warnBan: '24h',
+    ruleCooldownSeconds: 300,
+    watchGuidelines: true,
+    spamEnabled: true,
+    spamFloodMessages: 7,
+    spamFloodSeconds: 10,
+    spamDuplicates: 3,
+    spamDuplicateSeconds: 120,
+    spamMentions: 6,
+    spamEmoji: 25,
+    messagesPerMinute: 6,
+    maxSteps: 8,
+    historyMinutes: 30,
+    noprofitSecret: null,
+  },
   devboxes: {
     enabled: false,
     eggUuid: null,
@@ -484,6 +517,7 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
       ads: value.ads, // plugged.host
       subdomains: value.subdomains, // plugged.host
       discord: value.discord, // plugged.host
+      rux: value.rux, // plugged.host
       devboxes: value.devboxes, // plugged.host
       neo: value.neo, // plugged.host
       updates: value.updates,
@@ -513,6 +547,7 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
       ...(value.ads ? { ads: { ...state.ads, ...value.ads } } : {}), // plugged.host
       ...(value.subdomains ? { subdomains: { ...state.subdomains, ...value.subdomains } } : {}), // plugged.host
       ...(value.discord ? { discord: { ...state.discord, ...value.discord } } : {}), // plugged.host
+      ...(value.rux ? { rux: { ...state.rux, ...value.rux } } : {}), // plugged.host
       ...(value.devboxes ? { devboxes: { ...state.devboxes, ...value.devboxes } } : {}), // plugged.host
       ...(value.neo ? { neo: { ...state.neo, ...value.neo } } : {}), // plugged.host
       ...(value.updates ? { updates: { ...state.updates, ...value.updates } } : {}),

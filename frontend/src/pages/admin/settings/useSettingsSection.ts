@@ -37,6 +37,7 @@ type SettingsStoreKey =
   | 'ads' // plugged.host
   | 'subdomains' // plugged.host
   | 'discord' // plugged.host
+  | 'rux' // plugged.host
   | 'devboxes'; // plugged.host
 
 /** Admin store keys whose public projection lives under the same-named global settings key. */

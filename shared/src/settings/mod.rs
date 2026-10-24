@@ -39,6 +39,7 @@ pub mod placement; // plugged.host
 pub mod queue; // plugged.host
 pub mod ratelimits;
 pub mod recovery; // plugged.host
+pub mod rux; // plugged.host
 pub mod server;
 pub mod status; // plugged.host
 pub mod subdomains; // plugged.host
@@ -464,6 +465,9 @@ pub struct AppSettings {
     // plugged.host: neo, the assistant
     #[schema(inline)]
     pub neo: neo::AppSettingsNeo,
+    // plugged.host: rux, the moderation bot
+    #[schema(inline)]
+    pub rux: rux::AppSettingsRux,
     #[schema(inline)]
     pub updates: updates::AppSettingsUpdates,
 
@@ -780,6 +784,8 @@ impl SettingsSerializeExt for AppSettings {
             .nest("devboxes", &self.devboxes) // plugged.host
             .await?
             .nest("neo", &self.neo) // plugged.host
+            .await?
+            .nest("rux", &self.rux) // plugged.host
             .await?
             .nest("updates", &self.updates)
             .await?;
@@ -1104,6 +1110,9 @@ impl SettingsDeserializeExt for AppSettingsDeserializer {
                 .await?,
             neo: deserializer // plugged.host
                 .nest("neo", &neo::AppSettingsNeoDeserializer)
+                .await?,
+            rux: deserializer // plugged.host
+                .nest("rux", &rux::AppSettingsRuxDeserializer)
                 .await?,
             updates: deserializer
                 .nest("updates", &updates::AppSettingsUpdatesDeserializer)

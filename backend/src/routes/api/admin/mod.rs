@@ -44,6 +44,7 @@ mod nodes;
 mod oauth_providers;
 mod plans; // plugged.host
 mod roles;
+mod rux; // plugged.host
 mod servers;
 mod settings;
 mod stats;
@@ -104,6 +105,7 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         .nest("/database-hosts", database_hosts::router(state))
         .nest("/domains", domains::router(state)) // plugged.host
         .nest("/discord", discord::router(state)) // plugged.host
+        .nest("/rux", rux::router(state)) // plugged.host
         // .nest("/database-agent-hosts", database_agent_hosts::router(state))
         // .nest("/database-agent-templates", database_agent_templates::router(state))
         .nest(

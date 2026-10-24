@@ -2320,6 +2320,227 @@ export const neoUsageEventsTable = pgTable(
   ],
 );
 
+// plugged.host: rux, the moderation bot (shared/src/rux, docs/features/rux.md). Its rows have
+// numbers instead of uuids: people and the model name cases, giveaways and rules by them ("case
+// 12"). Discord ids are text, as Discord sends them. The account columns say who acted: the
+// noprofit.space account id while noprofit.space is connected, else the panel user.
+
+// rux's short memory: every order (a `user` row, `pending` until its worker claims it), the model's
+// answers and each tool call's output; the rows of one order share its turn_id.
+export const ruxMessagesTable = pgTable(
+  'rux_messages',
+  {
+    id: bigint({ mode: 'number' }).primaryKey().generatedByDefaultAsIdentity(),
+    // `<channel id>:<author id>`
+    conversation: varchar({ length: 80 }).notNull(),
+    turn_id: bigint({ mode: 'number' }),
+    discord_message_id: varchar({ length: 32 }),
+    channel_id: varchar({ length: 32 }).notNull(),
+    // none: a DM
+    guild_id: varchar({ length: 32 }),
+    author_id: varchar({ length: 32 }).notNull(),
+    author_name: varchar({ length: 100 * UTF8_MAX_SCALAR_SIZE }),
+    // user, assistant, tool
+    role: varchar({ length: 16 }).notNull(),
+    content: text(),
+    tool_calls: jsonb(),
+    tool_call_id: varchar({ length: 64 }),
+    tool_name: varchar({ length: 64 }),
+    // pending, running, done, failed, ignored
+    status: varchar({ length: 16 }).default('done').notNull(),
+    meta: jsonb(),
+    created: timestamp().defaultNow().notNull(),
+  },
+  (cols) => [
+    index('rux_messages_conversation_idx').on(cols.conversation),
+    index('rux_messages_turn_id_idx').on(cols.turn_id),
+    index('rux_messages_role_status_idx').on(cols.role, cols.status),
+    index('rux_messages_created_idx').on(cols.created),
+  ],
+);
+
+// plugged.host: the moderation log: warnings, timeouts, kicks, bans (with their end), unbans and
+// cleared warnings, by an order or by rux itself (`automatic`, with the rule that caught it).
+export const ruxCasesTable = pgTable(
+  'rux_cases',
+  {
+    id: bigint({ mode: 'number' }).primaryKey().generatedByDefaultAsIdentity(),
+    guild_id: varchar({ length: 32 }).notNull(),
+    action: varchar({ length: 24 }).notNull(),
+    target_id: varchar({ length: 32 }),
+    target_name: varchar({ length: 100 * UTF8_MAX_SCALAR_SIZE }),
+    channel_id: varchar({ length: 32 }),
+    moderator_discord_id: varchar({ length: 32 }).notNull(),
+    moderator_account_id: bigint({ mode: 'number' }),
+    moderator_user_uuid: uuid().references(() => usersTable.uuid, { onDelete: 'set null' }),
+    reason: varchar({ length: 500 * UTF8_MAX_SCALAR_SIZE }),
+    duration_seconds: integer(),
+    automatic: boolean().default(false).notNull(),
+    rule_id: bigint({ mode: 'number' }).references(() => ruxRulesTable.id, { onDelete: 'set null' }),
+    // a temporary ban's end, lifted by rux
+    expires: timestamp(),
+    resolved: timestamp(),
+    revoked: timestamp(),
+    meta: jsonb(),
+    created: timestamp().defaultNow().notNull(),
+    updated: timestamp().defaultNow().notNull(),
+  },
+  (cols) => [
+    index('rux_cases_guild_id_target_id_idx').on(cols.guild_id, cols.target_id),
+    index('rux_cases_action_expires_resolved_idx').on(cols.action, cols.expires, cols.resolved),
+    index('rux_cases_created_idx').on(cols.created),
+  ],
+);
+
+// plugged.host: giveaways of credits, drawn and paid when they end.
+export const ruxGiveawaysTable = pgTable(
+  'rux_giveaways',
+  {
+    id: bigint({ mode: 'number' }).primaryKey().generatedByDefaultAsIdentity(),
+    guild_id: varchar({ length: 32 }).notNull(),
+    channel_id: varchar({ length: 32 }).notNull(),
+    message_id: varchar({ length: 32 }),
+    prize: varchar({ length: 120 * UTF8_MAX_SCALAR_SIZE }).notNull(),
+    // per winner
+    credits: bigint({ mode: 'number' }).notNull(),
+    winners_count: smallint().default(1).notNull(),
+    ends: timestamp().notNull(),
+    // the winners of the last this many giveaways may not enter
+    exclude_recent: smallint().default(0).notNull(),
+    // Discord ids kept out
+    excluded: jsonb(),
+    // active, drawing, ended, cancelled
+    status: varchar({ length: 16 }).default('active').notNull(),
+    created_by_discord_id: varchar({ length: 32 }).notNull(),
+    created_by_account_id: bigint({ mode: 'number' }),
+    created_by_user_uuid: uuid().references(() => usersTable.uuid, { onDelete: 'set null' }),
+    ended: timestamp(),
+    // none, pending, paid, failed
+    payout_status: varchar({ length: 16 }).default('none').notNull(),
+    payout_attempts: integer().default(0).notNull(),
+    payout_error: varchar({ length: 255 }),
+    // the giveaway's id where the credits were paid (noprofit.space's), when it has one
+    payout_reference: varchar({ length: 64 }),
+    rerolls: smallint().default(0).notNull(),
+    // the entry count the message shows
+    rendered_entries: integer().default(0).notNull(),
+    created: timestamp().defaultNow().notNull(),
+    updated: timestamp().defaultNow().notNull(),
+  },
+  (cols) => [
+    index('rux_giveaways_ends_idx').on(cols.ends),
+    index('rux_giveaways_status_idx').on(cols.status),
+    index('rux_giveaways_payout_status_idx').on(cols.payout_status),
+  ],
+);
+
+export const ruxGiveawayEntriesTable = pgTable(
+  'rux_giveaway_entries',
+  {
+    id: bigint({ mode: 'number' }).primaryKey().generatedByDefaultAsIdentity(),
+    giveaway_id: bigint({ mode: 'number' })
+      .references(() => ruxGiveawaysTable.id, { onDelete: 'cascade' })
+      .notNull(),
+    discord_id: varchar({ length: 32 }).notNull(),
+    username: varchar({ length: 64 * UTF8_MAX_SCALAR_SIZE }),
+    won: timestamp(),
+    // which draw it won in (0 the first, then rerolls)
+    draw: smallint(),
+    // pending, paid, failed
+    payout: varchar({ length: 16 }),
+    created: timestamp().defaultNow().notNull(),
+    updated: timestamp().defaultNow().notNull(),
+  },
+  (cols) => [
+    uniqueIndex('rux_giveaway_entries_giveaway_id_discord_id_idx').on(cols.giveaway_id, cols.discord_id),
+    index('rux_giveaway_entries_discord_id_idx').on(cols.discord_id),
+  ],
+);
+
+// plugged.host: the roles whose members may give rux moderation orders on their server, and the
+// Discord permissions rux added to them (taken away again with the role).
+export const ruxModeratorRolesTable = pgTable(
+  'rux_moderator_roles',
+  {
+    id: bigint({ mode: 'number' }).primaryKey().generatedByDefaultAsIdentity(),
+    guild_id: varchar({ length: 32 }).notNull(),
+    role_id: varchar({ length: 32 }).notNull(),
+    role_name: varchar({ length: 100 * UTF8_MAX_SCALAR_SIZE }),
+    granted_by_discord_id: varchar({ length: 32 }).notNull(),
+    granted_by_account_id: bigint({ mode: 'number' }),
+    granted_by_user_uuid: uuid().references(() => usersTable.uuid, { onDelete: 'set null' }),
+    // Discord's permission bits, as a decimal string
+    permissions_added: varchar({ length: 32 }).default('0').notNull(),
+    created: timestamp().defaultNow().notNull(),
+    updated: timestamp().defaultNow().notNull(),
+  },
+  (cols) => [uniqueIndex('rux_moderator_roles_guild_id_role_id_idx').on(cols.guild_id, cols.role_id)],
+);
+
+// plugged.host: standing rules: what a member's message must not do (`description`, and what looks
+// close but is fine, `exceptions`), the keywords that get a message checked outside watched
+// channels, and what rux does then.
+export const ruxRulesTable = pgTable(
+  'rux_rules',
+  {
+    id: bigint({ mode: 'number' }).primaryKey().generatedByDefaultAsIdentity(),
+    guild_id: varchar({ length: 32 }).notNull(),
+    description: varchar({ length: 600 * UTF8_MAX_SCALAR_SIZE }).notNull(),
+    exceptions: varchar({ length: 600 * UTF8_MAX_SCALAR_SIZE }),
+    keywords: jsonb().default([]).notNull(),
+    // warn, timeout, delete, kick, ban
+    action: varchar({ length: 16 }).notNull(),
+    duration_seconds: integer(),
+    delete_message: boolean().default(false).notNull(),
+    reason: varchar({ length: 300 * UTF8_MAX_SCALAR_SIZE }),
+    // none: every channel
+    channel_ids: jsonb(),
+    active: boolean().default(true).notNull(),
+    created_by_discord_id: varchar({ length: 32 }).notNull(),
+    created_by_account_id: bigint({ mode: 'number' }),
+    created_by_user_uuid: uuid().references(() => usersTable.uuid, { onDelete: 'set null' }),
+    hits: integer().default(0).notNull(),
+    actions: integer().default(0).notNull(),
+    last_action: timestamp(),
+    created: timestamp().defaultNow().notNull(),
+    updated: timestamp().defaultNow().notNull(),
+  },
+  (cols) => [index('rux_rules_guild_id_active_idx').on(cols.guild_id, cols.active)],
+);
+
+// plugged.host: channels where every message is checked (by name or id), per server, and the
+// messages waiting for their check.
+export const ruxWatchesTable = pgTable(
+  'rux_watches',
+  {
+    id: bigint({ mode: 'number' }).primaryKey().generatedByDefaultAsIdentity(),
+    guild_id: varchar({ length: 32 }).notNull(),
+    channel: varchar({ length: 100 * UTF8_MAX_SCALAR_SIZE }).notNull(),
+    added_by_discord_id: varchar({ length: 32 }),
+    created: timestamp().defaultNow().notNull(),
+    updated: timestamp().defaultNow().notNull(),
+  },
+  (cols) => [uniqueIndex('rux_watches_guild_id_channel_idx').on(cols.guild_id, cols.channel)],
+);
+
+export const ruxWatchItemsTable = pgTable(
+  'rux_watch_items',
+  {
+    id: bigint({ mode: 'number' }).primaryKey().generatedByDefaultAsIdentity(),
+    guild_id: varchar({ length: 32 }),
+    message_id: varchar({ length: 32 }).notNull(),
+    channel_id: varchar({ length: 32 }).notNull(),
+    author_id: varchar({ length: 32 }).notNull(),
+    author_name: varchar({ length: 100 * UTF8_MAX_SCALAR_SIZE }),
+    roles: jsonb(),
+    content: text().notNull(),
+    // the message it replies to, for the check's context
+    replied_to: text(),
+    created: timestamp().defaultNow().notNull(),
+  },
+  (cols) => [index('rux_watch_items_created_idx').on(cols.created)],
+);
+
 export const serverSchedulesTable = pgTable(
   'server_schedules',
   {

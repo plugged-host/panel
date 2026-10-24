@@ -2641,9 +2641,9 @@
           "redemption": {
             "granted": "Hinzugefügt: +{amount} Tokens",
             "settled": "Das wurde bereits ausgezahlt",
+            "no_claim": "Kein offener Vorgang für dein Konto gefunden",
             "expired": "Das hat zu lange gedauert — bitte erneut versuchen",
             "no_token": "Der Anbieter hat dich ohne Abschluss-Code zurückgeschickt",
-            "no_claim": "Kein offener Vorgang für dein Konto gefunden",
             "replay": "Dieser Abschluss-Code wurde schon verwendet",
             "capped": "Du hast das heutige Limit für diese Möglichkeit erreicht",
             "throttled": "Zu viele Versuche — bitte etwas langsamer",
@@ -2663,32 +2663,6 @@
           "owned": {
             "heading": "Du hast {app} {name}",
             "body": "{name}-Standorte, Vorrang in der Start-Warteschlange und keine Werbung im Spiel gehören dir dauerhaft. {plusplus} legt noch etwas drauf."
-          },
-          "plus": {
-            "pitch": "Alles, was die meisten Server brauchen, einmalig und ohne Verlängerung.",
-            "term": "Einmalig, dauerhaft",
-            "get": "{name} holen",
-            "owned": "Gekauft"
-          },
-          "plusplus": {
-            "pitch": "Das Add-on für Server, die am meisten brauchen: Premium-Hardware, nirgends Werbung und mehr CPU.",
-            "term": "für {tokens}, oder Credits für {credits}",
-            "termTokens": "für {tokens}",
-            "needsPlus": "{name} braucht zuerst {app} {plus}.",
-            "extendHint": "Ein erneuter Kauf vor dem Ende verlängert die Restzeit.",
-            "notSold": "Gerade nicht im Angebot."
-          },
-          "days": "{days} Tage",
-          "duration": {
-            "day": "einen Tag",
-            "days": "{count} Tage",
-            "week": "eine Woche",
-            "twoWeeks": "zwei Wochen",
-            "weeks": "{count} Wochen"
-          },
-          "cost": {
-            "tokens": "{cost} Tokens",
-            "credits": "{cost} Credits"
           },
           "balance": "Du hast {balance} Tokens.",
           "earnLink": "Mehr Tokens holen",
@@ -2754,6 +2728,32 @@
               "question": "Kann ich mit Credits bezahlen?",
               "answer": "{plusplus} ja: Credits kaufen jeweils {duration}. {plus} selbst bezahlst du mit Tokens."
             }
+          },
+          "plus": {
+            "pitch": "Alles, was die meisten Server brauchen, einmalig und ohne Verlängerung.",
+            "term": "Einmalig, dauerhaft",
+            "get": "{name} holen",
+            "owned": "Gekauft"
+          },
+          "plusplus": {
+            "pitch": "Das Add-on für Server, die am meisten brauchen: Premium-Hardware, nirgends Werbung und mehr CPU.",
+            "term": "für {tokens}, oder Credits für {credits}",
+            "termTokens": "für {tokens}",
+            "needsPlus": "{name} braucht zuerst {app} {plus}.",
+            "extendHint": "Ein erneuter Kauf vor dem Ende verlängert die Restzeit.",
+            "notSold": "Gerade nicht im Angebot."
+          },
+          "days": "{days} Tage",
+          "duration": {
+            "day": "einen Tag",
+            "days": "{count} Tage",
+            "week": "eine Woche",
+            "twoWeeks": "zwei Wochen",
+            "weeks": "{count} Wochen"
+          },
+          "cost": {
+            "tokens": "{cost} Tokens",
+            "credits": "{cost} Credits"
           },
           "modal": {
             "title": "Mitgliedschaft kaufen",
@@ -3747,7 +3747,7 @@
                   "assistantBotEnabledDescription": "Mit eigenem Token. Er verbindet sich, sobald der Assistent Teil des Panels ist.",
                   "assistantBotToken": "Token des Assistenz-Bots",
                   "moderationBotEnabled": "Moderations-Bot",
-                  "moderationBotEnabledDescription": "Mit eigenem Token. Er verbindet sich, sobald die Moderation Teil des Panels ist.",
+                  "moderationBotEnabledDescription": "Mit eigenem Token. rux läuft darauf (Einstellungen › Konten › rux).",
                   "moderationBotToken": "Token des Moderations-Bots"
                 },
                 "status": {
@@ -3770,6 +3770,123 @@
                 },
                 "toast": {
                   "updated": "Discord-Einstellungen gespeichert."
+                }
+              }
+            },
+            "rux": {
+              "title": "rux",
+              "page": {
+                "title": "rux",
+                "status": {
+                  "notRunning": "rux läuft nicht",
+                  "blocker": {
+                    "discord_off": "Der Discord-Tab ist aus oder nennt keinen Server.",
+                    "bot_off": "Der Moderations-Bot des Discord-Tabs ist aus.",
+                    "no_token": "Der Moderations-Bot des Discord-Tabs hat kein Token.",
+                    "no_server": "Keine Discord-Server-ID (hier oder im Discord-Tab).",
+                    "switched_off": "rux ist auf noprofit.space ausgeschaltet (Admin › rux).",
+                    "no_accounts": "Niemand kann als Admin erkannt werden: Ohne noprofit.space werden Discord-Konten über den Anmeldeanbieter des Discord-Tabs verknüpft, und keiner ist gesetzt.",
+                    "no_ai": "rux hat keine KI-Anbieter (die von neo: richte einen in den Einstellungen von neo ein): rux kann nicht denken."
+                  },
+                  "starting": "rux startet",
+                  "startingDescription": "Der Moderations-Bot verbindet sich auf der primären Instanz wenige Sekunden nach dem Einschalten. Bleibt das so, sieh ins Panel-Log.",
+                  "refused": "Discord hat rux abgelehnt",
+                  "reason": {
+                    "token": "Das Token ist falsch oder wurde zurückgesetzt: Trag das neue im Discord-Tab ein.",
+                    "intents": "Die Intents sind nicht erlaubt: Schalte „Message Content Intent“ unter Discord Developer Portal › deine Anwendung › Bot ein.",
+                    "closed": "Discord hat die Verbindung geschlossen; sie wird erneut versucht, wenn sich die Einstellungen ändern."
+                  },
+                  "noContent": "rux ist ohne den Message Content Intent online",
+                  "noContentDescription": "DMs und @Erwähnungen funktionieren. Feste Regeln, beobachtete Kanäle und „hey rux“ nicht: Schalte „Message Content Intent“ unter Discord Developer Portal › deine Anwendung › Bot ein.",
+                  "online": "rux ist online",
+                  "onlineDescription": "Verbunden als {name}",
+                  "invites": "Zu seinen Servern hinzufügen:",
+                  "invite": "Einladungslink"
+                },
+                "managed": {
+                  "title": "Eingerichtet auf {by}",
+                  "description": "Die Einstellungen von rux werden auf {by} (Admin › rux) verwaltet und hier nur angezeigt. rux übernimmt eine Änderung dort innerhalb einer Minute.",
+                  "fetched": "Zuletzt abgerufen",
+                  "open": "Admin › rux auf {by} öffnen"
+                },
+                "form": {
+                  "bot": "Bot",
+                  "botDescription": "rux nimmt Aufträge von Discord-Konten an, die mit {admins} verknüpft sind (und Moderationsaufträge von Mitgliedern der Rollen, die diese zu Moderatoren machen), per DM, @Erwähnung oder „hey rux“. Sein Schalter und sein Token sind die des Moderations-Bots im Discord-Tab.",
+                  "adminsNoprofit": "einem Admin von noprofit.space",
+                  "adminsPanel": "einem Admin dieses Panels (der Discord verknüpft hat)",
+                  "name": "Name",
+                  "nameDescription": "Wie Mitglieder ihn rufen („hey rux“) und wie er sich selbst nennt. Buchstaben, Ziffern, Binde- und Unterstriche.",
+                  "guildId": "ID des Haupt-Discord-Servers",
+                  "guildIdDescription": "Standardmäßig der Server des Discord-Tabs. DMs an rux wirken auf ihn, bis ein Admin einen anderen Server wählt.",
+                  "timezone": "Zeitzone",
+                  "timezoneDescription": "Jede Zeit, die rux liest oder schreibt, ist in dieser Zone.",
+                  "locale": "Sprache",
+                  "localeDescription": "Die Sprache, in der rux schreibt.",
+                  "messagesPerMinute": "Aufträge pro Minute",
+                  "messagesPerMinuteDescription": "Wie viele Aufträge eine Person pro Minute geben darf.",
+                  "maxSteps": "Schritte pro Auftrag",
+                  "maxStepsDescription": "Wie viele Modellaufrufe ein Auftrag brauchen darf.",
+                  "historyMinutes": "Verlauf",
+                  "historyMinutesDescription": "Minuten des vorherigen Gesprächs, an die sich ein Auftrag erinnert.",
+                  "giveaways": "Giveaways und Moderation",
+                  "giveawayChannelId": "ID des Standard-Giveaway-Kanals",
+                  "giveawayChannelIdDescription": "Auf dem Hauptserver. Gilt, wenn ein Auftrag keinen Kanal nennt.",
+                  "modLogChannelId": "ID des Mod-Log-Kanals",
+                  "modLogChannelIdDescription": "Auf dem Hauptserver. Jede Moderationsaktion dort wird hier gepostet.",
+                  "giveawayMaxCredits": "Höchstens Credits pro Gewinner",
+                  "giveawayMaxWinners": "Höchstens Gewinner pro Giveaway",
+                  "giveawayMaxDays": "Längstes Giveaway",
+                  "giveawayMaxDaysDescription": "Tage.",
+                  "creditGranters": "Haupt-Admin (vergibt Credits)",
+                  "creditGrantersDescription": "Discord-Benutzer-IDs. Nur sie können rux jemandem Credits geben lassen; leer schaltet es aus.",
+                  "creditMaxPerGrant": "Höchstens Credits pro Geschenk",
+                  "servers": "Weitere Discord-Server",
+                  "serversDescription": "rux kann mit demselben Bot auf weiteren Servern arbeiten (lade ihn auf jeden ein, siehe die Einladungslinks oben). Jeder Server hat eigene Regeln, beobachtete Kanäle, Moderatorrollen, Verwarnungen, Fälle und Giveaways; Admins, der Haupt-Admin und Credits sind überall dieselben. Ein Auftrag auf einem Server wirkt nur auf diesen Server; in einer DM sagt ein Admin oder Moderator rux, welchen Server er meint. Einen Server zu entfernen beendet rux dort.",
+                  "server": "Server {number}",
+                  "serverIdDescription": "Seine Discord-Server-ID.",
+                  "serverName": "Name",
+                  "serverNameDescription": "Wem der Server in den Prompts von rux gehört, z. B. example.com. Leer: {app}.",
+                  "serverAbout": "Was es ist",
+                  "serverAboutDescription": "Ergänzt „<Name> ist …“, z. B. „ein kostenloser VPS-Anbieter“. Leer: ein kostenloser Gameserver-Anbieter.",
+                  "serverTrustedDomains": "Seine eigenen Seiten",
+                  "serverTrustedDomainsDescription": "Weitere Domains, die die Prüfungen auf diesem Server als die eigenen des Anbieters behandeln, zusätzlich zu „Unsere eigenen Seiten“.",
+                  "addServer": "Server hinzufügen",
+                  "warnings": "Verwarnungen",
+                  "warningsDescription": "Verwarnungen summieren sich, bis ein Admin sie löscht. Ab der ersten Zahl schaltet jede neue Verwarnung das Mitglied auch stumm; ab der zweiten sperrt sie es für eine Weile. 0 schaltet eine Stufe aus.",
+                  "warnTimeoutAt": "Timeout ab Verwarnung",
+                  "warnTimeout": "Timeout-Dauer",
+                  "warnTimeoutDescription": "Wie 24h, höchstens 28d.",
+                  "warnBanAt": "Sperre ab Verwarnung",
+                  "warnBan": "Sperrdauer",
+                  "warnBanDescription": "Wie 24h; rux hebt die Sperre danach auf.",
+                  "ai": "KI",
+                  "aiDescription": "Die Anbieter von neo, mit dem Failover von neo. Aufträge: {orders}. Nachrichtenprüfungen: {checks} (nie die Premium-Modelle; können diese nicht antworten, werden Nachrichten nicht geprüft). Eine Änderung in den Einstellungen von neo erreicht rux innerhalb einer Minute. rux ruft sie direkt auf, daher gelten keine Limits von neo.",
+                  "aiNoprofit": "Sie kommen von noprofit.space.",
+                  "aiNone": "noch keine eingerichtet",
+                  "watchGuidelines": "Beobachtete Kanäle setzen auch die Grundregeln durch",
+                  "watchGuidelinesDescription": "Betrug, Beleidigungen, Belästigung, sexuelle Inhalte und Werbung: gelöscht und verwarnt.",
+                  "spamEnabled": "Spam automatisch erkennen, in jedem Kanal",
+                  "spamEnabledDescription": "Fluten, dieselbe Nachricht immer wieder, Massenerwähnungen und Emoji-Wände: gelöscht und verwarnt, ohne KI.",
+                  "spamFloodMessages": "Fluten: Nachrichten",
+                  "spamFloodMessagesDescription": "So viele Nachrichten eines Mitglieds innerhalb der Sekunden daneben.",
+                  "spamFloodSeconds": "Fluten: Sekunden",
+                  "spamDuplicates": "Wiederholungen: Nachrichten",
+                  "spamDuplicatesDescription": "Dieselbe Nachricht so oft innerhalb der Sekunden daneben.",
+                  "spamDuplicateSeconds": "Wiederholungen: Sekunden",
+                  "spamMentions": "Erwähnungen in einer Nachricht",
+                  "spamEmoji": "Emojis in einer Nachricht",
+                  "ruleCooldownSeconds": "Regel-Abklingzeit",
+                  "ruleCooldownSecondsDescription": "Sekunden zwischen zwei Aktionen derselben festen Regel gegen dasselbe Mitglied.",
+                  "trustedDomains": "Unsere eigenen Seiten",
+                  "trustedDomainsDescription": "Domains, die die Prüfungen auf jedem Server als die eigenen dieses Anbieters behandeln, nie als Betrug oder Werbung, jeweils mit ihren Subdomains (z. B. example.com). Die Adresse des Panels und die Discord-Einladung zählen immer.",
+                  "noprofit": "noprofit.space",
+                  "noprofitSecret": "Secret der rux-Routen von noprofit.space",
+                  "noprofitSecretDescription": "Leer: das API-Secret von noprofit.space. Setze es, wenn noprofit.space die Routen von rux mit einem anderen Secret signiert.",
+                  "secretStored": "Ein Secret ist gespeichert. Lass das Feld leer, um es zu behalten, oder gib ein neues ein, um es zu ersetzen.",
+                  "secretMissing": "Noch kein eigenes Secret."
+                },
+                "toast": {
+                  "updated": "rux-Einstellungen gespeichert."
                 }
               }
             },

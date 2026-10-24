@@ -3739,8 +3739,7 @@ const baseTranslations = defineTranslations({
                     'On its own token. It connects once the assistant is part of the panel.',
                   assistantBotToken: 'Assistant Bot Token',
                   moderationBotEnabled: 'Moderation Bot',
-                  moderationBotEnabledDescription:
-                    'On its own token. It connects once moderation is part of the panel.',
+                  moderationBotEnabledDescription: 'On its own token. rux runs on it (Settings › Accounts › rux).',
                   moderationBotToken: 'Moderation Bot Token',
                 },
                 status: {
@@ -3763,6 +3762,143 @@ const baseTranslations = defineTranslations({
                 },
                 toast: {
                   updated: 'Discord settings saved.',
+                },
+              },
+            },
+            // plugged.host: docs/features/rux.md
+            rux: {
+              title: 'rux',
+              page: {
+                title: 'rux',
+                status: {
+                  notRunning: 'rux is not running',
+                  blocker: {
+                    discord_off: 'The Discord tab is off or names no server.',
+                    bot_off: "The Discord tab's moderation bot is off.",
+                    no_token: "The Discord tab's moderation bot has no token.",
+                    no_server: 'No Discord server id (here or on the Discord tab).',
+                    switched_off: 'rux is switched off on noprofit.space (Admin › rux).',
+                    no_accounts:
+                      "Nobody can be told an admin: without noprofit.space, Discord accounts are linked through the Discord tab's sign-in provider, and none is set.",
+                    no_ai: "rux has no AI providers (neo's: set one up in neo's settings): rux cannot think.",
+                  },
+                  starting: 'rux is starting',
+                  startingDescription:
+                    'The moderation bot connects on the primary instance a few seconds after it is turned on. If this stays, see the panel log.',
+                  refused: 'Discord refused rux',
+                  reason: {
+                    token: 'The token is wrong or was reset: put the new one on the Discord tab.',
+                    intents:
+                      'The intents are not allowed: turn on "Message Content Intent" under Discord Developer Portal › your application › Bot.',
+                    closed: 'Discord closed the connection; it is tried again when the settings change.',
+                  },
+                  noContent: 'rux is online without the Message Content intent',
+                  noContentDescription:
+                    'DMs and @mentions work. Standing rules, watched channels and "hey rux" do not: turn on "Message Content Intent" under Discord Developer Portal › your application › Bot.',
+                  online: 'rux is online',
+                  onlineDescription: 'Connected as {name}',
+                  invites: 'Add it to its servers:',
+                  invite: 'Invite link',
+                },
+                managed: {
+                  title: 'Set up on {by}',
+                  description:
+                    "rux's settings are kept on {by} (Admin › rux) and shown here read-only. rux takes up a change there within a minute.",
+                  fetched: 'Last fetched',
+                  open: 'Open Admin › rux on {by}',
+                },
+                form: {
+                  bot: 'Bot',
+                  botDescription:
+                    'rux takes orders from Discord accounts linked to {admins} (and moderation orders from members of the roles they make moderators), by DM, @mention or "hey rux". Its switch and token are the moderation bot\'s, on the Discord tab.',
+                  adminsNoprofit: 'a noprofit.space admin',
+                  adminsPanel: 'an admin of this panel (one who linked Discord)',
+                  name: 'Name',
+                  nameDescription:
+                    'What members call it ("hey rux") and what it calls itself. Letters, digits, dashes and underscores.',
+                  guildId: 'Main Discord Server ID',
+                  guildIdDescription:
+                    "Defaults to the Discord tab's server. DMs to rux act on it until an admin picks another server.",
+                  timezone: 'Time Zone',
+                  timezoneDescription: 'Every time rux reads or writes is in this zone.',
+                  locale: 'Language',
+                  localeDescription: 'The language rux posts in.',
+                  messagesPerMinute: 'Orders per Minute',
+                  messagesPerMinuteDescription: 'How many orders one person may give a minute.',
+                  maxSteps: 'Steps per Order',
+                  maxStepsDescription: 'How many model calls one order may take.',
+                  historyMinutes: 'History',
+                  historyMinutesDescription: 'Minutes an order remembers of the conversation before it.',
+                  giveaways: 'Giveaways and Moderation',
+                  giveawayChannelId: 'Default Giveaway Channel ID',
+                  giveawayChannelIdDescription: 'On the main server. Used when an order names no channel.',
+                  modLogChannelId: 'Mod Log Channel ID',
+                  modLogChannelIdDescription: 'On the main server. Every moderation action there is posted here.',
+                  giveawayMaxCredits: 'Most Credits per Winner',
+                  giveawayMaxWinners: 'Most Winners per Giveaway',
+                  giveawayMaxDays: 'Longest Giveaway',
+                  giveawayMaxDaysDescription: 'Days.',
+                  creditGranters: 'Main Admin (Gives Credits)',
+                  creditGrantersDescription:
+                    'Discord user IDs. Only they can have rux give someone credits; empty turns it off.',
+                  creditMaxPerGrant: 'Most Credits per Gift',
+                  servers: 'More Discord Servers',
+                  serversDescription:
+                    'rux can work on more servers with the same bot (invite it to each, see the invite links above). Each server has its own rules, watched channels, moderator roles, warnings, cases and giveaways; admins, the main admin and credits are the same everywhere. An order in a server acts on that server only; in a DM, an admin or moderator tells rux which server they mean. Removing a server stops rux there.',
+                  server: 'Server {number}',
+                  serverIdDescription: 'Its Discord server ID.',
+                  serverName: 'Name',
+                  serverNameDescription: "Who the server belongs to in rux's prompts, e.g. example.com. Empty: {app}.",
+                  serverAbout: 'What It Is',
+                  serverAboutDescription:
+                    'Completes "<name> is …", e.g. "a free VPS host". Empty: a free game server host.',
+                  serverTrustedDomains: 'Its Own Sites',
+                  serverTrustedDomainsDescription:
+                    'More domains the checks treat as the host\'s own on this server, on top of "Our Own Sites".',
+                  addServer: 'Add Server',
+                  warnings: 'Warnings',
+                  warningsDescription:
+                    'Warnings add up until an admin clears them. From the first number on, every new warning also times the member out; from the second, it bans them for a while. 0 turns a step off.',
+                  warnTimeoutAt: 'Timeout from Warning',
+                  warnTimeout: 'Timeout Length',
+                  warnTimeoutDescription: 'Like 24h, at most 28d.',
+                  warnBanAt: 'Ban from Warning',
+                  warnBan: 'Ban Length',
+                  warnBanDescription: 'Like 24h; rux lifts the ban afterwards.',
+                  ai: 'AI',
+                  aiDescription:
+                    "neo's providers, with neo's failover. Orders: {orders}. Message checks: {checks} (never the premium models; when these cannot answer, messages are not checked). A change in neo's settings reaches rux within a minute. It calls them directly, so no neo limits apply.",
+                  aiNoprofit: 'They come from noprofit.space.',
+                  aiNone: 'none configured yet',
+                  watchGuidelines: 'Watched Channels Also Enforce the Basic Guidelines',
+                  watchGuidelinesDescription:
+                    'Scams, slurs, harassment, sexual content and advertising: deleted and warned.',
+                  spamEnabled: 'Catch Spam Automatically, in Every Channel',
+                  spamEnabledDescription:
+                    'Flooding, the same message again and again, mass mentions and emoji walls: deleted and warned, without AI.',
+                  spamFloodMessages: 'Flooding: Messages',
+                  spamFloodMessagesDescription: 'This many messages from one member within the seconds next to it.',
+                  spamFloodSeconds: 'Flooding: Seconds',
+                  spamDuplicates: 'Repeats: Messages',
+                  spamDuplicatesDescription: 'The same message this many times within the seconds next to it.',
+                  spamDuplicateSeconds: 'Repeats: Seconds',
+                  spamMentions: 'Mentions in One Message',
+                  spamEmoji: 'Emoji in One Message',
+                  ruleCooldownSeconds: 'Rule Cooldown',
+                  ruleCooldownSecondsDescription:
+                    'Seconds between two actions of one standing rule on the same member.',
+                  trustedDomains: 'Our Own Sites',
+                  trustedDomainsDescription:
+                    "Domains the checks treat as this host's own on every server, never a scam or an advert, each with its subdomains (e.g. example.com). The panel's address and the Discord invite always count.",
+                  noprofit: 'noprofit.space',
+                  noprofitSecret: "Secret of noprofit.space's rux Routes",
+                  noprofitSecretDescription:
+                    "Empty: the noprofit.space API secret. Set it when noprofit.space signs rux's routes with another secret.",
+                  secretStored: 'A secret is stored. Leave this empty to keep it, or type a new one to replace it.',
+                  secretMissing: 'No secret of its own yet.',
+                },
+                toast: {
+                  updated: 'rux settings saved.',
                 },
               },
             },

@@ -62,6 +62,7 @@ pub mod pricing; // plugged.host
 pub mod redact; // plugged.host
 pub mod response;
 pub mod retry;
+pub mod rux; // plugged.host
 pub mod server_creation; // plugged.host
 pub mod server_resize; // plugged.host
 pub mod server_software; // plugged.host

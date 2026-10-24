@@ -456,6 +456,10 @@ mod put {
         #[schema(inline)]
         #[garde(dive)]
         neo: Option<shared::settings::neo::PayloadNeo>,
+        // plugged.host: docs/features/rux.md
+        #[schema(inline)]
+        #[garde(dive)]
+        rux: Option<shared::settings::rux::PayloadRux>,
         #[schema(inline)]
         #[garde(dive)]
         updates: Option<PayloadUpdates>,
@@ -1027,6 +1031,14 @@ mod put {
         // plugged.host: neo
         if let Some(neo) = data.neo
             && let Err(error) = neo.apply(&mut settings.neo)
+        {
+            return ApiResponse::error(&error.message())
+                .with_status(StatusCode::BAD_REQUEST)
+                .ok();
+        }
+        // plugged.host: docs/features/rux.md
+        if let Some(rux) = data.rux
+            && let Err(error) = rux.apply(&mut settings.rux)
         {
             return ApiResponse::error(&error.message())
                 .with_status(StatusCode::BAD_REQUEST)

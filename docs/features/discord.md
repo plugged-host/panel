@@ -112,7 +112,7 @@ missed while it was offline.
 |---|---|---|
 | Invite and boost bot | Bot Token | Tracks invites, joins, leaves and member updates; `/invites [user]`, `/topinvites [limit]`, `/setboost user count` |
 | Assistant bot | its own | Connects once a handler is registered (`gateway::register(Bot::Assistant, …)`) |
-| Moderation bot | its own | Connects once a handler is registered (`gateway::register(Bot::Moderation, …)`) |
+| Moderation bot | its own | rux, the moderation bot ([rux.md](rux.md)) |
 
 Bots that share a token share one connection, their intents added up. A switched-off bot, a
 changed token or another server ID closes its connection within 15 seconds. A wrong token or

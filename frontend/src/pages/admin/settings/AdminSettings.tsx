@@ -15,6 +15,7 @@ import {
   faEnvelopesBulk,
   faEyeSlash, // plugged.host
   faGamepad,
+  faGavel, // plugged.host
   faGlobe, // plugged.host
   faHandshake,
   faHeartPulse,
@@ -72,6 +73,7 @@ import PlacementContainer from './placement/PlacementContainer.tsx'; // plugged.
 import QueueContainer from './queue/QueueContainer.tsx'; // plugged.host
 import RatelimitsContainer from './ratelimits/RatelimitsContainer.tsx';
 import RecoveryContainer from './recovery/RecoveryContainer.tsx'; // plugged.host
+import RuxContainer from './rux/RuxContainer.tsx'; // plugged.host
 import ServerContainer from './server/ServerContainer.tsx';
 import StatusContainer from './status/StatusContainer.tsx';
 import StorageContainer from './storage/StorageContainer.tsx';
@@ -176,6 +178,13 @@ export const settingsGroups: SettingsGroup[] = [
         icon: faDiscord,
         path: '/discord',
         element: <DiscordContainer />,
+      },
+      // plugged.host: rux, the moderation bot (docs/features/rux.md)
+      {
+        name: t('pages.admin.settings.tabs.rux.title', {}),
+        icon: faGavel,
+        path: '/rux',
+        element: <RuxContainer />,
       },
       {
         name: t('pages.admin.settings.tabs.webauthn.title', {}),

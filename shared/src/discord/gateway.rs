@@ -37,6 +37,8 @@ pub const INTENT_GUILDS: u64 = 1 << 0;
 /// Privileged: Server Members Intent in the Developer Portal.
 pub const INTENT_GUILD_MEMBERS: u64 = 1 << 1;
 pub const INTENT_GUILD_INVITES: u64 = 1 << 6;
+/// Privileged, like Server Members: rux reads what people write.
+pub const INTENT_MESSAGE_CONTENT: u64 = 1 << 15;
 
 const GATEWAY: &str = "wss://gateway.discord.gg";
 const QUERY: &str = "?v=10&encoding=json";
@@ -154,8 +156,8 @@ pub enum Reason {
     Intents,
     /// Discord closed the connection for good (sharding, the API version).
     Closed,
-    /// Connected without Server Members (off in the Developer Portal): joins and leaves are
-    /// missed.
+    /// Connected without the privileged intents (Server Members, Message Content; off in the
+    /// Developer Portal): joins and leaves are missed, and rux reads only mentions and DMs.
     MembersIntent,
 }
 
@@ -165,7 +167,7 @@ impl Reason {
             Self::Token => "Discord did not accept the token",
             Self::Intents => "Discord did not accept the intents",
             Self::Closed => "Discord closed the connection for good",
-            Self::MembersIntent => "the Server Members intent is off",
+            Self::MembersIntent => "the Server Members or Message Content intent is off",
         }
     }
 }
@@ -405,11 +407,21 @@ async fn run(state: crate::State, wanted: Wanted, shared: Arc<parking_lot::Mutex
                 }
             }
             Ok(End::Privileged) => {
+                let privileged = INTENT_GUILD_MEMBERS | INTENT_MESSAGE_CONTENT;
+                if intents & privileged == 0 {
+                    // nothing left to drop: connecting again would be refused the same way
+                    tracing::error!(bots = ?wanted.bots, "Discord refused the bot: {}", Reason::Intents.describe());
+                    let mut shared = shared.lock();
+                    shared.phase = Phase::Refused;
+                    shared.reason = Some(Reason::Intents);
+                    shared.since = chrono::Utc::now();
+                    return;
+                }
                 tracing::warn!(
                     bots = ?wanted.bots,
-                    "Discord refused the Server Members intent: connecting without it (turn it on in the Developer Portal)"
+                    "Discord refused a privileged intent: connecting without Server Members and Message Content (turn them on in the Developer Portal)"
                 );
-                intents &= !INTENT_GUILD_MEMBERS;
+                intents &= !privileged;
                 privileged_refused = true;
                 resume = None;
                 sequence = None;
