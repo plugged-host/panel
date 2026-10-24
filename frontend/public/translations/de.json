@@ -9697,6 +9697,86 @@
               "enforcedOff": "Whitelist ausgeschaltet.",
               "atNextStart": "Das gilt, sobald der Server startet."
             }
+          },
+          "worlds": {
+            "title": "Welten",
+            "running": "Stoppe den Server, um eine Welt zu erstellen oder hochzuladen. Eine andere Welt laden und herunterladen geht auch, während er läuft.",
+            "importing": "{file} wird entpackt. Die Liste der Welten aktualisiert sich, sobald das fertig ist.",
+            "importFailed": "Der Import von {file} ist fehlgeschlagen: {error}",
+            "noMatch": "Keine Welt passt zu dieser Suche.",
+            "table": {
+              "world": "Welt",
+              "modified": "Zuletzt geändert"
+            },
+            "badge": {
+              "active": "Geladen",
+              "notGenerated": "Noch nicht erzeugt"
+            },
+            "button": {
+              "new": "Neue Welt",
+              "upload": "Welt hochladen",
+              "uploadSubmit": "Hochladen und laden",
+              "create": "Welt erstellen",
+              "download": "Herunterladen",
+              "activate": "Diese Welt laden",
+              "files": "In Dateien öffnen",
+              "delete": "Löschen"
+            },
+            "modal": {
+              "new": {
+                "title": "Neue Welt",
+                "content": "Der Server erzeugt die neue Welt beim nächsten Start mit diesen Einstellungen."
+              },
+              "upload": {
+                "title": "Welt hochladen",
+                "content": "Die Welt im Archiv wird die geladene Welt. Lass diesen Tab offen, bis der Upload fertig ist; das Entpacken läuft danach von selbst."
+              },
+              "activate": {
+                "title": "{world} laden?",
+                "content": "Der Server lädt sie ab dem nächsten Start. Die jetzt geladene Welt bleibt, wie sie ist."
+              },
+              "delete": {
+                "title": "{world} löschen?",
+                "content": "Das löscht die Ordner {folders}.",
+                "trash": "Sie landen im Papierkorb und lassen sich eine Zeit lang von dort wiederherstellen.",
+                "permanent": "Das lässt sich nicht rückgängig machen."
+              }
+            },
+            "form": {
+              "name": "Name",
+              "nameInvalid": "1 bis 64 Buchstaben, Ziffern, Leerzeichen, Punkte, Bindestriche und Unterstriche, beginnend mit einem Buchstaben oder einer Ziffer.",
+              "nameTaken": "Es gibt schon einen Ordner mit diesem Namen.",
+              "seed": "Seed",
+              "seedRandom": "Zufällig",
+              "type": "Welttyp",
+              "generator": "Generator-Einstellungen",
+              "datapacks": "Datenpakete",
+              "datapacksDescription": "Durch Kommas getrennt, zum Beispiel vanilla, bundle, trade_rebalance (initial-enabled-packs).",
+              "structures": "Strukturen erzeugen (Dörfer, Tempel, Festungen …)",
+              "keep": "Aktuelle Welt behalten",
+              "keepRenamed": "Sie bleibt unter einem neuen Namen in der Liste, damit du sie später wieder laden kannst.",
+              "keepAsIs": "Sie bleibt, wie sie ist, in der Liste, damit du sie später wieder laden kannst.",
+              "archive": "Archiv",
+              "archiveDescription": "Eine .zip- oder .tar(.gz, .xz, .zst)-Datei mit dem Weltordner, dem mit der level.dat darin.",
+              "archiveInvalid": "Wähle eine .zip-, .tar-, .tar.gz-, .tgz-, .tar.xz- oder .tar.zst-Datei."
+            },
+            "types": {
+              "normal": "Normal",
+              "flat": "Flachland",
+              "largeBiomes": "Große Biome",
+              "amplified": "Zerklüftet",
+              "singleBiome": "Einzelnes Biom"
+            },
+            "toast": {
+              "created": "Die neue Welt ist eingerichtet. Starte den Server, um sie zu erzeugen.",
+              "kept": "Die alte Welt bleibt als {name} erhalten.",
+              "activated": "{world} wird ab dem nächsten Start geladen.",
+              "deleted": "{world} wurde gelöscht.",
+              "saving": "Die Welt wird zuerst gespeichert …",
+              "uploading": "{file} wird hochgeladen. Lass diesen Tab offen, bis der Upload fertig ist.",
+              "importStarted": "Hochgeladen. {file} wird entpackt …",
+              "imported": "Die hochgeladene Welt ist geladen. Starte den Server, um darauf zu spielen."
+            }
           }
         },
         "activity": {

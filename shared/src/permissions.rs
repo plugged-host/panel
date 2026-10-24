@@ -1128,6 +1128,10 @@ pub(crate) static BASE_SERVER_PERMISSIONS: LazyLock<IndexMap<&'static str, Permi
                             "players",
                             "Allows changing the whitelist, the operators and the bans.",
                         ),
+                        (
+                            "worlds",
+                            "Allows creating, loading, uploading and deleting worlds. Downloading also needs files.read-content, uploading files.create.",
+                        ),
                     ]),
                 },
             ),

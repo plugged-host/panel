@@ -1,11 +1,12 @@
 # Minecraft
 
 Minecraft servers get their own pages in the server sidebar. This page grows with each part:
-**Plugins & Mods**, **Game Settings** and **Players** are here; worlds, Bedrock support (Geyser +
-Floodgate), modpacks, the version switch and the log check follow.
+**Plugins & Mods**, **Game Settings**, **Players** and **Worlds** are here; Bedrock support (Geyser
++ Floodgate), modpacks, the version switch and the log check follow.
 
 The code is in `shared/src/minecraft/` (sources, versions, installed jars, `config.rs`,
-`players.rs`, `files.rs` for reading and writing the server's files through Wings), the routes in
+`players.rs`, `worlds.rs`, `files.rs` for reading and writing the server's files through Wings),
+the routes in
 `backend/src/routes/api/client/servers/_server_/minecraft/`, the pages in
 `frontend/src/pages/server/minecraft/`.
 
@@ -99,7 +100,9 @@ server once. Files are read up to 512 KB.
 `query.port`, `rcon.port`, `rcon.password`), as a switch (`true`/`false` keys and the known
 toggles), a number (the known numeric keys, or a value that is a whole number), a choice (the
 gamemode, difficulty, level type and the like, when the current value is one of the choices) or
-text. Numbers and choices are checked before anything is written.
+text. Numbers and choices are checked before anything is written. Values are read and written
+with Java's escapes, as the game writes them (`level-type=minecraft\:normal`, `\u00A7` in an
+older `motd`), so the form shows `minecraft:normal` and `§`.
 
 **The YAML files**: every single-line value (true/false, null, numbers, text) by its dotted path,
 grouped under its top-level key. Lists, block values and values spread over several lines are not
@@ -143,6 +146,45 @@ in the activity log as `server:minecraft.players.{whitelist,unwhitelist,op,deop,
 the name, the reason and whether it went through the console; the switch as
 `server:minecraft.players.enforce`.
 
+## Worlds
+
+`/server/<id>/minecraft/worlds`, permission `minecraft.worlds`. A world is a folder in the server
+root with a `level.dat`; the `<world>_nether` and `<world>_the_end` folders Paper-family servers
+keep beside it belong to it. The list shows the loaded world (`level-name` in `server.properties`)
+first, also before its first start has generated it, then the other worlds by name, with the
+folders and when they last changed. Folders that are never worlds (`plugins`, `mods`, `config`,
+`logs` …) and hidden ones are not looked into, and at most 12 folders are.
+
+A row's menu:
+
+- **Download**: one archive (zip) of the world and its dimension folders, streamed by Wings through
+  the file manager's download (`files.read-content`). A running server is told `save-all flush`
+  first when the caller also has `control.console`, so the archive has the last minutes of play.
+- **Load This World**: sets `level-name`; the server loads it from its next start (works while it
+  runs).
+- **Open in Files**: the world's folder in the file manager.
+- **Delete** (not the loaded world): its folders go to the server's trash when it has one, else
+  they are deleted.
+
+Two page actions need the server stopped:
+
+- **New World**: name, seed (empty is random), world type, structures, generator settings (for
+  superflat and single biome) and data packs, written to `server.properties`; the server generates
+  the world at its next start. **Keep the current world** (on by default) renames the loaded world's
+  folders to `<world>-<date>` when the new one takes its name, or leaves it as it is under another
+  name; off, it is deleted (trash first when there is one). Either way it stays loadable from the
+  list, which is what Pelican's "keep a zip copy" became.
+- **Upload World** (also `files.create`): empties `.world-upload`, uploads the archive there with the
+  file manager's uploader (in parts, resumable, in the uploads card) and, when the upload is done,
+  starts the import. The panel unpacks it (Wings, in the foreground of a background task), finds the
+  folder with `level.dat` (the top or up to two folders down, `__MACOSX` skipped), keeps or deletes
+  the loaded world as above, moves the new one into its place (with `_nether`/`_the_end` siblings)
+  and empties `.world-upload`. The page shows "Unpacking …" and polls until it ends; a failure stays
+  on the page for an hour. Archives: `.zip`, `.tar`, `.tar.gz`, `.tgz`, `.tar.xz`, `.tar.zst`. The
+  import is started by the browser, so the tab has to stay open until the upload is done.
+
+Activity: `server:minecraft.worlds.{create,activate,delete,import}`.
+
 ## Routes
 
 Under `/api/client/servers/{server}/minecraft/content`, all with `minecraft.content`:
@@ -176,6 +218,18 @@ used only with `control.console` too):
 | `POST /bans` `{name, reason?}`, `DELETE /bans` `{name}` | Bans or pardons |
 | `PUT /enforce` `{enabled}` | Turns the whitelist on or off |
 
+Under `/api/client/servers/{server}/minecraft/worlds`, with `minecraft.worlds`:
+
+| Route | Does |
+|---|---|
+| `GET /` | The worlds, the generation settings, the world types, whether the server runs, whether deleting uses the trash, the last import's state |
+| `POST /` `{name, seed, level_type, structures, generator, datapacks, keep}` | A new world in place of the loaded one (server stopped); answers what was kept or deleted |
+| `DELETE /` `{world}` | Deletes a world that is not the loaded one |
+| `PUT /active` `{world}` | Loads that world from the next start |
+| `POST /save` | `save-all flush` on a running server (also `control.console`) |
+| `POST /upload` | Empties the upload folder (also `files.create`, server stopped) |
+| `POST /import` `{archive, keep}` | Starts the import of the uploaded archive; 202 (also `files.create`) |
+
 ## Without noprofit.space
 
 Nothing here uses noprofit.space.
@@ -197,3 +251,11 @@ Nothing here uses noprofit.space.
 - The whitelist switch on and off; `server.properties` shows `white-list` and `enforce-whitelist`.
 - An unknown name on an online-mode server is refused; any name works in offline mode.
 - A subuser without `minecraft.settings` or `minecraft.players` does not see those pages.
+- Game Settings: `level-type` shows as a choice (Normal etc.) on a server the game wrote
+  `minecraft\:normal` into; a MOTD with `§` colours saves and the server shows the colours.
+- Worlds on a stopped server: New World with a seed and Keep on, the old world is listed as
+  `world-<date>`; Load This World on it and start, the old world is back.
+- Upload World: a zipped world (with and without a wrapping folder) becomes the loaded world; the
+  uploads card shows the progress, then "Unpacking …", then the list updates.
+- Download on a running server: the zip has the world, `world_nether` and `world_the_end`.
+- Delete a world that is not loaded: it shows up in the file manager's trash.

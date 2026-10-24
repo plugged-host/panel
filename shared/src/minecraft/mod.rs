@@ -10,6 +10,7 @@ pub mod modrinth;
 pub mod players;
 pub mod spigot;
 pub mod versions;
+pub mod worlds;
 
 use crate::models::{nest_egg::NestEgg, server::Server, server_variable::ServerVariable};
 use serde::{Deserialize, Serialize};

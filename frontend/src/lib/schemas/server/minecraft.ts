@@ -158,3 +158,42 @@ export const minecraftPlayerListSchema = z.enum(['whitelist', 'operators', 'bans
 export const minecraftOutcomeSchema = z.object({
   live: z.boolean(),
 });
+
+export const minecraftWorldSchema = z.object({
+  name: z.string(),
+  active: z.boolean(),
+  exists: z.boolean(),
+  folders: z.array(z.string()),
+  modified: z.coerce.date().nullable(),
+});
+
+export const minecraftGenerationSchema = z.object({
+  name: z.string(),
+  seed: z.string(),
+  levelType: z.string(),
+  structures: z.boolean(),
+  generator: z.string(),
+  datapacks: z.array(z.string()),
+});
+
+export const minecraftWorldImportSchema = z.object({
+  archive: z.string(),
+  state: z.enum(['running', 'done', 'failed']),
+  error: z.string().nullable(),
+  kept: z.string().nullable(),
+  started: z.coerce.date(),
+});
+
+export const minecraftWorldsSchema = z.object({
+  worlds: z.array(minecraftWorldSchema),
+  generation: minecraftGenerationSchema,
+  levelTypes: z.array(z.string()),
+  running: z.boolean(),
+  trash: z.boolean(),
+  import: minecraftWorldImportSchema.nullable(),
+});
+
+export const minecraftReplacedSchema = z.object({
+  kept: z.string().nullable(),
+  removed: z.array(z.string()),
+});

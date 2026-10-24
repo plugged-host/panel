@@ -3,6 +3,7 @@ import {
   faBriefcase,
   faCog,
   faDatabase,
+  faEarthAmericas, // plugged.host
   faFolderOpen,
   faNetworkWired,
   faPlay,
@@ -29,6 +30,7 @@ import ServerMinecraftBrowse from '@/pages/server/minecraft/content/ServerMinecr
 import ServerMinecraftContent from '@/pages/server/minecraft/content/ServerMinecraftContent.tsx'; // plugged.host
 import ServerMinecraftPlayers from '@/pages/server/minecraft/players/ServerMinecraftPlayers.tsx'; // plugged.host
 import ServerMinecraftSettings from '@/pages/server/minecraft/settings/ServerMinecraftSettings.tsx'; // plugged.host
+import ServerMinecraftWorlds from '@/pages/server/minecraft/worlds/ServerMinecraftWorlds.tsx'; // plugged.host
 import ServerNetwork from '@/pages/server/network/ServerNetwork.tsx';
 import ServerQueue from '@/pages/server/queue/ServerQueue.tsx'; // plugged.host
 import ScheduleView from '@/pages/server/schedules/ScheduleView.tsx';
@@ -121,6 +123,13 @@ const routes: ServerRouteDefinition[] = [
     path: '/minecraft/players',
     element: ServerMinecraftPlayers,
     permission: 'minecraft.players',
+  },
+  {
+    name: () => getTranslations().t('pages.server.minecraft.worlds.title', {}),
+    icon: faEarthAmericas,
+    path: '/minecraft/worlds',
+    element: ServerMinecraftWorlds,
+    permission: 'minecraft.worlds',
   },
   {
     name: () => getTranslations().t('pages.server.databases.title', {}),

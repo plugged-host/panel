@@ -9957,6 +9957,91 @@ const baseTranslations = defineTranslations({
               atNextStart: 'It applies when the server starts.',
             },
           },
+          worlds: {
+            title: 'Worlds',
+            running:
+              'Stop the server to create or upload a world. Loading another world and downloading work while it runs.',
+            importing: 'Unpacking {file}. The world list updates when it is done.',
+            importFailed: 'Importing {file} failed: {error}',
+            noMatch: 'No world matches that search.',
+            table: {
+              world: 'World',
+              modified: 'Last Changed',
+            },
+            badge: {
+              active: 'Loaded',
+              notGenerated: 'Not generated yet',
+            },
+            button: {
+              new: 'New World',
+              upload: 'Upload World',
+              uploadSubmit: 'Upload and Load',
+              create: 'Create World',
+              download: 'Download',
+              activate: 'Load This World',
+              files: 'Open in Files',
+              delete: 'Delete',
+            },
+            modal: {
+              new: {
+                title: 'New World',
+                content: 'The server generates the new world at its next start, with these settings.',
+              },
+              upload: {
+                title: 'Upload World',
+                content:
+                  'The world in the archive becomes the loaded world. Keep this tab open until the upload has finished; unpacking then runs on its own.',
+              },
+              activate: {
+                title: 'Load {world}?',
+                content: 'The server loads it from its next start. The world loaded now stays as it is.',
+              },
+              delete: {
+                title: 'Delete {world}?',
+                content: 'This deletes the folders {folders}.',
+                trash: 'They go to the trash, where they can be restored from for a while.',
+                permanent: 'This cannot be undone.',
+              },
+            },
+            form: {
+              name: 'Name',
+              nameInvalid:
+                '1 to 64 letters, digits, spaces, dots, dashes and underscores, starting with a letter or digit.',
+              nameTaken: 'There already is a folder with that name.',
+              seed: 'Seed',
+              seedRandom: 'Random',
+              type: 'World Type',
+              generator: 'Generator Settings',
+              datapacks: 'Data Packs',
+              datapacksDescription:
+                'Separated by commas, for example vanilla, bundle, trade_rebalance (initial-enabled-packs).',
+              structures: 'Generate structures (villages, temples, strongholds …)',
+              keep: 'Keep the current world',
+              keepRenamed: 'It stays in the list under a new name, so you can load it again later.',
+              keepAsIs: 'It stays in the list as it is, so you can load it again later.',
+              archive: 'Archive',
+              archiveDescription:
+                'A .zip or .tar(.gz, .xz, .zst) holding the world folder, the one with level.dat in it.',
+              archiveInvalid: 'Choose a .zip, .tar, .tar.gz, .tgz, .tar.xz or .tar.zst file.',
+            },
+            types: {
+              normal: 'Normal',
+              flat: 'Superflat',
+              largeBiomes: 'Large Biomes',
+              amplified: 'Amplified',
+              singleBiome: 'Single Biome',
+            },
+            toast: {
+              created: 'The new world is set up. Start the server to generate it.',
+              kept: 'The old world is kept as {name}.',
+              activated: '{world} is loaded from the next start.',
+              deleted: '{world} was deleted.',
+              saving: 'Saving the world first …',
+              uploading: 'Uploading {file}. Keep this tab open until the upload has finished.',
+              importStarted: 'Uploaded. Unpacking {file} …',
+              imported: 'The uploaded world is loaded. Start the server to play it.',
+            },
+          },
         },
         activity: {
           title: 'Activity',

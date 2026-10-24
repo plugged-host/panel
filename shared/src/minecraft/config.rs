@@ -91,6 +91,16 @@ const CHOICES: &[(&str, &[&str])] = &[
     ("region-file-compression", &["deflate", "lz4", "none"]),
 ];
 
+/// The values a `server.properties` key takes when it is a choice (the worlds page offers the
+/// level types).
+pub fn choices(key: &str) -> &'static [&'static str] {
+    CHOICES
+        .iter()
+        .find(|(name, _)| *name == key)
+        .map(|(_, choices)| *choices)
+        .unwrap_or_default()
+}
+
 /// A settings file and the names it may have: the first one that exists is used
 /// (`config/paper-global.yml` replaced `paper.yml` in Paper 1.19).
 struct Candidate {
@@ -342,8 +352,7 @@ pub fn properties(raw: &str) -> Vec<(String, String)> {
                 return None;
             }
 
-            let value = &line[line.find('=')? + 1..];
-            Some((key.to_string(), value.to_string()))
+            Some((key.to_string(), unescape(&line[line.find('=')? + 1..])))
         })
         .collect()
 }
@@ -433,12 +442,12 @@ fn apply_properties(raw: &str, edits: &[Edit]) -> Result<(String, usize), String
             continue;
         };
 
-        let current = &lines[index][lines[index].find('=').unwrap_or_default() + 1..];
-        let (kind, choices) = property_kind(key, current);
+        let current = unescape(&lines[index][lines[index].find('=').unwrap_or_default() + 1..]);
+        let (kind, choices) = property_kind(key, &current);
         let value = property_value(kind, &choices, edit)?;
 
         if value != current {
-            lines[index] = format!("{key}={value}");
+            lines[index] = format!("{key}={}", escape(&value));
             changed += 1;
         }
     }
@@ -458,12 +467,12 @@ pub fn set_properties(raw: &str, values: &[(&str, String)]) -> String {
             .iter()
             .position(|line| property_key(line) == Some(*key))
         {
-            Some(index) => lines[index] = format!("{key}={value}"),
+            Some(index) => lines[index] = format!("{key}={}", escape(&value)),
             None => {
                 while lines.last().is_some_and(|line| line.trim().is_empty()) {
                     lines.pop();
                 }
-                lines.push(format!("{key}={value}"));
+                lines.push(format!("{key}={}", escape(&value)));
             }
         }
     }
@@ -472,10 +481,85 @@ pub fn set_properties(raw: &str, values: &[(&str, String)]) -> String {
 }
 
 /// A `server.properties` value by key.
-pub fn property<'a>(raw: &'a str, key: &str) -> Option<&'a str> {
+pub fn property(raw: &str, key: &str) -> Option<String> {
     raw.lines()
         .find(|line| property_key(line) == Some(key))
-        .and_then(|line| line.find('=').map(|position| line[position + 1..].trim()))
+        .and_then(|line| {
+            line.find('=')
+                .map(|position| unescape(&line[position + 1..]))
+        })
+}
+
+/// A value as Java's `Properties.load` reads it: leading blanks skipped, `\:` `\=` `\\` and the
+/// like taken literally, `\t` `\n` `\r` `\f` and `\uXXXX` decoded (Minecraft writes
+/// `level-type=minecraft\:normal` and older versions `motd=\u00A7a…`).
+fn unescape(value: &str) -> String {
+    let value = value.trim_start_matches([' ', '\t', '\x0c']);
+    let mut units: Vec<u16> = Vec::with_capacity(value.len());
+    let mut chars = value.chars();
+
+    while let Some(c) = chars.next() {
+        if c != '\\' {
+            let mut buffer = [0; 2];
+            units.extend_from_slice(c.encode_utf16(&mut buffer));
+            continue;
+        }
+
+        match chars.next() {
+            Some('t') => units.push('\t' as u16),
+            Some('n') => units.push('\n' as u16),
+            Some('r') => units.push('\r' as u16),
+            Some('f') => units.push(0x0c),
+            Some('u') => {
+                let hex: String = chars.clone().take(4).collect();
+                match u16::from_str_radix(&hex, 16) {
+                    Ok(unit) if hex.len() == 4 => {
+                        units.push(unit);
+                        for _ in 0..4 {
+                            chars.next();
+                        }
+                    }
+                    _ => units.push('u' as u16),
+                }
+            }
+            Some(other) => {
+                let mut buffer = [0; 2];
+                units.extend_from_slice(other.encode_utf16(&mut buffer));
+            }
+            None => {}
+        }
+    }
+
+    String::from_utf16_lossy(&units)
+}
+
+/// A value as Java's `Properties.store` writes it, so every Minecraft version reads it back the
+/// same: `\\ : = # !` and a leading space escaped, anything outside printable ASCII as `\uXXXX`.
+fn escape(value: &str) -> String {
+    let mut out = String::with_capacity(value.len());
+
+    for (index, c) in value.chars().enumerate() {
+        match c {
+            '\\' | ':' | '=' | '#' | '!' => {
+                out.push('\\');
+                out.push(c);
+            }
+            ' ' if index == 0 => out.push_str("\\ "),
+            '\t' => out.push_str("\\t"),
+            '\n' => out.push_str("\\n"),
+            '\r' => out.push_str("\\r"),
+            '\x0c' => out.push_str("\\f"),
+            ' '..='~' => out.push(c),
+            _ => {
+                let mut buffer = [0; 2];
+                for unit in c.encode_utf16(&mut buffer) {
+                    out.push_str(&format!("\\u{unit:04X}"));
+                }
+            }
+        }
+    }
+
+    out
 }
 
 fn join(lines: Vec<String>) -> String {
@@ -908,6 +992,38 @@ mod tests {
     }
 
     #[test]
+    fn properties_are_read_and_written_with_java_escapes() {
+        let raw = "level-type=minecraft\\:normal\nmotd=\\u00A7aHi\\: there\n";
+
+        let values = properties(raw);
+        assert_eq!(values[0], ("level-type".into(), "minecraft:normal".into()));
+        assert_eq!(values[1], ("motd".into(), "\u{a7}aHi: there".into()));
+        assert_eq!(
+            property_kind("level-type", &values[0].1).0,
+            FieldKind::Choice
+        );
+
+        let (written, changed) = apply_properties(
+            raw,
+            &[
+                edit(&["level-type"], serde_json::json!("minecraft:normal")),
+                edit(&["motd"], serde_json::json!("\u{a7}bNew = 1 \u{1f600}")),
+            ],
+        )
+        .unwrap();
+        assert_eq!(changed, 1);
+        assert_eq!(
+            written,
+            "level-type=minecraft\\:normal\nmotd=\\u00A7bNew \\= 1 \\uD83D\\uDE00\n"
+        );
+        assert_eq!(
+            property(&written, "motd").as_deref(),
+            Some("\u{a7}bNew = 1 \u{1f600}")
+        );
+        assert_eq!(escape(" a\\b"), "\\ a\\\\b");
+    }
+
+    #[test]
     fn property_values_are_checked() {
         let raw = "difficulty=easy\nmax-players=20\nmotd=hi\n";
 
@@ -934,7 +1050,7 @@ mod tests {
             "pvp=false\nwhite-list=true\n"
         );
         assert_eq!(
-            property("a=1\nwhite-list= true\n", "white-list"),
+            property("a=1\nwhite-list= true\n", "white-list").as_deref(),
             Some("true")
         );
     }

@@ -282,6 +282,7 @@ const server = (serverUuid: string) => ({
     installed: () => ['server', serverUuid, 'minecraft', 'installed'] as const,
     settings: () => ['server', serverUuid, 'minecraft', 'settings'] as const,
     players: () => ['server', serverUuid, 'minecraft', 'players'] as const,
+    worlds: () => ['server', serverUuid, 'minecraft', 'worlds'] as const,
   },
   activity: {
     all: (userUuid: string | null) => ['server', serverUuid, 'activity', { uuid: userUuid }] as const,
