@@ -13,6 +13,7 @@ mod devboxes; // plugged.host
 mod email;
 mod logout;
 mod membership; // plugged.host
+pub(crate) mod neo; // plugged.host
 mod noprofit;
 mod oauth_links;
 mod password;
@@ -203,5 +204,6 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         .nest("/tokens", tokens::router(state)) // plugged.host
         .nest("/membership", membership::router(state)) // plugged.host
         .nest("/devboxes", devboxes::router(state)) // plugged.host
+        .nest("/neo", neo::router(state)) // plugged.host
         .with_state(state.clone())
 }

@@ -984,6 +984,23 @@ pub async fn define_background_tasks(
             async |state| shared::economy::settle_memberships(&state).await,
         )
         .await;
+    // plugged.host: neo's chats past their retention (shared::neo::conversations)
+    background_task_builder
+        .add_cron_task(
+            "prune_neo_conversations",
+            croner::Cron::from_str("0 45 4 * * *").unwrap(),
+            async |state| {
+                let days = state.settings.get().await?.neo.retention_days;
+                let pruned =
+                    shared::neo::conversations::Conversation::prune(&state.database, days).await?;
+                if pruned > 0 {
+                    tracing::info!("pruned {} neo conversations", pruned);
+                }
+
+                Ok(())
+            },
+        )
+        .await;
     background_task_builder
         .add_cron_task(
             "prune_node_telemetry",

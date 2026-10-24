@@ -177,4 +177,8 @@ export const publicSettingsSchema = z.object({
   }),
   // plugged.host: what pages need to show ads (docs/features/ads.md)
   ads: adsSettingsSchema,
+  // plugged.host: the chat with neo is offered (docs/features/neo.md)
+  neo: z.object({
+    enabled: z.boolean(),
+  }),
 });

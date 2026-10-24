@@ -184,6 +184,7 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         .nest("/startup", startup::router(state))
         .nest("/subdomains", subdomains::router(state)) // plugged.host
         .nest("/devbox", devbox::router(state)) // plugged.host
+        .nest("/neo", super::super::account::neo::chat::router(state)) // plugged.host
         .nest("/subusers", subusers::router(state))
         .nest("/transfer", transfer::router(state)) // plugged.host
         .nest("/backups", backups::router(state))

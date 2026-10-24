@@ -111,6 +111,12 @@ mod get {
         plusplus_name: &'a str,
     }
 
+    /// plugged.host: whether the chat with neo is offered (docs/features/neo.md).
+    #[derive(ToSchema, Serialize)]
+    struct ResponseNeo {
+        enabled: bool,
+    }
+
     #[derive(ToSchema, Serialize)]
     struct Response<'a> {
         time: chrono::DateTime<chrono::Utc>,
@@ -137,6 +143,8 @@ mod get {
         economy: ResponseEconomy<'a>, // plugged.host
         #[schema(inline)]
         ads: shared::ads::ApiAdsSettings, // plugged.host
+        #[schema(inline)]
+        neo: ResponseNeo, // plugged.host
     }
 
     #[utoipa::path(get, path = "/", responses(
@@ -244,6 +252,9 @@ mod get {
                 plusplus_name: &settings.economy.plusplus_name,
             },
             ads: shared::ads::ApiAdsSettings::new(&settings.ads),
+            neo: ResponseNeo {
+                enabled: shared::neo::offered(&settings),
+            },
         })
         .ok()
     }

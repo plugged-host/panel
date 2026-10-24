@@ -10,11 +10,16 @@
 //! limits ([`crate::settings::neo::AppSettingsNeo::usage_percent`]) and opens the models only
 //! members may pick.
 
+pub mod agent;
 pub mod chain;
 pub mod chat;
+pub mod context;
+pub mod conversations;
 pub mod drivers;
 mod gateway;
+pub mod images;
 mod local;
+pub mod prompt;
 pub mod prompted;
 pub mod tools;
 pub mod usage;
@@ -145,6 +150,11 @@ pub fn on_noprofit(settings: &crate::settings::AppSettings) -> Option<crate::nop
 pub fn configured(settings: &crate::settings::AppSettings) -> bool {
     on_noprofit(settings).is_some()
         || (settings.neo.gateway_enabled && settings.neo.usable_providers().next().is_some())
+}
+
+/// Whether the chat is offered: neo is on and can think.
+pub fn offered(settings: &crate::settings::AppSettings) -> bool {
+    settings.neo.enabled && configured(settings)
 }
 
 /// The account's membership, as neo sees it.
