@@ -2,6 +2,7 @@ import {
   faAt,
   faBan,
   faBoxArchive, // plugged.host
+  faCar, // plugged.host
   faCircleQuestion, // plugged.host
   faCircleUp,
   faClockRotateLeft, // plugged.host
@@ -55,6 +56,7 @@ import ApplicationContainer from './application/ApplicationContainer.tsx';
 import CaptchaContainer from './captcha/CaptchaContainer.tsx';
 import EconomyContainer from './economy/EconomyContainer.tsx'; // plugged.host
 import EmailContainer from './email/EmailContainer.tsx';
+import FivemContainer from './fivem/FivemContainer.tsx'; // plugged.host
 import GamesContainer from './games/GamesContainer.tsx'; // plugged.host
 import LimboContainer from './limbo/LimboContainer.tsx'; // plugged.host
 import MetadataContainer from './metadata/MetadataContainer.tsx';
@@ -199,6 +201,13 @@ export const settingsGroups: SettingsGroup[] = [
         icon: faCube,
         path: '/minecraft',
         element: <MinecraftContainer />,
+      },
+      // plugged.host: the image and edition FiveM servers run (docs/features/fivem.md)
+      {
+        name: t('pages.admin.settings.tabs.fivem.title', {}),
+        icon: faCar,
+        path: '/fivem',
+        element: <FivemContainer />,
       },
       {
         name: t('pages.admin.settings.tabs.placement.title', {}),

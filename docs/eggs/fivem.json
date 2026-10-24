@@ -1,0 +1,76 @@
+{
+    "meta": {
+        "version": "PLCN_v3",
+        "update_url": null
+    },
+    "name": "FiveM / RedM",
+    "author": "panel@example.com",
+    "uuid": "238b3cb3-6796-4ba2-8403-5eb30faf1c86",
+    "description": "FiveM and RedM with txAdmin, made for the panel's FiveM pages (docs/features/fivem.md). Runs on the FiveM image, whose fivem-runtime installs the FXServer build FIVEM_VERSION asks for at every start.",
+    "icon": null,
+    "tags": [
+        "cfx"
+    ],
+    "features": [
+        "cfx"
+    ],
+    "docker_images": {
+        "FiveM": "ghcr.io/plugged-host/fivem:2.2"
+    },
+    "file_denylist": [],
+    "startup_commands": {
+        "Default": "$(pwd)/alpine/opt/cfx-server/ld-musl-x86_64.so.1 --library-path \"$(pwd)/alpine/usr/lib/v8/:$(pwd)/alpine/lib/:$(pwd)/alpine/usr/lib/\" -- $(pwd)/alpine/opt/cfx-server/FXServer +set citizen_dir $(pwd)/alpine/opt/cfx-server/citizen/ +set txAdminManagerMode true"
+    },
+    "config": {
+        "files": "{}",
+        "startup": "{\n    \"done\": \"All ready!\"\n}",
+        "logs": "{}",
+        "stop": "^SIGINT"
+    },
+    "scripts": {
+        "installation": {
+            "script": "#!/bin/bash\n# FiveM and RedM install for the panel's FiveM pages (docs/features/fivem.md).\n#\n# Runs in the FiveM image, the image the server itself runs in, so the artifact the install lays\n# down and the one every start keeps up to date come from the same code: fivem-runtime reads\n# FIVEM_VERSION (recommended, latest or a build number) and FIVEM_EDITION (legacy or enhanced)\n# and installs that build into alpine/.\n#\n# Server files: /mnt/server\n\nexec fivem-runtime install /mnt/server\n",
+            "container": "ghcr.io/plugged-host/fivem:2.2",
+            "entrypoint": "bash"
+        }
+    },
+    "variables": [
+        {
+            "sort": 1,
+            "name": "FiveM Version",
+            "description": "recommended or latest follows Cfx (every start installs that channel's current build), a build number stays on that build. Set from the Artifacts page.",
+            "env_variable": "FIVEM_VERSION",
+            "default_value": "recommended",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": [
+                "required",
+                "string",
+                "regex:/^(recommended|latest|[0-9]{3,6})$/"
+            ]
+        },
+        {
+            "sort": 2,
+            "name": "txAdmin Port",
+            "description": "The port txAdmin's web interface listens on. Give the server a second allocation with this port.",
+            "env_variable": "TXHOST_TXA_PORT",
+            "default_value": "30001",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": []
+        },
+        {
+            "sort": 99,
+            "name": "FiveM Edition",
+            "description": "legacy runs FiveM, enhanced runs FiveM for GTAV Enhanced. Set from the Artifacts page.",
+            "env_variable": "FIVEM_EDITION",
+            "default_value": "legacy",
+            "user_viewable": false,
+            "user_editable": false,
+            "rules": [
+                "required",
+                "in:legacy,enhanced"
+            ]
+        }
+    ]
+}

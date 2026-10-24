@@ -2,8 +2,10 @@ import {
   faBoxArchive,
   faBriefcase,
   faCog,
+  faCubesStacked, // plugged.host
   faDatabase,
   faEarthAmericas, // plugged.host
+  faFileCode, // plugged.host
   faFolderOpen,
   faNetworkWired,
   faPlay,
@@ -25,6 +27,9 @@ import ServerDatabases from '@/pages/server/databases/ServerDatabases.tsx';
 import FileSqliteQuery from '@/pages/server/files/editor/FileSqliteQuery.tsx';
 import ServerFiles from '@/pages/server/files/ServerFiles.tsx';
 import ServerFilesTrash from '@/pages/server/files/trash/ServerFilesTrash.tsx';
+import ServerFivemArtifacts from '@/pages/server/fivem/artifacts/ServerFivemArtifacts.tsx'; // plugged.host
+import ServerFivemConfig from '@/pages/server/fivem/config/ServerFivemConfig.tsx'; // plugged.host
+import ServerFivemPlayers from '@/pages/server/fivem/players/ServerFivemPlayers.tsx'; // plugged.host
 import ServerLimbo from '@/pages/server/limbo/ServerLimbo.tsx'; // plugged.host
 import ServerMinecraftBrowse from '@/pages/server/minecraft/content/ServerMinecraftBrowse.tsx'; // plugged.host
 import ServerMinecraftContent from '@/pages/server/minecraft/content/ServerMinecraftContent.tsx'; // plugged.host
@@ -144,6 +149,28 @@ const routes: ServerRouteDefinition[] = [
     path: '/minecraft/worlds',
     element: ServerMinecraftWorlds,
     permission: 'minecraft.worlds',
+  },
+  // plugged.host: FiveM and RedM servers only (lib/domain/games.ts, docs/features/fivem.md)
+  {
+    name: () => getTranslations().t('pages.server.fivem.config.title', {}),
+    icon: faFileCode,
+    path: '/fivem/config',
+    element: ServerFivemConfig,
+    permission: 'fivem.config',
+  },
+  {
+    name: () => getTranslations().t('pages.server.fivem.players.title', {}),
+    icon: faUserGroup,
+    path: '/fivem/players',
+    element: ServerFivemPlayers,
+    permission: 'fivem.players',
+  },
+  {
+    name: () => getTranslations().t('pages.server.fivem.artifacts.title', {}),
+    icon: faCubesStacked,
+    path: '/fivem/artifacts',
+    element: ServerFivemArtifacts,
+    permission: 'fivem.artifacts',
   },
   {
     name: () => getTranslations().t('pages.server.databases.title', {}),

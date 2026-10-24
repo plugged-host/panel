@@ -1139,6 +1139,28 @@ pub(crate) static BASE_SERVER_PERMISSIONS: LazyLock<IndexMap<&'static str, Permi
                     ]),
                 },
             ),
+            // plugged.host: docs/features/fivem.md
+            (
+                "fivem",
+                PermissionGroup {
+                    description: "Permissions that control the FiveM pages of a FiveM or RedM server.",
+                    permissions: IndexMap::from([
+                        (
+                            "config",
+                            "Allows reading and changing server.cfg through its form, the license key and database password included.",
+                        ),
+                        ("players", "Allows seeing who is on the server."),
+                        (
+                            "artifacts",
+                            "Allows choosing the FXServer build and edition the server runs. Restarting it for the change also needs control.restart.",
+                        ),
+                        (
+                            "frameworks",
+                            "Allows installing a framework, which creates a database for it and restarts the server.",
+                        ),
+                    ]),
+                },
+            ),
             (
                 "activity",
                 PermissionGroup {

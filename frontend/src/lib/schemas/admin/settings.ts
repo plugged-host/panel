@@ -414,13 +414,21 @@ export const adminSettingsMinecraftSchema = z.object({
   minecraftLogCheck: z.boolean(),
 });
 
+// plugged.host: Admin › Settings › Hosting › FiveM, part of the games section (docs/features/fivem.md)
+export const adminSettingsFivemSchema = z.object({
+  fivemImage: z.string().max(255).regex(/^\S*$/),
+  fivemEnhanced: z.boolean(),
+});
+
 // plugged.host: the games section as the panel sends it: the Games tab's fields and the Minecraft
-// tab's (a stored key comes back as a placeholder)
+// and FiveM tabs' (a stored key comes back as a placeholder)
 export const adminSettingsGamesStoreSchema = adminSettingsGamesSchema.extend({
   minecraftCurseforgeKey: z.string().max(255).nullable(),
   minecraftSpigot: z.boolean(),
   minecraftUserAgent: z.string().max(255),
   minecraftLogCheck: z.boolean(),
+  fivemImage: z.string().max(255),
+  fivemEnhanced: z.boolean(),
 });
 
 // plugged.host: the automatic deployment pause (shared/src/settings/placement.rs, docs/features/placement.md)

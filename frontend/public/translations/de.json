@@ -3205,6 +3205,21 @@
                 }
               }
             },
+            "fivem": {
+              "title": "FiveM",
+              "page": {
+                "title": "FiveM",
+                "form": {
+                  "image": "Image",
+                  "imageDescription": "Das Docker-Image, auf dem FiveM- und RedM-Server laufen. Seine fivem-runtime installiert bei jedem Start den FXServer-Build, den die Variablen des Servers verlangen; die Artifacts-Seite setzt sie. Leer lässt Server auf dem Image ihres Eggs, und die Artifacts-Seite zeigt nur, was installiert ist.",
+                  "enhanced": "FiveM for GTAV Enhanced",
+                  "enhancedDescription": "Spieler ihre Server auf die Enhanced-Edition umstellen lassen. Ihr txAdmin braucht io_uring, das Dockers Standard-Seccomp-Profil verbietet: Schalte das erst ein, wenn die Nodes es erlauben. Zurück zu Legacy geht immer."
+                },
+                "toast": {
+                  "updated": "FiveM-Einstellungen aktualisiert."
+                }
+              }
+            },
             "placement": {
               "title": "Platzierung",
               "page": {
@@ -9916,6 +9931,223 @@
               "problems": "Nicht alles hat geklappt: {problems}",
               "skipped": "Nicht hinzugefügt (kein Minecraft-Account hat den Namen, oder Mojang hat nicht geantwortet), füge sie auf der Spieler-Seite hinzu: {names}",
               "console": "Zur Konsole"
+            }
+          }
+        },
+        "fivem": {
+          "config": {
+            "title": "Serverkonfiguration",
+            "intro": "Das Formular bearbeitet {file}, die Datei, mit der txAdmin den Server startet. Nur was du änderst, wird geschrieben, alles andere in der Datei bleibt, wie es ist. FXServer liest sie beim Start, starte den Server also neu, um Änderungen zu übernehmen.",
+            "notSetUp": "Es gibt noch keine server.cfg: txAdmin hat diesen Server noch nicht eingerichtet. Öffne die Konsole, dann txAdmin auf dem zweiten Port des Servers, und schließ die Einrichtung ab.",
+            "invalid": "Einige Zeilen haben einen Namen mit Zeichen, die FiveM nicht akzeptiert (nur Buchstaben, Ziffern und . _ - : @ [ ]). Korrigiere oder entferne sie, um zu speichern.",
+            "lists": {
+              "empty": "Noch keine.",
+              "remove": "Entfernen",
+              "add": "Zeile hinzufügen",
+              "showAll": "Alle {count} anzeigen"
+            },
+            "toast": {
+              "saved": "server.cfg gespeichert. Starte den Server neu, um sie zu übernehmen."
+            },
+            "button": {
+              "editText": "Als Text bearbeiten"
+            },
+            "locale": {
+              "none": "Standard (keine Sprache)"
+            },
+            "identity": {
+              "title": "Identität",
+              "description": "Wie dein Server in der FiveM-Serverliste und auf seiner Detailseite erscheint.",
+              "hostname": "Hostname",
+              "hostnameDescription": "Wird auf der Detailseite des Servers gezeigt, nachdem ein Spieler ihn angeklickt hat.",
+              "projectName": "Projektname",
+              "projectNameDescription": "Wird in der Serverliste als Servername gezeigt.",
+              "maxClients": "Maximale Spieler",
+              "maxClientsDescription": "Plätze, die der Server reserviert, 1 bis 2048.",
+              "projectDescription": "Beschreibung",
+              "projectDescriptionDescription": "Wird in der Serverliste neben dem Servernamen gezeigt.",
+              "locale": "Sprache",
+              "localeDescription": "Vom FiveM-Client für Datumsangaben und Zahlen genutzt.",
+              "tags": "Tags",
+              "tagsDescription": "Tags helfen Spielern, deinen Server zu finden.",
+              "tagsPlaceholder": "Tag hinzufügen",
+              "icon": "Server-Icon",
+              "iconDescription": "Ein PNG mit 96x96 Pixeln, als Pfad relativ zum Datenordner des Servers. Wird neben deinem Servernamen gezeigt."
+            },
+            "network": {
+              "title": "Netzwerk und Build",
+              "description": "Die Adresse, auf der FXServer lauscht, und der GTA-V-Build, den Spieler brauchen.",
+              "endpoints": "Adresse",
+              "noEndpoints": "Von txAdmin gesetzt",
+              "endpointsDescription": "Wird vom Panel verwaltet. Die Ports deines Servers findest du auf der Netzwerk-Seite.",
+              "onesync": "OneSync",
+              "onesyncValue": "Von txAdmin verwaltet",
+              "onesyncDescription": "Stell es in txAdmin unter Settings › FXServer ein. txAdmin kommentiert jede onesync-Zeile in der server.cfg aus.",
+              "gameBuild": "Spiel-Build erzwingen",
+              "gameBuildDescription": "Lässt jeden Spieler auf diesem Spiel-Build beitreten, damit neuere DLC-Inhalte funktionieren.",
+              "gameBuildNone": "Nicht erzwungen (Spieler nutzen ihren eigenen Build)"
+            },
+            "database": {
+              "title": "Datenbank",
+              "description": "Von oxmysql und anderen Ressourcen genutzt, die mysql_connection_string lesen.",
+              "use": "Eine deiner Datenbanken nutzen",
+              "useDescription": "Füllt die Felder unten mit einer Datenbank von der Datenbanken-Seite.",
+              "usePlaceholder": "Datenbank wählen",
+              "host": "Host",
+              "port": "Port",
+              "user": "Benutzername",
+              "name": "Datenbank",
+              "password": "Passwort",
+              "format": "Format des Verbindungsstrings",
+              "formatDescription": "Bleib bei URI, außer deine Ressourcen brauchen key=value. key=value kann kein Passwort mit = oder ; enthalten."
+            },
+            "keys": {
+              "title": "Lizenz- und API-Schlüssel",
+              "description": "Geheimnisse, die dem Server Zugriff auf FiveM, Steam und Tebex geben. Verborgen, bis du sie anzeigst.",
+              "license": "FiveM-Lizenzschlüssel",
+              "licenseDescription": "Erforderlich. Kostenlos erhältlich unter",
+              "steam": "Steam-Web-API-Schlüssel",
+              "steamDescription": "Nur nötig, wenn deine Ressourcen Spieler über Steam erkennen.",
+              "tebex": "Tebex-Secret",
+              "tebexDescription": "Steht in deinem Tebex-Dashboard unter Game Servers."
+            },
+            "resources": {
+              "title": "Ressourcen",
+              "description": "Die ensure-Zeilen in der server.cfg. Eine deaktivierte Ressource wird auskommentiert, nicht entfernt.",
+              "name": "Ressource",
+              "enabled": "Aktiviert"
+            },
+            "principals": {
+              "title": "Gruppenmitgliedschaften",
+              "description": "Jede Zeile ist eine add_principal-Zeile: Ein Spieler-Identifier (oder eine Gruppe) tritt einer Gruppe bei.",
+              "child": "Spieler oder Gruppe",
+              "childPlaceholder": "identifier.fivem:1234567",
+              "parent": "Tritt Gruppe bei"
+            },
+            "aces": {
+              "title": "Zugriffskontrolle",
+              "description": "Jede Zeile ist eine add_ace-Zeile: Sie erlaubt oder verbietet einer Gruppe einen Befehl oder ein Objekt.",
+              "principal": "Gruppe",
+              "object": "Befehl oder Objekt",
+              "access": "Zugriff",
+              "allow": "erlauben",
+              "deny": "verbieten"
+            }
+          },
+          "players": {
+            "title": "Spieler",
+            "description": "Wer gerade auf dem Server ist, wie FXServer es meldet. Aktualisiert sich alle {seconds} Sekunden.",
+            "unreachable": "Der Server antwortet nicht",
+            "unreachableDescription": "Er ist eventuell offline oder startet noch.",
+            "countSlots": "Online: {count} von {slots}",
+            "count": "Online: {count}",
+            "table": {
+              "id": "ID",
+              "player": "Spieler",
+              "ping": "Ping"
+            },
+            "noMatch": "Kein Spieler passt. Versuch einen Namen, eine Server-ID oder einen Teil eines Identifiers.",
+            "nobody": "Niemand ist online. Spieler erscheinen hier, sobald sie beitreten.",
+            "unnamed": "Spieler ohne Namen",
+            "pingValue": "{ping} ms"
+          },
+          "artifacts": {
+            "title": "Artifacts",
+            "notOnImage": "Dieser Server läuft noch nicht auf dem FiveM-Image. Ein hier gewählter Build oder eine Edition gilt, sobald ein Administrator ihn auf das Image umstellt.",
+            "notChangeable": "Das Egg dieses Servers hat keine Variable FIVEM_VERSION, sein Build kann hier also nicht geändert werden.",
+            "installed": {
+              "title": "Installiert",
+              "unreachable": "Unbekannt (die Node antwortet nicht)",
+              "none": "Noch nichts: Der nächste Start installiert einen Build.",
+              "unknown": "Unbekannter Build: installiert, bevor das Panel ihn erfasst hat. Der nächste Start hält ihn fest.",
+              "since": "seit {when}"
+            },
+            "build": "Build {build}",
+            "pending": "Build {build} wird beim nächsten Start installiert.",
+            "mode": {
+              "title": "Updates",
+              "recommended": {
+                "label": "Recommended folgen",
+                "description": "Jeder Start installiert den Build, den Cfx empfiehlt, wenn er sich geändert hat."
+              },
+              "latest": {
+                "label": "Latest folgen",
+                "description": "Jeder Start installiert den neuesten Build von Cfx, wenn er sich geändert hat. Neueste Funktionen, manchmal neueste Fehler."
+              },
+              "pin": {
+                "label": "Bei diesem Build bleiben",
+                "description": "Den installierten Build behalten, bis du einen anderen wählst."
+              }
+            },
+            "builds": "Builds",
+            "table": {
+              "build": "Build",
+              "support": "Support"
+            },
+            "noMatch": "Kein Build passt zu dieser Nummer.",
+            "cfxUnreachable": "Die Build-Liste von Cfx konnte nicht geladen werden. Versuch es in einer Minute noch einmal.",
+            "badge": {
+              "recommended": "Recommended",
+              "latest": "Latest",
+              "installed": "Installiert"
+            },
+            "unsupported": "Kein Support mehr",
+            "supportedUntil": "Von Cfx unterstützt bis {date}",
+            "install": {
+              "title": "Build {build} installieren?",
+              "button": "Installieren",
+              "description": "Dein Server bleibt auf diesem Build, bis du einen anderen wählst. Läuft er, startet er jetzt neu und installiert den Build, das dauert eine Minute."
+            },
+            "toast": {
+              "restarting": "Der Server startet neu, um es zu übernehmen.",
+              "nextStart": "Es gilt ab dem nächsten Start.",
+              "build": "Build {build} gewählt.",
+              "mode": "Updates jetzt: {mode}."
+            },
+            "sourceNote": "Builds werden direkt von Cfx (runtime.fivem.net) geladen. Dieses Panel hostet oder verändert sie nicht und steht in keiner Verbindung zu Rockstar Games oder Cfx.re.",
+            "edition": {
+              "title": "FiveM for GTAV Enhanced",
+              "legacy": "FiveM (Legacy)",
+              "enhanced": "FiveM for GTAV Enhanced",
+              "redm": "Das ist ein RedM-Server. Von RedM gibt es keine Enhanced-Edition.",
+              "runsLegacy": "Dieser Server läuft auf dem normalen FiveM-Server-Build.",
+              "runsEnhanced": "Dieser Server läuft auf dem Enhanced-Server-Build.",
+              "runsEnhancedBuild": "Dieser Server läuft auf Enhanced-Build {build} und aktualisiert sich bei jedem Start auf den neuesten von Cfx.",
+              "earlyAccess": "FiveM for GTAV Enhanced ist bei Cfx.re im Early Access. Rechne mit Fehlern und fehlenden Funktionen, und teste es, bevor du deine Community umziehst.",
+              "switchToEnhanced": "Zu Enhanced wechseln",
+              "switchToLegacy": "Zurück zu Legacy",
+              "confirmEnhanced": "Zu FiveM for GTAV Enhanced wechseln?",
+              "confirmEnhancedDescription": "Danach können nur Spieler mit dem Enhanced-Client beitreten. Deine Serverdateien, die Datenbank und die txAdmin-Daten bleiben, wie sie sind. Ein laufender Server startet jetzt neu.",
+              "confirmLegacy": "Zurück zu FiveM (Legacy) wechseln?",
+              "confirmLegacyDescription": "Spieler brauchen wieder den normalen FiveM-Client. Deine Serverdateien bleiben, wie sie sind. Ein laufender Server startet jetzt neu.",
+              "switchedEnhanced": "Zu Enhanced gewechselt.",
+              "switchedLegacy": "Zurück zu FiveM (Legacy) gewechselt.",
+              "facts": {
+                "client": {
+                  "title": "Spieler brauchen den Enhanced-Client",
+                  "description": "Spieler müssen GTA V Enhanced auf dem PC besitzen und den eigenen Client FiveM for GTAV Enhanced von fivem.net installieren. Legacy-Spieler können einem Enhanced-Server nicht beitreten und umgekehrt. Crossplay gibt es nicht."
+                },
+                "scripts": {
+                  "title": "Skripte und Ressourcen",
+                  "description": "Lua-, JavaScript- und C#-Ressourcen sind laut Cfx.re kompatibel, und server.cfg, die Datenbank und die txAdmin-Daten bleiben unberührt. ESX und QBCore sollten laufen, teste aber alle deine Ressourcen, bevor du deine Community umziehst."
+                },
+                "assets": {
+                  "title": "Assets, MLOs und Fahrzeuge",
+                  "description": "Die meisten Addon-Fahrzeuge, MLOs und Kleidungsstücke laden normal. Enhanced nutzt den neueren Renderer von GTA V, eigene Shader, Grafikpakete und manche Texturpakete können also anders aussehen oder ein Update ihres Erstellers brauchen."
+                },
+                "network": {
+                  "title": "Netzwerk und Leistung",
+                  "description": "Enhanced bringt ein überarbeitetes OneSync mit höheren Sync-Raten, schnellerem Entity-Streaming und Platz für mehr Spieler. Der Voice-Chat nutzt ein neues VOIP-System, externe Voice-Ressourcen brauchen also eventuell Updates."
+                },
+                "switching": {
+                  "title": "Zurückwechseln",
+                  "description": "Du kannst jederzeit zu FiveM (Legacy) zurückwechseln, deine Serverdateien bleiben so oder so erhalten. Die Builds oben gelten nur für Legacy: Enhanced läuft immer auf dem aktuellen Build von Cfx (gerade Build {build})."
+                },
+                "txadmin": {
+                  "title": "txAdmin",
+                  "description": "txAdmin funktioniert auf Enhanced mit denselben Zugangsdaten und Einstellungen weiter. Enhanced bringt ein eigenes, neueres txAdmin mit, es kann also etwas anders aussehen."
+                }
+              }
             }
           }
         },

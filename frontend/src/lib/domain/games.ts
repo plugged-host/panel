@@ -1,8 +1,9 @@
-// plugged.host: which game pages a server shows, from its egg's features (docs/features/minecraft.md)
+// plugged.host: which game pages a server shows, from its egg's features (docs/features/minecraft.md, fivem.md)
 
-/** Minecraft eggs carry the `eula` feature. */
+/** Minecraft eggs carry the `eula` feature, FiveM and RedM eggs `cfx`. */
 const gameRoutes: [prefix: string, feature: (feature: string) => boolean][] = [
   ['/minecraft', (feature) => feature === 'eula'],
+  ['/fivem', (feature) => feature === 'cfx'],
 ];
 
 /** Whether a server route belongs to a game the server's egg does not run. */

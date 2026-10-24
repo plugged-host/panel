@@ -36,6 +36,7 @@ import {
   IconBuildingStore, // plugged.host
   IconCalculator,
   IconCalendar,
+  IconCar, // plugged.host
   IconChartBar,
   IconChartPie,
   IconCheck,
@@ -240,6 +241,7 @@ export const tablerIcons: Record<string, TablerIcon> = {
   bullhorn: IconSpeakerphone,
   calculator: IconCalculator,
   'calendar-days': IconCalendar,
+  car: IconCar, // plugged.host
   'chart-bar': IconChartBar,
   'chart-pie': IconChartPie,
   check: IconCheck,

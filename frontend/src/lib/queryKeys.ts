@@ -275,6 +275,12 @@ const server = (serverUuid: string) => ({
   queue: () => ['server', serverUuid, 'queue'] as const, // plugged.host
   limbo: () => ['server', serverUuid, 'limbo'] as const, // plugged.host
   waitingRoom: () => ['server', serverUuid, 'waiting-room'] as const, // plugged.host
+  // plugged.host: docs/features/fivem.md
+  fivem: {
+    config: () => ['server', serverUuid, 'fivem', 'config'] as const,
+    players: () => ['server', serverUuid, 'fivem', 'players'] as const,
+    artifacts: () => ['server', serverUuid, 'fivem', 'artifacts'] as const,
+  },
   // plugged.host: docs/features/minecraft.md
   minecraft: {
     content: () => ['server', serverUuid, 'minecraft', 'content'] as const,

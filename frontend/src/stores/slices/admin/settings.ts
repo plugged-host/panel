@@ -230,6 +230,8 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
     minecraftSpigot: true,
     minecraftUserAgent: '',
     minecraftLogCheck: true,
+    fivemImage: '',
+    fivemEnhanced: false,
   },
   placement: {
     pauseEnabled: true,

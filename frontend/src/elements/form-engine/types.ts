@@ -240,6 +240,7 @@ export interface RegisteredFormIds {
   'admin.settings.webauthn': true;
   'admin.settings.noprofit': true; // plugged.host
   'admin.settings.minecraft': true; // plugged.host
+  'admin.settings.fivem': true; // plugged.host
   'admin.settings.application': true;
   'admin.settings.metadata': true;
   'admin.settings.user': true;

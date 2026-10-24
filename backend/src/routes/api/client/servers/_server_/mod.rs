@@ -28,6 +28,7 @@ mod delete; // plugged.host
 mod files;
 // plugged.host: the firewall removed (docs/upstream.md)
 // mod firewall;
+mod fivem; // plugged.host
 mod logs;
 mod minecraft; // plugged.host
 // plugged.host: mounts removed (docs/upstream.md)
@@ -168,6 +169,7 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         .nest("/announcements", announcements::router(state))
         .nest("/resources", resources::router(state))
         .nest("/logs", logs::router(state))
+        .nest("/fivem", fivem::router(state)) // plugged.host
         .nest("/minecraft", minecraft::router(state)) // plugged.host
         .nest("/websocket", websocket::router(state))
         .nest("/command", command::router(state))

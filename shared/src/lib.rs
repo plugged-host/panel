@@ -36,6 +36,7 @@ pub mod env;
 pub mod events;
 pub mod extensions;
 pub mod extract;
+pub mod fivem; // plugged.host
 pub mod git;
 #[cfg(unix)]
 pub mod heavy;

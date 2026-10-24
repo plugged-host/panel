@@ -110,6 +110,13 @@ pub struct AppSettingsGames {
     /// Uploads Minecraft servers' logs to mclo.gs and shows the problems it finds above the
     /// console.
     pub minecraft_log_check: bool,
+    /// The image FiveM servers run on (its `fivem-runtime` keeps the FXServer build on what the
+    /// server's variables ask for); empty leaves servers on their egg's image
+    /// (docs/features/fivem.md).
+    pub fivem_image: compact_str::CompactString,
+    /// Whether players may switch to FiveM for GTAV Enhanced. Its txAdmin needs io_uring, which
+    /// Docker's default seccomp profile forbids; turn it on once the nodes allow it.
+    pub fivem_enhanced: bool,
 }
 
 impl Default for AppSettingsGames {
@@ -135,6 +142,8 @@ impl Default for AppSettingsGames {
             minecraft_spigot: true,
             minecraft_user_agent: compact_str::CompactString::default(),
             minecraft_log_check: true,
+            fivem_image: compact_str::CompactString::default(),
+            fivem_enhanced: false,
         }
     }
 }
@@ -201,6 +210,10 @@ pub struct PayloadGames {
     minecraft_user_agent: Option<compact_str::CompactString>,
     #[garde(skip)]
     minecraft_log_check: Option<bool>,
+    #[garde(inner(length(chars, max = 255)))]
+    fivem_image: Option<compact_str::CompactString>,
+    #[garde(skip)]
+    fivem_enhanced: Option<bool>,
 }
 
 impl PayloadGames {
@@ -271,7 +284,8 @@ impl PayloadGames {
             allowance_memory,
             allowance_disk,
             minecraft_spigot,
-            minecraft_log_check
+            minecraft_log_check,
+            fivem_enhanced
         );
 
         match self.minecraft_curseforge_key {
@@ -285,6 +299,12 @@ impl PayloadGames {
                 return Err("the user agent must be one line".into());
             }
             settings.minecraft_user_agent = user_agent.trim().into();
+        }
+        if let Some(image) = self.fivem_image {
+            if image.chars().any(|c| c.is_control() || c.is_whitespace()) {
+                return Err("the fivem image is one word, like registry/name:tag".into());
+            }
+            settings.fivem_image = image.trim().into();
         }
 
         Ok(())
@@ -322,6 +342,8 @@ impl SettingsSerializeExt for AppSettingsGames {
                 "minecraft_log_check",
                 self.minecraft_log_check.to_compact_string(),
             )
+            .write_raw_setting("fivem_image", &*self.fivem_image)
+            .write_raw_setting("fivem_enhanced", self.fivem_enhanced.to_compact_string())
             .write_raw_setting("create_enabled", self.create_enabled.to_compact_string())
             .write_raw_setting("catalog", serde_json::to_string(&self.catalog)?)
             .write_raw_setting(
@@ -410,6 +432,10 @@ impl SettingsDeserializeExt for AppSettingsGamesDeserializer {
                 .take_raw_setting("minecraft_user_agent")
                 .unwrap_or_default(),
             minecraft_log_check: parsed!(minecraft_log_check),
+            fivem_image: deserializer
+                .take_raw_setting("fivem_image")
+                .unwrap_or_default(),
+            fivem_enhanced: parsed!(fivem_enhanced),
         }))
     }
 }
@@ -458,6 +484,8 @@ mod tests {
             minecraft_spigot: None,
             minecraft_user_agent: None,
             minecraft_log_check: None,
+            fivem_image: None,
+            fivem_enhanced: None,
         }
     }
 
