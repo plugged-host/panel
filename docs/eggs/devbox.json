@@ -13,7 +13,7 @@
     ],
     "features": [],
     "docker_images": {
-        "Devbox": "ghcr.io/plugged-host/devbox:latest"
+        "Devbox": "ghcr.io/plugged-host/panel-devbox:latest"
     },
     "file_denylist": [],
     "startup_commands": {

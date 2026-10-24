@@ -1,5 +1,6 @@
 # plugged.host: builds the devbox image (docker/devbox, docs/features/devboxes.md) and publishes
-# it as ghcr.io/<owner>/devbox: `latest` from main, a `sha-<commit>` tag per build for pinning.
+# it as ghcr.io/<owner>/<repository>-devbox: `latest` from main, a `sha-<commit>` tag per build for
+# pinning.
 name: Devbox Image
 
 on:
@@ -42,10 +43,10 @@ jobs:
 
       - name: Determine tags
         env:
-          OWNER: ${{ github.repository_owner }}
+          REPOSITORY: ${{ github.repository }}
           SHA: ${{ github.sha }}
         run: |
-          image="ghcr.io/${OWNER,,}/devbox"
+          image="ghcr.io/${REPOSITORY,,}-devbox"
           echo "IMAGE_TAGS=${image}:latest,${image}:sha-${SHA::12}" >> "$GITHUB_ENV"
           echo "PH_VERSION=${SHA::12}" >> "$GITHUB_ENV"
 

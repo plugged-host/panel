@@ -168,11 +168,13 @@ Admin › Settings › Hosting › Devboxes (`devboxes::*`, `shared/src/settings
 ### 1. The egg and the image
 
 Import `docs/eggs/devbox.json` into any nest (Admin › Nests › Import). The image is built from
-`docker/devbox` by `.github/workflows/devbox-image.yml` as `ghcr.io/<owner>/devbox:latest` and
-`:sha-<commit>`; pin a digest in the settings. Pull it on each node ahead of the first start:
+`docker/devbox` by `.github/workflows/devbox-image.yml` as `ghcr.io/<owner>/<repository>-devbox`
+(`:latest` and `:sha-<commit>`; the egg names `ghcr.io/plugged-host/panel-devbox:latest`); pin a
+digest in the settings. The package must be public, or every node needs a registry login. Pull it
+on each node ahead of the first start:
 
 ```bash
-docker pull ghcr.io/<owner>/devbox@sha256:<digest>
+docker pull ghcr.io/<owner>/<repository>-devbox@sha256:<digest>
 ```
 
 ### 2. Each node

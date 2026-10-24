@@ -81,7 +81,7 @@ cap-std = "4.0.0"
 semver = { workspace = true }
 hickory-resolver = "0.26.0"
 ouroboros = "0.18.5"
-gix = { version = "0.89.0", default-features = false, features = [
+gix = { version = "0.90.0", default-features = false, features = [ # plugged.host: 0.90 (GHSA, Dependabot)
 	"blocking-http-transport-reqwest-rust-tls",
 	"worktree-mutation",
 	"sha1",
