@@ -293,6 +293,30 @@ pub async fn switch(
     Ok(())
 }
 
+/// How long a reinstall may take before waiting for it gives up.
+pub const INSTALL_WAIT: std::time::Duration = std::time::Duration::from_secs(30 * 60);
+
+/// Waits until the server's install is over: `true` when it finished, `false` when it failed or
+/// outlasted `timeout`. Polls the server's status every 5 seconds.
+pub async fn wait_for_install(
+    state: &crate::State,
+    server_uuid: uuid::Uuid,
+    timeout: std::time::Duration,
+) -> Result<bool, crate::database::DatabaseError> {
+    use crate::models::{ByUuid, server::ServerStatus};
+
+    let deadline = tokio::time::Instant::now() + timeout;
+    loop {
+        match Server::by_uuid(&state.database, server_uuid).await?.status {
+            Some(ServerStatus::Installing) if tokio::time::Instant::now() < deadline => {}
+            Some(ServerStatus::Installing) | Some(ServerStatus::InstallFailed) => return Ok(false),
+            _ => return Ok(true),
+        }
+
+        tokio::time::sleep(std::time::Duration::from_secs(5)).await;
+    }
+}
+
 /// The variables a Minecraft egg pins a software build with, set back to `latest` with the
 /// version.
 const BUILD_VARIABLES: &[&str] = &["BUILD_NUMBER"];

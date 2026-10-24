@@ -31,6 +31,7 @@ import ServerMinecraftContent from '@/pages/server/minecraft/content/ServerMinec
 import ServerMinecraftModpacks from '@/pages/server/minecraft/content/ServerMinecraftModpacks.tsx'; // plugged.host
 import ServerMinecraftPlayers from '@/pages/server/minecraft/players/ServerMinecraftPlayers.tsx'; // plugged.host
 import ServerMinecraftSettings from '@/pages/server/minecraft/settings/ServerMinecraftSettings.tsx'; // plugged.host
+import ServerMinecraftSetup from '@/pages/server/minecraft/setup/ServerMinecraftSetup.tsx'; // plugged.host
 import ServerMinecraftWorlds from '@/pages/server/minecraft/worlds/ServerMinecraftWorlds.tsx'; // plugged.host
 import ServerNetwork from '@/pages/server/network/ServerNetwork.tsx';
 import ServerQueue from '@/pages/server/queue/ServerQueue.tsx'; // plugged.host
@@ -116,6 +117,12 @@ const routes: ServerRouteDefinition[] = [
     path: '/minecraft/content/modpacks',
     element: ServerMinecraftModpacks,
     permission: 'minecraft.content',
+  },
+  {
+    name: undefined,
+    path: '/minecraft/setup',
+    element: ServerMinecraftSetup,
+    permission: 'minecraft.settings',
   },
   {
     name: () => getTranslations().t('pages.server.minecraft.settings.title', {}),

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { NavLink, Outlet, useLocation } from 'react-router';
+import { Navigate, NavLink, Outlet, useLocation } from 'react-router'; // plugged.host: Navigate
 import { httpErrorToHuman } from '@/api/axios.ts';
 import unlockBackupRestore from '@/api/server/backups/unlockBackupRestore.ts';
 import cancelServerInstall from '@/api/server/settings/cancelServerInstall.ts';
@@ -11,6 +11,7 @@ import ConfirmationModal from '@/elements/modals/ConfirmationModal.tsx';
 import { isInLimbo } from '@/lib/domain/limbo.ts'; // plugged.host
 import { isConflictingState, serverStatusInfo } from '@/lib/domain/server.ts';
 import ServerLimbo from '@/pages/server/limbo/ServerLimbo.tsx'; // plugged.host
+import { SETUP_PATH, useMinecraftSetup } from '@/pages/server/minecraft/setup/useMinecraftSetup.ts'; // plugged.host
 import { useAdminCan } from '@/plugins/usePermissions.ts';
 import { useAuth } from '@/providers/AuthProvider.tsx';
 import { useToast } from '@/providers/ToastProvider.tsx';
@@ -31,6 +32,11 @@ export default function ServerStateGuard() {
   const location = useLocation();
 
   const [openModal, setOpenModal] = useState<'acknowledgeFailure' | null>(null);
+  // plugged.host: a new Minecraft server shows its owner the setup first (docs/features/minecraft.md)
+  const setup = useMinecraftSetup(server.isOwner);
+  const serverPaths = [`/server/${server.uuid}`, `/server/${server.uuidShort}`];
+  const onSetup = serverPaths.some((path) => location.pathname.startsWith(`${path}${SETUP_PATH}`));
+  const onPopout = serverPaths.some((path) => location.pathname === `${path}/console/popout`);
 
   const acknowledge = useMemo(() => {
     if (server.status === 'install_failed') {
@@ -75,6 +81,16 @@ export default function ServerStateGuard() {
   // plugged.host: a parked server (or one on its way) shows its limbo page on every path
   if (isInLimbo(server.limboState) && !server.isSuspended) {
     return <ServerLimbo />;
+  }
+
+  // plugged.host: the setup is answered while the server installs, and shows how applying it goes
+  if (!server.isSuspended && !server.isTransferring && !server.nodeMaintenanceEnabled) {
+    if (setup.data?.pending && !onSetup && !onPopout) {
+      return <Navigate to={`/server/${server.uuidShort}${SETUP_PATH}`} replace />;
+    }
+    if (onSetup && (server.status === null || server.status === 'installing')) {
+      return <Outlet />;
+    }
   }
 
   if (

@@ -1,6 +1,6 @@
 // plugged.host: a player creating a server: game, software, location, plan, name (docs/features/create-server.md)
 import { useQueryClient } from '@tanstack/react-query';
-import { ReactNode, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { z } from 'zod';
 import { httpErrorToHuman } from '@/api/axios.ts';
@@ -10,13 +10,13 @@ import { AdPageSlot } from '@/elements/ads/AdPlacements.tsx';
 import Button from '@/elements/buttons/Button.tsx';
 import AccountContentContainer from '@/elements/containers/AccountContentContainer.tsx';
 import Checkbox from '@/elements/input/Checkbox.tsx';
+import Choice, { ChoiceSection } from '@/elements/input/Choice.tsx';
 import TextInput from '@/elements/input/TextInput.tsx';
 import Group from '@/elements/layout/Group.tsx';
 import Stack from '@/elements/layout/Stack.tsx';
 import ResourceView from '@/elements/ResourceView.tsx';
 import Anchor from '@/elements/typography/Anchor.tsx';
 import Text from '@/elements/typography/Text.tsx';
-import Title from '@/elements/typography/Title.tsx';
 import { tierName } from '@/lib/economy.ts';
 import { bytesToString, mbToBytes } from '@/lib/format/size.ts';
 import { queryKeys } from '@/lib/queryKeys.ts';
@@ -28,42 +28,6 @@ import { useTranslations } from '@/providers/TranslationProvider.tsx';
 type Options = z.infer<typeof serverCreateOptionsSchema>;
 
 const MINECRAFT_EULA = 'https://aka.ms/MinecraftEULA';
-
-function Choice({
-  selected,
-  disabled,
-  onSelect,
-  children,
-}: {
-  selected: boolean;
-  disabled?: boolean;
-  onSelect: () => void;
-  children: ReactNode;
-}) {
-  return (
-    <button
-      type='button'
-      className='theme-choice'
-      data-selected={selected || undefined}
-      aria-pressed={selected}
-      disabled={disabled}
-      onClick={onSelect}
-    >
-      {children}
-    </button>
-  );
-}
-
-function Section({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <Stack gap='xs'>
-      <Title order={3} fz='md' fw={600}>
-        {title}
-      </Title>
-      {children}
-    </Stack>
-  );
-}
 
 function AllowanceLine({ allowance }: { allowance: z.infer<typeof serverCreateAllowanceSchema> }) {
   const { t } = useTranslations();
@@ -148,7 +112,7 @@ function CreateServerForm({ options }: { options: Options }) {
           </Text>
         )}
 
-        <Section title={t('pages.account.createServer.game', {})}>
+        <ChoiceSection title={t('pages.account.createServer.game', {})}>
           <div className='theme-choice-grid'>
             {options.games.map((option) => (
               <Choice
@@ -161,10 +125,10 @@ function CreateServerForm({ options }: { options: Options }) {
               </Choice>
             ))}
           </div>
-        </Section>
+        </ChoiceSection>
 
         {game && game.variants.length > 1 && (
-          <Section title={t('pages.account.createServer.software', {})}>
+          <ChoiceSection title={t('pages.account.createServer.software', {})}>
             <div className='theme-choice-grid'>
               {game.variants.map((option) => (
                 <Choice
@@ -176,10 +140,10 @@ function CreateServerForm({ options }: { options: Options }) {
                 </Choice>
               ))}
             </div>
-          </Section>
+          </ChoiceSection>
         )}
 
-        <Section title={t('pages.account.createServer.location', {})}>
+        <ChoiceSection title={t('pages.account.createServer.location', {})}>
           <div className='theme-choice-grid'>
             {options.locations.map((location) => (
               <Choice
@@ -206,9 +170,9 @@ function CreateServerForm({ options }: { options: Options }) {
               </Choice>
             ))}
           </div>
-        </Section>
+        </ChoiceSection>
 
-        <Section title={t('pages.account.createServer.plan', {})}>
+        <ChoiceSection title={t('pages.account.createServer.plan', {})}>
           <div className='theme-choice-grid'>
             {options.plans.map((plan) => (
               <Choice
@@ -231,9 +195,9 @@ function CreateServerForm({ options }: { options: Options }) {
               </Choice>
             ))}
           </div>
-        </Section>
+        </ChoiceSection>
 
-        <Section title={t('pages.account.createServer.details', {})}>
+        <ChoiceSection title={t('pages.account.createServer.details', {})}>
           <TextInput
             label={t('common.form.name', {})}
             placeholder={t('pages.account.createServer.namePlaceholder', {})}
@@ -257,7 +221,7 @@ function CreateServerForm({ options }: { options: Options }) {
               }
             />
           )}
-        </Section>
+        </ChoiceSection>
 
         <Group>
           <Button type='submit' disabled={!ready} loading={loading}>

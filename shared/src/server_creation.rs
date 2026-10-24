@@ -362,6 +362,8 @@ async fn create_locked(
     if egg.features.iter().any(|feature| feature == EULA_FEATURE) && !request.eula {
         return Err(CreateError::EulaRequired);
     }
+    // a Minecraft server starts once its player went through the setup, which applies the answers
+    let setup = crate::minecraft::is_minecraft(&egg);
 
     let variant = match (&request.variant, game.variants.is_empty()) {
         (_, true) => None,
@@ -526,7 +528,7 @@ async fn create_locked(
             backup_configuration_uuid: None,
             allocation_uuid,
             allocation_uuids,
-            start_on_completion: true,
+            start_on_completion: !setup,
             skip_installer: false,
             external_id: None,
             name: request.name,
@@ -552,6 +554,10 @@ async fn create_locked(
             .set(&eula_marker(server.uuid), EULA_MARKER_SECONDS, &true)
             .await
             .ok();
+    }
+    if setup && let Err(err) = crate::minecraft::onboarding::require(state, server.uuid).await {
+        // without the mark the server is just not started: its player starts it themselves
+        tracing::warn!(server = %server.uuid, "failed to mark the server for setup: {err:#}");
     }
 
     Ok(server)

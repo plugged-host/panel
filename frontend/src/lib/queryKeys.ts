@@ -288,6 +288,7 @@ const server = (serverUuid: string) => ({
     logCheck: () => ['server', serverUuid, 'minecraft', 'logCheck'] as const,
     bedrock: () => ['server', serverUuid, 'minecraft', 'bedrock'] as const,
     modpacks: () => ['server', serverUuid, 'minecraft', 'modpacks'] as const,
+    onboarding: () => ['server', serverUuid, 'minecraft', 'onboarding'] as const,
     modpackSearch: (params: object) => ['server', serverUuid, 'minecraft', 'modpacks', 'search', params] as const,
     modpackVersions: (source: string, project: string) =>
       ['server', serverUuid, 'minecraft', 'modpacks', 'versions', { source, project }] as const,

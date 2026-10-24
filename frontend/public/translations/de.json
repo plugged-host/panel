@@ -9850,6 +9850,73 @@
             "toast": {
               "started": "{name} wird installiert. Diese Seite zeigt den Fortschritt."
             }
+          },
+          "setup": {
+            "title": "Server einrichten",
+            "intro": "Ein paar Fragen dazu, wie du spielen willst. Die Antworten werden übernommen, dann startet der Server.",
+            "introInstalling": "Dein Server wird gerade installiert. Beantworte die Fragen in der Zwischenzeit: Sie werden nach der Installation übernommen, dann startet der Server.",
+            "submit": "Einrichten und starten",
+            "what": {
+              "title": "Was laufen soll",
+              "software": "Ein Server",
+              "softwareText": "Wähle die Software und die Minecraft-Version.",
+              "modpack": "Ein Modpack",
+              "modpackText": "Ein Pack von Modrinth oder CurseForge mit eigenen Mods, Loader und Version."
+            },
+            "software": {
+              "title": "Software",
+              "version": "Die neueste Version ist ein guter Anfang. Wähle eine ältere, wenn deine Freunde sie spielen."
+            },
+            "modpack": {
+              "title": "Modpack",
+              "search": "Suche",
+              "searchPlaceholder": "Name eines Modpacks",
+              "by": "Von {author}, {downloads} Downloads",
+              "version": "Version von {name}"
+            },
+            "bedrock": {
+              "title": "Bedrock-Spieler",
+              "java": "Nur Java Edition",
+              "javaText": "Spieler am Computer mit Minecraft: Java Edition.",
+              "both": "Java und Bedrock",
+              "bothText": "Auch Spieler auf Handys, Tablets, Konsolen und Windows (Bedrock Edition), über Geyser."
+            },
+            "accounts": {
+              "title": "Accounts",
+              "premium": "Gekaufte Accounts",
+              "premiumText": "Spieler brauchen einen gekauften Minecraft-Account. Namen und Skins werden geprüft.",
+              "cracked": "Beliebiger Name",
+              "crackedText": "Jeder kommt mit einem beliebigen Namen rein, auch ohne gekauften Account. Jeder könnte sich auch als du ausgeben, mach den Server also privat."
+            },
+            "access": {
+              "title": "Wer beitreten darf",
+              "public": "Jeder mit der Adresse",
+              "publicText": "Alle, die die Serveradresse haben, können beitreten.",
+              "private": "Nur Spieler, die ich hinzufüge",
+              "privateText": "Eine Whitelist: Nur die Namen, die du hinzufügst, können beitreten."
+            },
+            "players": {
+              "title": "Spieler",
+              "whitelist": "Spieler, die beitreten dürfen",
+              "whitelistDescription": "Minecraft-Namen, bis zu {max}. Weitere kannst du auf der Spieler-Seite hinzufügen.",
+              "operators": "Operatoren",
+              "operatorsDescription": "Spieler, die wie du jeden Befehl nutzen können. Bis zu {max}.",
+              "placeholder": "Minecraft-Name",
+              "invalid": "Kein Minecraft-Name: {names}"
+            },
+            "progress": {
+              "waiting": "Warte, bis die Installation des Servers fertig ist…",
+              "software": "Der Server wird mit der gewählten Software neu installiert…",
+              "modpack": "Das Modpack wird installiert…",
+              "settings": "Einstellungen und Spielerlisten werden geschrieben…",
+              "bedrock": "Bedrock-Spieler werden eingerichtet…",
+              "starting": "Der Server wird gestartet…",
+              "done": "Dein Server ist eingerichtet und startet.",
+              "failed": "Die Einrichtung wurde abgebrochen: {error}",
+              "problems": "Nicht alles hat geklappt: {problems}",
+              "skipped": "Nicht hinzugefügt (kein Minecraft-Account hat den Namen, oder Mojang hat nicht geantwortet), füge sie auf der Spieler-Seite hinzu: {names}",
+              "console": "Zur Konsole"
+            }
           }
         },
         "activity": {

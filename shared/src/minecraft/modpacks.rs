@@ -5,10 +5,7 @@
 //! after the request; the page polls the state stored here.
 
 use super::{Kind, Loader, SearchPage, Source, Version, content, curseforge, files, modrinth};
-use crate::models::{
-    ByUuid,
-    server::{Server, ServerStatus},
-};
+use crate::models::server::Server;
 use futures_util::StreamExt;
 use serde::{Deserialize, Serialize};
 use std::io::{Read, Write};
@@ -21,8 +18,6 @@ const MAX_PACK_BYTES: u64 = 256 * 1024 * 1024;
 const MAX_OVERRIDES_BYTES: u64 = 256 * 1024 * 1024;
 const OVERRIDES_ARCHIVE: &str = ".modpack-overrides.zip";
 const DOWNLOAD_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(300);
-/// How long a reinstall for the pack's software may take.
-const INSTALL_WAIT: std::time::Duration = std::time::Duration::from_secs(30 * 60);
 /// Wings runs three downloads per server at a time by default.
 const PARALLEL_PULLS: usize = 3;
 const RUNNING_TTL: u64 = 2 * 60 * 60;
@@ -556,17 +551,17 @@ async fn switch_software(
         .await
         .map_err(ModpackError::Software)?;
 
-    let deadline = tokio::time::Instant::now() + INSTALL_WAIT;
-    loop {
-        tokio::time::sleep(std::time::Duration::from_secs(5)).await;
-
-        match Server::by_uuid(&state.database, server.uuid).await?.status {
-            Some(ServerStatus::Installing) if tokio::time::Instant::now() < deadline => {}
-            Some(ServerStatus::Installing) | Some(ServerStatus::InstallFailed) => {
-                return Err(ModpackError::InstallFailed);
-            }
-            _ => return Ok(()),
-        }
+    // the status turns to installing within the switch, so the first look already sees it
+    if crate::server_software::wait_for_install(
+        state,
+        server.uuid,
+        crate::server_software::INSTALL_WAIT,
+    )
+    .await?
+    {
+        Ok(())
+    } else {
+        Err(ModpackError::InstallFailed)
     }
 }
 

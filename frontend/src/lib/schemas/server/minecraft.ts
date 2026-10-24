@@ -254,3 +254,30 @@ export const minecraftModpacksSchema = z.object({
 });
 
 export const minecraftSearchPageSchema = minecraftSearchSchema.shape.projects;
+
+export const minecraftOnboardingStepSchema = z.enum([
+  'waiting',
+  'software',
+  'modpack',
+  'settings',
+  'bedrock',
+  'starting',
+  'done',
+  'failed',
+]);
+
+export const minecraftOnboardingProgressSchema = z.object({
+  step: minecraftOnboardingStepSchema,
+  error: z.string().nullable(),
+  skipped: z.array(z.string()),
+  started: z.coerce.date(),
+});
+
+export const minecraftOnboardingSchema = z.object({
+  pending: z.boolean(),
+  completed: z.coerce.date().nullable(),
+  progress: minecraftOnboardingProgressSchema.nullable(),
+  bedrockVariants: z.array(z.string()),
+  bedrockLoaders: z.array(minecraftLoaderSchema),
+  bedrockNow: z.boolean(),
+});

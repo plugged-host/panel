@@ -3,10 +3,11 @@
 Minecraft servers get their own pages in the server sidebar: **Plugins & Mods** (with **Modpacks**
 and **Bedrock**), **Game Settings**, **Players** and **Worlds**, plus the **log check** above the
 console and the Minecraft version in Settings › Software
-([server-settings.md](server-settings.md#software)). The onboarding and the installing page follow.
+([server-settings.md](server-settings.md#software)). A player's new Minecraft server starts with
+the [setup](#setup).
 
 The code is in `shared/src/minecraft/` (sources, versions, installed jars, `config.rs`,
-`players.rs`, `worlds.rs`, `bedrock.rs`, `modpacks.rs`, `log_check.rs`, `files.rs` for reading and
+`players.rs`, `worlds.rs`, `bedrock.rs`, `modpacks.rs`, `onboarding.rs`, `log_check.rs`, `files.rs` for reading and
 writing the server's files through Wings; `shared/src/redact.rs` masks secrets), the routes in
 `backend/src/routes/api/client/servers/_server_/minecraft/`, the pages in
 `frontend/src/pages/server/minecraft/`.
@@ -149,6 +150,43 @@ jar and the address Bedrock players join, and **Install Geyser** / **Update Geys
 4. A running server is restarted after 5 seconds (the downloads run in Wings' background).
 
 Activity: `server:minecraft.bedrock.install`.
+
+## Setup
+
+A Minecraft server a player creates ([create-server.md](create-server.md)) is not started after its
+install. It gets a `server_onboardings` row instead, and its owner is sent to **Set Up Your
+Server** (`/minecraft/setup`) from every page of the server, also while it installs (the page is
+the one a server that installs may show besides the console). Servers an admin creates have no row
+and never see it. The page asks, as choice tiles like the create page:
+
+- **What to run** (when the server can take a modpack): a server, with its software (the game's
+  choices) and Minecraft version, or a modpack from the [Modpacks](#modpacks) sources and its
+  version;
+- **Bedrock players** (when the chosen software, or the pack's loader, runs Geyser): Java only, or
+  Java and Bedrock;
+- **Accounts**: bought accounts (`online-mode=true`) or any name;
+- **Who can join**: anyone, or only the players added (the whitelist);
+- **Players**: the whitelist (when private) and operators, up to 20 names each.
+
+**Set Up and Start** stores the answers on the row (`completed`, once: a second submit is 409), and
+`minecraft::onboarding::apply` runs after the request: it waits for the install to end (30 minutes
+at most), installs the modpack or switches the software and version (a reinstall it waits for
+too), writes `online-mode`, turns the whitelist on or off and adds the names (looked up at Mojang in
+online mode; names without an account are listed as skipped), installs Geyser when asked, and
+starts the server. A part that fails is listed and the rest still applied; an install that failed
+stops it ("reinstall it from Settings"). The page then shows each step (polled every 3 seconds,
+kept in the cache 2 hours while running and an hour after) and **Go to the Console** when it ends.
+Activity: `server:minecraft.onboarding.complete` when it ends.
+
+### The egg
+
+[`docs/eggs/minecraft-java.json`](../eggs/minecraft-java.json) is the Minecraft: Java Edition egg the
+pages are made for: one egg for Purpur (Paper below 1.14.1), Fabric, Forge and NeoForge, chosen by
+`MC_SOFTWARE`, with `MINECRAFT_VERSION` and `BUILD_NUMBER`, the `eula` feature and a startup command
+per kind (jar, old Java, mod loader). Import it in Admin › Nests (a nest's Eggs tab, Import), then add it to
+the games catalog (Admin › Settings › Hosting › Games) with `MC_SOFTWARE` as the software variable
+and the choices `purpur`, `fabric`, `forge`, `neoforge`, each with its startup command. Other
+Minecraft eggs work too; this one is the one the setup and Modpacks switch between softwares in.
 
 ## Game Settings
 
@@ -333,6 +371,13 @@ Under `/api/client/servers/{server}/minecraft/modpacks` (`minecraft.content`):
 the software, the jar, the port and address; `POST` installs or updates (`{updated, floodgate, port,
 address, restarted}`).
 
+`/api/client/servers/{server}/minecraft/onboarding`: `GET` (`minecraft.settings`) whether the setup
+waits, when it was answered, the progress, and which software choices and loaders run Geyser (404
+for a server without one); `POST` the answers `{variant, version, modpack: {source, project,
+version}, bedrock, online_mode, private, players, operators}` (`minecraft.settings` +
+`minecraft.players`, plus `settings.software` to change the software, `minecraft.content` for a
+modpack, `minecraft.bedrock` for Bedrock); 202, 409 when already answered.
+
 `GET /api/client/servers/{server}/minecraft/log-check` (`control.console` + `files.read-content`):
 `{enabled, result}`, the result being `{id, url, errors, problems: [{message, solution}], checked}`;
 502 when the log could not be checked.
@@ -379,3 +424,11 @@ Nothing here uses noprofit.space.
 - The log check: start a server with a broken mod; above the console a card lists the problem and
   its fix, with a link to mclo.gs where passwords in the log show as `••••`. A clean start shows the
   one dimmed line. Turning Log Check off in Admin › Settings hides it.
+- Create a Minecraft server as a player: the server page goes to Set Up Your Server while it
+  installs; the console and other pages lead back to it. Pick Fabric and an older version, Java and
+  Bedrock, any name, private with two names and an operator: after Set Up and Start the page shows
+  waiting, reinstalling, settings, Bedrock, starting, then done; `server.properties` has
+  `online-mode=false`, `white-list=true`, the lists hold the names, Geyser is in `mods/` and the
+  server runs. A made-up name in online mode is listed as not added.
+- The same with a modpack: the pack installs, then the settings are written and the server starts.
+- A server an admin creates starts after its install as before and has no setup.

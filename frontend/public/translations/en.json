@@ -9850,6 +9850,73 @@
             "toast": {
               "started": "Installing {name}. This page shows how far it got."
             }
+          },
+          "setup": {
+            "title": "Set Up Your Server",
+            "intro": "A few questions about how you want to play. The answers are applied, then the server starts.",
+            "introInstalling": "Your server is installing. Answer these meanwhile: they are applied once the install is done, then the server starts.",
+            "submit": "Set Up and Start",
+            "what": {
+              "title": "What to Run",
+              "software": "A Server",
+              "softwareText": "Pick the software and the Minecraft version.",
+              "modpack": "A Modpack",
+              "modpackText": "A pack from Modrinth or CurseForge with its own mods, loader and version."
+            },
+            "software": {
+              "title": "Software",
+              "version": "The newest release is a good start. Pick an older one if your friends play it."
+            },
+            "modpack": {
+              "title": "Modpack",
+              "search": "Search",
+              "searchPlaceholder": "Name of a modpack",
+              "by": "By {author}, {downloads} downloads",
+              "version": "Version of {name}"
+            },
+            "bedrock": {
+              "title": "Bedrock Players",
+              "java": "Java Edition only",
+              "javaText": "Players on a computer with Minecraft: Java Edition.",
+              "both": "Java and Bedrock",
+              "bothText": "Also players on phones, tablets, consoles and Windows (Bedrock Edition), through Geyser."
+            },
+            "accounts": {
+              "title": "Accounts",
+              "premium": "Bought accounts",
+              "premiumText": "Players need a Minecraft account they paid for. Their names and skins are checked.",
+              "cracked": "Any name",
+              "crackedText": "Anyone joins with any name, also without a bought account. Anyone could also join as you, so make the server private."
+            },
+            "access": {
+              "title": "Who Can Join",
+              "public": "Anyone with the address",
+              "publicText": "Everyone who has the server address can join.",
+              "private": "Only the players I add",
+              "privateText": "A whitelist: only the names you add can join."
+            },
+            "players": {
+              "title": "Players",
+              "whitelist": "Players who can join",
+              "whitelistDescription": "Minecraft names, up to {max}. More can be added on the Players page.",
+              "operators": "Operators",
+              "operatorsDescription": "Players who can use every command, like you. Up to {max}.",
+              "placeholder": "Minecraft name",
+              "invalid": "Not a Minecraft name: {names}"
+            },
+            "progress": {
+              "waiting": "Waiting for the server to finish installing…",
+              "software": "Reinstalling the server with the chosen software…",
+              "modpack": "Installing the modpack…",
+              "settings": "Writing the settings and player lists…",
+              "bedrock": "Setting up Bedrock players…",
+              "starting": "Starting the server…",
+              "done": "Your server is set up and starting.",
+              "failed": "The setup stopped: {error}",
+              "problems": "Not everything went in: {problems}",
+              "skipped": "Not added (no Minecraft account has the name, or Mojang did not answer), add them on the Players page: {names}",
+              "console": "Go to the Console"
+            }
           }
         },
         "activity": {

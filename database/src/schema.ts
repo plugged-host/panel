@@ -1680,6 +1680,17 @@ export const serverWaitingRoomsTable = pgTable(
   ],
 );
 
+// plugged.host: the setup a player's new Minecraft server starts with (docs/features/minecraft.md)
+export const serverOnboardingsTable = pgTable('server_onboardings', {
+  server_uuid: uuid()
+    .references(() => serversTable.uuid, { onDelete: 'cascade' })
+    .primaryKey()
+    .notNull(),
+  answers: jsonb(),
+  completed: timestamp(),
+  created: timestamp().defaultNow().notNull(),
+});
+
 export const serverAllocationsTable = pgTable(
   'server_allocations',
   {

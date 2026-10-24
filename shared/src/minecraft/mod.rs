@@ -10,6 +10,7 @@ pub mod jars;
 pub mod log_check;
 pub mod modpacks;
 pub mod modrinth;
+pub mod onboarding;
 pub mod players;
 pub mod spigot;
 pub mod versions;

@@ -68,7 +68,8 @@ the check and the write, so two requests at once cannot both spend the same room
    allocations).
 4. The server is created through the native `Server::create` (Wings creates it and installs it),
    with the variant's variable and the deployment's variables set, the plan's limits, the games
-   settings' feature limits, and "start after install" on.
+   settings' feature limits, and "start after install" on, except for a Minecraft egg: that server
+   starts once its player went through the setup ([minecraft.md](minecraft.md#setup)).
 5. With the EULA accepted, the install callback writes `eula.txt` (`eula=true`) into the server
    before Wings starts it (`after_install`, in `remote/servers/{server}/install.rs`). Wings waits
    for that callback before the start, so the file is there for the first boot.
@@ -104,8 +105,8 @@ The allowance comes from the games settings, the same for every account. Nothing
 - Admin › Settings › Hosting › Games: add a game with two variants and a variable, set a per-account
   memory limit, turn "Players Create Servers" on and save. Saving an egg twice is refused.
 - As a player: "Create server" shows above the server list; create a server, it opens the console,
-  installs and starts; with a Minecraft egg, `eula.txt` says `eula=true` and the server starts
-  without the EULA prompt.
+  installs and starts; with a Minecraft egg it opens the setup instead, `eula.txt` says
+  `eula=true` and the server starts after the setup without the EULA prompt.
 - Create servers until the memory limit: the next plan says "More than you have left" and a create through the API
   is refused with "not enough memory left in your account".
 - Pause every node of a location (Admin › Nodes): the location shows "Full right now".
