@@ -227,6 +227,9 @@ mod patch {
         transaction.commit().await?;
 
         Server::invalidate_cached(&state.database, server.uuid).await;
+        if data.primary.is_some() {
+            shared::subdomains::follow(&state, server.uuid); // plugged.host: the new port
+        }
 
         activity_logger
             .log(

@@ -38,6 +38,7 @@ pub mod ratelimits;
 pub mod recovery; // plugged.host
 pub mod server;
 pub mod status; // plugged.host
+pub mod subdomains; // plugged.host
 pub mod tour; // plugged.host
 pub mod updates;
 pub mod user;
@@ -448,6 +449,9 @@ pub struct AppSettings {
     // plugged.host: ads, the start waiting room, the ad-block notice, the in-game message
     #[schema(inline)]
     pub ads: ads::AppSettingsAds,
+    // plugged.host: server subdomains on Cloudflare
+    #[schema(inline)]
+    pub subdomains: subdomains::AppSettingsSubdomains,
     #[schema(inline)]
     pub updates: updates::AppSettingsUpdates,
 
@@ -756,6 +760,8 @@ impl SettingsSerializeExt for AppSettings {
             .nest("limbo", &self.limbo) // plugged.host
             .await?
             .nest("ads", &self.ads) // plugged.host
+            .await?
+            .nest("subdomains", &self.subdomains) // plugged.host
             .await?
             .nest("updates", &self.updates)
             .await?;
@@ -1068,6 +1074,9 @@ impl SettingsDeserializeExt for AppSettingsDeserializer {
                 .await?,
             ads: deserializer // plugged.host
                 .nest("ads", &ads::AppSettingsAdsDeserializer)
+                .await?,
+            subdomains: deserializer // plugged.host
+                .nest("subdomains", &subdomains::AppSettingsSubdomainsDeserializer)
                 .await?,
             updates: deserializer
                 .nest("updates", &updates::AppSettingsUpdatesDeserializer)

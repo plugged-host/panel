@@ -12,6 +12,7 @@ import {
   faFileZipper,
   faFingerprint,
   faFolderOpen,
+  faGlobe, // plugged.host
   faHeartPulse,
   faLayerGroup,
   faRectangleAd, // plugged.host
@@ -31,6 +32,7 @@ import AdminAnnouncements from '@/pages/admin/announcements/AdminAnnouncements.t
 import AdminAssets from '@/pages/admin/assets/AdminAssets.tsx';
 import AdminBackupConfigurations from '@/pages/admin/backup-configurations/AdminBackupConfigurations.tsx';
 import AdminDatabaseHosts from '@/pages/admin/database-hosts/AdminDatabaseHosts.tsx';
+import AdminDomains from '@/pages/admin/domains/AdminDomains.tsx'; // plugged.host
 import AdminEggConfigurations from '@/pages/admin/egg-configurations/AdminEggConfigurations.tsx';
 import AdminEggLibrary from '@/pages/admin/egg-library/AdminEggLibrary.tsx';
 import AdminEggRepositories from '@/pages/admin/egg-repositories/AdminEggRepositories.tsx';
@@ -101,6 +103,15 @@ const routes: AdminRouteDefinition[] = [
     path: '/plans/*',
     element: AdminPlans,
     permission: ['plans.*'],
+    category: 'infrastructure',
+  },
+  // plugged.host: the domains server subdomains are made under (docs/features/subdomains.md)
+  {
+    name: () => getTranslations().t('pages.admin.domains.title', {}),
+    icon: faGlobe,
+    path: '/domains',
+    element: AdminDomains,
+    permission: ['domains.*'],
     category: 'infrastructure',
   },
   // plugged.host: abuse protection (docs/features/abuse.md)

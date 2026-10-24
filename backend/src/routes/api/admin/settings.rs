@@ -435,6 +435,10 @@ mod put {
         #[schema(inline)]
         #[garde(dive)]
         ads: Option<shared::settings::ads::PayloadAds>,
+        // plugged.host: docs/features/subdomains.md
+        #[schema(inline)]
+        #[garde(dive)]
+        subdomains: Option<shared::settings::subdomains::PayloadSubdomains>,
         #[schema(inline)]
         #[garde(dive)]
         updates: Option<PayloadUpdates>,
@@ -965,6 +969,10 @@ mod put {
             return ApiResponse::error(&error)
                 .with_status(StatusCode::BAD_REQUEST)
                 .ok();
+        }
+        // plugged.host: subdomains
+        if let Some(subdomains) = data.subdomains {
+            subdomains.apply(&mut settings.subdomains);
         }
 
         if !settings.app.password_login_enabled {

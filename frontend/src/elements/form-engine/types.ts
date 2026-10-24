@@ -241,6 +241,8 @@ export interface RegisteredFormIds {
   'admin.settings.noprofit': true; // plugged.host
   'admin.settings.minecraft': true; // plugged.host
   'admin.settings.fivem': true; // plugged.host
+  'admin.settings.subdomains': true; // plugged.host
+  'admin.domains.create': true; // plugged.host
   'admin.settings.application': true;
   'admin.settings.metadata': true;
   'admin.settings.user': true;

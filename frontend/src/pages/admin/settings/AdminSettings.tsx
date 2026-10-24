@@ -13,6 +13,7 @@ import {
   faEnvelopesBulk,
   faEyeSlash, // plugged.host
   faGamepad,
+  faGlobe, // plugged.host
   faHandshake,
   faHeartPulse,
   faHourglassHalf, // plugged.host
@@ -69,6 +70,7 @@ import RecoveryContainer from './recovery/RecoveryContainer.tsx'; // plugged.hos
 import ServerContainer from './server/ServerContainer.tsx';
 import StatusContainer from './status/StatusContainer.tsx';
 import StorageContainer from './storage/StorageContainer.tsx';
+import SubdomainsContainer from './subdomains/SubdomainsContainer.tsx'; // plugged.host
 import TourContainer from './tour/TourContainer.tsx'; // plugged.host
 import UpdatesContainer from './updates/UpdatesContainer.tsx';
 import UserContainer from './user/UserContainer.tsx';
@@ -208,6 +210,13 @@ export const settingsGroups: SettingsGroup[] = [
         icon: faCar,
         path: '/fivem',
         element: <FivemContainer />,
+      },
+      // plugged.host: server subdomains on Cloudflare (docs/features/subdomains.md)
+      {
+        name: t('pages.admin.settings.tabs.subdomains.title', {}),
+        icon: faGlobe,
+        path: '/subdomains',
+        element: <SubdomainsContainer />,
       },
       {
         name: t('pages.admin.settings.tabs.placement.title', {}),

@@ -160,6 +160,7 @@ export const publicSettingsSchema = z.object({
     allowResizing: z.boolean(),
     allowDeleting: z.boolean(),
     transferEnabled: z.boolean(),
+    subdomainsEnabled: z.boolean(),
   }),
   // plugged.host: the welcome tour runs
   tour: z.object({

@@ -3161,6 +3161,8 @@ impl DeletableModel for Server {
 
         let state = state.clone();
         let server_uuid = self.uuid;
+        let subdomain_service =
+            crate::subdomains::records::Service::of_features(&self.egg.features); // plugged.host
 
         tokio::spawn(async move {
             for db in databases {
@@ -3191,6 +3193,8 @@ impl DeletableModel for Server {
 
             let on_mesh =
                 crate::tunnel::bump_epoch_if_server_on_mesh(&mut transaction, server_uuid).await?;
+            // plugged.host: its subdomains go with it, their tokens back to the owner
+            let subdomains = crate::subdomains::release(&mut transaction, server_uuid).await?;
 
             sqlx::query!("DELETE FROM servers WHERE servers.uuid = $1", server_uuid)
                 .execute(&mut *transaction)
@@ -3213,6 +3217,7 @@ impl DeletableModel for Server {
             {
                 Ok(_) => {
                     transaction.commit().await?;
+                    crate::subdomains::forget(&state, subdomains, subdomain_service); // plugged.host
 
                     Self::invalidate_cached(&state.database, server_uuid).await;
 
@@ -3227,6 +3232,7 @@ impl DeletableModel for Server {
 
                     if options.force {
                         transaction.commit().await?;
+                        crate::subdomains::forget(&state, subdomains, subdomain_service); // plugged.host
 
                         Self::invalidate_cached(&state.database, server_uuid).await;
 

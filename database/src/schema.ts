@@ -1278,6 +1278,19 @@ export const databaseHostsTable = pgTable(
   (cols) => [uniqueIndex('database_hosts_name_idx').on(cols.name)],
 );
 
+// plugged.host: the domains server subdomains are made under, each a Cloudflare zone
+// (shared/src/subdomains, docs/features/subdomains.md)
+export const domainsTable = pgTable(
+  'domains',
+  {
+    uuid: uuid().default(sql`gen_random_uuid()`).primaryKey().notNull(),
+    name: varchar({ length: 253 }).notNull(),
+    zone_id: varchar({ length: 64 }),
+    created: timestamp().defaultNow().notNull(),
+  },
+  (cols) => [uniqueIndex('domains_name_idx').on(cols.name)],
+);
+
 export const databaseAgentHostsTable = pgTable(
   'database_agent_hosts',
   {
@@ -1430,6 +1443,7 @@ export const serversTable = pgTable(
     database_limit: integer().default(0).notNull(),
     backup_limit: integer().default(0).notNull(),
     schedule_limit: integer().default(0).notNull(),
+    subdomain_limit: integer(), // plugged.host: empty uses the subdomains settings' default
     created: timestamp().defaultNow().notNull(),
   },
   (cols) => [
@@ -2008,6 +2022,31 @@ export const serverDatabaseInstancesTable = pgTable(
     index('server_database_instances_server_uuid_idx').on(cols.server_uuid),
     index('server_database_instances_database_agent_host_uuid_idx').on(cols.database_agent_host_uuid),
     uniqueIndex('server_database_instances_server_uuid_name_idx').on(cols.server_uuid, cols.name),
+  ],
+);
+
+// plugged.host: a server's names under the domains, with the DNS records made for them and the
+// tokens paid (refunded when it is deleted)
+export const serverSubdomainsTable = pgTable(
+  'server_subdomains',
+  {
+    uuid: uuid().default(sql`gen_random_uuid()`).primaryKey().notNull(),
+    server_uuid: uuid()
+      .references(() => serversTable.uuid, { onDelete: 'cascade' })
+      .notNull(),
+    domain_uuid: uuid()
+      .references(() => domainsTable.uuid)
+      .notNull(),
+    name: varchar({ length: 63 }).notNull(),
+    record_type: varchar({ length: 8 }).notNull(),
+    records: jsonb().default({}).notNull(),
+    token_cost: integer().default(0).notNull(),
+    created: timestamp().defaultNow().notNull(),
+  },
+  (cols) => [
+    index('server_subdomains_server_uuid_idx').on(cols.server_uuid),
+    index('server_subdomains_domain_uuid_idx').on(cols.domain_uuid),
+    uniqueIndex('server_subdomains_domain_uuid_name_idx').on(cols.domain_uuid, cols.name),
   ],
 );
 

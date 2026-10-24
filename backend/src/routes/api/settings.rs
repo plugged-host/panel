@@ -89,6 +89,8 @@ mod get {
         allow_resizing: bool,
         allow_deleting: bool,
         transfer_enabled: bool,
+        /// Servers have a Subdomains page (docs/features/subdomains.md).
+        subdomains_enabled: bool,
     }
 
     /// plugged.host: whether the welcome tour runs (docs/features/welcome-tour.md).
@@ -226,6 +228,7 @@ mod get {
                 allow_resizing: settings.games.allow_resizing,
                 allow_deleting: settings.games.allow_deleting,
                 transfer_enabled: settings.games.transfer_enabled,
+                subdomains_enabled: settings.subdomains.active(),
             },
             tour: ResponseTour {
                 enabled: settings.tour.enabled,

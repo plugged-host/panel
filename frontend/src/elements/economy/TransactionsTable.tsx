@@ -15,6 +15,8 @@ const typeKeys = {
   admin: 'admin',
   limbo: 'limbo', // plugged.host: docs/features/limbo.md
   limbo_refund: 'limboRefund',
+  subdomain: 'subdomain', // docs/features/subdomains.md
+  subdomain_refund: 'subdomainRefund',
 } as const;
 
 type TypeKey = (typeof typeKeys)[keyof typeof typeKeys] | 'earn';

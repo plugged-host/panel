@@ -40,6 +40,7 @@ mod resources;
 mod schedules;
 mod settings;
 mod startup;
+mod subdomains; // plugged.host
 mod subusers;
 mod transfer;
 mod waiting_room; // plugged.host
@@ -180,6 +181,7 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         .nest("/files", files::router(state))
         .nest("/settings", settings::router(state))
         .nest("/startup", startup::router(state))
+        .nest("/subdomains", subdomains::router(state)) // plugged.host
         .nest("/subusers", subusers::router(state))
         .nest("/transfer", transfer::router(state)) // plugged.host
         .nest("/backups", backups::router(state))

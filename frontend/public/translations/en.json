@@ -849,7 +849,9 @@
           "admin": "Changed by an admin",
           "earn": "Sponsored link",
           "limbo": "Server restored",
-          "limboRefund": "Restore refunded"
+          "limboRefund": "Restore refunded",
+          "subdomain": "Subdomain",
+          "subdomainRefund": "Subdomain refunded"
         }
       },
       "chartLegend": {
@@ -3220,6 +3222,32 @@
                 }
               }
             },
+            "subdomains": {
+              "title": "Subdomains",
+              "page": {
+                "title": "Subdomains",
+                "form": {
+                  "enabled": "Subdomains",
+                  "enabledDescription": "Servers get a Subdomains page where players add names like play.example.com under the domains of Admin › Domains.",
+                  "cloudflareToken": "Cloudflare API Token",
+                  "cloudflareTokenStored": "A token is stored. Leave this empty to keep it, or type a new one to replace it.",
+                  "cloudflareTokenMissing": "No token yet. It needs Zone › Zone › Read and Zone › DNS › Edit on the domains.",
+                  "defaultLimit": "Subdomains per Server",
+                  "defaultLimitDescription": "Unless a server has its own limit (Admin › Servers › Subdomains).",
+                  "costs": "Token Deposit",
+                  "costsDescription": "While tokens are on, the server owner pays these for a server's first, second, third and every further subdomain, and gets them back when it is deleted. 0 is free.",
+                  "costFirst": "First Subdomain",
+                  "costSecond": "Second Subdomain",
+                  "costThird": "Third Subdomain",
+                  "costMore": "Every Further Subdomain",
+                  "blockedNames": "Blocked Names",
+                  "blockedNamesDescription": "Names nobody may take, besides the built-in ones (www, panel, mail and the like). Comma separated; * matches anything, so test* blocks every name starting with test."
+                },
+                "toast": {
+                  "updated": "Subdomain settings saved."
+                }
+              }
+            },
             "placement": {
               "title": "Placement",
               "page": {
@@ -4198,6 +4226,44 @@
             "delete": {
               "title": "Delete Plan"
             }
+          }
+        },
+        "domains": {
+          "title": "Domains",
+          "description": "Server subdomains are made under these domains, as DNS records in their Cloudflare zones.",
+          "noToken": "Set the Cloudflare token first, then add the domains its zones belong to.",
+          "settingsLink": "Subdomain settings",
+          "empty": "No domains yet.",
+          "table": {
+            "name": "Domain",
+            "zone": "Cloudflare Zone",
+            "subdomains": "Subdomains",
+            "created": "Added"
+          },
+          "zone": {
+            "linked": "Linked",
+            "missing": "Not found"
+          },
+          "button": {
+            "add": "Add Domain",
+            "sync": "Look Up the Zone Again",
+            "delete": "Delete"
+          },
+          "create": {
+            "title": "Add Domain",
+            "name": "Domain",
+            "nameDescription": "As its Cloudflare zone is named. The token must see that zone.",
+            "button": "Add"
+          },
+          "delete": {
+            "title": "Delete Domain",
+            "body": "Delete {name}?",
+            "bodyWithSubdomains": "Delete {name} and its {count} subdomains? Their DNS records are removed and their tokens go back to the server owners."
+          },
+          "toast": {
+            "created": "{name} added.",
+            "synced": "The zone of {name} is linked.",
+            "deleted": "{name} deleted."
           }
         },
         "adBanners": {
@@ -5302,6 +5368,16 @@
                 "instances": {
                   "title": "Managed Databases"
                 }
+              }
+            },
+            "subdomains": {
+              "title": "Subdomains",
+              "created": "Added",
+              "empty": "This server has no subdomains.",
+              "limit": "Subdomain Limit",
+              "limitDescription": "Empty follows the subdomain settings ({default}).",
+              "toast": {
+                "limitSaved": "Subdomain limit saved."
               }
             },
             "logs": {
@@ -10193,6 +10269,70 @@
               "console": "Open Console",
               "back": "Back to Frameworks"
             }
+          }
+        },
+        "subdomains": {
+          "title": "Subdomains",
+          "subtitle": "{current} of {max} used",
+          "button": {
+            "add": "Add Subdomain",
+            "rename": "Rename",
+            "repair": "Write Records Again",
+            "delete": "Delete"
+          },
+          "unavailable": {
+            "off": "Subdomains are not set up on this panel.",
+            "unsupported": "Subdomains are not offered for this server's game.",
+            "no_domains": "No domain is set up for subdomains yet.",
+            "no_address": "This server has no address a subdomain could point at."
+          },
+          "table": {
+            "subdomain": "Subdomain",
+            "connect": "Connect With",
+            "type": "Type",
+            "deposit": "Deposit",
+            "status": "Status"
+          },
+          "deposit": "{count} tokens",
+          "free": "Free",
+          "status": {
+            "propagating": "Spreading",
+            "propagatingTooltip": "Made in the last few minutes: some players may not reach it yet.",
+            "active": "Active"
+          },
+          "empty": "No subdomains yet. Give your server a name like play.example.com that players join with.",
+          "full": "This server has all {max} of its subdomains.",
+          "create": {
+            "title": "Add Subdomain",
+            "name": "Name",
+            "nameDescription": "2 to 63 lowercase letters, digits and hyphens.",
+            "domain": "Domain",
+            "service": {
+              "minecraft": "Players join with the name alone: an SRV record carries the port.",
+              "fivem": "Players join with \"connect\" and the name: SRV records carry the port.",
+              "srv": "It also gets an SRV record with the port, for game clients that look one up.",
+              "plain": "The name points at {address}; players add the port."
+            },
+            "cost": "This subdomain costs {cost} tokens, paid by the server owner and refunded when it is deleted.",
+            "balance": "You have {balance}.",
+            "notEnough": "This subdomain costs {cost} tokens, and you have {balance}.",
+            "button": "Add"
+          },
+          "rename": {
+            "title": "Rename {name}",
+            "button": "Rename"
+          },
+          "delete": {
+            "title": "Delete Subdomain",
+            "body": "Delete {name}? Its DNS records are removed, and players can no longer join with it.",
+            "refund": "{count} tokens go back to the server owner."
+          },
+          "toast": {
+            "created": "{name} is set up. It can take a few minutes to reach every player.",
+            "renamed": "Renamed to {name}.",
+            "repaired": "The records of {name} are written again.",
+            "deleted": "{name} deleted.",
+            "deletedRefund": "{name} deleted, {count} tokens refunded."
           }
         },
         "activity": {

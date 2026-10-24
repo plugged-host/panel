@@ -6,6 +6,7 @@ import {
   faExternalLink,
   faFileText,
   faFolderTree,
+  faGlobe, // plugged.host
   faHouse,
   faMicrochip,
   faNetworkWired,
@@ -28,6 +29,7 @@ import AdminServerManagement from '@/pages/admin/servers/management/AdminServerM
 import AdminServerMounts from '@/pages/admin/servers/mounts/AdminServerMounts.tsx';
 import ServerOverview from '@/pages/admin/servers/ServerOverview.tsx';
 import ServerUpdate from '@/pages/admin/servers/ServerUpdate.tsx';
+import AdminServerSubdomains from '@/pages/admin/servers/subdomains/AdminServerSubdomains.tsx'; // plugged.host
 import AdminServerVariables from '@/pages/admin/servers/variables/AdminServerVariables.tsx';
 import { useResource } from '@/plugins/resource/useResource.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
@@ -107,6 +109,14 @@ export default function ServerView() {
                   path: `/databases`,
                   element: <AdminServerDatabases server={server} />,
                   permission: 'database-hosts.read',
+                },
+                // plugged.host: docs/features/subdomains.md
+                {
+                  name: t('pages.admin.servers.tabs.subdomains.title', {}),
+                  icon: faGlobe,
+                  path: `/subdomains`,
+                  element: <AdminServerSubdomains server={server} />,
+                  permission: 'servers.subdomains',
                 },
                 {
                   name: t('pages.admin.servers.tabs.logs.title', {}),

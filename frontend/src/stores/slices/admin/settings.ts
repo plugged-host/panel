@@ -302,6 +302,16 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
     inGameMessage: '',
     inGameInterval: 60,
   },
+  subdomains: {
+    enabled: false,
+    cloudflareToken: null,
+    defaultLimit: 3,
+    costFirst: 1,
+    costSecond: 3,
+    costThird: 8,
+    costMore: 15,
+    blockedNames: '',
+  },
   limbo: {
     enabled: false,
     stopMinutes: 2880,
@@ -397,6 +407,7 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
       queue: value.queue, // plugged.host
       limbo: value.limbo, // plugged.host
       ads: value.ads, // plugged.host
+      subdomains: value.subdomains, // plugged.host
       updates: value.updates,
     })),
   updateSettings: (value) =>
@@ -422,6 +433,7 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
       ...(value.queue ? { queue: { ...state.queue, ...value.queue } } : {}), // plugged.host
       ...(value.limbo ? { limbo: { ...state.limbo, ...value.limbo } } : {}), // plugged.host
       ...(value.ads ? { ads: { ...state.ads, ...value.ads } } : {}), // plugged.host
+      ...(value.subdomains ? { subdomains: { ...state.subdomains, ...value.subdomains } } : {}), // plugged.host
       ...(value.updates ? { updates: { ...state.updates, ...value.updates } } : {}),
     })),
   setUpdateInformation: (value) => set((state) => ({ ...state, updateInformation: value })),

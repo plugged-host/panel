@@ -163,6 +163,7 @@ mod post {
         if let Some(transferred) = Server::by_uuid_optional(&state.database, server.uuid).await? {
             transferred.batch_sync(&state).await;
         }
+        shared::subdomains::follow(&state, server.uuid); // plugged.host: the new node's address
 
         if let Err(err) = server
             .node

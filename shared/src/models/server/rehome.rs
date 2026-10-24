@@ -124,6 +124,9 @@ impl Server {
             crate::tunnel::poke_nodes(&state.database).await;
         }
 
+        // its subdomains point at the new node (docs/features/subdomains.md)
+        crate::subdomains::follow(state, self.uuid);
+
         Ok(())
     }
 }

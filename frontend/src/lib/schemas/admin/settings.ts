@@ -431,6 +431,24 @@ export const adminSettingsGamesStoreSchema = adminSettingsGamesSchema.extend({
   fivemEnhanced: z.boolean(),
 });
 
+// plugged.host: server subdomains on Cloudflare (shared/src/settings/subdomains.rs, docs/features/subdomains.md);
+// an empty token keeps the stored one
+export const adminSettingsSubdomainsSchema = z.object({
+  enabled: z.boolean(),
+  cloudflareToken: z.string().max(255),
+  defaultLimit: z.number().int().min(0).max(100),
+  costFirst: z.number().int().min(0).max(1_000_000),
+  costSecond: z.number().int().min(0).max(1_000_000),
+  costThird: z.number().int().min(0).max(1_000_000),
+  costMore: z.number().int().min(0).max(1_000_000),
+  blockedNames: z.string().max(4096),
+});
+
+// plugged.host: the subdomains section as the panel sends it (a stored token comes back as a placeholder)
+export const adminSettingsSubdomainsStoreSchema = adminSettingsSubdomainsSchema.extend({
+  cloudflareToken: z.string().max(255).nullable(),
+});
+
 // plugged.host: the automatic deployment pause (shared/src/settings/placement.rs, docs/features/placement.md)
 export const adminSettingsPlacementSchema = z.object({
   pauseEnabled: z.boolean(),
@@ -622,5 +640,6 @@ export const adminSettingsSchema = z.object({
   queue: adminSettingsQueueSchema, // plugged.host
   limbo: adminSettingsLimboSchema, // plugged.host
   ads: adminSettingsAdsSchema, // plugged.host
+  subdomains: adminSettingsSubdomainsStoreSchema, // plugged.host
   updates: adminSettingsUpdatesSchema,
 });

@@ -56,6 +56,7 @@ const admin = {
     allocations: (serverUuid: string) => ['admin', 'servers', serverUuid, 'allocations'] as const,
     databases: (serverUuid: string) => ['admin', 'servers', serverUuid, 'databases'] as const,
     variables: (serverUuid: string) => ['admin', 'servers', serverUuid, 'variables'] as const,
+    subdomains: (serverUuid: string) => ['admin', 'servers', serverUuid, 'subdomains'] as const, // plugged.host
   },
 
   extensions: {
@@ -86,6 +87,10 @@ const admin = {
     nodes: (locationUuid: string) => ['admin', 'locations', locationUuid, 'nodes'] as const,
   },
 
+  // plugged.host: docs/features/subdomains.md
+  domains: {
+    all: () => ['admin', 'domains'] as const,
+  },
   // plugged.host
   plans: {
     all: () => ['admin', 'plans'] as const,
@@ -275,6 +280,7 @@ const server = (serverUuid: string) => ({
   queue: () => ['server', serverUuid, 'queue'] as const, // plugged.host
   limbo: () => ['server', serverUuid, 'limbo'] as const, // plugged.host
   waitingRoom: () => ['server', serverUuid, 'waiting-room'] as const, // plugged.host
+  subdomains: () => ['server', serverUuid, 'subdomains'] as const, // plugged.host
   // plugged.host: docs/features/fivem.md
   fivem: {
     config: () => ['server', serverUuid, 'fivem', 'config'] as const,

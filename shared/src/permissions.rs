@@ -570,6 +570,11 @@ pub(crate) static BASE_ADMIN_PERMISSIONS: LazyLock<IndexMap<&'static str, Permis
                         ),
                         ("mounts", "Allows viewing and managing a server's mounts."),
                         ("devices", "Allows viewing and managing a server's devices."),
+                        // plugged.host: docs/features/subdomains.md
+                        (
+                            "subdomains",
+                            "Allows viewing and deleting a server's subdomains and changing its subdomain limit.",
+                        ),
                     ]),
                 },
             ),
@@ -637,6 +642,25 @@ pub(crate) static BASE_ADMIN_PERMISSIONS: LazyLock<IndexMap<&'static str, Permis
                         ("update", "Allows modifying database hosts."),
                         ("delete", "Allows deleting database hosts."),
                         ("test", "Allows testing database host connections."),
+                    ]),
+                },
+            ),
+            // plugged.host: the domains server subdomains are made under (docs/features/subdomains.md)
+            (
+                "domains",
+                PermissionGroup {
+                    description: "Permissions that control the domains server subdomains are made under.",
+                    permissions: IndexMap::from([
+                        ("create", "Allows adding domains."),
+                        ("read", "Allows viewing domains."),
+                        (
+                            "update",
+                            "Allows linking domains to their Cloudflare zone again.",
+                        ),
+                        (
+                            "delete",
+                            "Allows deleting domains, with every subdomain under them.",
+                        ),
                     ]),
                 },
             ),
@@ -1157,6 +1181,28 @@ pub(crate) static BASE_SERVER_PERMISSIONS: LazyLock<IndexMap<&'static str, Permi
                         (
                             "frameworks",
                             "Allows installing a framework, which creates a database for it and restarts the server.",
+                        ),
+                    ]),
+                },
+            ),
+            // plugged.host: docs/features/subdomains.md
+            (
+                "subdomains",
+                PermissionGroup {
+                    description: "Permissions that control the server's subdomains.",
+                    permissions: IndexMap::from([
+                        ("read", "Allows viewing the server's subdomains."),
+                        (
+                            "create",
+                            "Allows adding subdomains. Their tokens are paid by the server's owner.",
+                        ),
+                        (
+                            "update",
+                            "Allows renaming subdomains and writing their records again.",
+                        ),
+                        (
+                            "delete",
+                            "Allows deleting subdomains. Their tokens go back to the server's owner.",
                         ),
                     ]),
                 },

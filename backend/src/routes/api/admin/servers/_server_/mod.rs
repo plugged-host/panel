@@ -19,6 +19,7 @@ mod databases;
 // plugged.host: devices removed (docs/upstream.md)
 // mod devices;
 mod logs;
+mod subdomains; // plugged.host
 // plugged.host: mounts removed (docs/upstream.md)
 // mod mounts;
 mod transfer;
@@ -309,6 +310,7 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         .nest("/logs", logs::router(state))
         .nest("/backups", backups::router(state))
         .nest("/databases", databases::router(state))
+        .nest("/subdomains", subdomains::router(state)) // plugged.host
         .route_layer(axum::middleware::from_fn_with_state(state.clone(), auth))
         .with_state(state.clone())
 }

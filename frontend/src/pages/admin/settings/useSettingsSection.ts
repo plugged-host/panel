@@ -34,7 +34,8 @@ type SettingsStoreKey =
   | 'economy' // plugged.host
   | 'queue' // plugged.host
   | 'limbo' // plugged.host
-  | 'ads'; // plugged.host
+  | 'ads' // plugged.host
+  | 'subdomains'; // plugged.host
 
 /** Admin store keys whose public projection lives under the same-named global settings key. */
 type GlobalSyncKey = 'app' | 'webauthn' | 'server' | 'user';

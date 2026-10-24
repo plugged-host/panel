@@ -7,6 +7,7 @@ import {
   faEarthAmericas, // plugged.host
   faFileCode, // plugged.host
   faFolderOpen,
+  faGlobe, // plugged.host
   faLayerGroup, // plugged.host
   faNetworkWired,
   faPlay,
@@ -46,6 +47,7 @@ import ScheduleView from '@/pages/server/schedules/ScheduleView.tsx';
 import ServerSchedules from '@/pages/server/schedules/ServerSchedules.tsx';
 import ServerSettings from '@/pages/server/settings/ServerSettings.tsx';
 import ServerStartup from '@/pages/server/startup/ServerStartup.tsx';
+import ServerSubdomains from '@/pages/server/subdomains/ServerSubdomains.tsx'; // plugged.host
 import ServerSubusers from '@/pages/server/subusers/ServerSubusers.tsx';
 import ServerTransfer from '@/pages/server/transfer/ServerTransfer.tsx'; // plugged.host
 import ServerWaitingRoom from '@/pages/server/waiting/ServerWaitingRoom.tsx'; // plugged.host
@@ -233,6 +235,15 @@ const routes: ServerRouteDefinition[] = [
     path: '/network',
     element: ServerNetwork,
     permission: 'allocations.read',
+  },
+  // plugged.host: servers whose game gets subdomains (lib/domain/games.ts, docs/features/subdomains.md)
+  {
+    name: () => getTranslations().t('pages.server.subdomains.title', {}),
+    icon: faGlobe,
+    path: '/subdomains',
+    element: ServerSubdomains,
+    permission: 'subdomains.read',
+    filter: () => !!useGlobalStore.getState().settings.games?.subdomainsEnabled,
   },
   {
     name: () => getTranslations().t('pages.server.startup.title', {}),
