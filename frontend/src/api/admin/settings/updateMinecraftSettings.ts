@@ -10,6 +10,7 @@ export default async (data: z.infer<typeof adminSettingsMinecraftSchema>): Promi
       minecraft_curseforge_key: data.minecraftCurseforgeKey.trim() || undefined,
       minecraft_spigot: data.minecraftSpigot,
       minecraft_user_agent: data.minecraftUserAgent,
+      minecraft_log_check: data.minecraftLogCheck,
     },
   });
 };

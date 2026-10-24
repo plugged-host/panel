@@ -28,7 +28,7 @@ function Browse({ options, query }: { options: ContentOptions; query: string }) 
   const server = useServerStore((state) => state.server);
   const base = 'pages.server.minecraft.content.browse';
 
-  // modpacks are installed through the onboarding and version pages, not here
+  // modpacks have their own tab: they bring a loader and a version
   const kinds = options.kinds.filter((kind) => kind !== 'modpack');
 
   const [source, setSource] = useState<Source>(options.sources[0] ?? 'modrinth');

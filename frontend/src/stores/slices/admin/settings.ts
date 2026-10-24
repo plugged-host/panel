@@ -229,6 +229,7 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
     minecraftCurseforgeKey: null,
     minecraftSpigot: true,
     minecraftUserAgent: '',
+    minecraftLogCheck: true,
   },
   placement: {
     pauseEnabled: true,

@@ -55,6 +55,7 @@ pub mod payload;
 pub mod permissions;
 pub mod prelude;
 pub mod pricing; // plugged.host
+pub mod redact; // plugged.host
 pub mod response;
 pub mod retry;
 pub mod server_creation; // plugged.host

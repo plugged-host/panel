@@ -1132,6 +1132,10 @@ pub(crate) static BASE_SERVER_PERMISSIONS: LazyLock<IndexMap<&'static str, Permi
                             "worlds",
                             "Allows creating, loading, uploading and deleting worlds. Downloading also needs files.read-content, uploading files.create.",
                         ),
+                        (
+                            "bedrock",
+                            "Allows letting Bedrock players join: installs Geyser and Floodgate and gives the server one more port of its node for them.",
+                        ),
                     ]),
                 },
             ),

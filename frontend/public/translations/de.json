@@ -3196,7 +3196,9 @@
                   "spigot": "SpigotMC",
                   "spigotDescription": "SpigotMC (über Spiget) als Quelle für Plugins auf Paper-Servern anbieten.",
                   "userAgent": "User-Agent",
-                  "userAgentDescription": "Wird an Modrinth, CurseForge, SpigotMC und die APIs der Loader gesendet, die einen verlangen, der das Panel nennt. Leer: Name und URL des Panels."
+                  "userAgentDescription": "Wird an Modrinth, CurseForge, SpigotMC und die APIs der Loader gesendet, die einen verlangen, der das Panel nennt. Leer: Name und URL des Panels.",
+                  "logCheck": "Log-Prüfung",
+                  "logCheckDescription": "Das letzte Log von Minecraft-Servern auf mclo.gs prüfen und die gefundenen Probleme über der Konsole zeigen. Geheimnisse werden vor dem Senden unkenntlich gemacht."
                 },
                 "toast": {
                   "updated": "Minecraft-Einstellungen aktualisiert."
@@ -9418,10 +9420,16 @@
             "title": "Software",
             "label": "Software",
             "description": "Ein Wechsel installiert den Server mit der neuen Software neu. Deine Welten und Dateien bleiben.",
-            "button": "Software wechseln",
+            "versionLabel": "Minecraft-Version",
+            "versionDescription": "Eine Änderung installiert den Server mit dieser Version neu. Welten öffnen sich in neueren Versionen, nicht in älteren.",
+            "versionLatest": "Neueste Version",
+            "versionsFailed": "Die Versionsliste wurde nicht geladen. Neueste Version und die aktuelle Version sind trotzdem wählbar.",
+            "button": "Wechseln und neu installieren",
             "modal": {
               "title": "Software wechseln",
               "content": "Der Server wird gestoppt und mit **{software}** neu installiert. Plugins oder Mods für die alte Software laufen eventuell nicht mit der neuen.",
+              "contentVersion": "Der Server wird gestoppt und mit Minecraft **{version}** neu installiert. Eine Welt, die in einer neueren Version geöffnet wurde, öffnet sich nicht in einer älteren; mach vorher ein Backup.",
+              "contentBoth": "Der Server wird gestoppt und mit **{software}** für Minecraft **{version}** neu installiert. Plugins oder Mods für die alte Software laufen eventuell nicht mit der neuen.",
               "button": "Wechseln und neu installieren"
             },
             "toast": {
@@ -9776,6 +9784,71 @@
               "uploading": "{file} wird hochgeladen. Lass diesen Tab offen, bis der Upload fertig ist.",
               "importStarted": "Hochgeladen. {file} wird entpackt …",
               "imported": "Die hochgeladene Welt ist geladen. Starte den Server, um darauf zu spielen."
+            }
+          },
+          "logCheck": {
+            "clean": "Log-Prüfung: im letzten Log wurden keine Probleme gefunden.",
+            "open": "Auf mclo.gs öffnen",
+            "problems": "Log-Prüfung: Probleme gefunden ({count})",
+            "errors": "Log-Prüfung: Fehlerzeilen im letzten Log ({count})",
+            "fix": "Lösung: {fix}",
+            "more": "Und weitere ({count}) auf mclo.gs.",
+            "errorsBody": "mclo.gs hat kein bekanntes Problem dahinter gefunden. Das ganze Log zeigt, woher sie kommen.",
+            "view": "Log auf mclo.gs ansehen"
+          },
+          "bedrock": {
+            "title": "Bedrock-Spieler",
+            "content": "Lässt Spieler auf Handys, Tablets, Konsolen und Windows (Bedrock Edition) auf diesen Java-Server. Geyser übersetzt für sie, Floodgate lässt sie ohne Java-Konto herein, und der Server bekommt einen weiteren Port für sie.",
+            "loading": "Server wird geprüft…",
+            "unavailable": "Geyser hat keinen Build für die Software dieses Servers. Es läuft auf Paper und seinen Forks, Fabric und NeoForge.",
+            "installed": "Installiert: {file}",
+            "join": "Bedrock-Spieler verbinden sich mit (zum Kopieren tippen):",
+            "restart": "Der Server läuft und startet neu, sobald Geyser installiert ist.",
+            "button": {
+              "open": "Bedrock",
+              "install": "Geyser installieren",
+              "update": "Geyser aktualisieren"
+            },
+            "toast": {
+              "installed": "Geyser ist installiert. Bedrock-Spieler verbinden sich mit {address}.",
+              "updated": "Geyser ist aktualisiert. Bedrock-Spieler verbinden sich mit {address}.",
+              "noFloodgate": "Floodgate hat keinen Build für diese Minecraft-Version, daher brauchen Bedrock-Spieler ein Java-Konto."
+            }
+          },
+          "modpacks": {
+            "title": "Modpacks",
+            "noLoaders": "Das Spiel dieses Servers kann weder Fabric, Quilt, Forge noch NeoForge ausführen, daher kann er kein Modpack installieren.",
+            "loaders": "Gezeigt werden Packs für {loaders}. Die Installation stellt den Server auf den Loader und die Minecraft-Version um, die das Pack braucht.",
+            "running": "Stoppe den Server, um ein Modpack zu installieren.",
+            "button": {
+              "install": "Installieren"
+            },
+            "modal": {
+              "title": "{name} installieren",
+              "noVersions": "Dieses Modpack hat keine Version für einen Loader, den dieser Server ausführen kann.",
+              "versionFor": "Für Minecraft {minecraft} mit {loaders}",
+              "clean": "Die jetzt installierten Mods entfernen",
+              "cleanDescription": "Mods aus einem anderen Pack vertragen sich meist nicht mit diesem. Sie kommen in den Papierkorb, wenn der Server einen hat.",
+              "content": "Der Server wird mit dem Loader und der Minecraft-Version des Packs neu installiert, dann werden seine Mods und Konfigurationen heruntergeladen. Welten und andere Dateien bleiben. Das dauert ein paar Minuten."
+            },
+            "step": {
+              "download": "Pack wird heruntergeladen…",
+              "software": "Server wird neu installiert…",
+              "files": "Mods werden heruntergeladen…",
+              "overrides": "Konfigurationen werden entpackt…",
+              "done": "Fertig.",
+              "failed": "Fehlgeschlagen."
+            },
+            "state": {
+              "installing": "{name} wird installiert:",
+              "software": "({loader}, Minecraft {version})",
+              "done": "{name} ist installiert. Starte den Server, um es zu spielen.",
+              "skipped": "Nicht heruntergeladen, füge diese selbst hinzu: {files}",
+              "overridesSkipped": "Die Konfigurationen des Packs waren zu groß, um sie über das Panel zu entpacken. Lade seinen overrides-Ordner unter Dateien hoch.",
+              "failed": "Die Installation von {name} ist fehlgeschlagen: {error}"
+            },
+            "toast": {
+              "started": "{name} wird installiert. Diese Seite zeigt den Fortschritt."
             }
           }
         },

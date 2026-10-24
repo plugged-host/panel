@@ -34,6 +34,17 @@ pub async fn list(
         .await
 }
 
+/// The versions a software runs, newest first: its loader's, or Mojang's releases for Vanilla.
+pub async fn for_software(
+    state: &crate::State,
+    loader: Option<Loader>,
+) -> Result<Vec<compact_str::CompactString>, anyhow::Error> {
+    match loader {
+        Some(loader) => list(state, loader).await,
+        None => Ok(normalise(mojang_releases(state).await?)),
+    }
+}
+
 async fn paper(state: &crate::State) -> Result<Vec<String>, anyhow::Error> {
     let payload =
         super::get_json(state, "https://fill.papermc.io/v3/projects/paper", &[], &[]).await?;

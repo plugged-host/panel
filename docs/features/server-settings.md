@@ -8,7 +8,7 @@ permission) sees them all and a subuser only what they were given.
 |---|---|---|
 | SFTP | `files.sftp` | always |
 | Resources | `settings.resize` | Admin › Settings › Hosting › Games › "Players Resize Servers" is on, or the viewer is an admin |
-| Software | `settings.software` | the server's egg is a game in the catalog with at least two software choices |
+| Software | `settings.software` | the server's egg is a game in the catalog with at least two software choices, or a Minecraft egg with a version variable |
 | Delete Server | `settings.delete` | Admin › Settings › Hosting › Games › "Players Delete Servers" is on, or the viewer is an admin |
 
 ## SFTP
@@ -48,7 +48,16 @@ choice). Switching:
 3. reinstalls the server without wiping it, and without starting it afterwards (the start goes
    through the start gates).
 
-The activity log gets `server:settings.software`.
+On a Minecraft server whose egg has a version variable (`MINECRAFT_VERSION`, `MC_VERSION`,
+`VANILLA_VERSION`) the card also has **Minecraft Version**: Newest release (`latest`) or one of the
+versions the chosen software offers (the loader's list from [minecraft.md](minecraft.md#which-servers),
+Mojang's releases for Vanilla; `GET …/software/versions?variant=`). The version is checked against
+that list when it loads, written to the variable together with `BUILD_NUMBER` back to `latest` (a
+build pinned for the old version does not exist for the new one), and the server is reinstalled the
+same way. Software and version can change in one go. A modpack install uses the same switch
+([minecraft.md](minecraft.md#modpacks)).
+
+The activity log gets `server:settings.software` with the variant and the version.
 
 ## Delete
 
@@ -66,8 +75,9 @@ it).
 |---|---|---|
 | `GET /api/client/servers/{server}/settings/resize` | `settings.resize` | `{resize: {enabled, current, max}}`; `max` is `null` per resource without a limit |
 | `POST /api/client/servers/{server}/settings/resize` | `settings.resize` | Body `{cpu, memory, disk}`; 403 when off, 409 when the allowance or the node has no room, 429 while another change of the owner runs |
-| `GET /api/client/servers/{server}/settings/software` | `settings.software` | `{software: {variants, current}}`, `null` without choices |
-| `POST /api/client/servers/{server}/settings/software` | `settings.software` | Body `{variant}`; 202, the reinstall runs |
+| `GET /api/client/servers/{server}/settings/software` | `settings.software` | `{software: {variants, current, version}}`, `null` without choices or version |
+| `GET /api/client/servers/{server}/settings/software/versions?variant` | `settings.software` | The Minecraft versions of that choice (the server's own without one), newest first |
+| `POST /api/client/servers/{server}/settings/software` | `settings.software` | Body `{variant?, version?}` (one at least); 202, the reinstall runs |
 | `DELETE /api/client/servers/{server}` | `settings.delete` | 403 when off |
 
 ## Without noprofit.space
@@ -83,8 +93,11 @@ changes.
 - SFTP: copy host and username, log in with the password the card names.
 - Resources: raise memory past "Up to": Save stays off. Lower it and save: the console's memory limit
   follows without a restart. With noprofit.space, an account without a plan can only lower values.
-- Software: pick another choice, "Switch Software", confirm: the console shows the reinstall; the
-  files are still there afterwards and the new software runs after a start.
+- Software: pick another choice, "Switch and Reinstall", confirm: the console shows the reinstall;
+  the files are still there afterwards and the new software runs after a start.
+- Minecraft Version on a Paper server: pick an older version, confirm; the egg variable shows it,
+  `BUILD_NUMBER` is `latest`, and the server starts on that version. Switching software and version
+  together lists the new software's versions.
 - Delete: the button in the dialog stays off until the name is typed; the server disappears from the
   list.
 - As a subuser without the new permissions: none of the three cards (Resources, Software, Delete) show.

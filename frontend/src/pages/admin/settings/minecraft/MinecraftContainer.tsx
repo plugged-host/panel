@@ -19,6 +19,7 @@ const minecraftEmptyFormValues: MinecraftValues = {
   minecraftCurseforgeKey: '',
   minecraftSpigot: true,
   minecraftUserAgent: '',
+  minecraftLogCheck: true,
 };
 
 export default function MinecraftContainer() {
@@ -38,6 +39,7 @@ export default function MinecraftContainer() {
     minecraftCurseforgeKey: '',
     minecraftSpigot: games.minecraftSpigot,
     minecraftUserAgent: games.minecraftUserAgent,
+    minecraftLogCheck: games.minecraftLogCheck,
   }));
   useFormDraft(form, 'minecraft');
 
@@ -72,6 +74,12 @@ export default function MinecraftContainer() {
       name: 'minecraftUserAgent',
       label: t(`${page}.form.userAgent`, {}),
       description: t(`${page}.form.userAgentDescription`, {}),
+    },
+    {
+      type: 'switch',
+      name: 'minecraftLogCheck',
+      label: t(`${page}.form.logCheck`, {}),
+      description: t(`${page}.form.logCheckDescription`, {}),
     },
   ];
 

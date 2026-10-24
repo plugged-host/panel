@@ -59,8 +59,10 @@ export const serverSettingsResizeSchema = z.object({
 export const serverSettingsSoftwareOptionsSchema = z.object({
   variants: z.array(z.object({ value: z.string(), label: z.string() })),
   current: z.string().nullable(),
+  version: z.string().nullable(),
 });
 
 export const serverSettingsSoftwareSchema = z.object({
-  variant: z.string().min(1).max(64),
+  variant: z.string().min(1).max(64).nullable(),
+  version: z.string().min(1).max(32).nullable(),
 });

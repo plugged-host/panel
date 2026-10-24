@@ -32,6 +32,7 @@ export const gamesToFormValues = ({
   minecraftCurseforgeKey: _key,
   minecraftSpigot: _spigot,
   minecraftUserAgent: _userAgent,
+  minecraftLogCheck: _logCheck,
   ...games
 }: z.infer<typeof adminSettingsGamesStoreSchema>): Partial<GamesFormValues> => games;
 

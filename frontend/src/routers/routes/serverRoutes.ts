@@ -28,6 +28,7 @@ import ServerFilesTrash from '@/pages/server/files/trash/ServerFilesTrash.tsx';
 import ServerLimbo from '@/pages/server/limbo/ServerLimbo.tsx'; // plugged.host
 import ServerMinecraftBrowse from '@/pages/server/minecraft/content/ServerMinecraftBrowse.tsx'; // plugged.host
 import ServerMinecraftContent from '@/pages/server/minecraft/content/ServerMinecraftContent.tsx'; // plugged.host
+import ServerMinecraftModpacks from '@/pages/server/minecraft/content/ServerMinecraftModpacks.tsx'; // plugged.host
 import ServerMinecraftPlayers from '@/pages/server/minecraft/players/ServerMinecraftPlayers.tsx'; // plugged.host
 import ServerMinecraftSettings from '@/pages/server/minecraft/settings/ServerMinecraftSettings.tsx'; // plugged.host
 import ServerMinecraftWorlds from '@/pages/server/minecraft/worlds/ServerMinecraftWorlds.tsx'; // plugged.host
@@ -108,6 +109,12 @@ const routes: ServerRouteDefinition[] = [
     name: undefined,
     path: '/minecraft/content/browse',
     element: ServerMinecraftBrowse,
+    permission: 'minecraft.content',
+  },
+  {
+    name: undefined,
+    path: '/minecraft/content/modpacks',
+    element: ServerMinecraftModpacks,
     permission: 'minecraft.content',
   },
   {

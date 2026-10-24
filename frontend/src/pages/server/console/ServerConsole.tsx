@@ -4,6 +4,7 @@ import { ServerCan } from '@/elements/Can.tsx';
 import ServerContentContainer from '@/elements/containers/ServerContentContainer.tsx';
 import { useNavbarPageHeader } from '@/elements/containers/useNavbarPageHeader.ts';
 import Group from '@/elements/layout/Group.tsx';
+import LogCheckBanner from '@/pages/server/minecraft/LogCheckBanner.tsx'; // plugged.host
 import { useVisualViewportBottomInset } from '@/plugins/viewport/useVisualViewport.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useServerStore } from '@/stores/server.ts';
@@ -66,6 +67,7 @@ export default function ServerConsole() {
       >
         <ServerDetails />
       </div>
+      <LogCheckBanner /> {/* plugged.host: the log check above the console */}
       <div
         className='mb-4 flex flex-col h-[60vh]'
         data-tour='console' // plugged.host: the welcome tour's targets

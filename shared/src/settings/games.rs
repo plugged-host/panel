@@ -107,6 +107,9 @@ pub struct AppSettingsGames {
     /// The User-Agent sent to Modrinth, CurseForge, Spiget and the loaders' APIs; empty is
     /// `<name>-panel/<release> (+<url>)`.
     pub minecraft_user_agent: compact_str::CompactString,
+    /// Uploads Minecraft servers' logs to mclo.gs and shows the problems it finds above the
+    /// console.
+    pub minecraft_log_check: bool,
 }
 
 impl Default for AppSettingsGames {
@@ -131,6 +134,7 @@ impl Default for AppSettingsGames {
             minecraft_curseforge_key: None,
             minecraft_spigot: true,
             minecraft_user_agent: compact_str::CompactString::default(),
+            minecraft_log_check: true,
         }
     }
 }
@@ -195,6 +199,8 @@ pub struct PayloadGames {
     minecraft_spigot: Option<bool>,
     #[garde(inner(length(chars, max = 255)))]
     minecraft_user_agent: Option<compact_str::CompactString>,
+    #[garde(skip)]
+    minecraft_log_check: Option<bool>,
 }
 
 impl PayloadGames {
@@ -264,7 +270,8 @@ impl PayloadGames {
             allowance_cpu,
             allowance_memory,
             allowance_disk,
-            minecraft_spigot
+            minecraft_spigot,
+            minecraft_log_check
         );
 
         match self.minecraft_curseforge_key {
@@ -311,6 +318,10 @@ impl SettingsSerializeExt for AppSettingsGames {
                 self.minecraft_spigot.to_compact_string(),
             )
             .write_raw_setting("minecraft_user_agent", &*self.minecraft_user_agent)
+            .write_raw_setting(
+                "minecraft_log_check",
+                self.minecraft_log_check.to_compact_string(),
+            )
             .write_raw_setting("create_enabled", self.create_enabled.to_compact_string())
             .write_raw_setting("catalog", serde_json::to_string(&self.catalog)?)
             .write_raw_setting(
@@ -398,6 +409,7 @@ impl SettingsDeserializeExt for AppSettingsGamesDeserializer {
             minecraft_user_agent: deserializer
                 .take_raw_setting("minecraft_user_agent")
                 .unwrap_or_default(),
+            minecraft_log_check: parsed!(minecraft_log_check),
         }))
     }
 }
@@ -445,6 +457,7 @@ mod tests {
             minecraft_curseforge_key: None,
             minecraft_spigot: None,
             minecraft_user_agent: None,
+            minecraft_log_check: None,
         }
     }
 

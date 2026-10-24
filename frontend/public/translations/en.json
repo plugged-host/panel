@@ -3196,7 +3196,9 @@
                   "spigot": "SpigotMC",
                   "spigotDescription": "Offer SpigotMC (through Spiget) as a source of plugins on Paper servers.",
                   "userAgent": "User Agent",
-                  "userAgentDescription": "Sent to Modrinth, CurseForge, SpigotMC and the loaders' APIs, which ask for one that names the panel. Empty: the panel's name and URL."
+                  "userAgentDescription": "Sent to Modrinth, CurseForge, SpigotMC and the loaders' APIs, which ask for one that names the panel. Empty: the panel's name and URL.",
+                  "logCheck": "Log Check",
+                  "logCheckDescription": "Check Minecraft servers' latest log on mclo.gs and show the problems it finds above the console. Secrets are masked before the log is sent."
                 },
                 "toast": {
                   "updated": "Minecraft settings updated."
@@ -9418,10 +9420,16 @@
             "title": "Software",
             "label": "Software",
             "description": "Switching reinstalls the server with the new software. Your worlds and files stay.",
-            "button": "Switch Software",
+            "versionLabel": "Minecraft Version",
+            "versionDescription": "Changing it reinstalls the server with that version. Worlds open in newer versions, not older ones.",
+            "versionLatest": "Newest release",
+            "versionsFailed": "The version list did not load. Newest release and the current version can still be chosen.",
+            "button": "Switch and Reinstall",
             "modal": {
               "title": "Switch Software",
               "content": "The server stops and is reinstalled with **{software}**. Plugins or mods made for the old software may not work with the new one.",
+              "contentVersion": "The server stops and is reinstalled with Minecraft **{version}**. A world opened in a newer version does not open in an older one; make a backup first.",
+              "contentBoth": "The server stops and is reinstalled with **{software}** for Minecraft **{version}**. Plugins or mods made for the old software may not work with the new one.",
               "button": "Switch and Reinstall"
             },
             "toast": {
@@ -9776,6 +9784,71 @@
               "uploading": "Uploading {file}. Keep this tab open until the upload has finished.",
               "importStarted": "Uploaded. Unpacking {file} …",
               "imported": "The uploaded world is loaded. Start the server to play it."
+            }
+          },
+          "logCheck": {
+            "clean": "Log check: no problems found in the latest log.",
+            "open": "Open on mclo.gs",
+            "problems": "Log check: problems found ({count})",
+            "errors": "Log check: error lines in the latest log ({count})",
+            "fix": "Fix: {fix}",
+            "more": "And more ({count}) on mclo.gs.",
+            "errorsBody": "mclo.gs found no known problem behind them. The full log shows where they come from.",
+            "view": "View the log on mclo.gs"
+          },
+          "bedrock": {
+            "title": "Bedrock Players",
+            "content": "Lets players on phones, tablets, consoles and Windows (Bedrock Edition) join this Java server. Geyser translates for them, Floodgate lets them in without a Java account, and the server gets one more port for them.",
+            "loading": "Checking the server…",
+            "unavailable": "Geyser has no build for this server's software. It runs on Paper and its forks, Fabric and NeoForge.",
+            "installed": "Installed: {file}",
+            "join": "Bedrock players join on (tap to copy):",
+            "restart": "The server is running and restarts once Geyser is installed.",
+            "button": {
+              "open": "Bedrock",
+              "install": "Install Geyser",
+              "update": "Update Geyser"
+            },
+            "toast": {
+              "installed": "Geyser is installed. Bedrock players join on {address}.",
+              "updated": "Geyser is updated. Bedrock players join on {address}.",
+              "noFloodgate": "Floodgate has no build for this Minecraft version, so Bedrock players need a Java account to join."
+            }
+          },
+          "modpacks": {
+            "title": "Modpacks",
+            "noLoaders": "This server's game cannot run Fabric, Quilt, Forge or NeoForge, so it cannot take a modpack.",
+            "loaders": "Packs for {loaders} are shown. Installing one switches the server to the loader and Minecraft version the pack needs.",
+            "running": "Stop the server to install a modpack.",
+            "button": {
+              "install": "Install"
+            },
+            "modal": {
+              "title": "Install {name}",
+              "noVersions": "This modpack has no version for a loader this server can run.",
+              "versionFor": "For Minecraft {minecraft} on {loaders}",
+              "clean": "Remove the mods installed now",
+              "cleanDescription": "Mods from another pack usually clash with this one. They go to the trash when the server has one.",
+              "content": "The server is reinstalled with the pack's loader and Minecraft version, then its mods and configs are downloaded. Worlds and other files stay. This takes a few minutes."
+            },
+            "step": {
+              "download": "Downloading the pack…",
+              "software": "Reinstalling the server…",
+              "files": "Downloading mods…",
+              "overrides": "Unpacking configs…",
+              "done": "Done.",
+              "failed": "Failed."
+            },
+            "state": {
+              "installing": "Installing {name}:",
+              "software": "({loader}, Minecraft {version})",
+              "done": "{name} is installed. Start the server to play it.",
+              "skipped": "Not downloaded, add these by hand: {files}",
+              "overridesSkipped": "The pack's configs were too big to unpack through the panel. Upload its overrides folder in Files.",
+              "failed": "Installing {name} failed: {error}"
+            },
+            "toast": {
+              "started": "Installing {name}. This page shows how far it got."
             }
           }
         },

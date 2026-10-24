@@ -17,6 +17,7 @@ export const minecraftContentOptionsSchema = z.object({
   sources: z.array(minecraftSourceSchema),
   kinds: z.array(minecraftKindSchema),
   directory: z.string().nullable(),
+  modpacks: z.boolean(),
 });
 
 export const minecraftProjectSchema = z.object({
@@ -197,3 +198,59 @@ export const minecraftReplacedSchema = z.object({
   kept: z.string().nullable(),
   removed: z.array(z.string()),
 });
+
+export const minecraftLogCheckSchema = z.object({
+  id: z.string(),
+  url: z.string(),
+  errors: z.number(),
+  problems: z.array(z.object({ message: z.string(), solution: z.string().nullable() })),
+  checked: z.coerce.date(),
+});
+
+export const minecraftLogCheckResponseSchema = z.object({
+  enabled: z.boolean(),
+  result: minecraftLogCheckSchema.nullable(),
+});
+
+export const minecraftBedrockSchema = z.object({
+  available: z.boolean(),
+  installed: z.string().nullable(),
+  port: z.number().nullable(),
+  address: z.string().nullable(),
+  running: z.boolean(),
+});
+
+export const minecraftBedrockInstalledSchema = z.object({
+  updated: z.boolean(),
+  floodgate: z.boolean(),
+  port: z.number(),
+  address: z.string(),
+  restarted: z.boolean(),
+});
+
+export const minecraftModpackStepSchema = z.enum(['download', 'software', 'files', 'overrides', 'done', 'failed']);
+
+export const minecraftModpackInstallSchema = z.object({
+  source: minecraftSourceSchema,
+  project: z.string(),
+  version: z.string(),
+  name: z.string(),
+  step: minecraftModpackStepSchema,
+  files: z.number(),
+  total: z.number(),
+  skipped: z.array(z.string()),
+  overridesSkipped: z.boolean(),
+  minecraft: z.string().nullable(),
+  loader: minecraftLoaderSchema.nullable(),
+  error: z.string().nullable(),
+  started: z.coerce.date(),
+});
+
+export const minecraftModpacksSchema = z.object({
+  loaders: z.array(minecraftLoaderSchema),
+  sources: z.array(minecraftSourceSchema),
+  running: z.boolean(),
+  install: minecraftModpackInstallSchema.nullable(),
+});
+
+export const minecraftSearchPageSchema = minecraftSearchSchema.shape.projects;

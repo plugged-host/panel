@@ -954,6 +954,27 @@ fn apply_yaml(raw: &str, edits: &[Edit]) -> Result<(String, usize), String> {
     Ok((lines.join("\n"), changed))
 }
 
+/// Sets dotted leaves of another plugin's YAML (Geyser's config, `bedrock.rs`), keeping its
+/// comments. `None` when one of the leaves is not in the file or does not take the value.
+pub fn set_yaml(raw: &str, values: &[(&str, serde_json::Value)]) -> Option<String> {
+    let leaves = yaml_leaves(raw);
+    let edits: Vec<Edit> = values
+        .iter()
+        .map(|(path, value)| Edit {
+            path: path.split('.').map(str::to_string).collect(),
+            value: value.clone(),
+        })
+        .collect();
+    if !edits
+        .iter()
+        .all(|edit| leaves.iter().any(|leaf| leaf.path == edit.path))
+    {
+        return None;
+    }
+
+    apply_yaml(raw, &edits).ok().map(|(written, _)| written)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1131,6 +1152,29 @@ mod tests {
         .unwrap();
         assert!(written.contains("ratio: 1.0\n"));
         assert!(written.contains("secret: \"new\\\"one\"\n"));
+    }
+
+    #[test]
+    fn other_yaml_leaves_are_set() {
+        let raw = "bedrock:\n  port: 19132 # udp\nremote:\n  address: auto\n  auth-type: online\n";
+
+        assert_eq!(
+            set_yaml(
+                raw,
+                &[
+                    ("bedrock.port", serde_json::json!(19140)),
+                    ("remote.auth-type", serde_json::json!("floodgate")),
+                ],
+            )
+            .as_deref(),
+            Some(
+                "bedrock:\n  port: 19140 # udp\nremote:\n  address: auto\n  auth-type: floodgate\n"
+            )
+        );
+        assert_eq!(
+            set_yaml(raw, &[("java.port", serde_json::json!(25565))]),
+            None
+        );
     }
 
     #[test]

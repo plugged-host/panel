@@ -232,6 +232,7 @@ export const tablerIcons: Record<string, TablerIcon> = {
   bars: IconMenu2,
   book: IconBook,
   'box-archive': IconArchive,
+  'boxes-stacked': IconPackages,
   briefcase: IconBriefcase,
   broom: IconBrush,
   bug: IconBug,

@@ -79,6 +79,54 @@ pub async fn write_text(
     Ok(())
 }
 
+/// Whether deleting moves files to the server's trash.
+pub async fn trash_enabled(state: &crate::State, server: &Server) -> Result<bool, anyhow::Error> {
+    let settings = state.settings.get().await?;
+
+    Ok(server.effective_trash(&settings).retention.is_some())
+}
+
+/// Deletes files or folders in `root`, into the trash when the server has one.
+pub async fn remove(
+    state: &crate::State,
+    client: &wings_api::client::WingsClient,
+    server: &Server,
+    root: &str,
+    names: Vec<compact_str::CompactString>,
+) -> Result<(), anyhow::Error> {
+    if names.is_empty() {
+        return Ok(());
+    }
+
+    let mut left = names;
+    if trash_enabled(state, server).await? {
+        left = client
+            .post_servers_server_files_trash(
+                server.uuid,
+                &wings_api::servers_server_files_trash::post::RequestBody {
+                    root: root.into(),
+                    files: left,
+                },
+            )
+            .await?
+            .skipped;
+    }
+
+    if !left.is_empty() {
+        client
+            .post_servers_server_files_delete(
+                server.uuid,
+                &wings_api::servers_server_files_delete::post::RequestBody {
+                    root: root.into(),
+                    files: left,
+                },
+            )
+            .await?;
+    }
+
+    Ok(())
+}
+
 /// The server's state on Wings; `None` when Wings does not answer.
 pub async fn power_state(
     client: &wings_api::client::WingsClient,

@@ -411,6 +411,7 @@ export const adminSettingsMinecraftSchema = z.object({
   minecraftCurseforgeKey: z.string().max(255),
   minecraftSpigot: z.boolean(),
   minecraftUserAgent: z.string().max(255),
+  minecraftLogCheck: z.boolean(),
 });
 
 // plugged.host: the games section as the panel sends it: the Games tab's fields and the Minecraft
@@ -419,6 +420,7 @@ export const adminSettingsGamesStoreSchema = adminSettingsGamesSchema.extend({
   minecraftCurseforgeKey: z.string().max(255).nullable(),
   minecraftSpigot: z.boolean(),
   minecraftUserAgent: z.string().max(255),
+  minecraftLogCheck: z.boolean(),
 });
 
 // plugged.host: the automatic deployment pause (shared/src/settings/placement.rs, docs/features/placement.md)

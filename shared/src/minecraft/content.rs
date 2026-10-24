@@ -17,6 +17,8 @@ pub struct ContentOptions {
     pub kinds: Vec<Kind>,
     /// The folder single files go to.
     pub directory: Option<&'static str>,
+    /// The server can take a modpack (its game can run a mod loader).
+    pub modpacks: bool,
 }
 
 /// The sources this server can browse, Modrinth first.
@@ -54,6 +56,7 @@ pub async fn options(
         sources,
         kinds,
         directory,
+        modpacks: !super::modpacks::loaders(state, server).await?.is_empty(),
     })
 }
 
@@ -376,6 +379,37 @@ pub async fn pull(
     file_name: &str,
     directory: &str,
 ) -> Result<(), ContentError> {
+    pull_with(state, server, url, file_name, directory, false).await
+}
+
+/// Like [`pull`], but answers once Wings has the file, and waits longer for a free download slot
+/// (a modpack pulls hundreds of files, a few at a time).
+pub async fn pull_now(
+    state: &crate::State,
+    server: &Server,
+    url: &str,
+    file_name: &str,
+    directory: &str,
+) -> Result<(), ContentError> {
+    pull_with(state, server, url, file_name, directory, true).await
+}
+
+/// Wings refusing a download because the server already has as many running as it allows: older
+/// Wings say "simultaneous" with a 400, this one "too many concurrent pulls" with a 417.
+fn busy(status: reqwest::StatusCode, error: &str) -> bool {
+    (status == reqwest::StatusCode::BAD_REQUEST
+        || status == reqwest::StatusCode::EXPECTATION_FAILED)
+        && (error.contains("simultaneous") || error.contains("concurrent pulls"))
+}
+
+async fn pull_with(
+    state: &crate::State,
+    server: &Server,
+    url: &str,
+    file_name: &str,
+    directory: &str,
+    foreground: bool,
+) -> Result<(), ContentError> {
     let client = server
         .node
         .fetch_cached(&state.database)
@@ -401,18 +435,19 @@ pub async fn pull(
         url: url.into(),
         file_name: Some(file_name.into()),
         use_header: false,
-        foreground: false,
+        foreground,
     };
 
-    for _ in 0..10 {
+    // 5 seconds for one install, 3 minutes for a file of a modpack
+    let attempts = if foreground { 360 } else { 10 };
+    for _ in 0..attempts {
         match client
             .post_servers_server_files_pull(server.uuid, &body)
             .await
         {
             Ok(_) => return Ok(()),
             Err(wings_api::client::ApiHttpError::Http(status, err))
-                if status == reqwest::StatusCode::BAD_REQUEST
-                    && format!("{err:?}").contains("simultaneous") =>
+                if busy(status, &format!("{err:?}")) =>
             {
                 tokio::time::sleep(std::time::Duration::from_millis(500)).await;
             }
@@ -449,6 +484,22 @@ pub async fn project(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn busy_wings_is_told_from_a_failed_download() {
+        assert!(busy(
+            reqwest::StatusCode::EXPECTATION_FAILED,
+            "too many concurrent pulls"
+        ));
+        assert!(busy(
+            reqwest::StatusCode::BAD_REQUEST,
+            "too many simultaneous downloads"
+        ));
+        assert!(!busy(
+            reqwest::StatusCode::EXPECTATION_FAILED,
+            "failed to create pull: 404"
+        ));
+    }
 
     #[test]
     fn modpacks_are_for_any_loader_a_pack_can_switch_to() {

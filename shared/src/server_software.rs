@@ -1,5 +1,5 @@
-//! plugged.host: switching a server between its game's software choices, then reinstalling it
-//! (docs/features/server-settings.md).
+//! plugged.host: switching a server between its game's software choices and, on Minecraft, its
+//! Minecraft version, then reinstalling it (docs/features/server-settings.md).
 
 use crate::{
     models::{
@@ -18,6 +18,9 @@ pub struct ApiSoftware {
     pub variants: Vec<ApiGameVariant>,
     /// The choice the server runs now: its variable's value, else the first.
     pub current: Option<compact_str::CompactString>,
+    /// The Minecraft version the server runs (`latest` or a version), when its egg has a version
+    /// variable.
+    pub version: Option<compact_str::CompactString>,
 }
 
 #[derive(Debug)]
@@ -25,6 +28,9 @@ pub enum SoftwareError {
     /// The server's egg is not a game with software choices.
     NotOffered,
     UnknownVariant,
+    /// The server is not Minecraft, or its egg has no version variable.
+    VersionNotOffered,
+    UnknownVersion,
     Other(anyhow::Error),
 }
 
@@ -33,13 +39,20 @@ impl SoftwareError {
         match self {
             Self::NotOffered => "this server has no software to choose from".into(),
             Self::UnknownVariant => "that software is not offered for this server".into(),
+            Self::VersionNotOffered => "this server's minecraft version cannot be chosen".into(),
+            Self::UnknownVersion => {
+                "that minecraft version is not offered for this software".into()
+            }
             Self::Other(err) => err.to_string(),
         }
     }
 
     pub fn status(&self) -> u16 {
         match self {
-            Self::NotOffered | Self::UnknownVariant => 400,
+            Self::NotOffered
+            | Self::UnknownVariant
+            | Self::VersionNotOffered
+            | Self::UnknownVersion => 400,
             Self::Other(_) => 500,
         }
     }
@@ -76,69 +89,184 @@ pub fn current<'a>(game: &'a Game, value: Option<&str>) -> Option<&'a str> {
         .map(|variant| variant.value.as_str())
 }
 
-/// What the server can switch to; `None` when its game offers no choice.
+/// The Minecraft version the server runs, when it is Minecraft and its egg has a version variable.
+async fn minecraft_version(
+    state: &crate::State,
+    server: &Server,
+) -> Result<Option<crate::minecraft::Software>, anyhow::Error> {
+    if !crate::minecraft::is_minecraft(&server.egg) {
+        return Ok(None);
+    }
+
+    let software = crate::minecraft::software(state, server).await?;
+    Ok(software.version_variable.is_some().then_some(software))
+}
+
+/// What the server can switch to; `None` when its game offers no choice and no version.
 pub async fn options(
     state: &crate::State,
     server: &Server,
 ) -> Result<Option<ApiSoftware>, anyhow::Error> {
-    let Some(game) = game(state, server).await? else {
+    let game = game(state, server).await?;
+    let version = minecraft_version(state, server)
+        .await?
+        .map(|software| software.version);
+    if game.is_none() && version.is_none() {
         return Ok(None);
-    };
+    }
 
     let variables =
         ServerVariable::all_by_server_uuid_egg_uuid(&state.database, server.uuid, server.egg.uuid)
             .await?;
-    let value = variables
-        .iter()
-        .find(|variable| Some(&variable.variable.env_variable) == game.variable.as_ref())
-        .map(|variable| variable.value.as_str());
+    let current_value = game.as_ref().and_then(|game| {
+        let value = variables
+            .iter()
+            .find(|variable| Some(&variable.variable.env_variable) == game.variable.as_ref())
+            .map(|variable| variable.value.as_str());
+
+        current(game, value).map(Into::into)
+    });
 
     Ok(Some(ApiSoftware {
-        current: current(&game, value).map(Into::into),
+        current: current_value,
         variants: game
-            .variants
-            .iter()
-            .map(|variant| ApiGameVariant {
-                value: variant.value.clone(),
-                label: variant.label.clone(),
+            .map(|game| {
+                game.variants
+                    .iter()
+                    .map(|variant| ApiGameVariant {
+                        value: variant.value.clone(),
+                        label: variant.label.clone(),
+                    })
+                    .collect()
             })
-            .collect(),
+            .unwrap_or_default(),
+        version,
     }))
 }
 
-/// Writes the choice to the game's variable, takes its startup command and image, and reinstalls
-/// the server (its files stay; the install puts the new software in place).
+/// The Minecraft versions a software choice offers, newest first (`None`: the server's own).
+pub async fn versions(
+    state: &crate::State,
+    server: &Server,
+    variant: Option<&str>,
+) -> Result<Vec<compact_str::CompactString>, SoftwareError> {
+    let Some(software) = minecraft_version(state, server).await? else {
+        return Err(SoftwareError::VersionNotOffered);
+    };
+    let loader = match variant {
+        Some(value) => {
+            let game = game(state, server)
+                .await?
+                .ok_or(SoftwareError::NotOffered)?;
+            if !game.variants.iter().any(|variant| variant.value == value) {
+                return Err(SoftwareError::UnknownVariant);
+            }
+            crate::minecraft::Loader::from_value(value)
+        }
+        None => software.loader,
+    };
+
+    Ok(crate::minecraft::versions::for_software(state, loader).await?)
+}
+
+/// A version as a version variable may hold it.
+fn plain_version(version: &str) -> bool {
+    (1..=32).contains(&version.len())
+        && version
+            .bytes()
+            .all(|b| b.is_ascii_alphanumeric() || matches!(b, b'.' | b'-' | b'_' | b'+'))
+}
+
+/// Writes the choice to the game's variable and takes its startup command and image, writes the
+/// Minecraft version, then reinstalls the server (its files stay; the install puts the new
+/// software in place).
 pub async fn switch(
     state: &crate::State,
     server: &mut Server,
-    value: &str,
+    value: Option<&str>,
+    version: Option<&str>,
 ) -> Result<(), SoftwareError> {
-    let Some(game) = game(state, server).await? else {
-        return Err(SoftwareError::NotOffered);
-    };
-    let Some(variant) = game.variants.iter().find(|variant| variant.value == value) else {
-        return Err(SoftwareError::UnknownVariant);
-    };
-
     let variables =
         ServerVariable::all_by_server_uuid_egg_uuid(&state.database, server.uuid, server.egg.uuid)
             .await?;
-    let Some(variable) = variables
-        .iter()
-        .find(|variable| Some(&variable.variable.env_variable) == game.variable.as_ref())
-    else {
-        return Err(SoftwareError::NotOffered);
-    };
 
-    ServerVariable::create(
-        &state.database,
-        server.uuid,
-        variable.variable.uuid,
-        &variant.value,
-    )
-    .await?;
+    let mut variant = None;
+    if let Some(value) = value {
+        let Some(game) = game(state, server).await? else {
+            return Err(SoftwareError::NotOffered);
+        };
+        let Some(chosen) = game.variants.iter().find(|variant| variant.value == value) else {
+            return Err(SoftwareError::UnknownVariant);
+        };
+        let Some(variable) = variables
+            .iter()
+            .find(|variable| Some(&variable.variable.env_variable) == game.variable.as_ref())
+        else {
+            return Err(SoftwareError::NotOffered);
+        };
 
-    if let Some((startup, image)) = crate::server_creation::runtime(&server.egg, Some(variant)) {
+        variant = Some((chosen.clone(), variable.variable.uuid));
+    }
+
+    let mut version_write = None;
+    if let Some(version) = version.map(str::trim) {
+        let Some(software) = minecraft_version(state, server).await? else {
+            return Err(SoftwareError::VersionNotOffered);
+        };
+        if !version.eq_ignore_ascii_case(crate::minecraft::LATEST) {
+            if !plain_version(version) {
+                return Err(SoftwareError::UnknownVersion);
+            }
+            let loader = match &variant {
+                Some((chosen, _)) => crate::minecraft::Loader::from_value(&chosen.value),
+                None => software.loader,
+            };
+            // a source that does not answer leaves the check to the install
+            if let Ok(offered) = crate::minecraft::versions::for_software(state, loader).await
+                && !offered.is_empty()
+                && !offered.iter().any(|offered| offered == version)
+            {
+                return Err(SoftwareError::UnknownVersion);
+            }
+        }
+
+        let Some(variable) = variables.iter().find(|variable| {
+            Some(&variable.variable.env_variable) == software.version_variable.as_ref()
+        }) else {
+            return Err(SoftwareError::VersionNotOffered);
+        };
+        let version = if version.eq_ignore_ascii_case(crate::minecraft::LATEST) {
+            crate::minecraft::LATEST
+        } else {
+            version
+        };
+        version_write = Some((variable.variable.uuid, version.to_string()));
+    }
+
+    if let Some((chosen, variable_uuid)) = &variant {
+        ServerVariable::create(&state.database, server.uuid, *variable_uuid, &chosen.value).await?;
+    }
+    if let Some((variable_uuid, version)) = &version_write {
+        ServerVariable::create(&state.database, server.uuid, *variable_uuid, version).await?;
+
+        // a build pinned for the old version does not exist for the new one
+        if let Some(build) = variables
+            .iter()
+            .find(|variable| BUILD_VARIABLES.contains(&variable.variable.env_variable.as_str()))
+        {
+            ServerVariable::create(
+                &state.database,
+                server.uuid,
+                build.variable.uuid,
+                crate::minecraft::LATEST,
+            )
+            .await?;
+        }
+    }
+
+    if let Some((chosen, _)) = &variant
+        && let Some((startup, image)) = crate::server_creation::runtime(&server.egg, Some(chosen))
+    {
         server
             .update(
                 state,
@@ -164,6 +292,10 @@ pub async fn switch(
 
     Ok(())
 }
+
+/// The variables a Minecraft egg pins a software build with, set back to `latest` with the
+/// version.
+const BUILD_VARIABLES: &[&str] = &["BUILD_NUMBER"];
 
 #[cfg(test)]
 mod tests {
@@ -191,5 +323,14 @@ mod tests {
         assert_eq!(current(&game, Some("fabric")), Some("fabric"));
         assert_eq!(current(&game, Some("forge")), Some("paper"));
         assert_eq!(current(&game, None), Some("paper"));
+    }
+
+    #[test]
+    fn versions_are_plain() {
+        assert!(plain_version("1.21.4"));
+        assert!(plain_version("24w14a"));
+        assert!(plain_version("1.20.1-pre2"));
+        assert!(!plain_version("1.21; rm -rf /"));
+        assert!(!plain_version(""));
     }
 }

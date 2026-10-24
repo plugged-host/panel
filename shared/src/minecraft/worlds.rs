@@ -454,12 +454,6 @@ async fn stopped(client: &wings_api::client::WingsClient, server: &Server) -> bo
     )
 }
 
-async fn trash_enabled(state: &crate::State, server: &Server) -> Result<bool, anyhow::Error> {
-    let settings = state.settings.get().await?;
-
-    Ok(server.effective_trash(&settings).retention.is_some())
-}
-
 /// Deletes folders in the server root, into the trash when the server has one.
 async fn remove_folders(
     state: &crate::State,
@@ -467,36 +461,14 @@ async fn remove_folders(
     server: &Server,
     folders: Vec<String>,
 ) -> Result<(), WorldError> {
-    if folders.is_empty() {
-        return Ok(());
-    }
-
-    let mut left: Vec<compact_str::CompactString> = folders.into_iter().map(Into::into).collect();
-
-    if trash_enabled(state, server).await? {
-        left = client
-            .post_servers_server_files_trash(
-                server.uuid,
-                &wings_api::servers_server_files_trash::post::RequestBody {
-                    root: "/".into(),
-                    files: left,
-                },
-            )
-            .await?
-            .skipped;
-    }
-
-    if !left.is_empty() {
-        client
-            .post_servers_server_files_delete(
-                server.uuid,
-                &wings_api::servers_server_files_delete::post::RequestBody {
-                    root: "/".into(),
-                    files: left,
-                },
-            )
-            .await?;
-    }
+    files::remove(
+        state,
+        client,
+        server,
+        "/",
+        folders.into_iter().map(Into::into).collect(),
+    )
+    .await?;
 
     Ok(())
 }
@@ -614,7 +586,7 @@ pub async fn load(state: &crate::State, server: &Server) -> Result<Worlds, World
         generation: generation(&raw),
         level_types: config::choices("level-type").to_vec(),
         running: !stopped(&client, server).await,
-        trash: trash_enabled(state, server).await?,
+        trash: files::trash_enabled(state, server).await?,
         import: current_import(state, server).await,
     })
 }

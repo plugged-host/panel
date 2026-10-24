@@ -1,6 +1,9 @@
-// plugged.host: switching a server's software (shared/src/server_software.rs).
+// plugged.host: switching a server's software and Minecraft version
+// (shared/src/server_software.rs).
 use super::State;
 use utoipa_axum::{router::OpenApiRouter, routes};
+
+mod versions;
 
 mod get {
     use serde::Serialize;
@@ -58,9 +61,16 @@ mod post {
 
     #[derive(ToSchema, Validate, Deserialize)]
     pub struct Payload {
-        #[garde(length(chars, min = 1, max = 64))]
+        /// The software choice; `null` keeps the current one.
+        #[garde(inner(length(chars, min = 1, max = 64)))]
         #[schema(min_length = 1, max_length = 64)]
-        variant: compact_str::CompactString,
+        #[serde(default)]
+        variant: Option<compact_str::CompactString>,
+        /// The Minecraft version (`latest` or a version); `null` keeps the current one.
+        #[garde(inner(length(chars, min = 1, max = 32)))]
+        #[schema(min_length = 1, max_length = 32)]
+        #[serde(default)]
+        version: Option<compact_str::CompactString>,
     }
 
     #[derive(ToSchema, Serialize)]
@@ -92,7 +102,20 @@ mod post {
 
         permissions.has_server_permission("settings.software")?;
 
-        match shared::server_software::switch(&state, &mut server, &data.variant).await {
+        if data.variant.is_none() && data.version.is_none() {
+            return ApiResponse::error("choose a software or a version")
+                .with_status(StatusCode::BAD_REQUEST)
+                .ok();
+        }
+
+        match shared::server_software::switch(
+            &state,
+            &mut server,
+            data.variant.as_deref(),
+            data.version.as_deref(),
+        )
+        .await
+        {
             Ok(()) => {}
             Err(SoftwareError::Other(err)) => return Err(err.into()),
             Err(err) => {
@@ -109,6 +132,7 @@ mod post {
                 "server:settings.software",
                 serde_json::json!({
                     "variant": data.variant,
+                    "version": data.version,
                 }),
             )
             .await;
@@ -123,5 +147,6 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
     OpenApiRouter::new()
         .routes(routes!(get::route))
         .routes(routes!(post::route))
+        .nest("/versions", versions::router(state))
         .with_state(state.clone())
 }

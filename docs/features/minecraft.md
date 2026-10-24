@@ -1,12 +1,13 @@
 # Minecraft
 
-Minecraft servers get their own pages in the server sidebar. This page grows with each part:
-**Plugins & Mods**, **Game Settings**, **Players** and **Worlds** are here; Bedrock support (Geyser
-+ Floodgate), modpacks, the version switch and the log check follow.
+Minecraft servers get their own pages in the server sidebar: **Plugins & Mods** (with **Modpacks**
+and **Bedrock**), **Game Settings**, **Players** and **Worlds**, plus the **log check** above the
+console and the Minecraft version in Settings › Software
+([server-settings.md](server-settings.md#software)). The onboarding and the installing page follow.
 
 The code is in `shared/src/minecraft/` (sources, versions, installed jars, `config.rs`,
-`players.rs`, `worlds.rs`, `files.rs` for reading and writing the server's files through Wings),
-the routes in
+`players.rs`, `worlds.rs`, `bedrock.rs`, `modpacks.rs`, `log_check.rs`, `files.rs` for reading and
+writing the server's files through Wings; `shared/src/redact.rs` masks secrets), the routes in
 `backend/src/routes/api/client/servers/_server_/minecraft/`, the pages in
 `frontend/src/pages/server/minecraft/`.
 
@@ -37,11 +38,13 @@ Admin › Settings › Hosting › Minecraft (`shared/src/settings/games.rs`, th
 | CurseForge API Key | none | Offers CurseForge as a source and matches jars against it. Encrypted; the admin API shows a placeholder. Keys come from console.curseforge.com |
 | SpigotMC | on | Offers SpigotMC (through the Spiget API) for plugins on Paper servers |
 | User Agent | empty | What the panel calls itself to Modrinth, CurseForge, Spiget and the loaders' APIs. Empty: `<app name>-panel/<release> (+<app URL>)`, which is what Modrinth asks for |
+| Log Check | on | Checks Minecraft servers' latest log on mclo.gs and shows the problems above the console ([Log check](#log-check)) |
 
 ## Plugins & Mods
 
 `/server/<id>/minecraft/content`, permission `minecraft.content` (browse, install, update, turn
-off, delete). Two tabs:
+off, delete). Three tabs, Installed, Browse and [Modpacks](#modpacks) (only on a server that can run a
+mod loader), and the [Bedrock](#bedrock-players) button in the header:
 
 **Installed** lists the jars in `/plugins` or `/mods` (a `.jar.disabled` is a turned-off one) with
 what each one is:
@@ -72,12 +75,80 @@ page. **Install** takes the newest release that fits the loader and version (the
 there is no release); **Choose Version** lists every build, or every build at all when none lists
 the server's version ("loose"). SpigotMC only downloads the latest build, and premium or externally
 hosted resources cannot be installed (**External**). The file is pulled by Wings
-(`files/pull`, the upstream pull rate limit) into `/plugins` or `/mods`, retried while Wings is
-busy with another pull. Modpacks are installed by the onboarding and the version switch, not here.
+(`files/pull`, the upstream pull rate limit) into `/plugins` or `/mods`, retried for a few seconds
+while Wings already runs as many pulls of the server as it allows (`limits.server_concurrent_pulls`,
+3 by default; Wings answers 417 "too many concurrent pulls"). Modpacks have their own tab.
 
 Every search, project and version answer is cached (searches 5 minutes, the rest an hour,
 `minecraft::<source>::…`); a source that fails answers "the content source did not answer, try
 again later" (the cause is logged).
+
+## Modpacks
+
+`/server/<id>/minecraft/content/modpacks`, shown when the server can run a mod loader: its game's
+software choices include Fabric, Quilt, Forge or NeoForge (a Paper server whose game also offers
+Fabric qualifies), or, without choices, it runs one of them. Searching needs `minecraft.content`;
+installing also needs `settings.software`, since a pack brings its own loader and version and the
+server is reinstalled for it.
+
+The tab searches Modrinth's and (with a key) CurseForge's modpacks for those loaders, any Minecraft
+version. **Install** asks for the pack's version (it shows the Minecraft version and loader it is
+for) and whether to **remove the mods installed now** (on by default: the `mods` folder goes to the
+trash when the server has one, else it is deleted). The server has to be stopped. The request
+checks the pack, stores the install as started and answers 202; a background task then:
+
+1. downloads the pack into the panel (Modrinth: the `.mrpack` from `cdn.modrinth.com`; CurseForge:
+   the pack zip through its download URL), at most 256 MB;
+2. reads `modrinth.index.json` (the `minecraft` and loader dependencies, the files with
+   `env.server` other than `unsupported`, their first download on a host the format allows:
+   `cdn.modrinth.com`, `github.com`, `raw.githubusercontent.com`, `gitlab.com`) or CurseForge's
+   `manifest.json` (the primary mod loader, the required files by project and file id);
+3. when the server's software choice or Minecraft version differ from the pack's, switches them like
+   Settings › Software does (writing `BUILD_NUMBER` back to `latest`) and waits up to 30 minutes for
+   the reinstall; the loader's own build is the newest the egg installs for that version (no egg
+   variable pins an exact Forge or Fabric loader build);
+4. removes the old mods when asked;
+5. has Wings download every file into its folder, three at a time, each waited for. A file that
+   fails (a dead link, a CurseForge author who forbids downloads by other apps) is listed as
+   skipped instead of failing the pack; CurseForge files that are not `.jar` (resource and shader
+   packs, which only clients load) are left out;
+6. unpacks the overrides: `overrides/` then `server-overrides/` (which wins) of a `.mrpack`, the
+   manifest's `overrides` folder of a CurseForge pack, zipped again by the panel and unpacked by
+   Wings at the server root. More than 256 MB of overrides are left out and the page says to upload
+   them in Files.
+
+Paths in a pack never leave the server's folder (absolute paths, `..` and drive letters are
+dropped). The state (step, files done of total, skipped files, error) is kept in the cache, for 2
+hours while running and an hour after; the tab polls it every 3 seconds, shows the step with a
+progress bar and toasts when it ends. Activity: `server:minecraft.modpack.install` when it ends.
+
+## Bedrock players
+
+The **Bedrock** button on Plugins & Mods (permission `minecraft.bedrock`), on Paper and its forks,
+Fabric and NeoForge (Geyser has no build for Quilt or Forge). The dialog shows the installed Geyser
+jar and the address Bedrock players join, and **Install Geyser** / **Update Geyser**
+(`shared/src/minecraft/bedrock.rs`):
+
+1. **The port.** The server's allocation noted `Bedrock (Geyser)`, else (a Geyser set up by hand) a
+   non-primary allocation on the port its config listens on; else the panel takes the node's lowest
+   free port on the primary allocation's IP (ports something on the node already listens on are
+   skipped) and adds it to the server with that note, under the server's allocation lock. It does
+   not count against the server's allocation limit. Wings maps every allocation for TCP and UDP, so
+   Bedrock's UDP listener is reachable. No free port: 409 "this node has no free port left for
+   bedrock".
+2. **The jars.** Old Geyser and Floodgate jars are deleted; Geyser is pulled from GeyserMC's build
+   API (`download.geysermc.org/v2/projects/geyser/versions/latest/builds/latest/downloads/<platform>`,
+   `spigot` for the Paper family) as `Geyser-<Platform>.jar`, Floodgate from GeyserMC for the Paper
+   family and from Modrinth (project `floodgate`, for the server's version) for Fabric and NeoForge.
+   Without a Floodgate build, Bedrock players sign in with a Java account (`auth-type: online`) and
+   the dialog says so.
+3. **The config.** An existing `plugins/Geyser-Spigot/config.yml` (`config/Geyser-Fabric/…`,
+   `config/Geyser-NeoForge/…`) gets `bedrock.port`, `remote.port` (or `java.port` in newer configs)
+   and `auth-type` set, comments kept; without one the panel writes a short config with those and
+   `address: auto`, and Geyser adds its defaults on start.
+4. A running server is restarted after 5 seconds (the downloads run in Wings' background).
+
+Activity: `server:minecraft.bedrock.install`.
 
 ## Game Settings
 
@@ -185,6 +256,25 @@ Two page actions need the server stopped:
 
 Activity: `server:minecraft.worlds.{create,activate,delete,import}`.
 
+## Log check
+
+Above the console of a Minecraft server, for whoever may read the console and files
+(`control.console` and `files.read-content`; `shared/src/minecraft/log_check.rs`), like Aternos does
+it. The page asks every minute; the panel then reads `logs/latest.log` through Wings (at most 4 MB),
+strips colour codes, masks secrets (`shared/src/redact.rs`: `key=value`, `key: value` and JSON
+entries whose key looks secret such as passwords, RCON, tokens, API keys and webhooks; JWTs; Discord
+bot tokens; the token half of Discord webhook URLs; `sk-`, `gsk_`, `ghp_`, `xox?-` keys) and uploads
+it to mclo.gs (`api.mclo.gs/1/log`), which strips IP addresses itself. mclo.gs's analysis
+(`/1/log/<id>?insights=1`) gives the problems and their first suggested fix.
+
+One result per server, kept 24 hours (`minecraft::log_check::<server>`) and shared by everyone
+watching. A log is uploaded only when it changed (MD5), a running server's at most every 2 minutes,
+a stopped server's right away (the log with the crash); one upload at a time per server. A clean log
+shows one dimmed line with a link; problems show as a card with up to three problems and their fixes
+and the link to the whole log on mclo.gs; error lines without a known problem say so. The "Ask neo"
+button comes with Phase 5's AI port. Admin › Settings › Hosting › Minecraft › Log Check turns it off
+(the console then shows nothing).
+
 ## Routes
 
 Under `/api/client/servers/{server}/minecraft/content`, all with `minecraft.content`:
@@ -230,6 +320,23 @@ Under `/api/client/servers/{server}/minecraft/worlds`, with `minecraft.worlds`:
 | `POST /upload` | Empties the upload folder (also `files.create`, server stopped) |
 | `POST /import` `{archive, keep}` | Starts the import of the uploaded archive; 202 (also `files.create`) |
 
+Under `/api/client/servers/{server}/minecraft/modpacks` (`minecraft.content`):
+
+| Route | Does |
+|---|---|
+| `GET /` | The loaders a pack may be for, the sources, whether the server runs, the current install |
+| `GET /search?source&query&page` | One page of modpacks for those loaders |
+| `GET /versions?source&project` | The pack's versions, newest first |
+| `POST /install` `{source, project, version, clean}` | Starts the install (also `settings.software`, server stopped); 202 with the install |
+
+`/api/client/servers/{server}/minecraft/bedrock` (`minecraft.bedrock`): `GET` whether Geyser runs on
+the software, the jar, the port and address; `POST` installs or updates (`{updated, floodgate, port,
+address, restarted}`).
+
+`GET /api/client/servers/{server}/minecraft/log-check` (`control.console` + `files.read-content`):
+`{enabled, result}`, the result being `{id, url, errors, problems: [{message, solution}], checked}`;
+502 when the log could not be checked.
+
 ## Without noprofit.space
 
 Nothing here uses noprofit.space.
@@ -259,3 +366,16 @@ Nothing here uses noprofit.space.
   uploads card shows the progress, then "Unpacking …", then the list updates.
 - Download on a running server: the zip has the world, `world_nether` and `world_the_end`.
 - Delete a world that is not loaded: it shows up in the file manager's trash.
+- Modpacks on a stopped Fabric server: install a Modrinth pack for another Minecraft version; the
+  page shows "Reinstalling the server…", then the mods count up, then "is installed"; the server
+  starts with the pack's mods and configs; Settings › Software shows the pack's version.
+- The same with a CurseForge pack (with a key) on a Forge server; a pack whose author blocks
+  downloads lists the skipped mods.
+- Modpacks on a running server: Install is disabled and the page says to stop it.
+- Bedrock on a Paper server: Install Geyser; Network shows a new port noted "Bedrock (Geyser)";
+  `plugins/` has Geyser and Floodgate; a Bedrock client joins on the shown address. Update Geyser
+  keeps the same port.
+- Bedrock on a Fabric server: Geyser-Fabric and Floodgate from Modrinth in `mods/`.
+- The log check: start a server with a broken mod; above the console a card lists the problem and
+  its fix, with a link to mclo.gs where passwords in the log show as `••••`. A clean start shows the
+  one dimmed line. Turning Log Check off in Admin › Settings hides it.

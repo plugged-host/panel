@@ -268,6 +268,8 @@ const server = (serverUuid: string) => ({
   settings: {
     resize: () => ['server', serverUuid, 'settings', 'resize'] as const,
     software: () => ['server', serverUuid, 'settings', 'software'] as const,
+    softwareVersions: (variant: string | null) =>
+      ['server', serverUuid, 'settings', 'software', 'versions', { variant }] as const,
   },
   transfer: () => ['server', serverUuid, 'transfer'] as const, // plugged.host
   queue: () => ['server', serverUuid, 'queue'] as const, // plugged.host
@@ -283,6 +285,12 @@ const server = (serverUuid: string) => ({
     settings: () => ['server', serverUuid, 'minecraft', 'settings'] as const,
     players: () => ['server', serverUuid, 'minecraft', 'players'] as const,
     worlds: () => ['server', serverUuid, 'minecraft', 'worlds'] as const,
+    logCheck: () => ['server', serverUuid, 'minecraft', 'logCheck'] as const,
+    bedrock: () => ['server', serverUuid, 'minecraft', 'bedrock'] as const,
+    modpacks: () => ['server', serverUuid, 'minecraft', 'modpacks'] as const,
+    modpackSearch: (params: object) => ['server', serverUuid, 'minecraft', 'modpacks', 'search', params] as const,
+    modpackVersions: (source: string, project: string) =>
+      ['server', serverUuid, 'minecraft', 'modpacks', 'versions', { source, project }] as const,
   },
   activity: {
     all: (userUuid: string | null) => ['server', serverUuid, 'activity', { uuid: userUuid }] as const,
