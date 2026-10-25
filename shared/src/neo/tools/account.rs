@@ -135,17 +135,30 @@ impl Tool for AccountOverviewTool {
         } else {
             format!("servers: {} (no limit)", allowance.servers)
         });
+        // a pool shared with other noprofit.space services is shown whole, their part named
+        let elsewhere = |amount: i64, unit: &str| {
+            if amount > 0 {
+                format!(
+                    " (of which {amount}{unit} by the account's other noprofit.space services, e.g. switched.cloud VPSes)"
+                )
+            } else {
+                String::new()
+            }
+        };
         lines.push(format!(
-            "cpu: {}",
-            usage(allowance.used.cpu, allowance.limit.cpu, "%")
+            "cpu: {}{}",
+            usage(allowance.used.cpu, allowance.limit.cpu, "%"),
+            elsewhere(allowance.elsewhere.cpu, "%")
         ));
         lines.push(format!(
-            "memory: {}",
-            usage(allowance.used.memory, allowance.limit.memory, " MB")
+            "memory: {}{}",
+            usage(allowance.used.memory, allowance.limit.memory, " MB"),
+            elsewhere(allowance.elsewhere.memory, " MB")
         ));
         lines.push(format!(
-            "disk: {}",
-            usage(allowance.used.disk, allowance.limit.disk, " MB")
+            "disk: {}{}",
+            usage(allowance.used.disk, allowance.limit.disk, " MB"),
+            elsewhere(allowance.elsewhere.disk, " MB")
         ));
         if !allowance.has_plan {
             lines.push(
@@ -795,6 +808,7 @@ mod tests {
             has_plan: true,
             limit,
             used,
+            elsewhere: crate::allowance::Resources::default(),
             servers: 1,
             max_servers: 0,
         }

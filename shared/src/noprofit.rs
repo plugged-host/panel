@@ -252,6 +252,7 @@ impl Config {
         &self,
         client: &reqwest::Client,
         account_ids: &[i64],
+        usage: &[Usage],
     ) -> Result<Vec<Snapshot>, anyhow::Error> {
         const PATH: &str = "/api/v1/internal/calagopus/accounts";
 
@@ -263,7 +264,7 @@ impl Config {
             .post(
                 client,
                 PATH,
-                &serde_json::json!({ "account_ids": account_ids }),
+                &serde_json::json!({ "account_ids": account_ids, "usage": usage }),
             )
             .await?;
         let status = response.status();
@@ -512,8 +513,9 @@ pub async fn refresh_user(
     let Some(link) = Link::by_user_uuid(&state.database, user_uuid).await? else {
         return Ok(());
     };
+    let usage = Usage::of(&state.database, &[link.account_id]).await?;
     let Some(snapshot) = noprofit
-        .pull(&state.client, &[link.account_id])
+        .pull(&state.client, &[link.account_id], &usage)
         .await?
         .into_iter()
         .find(|snapshot| snapshot.account_id == link.account_id)
@@ -613,12 +615,51 @@ pub struct Snapshot {
     pub avatar: Option<String>,
     #[serde(default)]
     pub credits: i64,
-    /// `{cpu, memory, disk, base_*, max_*}`: CPU in %, memory and disk in MiB.
+    /// `{cpu, memory, disk, base_*, max_*, total_*, elsewhere_*, cut_*}`: CPU in %, memory and
+    /// disk in MiB. cpu/memory/disk are this panel's share of the account's pool, `total_*` the
+    /// whole pool, `elsewhere_*` what its other services use, `cut_*` what lower bases took from
+    /// this panel so far (only counting up).
     #[serde(default)]
     pub plan: Option<serde_json::Value>,
     /// `{id, username, avatar}` when a Discord account is linked.
     #[serde(default)]
     pub discord: Option<serde_json::Value>,
+}
+
+/// What an account's servers here use, sent with every pull: noprofit.space counts it in the pool
+/// the account shares with its other services (switched.cloud, the Pelican panel), which then
+/// have that much less, as this panel has less for theirs (`elsewhere_*` in the plan).
+#[derive(Debug, Clone, Serialize, sqlx::FromRow)]
+pub struct Usage {
+    pub account_id: i64,
+    pub user_uuid: uuid::Uuid,
+    pub cpu: i64,
+    pub memory: i64,
+    pub disk: i64,
+    pub servers: i64,
+}
+
+impl Usage {
+    /// The usage of these accounts' users (0 for one without servers).
+    pub async fn of(
+        database: &crate::database::Database,
+        account_ids: &[i64],
+    ) -> Result<Vec<Self>, sqlx::Error> {
+        sqlx::query_as::<_, Self>(
+            "SELECT n.account_id, n.user_uuid,
+                COALESCE(SUM(s.cpu), 0)::BIGINT AS cpu,
+                COALESCE(SUM(s.memory), 0)::BIGINT AS memory,
+                COALESCE(SUM(s.disk), 0)::BIGINT AS disk,
+                COUNT(s.uuid)::BIGINT AS servers
+            FROM user_noprofit_accounts n
+            LEFT JOIN servers s ON s.owner_uuid = n.user_uuid
+            WHERE n.account_id = ANY($1) AND n.deleted IS NULL
+            GROUP BY n.account_id, n.user_uuid",
+        )
+        .bind(account_ids)
+        .fetch_all(database.read())
+        .await
+    }
 }
 
 /// A panel user's noprofit.space account (table `user_noprofit_accounts`).
@@ -716,10 +757,7 @@ impl Link {
         .await?;
 
         if let (Some(old), Some(new)) = (&old_plan, &snapshot.plan) {
-            let decrease = crate::allowance_cuts::decrease(
-                crate::allowance::Resources::from_plan(old),
-                crate::allowance::Resources::from_plan(new),
-            );
+            let decrease = crate::allowance_cuts::plan_decrease(old, new);
             crate::allowance_cuts::record(
                 database,
                 user_uuid,
@@ -918,7 +956,8 @@ pub async fn sync_all(state: &crate::State) -> Result<(), anyhow::Error> {
     let account_ids = Link::live_account_ids(&state.database).await?;
 
     for batch in account_ids.chunks(PULL_BATCH) {
-        let snapshots = noprofit.pull(&state.client, batch).await?;
+        let usage = Usage::of(&state.database, batch).await?;
+        let snapshots = noprofit.pull(&state.client, batch, &usage).await?;
         let found: std::collections::HashSet<i64> = snapshots
             .iter()
             .map(|snapshot| snapshot.account_id)

@@ -9,7 +9,7 @@ that part; an account with room to spare loses nothing.
 
 | Where the allowance went down | Recorded by |
 |---|---|
-| noprofit.space: the account's plan is smaller (a lower tier, a Discord server left, an admin there) | `noprofit::Link::store`, when the account's snapshot is taken on (sign-in, the every-minute sync) |
+| noprofit.space: the account's plan is smaller (a lower tier, a Discord server left, an admin there) | `noprofit::Link::store`, when the account's snapshot is taken on (sign-in, the every-minute sync). A plan with `cut_*` (a pool shared with other services) takes only their growth, never the share shrinking because another service uses more (`allowance_cuts::plan_decrease`) |
 | Admin › Settings › Hosting › Games: CPU, memory or disk per account lowered (without noprofit.space) | the settings route, one row for every account that owns a server |
 
 A limit going from a value to none (0) takes nothing; from none to a value takes whatever is over.

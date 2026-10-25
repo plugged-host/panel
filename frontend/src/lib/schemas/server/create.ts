@@ -12,6 +12,8 @@ export const serverCreateAllowanceSchema = z.object({
   hasPlan: z.boolean(),
   limit: resourcesSchema,
   used: resourcesSchema,
+  // the account's other noprofit.space services' part of the pool (already in limit and used)
+  elsewhere: resourcesSchema,
   servers: z.number(),
   maxServers: z.number(),
 });

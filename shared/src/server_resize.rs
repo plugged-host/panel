@@ -288,6 +288,7 @@ mod tests {
             has_plan,
             limit,
             used,
+            elsewhere: crate::allowance::Resources::default(),
             servers: 2,
             max_servers: 0,
         }

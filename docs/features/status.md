@@ -62,7 +62,7 @@ Served by the panel at `/data/...` with `Access-Control-Allow-Origin: *` and
 
 | File | Holds |
 |---|---|
-| `current.json` | `overall {status, label, message}`, `components [{label, status, note?}]`, each node's CPU, memory and storage (`nodes`) and their sum (`global`), the release |
+| `current.json` | `overall {status, label, message}`, `components [{label, status, note?}]`, each node's CPU (percent points, 100 per thread), memory and storage (`nodes`) and their sum (`global`), the release |
 | `history.json` | `recent`: the last hour of each node's CPU and memory; `uptime`: per component the uptime percent and up to 90 days `{date, status, total_checks, operational_checks}` |
 | `incidents.json` | the newest 50 incidents: `title`, `impact`, `status`, `components` (labels, or "All systems"), `started_at`, `resolved_at`, `updates [{status, message, published_at}]` |
 | `targets.json` | each published node's label, host and Wings port, for an outside monitor that probes the nodes when the panel itself is down |
@@ -94,6 +94,7 @@ Admin › Settings › General › Status Page (`shared/src/settings/status.rs`,
 | `POST /api/admin/status/incidents`, `PATCH`/`DELETE /api/admin/status/incidents/{incident}`, `POST /api/admin/status/incidents/{incident}/updates` | `status.manage` |
 | `POST /api/admin/status/overrides`, `DELETE /api/admin/status/overrides/{override}` | `status.manage` |
 | `GET /data/{current,history,incidents,targets}.json`, `GET /data/feed.xml` | none (public) |
+| `GET /up`: `200 ok` while the panel reaches its database within 3 s, else `503` (the Pelican panel's health check; a status Worker probes it as the panel's health URL) | none (public) |
 
 Every change is in the admin activity log (`status:incident.*`, `status:override.*`,
 `status:component.update`). The tasks are `collect_status` (every minute at second 45, after the
@@ -110,6 +111,7 @@ Nothing changes: the status page only talks to the website, the panel and the no
   a status and "Last Checked".
 - Open `https://<panel>/data/current.json`: it lists the same components; `history.json`,
   `incidents.json`, `targets.json` and `feed.xml` answer too. Turned off, they answer 404.
+- Open `https://<panel>/up`: it says `ok`.
 - Admin › Status › Components › a node › Edit: untick Published; it leaves `current.json`.
 - Admin › Status › Incidents › Create: a `major` incident on one node shows that node as
   `partial_outage` in `current.json` and the incident in `incidents.json` and `feed.xml`; Post Update

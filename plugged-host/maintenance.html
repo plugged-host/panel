@@ -1,0 +1,47 @@
+<!doctype html>
+<!-- plugged.host: what nginx shows while the panel is restarting or down (plugged-host/nginx.conf). -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="refresh" content="15">
+<meta name="robots" content="noindex">
+<title>plugged.host</title>
+<style>
+  :root {
+    --theme-bg-top: #101319;
+    --theme-bg-bottom: #0b0d10;
+    --theme-text: #ffffff;
+    --theme-text-muted: #9ca3af;
+    --theme-text-faint: #71717a;
+    --theme-accent-bright: #3b82f6;
+  }
+  html { background: var(--theme-bg-bottom); }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 16px;
+    box-sizing: border-box;
+    background: linear-gradient(var(--theme-bg-top), var(--theme-bg-bottom));
+    color: var(--theme-text);
+    font-family: "Space Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  main { max-width: 32rem; }
+  h1 { margin: 0 0 0.5rem; font-size: 1.5rem; font-weight: 600; }
+  p { margin: 0 0 1rem; color: var(--theme-text-muted); line-height: 1.5; }
+  p.de { color: var(--theme-text-faint); }
+  a { color: var(--theme-accent-bright); }
+</style>
+</head>
+<body>
+<main>
+  <h1>The panel is restarting</h1>
+  <p>It is usually back within a minute. This page reloads by itself; your servers keep running.</p>
+  <p class="de" lang="de">Das Panel startet neu und ist meist in einer Minute zurück. Diese Seite lädt sich selbst neu; deine Server laufen weiter.</p>
+  <p><a href="https://status.plugged.host">status.plugged.host</a></p>
+</main>
+</body>
+</html>

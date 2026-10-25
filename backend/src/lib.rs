@@ -37,6 +37,7 @@ pub static EXTENSIONS: OnceLock<Arc<shared::extensions::manager::ExtensionManage
 pub static CLAP_COMMAND: OnceLock<clap::Command> = OnceLock::new();
 
 pub mod commands;
+mod prefetch; // plugged.host: docs/features/speed.md
 pub mod routes;
 pub mod tasks;
 
@@ -1207,11 +1208,20 @@ pub async fn handle_startup() -> Result<
                             })
                         });
 
+                    // plugged.host: the page's first API answers inside its HTML (docs/features/speed.md)
+                    let prefetched = if is_index {
+                        prefetch::for_page(&state, &parts).await
+                    } else {
+                        None
+                    };
+
                     let cache_control = if asset
                         .as_ref()
                         .is_some_and(|asset| asset.path.starts_with("assets/"))
                     {
                         "public, max-age=31536000, immutable"
+                    } else if prefetched.as_ref().is_some_and(|prefetched| prefetched.personal) {
+                        "private, no-store" // plugged.host: the account's own answers are in it
                     } else {
                         "no-cache"
                     };
@@ -1224,9 +1234,15 @@ pub async fn handle_startup() -> Result<
                                 .map(|nonce| format!("<meta name=\"cap-script-nonce\" content=\"{nonce}\">"))
                                 .into_iter()
                                 .chain(verification_meta)
+                                .chain(prefetched.as_ref().map(|prefetched| prefetched.script.clone())) // plugged.host
                                 .collect::<String>();
                             let body = if !head.is_empty() {
                                 let html: &str = html.as_ref();
+                                // plugged.host: an answer in the page needs no preload
+                                let html = prefetched.as_ref().map_or_else(
+                                    || html.to_string(),
+                                    |prefetched| prefetch::without_preloads(html, &prefetched.public),
+                                );
                                 Body::from(html.replacen("</head>", &format!("{head}</head>"), 1))
                             } else {
                                 Body::from(axum::body::Bytes::from_owner(html))
@@ -1322,6 +1338,9 @@ pub async fn handle_startup() -> Result<
         SecurityScheme::ApiKey(ApiKey::Header(ApiKeyValue::new("Authorization"))),
     );
 
+    // plugged.host: for the API documentation pages (routes/docs.rs)
+    let docs_app_name = settings.app.name.to_string();
+
     drop(settings);
 
     for (original_path, item) in openapi.paths.paths.iter_mut() {
@@ -1351,11 +1370,18 @@ pub async fn handle_startup() -> Result<
         }
     }
 
+    // plugged.host: /docs/api, as the Pelican panel has it (docs/features/api-docs.md)
+    let docs = routes::docs::router(&state, &openapi, docs_app_name)?;
+    let up = routes::up::router(&state); // plugged.host: the health check (docs/features/status.md)
+
     let openapi = Arc::new(openapi);
-    let router = router.route(
-        "/openapi.json",
-        axum::routing::get(|| async move { axum::Json(openapi) }),
-    );
+    let router = router
+        .route(
+            "/openapi.json",
+            axum::routing::get(|| async move { axum::Json(openapi) }),
+        )
+        .merge(docs) // plugged.host
+        .merge(up); // plugged.host
 
     *state.app_router.write().await = Some(router);
 

@@ -46,8 +46,11 @@ games with several variants are asked on the create page.
 
 `shared/src/allowance.rs`. The limit is:
 
-- with noprofit.space connected, the account's plan from noprofit.space (`cpu`, `memory`, `disk`);
-  an account without a plan creates nothing;
+- with noprofit.space connected, the account's plan from noprofit.space (`cpu`, `memory`, `disk`:
+  this panel's share of the pool the account shares with its other services); an account without a
+  plan creates nothing. The pool is shown whole: what the other services use (`elsewhere_*`) is added
+  to both the limit and what is used (`Allowance::elsewhere`), so the sidebar reads like the Pelican
+  panel's and what is left stays the share less this panel's servers;
 - without it, the games settings' CPU, memory and disk per account (the same for every account).
 
 What is used is the sum of the servers the account owns, read from the primary database, so a server

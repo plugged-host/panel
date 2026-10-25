@@ -55,6 +55,36 @@ pub fn decrease(old: Resources, new: Resources) -> Resources {
     )
 }
 
+/// What a new noprofit.space plan takes off this panel's servers. A plan that shares its pool with
+/// other services says so itself in `cut_*` (what lower bases took from this panel, only counting
+/// up): only their growth is taken, never the share getting smaller because another service uses
+/// more of the pool (it only ever takes what was free). The first such plan is the starting point.
+/// A plan without them (this panel's alone) is its cpu/memory/disk going down.
+pub fn plan_decrease(old: &serde_json::Value, new: &serde_json::Value) -> Resources {
+    match (cuts_of(old), cuts_of(new)) {
+        (Some(old), Some(new)) => Resources::new(
+            (new.cpu - old.cpu).max(0),
+            (new.memory - old.memory).max(0),
+            (new.disk - old.disk).max(0),
+        ),
+        (None, Some(_)) => Resources::default(),
+        _ => decrease(Resources::from_plan(old), Resources::from_plan(new)),
+    }
+}
+
+fn cuts_of(plan: &serde_json::Value) -> Option<Resources> {
+    ["cut_cpu", "cut_memory", "cut_disk"]
+        .iter()
+        .any(|key| plan.get(key).is_some())
+        .then(|| {
+            Resources::from_plan(&serde_json::json!({
+                "cpu": plan.get("cut_cpu"),
+                "memory": plan.get("cut_memory"),
+                "disk": plan.get("cut_disk"),
+            }))
+        })
+}
+
 fn any(resources: Resources) -> bool {
     resources.cpu > 0 || resources.memory > 0 || resources.disk > 0
 }
@@ -446,6 +476,41 @@ mod tests {
                 Resources::new(300, 0, 10240)
             ),
             Resources::new(EVERYTHING_OVER, 0, 10240)
+        );
+    }
+
+    #[test]
+    fn a_shared_pool_takes_only_its_cuts() {
+        let plan = |cpu: i64, cut_cpu: Option<i64>| {
+            let mut plan = serde_json::json!({"cpu": cpu, "memory": 8192, "disk": 20480});
+            if let Some(cut) = cut_cpu {
+                plan["total_cpu"] = 400.into();
+                plan["cut_cpu"] = cut.into();
+                plan["cut_memory"] = 0.into();
+                plan["cut_disk"] = 0.into();
+            }
+            plan
+        };
+
+        // another service used more of the pool: the share is smaller, nothing is taken
+        assert_eq!(
+            plan_decrease(&plan(300, Some(0)), &plan(200, Some(0))),
+            Resources::default()
+        );
+        // a lower base took 50 from this panel
+        assert_eq!(
+            plan_decrease(&plan(300, Some(10)), &plan(250, Some(60))),
+            Resources::new(50, 0, 0)
+        );
+        // the first plan with a pool is the starting point
+        assert_eq!(
+            plan_decrease(&plan(400, None), &plan(200, Some(20))),
+            Resources::default()
+        );
+        // a plan of this panel's alone: what went down
+        assert_eq!(
+            plan_decrease(&plan(400, None), &plan(300, None)),
+            Resources::new(100, 0, 0)
         );
     }
 

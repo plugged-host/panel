@@ -38,6 +38,34 @@ impl Resources {
 
         Self::new(value("cpu"), value("memory"), value("disk"))
     }
+
+    /// What the account's other noprofit.space services (switched.cloud, the Pelican panel) use of
+    /// the pool a plan shares with them: its `elsewhere_*`, or the pool (`total_*`) less this
+    /// panel's share. `None` for a plan of this panel's alone.
+    pub fn elsewhere_in_plan(plan: &serde_json::Value) -> Option<Self> {
+        let number = |key: String| {
+            plan.get(&key).and_then(|value| {
+                value
+                    .as_i64()
+                    .or_else(|| value.as_f64().map(|value| value as i64))
+            })
+        };
+        let share = Self::from_plan(plan);
+        let one = |resource: &str, share: i64| {
+            number(format!("elsewhere_{resource}"))
+                .or_else(|| number(format!("total_{resource}")).map(|total| total - share))
+                .map(|elsewhere| elsewhere.max(0))
+        };
+
+        let (cpu, memory, disk) = (
+            one("cpu", share.cpu),
+            one("memory", share.memory),
+            one("disk", share.disk),
+        );
+
+        (cpu.is_some() || memory.is_some() || disk.is_some())
+            .then(|| Self::new(cpu.unwrap_or(0), memory.unwrap_or(0), disk.unwrap_or(0)))
+    }
 }
 
 #[derive(ToSchema, Serialize, Clone, Copy, Debug, PartialEq, Eq)]
@@ -72,6 +100,9 @@ impl Refusal {
     }
 }
 
+/// With a pool the account shares with other noprofit.space services, `limit` and `used` are the
+/// whole pool's, as the Pelican panel shows them: what the other services use (`elsewhere`) counts
+/// as used and is part of the limit, so what is left is still this panel's share less its servers.
 #[derive(ToSchema, Serialize, Clone, Debug)]
 pub struct Allowance {
     pub source: AllowanceSource,
@@ -79,6 +110,8 @@ pub struct Allowance {
     pub has_plan: bool,
     pub limit: Resources,
     pub used: Resources,
+    /// What the account's other noprofit.space services use of the pool (in `limit` and `used`).
+    pub elsewhere: Resources,
     /// Servers the account owns, and how many it may have (0: no limit).
     pub servers: i64,
     pub max_servers: i64,
@@ -195,12 +228,16 @@ pub async fn for_user(
         )
     };
 
+    let mut elsewhere = Resources::default();
     let (source, has_plan, limit) = if connected {
         match crate::noprofit::Link::by_user_uuid(&state.database, user_uuid)
             .await?
             .and_then(|link| link.plan)
         {
-            Some(plan) => (AllowanceSource::Plan, true, Resources::from_plan(&plan)),
+            Some(plan) => {
+                elsewhere = Resources::elsewhere_in_plan(&plan).unwrap_or_default();
+                (AllowanceSource::Plan, true, Resources::from_plan(&plan))
+            }
             None => (AllowanceSource::Plan, false, Resources::default()),
         }
     } else {
@@ -216,15 +253,44 @@ pub async fn for_user(
     };
 
     let (used, servers) = usage(&state.database, user_uuid).await?;
+    let (limit, used) = with_pool(limit, used, elsewhere);
 
     Ok(Allowance {
         source,
         has_plan,
         limit,
         used,
+        elsewhere,
         servers,
         max_servers,
     })
+}
+
+/// `limit` and `used` grown by what other services use of the pool: every difference between
+/// them (what is left, what is over) stays this panel's. A resource nothing else uses is as it was.
+pub fn with_pool(
+    limit: Resources,
+    used: Resources,
+    elsewhere: Resources,
+) -> (Resources, Resources) {
+    let one = |limit: i64, used: i64, elsewhere: i64| {
+        if elsewhere > 0 {
+            (limit.max(0) + elsewhere, used + elsewhere)
+        } else {
+            (limit, used)
+        }
+    };
+
+    let (cpu, memory, disk) = (
+        one(limit.cpu, used.cpu, elsewhere.cpu),
+        one(limit.memory, used.memory, elsewhere.memory),
+        one(limit.disk, used.disk, elsewhere.disk),
+    );
+
+    (
+        Resources::new(cpu.0, memory.0, disk.0),
+        Resources::new(cpu.1, memory.1, disk.1),
+    )
 }
 
 /// Holds the account's create/resize lock: the allowance is read, checked, then spent, and two
@@ -257,9 +323,47 @@ mod tests {
             has_plan: true,
             limit,
             used,
+            elsewhere: Resources::default(),
             servers: 1,
             max_servers: 0,
         }
+    }
+
+    #[test]
+    fn a_shared_pool_shows_whole_and_leaves_this_panels_share() {
+        // noprofit.space's planFor(): this panel's share, the whole pool and what others use of it
+        let plan = serde_json::json!({
+            "cpu": 300, "total_cpu": 400, "elsewhere_cpu": 100,
+            "memory": 6144, "total_memory": 8192.0,
+            "disk": 10240,
+        });
+        let elsewhere = Resources::elsewhere_in_plan(&plan).unwrap();
+        assert_eq!(elsewhere, Resources::new(100, 2048, 0));
+        assert_eq!(
+            Resources::elsewhere_in_plan(&serde_json::json!({"cpu": 300})),
+            None
+        );
+
+        let (limit, used) = with_pool(
+            Resources::from_plan(&plan),
+            Resources::new(200, 4096, 1024),
+            elsewhere,
+        );
+        assert_eq!(limit, Resources::new(400, 8192, 10240));
+        assert_eq!(used, Resources::new(300, 6144, 1024));
+
+        // what is left is still the share less this panel's servers
+        let mut pool = allowance(limit, used);
+        pool.elsewhere = elsewhere;
+        assert_eq!(pool.remaining(), (Some(100), Some(2048), Some(9216)));
+
+        // everything used elsewhere: nothing left here (a share of 0 is no "no limit")
+        let (limit, used) = with_pool(
+            Resources::new(0, 0, 0),
+            Resources::default(),
+            Resources::new(400, 0, 0),
+        );
+        assert_eq!(allowance(limit, used).remaining().0, Some(0));
     }
 
     #[test]

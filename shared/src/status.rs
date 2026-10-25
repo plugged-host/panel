@@ -510,8 +510,9 @@ fn check_node(
         Some((
             cpu_percent,
             json!({
-                "cpu_used": ((cpu_percent as f64 / 100.0 * threads as f64) * 100.0).round() / 100.0,
-                "cpu_total": threads,
+                // CPU in percent points, 100 per thread, as the status page and the site read it
+                "cpu_used": ((cpu_percent as f64 * threads as f64) * 100.0).round() / 100.0,
+                "cpu_total": threads * 100,
                 "memory_used": sample.memory_used.unwrap_or(0),
                 "memory_total": memory_total,
                 "storage_used": sample.disk_used.unwrap_or(0),
@@ -1110,7 +1111,7 @@ pub async fn history(state: &crate::State) -> Result<Value, anyhow::Error> {
                 iso(row
                     .try_get::<chrono::NaiveDateTime, _>("sampled")?
                     .and_utc()),
-                ((cpu / 100.0 * threads) * 100.0).round() / 100.0,
+                ((cpu * threads) * 100.0).round() / 100.0,
                 row.try_get::<Option<i64>, _>("memory_used")?.unwrap_or(0),
             ));
     }

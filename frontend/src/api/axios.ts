@@ -8,6 +8,7 @@ import axios, {
   RawAxiosResponseHeaders,
 } from 'axios';
 import { API_REQUEST_CANCELLED_CODE, ApiRequestEvent, ApiResponseEvent, globalTranslationHandle } from 'shared';
+import { forgetPrefetched, takePrefetched } from '@/api/prefetched.ts'; // plugged.host
 import { getTranslations } from '@/providers/contexts/translationContext.ts';
 import { getGlobalStore } from '@/stores/global.ts';
 
@@ -65,6 +66,27 @@ function cancelledByExtension(config: InternalAxiosRequestConfig) {
 
   return new AxiosError(message, API_REQUEST_CANCELLED_CODE, config);
 }
+
+// plugged.host: a GET the page's HTML already answered (api/prefetched.ts) is answered from there,
+// never while impersonating (the answers are the signed-in account's own)
+axiosInstance.interceptors.request.use((config) => {
+  if ((config.method ?? 'get').toLowerCase() !== 'get' || config.headers?.['Calagopus-User']) return config;
+
+  const prefetched = takePrefetched(axiosInstance.getUri(config));
+  if (!prefetched.found) return config;
+
+  config.transformResponse = [(data) => data];
+  config.adapter = async () => ({
+    data: prefetched.data,
+    status: 200,
+    statusText: 'OK',
+    headers: {},
+    config,
+    request: null,
+  });
+
+  return config;
+});
 
 axiosInstance.interceptors.request.use((config) => {
   // settings are fetched before the extension context exists, they decide which extensions load
@@ -128,6 +150,7 @@ export function getImpersonatedUser(): string | null {
  * rather than reading origin-wide localStorage per request, which switched other tabs.
  */
 export function setImpersonatedUser(uuid: string | null) {
+  forgetPrefetched(); // plugged.host
   if (uuid) {
     sessionStorage.setItem(IMPERSONATED_USER_KEY, uuid);
     axiosInstance.defaults.headers.common['Calagopus-User'] = uuid;

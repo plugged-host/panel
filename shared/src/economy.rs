@@ -826,10 +826,9 @@ fn amount_of(resources: Resources, resource: StoreResource) -> i64 {
     }
 }
 
-/// The meters' numbers: this panel's own servers against the share noprofit.space gives the panel.
-/// Other services' use of the shared pool is already taken out of the plan's `cpu`, `memory` and
-/// `disk` (its `planFor`), and is not shown here: the sidebar and the store count plugged.host
-/// only.
+/// The meters' numbers. A noprofit.space plan that shares its pool with other services is shown
+/// whole, as the Pelican panel and the sidebar show it (`crate::allowance::with_pool`): what the
+/// other services use counts as used, and the limit is the pool.
 pub fn store_usage(limit: Resources, used: Resources) -> Vec<ApiStoreUsage> {
     StoreResource::ALL
         .into_iter()
@@ -1011,7 +1010,13 @@ async fn noprofit_page(
     };
 
     page.has_plan = plan.is_some();
-    page.usage = store_usage(plan.map(Resources::from_plan).unwrap_or_default(), used);
+    let (limit, used) = crate::allowance::with_pool(
+        plan.map(Resources::from_plan).unwrap_or_default(),
+        used,
+        plan.and_then(Resources::elsewhere_in_plan)
+            .unwrap_or_default(),
+    );
+    page.usage = store_usage(limit, used);
     page.rewards_url = Some(format!("{accounts_url}/discord"));
     page.perks = perks(
         page.has_plan,
@@ -1776,18 +1781,24 @@ mod tests {
     }
 
     #[test]
-    fn a_shared_pool_shows_only_this_panels_share() {
-        // noprofit.space's planFor(): this panel's share, the whole pool and what others use of it.
-        // The sidebar counts plugged.host alone, so only cpu/memory/disk are read.
+    fn a_shared_pool_shows_whole() {
+        // noprofit.space's planFor(): this panel's share, the whole pool and what others use of it
         let plan = serde_json::json!({
             "cpu": 300, "total_cpu": 400, "elsewhere_cpu": 100,
             "memory": 6144, "total_memory": 8192.0,
             "disk": 10240,
         });
-        let usage = store_usage(Resources::from_plan(&plan), Resources::new(200, 4096, 1024));
+        let (limit, used) = crate::allowance::with_pool(
+            Resources::from_plan(&plan),
+            Resources::new(200, 4096, 1024),
+            Resources::elsewhere_in_plan(&plan).unwrap_or_default(),
+        );
+        let usage = store_usage(limit, used);
 
-        assert_eq!((usage[0].used, usage[0].limit), (200, 300));
-        assert_eq!((usage[1].used, usage[1].limit), (4096, 6144));
+        assert_eq!((usage[0].used, usage[0].limit), (300, 400));
+        // without elsewhere_*: the pool less this panel's share
+        assert_eq!((usage[1].used, usage[1].limit), (6144, 8192));
+        // no pool: as it is
         assert_eq!((usage[2].used, usage[2].limit), (1024, 10240));
     }
 

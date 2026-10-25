@@ -86,20 +86,28 @@ What the accounts app must implement to work with this panel (tested against its
   signature, the audience, the lifetime (60 s clock skew) and the state.
 - **Server-to-server requests** carry `X-NP-Timestamp`, `X-NP-Nonce` and
   `X-NP-Signature = hex(hmac_sha256(API secret, METHOD "\n" path "\n" timestamp "\n" nonce "\n" hex(sha256(body))))`.
-- `POST /api/v1/internal/calagopus/accounts` with `{"account_ids": [...]}` answers
-  `{"accounts": [snapshot, ...]}`; an account left out was deleted.
+- `POST /api/v1/internal/calagopus/accounts` with `{"account_ids": [...], "usage": [{account_id,
+  user_uuid, cpu, memory, disk, servers}, ...]}` answers `{"accounts": [snapshot, ...]}`; an account
+  left out was deleted. `usage` is what each account's servers here use (`noprofit::Usage`):
+  noprofit.space keeps it as the service `plugged-host-calagopus` in the account's pool, so its
+  other services (switched.cloud, the Pelican panel) have that much less, as this panel has less
+  for theirs.
 - `POST /api/v1/internal/calagopus/verify-password` with `{"account_id", "password"}` answers
   `{"valid": bool}`; 422 = wrong, 429 = throttled (no verdict).
-- Snapshot `plan`: `{cpu, memory, disk, base_*, max_*}` (CPU in %, memory and disk in MiB);
-  `discord`: `{id, username, avatar}`.
+- Snapshot `plan` (accounts `planFor`): `{cpu, memory, disk, base_*, max_*, total_*, elsewhere_*,
+  cut_*}` (CPU in %, memory and disk in MiB). `cpu`/`memory`/`disk` are this panel's share of the
+  pool (what is enforced), `total_*` the whole pool, `elsewhere_*` what the other services use of
+  it, `cut_*` what lower bases took from this panel so far (only counting up; their growth is what
+  the servers give back, [allowance cuts](features/allowance-cuts.md)). The sidebar, the store and
+  Create Server show the whole pool with the other services' part counted as used, like the
+  Pelican panel; `discord`: `{id, username, avatar}`.
 - `POST /api/v1/internal/calagopus/store` with `{"account_id"}` answers the account's Resource Store:
   `{credits, catalog: [{resource, step, total, limit, soft_limit, offers: [{steps, amount, price}]}],
   transactions: [{amount, balance_after, type, description, created_at}]}` (the last 10). Optional
   `discord: {bonus, max_bonus, credits_per_invite, credits_per_boost}` (`bonus` and `max_bonus` as
   `{cpu, memory, disk}`, accounts `DiscordGuilds::status`: what the Discord servers the account is in
   add, and what all of them would) lets the store offer what is left of the Discord rewards; without
-  it the store offers none. A snapshot `plan` with `total_*` and `elsewhere_*` (accounts `planFor`)
-  makes the store's meters show the whole pool the account shares with other services.
+  it the store offers none.
 - `POST /api/v1/internal/calagopus/purchase` with `{"account_id", "resource", "steps", "price"}`
   buys at that price: 200 `{ok, purchase, ...store}`; 409 `{error: "price_changed", ...store}` when
   the price moved; 422 `{error: "refused", message}` (not for sale, balance short).

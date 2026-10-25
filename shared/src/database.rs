@@ -24,13 +24,24 @@ pub struct Database {
     batch_actions: Arc<Mutex<HashMap<(&'static str, uuid::Uuid), BatchFuture>>>,
 }
 
+/// plugged.host: prepared statements kept per connection (sqlx keeps 100). The panel runs far more
+/// distinct queries than that between two uses of one connection (the API, the minute tasks), so a
+/// page's queries were evicted and planned again, a few milliseconds each (docs/features/speed.md).
+const STATEMENT_CACHE_CAPACITY: usize = 512;
+
 async fn connect_pool(label: &str, url: &str, max_connections: u32) -> sqlx::PgPool {
-    crate::retry::startup_connect(label, || {
+    crate::retry::startup_connect(label, move || async move {
+        // plugged.host: the URL's options with a bigger statement cache
+        let options = url
+            .parse::<sqlx::postgres::PgConnectOptions>()?
+            .statement_cache_capacity(STATEMENT_CACHE_CAPACITY);
+
         PgPoolOptions::new()
             .min_connections(10)
             .max_connections(max_connections)
             .test_before_acquire(false)
-            .connect(url)
+            .connect_with(options)
+            .await
     })
     .await
 }
