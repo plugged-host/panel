@@ -1479,6 +1479,8 @@ export const serversTable = pgTable(
     backup_configuration_uuid: uuid().references(() => backupConfigurationsTable.uuid, { onDelete: 'set null' }),
     name: varchar({ length: 255 * UTF8_MAX_SCALAR_SIZE }).notNull(),
     description: text(),
+    // plugged.host: the stored path of its icon (shared/src/models/server/icon.rs)
+    icon: varchar({ length: 255 }),
     status: serverStatusEnum(),
     suspended: boolean().default(false).notNull(),
     // plugged.host: why, since when, by whom and until when it is suspended (shared/src/models/server/suspension.rs)

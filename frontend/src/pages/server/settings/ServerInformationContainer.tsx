@@ -1,15 +1,21 @@
 // plugged.host: the Pelican panel's "Server Information" section (ServerSettings::generalSection,
-// settings/server-meta.blade.php): name and description saved when they lose focus, the
-// server's UUID, identifier and node, and its limits when the person cannot change its resources
+// settings/server-meta.blade.php): the server's icon with its upload and delete buttons in a
+// 3/12 column, name and description saved when they lose focus, the server's UUID, identifier
+// and node, and its limits when the person cannot change its resources
 // (docs/features/server-settings.md)
+import { faTrash, faUpload } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useEffect, useState } from 'react';
 import { httpErrorToHuman } from '@/api/axios.ts';
 import getServerUsage from '@/api/server/settings/getServerUsage.ts';
+import removeServerIcon from '@/api/server/settings/removeServerIcon.ts';
 import renameServer from '@/api/server/settings/renameServer.ts';
+import ActionIcon from '@/elements/buttons/ActionIcon.tsx';
 import TitleCard from '@/elements/data-display/TitleCard.tsx';
 import TextArea from '@/elements/input/TextArea.tsx';
 import TextInput from '@/elements/input/TextInput.tsx';
 import Stack from '@/elements/layout/Stack.tsx';
+import Tooltip from '@/elements/overlays/Tooltip.tsx';
 import { CopyActionIcon, SettingRow, SettingRows } from '@/elements/SettingRows.tsx';
 import { bytesToString, mbToBytes } from '@/lib/format/size.ts';
 import { queryKeys } from '@/lib/queryKeys.ts';
@@ -19,9 +25,65 @@ import { useServerCan } from '@/plugins/usePermissions.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useServerStore } from '@/stores/server.ts';
+import ServerIconModal from './modals/ServerIconModal.tsx';
 import { useResizeOptions } from './useSettingsSections.ts';
 
 const base = 'pages.server.settings.general';
+
+// Pelican's icon column: the server's icon at 120 px, else its game's ("Using Egg Icon"), then
+// Upload Icon and, with an icon of its own, Delete Icon (no confirmation, as on the Pelican panel).
+function IconColumn() {
+  const { t } = useTranslations();
+  const { addToast } = useToast();
+  const server = useServerStore((state) => state.server);
+  const updateServer = useServerStore((state) => state.updateServer);
+  const canChange = useServerCan('settings.change-icon');
+
+  const [uploading, setUploading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const src = server.icon ?? server.eggIcon;
+
+  const doDelete = () => {
+    setDeleting(true);
+    removeServerIcon(server.uuid)
+      .then(() => {
+        updateServer({ icon: null });
+        addToast(t(`${base}.icon.deleted`, {}), 'success');
+      })
+      .catch((err) => addToast(httpErrorToHuman(err), 'error'))
+      .finally(() => setDeleting(false));
+  };
+
+  return (
+    <div className='theme-server-info-icon'>
+      {src && (
+        <Tooltip label={t(`${base}.icon.tooltip`, {})} disabled={!!server.icon}>
+          <img className='theme-server-info-image' src={src} alt='' width={120} height={120} />
+        </Tooltip>
+      )}
+
+      {canChange && (
+        <div className='theme-setting-actions'>
+          <Tooltip label={t(`${base}.icon.upload`, {})}>
+            <ActionIcon variant='subtle' color='gray' size={32} onClick={() => setUploading(true)}>
+              <FontAwesomeIcon icon={faUpload} />
+            </ActionIcon>
+          </Tooltip>
+          {server.icon && (
+            <Tooltip label={t(`${base}.icon.delete`, {})}>
+              <ActionIcon variant='subtle' color='red' size={32} loading={deleting} onClick={doDelete}>
+                <FontAwesomeIcon icon={faTrash} />
+              </ActionIcon>
+            </Tooltip>
+          )}
+        </div>
+      )}
+
+      {canChange && <ServerIconModal opened={uploading} onClose={() => setUploading(false)} />}
+    </div>
+  );
+}
 
 function Limits() {
   const { t } = useTranslations();
@@ -76,7 +138,10 @@ export default function ServerInformationContainer() {
   const server = useServerStore((state) => state.server);
   const updateServer = useServerStore((state) => state.updateServer);
   const canRename = useServerCan('settings.rename');
+  const canChangeIcon = useServerCan('settings.change-icon');
   const resize = useResizeOptions();
+  // as Pelican: no column when there is no icon to show and none to upload
+  const withIcon = !!(server.icon ?? server.eggIcon) || canChangeIcon;
 
   const [name, setName] = useState(server.name);
   const [description, setDescription] = useState(server.description ?? '');
@@ -117,27 +182,31 @@ export default function ServerInformationContainer() {
 
   return (
     <TitleCard title={t(`${base}.title`, {})}>
-      <Stack>
-        <TextInput
-          withAsterisk
-          label={t(`${base}.name`, {})}
-          value={name}
-          error={nameError}
-          disabled={!canRename}
-          onChange={(e) => setName(e.currentTarget.value)}
-          onBlur={() => save('name')}
-        />
-        <TextArea
-          label={t(`${base}.description`, {})}
-          autosize
-          minRows={3}
-          value={description}
-          error={descriptionError}
-          disabled={!canRename}
-          onChange={(e) => setDescription(e.currentTarget.value)}
-          onBlur={() => save('description')}
-        />
-      </Stack>
+      <div className='theme-server-info' data-icon={withIcon || undefined}>
+        {withIcon && <IconColumn />}
+
+        <Stack className='min-w-0'>
+          <TextInput
+            withAsterisk
+            label={t(`${base}.name`, {})}
+            value={name}
+            error={nameError}
+            disabled={!canRename}
+            onChange={(e) => setName(e.currentTarget.value)}
+            onBlur={() => save('name')}
+          />
+          <TextArea
+            label={t(`${base}.description`, {})}
+            autosize
+            minRows={3}
+            value={description}
+            error={descriptionError}
+            disabled={!canRename}
+            onChange={(e) => setDescription(e.currentTarget.value)}
+            onBlur={() => save('description')}
+          />
+        </Stack>
+      </div>
 
       <SettingRows className='mt-4'>
         <SettingRow

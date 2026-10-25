@@ -10775,6 +10775,14 @@ const baseTranslations = defineTranslations({
               allocations: 'Allocations',
             },
             unlimited: 'Unlimited',
+            icon: {
+              upload: 'Upload Icon',
+              delete: 'Delete Icon',
+              tooltip: 'Using Egg Icon',
+              file: 'File',
+              updated: 'Server icon updated',
+              deleted: 'Server icon deleted',
+            },
           },
           sftp: {
             title: 'SFTP Information',
@@ -10819,6 +10827,8 @@ const baseTranslations = defineTranslations({
             image: 'Docker Image',
             variables: 'Server Variables',
             copyCommand: 'Copy Command',
+            enablePreview: 'Enable Preview',
+            disablePreview: 'Disable Preview',
             commandUpdated: 'Startup Command Updated. Restart the server to use the new startup command.',
             imageUpdated: 'Docker Image Updated. Restart the server to use the new image.',
             variableUpdated: 'Updated: {variable}',

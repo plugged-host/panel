@@ -1,11 +1,13 @@
 // plugged.host: the server's Startup page as the Pelican panel's "Startup command" section
-// (ServerSettings::startupSections, settings/startup-command.blade.php): the command in a well,
-// the startup command and Docker image side by side, then the server variables, each saved on its
-// own. Replaces upstream's pages/server/startup/ServerStartup.tsx on /startup
-// (docs/features/server-settings.md)
-import { useEffect, useState } from 'react';
+// (ServerSettings::startupSections, settings/startup-command.blade.php): the command in a well
+// ("Enable Preview" fills its values in), the startup command and Docker image side by side, then
+// the server variables, each saved on its own. Replaces upstream's
+// pages/server/startup/ServerStartup.tsx on /startup (docs/features/server-settings.md)
+import classNames from 'classnames';
+import { ReactNode, useEffect, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { httpErrorToHuman } from '@/api/axios.ts';
+import getStartupPreview from '@/api/server/startup/getStartupPreview.ts';
 import getVariables from '@/api/server/startup/getVariables.ts';
 import updateCommand from '@/api/server/startup/updateCommand.ts';
 import updateDockerImage from '@/api/server/startup/updateDockerImage.ts';
@@ -17,6 +19,8 @@ import Select from '@/elements/input/Select.tsx';
 import TextArea from '@/elements/input/TextArea.tsx';
 import TextInput from '@/elements/input/TextInput.tsx';
 import { CopyActionIcon } from '@/elements/SettingRows.tsx';
+import { queryKeys } from '@/lib/queryKeys.ts';
+import { useResource } from '@/plugins/resource/useResource.ts';
 import { useServerCan } from '@/plugins/usePermissions.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
@@ -28,14 +32,55 @@ import StartupVariableField from './StartupVariableField.tsx';
 
 const base = 'pages.server.settings.startup';
 
+// Filament's hint action: a link at the end of the field's label line, outside the label itself.
+function WithHintAction({
+  action,
+  className,
+  children,
+}: {
+  action: ReactNode;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className={classNames('theme-field-action-wrap', className)}>
+      {children}
+      {action}
+    </div>
+  );
+}
+
 function StartupCommand() {
   const { t } = useTranslations();
   const { addToast } = useToast();
   const settings = useGlobalStore((state) => state.settings);
   const server = useServerStore((state) => state.server);
+  const variables = useServerStore((state) => state.variables);
   const updateServer = useServerStore((state) => state.updateServer);
   const canModifyStartupCommand = useServerCan('startup.command');
   const canModifyDockerImage = useServerCan('startup.docker-image');
+
+  // Pelican's PreviewStartupAction: the well shows the command with its values filled in, by the
+  // panel, which hides the variables the viewer may not read. Fetched again when any of them changes.
+  const [previewing, setPreviewing] = useState(false);
+  const preview = useResource({
+    queryKey: queryKeys.server(server.uuid).settings.startupPreview({
+      startup: server.startup,
+      memory: server.limits.memory,
+      allocation: server.allocation?.uuid ?? null,
+      values: variables.map((variable) => variable.value),
+    }),
+    queryFn: () => getStartupPreview(server.uuid),
+    enabled: previewing,
+    keepPrevious: true,
+  });
+  const shown = previewing && preview.data !== undefined ? preview.data : server.startup;
+
+  const previewAction = (
+    <button type='button' className='theme-eco-link theme-field-action' onClick={() => setPreviewing((on) => !on)}>
+      {t(previewing ? `${base}.disablePreview` : `${base}.enablePreview`, {})}
+    </button>
+  );
 
   const presets = Object.entries(server.egg.startupCommands);
   const isPreset = presets.some(([, value]) => value === server.startup);
@@ -83,32 +128,38 @@ function StartupCommand() {
   return (
     <>
       <div className='theme-setting-cmd'>
-        <span className='theme-setting-cmd-text font-mono'>{server.startup}</span>
-        <CopyActionIcon content={server.startup} label={t(`${base}.copyCommand`, {})} />
+        <span className='theme-setting-cmd-text font-mono'>{shown}</span>
+        <CopyActionIcon content={shown} label={t(`${base}.copyCommand`, {})} />
       </div>
 
       <div className='grid grid-cols-1 md:grid-cols-2 gap-4 mt-6'>
         {presets.length > 0 ? (
-          <Select
-            label={t(`${base}.command`, {})}
-            data={[
-              ...(allowCustom || !isPreset ? [{ label: t('common.custom', {}), value: '' }] : []),
-              ...presets.map(([label, value]) => ({ value, label })),
-            ]}
-            value={custom ? '' : server.startup}
-            disabled={!canModifyStartupCommand || (!allowCustom && !isPreset)}
-            onChange={(value) => {
-              if (!value) {
-                setCustom(true);
-                return;
-              }
+          <WithHintAction action={previewAction}>
+            <Select
+              label={t(`${base}.command`, {})}
+              data={[
+                ...(allowCustom || !isPreset ? [{ label: t('common.custom', {}), value: '' }] : []),
+                ...presets.map(([label, value]) => ({ value, label })),
+              ]}
+              value={custom ? '' : server.startup}
+              disabled={!canModifyStartupCommand || (!allowCustom && !isPreset)}
+              onChange={(value) => {
+                if (!value) {
+                  setCustom(true);
+                  return;
+                }
 
-              setCustom(false);
-              saveCommand(value);
-            }}
-          />
+                setCustom(false);
+                saveCommand(value);
+              }}
+            />
+          </WithHintAction>
         ) : (
-          !editsCustom && <TextInput label={t(`${base}.command`, {})} value={t(`${base}.custom`, {})} readOnly />
+          !editsCustom && (
+            <WithHintAction action={previewAction}>
+              <TextInput label={t(`${base}.command`, {})} value={t(`${base}.custom`, {})} readOnly />
+            </WithHintAction>
+          )
         )}
 
         {imageChoosable ? (
@@ -126,15 +177,17 @@ function StartupCommand() {
         )}
       </div>
 
+      {/* without a list of commands, this field carries the preview action */}
       {editsCustom && (
-        <TextArea
-          mt='md'
-          label={t(`${base}.custom`, {})}
-          value={command}
-          autosize
-          onChange={(e) => setCommand(e.currentTarget.value)}
-          onBlur={() => saveCommand(command)}
-        />
+        <WithHintAction className='mt-4' action={presets.length === 0 ? previewAction : null}>
+          <TextArea
+            label={t(`${base}.custom`, {})}
+            value={command}
+            autosize
+            onChange={(e) => setCommand(e.currentTarget.value)}
+            onBlur={() => saveCommand(command)}
+          />
+        </WithHintAction>
       )}
     </>
   );

@@ -1127,6 +1127,8 @@ pub(crate) static BASE_SERVER_PERMISSIONS: LazyLock<IndexMap<&'static str, Permi
                             "rename",
                             "Allows renaming the server and changing its description.",
                         ),
+                        // plugged.host: docs/features/server-settings.md#server-icon
+                        ("change-icon", "Allows changing the server's icon."),
                         ("timezone", "Allows changing the server's timezone."),
                         (
                             "auto-kill",

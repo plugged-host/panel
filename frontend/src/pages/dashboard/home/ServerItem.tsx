@@ -124,6 +124,7 @@ export default function ServerItem({
         : condition.label;
 
   const limbo = isInLimbo(server.limboState); // plugged.host: docs/features/limbo.md
+  const icon = server.icon ?? server.eggIcon; // plugged.host: its own icon, else its game's
   const showUsage = !!stats && !server.isSuspended && !server.isTransferring && !server.status && !limbo;
   const cpuLimit = server.limits.cpu + server.limits.burstCpu; // plugged.host: burst cores above the paid CPU
   const cpuUsed = Math.round(stats?.cpuAbsolute ?? 0);
@@ -219,9 +220,10 @@ export default function ServerItem({
       </ConfirmationModal>
 
       {/* plugged.host: Theme v2's server card ("theme-server", server-entry.blade.php on the Pelican
-          panel): a status bar down its left edge in the condition's colour, the name over the state,
-          the power menu at the end of that row, then CPU, memory and disk as used / limit over a thin
-          bar, and the address. Its layout follows its own width (a container query in app.css). */}
+          panel): a status bar down its left edge in the condition's colour, the icon, the name over
+          the state, the power menu at the end of that row, then CPU, memory and disk as used / limit
+          over a thin bar, and the address. Its layout follows its own width (a container query in
+          app.css). */}
       <ContextMenu enabled={showContextMenu} items={contextMenuItems}>
         {({ items, openMenu }) => (
           <div
@@ -267,6 +269,8 @@ export default function ServerItem({
                       />
                     </span>
                   )}
+
+                  {icon && <img className='theme-server-icon' src={icon} alt='' loading='lazy' />}
 
                   <div className='theme-server-title'>
                     <h2 className='theme-server-name'>

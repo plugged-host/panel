@@ -10455,7 +10455,15 @@
               "databases": "Datenbanken",
               "allocations": "Allocations"
             },
-            "unlimited": "Unbegrenzt"
+            "unlimited": "Unbegrenzt",
+            "icon": {
+              "upload": "Icon hochladen",
+              "delete": "Icon löschen",
+              "tooltip": "Nutzt das Egg-Icon",
+              "file": "Datei",
+              "updated": "Server-Icon aktualisiert",
+              "deleted": "Server-Icon gelöscht"
+            }
           },
           "sftp": {
             "title": "SFTP-Informationen",
@@ -10498,6 +10506,8 @@
             "image": "Docker-Image",
             "variables": "Server-Variablen",
             "copyCommand": "Befehl kopieren",
+            "enablePreview": "Vorschau aktivieren",
+            "disablePreview": "Vorschau deaktivieren",
             "commandUpdated": "Startbefehl aktualisiert. Starte den Server neu, um den neuen Startbefehl zu nutzen.",
             "imageUpdated": "Docker-Image aktualisiert. Starte den Server neu, um das neue Image zu nutzen.",
             "variableUpdated": "Aktualisiert: {variable}"

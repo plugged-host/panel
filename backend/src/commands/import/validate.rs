@@ -219,7 +219,7 @@ fn parse_threads(raw: &str) -> Option<Vec<i16>> {
 
 fn map_permission(permission: &str) -> Option<&'static [&'static str]> {
     Some(match permission {
-        "websocket.connect" | "settings.change-icon" => &[],
+        "websocket.connect" => &[], // plugged.host: settings.change-icon below
         "control.console" => &["control.console", "control.read-console"],
         "control.start" => &["control.start"],
         "control.stop" => &["control.stop"],
@@ -260,6 +260,7 @@ fn map_permission(permission: &str) -> Option<&'static [&'static str]> {
         "mount.update" => &["mounts.attach", "mounts.detach"],
         "settings.rename" | "settings.description" => &["settings.rename"],
         "settings.reinstall" => &["settings.install"],
+        "settings.change-icon" => &["settings.change-icon"], // plugged.host: servers have icons
         "activity.read" => &["activity.read"],
         _ => return None,
     })
@@ -4111,6 +4112,11 @@ mod tests {
             Some(&["settings.install"][..])
         );
         assert_eq!(map_permission("websocket.connect"), Some(&[][..]));
+        // plugged.host: servers have icons (docs/features/server-settings.md#server-icon)
+        assert_eq!(
+            map_permission("settings.change-icon"),
+            Some(&["settings.change-icon"][..])
+        );
         assert_eq!(map_permission("made.up"), None);
     }
 
@@ -4123,6 +4129,7 @@ mod tests {
             "file.sftp",
             "database.view_password",
             "settings.reinstall",
+            "settings.change-icon", // plugged.host
         ] {
             for mapped in map_permission(permission).unwrap() {
                 assert!(known.contains(*mapped), "{permission} -> {mapped}");

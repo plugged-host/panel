@@ -9,7 +9,7 @@ of its pages' permissions.
 
 | Bar item | Page | Permission | Shown when |
 |---|---|---|---|
-| Server Information | `/settings` | any of Settings' | always: name and description (saved on leaving the field, `settings.rename`), UUID, identifier, node, and the limits when the viewer cannot resize |
+| Server Information | `/settings` | any of Settings' | always: the icon (`settings.change-icon` to change it), name and description (saved on leaving the field, `settings.rename`), UUID, identifier, node, and the limits when the viewer cannot resize |
 | SFTP Information | `/settings/sftp` | `files.sftp` | always |
 | VS Code | `/devbox` | `devbox.connect` | devboxes are on ([devboxes.md](devboxes.md)) |
 | Resources | `/settings/resources` | `settings.resize` | Admin › Settings › Hosting › Games › "Players Resize Servers" is on, or the viewer is an admin |
@@ -30,6 +30,31 @@ The rows show the UUID and the identifier with copy buttons and the hosting node
 its UUID (nodes have no number here). When the viewer cannot resize, the **Limits** grid shows CPU,
 memory, disk, and backups, databases and allocations as "used / limit" (∞ for none) from
 `GET …/settings/usage`; a count the viewer may not see (no `backups.read`, …) shows the limit only.
+
+## Server icon
+
+`shared/src/models/server/icon.rs`, shaped like upstream's account avatar. Server Information
+shows the icon at 120 px in a column of its own (3/12 of the width, above the name on narrow
+screens), with **Upload Icon** and, when the server has an icon of its own, **Delete Icon** under
+it; both need `settings.change-icon` (Pelican's permission of that name, which the importer now
+keeps). Without an icon of its own the server shows its game's: the icon of its egg's game in
+Admin › Settings › Hosting › Games, what the Pelican panel calls the egg's icon, with the tooltip
+"Using Egg Icon". With neither, no picture (as on the Pelican panel).
+
+Upload Icon opens a dialog with a file field and upstream's avatar editor (pick the square); the
+upload is checked like an avatar (PNG, JPEG, WebP or GIF, 64 to 4096 px a side, the request at
+most 2 MB), cut to its centred square, stored as a 256 px lossless WebP at
+`avatars/servers/<server>/<random>.webp` in the panel's storage (served as immutable, so every
+upload gets a new name; the old file is removed) and its path kept in `servers.icon` (migration
+`server_icons`). Deleting it needs no confirmation, as on the Pelican panel. Deleting the server
+removes its icon file. Toasts "Server icon updated" / "Server icon deleted"; the activity log gets
+`server:settings.update-icon` / `server:settings.delete-icon`.
+
+The client API's server has `icon` (a link, or `null`) and `egg_icon` (the game's link, or
+`null`). Where the Pelican panel shows a server's icon, so does this panel: the server list cards
+(Theme v2's 2.5 rem icon before the name) and the server sidebar's server card (Filament's tenant
+menu shows the server's avatar there). Pelican's "URL" tab (import an icon from a link) is left
+out: the panel would fetch any address a player gives it.
 
 ## SFTP
 
@@ -95,6 +120,17 @@ editing) and the Docker image side by side, then **Server Variables**. Each fiel
 when it loses focus, switches and lists when they change ("Updated: <variable>"), like Pelican's
 live startup variables; there is no Save button.
 
+**Enable Preview** / **Disable Preview**, the link at the end of the Startup Command field's label
+line (Pelican's `PreviewStartupAction`), switches the well to the command with its values filled in
+and back; the copy button copies what the well shows. The panel fills it in
+(`shared/src/startup_preview.rs`, `GET …/startup/preview`, `startup.read`) as the Pelican panel's
+`StartupCommandService` does: `{{SERVER_MEMORY}}`, `{{SERVER_IP}}` and `{{SERVER_PORT}}` from the
+server and its primary allocation (127.0.0.1 and 0 without one), then each `{{VARIABLE}}` of the
+egg with the server's value or the default (a variable of that name wins over the three, as in
+Wings' environment). Variables the egg hides from players, and secret ones, show as `[hidden]`, so
+the preview never shows a value the variables list does not; unknown `{{…}}` stay as written. The
+preview is fetched again when the command, a variable, the memory or the allocation changes.
+
 ## Notifications
 
 `shared/src/backup_notifications.rs`. Two switches per person and server: **Manual Backup
@@ -135,6 +171,9 @@ it). The route and neo's `delete_server` ([neo.md](neo.md#tools)) share
 | `POST /api/client/servers/{server}/settings/software` | `settings.software` | Body `{variant?, version?}` (one at least); 202, the reinstall runs |
 | `DELETE /api/client/servers/{server}` | `settings.delete` | 403 when off |
 | `GET /api/client/servers/{server}/settings/usage` | any | `{usage: {backups, databases, allocations}}`, each `null` without its list's read permission |
+| `PUT /api/client/servers/{server}/settings/icon` | `settings.change-icon` | Body: the image (PNG, JPEG, WebP or GIF); `{icon}` (its link) |
+| `DELETE /api/client/servers/{server}/settings/icon` | `settings.change-icon` | 400 when the server has no icon of its own |
+| `GET /api/client/servers/{server}/startup/preview` | `startup.read` | `{command}`: the startup command with its values filled in, `[hidden]` for what the viewer may not read |
 | `GET /api/client/servers/{server}/settings/notifications` | `backups.read` | `{notifications: {manual_backups, scheduled_backups}}` of the signed-in person |
 | `PUT /api/client/servers/{server}/settings/notifications` | `backups.read` | Body `{manual_backups, scheduled_backups}` |
 
@@ -151,11 +190,18 @@ changes.
   Startup and VS Code.
 - Server Information: change the name, click elsewhere: "Updated Server Name". The copy icons turn
   green for 2 s.
+- Server icon: on a server whose game has an icon (Admin › Settings › Hosting › Games), the game's
+  icon shows at 120 px with the tooltip "Using Egg Icon". Upload Icon, pick a picture, Upload Icon:
+  "Server icon updated", and it shows on Settings, on the server's card in the server list and in
+  the sidebar's server card. Delete Icon: "Server icon deleted", the game's icon is back. A subuser
+  without "change-icon" sees the icon but no buttons.
 - SFTP Information: copy host and username, log in with the password the row names.
 - Resources: the current plan is picked; a plan over the allowance is dimmed. Advanced: raise memory
   past what is left: its hint turns red and Save resources stays off. Lower it and save: the
   console's memory limit follows without a restart.
-- Startup: change a variable and leave the field: "Updated: <name>".
+- Startup: change a variable and leave the field: "Updated: <name>". Enable Preview: the well
+  shows the command with the memory, port and variable values in it, `[hidden]` for a secret
+  variable; change a variable and the preview follows; Disable Preview shows the command again.
 - Version: pick another choice, "Change and reinstall", confirm: the console shows the reinstall;
   the files are still there afterwards and the new software runs after a start.
 - Minecraft version on a Paper server: pick an older version, confirm; the egg variable shows it,

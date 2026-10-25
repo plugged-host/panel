@@ -278,6 +278,8 @@ const server = (serverUuid: string) => ({
       ['server', serverUuid, 'settings', 'software', 'versions', { variant }] as const,
     usage: () => ['server', serverUuid, 'settings', 'usage'] as const,
     notifications: () => ['server', serverUuid, 'settings', 'notifications'] as const,
+    // the startup command with its values filled in; refetched when what goes into it changes
+    startupPreview: (inputs: object) => ['server', serverUuid, 'settings', 'startup-preview', inputs] as const,
   },
   transfer: () => ['server', serverUuid, 'transfer'] as const, // plugged.host
   transferStatus: () => ['server', serverUuid, 'transfer', 'status'] as const, // plugged.host

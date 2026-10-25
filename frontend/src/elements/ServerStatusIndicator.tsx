@@ -105,6 +105,7 @@ export default function ServerStatusIndicator() {
   ]);
 
   const uptime = state === 'running' && stats?.uptime ? formatMilliseconds(stats.uptime, true, false) : null;
+  const icon = server.icon ?? server.eggIcon; // plugged.host
 
   const onPowerAction = (action: z.infer<typeof serverPowerAction> | 'kill-confirmed') => {
     if (action === 'kill') {
@@ -132,18 +133,24 @@ export default function ServerStatusIndicator() {
       {/* plugged.host: a sunken card like Theme v2's sidebar usage card ("phv2-resources-card") */}
       <NavLink to={`/server/${params.id}`} className='block'>
         <Card p='xs' className='theme-sidebar-server min-h-fit'>
-          <div className='h-5 flex items-center min-w-0'>
-            <span className='text-sm font-medium min-w-0 flex-1'>
-              <ScrollingText>{server.name}</ScrollingText>
-            </span>
-          </div>
+          {/* plugged.host: the server's icon (else its game's) before its name and state */}
+          <div className='flex items-center gap-2.5 min-w-0'>
+            {icon && <img className='theme-sidebar-server-icon' src={icon} alt='' />}
+            <div className='min-w-0 flex-1'>
+              <div className='h-5 flex items-center min-w-0'>
+                <span className='text-sm font-medium min-w-0 flex-1'>
+                  <ScrollingText>{server.name}</ScrollingText>
+                </span>
+              </div>
 
-          <div className='h-4 flex items-center gap-2 min-w-0'>
-            <span className='size-3 shrink-0 flex items-center justify-center'>{indicator}</span>
-            <span className='text-xs leading-4 truncate text-(--mantine-color-dimmed)'>{label}</span>
-            {uptime && (
-              <span className='text-xs leading-4 ml-auto shrink-0 text-(--mantine-color-dimmed)'>{uptime}</span>
-            )}
+              <div className='h-4 flex items-center gap-2 min-w-0'>
+                <span className='size-3 shrink-0 flex items-center justify-center'>{indicator}</span>
+                <span className='text-xs leading-4 truncate text-(--mantine-color-dimmed)'>{label}</span>
+                {uptime && (
+                  <span className='text-xs leading-4 ml-auto shrink-0 text-(--mantine-color-dimmed)'>{uptime}</span>
+                )}
+              </div>
+            </div>
           </div>
 
           {(hasPower || showRestart) && (

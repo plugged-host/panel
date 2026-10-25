@@ -19,6 +19,7 @@ mod events;
 pub use events::ServerEvent;
 
 pub mod firewall;
+pub mod icon; // plugged.host
 pub mod rehome; // plugged.host
 pub mod suspension; // plugged.host
 
@@ -179,6 +180,8 @@ pub struct Server {
 
     pub name: compact_str::CompactString,
     pub description: Option<compact_str::CompactString>,
+    /// plugged.host: the stored path of its icon (icon.rs)
+    pub icon: Option<String>,
 
     pub memory: i64,
     pub memory_overhead: i64,
@@ -273,6 +276,7 @@ impl BaseModel for Server {
                 "servers.description",
                 compact_str::format_compact!("{prefix}description"),
             ),
+            ("servers.icon", compact_str::format_compact!("{prefix}icon")), // plugged.host
             (
                 "servers.memory",
                 compact_str::format_compact!("{prefix}memory"),
@@ -421,6 +425,7 @@ impl BaseModel for Server {
             name: row.try_get(compact_str::format_compact!("{prefix}name").as_str())?,
             description: row
                 .try_get(compact_str::format_compact!("{prefix}description").as_str())?,
+            icon: row.try_get(compact_str::format_compact!("{prefix}icon").as_str())?, // plugged.host
             memory: row.try_get(compact_str::format_compact!("{prefix}memory").as_str())?,
             memory_overhead: row
                 .try_get(compact_str::format_compact!("{prefix}memory_overhead").as_str())?,
@@ -2216,6 +2221,14 @@ impl super::IntoApiObject for Server {
         let feature_limits = ApiServerFeatureLimits::init_hooks(&self, state).await?;
         let api_object = ApiServer::init_hooks(&self, state).await?;
         let trash = self.api_trash(&*state.settings.get().await?);
+        // plugged.host: its icon, and its game's to show without one (icon.rs)
+        let (icon, egg_icon) = {
+            let urls = state.storage.retrieve_urls().await?;
+            (
+                self.icon.as_ref().map(|icon| urls.get_url(icon)),
+                icon::egg_icon(&urls.get_settings().games.catalog, self.egg.uuid),
+            )
+        };
 
         let allocation_uuid = self.allocation.as_ref().map(|a| a.uuid);
         let allocation = match self.allocation {
@@ -2279,6 +2292,8 @@ impl super::IntoApiObject for Server {
                 is_transferring: self.destination_node.is_some(),
                 name: self.name,
                 description: self.description,
+                icon,     // plugged.host
+                egg_icon, // plugged.host
                 limits: ApiServerLimits {
                     cpu: self.cpu,
                     burst_cpu: crate::economy::burst_cpu(self.cpu, self.owner.burst_cores), // plugged.host
@@ -3160,6 +3175,7 @@ impl DeletableModel for Server {
         let server_uuid = self.uuid;
         let subdomain_service =
             crate::subdomains::records::Service::of_features(&self.egg.features); // plugged.host
+        let icon = self.icon.clone(); // plugged.host
 
         tokio::spawn(async move {
             for db in databases {
@@ -3215,6 +3231,7 @@ impl DeletableModel for Server {
                 Ok(_) => {
                     transaction.commit().await?;
                     crate::subdomains::forget(&state, subdomains, subdomain_service); // plugged.host
+                    icon::forget(&state, icon); // plugged.host
 
                     Self::invalidate_cached(&state.database, server_uuid).await;
 
@@ -3230,6 +3247,7 @@ impl DeletableModel for Server {
                     if options.force {
                         transaction.commit().await?;
                         crate::subdomains::forget(&state, subdomains, subdomain_service); // plugged.host
+                        icon::forget(&state, icon); // plugged.host
 
                         Self::invalidate_cached(&state.database, server_uuid).await;
 
@@ -3464,6 +3482,10 @@ pub struct ApiServer {
 
     pub name: compact_str::CompactString,
     pub description: Option<compact_str::CompactString>,
+    /// plugged.host: the link to its icon (docs/features/server-settings.md#server-icon)
+    pub icon: Option<String>,
+    /// plugged.host: its game's icon from the games catalog, shown when it has none of its own
+    pub egg_icon: Option<compact_str::CompactString>,
 
     #[schema(inline)]
     pub limits: ApiServerLimits,

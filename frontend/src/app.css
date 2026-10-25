@@ -2008,6 +2008,15 @@ strong {
   min-width: 0;
 }
 
+/* The server's icon, else its game's (".phv2-server-icon"). */
+.theme-server-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: none;
+  border-radius: 0.625rem;
+  object-fit: cover;
+}
+
 .theme-server-title {
   display: flex;
   flex: 1 1 auto;
@@ -2213,6 +2222,15 @@ strong {
 
 :root[data-mantine-color-scheme="dark"] a:hover > .theme-sidebar-server.mantine-Card-root {
   background-color: var(--theme-raise);
+}
+
+/* Its icon next to the name and state, as Filament's tenant menu shows the server's avatar. */
+.theme-sidebar-server-icon {
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: none;
+  border-radius: 0.5rem;
+  object-fit: cover;
 }
 
 /* =============================================================================
@@ -5671,6 +5689,34 @@ span.theme-neo-image {
   font-variant-numeric: tabular-nums;
 }
 
+/* Server Information: the icon in a 3/12 column next to name and description (generalSection's
+   12-column grid), stacked above them on narrow screens. */
+.theme-server-info {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.5rem;
+}
+
+@media (min-width: 48rem) {
+  .theme-server-info[data-icon] {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 9fr);
+  }
+}
+
+.theme-server-info-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.theme-server-info-image {
+  width: 120px;
+  height: 120px;
+  border-radius: 0.75rem;
+  object-fit: cover;
+}
+
 /* The startup command well (".phset-cmd"). */
 .theme-setting-cmd {
   display: flex;
@@ -5749,6 +5795,22 @@ span.theme-neo-image {
 
 .theme-field-hint[data-over] {
   color: var(--mantine-color-red-4);
+}
+
+/* Filament's hint action ("Enable Preview"): a link at the end of the label's line, set beside
+   the label rather than inside it (a button may not sit in a label). */
+.theme-field-action-wrap {
+  position: relative;
+  min-width: 0;
+}
+
+.theme-field-action {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-end: 0;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  cursor: pointer;
 }
 
 .theme-boolean {

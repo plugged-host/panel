@@ -3,6 +3,7 @@ use utoipa_axum::router::OpenApiRouter;
 
 mod auto_kill;
 mod auto_start;
+mod icon; // plugged.host
 mod install;
 mod notifications; // plugged.host
 mod rename;
@@ -15,6 +16,7 @@ mod usage; // plugged.host
 pub fn router(state: &State) -> OpenApiRouter<State> {
     OpenApiRouter::new()
         .nest("/rename", rename::router(state))
+        .nest("/icon", icon::router(state)) // plugged.host
         .nest("/install", install::router(state))
         .nest("/timezone", timezone::router(state))
         .nest("/auto-kill", auto_kill::router(state))

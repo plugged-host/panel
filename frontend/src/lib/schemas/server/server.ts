@@ -78,6 +78,8 @@ export const serverSchema = z.looseObject({
   sftpPort: z.number().int().min(1).max(65535),
   name: z.string(),
   description: z.string().nullable(),
+  icon: z.string().nullable().default(null), // plugged.host: its own icon
+  eggIcon: z.string().nullable().default(null), // plugged.host: its game's, shown without one
   limits: z.lazy(() => serverLimitsSchema),
   featureLimits: z.lazy(() => adminServerFeatureLimitsSchema),
   startup: z.string(),
