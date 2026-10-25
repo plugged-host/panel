@@ -155,8 +155,144 @@ zone, language or duration refuses it with the reason (400).
 
 ## Tools
 
-TODO: the tools (moderation, giveaways, standing rules, credits, servers) are ported next, into
-the stub groups in `shared/src/rux/tools/`.
+`shared/src/rux/tools/`, one folder per group. **M** = moderators get it too (on the servers they
+moderate); every other tool is for admins only.
+
+| Group | Tools |
+|---|---|
+| Moderation (`moderation/`) | `lookup_member` M, `warn_member` M, `timeout_member` M, `kick_member` M, `ban_member` M, `unban_user` M, `list_cases` M, `list_bans` M, `set_nickname` M, `clear_warnings` M, `read_messages` M, `delete_messages` M, `purge_messages` M, `channel_settings` M (slowmode, lock), `role_info` M, `server_overview` M, `manage_role`, `send_message`, `edit_message`, `send_dm` |
+| Giveaways (`giveaways/`) | `create_giveaway`, `list_giveaways` M, `edit_giveaway`, `end_giveaway`, `cancel_giveaway`, `reroll_giveaway` |
+| Credits (`credits/`) | `give_credits` |
+| Standing rules (`rules/`) | `add_rule`, `list_rules` M, `edit_rule`, `remove_rule`, `watch_channel`, `set_moderator_role` |
+| Servers (`servers/`) | `switch_server` M (DMs only, with more than one server) |
+
+Everything acts on the order's server only: its members, channels, roles, cases, rules and
+giveaways.
+
+### Moderation
+
+- Every action is a **case** in `rux_cases`: who ordered it (or rux itself, with the rule), on
+  whom, why, how long, and the message rux acted on. It is posted to the server's mod log (an
+  embed in the language of the settings) and carries the order in Discord's audit log. The member
+  gets a DM first (warnings, timeouts, kicks and bans), while rux can still reach them.
+- **Moderators never act on staff**: not on the owner, people whose roles may moderate, rux
+  moderators, panel or noprofit.space admins, themselves or the bot (when the account directory
+  cannot say whether someone is an admin, they are left alone). They never touch the mod log
+  channel, only read and delete in channels they can see on Discord, and only unlock channels rux
+  locked. Admins may do all of it.
+- **Warnings** count per server. The warning ladder of the settings times out (from Timeout from
+  Warning) or bans (from Ban from Warning) on the warning that reaches it; when Discord refuses that
+  step, the warning stays and its case says why.
+- **Bans** are for good, or for a while (1 minute to 10 years): the `rux` task lifts a ban whose
+  time is up (once a minute) with a case of its own. A new ban replaces a running one.
+- Timeouts last up to 28 days, slowmode up to 6 hours. `purge_messages` looks at the last 500
+  messages; Discord bulk deletes only the last 14 days, older messages go one by one.
+- `manage_role` never hands out a role that comes with rewards (boost roles, the Discord section's
+  2x role, roles managed by a bot), nor @everyone. `edit_message` edits only rux's own messages,
+  never a giveaway's post.
+
+### Giveaways
+
+- The prize is **always credits**: a title can name the occasion but never promise anything else
+  (Plus, tokens, RAM, Nitro, roles…; refused). Without a title it is "500 credits".
+- The post has an **Enter** button. Entering needs a Discord account linked to an account
+  (noprofit.space's while it is connected, else the panel's: the Discord section's sign-in
+  provider); someone who is not linked gets a Link button. The answer only they see comes from a
+  task of its own, inside Discord's 3 seconds. Someone already in can leave.
+- "Keep out the winners of the last N giveaways" (0 to 10): which giveaways those were is fixed
+  when it is created (noprofit.space's last giveaways, or the panel's own), so the draw applies the
+  rule the admin read back.
+- Limits: the settings' credits per winner, winners and longest giveaway; it ends at least a minute
+  from now. A giveaway is refused while nothing can pay it (credits off on the panel, or
+  noprofit.space connected without its rux routes).
+- **The draw**: the `rux` task (every 10 seconds) or `end_giveaway` moves it from `active` to
+  `drawing`, so exactly one run draws. Winners are picked at random (the OS-seeded generator) among
+  the entries that have not won, are not kept out, are still linked and still in the server. When
+  it cannot be told who is linked, nothing is drawn and it is tried again a minute later. The
+  channel is told who won, pinging only them. `reroll_giveaway` draws more winners the same way.
+- **Payouts**: with noprofit.space, `POST /api/v1/internal/rux/giveaways` pays each draw under the
+  key `rux:calagopus:<giveaway>` (`…:r<n>` for the n-th reroll), so a retry pays nobody twice and
+  the keys never meet another panel's on the same noprofit.space; winners who unlinked meanwhile
+  are paid there once they link again. Without it, each winner's credits go into the panel's own
+  ledger (type `rux_giveaway`, "Giveaway on Discord: <prize>"), each entry once; a winner who is not
+  linked (any more) waits. Payouts that are still waiting are tried again, less often the more often
+  they failed, for 90 days.
+- A draw that died halfway (a restart) goes back to `active` after 10 minutes; the posts' entry
+  counts are kept current once a minute.
+
+### Credits
+
+`give_credits` gives credits to one person's account: only the settings' **Main Admin (Gives
+Credits)** can order it, and at most Most Credits per Gift at once. With noprofit.space it goes
+through `POST /api/v1/internal/rux/credits` as that admin's noprofit.space account (noprofit.space
+checks they are an admin there); without it, into the panel's ledger (type `admin`, the reason or
+"From <admin> on Discord"). Its key, `rux:grant:calagopus-<hash of the order, server, person and
+amount>`, makes an order that is retried give nothing twice (the answer then says so). rux gives
+nothing but credits: the credit grant and the giveaways are the only tools that give anything.
+
+### Standing rules and watched channels
+
+- `add_rule` keeps an admin's order ("if anyone asks for new locations, warn them") as a rule:
+  what breaks it (`when`), what looks close but does not (`not_when`), its keywords, what rux does
+  (warn, timeout, delete, kick, ban; a timeout or ban for a while), whether the message is deleted,
+  what the member is told, and in which channels. Keywords are normalized (lowercase, accents off);
+  everyday single words (add, new, when, server…) are dropped and at least 3 must be left, at most
+  80 are kept. A single word matches whole words only ("ram" not in "program").
+- A message that hits a keyword is checked by the AI (the watch, below) against the rule; on a
+  clear break rux acts as the rule's author ("rule #5" in the audit log, the rule in the case),
+  never on staff or itself, and says it in the channel so the member sees it even with DMs closed.
+  `edit_rule` changes only the fields given; `remove_rule` switches a rule off (it stays in the
+  table for its cases).
+- `watch_channel` has every member message of a channel checked by the AI, against the standing
+  rules and the basic guidelines (scams, slurs, harassment, sexual content, advertising; the
+  settings switch them). Watched channels are kept by id; a name (`#support`) given elsewhere
+  matches the server's text and announcement channels of that name.
+- The checks are told facts about the server's host, so its own links and locations are never
+  taken for adverts or requests: its sites (Our Own Sites, the panel and status page, the account
+  portal, the Discord invite) and, for the panel's own community, its public locations with game
+  nodes.
+- `set_moderator_role` makes a role a rux moderator role (by default also with Discord's Timeout,
+  Kick, Ban and Manage Messages permissions), or takes it back with only the permissions rux added.
+
+### Servers
+
+`switch_server` (DMs only, offered when rux works on more than one server) picks the server a DM
+acts on, by id, host name or Discord name (or a unique part of one). The agent checks the move: a
+moderator only to a server they moderate; the pick is kept a day.
+
+### Differences from Pelican's tools
+
+- The payout keys on noprofit.space are `rux:calagopus:<id>` (Pelican's are `rux:<id>`), and a
+  credit grant's key is made from the order, server, person and amount (`rux:grant:calagopus-…`),
+  so a retried order gives nothing twice.
+- Without noprofit.space the panel pays itself: credits from the panel's ledger, linked accounts
+  from the Discord section's sign-in provider, "the last giveaways" from its own rux giveaways.
+- A giveaway is refused when nothing could pay its winners; a draw that cannot tell who is linked
+  waits a minute; waiting payouts are tried with growing pauses for 90 days.
+- Moderators cannot act on the bot either, and `channel_settings` also keeps them out of the mod
+  log and channels they cannot see. A ban for a while lasts at most 10 years.
+- Keyword normalizing folds Latin accents and keeps other scripts (Pelican's transliteration
+  dropped them).
+- `make_image` is not ported: the panel's neo has no image models.
+
+### Checks (tools)
+
+- As an admin: "warn @someone for spam": the DM, the case in the mod log, "list cases" shows it.
+  Warn the same member up to the ladder: the timeout follows, with its own case.
+- As a moderator (a member of a role made a moderator role): warn a member works; warn an admin,
+  another moderator or yourself is refused; `send_message` and giveaways are not offered.
+- "Ban @someone for 2 minutes": banned, and unbanned by itself within a few minutes (case "ban
+  ended").
+- "Giveaway of 100 credits for 2 winners, ends in 3 minutes": the post with Enter. Enter from an
+  unlinked account: the Link button; from a linked one: "You are in", press again: Leave. After 3
+  minutes: the winners are pinged, their credits are in their accounts (noprofit.space's or the
+  panel's credit history). "Reroll it": one more winner, paid too.
+- "Giveaway of 1 month of Plus": refused (credits only).
+- From the main admin: "give @someone 50 credits": given once; from anyone else: refused.
+- "Add a rule: anyone asking for new locations gets warned": `list_rules` shows it with its
+  keywords; edit its action to timeout 10m, remove it.
+- "Watch #general" then "stop watching #general": both in the mod log.
+- With two servers, DM rux "switch to <other server>": the next orders act there.
 
 ## Watching channels
 
