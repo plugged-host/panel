@@ -57,9 +57,10 @@ Account › Resource Store is laid out like the Pelican panel's, top to bottom:
 3. **Your resources** (only with a plan): one row per resource with one meter for three numbers:
    the solid part is what the account's servers use, the tinted part the rest of its limit, the
    track runs to the soft limit where prices get steep (further when the account is past it). Over
-   the limit the number and the meter turn red and the row says how much to shrink. When noprofit.space's
-   plan says how much of a pool the account shares with other services (`total_*`, `elsewhere_*`),
-   the meter shows the whole pool, as the Pelican panel does. Beside it the offers (1, 2 and 4 steps)
+   the limit the number and the meter turn red and the row says how much to shrink. The meters
+   count plugged.host only: noprofit.space's `planFor` already takes what other services use out of
+   the plan's `cpu`, `memory` and `disk`, and its display-only `total_*` / `elsewhere_*` are not
+   used. Beside it the offers (1, 2 and 4 steps)
    as gray buttons with their price; under it how the price changes from here. While the store is
    closed the meters stay, without offers.
 4. **Credit history**: the last 10 transactions as rows (what, when, the balance after, the amount).
