@@ -14,9 +14,11 @@ against this panel (v3, release `v3.0.0.0376cb9`), median (p50) of each page's t
 
 ## Method
 
-The two panels were measured differently. Both ways favour Pelican:
+The two panels were measured differently. Two of the differences favour Pelican: only its HTML is
+counted, and it is timed one hop from the panel. One favours v3: Pelican carries production's real
+load, v3 a handful of users.
 
-- **Pelican**: the origin time (`$upstream_response_time`) of every real page request in the HTA
+- **Pelican**: the origin time (`$upstream_response_time`) of every real page request in the HA
   proxy's access log over about 36 hours of production traffic. That is only the page's HTML. A
   Pelican page is drawn on the server, so the HTML already shows the page, but its Livewire requests
   afterwards are not counted. The time starts at the proxy, one private-network hop (3–11 ms) from
