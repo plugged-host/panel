@@ -296,8 +296,99 @@ moderator only to a server they moderate; the pick is kept a day.
 
 ## Watching channels
 
-TODO: the spam checks, watched channels and standing-rule checks are ported next, into
-`shared/src/rux/watch/`.
+`shared/src/rux/watch/`: what rux checks by itself on the servers it works on. The gateway's event
+worker hands it every message, in order (`on_message`); it only counts and queues there, and the
+AI and Discord calls run in tasks of their own. Bots, webhooks, system messages and rux itself are
+skipped; **staff are never acted on**: each task checks the author first (their roles come with
+the message). Nothing here needs noprofit.space. The AI is neo's chain in rux's scope, never a
+premium model: when the others cannot answer, the message goes unchecked.
+
+A message goes through these in order and stops at the first that takes it:
+
+1. **Spam** (`spam.rs`, without AI, in every channel, while Catch Spam Automatically is on),
+   counted in memory per member and server. A message is spam from the Flooding-th message within
+   its seconds, from the Repeats-th copy of the same text within its seconds (in any channel; case,
+   spaces and punctuation do not count, links do; texts shorter than 4 letters only count towards
+   flooding), or with Mentions or more people and roles pinged, or Emoji or more emoji (Discord's
+   and unicode). A member's spam waits up to 3 seconds and goes to one task: every caught message
+   is deleted (in bulk per channel) and the member is warned ("Spam: too many messages at once",
+   "Spam: the same message again and again", "Spam: mentioning many people at once", "Spam: a wall
+   of emoji") at most once per Rule Cooldown (30 seconds at least) per server. The warning is a case,
+   counts towards the warning ladder and is said in the channel, pinging only them; within the
+   cooldown the spam is only deleted. The first copy of a repeated text stays. Spam is not checked
+   by the AI again.
+2. **Watched channels** (`channels.rs`): a member message with text in a watched channel is queued
+   in `rux_watch_items` (its text cut at 1500 characters, the message it replies to, the author's
+   roles). One run at a time checks the queue, at most one run every 10 seconds (and the `rux` task
+   starts one every minute while messages wait), for about two minutes: up to 20 messages of one
+   server per AI call, against the server's active standing rules and, while Watched Channels Also
+   Enforce the Basic Guidelines is on, the guidelines (G1 scams and phishing, G2 slurs and hate, G3
+   harassment, G4 sexual or gore content, G6 advertising), with the server's facts and how to judge.
+   - In a batch with other members' messages, a flagged message is checked again on its own first
+     (their text could steer the verdict: prompt injection); only a verdict that holds is acted on.
+     One action per message.
+   - A standing rule acts as the rule says (`enforce`), while the rule is active and applies in that
+     channel. A guideline deletes the message and warns its author with the guideline's name ("Scam
+     or phishing").
+   - A busy AI is waited for up to a minute; then the batch stays queued for the next run. Messages
+     that waited more than ten minutes are dropped unchecked, and so is a batch whose verdict cannot
+     be read. When no AI can answer at all (none open to everyone set up, all failing), watching
+     pauses for ten minutes and the queue is dropped (`watch::paused`); meanwhile watched channels'
+     messages are not checked.
+3. **Standing rules** elsewhere (`rules.rs`): a member message that hits an active rule's keywords
+   (in the channels the rule is limited to, if any; the rules are kept in memory and read again
+   every 30 seconds) is checked by the AI in a task of its own. At most 3 of a member's messages a
+   minute get there, and at most 4 checks run at once (the others wait up to a minute, then go
+   unchecked). The task skips staff, then for each rule hit, in order: counts it as checked (the
+   rule's "messages checked"), skips it while the rule's cooldown for this member runs, asks the AI
+   whether the message clearly breaks it (with the message it replies to, the server's facts and
+   how to judge) and acts on the first clear break. A busy or unavailable AI leaves the message
+   unchecked.
+
+Member text reaches the AI as data: fenced and marked untrusted, Discord's markup made plain and
+angle brackets swapped (so it cannot close its fence), names on one line. The answers are JSON
+(`{"breaks": [{"n", "rule", "why"}]}` for a batch, `{"breaks": true|false, "why"}` for one rule);
+anything else is no break.
+
+**Cooldowns** (Rule Cooldown, 30 seconds at least) are set atomically in the cache, so a burst or
+a wrong answer cannot pile up warnings: one per rule and member (the watched channels and the
+keyword checks share it), one per server, guideline and member, one per server and member for
+spam. What rux does is a case like an order's (`rux_cases`: `automatic`, the rule, the caught
+message as evidence), posted to the mod log; Discord's audit log says "rux for rule #5: …" or "rux
+for rux: Spam: …".
+
+### Differences from Pelican's checks
+
+- The checks run as tasks of the panel instead of worker processes; spam waits in memory instead
+  of the cache.
+- A batch the busy AI could not take stays queued for the next run (Pelican dropped it), and a run
+  that is due is scheduled rather than left for the minute's tick.
+- System messages (joins, boosts, pins) are not counted as spam.
+- The watched channels and the keyword checks share one cooldown per rule and member (Pelican had
+  one for each).
+- A guideline's breaker is told its name in rux's language (Pelican cut the English text at its
+  first colon, which left "… Not" in two of them).
+- At most 4 keyword checks run at once, and a busy or unavailable AI ends a message's check instead
+  of being asked about its next rule.
+
+### Checks (watch)
+
+- Spam: from a member account post 7 messages within 10 seconds: they are deleted, the member gets
+  a DM and a notice in the channel, the case is in the mod log. Again within 5 minutes: deleted, no
+  new warning. The same text 3 times in two channels: the 2nd and 3rd copies go. 6 mentions or 25
+  emoji in one message: deleted, warned. As staff (the owner, a rux moderator): nothing happens.
+  Catch Spam Automatically off: nothing happens.
+- Watched channel: "watch #general"; from a member post a fake free-Nitro link: deleted and warned
+  ("Scam or phishing") within about 10 seconds; ordinary messages are left alone. With the basic
+  guidelines off only the standing rules count there.
+- Standing rule: "add a rule: anyone asking for a new location gets warned" (keywords like
+  location, singapore, new country). From a member in a channel that is not watched: "when
+  singapore??" is warned with the rule's reason, and `list_rules` shows its checks and actions going
+  up; asking again within the cooldown brings no second warning; a question about an existing
+  location brings nothing.
+- With no AI provider open to everyone: a watched channel's message is not checked, and the log says
+  watching is paused for 10 minutes.
+- Language Deutsch: the spam reasons, guideline names and notices are German.
 
 ## The gateway
 

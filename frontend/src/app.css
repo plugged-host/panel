@@ -2607,7 +2607,8 @@ strong {
 
 /* plugged.host: the rows inside an economy list (.theme-eco-list), the Pelican panel's store
    partial (".ph-eco-tx", ".ph-eco-amount", ".ph-eco-value"): what it is on the left, the number on
-   the right, rows split by hairlines. Used by the Discord rewards page (pages/dashboard/discord). */
+   the right, rows split by hairlines. Used by the store's credit history (elements/economy/TransactionRows)
+   and the Discord rewards page (pages/dashboard/discord). */
 .theme-eco-tx {
   display: flex;
   align-items: center;
@@ -2652,95 +2653,245 @@ strong {
   color: var(--mantine-color-red-text);
 }
 
-/* plugged.host: the welcome tour (elements/WelcomeTour.tsx): the page dimmed like under a modal,
-   the step's element left lit with an accent ring, the step on a modal surface next to it. */
+/* plugged.host: the welcome tour (elements/WelcomeTour.tsx), the Pelican panel's ".ph-tour-*"
+   (plugged-host-core's panel-tour-overlay.blade.php): a sheet that takes every click, so the page
+   cannot be used mid-tour; a hole around the element a step is about, whose huge outline is the
+   dim (the modal backdrop's 75% of the page floor) and whose border is the accent ring; the step
+   on the modal window's surface beside it, centred and wider with nothing to point at, a sheet at
+   the top or bottom on phones. The hole and the card sit at the window's own coordinates
+   (getBoundingClientRect), so they are placed with top and left, not logical properties. */
 .theme-tour {
+  --theme-tour-shade: color-mix(in srgb, var(--theme-bg-bottom) 75%, transparent);
+  --theme-tour-ease: cubic-bezier(0.2, 0, 0, 1);
   position: fixed;
   inset: 0;
   z-index: 400;
-  pointer-events: none;
 }
 
-.theme-tour-scrim {
-  position: fixed;
-  background-color: rgb(11 13 16 / 0.75);
-  pointer-events: auto;
+.theme-tour-blocker {
+  position: absolute;
+  inset: 0;
 }
 
-.theme-tour-ring {
+.theme-tour-hole {
   position: fixed;
+  top: var(--theme-tour-hole-y, 50vh);
+  left: var(--theme-tour-hole-x, 50vw);
+  box-sizing: border-box;
+  width: var(--theme-tour-hole-w, 0);
+  height: var(--theme-tour-hole-h, 0);
+  border: 2px solid var(--theme-accent-bright);
   border-radius: 0.75rem;
-  outline: 2px solid var(--theme-accent-bright);
+  outline: 200vmax solid var(--theme-tour-shade);
+  pointer-events: none;
+  transition:
+    top 320ms var(--theme-tour-ease),
+    left 320ms var(--theme-tour-ease),
+    width 320ms var(--theme-tour-ease),
+    height 320ms var(--theme-tour-ease),
+    border-color 200ms ease;
+  animation: theme-tour-fade 200ms ease-out both;
+}
+
+.theme-tour-hole-closed {
+  border-color: transparent;
 }
 
 .theme-tour-card {
   position: fixed;
-  inset-block-end: 1rem;
-  inset-inline: 1rem;
-  max-width: 22.5rem;
-  margin-inline: auto;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  width: min(26rem, calc(100vw - 2rem));
+  max-height: var(--theme-tour-card-max, calc(100dvh - 2rem));
+  overflow: hidden;
   padding: 1.5rem;
   border-radius: 0.75rem;
   background-color: var(--theme-modal);
   box-shadow:
     0 25px 50px -12px rgb(0 0 0 / 0.5),
     0 0 0 1px var(--theme-hairline);
-  pointer-events: auto;
+  color: var(--theme-text);
+  opacity: 0;
+  transform: translate(var(--theme-tour-card-x, 0), var(--theme-tour-card-y, 0));
+  transition:
+    transform 320ms var(--theme-tour-ease),
+    opacity 200ms ease;
 }
 
-@media (min-width: 768px) {
-  .theme-tour-card {
-    inset-block-end: auto;
-    inset-inline: auto;
-    width: 22.5rem;
-    margin-inline: 0;
-  }
+.theme-tour-card.theme-tour-ready {
+  opacity: 1;
+}
 
-  .theme-tour-card:not([data-placed]) {
-    inset: 0;
-    height: fit-content;
-    margin: auto;
-  }
+/* set for one frame when the card changes layout, so it appears in place instead of flying in
+   from where the previous layout had it */
+.theme-tour-card.theme-tour-jump {
+  transition: opacity 200ms ease;
+}
+
+/* nothing to point at: centred, and wider (the step people read) */
+.theme-tour-card[data-mode="center"] {
+  top: 50%;
+  left: 50%;
+  width: min(36rem, calc(100vw - 2rem));
+  transform: translate(-50%, -50%);
+  transition: opacity 200ms ease;
+}
+
+/* phones: a sheet across the screen, on the side the element is not on */
+.theme-tour-card[data-mode="sheet-bottom"],
+.theme-tour-card[data-mode="sheet-top"] {
+  right: 1rem;
+  left: 1rem;
+  width: auto;
+  transform: none;
+  transition: opacity 200ms ease;
+}
+
+.theme-tour-card[data-mode="sheet-bottom"] {
+  top: auto;
+  bottom: 1rem;
+}
+
+.theme-tour-card[data-mode="sheet-top"] {
+  top: 1rem;
+}
+
+/* only the copy scrolls on a short card; the progress row and the buttons stay on screen */
+.theme-tour-step {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-height: 0;
+  overflow-y: auto;
+  animation: theme-tour-step-in 260ms ease-out both;
+}
+
+.theme-tour-progress,
+.theme-tour-actions {
+  flex-shrink: 0;
 }
 
 .theme-tour-progress {
-  margin: 0 0 0.25rem;
-  color: var(--theme-text-faint);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  color: var(--theme-text-muted);
   font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1rem;
+}
+
+.theme-tour-dots {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.theme-tour-dot {
+  display: block;
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 9999px;
+  background-color: var(--theme-raise-2);
+  transition:
+    width 200ms ease,
+    background-color 200ms ease;
+}
+
+.theme-tour-dot-done {
+  background-color: var(--theme-accent);
+}
+
+.theme-tour-dot-current {
+  width: 1.5rem;
+  background-color: var(--theme-accent-bright);
 }
 
 .theme-tour-heading {
   margin: 0;
   color: var(--theme-text);
-  font-size: 1rem;
+  font-size: 1.125rem;
   font-weight: 600;
+  line-height: 1.75rem;
+}
+
+.theme-tour-card[data-mode="center"] .theme-tour-heading {
+  font-size: 1.5rem;
+  line-height: 2rem;
 }
 
 .theme-tour-body {
-  margin: 0.5rem 0 0;
-  color: var(--theme-text-nav);
+  margin: 0;
+  color: var(--theme-text-muted);
   font-size: 0.875rem;
-  line-height: 1.375rem;
+  line-height: 1.625;
 }
 
 .theme-tour-bullets {
-  margin: 0.5rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin: 0.25rem 0 0;
   padding-inline-start: 1.25rem;
-  color: var(--theme-text-muted);
-  font-size: 0.8125rem;
-  line-height: 1.25rem;
+  color: var(--theme-text-nav);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  list-style: disc;
 }
 
+.theme-tour-bullets > li::marker {
+  color: var(--theme-text-faint);
+}
+
+/* Back and the way out at the start, the one primary action at the end; a long primary label
+   that does not fit next to Back drops to its own line and stays at the end */
 .theme-tour-actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.5rem;
-  margin-top: 1.25rem;
+  justify-content: space-between;
+  gap: 0.75rem;
 }
 
-.theme-tour-close {
+.theme-tour-actions-start {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.theme-tour-actions-end {
+  display: flex;
   margin-inline-start: auto;
+}
+
+@keyframes theme-tour-step-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.375rem);
+  }
+}
+
+@keyframes theme-tour-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-tour-hole,
+  .theme-tour-card,
+  .theme-tour-dot {
+    transition: none;
+  }
+
+  .theme-tour-hole,
+  .theme-tour-step {
+    animation: none;
+  }
 }
 
 /* plugged.host: ads (docs/features/ads.md). A slot has no size until it holds a unit; a unit
@@ -3012,39 +3163,6 @@ strong {
 
 .theme-eco-meter-over {
   background-color: var(--mantine-color-red-4);
-}
-
-/* A currency's history: what and when at the start, the amount at the end. */
-.theme-eco-tx {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding-block: 0.75rem;
-}
-
-.theme-eco-tx + .theme-eco-tx {
-  border-block-start: 1px solid var(--theme-hairline);
-}
-
-.theme-eco-amount {
-  flex-shrink: 0;
-  font-size: 0.875rem;
-  font-variant-numeric: tabular-nums;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.theme-eco-amount-in {
-  color: var(--mantine-color-green-4);
-}
-
-.theme-eco-amount-out {
-  color: var(--theme-text-muted);
-}
-
-.theme-eco-empty {
-  padding-block: 1rem;
 }
 
 /* The Tokens page's sections: rows split by hairlines, the action in a column of its own. */
@@ -6236,35 +6354,16 @@ span.theme-neo-image {
  * plugged.host: the Transfer page (pages/server/transfer/) and the strip on every server page
  * during a move (elements/TransferStrip.tsx): the Pelican panel's ".pht-*" and ".phts"
  * (server-transfer.blade.php, transfer-strip.blade.php). Cards are ".theme-eco-card", headings
- * ".theme-eco-heading", captions ".theme-eco-small".
+ * ".theme-eco-heading", captions ".theme-eco-small"; the location rows and flags are
+ * elements/LocationList's ".theme-location-*" and ".theme-flag".
  * ============================================================================= */
-.theme-transfer-flag {
-  display: grid;
-  flex: none;
-  place-items: center;
-  width: 1.75rem;
-  height: 1.3125rem;
-  overflow: hidden;
-  border-radius: 0.25rem;
-  background-color: var(--theme-raise-2);
-  outline: 1px solid var(--theme-hairline);
-  outline-offset: -1px;
-}
-
-.theme-transfer-flag > img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.theme-transfer-flag[data-size="lg"] {
+.theme-flag[data-size="lg"] {
   width: 2.5rem;
   height: 1.875rem;
   border-radius: 0.375rem;
 }
 
-.theme-transfer-flag[data-size="sm"] {
+.theme-flag[data-size="sm"] {
   width: 1.5rem;
   height: 1.125rem;
 }
@@ -6496,83 +6595,6 @@ span.theme-neo-image {
   color: var(--mantine-color-yellow-4);
   font-size: 0.8125rem;
   line-height: 1.25rem;
-}
-
-.theme-transfer-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.theme-transfer-row {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  width: 100%;
-  padding: 0.75rem 1rem;
-  border: 1px solid transparent;
-  border-radius: 0.75rem;
-  background-color: var(--theme-raise);
-  color: var(--theme-text);
-  font: inherit;
-  text-align: start;
-  cursor: pointer;
-  transition:
-    border-color 150ms ease,
-    background-color 150ms ease;
-}
-
-.theme-transfer-row:hover:not(:disabled) {
-  background-color: var(--theme-raise-2);
-}
-
-.theme-transfer-row:focus-visible {
-  outline: 2px solid var(--theme-accent-bright);
-  outline-offset: 2px;
-}
-
-.theme-transfer-row[data-selected],
-.theme-transfer-row[data-selected]:hover:not(:disabled) {
-  border-color: var(--theme-accent-bright);
-  background-color: var(--theme-accent-soft);
-}
-
-.theme-transfer-row:disabled {
-  cursor: not-allowed;
-  opacity: 0.5;
-}
-
-.theme-transfer-row-main {
-  display: flex;
-  flex: 1;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem;
-  min-width: 0;
-}
-
-.theme-transfer-row-main strong {
-  font-size: 0.875rem;
-  font-weight: 600;
-}
-
-.theme-transfer-ms {
-  flex: none;
-  color: var(--theme-text-muted);
-  font-size: 0.75rem;
-  font-variant-numeric: tabular-nums;
-}
-
-.theme-transfer-radio {
-  flex: none;
-  width: 1.125rem;
-  height: 1.125rem;
-  border: 1px solid var(--theme-raise-3);
-  border-radius: 9999px;
-}
-
-.theme-transfer-row[data-selected] .theme-transfer-radio {
-  border: 0.3125rem solid var(--theme-accent-bright);
 }
 
 .theme-transfer-cta {
@@ -6901,8 +6923,6 @@ span.theme-neo-image {
   }
 }
 
-/* The table's toolbar (".fi-ta-header-toolbar"): search, filters and columns at the end of the
-   row, over a hairline. */
 /* The filters and columns dropdowns: a heading with its reset link, the fields, the apply button. */
 .theme-catalog-filters {
   display: flex;
@@ -6991,8 +7011,6 @@ span.theme-neo-image {
   gap: 0.25rem;
 }
 
-/* Filament's record actions are links ("fi-link"): font-medium, gray-200, primary or danger,
-   underlined on hover. */
 /* =============================================================================
  * plugged.host: Filament's wizard (".fi-sc-wizard", elements/Wizard.tsx) on Theme v2's section
  * card: a numbered cell per step over a hairline (only the open one on phones), the step's

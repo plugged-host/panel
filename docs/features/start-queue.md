@@ -43,7 +43,7 @@ Letting a start go claims the row with a conditional update, then sends the powe
 directly, past the other gates. A server that got suspended or busy while waiting is not started.
 The queue page polls every 5 seconds, sees the release and goes to the console.
 
-Moving the server (Move Server, [transfers.md](transfers.md)) takes it out of the line; the move
+Moving the server (Transfer, [transfers.md](transfers.md)) takes it out of the line; the move
 starts it on its new node.
 
 Server activity: `server:queue.join`, `server:queue.release` (`reason`, `waited` in seconds),

@@ -205,7 +205,12 @@ pub async fn call(
             .header("Accept", "application/json")
             .json(&body);
         for (name, value) in &provider.extra_headers {
-            if !RESERVED_HEADERS.contains(&name.to_ascii_lowercase().as_str()) {
+            // the Anthropic driver sends `anthropic-version` itself (its value or the default),
+            // so it goes out once
+            if !RESERVED_HEADERS.contains(&name.to_ascii_lowercase().as_str())
+                && !(provider.driver == NeoDriver::Anthropic
+                    && name.eq_ignore_ascii_case("anthropic-version"))
+            {
                 request = request.header(name.as_str(), value.as_str());
             }
         }
@@ -214,8 +219,9 @@ pub async fn call(
                 "anthropic-version",
                 provider
                     .extra_headers
-                    .get("anthropic-version")
-                    .map_or("2023-06-01", String::as_str),
+                    .iter()
+                    .find(|(name, _)| name.eq_ignore_ascii_case("anthropic-version"))
+                    .map_or("2023-06-01", |(_, value)| value.as_str()),
             ),
             NeoDriver::Gemini => request.header("x-goog-api-key", api_key),
             NeoDriver::Openai => request.bearer_auth(api_key),

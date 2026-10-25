@@ -72,7 +72,7 @@ export function NeoOff() {
         <div className='theme-neo-empty'>
           <div>
             <div className='theme-neo-greet'>{t('elements.neo.launcher.off', { name })}</div>
-            <div>{t('elements.neo.blocked.offBody', {})}</div>
+            <div>{t('elements.neo.blocked.offBody', { name })}</div>
           </div>
           <Button loading={saving} onClick={() => save({ enabled: true })}>
             {t('elements.neo.button.turnOn', { name })}

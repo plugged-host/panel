@@ -274,6 +274,7 @@ impl Tool for ListRules {
             || context.config.app_name.clone(),
             |guild| guild.host_name.clone(),
         );
+        let paused = crate::rux::watch::paused(&context.state).await;
 
         Ok(ToolResult::json(&json!({
             "rules": rules.iter().map(model::summary).collect::<Vec<_>>(),
@@ -287,6 +288,11 @@ impl Tool for ListRules {
                 format!("on, in every channel, without AI: {}", spam_limits(context))
             } else {
                 "off".to_string()
+            },
+            "watch_paused": if paused {
+                json!("yes: no AI could answer the checks; rux tries again within 10 minutes")
+            } else {
+                Value::Null
             },
             "warning_steps": {
                 "timeout": if settings.warn_timeout_at > 0 {
@@ -507,7 +513,7 @@ impl Tool for WatchChannel {
     }
 
     fn description(&self, _context: &Context) -> String {
-        "Start or stop checking EVERY member message in a channel with AI (against the standing rules and the always-on guidelines: scams, slurs, harassment, sexual content, spam, advertising). Busy channels mean more AI calls (about one per 20 messages).".into()
+        "Start or stop checking EVERY member message in a channel with AI (against the standing rules and the always-on guidelines: scams, slurs, harassment, sexual content, advertising; spam is the spam guard's). Busy channels mean more AI calls (about one per 20 messages).".into()
     }
 
     fn parameters(&self) -> Value {

@@ -125,7 +125,8 @@ The browser flow:
 3. Every request: the edge asks `GET /api/devbox/web/authorize` with the host (`X-Devbox-Host`)
    and the cookie. `204` carries `X-Devbox-Upstream` (`host:port`); `401` sends the browser to
    the panel's `/account/devbox/open?host=…`, which after the panel's own sign-in either opens a
-   fresh link or shows the server's VS Code page.
+   fresh link, shows the server's VS Code page (the devbox is stopped or not theirs) or, for a
+   devbox that is gone, the server list.
 
 The browser domain must be a domain of its own: never the panel's registrable domain or a name
 under or above it, which the panel's cookies could reach (checked when it is saved).

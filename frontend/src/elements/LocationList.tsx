@@ -1,5 +1,6 @@
 // plugged.host: locations to pick one from, as full-width rows like the Pelican panel's Transfer page
-// (".pht-row"): flag, name, badges, latency and a radio (limbo's restore, docs/features/limbo.md)
+// (".pht-row"): flag, name, badges, latency and a radio (limbo's restore, docs/features/limbo.md). The
+// Transfer page draws its rows with the same classes.
 import { ReactNode } from 'react';
 import { z } from 'zod';
 import { serverCreateLocationSchema } from '@/lib/schemas/server/create.ts';

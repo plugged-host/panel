@@ -140,7 +140,7 @@ export default function TransferIdle({ options, refresh }: { options: Options; r
 
         {blocked && <p className='theme-transfer-blocked'>{blocked}</p>}
 
-        <div className='theme-transfer-list'>
+        <div className='theme-location-list'>
           {options.locations.map((option) => {
             const current = option.uuid === options.currentLocationUuid;
             const pickable = option.available && option.unlocked && !blocked;
@@ -150,15 +150,15 @@ export default function TransferIdle({ options, refresh }: { options: Options; r
               <button
                 key={option.uuid}
                 type='button'
-                className='theme-transfer-row'
+                className='theme-location-row'
                 data-selected={selected || undefined}
                 aria-pressed={selected}
                 disabled={!pickable}
                 onClick={() => setLocationUuid(option.uuid)}
               >
                 <TransferFlag place={option} />
-                <span className='theme-transfer-row-main'>
-                  <strong>{option.name}</strong>
+                <span className='theme-location-main'>
+                  {option.name}
                   {option.tier && (
                     <Badge color='gray' size='sm'>
                       {tierName(option.tier)}
@@ -183,9 +183,9 @@ export default function TransferIdle({ options, refresh }: { options: Options; r
                   )}
                 </span>
                 {option.latency !== null && (
-                  <span className='theme-transfer-ms font-mono'>{t(`${page}.ms`, { ms: option.latency })}</span>
+                  <span className='theme-location-ms font-mono'>{t(`${page}.ms`, { ms: option.latency })}</span>
                 )}
-                <span className='theme-transfer-radio' aria-hidden />
+                <span className='theme-radio' aria-hidden />
               </button>
             );
           })}

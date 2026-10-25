@@ -116,7 +116,8 @@ mod get {
 
     #[derive(ToSchema, Serialize)]
     struct ApiNeo {
-        /// Why the person cannot chat here right now: disabled, turned_off, consent, no_access.
+        /// Why the person cannot chat here right now: not_yours, disabled, turned_off, consent,
+        /// no_access.
         blocked: Option<&'static str>,
         preferences: Preferences,
         conversation: ApiNeoConversation,
@@ -128,6 +129,11 @@ mod get {
         provider_disclosure: String,
         max_message_chars: usize,
         max_images: usize,
+        /// Days a chat is kept after its last message (the settings' retention, at least 1).
+        retention_days: i32,
+        /// noprofit.space runs neo, so its usage windows are noprofit.space's (shared with its
+        /// other services).
+        on_noprofit: bool,
     }
 
     #[derive(ToSchema, Serialize)]
@@ -159,6 +165,8 @@ mod get {
         let legal_email = settings.neo.legal_email.to_string();
         let privacy_email = settings.neo.privacy_email.to_string();
         let provider_disclosure = settings.neo.provider_disclosure.to_string();
+        let retention_days = settings.neo.retention_days.max(1);
+        let on_noprofit = shared::neo::on_noprofit(&settings).is_some();
         drop(settings);
 
         ApiResponse::new_serialized(Response {
@@ -172,6 +180,8 @@ mod get {
                 provider_disclosure,
                 max_message_chars: MAX_MESSAGE_CHARS,
                 max_images: MAX_IMAGES,
+                retention_days,
+                on_noprofit,
             },
         })
         .ok()

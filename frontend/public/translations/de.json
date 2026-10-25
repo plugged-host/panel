@@ -231,6 +231,22 @@
       "few": "{count} Befehlskürzel",
       "many": "{count} Befehlskürzel",
       "other": "{count} Befehlskürzel"
+    },
+    "token": {
+      "zero": "{count} Tokens",
+      "one": "{count} Token",
+      "two": "{count} Tokens",
+      "few": "{count} Tokens",
+      "many": "{count} Tokens",
+      "other": "{count} Tokens"
+    },
+    "credit": {
+      "zero": "{count} Credits",
+      "one": "{count} Credit",
+      "two": "{count} Credits",
+      "few": "{count} Credits",
+      "many": "{count} Credits",
+      "other": "{count} Credits"
     }
   },
   "translations": {
@@ -971,13 +987,12 @@
           "memory": "RAM",
           "disk": "Speicher",
           "openStore": "Mehr im Ressourcen-Shop holen",
-          "tokens": "Tokens",
-          "credits": "Credits",
           "openTokens": "Tokens-Seite öffnen"
         }
       },
       "welcomeTour": {
         "progress": "Schritt {step} von {total}",
+        "acknowledge": "Zeig mir alles",
         "next": "Weiter",
         "back": "Zurück",
         "skip": "Tour überspringen",
@@ -989,21 +1004,32 @@
         "panel": {
           "welcome": {
             "heading": "Willkommen bei {app}",
-            "body": "Das ist dein Panel für Gameserver: Alles, was du bei uns betreibst, findest du hier. Die Tour hebt jeden Bereich hervor und sagt dir, wofür er da ist. Das dauert etwa eine Minute."
+            "body": "Das ist dein Panel für Gameserver: Alles, was du bei uns mietest, findest du hier. Wir heben jeden Bereich hervor und sagen dir, wofür er da ist. Das dauert etwa eine Minute."
           },
           "navigation": {
             "heading": "Die Seitenleiste",
             "body": "Jede Seite deines Kontos ist hier einen Klick entfernt.",
             "bullets": {
-              "servers": "Server: deine Server. Auf dieser Seite bist du gerade.",
-              "account": "Konto: dein Name, deine E-Mail, dein Passwort und deine Sprache.",
-              "keys": "API-Schlüssel und SSH-Schlüssel: für Werkzeuge und SFTP-Programme, die mit deinen Servern arbeiten.",
-              "activity": "Aktivität: alles, was in deinem Konto passiert ist, und wann."
+              "home": "{label} — deine Server. Hier bist du gerade.",
+              "store": "{label} — mehr CPU, Arbeitsspeicher und Speicherplatz für deine Credits.",
+              "plus": "{label} — bessere Standorte, Vorrang in der Startwarteschlange und keine Werbung im Spiel.",
+              "tokens": "{label} — Tokens verdienen und sehen, wohin sie gingen.",
+              "backups": "{label} — ein Backup jedes deiner Server herunterladen.",
+              "account": "{label} — deine Profileinstellungen, Schlüssel, Sitzungen und Aktivität."
+            }
+          },
+          "balance": {
+            "heading": "Verbrauch und Kontostand",
+            "body": "Die Balken zeigen, wie viel deines Tarifs deine Server zusammen belegen. Darunter stehen deine Tokens und Credits.",
+            "bullets": {
+              "credits": "Credits kaufen mehr Ressourcen im Ressourcen-Shop.",
+              "tokens": "Tokens bezahlen {plus}; verdienen kannst du sie auf der Seite „Tokens“.",
+              "click": "Ein Klick auf die Balken oder die Credits öffnet den Ressourcen-Shop, ein Klick auf die Tokens die Seite „Tokens“."
             }
           },
           "account": {
             "heading": "Dein Konto",
-            "body": "Dein Name öffnet das Kontomenü: dein Konto, Abmelden und diese Tour, falls du sie noch einmal sehen willst."
+            "body": "Dein Name öffnet das Kontomenü: dein Profil, Abmelden und diese Tour, falls du sie noch einmal sehen willst."
           },
           "create": {
             "heading": "Server erstellen",
@@ -1011,7 +1037,7 @@
           },
           "servers": {
             "heading": "Deine Server",
-            "body": "Jeder deiner Server ist eine Karte wie diese, mit seinem Status und dem, was er gerade verbraucht. Ein Klick auf eine Karte öffnet den Server. Als Nächstes öffnet die Tour {name} mit dir."
+            "body": "Jeder deiner Server ist eine Karte wie diese. Der Balken links zeigt, ob er läuft, die Zahlen, was er gerade verbraucht. Ein Klick auf eine Karte öffnet den Server — lass uns {name} zusammen öffnen."
           },
           "empty": {
             "heading": "Deine Server",
@@ -1035,23 +1061,30 @@
             "heading": "Name, Status und Adresse",
             "body": "Die Adresse geben Spieler zum Beitreten ein. Klick darauf, um sie zu kopieren, und schick sie deinen Freunden. CPU, Arbeitsspeicher und Speicher sind Live-Werte."
           },
+          "setup": {
+            "heading": "Einrichtung abschließen",
+            "body": "Für diesen Server wartet noch die Einrichtungshilfe: Sie wählt Minecraft-Version und Software und macht den Server spielbereit."
+          },
           "sidebar": {
             "heading": "Alles zu diesem Server",
             "body": "Solange ein Server geöffnet ist, gehört die Seitenleiste zu ihm.",
             "bullets": {
-              "files": "Dateien: alles auf dem Server hochladen, bearbeiten und löschen.",
-              "backups": "Backups: vor einer Änderung eines anlegen und zurückspielen, wenn etwas kaputtgeht.",
-              "network": "Netzwerk: die Ports, auf denen dein Server lauscht.",
-              "more": "Datenbanken, Zeitpläne, Unterbenutzer, Start und Aktivität: die Seiten, die du seltener brauchst."
+              "files": "Dateien — alles auf dem Server hochladen, bearbeiten und löschen.",
+              "content": "Plugins & Mods — installieren und aktualisieren aus Modrinth, CurseForge und SpigotMC.",
+              "worlds": "Welten und Spieler — Welten wechseln, Whitelist, Operatoren und Bans verwalten.",
+              "gameSettings": "Spieleinstellungen — die server.properties als Formular.",
+              "backups": "Backups — vor einer Änderung eines anlegen und zurückspielen, wenn etwas kaputtgeht.",
+              "more": "Der Rest — die Seiten, die du seltener brauchst: Subdomains, Netzwerk-Ports, Datenbanken, Zeitpläne, Benutzer und das Aktivitätsprotokoll.",
+              "moreMinecraft": "Der Rest — die Seiten, die du seltener brauchst: Subdomains, Netzwerk-Ports, Datenbanken und mehr."
             }
           },
           "settings": {
             "heading": "Einstellungen",
-            "body": "Eine Seite für alles zu diesem Server: umbenennen, mehr Arbeitsspeicher geben, die Software wechseln oder neu installieren."
+            "body": "Eine Seite für alles zu diesem Server: umbenennen, mehr Arbeitsspeicher geben, die Version wechseln oder neu installieren."
           },
           "home": {
             "heading": "Zurück zu deinen Servern",
-            "body": "Das Logo bringt dich zurück zur Serverliste. Das war die Tour: Du kannst sie jederzeit über das Menü unter deinem Namen erneut ansehen."
+            "body": "Das Logo bringt dich zurück zur Serverliste. Das war die Tour — du kannst sie jederzeit über das Menü unter deinem Namen erneut ansehen."
           }
         }
       },
@@ -1452,7 +1485,7 @@
         "blocked": {
           "disabled": "{name} ist in diesem Panel gerade nicht verfügbar.",
           "noAccess": "Du kannst {name} auf diesem Server nicht nutzen.",
-          "offBody": "Schalte es wieder ein, um zu chatten und es an deinen Servern arbeiten zu lassen.",
+          "offBody": "Schalte {name} wieder ein, um zu chatten und es an deinen Servern arbeiten zu lassen.",
           "failed": "{name} konnte nicht geladen werden."
         },
         "consent": {
@@ -1480,7 +1513,7 @@
           "unavailable": "Die Nutzung ist gerade nicht verfügbar.",
           "unlimitedModels": "Modelle ohne Balken hier haben kein Nutzungslimit.",
           "history": "Chatverlauf",
-          "historyHint": "Chats, die du liegen lässt, werden nach einer Weile gelöscht.",
+          "historyHint": "Unterhaltungen werden {days} Tage aufbewahrt.",
           "deleted": "Dein {name}-Verlauf wurde gelöscht.",
           "privacyNamed": "Was du schreibst und was {name} von deinen Servern liest, wird an KI-Anbieter gesendet ({providers}). Geheimnisse werden vorher maskiert.",
           "privacyGeneric": "Was du schreibst und was {name} von deinen Servern liest, wird an die KI-Anbieter dieses Panels gesendet. Geheimnisse werden vorher maskiert.",
@@ -2839,7 +2872,6 @@
           },
           "history": "Belohnungsverlauf",
           "historyEmpty": "Noch keine Discord-Belohnungen.",
-          "balanceAfter": "danach {balance}",
           "toast": {
             "checked": "Bei Discord geprüft.",
             "paid": "{credits} neue Credits gutgeschrieben.",
@@ -2849,7 +2881,6 @@
         "devboxOpen": {
           "title": "VS Code",
           "opening": "Devbox wird geöffnet…",
-          "missing": "Diese Devbox gibt es nicht mehr.",
           "button": {
             "servers": "Deine Server"
           }
@@ -3592,7 +3623,7 @@
                   "maxServersDescription": "Wie viele Server ein Konto haben darf. 0 ist unbegrenzt.",
                   "transfers": "Server umziehen",
                   "transferEnabled": "Spieler ziehen Server um",
-                  "transferEnabledDescription": "Besitzer können ihre Server auf der Seite „Server umziehen“ an einen anderen Standort oder auf einen anderen Node desselben Standorts umziehen.",
+                  "transferEnabledDescription": "Besitzer können ihre Server auf der Seite „Umzug“ an einen anderen Standort oder auf einen anderen Node desselben Standorts umziehen.",
                   "transferCooldownHours": "Stunden zwischen Umzügen",
                   "transferCooldownHoursDescription": "Wie lange ein Server nach einem Umzug wartet, bis sein Besitzer ihn wieder umziehen kann. 0 heißt ohne Wartezeit.",
                   "transferAttempts": "Versuchte Nodes pro Umzug",

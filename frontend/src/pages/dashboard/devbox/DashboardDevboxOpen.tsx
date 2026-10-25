@@ -1,5 +1,6 @@
 // plugged.host: back to a devbox in the browser: the edge sends a browser without a valid
-// sign-in here (docs/features/devboxes.md)
+// sign-in here (docs/features/devboxes.md). Like the Pelican panel's redirect: a fresh link, the
+// server's VS Code page, or the server list when the devbox is gone.
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { httpErrorToHuman } from '@/api/axios.ts';
@@ -23,7 +24,7 @@ export default function DashboardDevboxOpen() {
 
   useEffect(() => {
     if (!host) {
-      setError(t(`${page}.missing`, {}));
+      navigate('/', { replace: true });
       return;
     }
 
@@ -31,10 +32,8 @@ export default function DashboardDevboxOpen() {
       .then(({ url, server }) => {
         if (url) {
           window.location.replace(url);
-        } else if (server) {
-          navigate(`/server/${server}/devbox`, { replace: true });
         } else {
-          setError(t(`${page}.missing`, {}));
+          navigate(server ? `/server/${server}/devbox` : '/', { replace: true });
         }
       })
       .catch((err) => setError(httpErrorToHuman(err)));

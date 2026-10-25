@@ -12,7 +12,6 @@ import type { NeoInfo, NeoUsage, NeoWindow } from '@/lib/schemas/user/neo.ts';
 import { useNeoText, useNeoUsage } from '@/plugins/useNeo.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
-import { useGlobalStore } from '@/stores/global.ts';
 import { deleteAllNeoChats, NeoChat, updateNeo } from '@/stores/neo.ts';
 
 type Info = Omit<NeoInfo, 'conversation'>;
@@ -92,7 +91,6 @@ export default function NeoSettings({ info, chat }: { info: Info; chat: NeoChat 
   const { addToast } = useToast();
   const queryClient = useQueryClient();
   const text = useNeoText();
-  const onNoprofit = useGlobalStore((state) => state.settings.noprofit.enabled);
   const usage = useNeoUsage(true);
   const [saving, setSaving] = useState<string | null>(null);
   const [sure, setSure] = useState(false);
@@ -191,7 +189,7 @@ export default function NeoSettings({ info, chat }: { info: Info; chat: NeoChat 
             <div className='theme-neo-set-text'>
               <div className='theme-neo-set-title'>{t('elements.neo.settings.usage', {})}</div>
               <div className='theme-neo-set-hint'>
-                {onNoprofit
+                {info.onNoprofit
                   ? t('elements.neo.settings.usageHintNoprofit', {})
                   : t('elements.neo.settings.usageHint', { name: text.name })}
               </div>
@@ -204,7 +202,9 @@ export default function NeoSettings({ info, chat }: { info: Info; chat: NeoChat 
           <div className='theme-neo-set-row'>
             <div className='theme-neo-set-text'>
               <div className='theme-neo-set-title'>{t('elements.neo.settings.history', {})}</div>
-              <div className='theme-neo-set-hint'>{t('elements.neo.settings.historyHint', {})}</div>
+              <div className='theme-neo-set-hint'>
+                {t('elements.neo.settings.historyHint', { days: info.retentionDays })}
+              </div>
             </div>
           </div>
           <div>

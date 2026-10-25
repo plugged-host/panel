@@ -38,6 +38,9 @@ const baseTranslations = defineTranslations({
     apiKey: defineEnglishItem('API Key', 'API Keys'),
     oauthLink: defineEnglishItem('Linked Account', 'Linked Accounts'),
     commandSnippet: defineEnglishItem('Command Snippet', 'Command Snippets'),
+    // plugged.host: the sidebar balance
+    token: defineEnglishItem('token', 'tokens'),
+    credit: defineEnglishItem('credit', 'credits'),
   },
   translations: {
     common: {
@@ -801,88 +804,105 @@ const baseTranslations = defineTranslations({
           memory: 'RAM',
           disk: 'Disk',
           openStore: 'Get more in the Resource Store',
-          tokens: 'tokens',
-          credits: 'credits',
           openTokens: 'Open the Tokens page',
         },
       },
-      // plugged.host
+      // plugged.host: docs/features/welcome-tour.md, in the Pelican panel's words
       welcomeTour: {
         progress: 'Step {step} of {total}',
+        acknowledge: 'Show me around',
         next: 'Next',
         back: 'Back',
-        skip: 'Skip Tour',
-        notNow: 'Not Now',
+        skip: 'Skip tour',
+        notNow: 'Not now',
         finish: 'Finish',
-        openServer: 'Show Me {name}',
-        createServer: 'Create My First Server',
+        openServer: 'Show me {name}',
+        createServer: 'Create my first server',
         replay: 'Replay Welcome Tour',
         panel: {
           welcome: {
             heading: 'Welcome to {app}',
-            body: 'This is your game server panel: everything you run with us lives here. The tour lights up each part of it and says what it does. It takes about a minute.',
+            body: "This is your game server panel: everything you rent from us lives here. We'll light up each part of it and tell you what it does. It takes about a minute.",
           },
           navigation: {
-            heading: 'The Sidebar',
+            heading: 'The sidebar',
             body: 'Every page of your account is one click away here.',
             bullets: {
-              servers: 'Servers: your servers. You are on this page now.',
-              account: 'Account: your name, email, password and language.',
-              keys: 'API Keys and SSH Keys: for tools and SFTP clients that work with your servers.',
-              activity: 'Activity: everything done on your account, and when.',
+              home: '{label} — your servers. You are on it now.',
+              store: '{label} — more CPU, memory and disk for your credits.',
+              plus: '{label} — better locations, priority in the start queue and no in-game ads.',
+              tokens: '{label} — earn tokens and see where they went.',
+              backups: '{label} — download a backup of any of your servers.',
+              account: '{label} — your profile settings, keys, sessions and activity.',
+            },
+          },
+          balance: {
+            heading: 'Your usage and balance',
+            body: 'The bars show how much of your plan your servers use together. Underneath are your tokens and credits.',
+            bullets: {
+              credits: 'Credits buy more resources in the Resource Store.',
+              tokens: 'Tokens pay for {plus}; earn them on the Tokens page.',
+              click: 'Click the bars or the credits to open the Resource Store, the tokens to open the Tokens page.',
             },
           },
           account: {
-            heading: 'Your Account',
-            body: 'Your name opens the account menu: your account, signing out, and this tour if you want to see it again.',
+            heading: 'Your account',
+            body: 'Your name opens the account menu: your profile, signing out, and this tour if you want to see it again.',
           },
           create: {
-            heading: 'Create Server',
+            heading: 'Create server',
             body: 'This makes a new server. Pick a game, a location and a size, and it is ready a minute later.',
           },
           servers: {
-            heading: 'Your Servers',
-            body: 'Every server you have is a card like this one, with whether it is running and what it uses right now. Click a card to open that server. Next, the tour opens {name} with you.',
+            heading: 'Your servers',
+            body: "Every server you have is a card like this one. The bar on its left shows whether it is running, the numbers what it uses right now. Click a card to open that server — let's open {name} together.",
           },
           empty: {
-            heading: 'Your Servers',
+            heading: 'Your servers',
             body: 'Your servers show up here, one card each, with whether they are running and what they use. You do not have one yet.',
           },
           createFirst: {
-            heading: 'Create Your First Server',
+            heading: 'Create your first server',
             body: 'Start here: pick a game, a location and a size. The first time you open your new server, the tour shows you around inside it.',
           },
         },
         server: {
           console: {
-            heading: 'The Console',
+            heading: 'The console',
             body: "Your server's live output: everything it prints shows up here as it happens. Type a command in the line underneath and press Enter to run it.",
           },
           power: {
             heading: 'Start, Restart, Stop',
-            body: 'The power buttons of this server. Stop lets the game save and shut down cleanly; if it hangs while stopping, Stop turns into Kill.',
+            body: 'The power buttons for this server. Stop lets the game save and shut down cleanly; if it hangs while stopping, Stop turns into Kill.',
           },
           details: {
-            heading: 'Name, Status and Address',
-            body: 'The address is what players type to join. Click it to copy it, then send it to your friends. CPU, memory and disk are live.',
+            heading: 'Name, status and address',
+            body: 'The Address is what players type to join. Click it to copy it, then send it to your friends. CPU, memory and disk are live.',
+          },
+          setup: {
+            heading: 'Finish the setup',
+            body: 'This server still has its setup guide waiting: it picks the Minecraft version and software and gets the server ready to play on.',
           },
           sidebar: {
-            heading: 'Everything About This Server',
+            heading: 'Everything about this server',
             body: 'While a server is open, the sidebar belongs to it.',
             bullets: {
-              files: 'Files: upload, edit and delete anything on the server.',
-              backups: 'Backups: take one before you change something, restore it if something breaks.',
-              network: 'Network: the ports your server listens on.',
-              more: 'Databases, Schedules, Subusers, Startup and Activity: the pages you need less often.',
+              files: 'Files — upload, edit and delete anything on the server.',
+              content: 'Plugins & Mods — install and update them from Modrinth, CurseForge and SpigotMC.',
+              worlds: 'Worlds and Players — switch worlds, manage the whitelist, operators and bans.',
+              gameSettings: 'Game Settings — the server.properties as a form.',
+              backups: 'Backups — take one before you change something, restore it if something breaks.',
+              more: 'The rest — the pages you need less often: subdomains, network ports, databases, schedules, users and the activity log.',
+              moreMinecraft: 'The rest — the pages you need less often: subdomains, network ports, databases and more.',
             },
           },
           settings: {
             heading: 'Settings',
-            body: 'One page for everything about this server: rename it, give it more memory, change the software it runs, or reinstall it.',
+            body: 'One page for everything about this server: rename it, give it more memory, change the version it runs, or reinstall it.',
           },
           home: {
-            heading: 'Back to Your Servers',
-            body: 'The logo takes you back to your server list. That was the tour: replay it any time from the menu under your name.',
+            heading: 'Back to your servers',
+            body: 'The logo takes you back to your server list. That is the tour — replay it any time from the menu under your name.',
           },
         },
       },
@@ -1327,7 +1347,7 @@ const baseTranslations = defineTranslations({
           unavailable: 'Usage is unavailable right now.',
           unlimitedModels: 'Models without a bar here have no usage limit.',
           history: 'Chat history',
-          historyHint: 'Chats you leave alone are deleted after a while.',
+          historyHint: 'Conversations are kept for {days} days.',
           deleted: 'Your {name} history was deleted.',
           privacyNamed:
             'What you type and what {name} reads from your servers is sent to AI providers ({providers}). Secrets are masked first.',
@@ -2734,7 +2754,6 @@ const baseTranslations = defineTranslations({
           },
           history: 'Reward history',
           historyEmpty: 'No Discord rewards yet.',
-          balanceAfter: '{balance} after',
           toast: {
             checked: 'Checked with Discord.',
             paid: '{credits} new credits added.',
@@ -2744,7 +2763,6 @@ const baseTranslations = defineTranslations({
         devboxOpen: {
           title: 'VS Code',
           opening: 'Opening the devbox…',
-          missing: 'This devbox no longer exists.',
           button: {
             servers: 'Your Servers',
           },
@@ -3550,7 +3568,7 @@ const baseTranslations = defineTranslations({
                   transfers: 'Moving Servers',
                   transferEnabled: 'Players Move Servers',
                   transferEnabledDescription:
-                    'Owners can move their servers to another location, or to another node of the same one, from the Move Server page.',
+                    'Owners can move their servers to another location, or to another node of the same one, from the Transfer page.',
                   transferCooldownHours: 'Hours Between Moves',
                   transferCooldownHoursDescription:
                     'How long a server waits after a move before its owner can move it again. 0 is no wait.',

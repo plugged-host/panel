@@ -66,6 +66,10 @@ export const neoSchema = z.object({
   providerDisclosure: z.string(),
   maxMessageChars: z.number(),
   maxImages: z.number(),
+  // days a chat is kept after its last message
+  retentionDays: z.number(),
+  // noprofit.space runs neo: the usage windows are noprofit.space's
+  onNoprofit: z.boolean(),
 });
 
 // What the chat does next (agent.rs StepResult): continue and busy step again.

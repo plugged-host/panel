@@ -17,7 +17,7 @@ type Event = z.infer<typeof serverTransferEventSchema>;
 
 export function TransferFlag({ place, size }: { place: Place | null; size?: 'sm' | 'lg' }) {
   return (
-    <span className='theme-transfer-flag' data-size={size}>
+    <span className='theme-flag' data-size={size}>
       {place?.flag && <img src={`/flags/${place.flag}.svg`} alt='' />}
     </span>
   );

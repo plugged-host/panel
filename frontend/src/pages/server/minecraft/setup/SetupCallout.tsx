@@ -31,7 +31,11 @@ export default function SetupCallout() {
     if (!canSetUp) return null;
 
     return (
-      <Notification className='theme-callout mb-6' title={t(`${base}.callout.heading`, {})}>
+      <Notification
+        className='theme-callout mb-6'
+        title={t(`${base}.callout.heading`, {})}
+        data-tour='setup' // the welcome tour's target (docs/features/welcome-tour.md)
+      >
         <Stack gap='sm' align='flex-start'>
           <span>{t(`${base}.callout.body`, {})}</span>
           <NavLink to={`/server/${server.uuidShort}${SETUP_PATH}`}>

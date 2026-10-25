@@ -32,9 +32,11 @@ server next to it; with one, a card with the credits earned on Discord, the link
 whether it is in the server (and what the tier adds), Join or Open the Discord server and Check
 for new rewards; then Invite friends (the rules, then Paid, Waiting with the next payout, Left the
 server, Did not count, Owed back as full-width rows), Boost the server (the two levels, Received
-once paid) and the Reward history. At most one filled button: linking, or joining while not in
-the server. Without credits (or with noprofit.space) the amounts and the history are left out.
-The rows are `.theme-eco-tx` in a `.theme-eco-list` (`app.css`, the Pelican store's rows).
+once paid; with noprofit.space connected, a link to its Discord page in that place) and the
+Reward history. At most one filled button: linking, or joining while not in the server. Without
+credits (or with noprofit.space) the amounts and the history are left out. The rows are
+`.theme-eco-tx` in a `.theme-eco-list` (`app.css`, the Pelican store's rows); the history is the
+store's ledger (`elements/economy/TransactionRows.tsx`, Pelican's ledger partial).
 
 ## Membership and the tier
 

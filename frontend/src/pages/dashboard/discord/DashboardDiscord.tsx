@@ -13,9 +13,10 @@ import getDiscordRewards from '@/api/me/discord/getDiscordRewards.ts';
 import Button from '@/elements/buttons/Button.tsx';
 import AccountContentContainer from '@/elements/containers/AccountContentContainer.tsx';
 import Badge from '@/elements/data-display/Badge.tsx';
+import TransactionRows from '@/elements/economy/TransactionRows.tsx';
 import ResourceView from '@/elements/ResourceView.tsx';
 import { bytesToString, mbToBytes } from '@/lib/format/size.ts';
-import { formatDateTime, formatTimestamp } from '@/lib/format/time.ts';
+import { formatTimestamp } from '@/lib/format/time.ts';
 import { queryKeys } from '@/lib/queryKeys.ts';
 import { discordRewardsSchema } from '@/lib/schemas/user/discord.ts';
 import { useResource } from '@/plugins/resource/useResource.ts';
@@ -26,14 +27,6 @@ import { useGlobalStore } from '@/stores/global.ts';
 type Rewards = z.infer<typeof discordRewardsSchema>;
 
 const page = 'pages.account.discord';
-
-/** The ledger types the history names (elements.economyTransactions.type). */
-const historyTypes = {
-  discord_invite: 'discordInvite',
-  discord_invite_clawback: 'discordInviteClawback',
-  discord_invite_debt: 'discordInviteDebt',
-  discord_boost: 'discordBoost',
-} as const;
 
 // a full-width row: what it is and a line about it on the left, the number on the right
 function Row({ text, hint, children }: { text: string; hint?: ReactNode; children: ReactNode }) {
@@ -187,20 +180,6 @@ function Linked({
         </div>
       </section>
 
-      {rewards.source === 'noprofit' && rewards.noprofitUrl && (
-        <section className='flex flex-col gap-3'>
-          <div className='flex flex-col gap-1'>
-            <h3 className='theme-eco-heading'>{t(`${page}.noprofit.title`, {})}</h3>
-            <p className='theme-eco-muted max-w-2xl'>{t(`${page}.noprofit.text`, {})}</p>
-          </div>
-          <div className='flex flex-wrap gap-3'>
-            <ExternalButton href={rewards.noprofitUrl} filled={false}>
-              {t(`${page}.noprofit.open`, {})}
-            </ExternalButton>
-          </div>
-        </section>
-      )}
-
       <section className='flex flex-col gap-3'>
         <div className='flex flex-col gap-1'>
           <h3 className='theme-eco-heading'>{t(`${page}.invites.title`, {})}</h3>
@@ -276,6 +255,21 @@ function Linked({
         <p className='theme-eco-small max-w-2xl'>{t(`${page}.invites.how`, { app: appName })}</p>
       </section>
 
+      {/* with noprofit.space its Discord page has the boosts (Pelican's "Boost our servers") */}
+      {rewards.source === 'noprofit' && rewards.noprofitUrl && (
+        <section className='flex flex-col gap-3'>
+          <div className='flex flex-col gap-1'>
+            <h3 className='theme-eco-heading'>{t(`${page}.noprofit.title`, {})}</h3>
+            <p className='theme-eco-muted max-w-2xl'>{t(`${page}.noprofit.text`, {})}</p>
+          </div>
+          <div className='flex flex-wrap gap-3'>
+            <ExternalButton href={rewards.noprofitUrl} filled={false}>
+              {t(`${page}.noprofit.open`, {})}
+            </ExternalButton>
+          </div>
+        </section>
+      )}
+
       {boosts && (
         <section className='flex flex-col gap-3'>
           <div className='flex flex-col gap-1'>
@@ -330,33 +324,7 @@ function Linked({
             {rewards.history.length === 0 ? (
               <p className='theme-eco-muted theme-eco-empty'>{t(`${page}.historyEmpty`, {})}</p>
             ) : (
-              rewards.history.map((transaction, index) => {
-                const type: (typeof historyTypes)[keyof typeof historyTypes] | undefined =
-                  historyTypes[transaction.type as keyof typeof historyTypes];
-
-                return (
-                  <Row
-                    key={`${transaction.created?.toISOString() ?? ''}-${index}`}
-                    text={type ? t(`elements.economyTransactions.type.${type}`, {}) : transaction.description}
-                    hint={
-                      <span title={transaction.created ? formatDateTime(transaction.created) : undefined}>
-                        {[
-                          type && transaction.description,
-                          transaction.created && formatTimestamp(transaction.created),
-                          t(`${page}.balanceAfter`, { balance: transaction.balanceAfter.toLocaleString() }),
-                        ]
-                          .filter(Boolean)
-                          .join(' · ')}
-                      </span>
-                    }
-                  >
-                    <Amount tone={transaction.amount > 0 ? 'in' : 'out'}>
-                      {transaction.amount > 0 ? '+' : transaction.amount < 0 ? '−' : ''}
-                      {Math.abs(transaction.amount).toLocaleString()}
-                    </Amount>
-                  </Row>
-                );
-              })
+              <TransactionRows transactions={rewards.history} variant='ledger' />
             )}
           </div>
         </section>

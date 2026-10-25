@@ -1,7 +1,12 @@
-// plugged.host: the welcome tour's overlay: it dims the page, leaves the element a step is about
-// lit, and puts the step's text next to it (docs/features/welcome-tour.md). A step whose element
-// is not on screen (a narrow window hides the sidebar) shows in the middle instead.
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+// plugged.host: the welcome tour's overlay, the Pelican panel's (plugged-host-core's
+// panel-tour-overlay.blade.php; docs/features/welcome-tour.md): a sheet that takes every click, so
+// the page cannot be used mid-tour; a hole around the element a step is about, whose outline is
+// the dim and whose border the accent ring; and the step as a modal window beside it. With nothing
+// to point at (the welcome step, or an element not on screen: a narrow window hides the sidebar)
+// the card is centred and wider; on phones it is a sheet on the side the element is not on.
+import { useFocusTrap, useMergedRef } from '@mantine/hooks';
+import classNames from 'classnames';
+import { useEffect, useLayoutEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import Button from '@/elements/buttons/Button.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
@@ -10,6 +15,8 @@ export interface TourStep {
   key: string;
   /** CSS selectors of the element to light, the first one on screen wins. */
   targets: string[];
+  /** Light everything the winning selector finds together (the sidebar's rows), not only the first. */
+  together?: boolean;
   heading: string;
   body: string;
   bullets?: string[];
@@ -20,216 +27,319 @@ interface Props {
   /** 1-based. */
   step: number;
   onStep: (step: number) => void;
+  /** Step 1's button instead of Next, the acknowledgement ("Show me around"); step 1 then has no way out. */
+  acknowledgeLabel?: string;
   /** The last step's button. */
   finishLabel: string;
   onFinish: () => void;
-  /** The way out before the end ("Skip tour", "Not now"). */
-  closeLabel: string;
-  onClose: () => void;
+  /** The way out before the last step ("Skip tour"), and Escape. */
+  skipLabel: string;
+  onSkip: () => void;
+  /** The way out beside the last step's button ("Not now"); without it the last step has only its button. */
+  laterLabel?: string;
+  onLater?: () => void;
 }
 
-interface Rect {
-  top: number;
-  left: number;
-  width: number;
-  height: number;
+interface Hole {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
 }
 
-const PAD = 8;
+type Mode = 'center' | 'anchored' | 'sheet-top' | 'sheet-bottom';
+
+// between the card and the element, and between the card and the window's edge
 const GAP = 16;
-const CARD_WIDTH = 360;
+const MARGIN = 16;
 
-function findTarget(selectors: string[]): HTMLElement | null {
+/** The elements of the first selector that has one on screen (only the first unless `together`). */
+function findTargets(selectors: string[], together: boolean, root: HTMLElement | null): HTMLElement[] {
   for (const selector of selectors) {
-    for (const element of document.querySelectorAll<HTMLElement>(selector)) {
-      const rect = element.getBoundingClientRect();
-      if (rect.width > 0 && rect.height > 0) {
-        return element;
-      }
+    let nodes: HTMLElement[];
+    try {
+      nodes = Array.from(document.querySelectorAll<HTMLElement>(selector));
+    } catch {
+      continue;
+    }
+
+    const shown = nodes.filter((node) => {
+      if (root?.contains(node)) return false;
+      const rect = node.getBoundingClientRect();
+
+      return rect.width > 0 && rect.height > 0 && rect.right > 0 && rect.left < window.innerWidth;
+    });
+    if (shown.length > 0) {
+      return together ? shown : shown.slice(0, 1);
     }
   }
 
-  return null;
+  return [];
 }
 
-function measure(element: HTMLElement | null): Rect | null {
-  if (!element) return null;
+/** The lit box around the elements, 8px around them and inside the window; null when none shows. */
+function holeAround(nodes: HTMLElement[]): Hole | null {
+  if (nodes.length === 0) return null;
 
-  const rect = element.getBoundingClientRect();
-  if (rect.width === 0 || rect.height === 0) return null;
-
-  // the lit area stays inside the window, so a tall element still leaves room for the card
-  const top = Math.max(rect.top - PAD, PAD);
-  const left = Math.max(rect.left - PAD, PAD);
-  const bottom = Math.min(rect.bottom + PAD, window.innerHeight - PAD);
-  const right = Math.min(rect.right + PAD, window.innerWidth - PAD);
-
-  return { top, left, width: Math.max(right - left, 0), height: Math.max(bottom - top, 0) };
-}
-
-function sameRect(a: Rect | null, b: Rect | null): boolean {
-  if (!a || !b) return a === b;
-
-  return a.top === b.top && a.left === b.left && a.width === b.width && a.height === b.height;
-}
-
-/** Where the card goes: beside a narrow element on the left (the sidebar), else under or over it. */
-function placeCard(hole: Rect | null, cardHeight: number): { top: number; left: number } | null {
-  const width = Math.min(CARD_WIDTH, window.innerWidth - 2 * GAP);
-  if (!hole || window.innerWidth < 768) return null;
-
-  const clampTop = (top: number) => Math.min(Math.max(top, GAP), window.innerHeight - cardHeight - GAP);
-  const clampLeft = (left: number) => Math.min(Math.max(left, GAP), window.innerWidth - width - GAP);
-
-  if (hole.left + hole.width < window.innerWidth * 0.4 && hole.left + hole.width + GAP + width < window.innerWidth) {
-    return { top: clampTop(hole.top), left: hole.left + hole.width + GAP };
-  }
-  if (hole.top + hole.height + GAP + cardHeight < window.innerHeight) {
-    return { top: hole.top + hole.height + GAP, left: clampLeft(hole.left) };
-  }
-  if (hole.top - GAP - cardHeight > 0) {
-    return { top: hole.top - GAP - cardHeight, left: clampLeft(hole.left) };
+  let top = Infinity;
+  let left = Infinity;
+  let right = -Infinity;
+  let bottom = -Infinity;
+  for (const node of nodes) {
+    const rect = node.getBoundingClientRect();
+    top = Math.min(top, rect.top);
+    left = Math.min(left, rect.left);
+    right = Math.max(right, rect.right);
+    bottom = Math.max(bottom, rect.bottom);
   }
 
-  return { top: clampTop(hole.top), left: clampLeft(hole.left + hole.width - width) };
+  const x = Math.max(4, left - 8);
+  const y = Math.max(4, top - 8);
+  const w = Math.min(window.innerWidth - 4, right + 8) - x;
+  const h = Math.min(window.innerHeight - 4, bottom + 8) - y;
+
+  return w > 8 && h > 8 ? { x, y, w, h } : null;
 }
 
-export default function WelcomeTour({ steps, step, onStep, finishLabel, onFinish, closeLabel, onClose }: Props) {
+export default function WelcomeTour({
+  steps,
+  step,
+  onStep,
+  acknowledgeLabel,
+  finishLabel,
+  onFinish,
+  skipLabel,
+  onSkip,
+  laterLabel,
+  onLater,
+}: Props) {
   const { t } = useTranslations();
   const index = Math.min(Math.max(step, 1), steps.length) - 1;
   const current = steps[index];
   const last = index === steps.length - 1;
+  const acknowledging = !!acknowledgeLabel && index === 0;
 
-  const [hole, setHole] = useState<Rect | null>(null);
-  const [cardHeight, setCardHeight] = useState(240);
-  const cardRef = useRef<HTMLDivElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const holeRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLElement>(null);
+  const trapRef = useFocusTrap(true);
+  const cardRefs = useMergedRef(cardRef, trapRef);
+  // the layout the card was put in last: a new layout jumps there instead of gliding
+  const placedMode = useRef<Mode | null>(null);
 
   // the steps are rebuilt on every render of the caller: the element is followed by its selectors
   const targetsKey = current ? current.targets.join('\n') : '';
+  const together = !!current?.together;
 
-  // follow the element: it may render late (a list still loading), move on scroll or resize
+  // Light the step's element and put the card next to it, then follow it: it may render late (a
+  // list still loading) and moves on scroll and resize. Positions are written to the hole's and the
+  // card's style directly, so React never puts them back.
   useLayoutEffect(() => {
     const targets = targetsKey ? targetsKey.split('\n') : [];
 
-    findTarget(targets)?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    const place = (card: HTMLElement, hole: Hole | null, mode: Mode) => {
+      const jump = placedMode.current !== mode;
+      if (jump) card.classList.add('theme-tour-jump');
+
+      // beside the element: right, below, left, above, the first side the card fits on whole,
+      // else inside the element's top end corner (a console's output starts top left)
+      if (mode === 'anchored' && hole) {
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        const w = card.offsetWidth;
+        const h = card.offsetHeight;
+        const sides: [number, number, boolean][] = [
+          [hole.x + hole.w + GAP, hole.y, hole.x + hole.w + GAP + w <= width - MARGIN],
+          [hole.x, hole.y + hole.h + GAP, hole.y + hole.h + GAP + h <= height - MARGIN],
+          [hole.x - GAP - w, hole.y, hole.x - GAP - w >= MARGIN],
+          [hole.x, hole.y - GAP - h, hole.y - GAP - h >= MARGIN],
+        ];
+        const side = sides.find((candidate) => candidate[2]);
+        const x = side ? side[0] : hole.x + hole.w - w - GAP;
+        const y = side ? side[1] : hole.y + GAP;
+
+        card.style.setProperty(
+          '--theme-tour-card-x',
+          `${Math.round(Math.min(Math.max(x, MARGIN), width - MARGIN - w))}px`,
+        );
+        card.style.setProperty(
+          '--theme-tour-card-y',
+          `${Math.round(Math.min(Math.max(y, MARGIN), height - MARGIN - h))}px`,
+        );
+      }
+
+      if (jump) {
+        // flush the jump before the class comes off, or the move animates anyway
+        void card.offsetWidth;
+        card.classList.remove('theme-tour-jump');
+      }
+      placedMode.current = mode;
+      card.classList.add('theme-tour-ready');
+    };
+
+    const measure = () => {
+      const holeElement = holeRef.current;
+      const card = cardRef.current;
+      if (!holeElement || !card) return;
+
+      const hole = holeAround(findTargets(targets, together, rootRef.current));
+      const height = window.innerHeight;
+      let mode: Mode = hole ? 'anchored' : 'center';
+
+      // phones: a sheet on whichever side of the element has more room, no taller than that room
+      // unless it is tiny (covering some of the element beats a card too short to read)
+      if (hole && window.innerWidth < 640) {
+        const above = hole.y - 32;
+        const below = height - hole.y - hole.h - 32;
+        mode = below >= above ? 'sheet-bottom' : 'sheet-top';
+        card.style.setProperty('--theme-tour-card-max', `${Math.round(Math.max(above, below, height * 0.45))}px`);
+      } else {
+        card.style.removeProperty('--theme-tour-card-max');
+      }
+
+      for (const [name, value] of [
+        ['x', hole?.x],
+        ['y', hole?.y],
+        ['w', hole?.w],
+        ['h', hole?.h],
+      ] as const) {
+        if (value === undefined) {
+          holeElement.style.removeProperty(`--theme-tour-hole-${name}`);
+        } else {
+          holeElement.style.setProperty(`--theme-tour-hole-${name}`, `${Math.round(value)}px`);
+        }
+      }
+      holeElement.classList.toggle('theme-tour-hole-closed', !hole);
+      card.dataset.mode = mode;
+
+      place(card, hole, mode);
+    };
+
+    // a new step: its element into view first (smoothly unless motion is reduced)
+    const first = findTargets(targets, together, rootRef.current)[0];
+    if (first) {
+      const rect = first.getBoundingClientRect();
+      if (rect.top < 0 || rect.bottom > window.innerHeight) {
+        first.scrollIntoView({
+          block: rect.height > window.innerHeight * 0.6 ? 'start' : 'center',
+          behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+        });
+      }
+    }
+    measure();
+    cardRef.current?.querySelector<HTMLElement>('[data-autofocus]')?.focus({ preventScroll: true });
 
     let frame = 0;
-    const update = () => {
-      cancelAnimationFrame(frame);
+    const queue = () => {
+      if (frame) return;
       frame = requestAnimationFrame(() => {
-        const next = measure(findTarget(targets));
-        setHole((previous) => (sameRect(previous, next) ? previous : next));
+        frame = 0;
+        measure();
       });
     };
 
-    update();
-    window.addEventListener('resize', update);
-    window.addEventListener('scroll', update, true);
-    const interval = setInterval(update, 500);
+    window.addEventListener('resize', queue);
+    window.addEventListener('scroll', queue, true);
+    // late lists, the balance poll and fonts all move things after the step showed
+    const interval = setInterval(measure, 500);
 
     return () => {
       cancelAnimationFrame(frame);
-      window.removeEventListener('resize', update);
-      window.removeEventListener('scroll', update, true);
+      window.removeEventListener('resize', queue);
+      window.removeEventListener('scroll', queue, true);
       clearInterval(interval);
     };
-  }, [targetsKey]);
+  }, [targetsKey, together, index]);
 
-  useLayoutEffect(() => {
-    const height = cardRef.current?.offsetHeight;
-    if (height && height !== cardHeight) setCardHeight(height);
-  });
-
-  // the step's first button takes the focus, so Enter goes on
-  useEffect(() => {
-    cardRef.current?.querySelector<HTMLButtonElement>('.theme-tour-actions button')?.focus();
-  }, [index]);
-
+  // Escape is the way out, except on the acknowledgement
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
+      if (event.key === 'Escape' && !acknowledging) onSkip();
     };
     window.addEventListener('keydown', onKey);
 
     return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
+  }, [acknowledging, onSkip]);
 
   if (!current) return null;
 
-  const position = placeCard(hole, cardHeight);
-  const scrims: Rect[] = hole
-    ? [
-        { top: 0, left: 0, width: window.innerWidth, height: hole.top },
-        { top: hole.top + hole.height, left: 0, width: window.innerWidth, height: window.innerHeight },
-        { top: hole.top, left: 0, width: hole.left, height: hole.height },
-        { top: hole.top, left: hole.left + hole.width, width: window.innerWidth, height: hole.height },
-      ]
-    : [{ top: 0, left: 0, width: window.innerWidth, height: window.innerHeight }];
-
-  const setBox = (element: HTMLElement | null, rect: Rect) => {
-    if (!element) return;
-    element.style.setProperty('top', `${rect.top}px`);
-    element.style.setProperty('left', `${rect.left}px`);
-    element.style.setProperty('width', `${rect.width}px`);
-    element.style.setProperty('height', `${rect.height}px`);
-  };
+  const primaryLabel = last ? finishLabel : acknowledging ? acknowledgeLabel : t('elements.welcomeTour.next', {});
 
   return createPortal(
-    <div className='theme-tour'>
-      {scrims.map((rect, i) => (
-        <div key={i} className='theme-tour-scrim' ref={(element) => setBox(element, rect)} />
-      ))}
-      {hole && <div className='theme-tour-ring' ref={(element) => setBox(element, hole)} />}
+    <div ref={rootRef} className='theme-tour'>
+      <div className='theme-tour-blocker' aria-hidden />
+      <div ref={holeRef} className='theme-tour-hole theme-tour-hole-closed' aria-hidden />
 
-      <div
-        ref={(element) => {
-          cardRef.current = element;
-          if (!element) return;
-          if (position) {
-            element.style.setProperty('top', `${position.top}px`);
-            element.style.setProperty('left', `${position.left}px`);
-          } else {
-            element.style.removeProperty('top');
-            element.style.removeProperty('left');
-          }
-        }}
+      <section
+        ref={cardRefs}
         className='theme-tour-card'
-        data-placed={position ? true : undefined}
+        data-mode='center'
         role='dialog'
         aria-modal='true'
         aria-labelledby='theme-tour-heading'
+        aria-describedby='theme-tour-body'
       >
-        <p className='theme-tour-progress'>
-          {t('elements.welcomeTour.progress', { step: index + 1, total: steps.length })}
-        </p>
-        <h2 id='theme-tour-heading' className='theme-tour-heading'>
-          {current.heading}
-        </h2>
-        <p className='theme-tour-body'>{current.body}</p>
-        {current.bullets && current.bullets.length > 0 && (
-          <ul className='theme-tour-bullets'>
-            {current.bullets.map((bullet) => (
-              <li key={bullet}>{bullet}</li>
+        {/* a dot per step, the current one widened into a bar */}
+        <div className='theme-tour-progress'>
+          <div className='theme-tour-dots' aria-hidden>
+            {steps.map((entry, position) => (
+              <span
+                key={entry.key}
+                className={classNames(
+                  'theme-tour-dot',
+                  position < index && 'theme-tour-dot-done',
+                  position === index && 'theme-tour-dot-current',
+                )}
+              />
             ))}
-          </ul>
-        )}
+          </div>
+          <span>{t('elements.welcomeTour.progress', { step: index + 1, total: steps.length })}</span>
+        </div>
 
-        <div className='theme-tour-actions'>
-          <Button onClick={() => (last ? onFinish() : onStep(index + 2))}>
-            {last ? finishLabel : t('elements.welcomeTour.next', {})}
-          </Button>
-          {index > 0 && (
-            <Button variant='default' onClick={() => onStep(index)}>
-              {t('elements.welcomeTour.back', {})}
-            </Button>
-          )}
-          {!last && (
-            <Button variant='subtle' color='gray' className='theme-tour-close' onClick={onClose}>
-              {closeLabel}
-            </Button>
+        <div key={current.key} className='theme-tour-step'>
+          <h2 id='theme-tour-heading' className='theme-tour-heading'>
+            {current.heading}
+          </h2>
+          <p id='theme-tour-body' className='theme-tour-body'>
+            {current.body}
+          </p>
+          {current.bullets && current.bullets.length > 0 && (
+            <ul className='theme-tour-bullets'>
+              {current.bullets.map((bullet) => (
+                <li key={bullet}>{bullet}</li>
+              ))}
+            </ul>
           )}
         </div>
-      </div>
+
+        {/* wizard order: Back and the way out at the start, the one primary action at the end */}
+        <div className='theme-tour-actions'>
+          <div className='theme-tour-actions-start'>
+            {index > 0 && (
+              <Button variant='default' onClick={() => onStep(index)}>
+                {t('elements.welcomeTour.back', {})}
+              </Button>
+            )}
+            {last
+              ? laterLabel &&
+                onLater && (
+                  <button type='button' className='theme-link-action' onClick={onLater}>
+                    {laterLabel}
+                  </button>
+                )
+              : !acknowledging && (
+                  <button type='button' className='theme-link-action' onClick={onSkip}>
+                    {skipLabel}
+                  </button>
+                )}
+          </div>
+          <div className='theme-tour-actions-end'>
+            <Button data-autofocus onClick={() => (last ? onFinish() : onStep(index + 2))}>
+              {primaryLabel}
+            </Button>
+          </div>
+        </div>
+      </section>
     </div>,
     document.body,
   );

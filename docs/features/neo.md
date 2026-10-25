@@ -223,7 +223,8 @@ Admin › Settings › AI › neo is one page in Pelican's order (`frontend/src/
   `session`) are shown as `••••`. Sent back as `••••`, the stored value stays; `••••` for a header
   that has no stored value is refused. The database keeps the real values.
 - Header names are letters, digits and dashes (64 at most), values one line of plain text (1024
-  at most), 2048 bytes in all; the key, content type and host headers are refused. Extra
+  at most), 2048 bytes in all; the key, content type and host headers are refused. An
+  Anthropic slot's `anthropic-version` header (any case) replaces the default `2023-06-01`. Extra
   request fields may not set the fields the panel sets (`model`, `messages`, `tools`, `stream`,
   `max_tokens`, `contents`, `systemInstruction`…), and stay within 4096 bytes and 4 levels.
   Google AI Studio only takes `generationConfig`, `safetySettings` and `cachedContent`.
@@ -285,8 +286,9 @@ top-left corner (double-click resets); its size and whether it is open are remem
   touch screens the button sends). The send button turns into Stop while neo works. A message the
   backend did not take (blocked, too fast, a turn already running) goes back into the field.
 - **Views.** History (open an earlier chat, delete one with a second tap, start a new one) and
-  settings (the two switches, the usage windows, deleting all of the person's chats, what is sent
-  where, the support link and the legal and privacy contacts) open from the head. Until the person
+  settings (the two switches, the usage windows, how long chats are kept and deleting all of the
+  person's chats, what is sent where, the support link and the legal and privacy contacts) open
+  from the head. Until the person
   agrees, the chat shows the introduction ("Before you start") instead of the conversation; with
   neo turned off, a short note and "Turn neo on".
 - **"Ask neo" from a page.** `window.dispatchEvent(new CustomEvent('neo:ask', { detail: { log } }))`
@@ -303,7 +305,7 @@ The chat routes are the same for the account (`/api/client/account/neo`) and a s
 
 | Route | Does |
 |---|---|
-| `GET /` | The open chat, the person's switches, why they cannot chat (if so), contacts and limits |
+| `GET /` | The open chat, the person's switches, why they cannot chat (if so), contacts, limits, how many days chats are kept and whether noprofit.space runs neo (`on_noprofit`: its usage windows are noprofit.space's) |
 | `POST /messages` | Sends a message (`text`, `images` as data URLs, an optional `seed`: a read tool the turn starts with, used by the Minecraft log check's "Ask neo" with `read_mclogs`) |
 | `POST /step` | One step, as NDJSON: `text` / `thinking` / `reset` lines while the model writes, `ping` every 15 s, then `result` with the step result and the chat |
 | `POST /approve`, `/deny`, `/cancel`, `/retry` | Decide on waiting calls, stop, try again |

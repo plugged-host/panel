@@ -3,12 +3,21 @@ import { useQuery } from '@tanstack/react-query';
 import classNames from 'classnames';
 import { ReactNode } from 'react';
 import { Link } from 'react-router';
+import { z } from 'zod';
 import getBalance from '@/api/me/economy/getBalance.ts';
 import { useCloseMobileMenu } from '@/elements/navigation/Sidebar.tsx';
 import { bytesToString, mbToBytes } from '@/lib/format/size.ts';
 import { queryKeys } from '@/lib/queryKeys.ts';
+import { userBalanceSchema } from '@/lib/schemas/user/economy.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useGlobalStore } from '@/stores/global.ts';
+
+/** Whether the card shows anything: a usage row (a limit above 0) or a balance (the welcome tour asks too). */
+export function balanceCardShown(balance: z.infer<typeof userBalanceSchema>): boolean {
+  const { limit } = balance.allowance;
+
+  return limit.cpu > 0 || limit.memory > 0 || limit.disk > 0 || balance.tokens !== null || balance.credits !== null;
+}
 
 interface UsageRow {
   key: 'cpu' | 'memory' | 'disk';
@@ -63,8 +72,28 @@ function Part({
   );
 }
 
+// The plural item ("{count} tokens", in the language's word order and plural form) with its number
+// in the value style and the words around it in the label style.
+function BalanceAmount({ text, value }: { text: string; value: string }) {
+  const at = text.indexOf(value);
+  if (at < 0) {
+    return <span className='theme-balance-label'>{text}</span>;
+  }
+
+  const before = text.slice(0, at).trim();
+  const after = text.slice(at + value.length).trim();
+
+  return (
+    <>
+      {before && <span className='theme-balance-label'>{before}</span>}
+      <span className='theme-balance-value'>{value}</span>
+      {after && <span className='theme-balance-label'>{after}</span>}
+    </>
+  );
+}
+
 export default function SidebarBalance() {
-  const { t, language } = useTranslations();
+  const { t, tItem, language } = useTranslations();
   const economy = useGlobalStore((state) => state.settings.economy);
 
   const { data: balance } = useQuery({
@@ -73,7 +102,7 @@ export default function SidebarBalance() {
     refetchInterval: 60_000,
   });
 
-  if (!balance) {
+  if (!balance || !balanceCardShown(balance)) {
     return null;
   }
 
@@ -86,13 +115,9 @@ export default function SidebarBalance() {
 
   const storeUrl = economy?.creditsEnabled ? '/account/store' : null;
   const pills = [
-    { key: 'tokens' as const, value: balance.tokens, to: economy?.tokensEnabled ? '/account/tokens' : null },
-    { key: 'credits' as const, value: balance.credits, to: storeUrl },
+    { key: 'token' as const, value: balance.tokens, to: economy?.tokensEnabled ? '/account/tokens' : null },
+    { key: 'credit' as const, value: balance.credits, to: storeUrl },
   ].filter((pill) => pill.value !== null);
-
-  if (rows.length === 0 && pills.length === 0) {
-    return null;
-  }
 
   const number = new Intl.NumberFormat(language);
 
@@ -129,13 +154,12 @@ export default function SidebarBalance() {
               key={pill.key}
               to={pill.to}
               title={t(
-                pill.key === 'tokens' ? 'elements.sidebar.balance.openTokens' : 'elements.sidebar.balance.openStore',
+                pill.key === 'token' ? 'elements.sidebar.balance.openTokens' : 'elements.sidebar.balance.openStore',
                 {},
               )}
               className='theme-balance-item'
             >
-              <span className='theme-balance-value'>{number.format(pill.value ?? 0)}</span>
-              <span className='theme-balance-label'>{t(`elements.sidebar.balance.${pill.key}`, {})}</span>
+              <BalanceAmount text={tItem(pill.key, pill.value ?? 0)} value={number.format(pill.value ?? 0)} />
             </Part>
           ))}
         </div>
