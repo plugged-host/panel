@@ -164,11 +164,34 @@ async fn held_allocation(
     Ok(by_port)
 }
 
-/// Takes the lowest free port of the server's node (on its primary IP when it has one) for
-/// Bedrock, skipping ports something on the node already listens on.
+/// Takes a port for Bedrock the way a player adds one: the next free one above the primary inside
+/// the deployment port ranges, made when missing (docs/features/allocations.md). When the ranges
+/// are full, the lowest free port of the server's node (on its primary IP when it has one),
+/// skipping ports something on the node already listens on.
 async fn claim_allocation(state: &crate::State, server: &Server) -> Result<i32, BedrockError> {
     use crate::prelude::SqlxErrorExt;
     use sqlx::Row;
+
+    match crate::allocations::add_port(state, server, Some(NOTE)).await {
+        Ok(server_allocation) => {
+            let port: i32 = sqlx::query_scalar(
+                "SELECT node_allocations.port FROM server_allocations
+                JOIN node_allocations ON node_allocations.uuid = server_allocations.allocation_uuid
+                WHERE server_allocations.uuid = $1",
+            )
+            .bind(server_allocation)
+            .fetch_one(state.database.write())
+            .await
+            .map_err(anyhow::Error::from)?;
+
+            return Ok(port);
+        }
+        Err(crate::allocations::PortError::NoPort) => {}
+        Err(crate::allocations::PortError::Unreachable(err)) => {
+            return Err(BedrockError::Wings(err));
+        }
+        Err(crate::allocations::PortError::Other(err)) => return Err(BedrockError::Other(err)),
+    }
 
     let node = server.node.fetch_cached(&state.database).await?;
     let ip = server

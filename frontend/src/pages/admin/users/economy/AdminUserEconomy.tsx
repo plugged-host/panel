@@ -76,7 +76,7 @@ function ChangeForm({ user, economy }: { user: z.infer<typeof adminFullUserSchem
           onSubmit={(e) => {
             e.preventDefault();
             send({
-              credits: economy.source === 'panel' ? amount(credits) : undefined,
+              credits: economy.creditsChangeable ? amount(credits) : undefined,
               tokens: amount(tokens),
               reason: reason.trim() || undefined,
             });
@@ -84,7 +84,7 @@ function ChangeForm({ user, economy }: { user: z.infer<typeof adminFullUserSchem
         >
           <Stack gap='sm'>
             <Group grow align='flex-start'>
-              {economy.source === 'panel' && (
+              {economy.creditsChangeable && (
                 <NumberInput
                   label={t(`${page}.addCredits`, {})}
                   description={t(`${page}.addDescription`, {})}
@@ -169,7 +169,7 @@ export default function AdminUserEconomy({ user }: { user: z.infer<typeof adminF
               </Text>
               {economy.source === 'noprofit' && (
                 <Text size='sm' c='dimmed'>
-                  {t(`${page}.noprofit`, {})}
+                  {economy.creditsChangeable ? t(`${page}.noprofitSent`, {}) : t(`${page}.noprofit`, {})}
                 </Text>
               )}
               <Text size='sm' c='dimmed'>

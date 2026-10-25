@@ -15,7 +15,7 @@ const MAX_UPLOAD_DIMENSION: u32 = 4096;
 
 /// Where an icon of `server_uuid` is stored. Under `avatars/` (a server's icon is its avatar in
 /// Filament's words), which the panel serves as immutable, so every upload gets a new name.
-fn stored_path(server_uuid: uuid::Uuid, name: &str) -> String {
+pub fn stored_path(server_uuid: uuid::Uuid, name: &str) -> String {
     format!("avatars/servers/{server_uuid}/{name}.webp")
 }
 

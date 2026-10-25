@@ -124,7 +124,7 @@ mod post {
 
         let port = server.allocation.as_ref().map(|a| a.allocation.port);
         ApiResponse::new_serialized(Response {
-            subdomain: subdomain.into_api(Service::of_features(&server.egg.features), port),
+            subdomain: subdomain.into_api(Service::of_egg(&server.egg), port),
         })
         .ok()
     }

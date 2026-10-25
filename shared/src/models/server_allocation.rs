@@ -18,6 +18,11 @@ pub struct ServerAllocation {
     pub created: chrono::NaiveDateTime,
 
     extension_data: super::ModelExtensionData,
+
+    /// plugged.host: only an admin may remove it (docs/features/allocations.md); last and
+    /// defaulted so cached copies from before it still read
+    #[serde(default)]
+    pub locked: bool,
 }
 
 impl BaseModel for ServerAllocation {
@@ -48,6 +53,10 @@ impl BaseModel for ServerAllocation {
                 compact_str::format_compact!("{prefix}notes"),
             ),
             (
+                "server_allocations.locked", // plugged.host
+                compact_str::format_compact!("{prefix}locked"),
+            ),
+            (
                 "server_allocations.created",
                 compact_str::format_compact!("{prefix}created"),
             ),
@@ -70,6 +79,10 @@ impl BaseModel for ServerAllocation {
             notes: row.try_get(compact_str::format_compact!("{prefix}notes").as_str())?,
             created: row.try_get(compact_str::format_compact!("{prefix}created").as_str())?,
             extension_data: Self::map_extensions(prefix, row)?,
+            // plugged.host: false for a query that does not select it
+            locked: row
+                .try_get(compact_str::format_compact!("{prefix}locked").as_str())
+                .unwrap_or(false),
         })
     }
 }
@@ -344,6 +357,8 @@ impl IntoApiObject for ServerAllocation {
                 port: self.allocation.port,
                 notes: self.notes,
                 is_primary: primary.is_some_and(|p| p == self.uuid),
+                locked: self.locked, // plugged.host
+                resolved_ip: None,   // plugged.host: the Network page's list fills it
                 created: self.created.and_utc(),
             },
             api_object,
@@ -364,6 +379,10 @@ pub struct UpdateServerAllocationOptions {
         with = "::serde_with::rust::double_option"
     )]
     pub notes: Option<Option<compact_str::CompactString>>,
+    /// plugged.host: admins only (docs/features/allocations.md)
+    #[garde(skip)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub locked: Option<bool>,
 }
 
 #[async_trait::async_trait]
@@ -392,12 +411,16 @@ impl UpdatableModel for ServerAllocation {
 
         query_builder
             .set("notes", options.notes.as_ref().map(|n| n.as_ref()))
+            .set("locked", options.locked) // plugged.host
             .where_eq("uuid", self.uuid);
 
         query_builder.execute(&mut **transaction).await?;
 
         if let Some(notes) = options.notes {
             self.notes = notes;
+        }
+        if let Some(locked) = options.locked {
+            self.locked = locked; // plugged.host
         }
 
         self.run_after_update_handlers(state, transaction).await?;
@@ -457,6 +480,12 @@ pub struct ApiServerAllocation {
 
     pub notes: Option<compact_str::CompactString>,
     pub is_primary: bool,
+    /// plugged.host: only an admin may remove it
+    pub locked: bool,
+    /// plugged.host: the IP address players reach it on, shown next to its host name; only the
+    /// server's allocation list fills it, and only when it differs from what is shown
+    /// (network_address.rs)
+    pub resolved_ip: Option<compact_str::CompactString>,
 
     pub created: chrono::DateTime<chrono::Utc>,
 }

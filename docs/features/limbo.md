@@ -79,8 +79,9 @@ Restore server:
    transaction that claims the server (`restoring`), so a restore cannot be paid twice.
 2. Goes back to the server's own node, with its old address, when that node answers and has room.
    Otherwise the page asks for a location (one the owner may create in, with room): the server is
-   moved there like an admin move (`Server::rehome`: new allocations, its backups along), and gets
-   a new address.
+   moved there like an admin move (`Server::rehome`: new allocations, made inside the deployment
+   port ranges when missing, with port variables and locks following them,
+   [allocations.md](allocations.md); its backups along), and gets a new address.
 3. Wings creates the server without installing it (`restoring`), then the final backup is restored
    into it (`unpacking`). When the restore is done the server is an ordinary server again: its idle
    clock restarts, the backup is unlocked, `server:limbo.restored`.
@@ -94,6 +95,65 @@ Server activity: `server:limbo.stop`, `server:limbo.parking`, `server:limbo.park
 Token history: "Server restored" (`limbo`), "Restore refunded" (`limbo_refund`).
 
 The server list shows Being Parked, Parked and Being Restored instead of the usage meters.
+
+## Deleted after a while
+
+With **Delete After (Days)** above 0, a server `parked` for that many days (from
+`server_limbo.parked`) is deleted with its files by `limbo::purge_due`, which the `settle_limbo`
+task runs every minute (20 per run, also with limbo off). Its backups, the final one included, go to
+the deleted servers' hold like any deleted server's ([backups page](backups-page.md)), so the owner
+can still download the newest until the hold ends. The limbo page says when the server will be
+deleted, and a restore is refused (409) once that time has passed. A restore under way
+(`restoring`, `unpacking`) stops the clock. A server whose node cannot delete it is tried again the
+next minute. The Pelican panel's `LIMBO_DELETE_AFTER_HOURS` is the same setting; the importer does
+not carry settings, so set it again after an import.
+
+## Parked on a node
+
+The Pelican panel parked a server differently: Wings moved it whole to a node it kept for parked
+servers (tagged `limbo`), and suspended it. An import ([import.md](import.md)) keeps those servers
+where they are, so nothing is copied at the switch:
+
+- The nodes it parks on become `limbo` nodes (the node role, [node-telemetry.md](node-telemetry.md)):
+  the ones with its tag (`LIMBO_NODE_TAG`, `limbo` when unset), the ones its rows record
+  (`limbo_node_id`) for servers parked or on their way, and any node a parked server sits on away
+  from the node it came from. A location with only limbo nodes is made admins' only.
+- A server it had parked there (`limbo`, `hibernating` or `restoring`, on such a node and not its
+  own) is `parked` since it was parked, its limbo suspension lifted (the limbo page shows only for a
+  server that is not suspended), no final backup. `server_limbo.home_node_uuid` is the node it came
+  from (when that node was imported and is not a limbo node) and `home_ports` its ports there,
+  primary first.
+- A server it had stopped for being idle is `stopped` since then. A server limbo left on its own
+  node (a park or a restore that had landed back) is an ordinary server, limbo's suspension lifted.
+- A restore that had not landed stays parked; the tokens paid for it are not refunded (the report
+  counts them). A move to the limbo node that had not landed leaves the server on its own node.
+
+Restoring such a server (`limbo::way` is `Move`: its node's role is `limbo` and it has no final
+backup) is a move off that node instead of an unpack:
+
+1. The limbo node has to answer (it sends the files), else 409 "the node that keeps the server's
+   files does not answer right now". The cost is the same; the tokens are spent with the claim.
+2. Home is the home node's location, that node first; it is offered when that location has an
+   eligible game node that answers. Otherwise the owner picks a location, as above.
+3. The claim queues a transfer request with origin `limbo` (`server_transfers::limbo_request`),
+   which runs like any move ([transfers.md](transfers.md)): game nodes only, next node on failure.
+   On the home node the server gets its old ports back when they are all free on one address and
+   it has as many allocations as it had there (`limbo::home_allocations`, the egg variables that
+   held a port follow); otherwise its ports are picked as for any move. Only an admin cancels it.
+4. Once the move is done the server is an ordinary server again, not started (like the Pelican
+   panel's restore): its idle clock restarts, `server:limbo.restored` (`node`). The move does not
+   count toward the owner's move cooldown.
+5. A move that fails, is cancelled or does not start within 15 minutes parks the server again on
+   the limbo node with the tokens back. **A restore never deletes anything on a limbo node**: the
+   failed move leaves the files where they were (only deleting the server, by hand or after
+   `delete_after_days` counted from `parked`, removes them).
+
+An admin who moves a parked server off a limbo node (Admin › Servers › Transfer) restores it too.
+`settle_limbo` never parks onto a limbo node, and never picks a server on one: new parks make a
+final backup as above. Abuse scans and Lighten Load leave servers in limbo (other than `stopped`)
+alone. System backup policies leave out servers in limbo too, except the ones parked on a limbo
+node (they are on Wings there, as the Pelican panel's mirror kept them): a policy covering the
+limbo node, its location or the server backs them up.
 
 ## Routes
 
@@ -113,6 +173,7 @@ Admin › Settings › Hosting › Limbo (`shared/src/settings/limbo.rs`):
 | Park After (Hours) | 72 | 1 to 8760 |
 | Servers per Minute | 3 | 1 to 100 |
 | Spare Members | on | |
+| Delete After (Days) | 0 (never) | 0 to 3650 |
 | Early Restore (Tokens) | 5 | 0 to 100000 |
 | Late Restore (Tokens) | 10 | 0 to 100000 |
 | Early Window (Hours) | 72 | 0 to 8760 |
@@ -123,15 +184,20 @@ Admin › Settings › Hosting › Limbo (`shared/src/settings/limbo.rs`):
   `restoring`, `unpacking`, or `NULL`).
 - `server_limbo`: one row per server that was ever in limbo: `since` (the current state's start),
   `backup_uuid` (the final backup), `parked` (set once Wings deleted the server), `paid` and
-  `payer_uuid` (the restore under way), `error` and `failed` (the last failure), `updated`.
+  `payer_uuid` (the restore under way), `error` and `failed` (the last failure), `updated`;
+  `home_node_uuid` and `home_ports` for a server parked on a limbo node (above).
 
 ## Known limits
 
 - A parked server still counts against its owner's allowance (it keeps its resources).
 - Changing the CPU of an account (burst cores, an allowance cut) asks Wings about every server of
   it, and fails for parked ones; the change applies when they are restored.
-- There is no separate limbo node: a parked server keeps its node, so deleting that node needs the
-  parked servers moved or deleted first, like any other server.
+- Servers parked by this panel keep their node (they are not on any limbo node), so deleting that
+  node needs the parked servers moved or deleted first, like any other server. Only an import parks
+  servers on a limbo node; this panel never adds to one.
+- The limbo node needs the Wings fork like any node (it sends the files on a restore).
+- An import starts every server's idle clock (`last_activity`) at the import, so a server the
+  Pelican panel had stopped is parked `park_minutes` after the import at the earliest.
 
 ## Check
 
@@ -150,3 +216,9 @@ Admin › Settings › Hosting › Limbo (`shared/src/settings/limbo.rs`):
 - Start a server while it is being parked: it starts, and its backup list keeps the final backup,
   unlocked.
 - As an admin, restoring costs nothing; admins' own servers are never stopped.
+- After an import of a Pelican panel with parked servers: Admin › Nodes shows the limbo node(s)
+  with Role Limbo; a server on one shows the limbo page (not suspended). Restore it: Admin ›
+  Overview › Capacity shows a move Started By "Limbo Restore", the card says it is on its way, the
+  server is back on its home node with its old address, stopped; its files are as they were. Turn
+  the home node off for deployment first: the page asks for a location instead. Stop Wings on the
+  limbo node: Restore says the node does not answer, no tokens spent.

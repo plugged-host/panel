@@ -99,6 +99,11 @@ pub struct AppSettingsGames {
     pub transfer_attempts: i32,
     /// Moves off one node at the same time ("Lighten load").
     pub transfer_parallel: i32,
+    /// Minutes a copy may go without progress (or unknown to the old node) before it is
+    /// cancelled and counted as a failed attempt.
+    pub transfer_stall_minutes: i32,
+    /// Minutes the new node may take to confirm a copy whose last byte was sent.
+    pub transfer_finalize_minutes: i32,
     /// Servers an account may have; 0 is no limit.
     pub max_servers: i32,
     /// What every account may use in total without noprofit.space (CPU in %, memory and disk in
@@ -144,6 +149,8 @@ impl Default for AppSettingsGames {
             transfer_cooldown_hours: 24,
             transfer_attempts: 2,
             transfer_parallel: 2,
+            transfer_stall_minutes: 10,
+            transfer_finalize_minutes: 20,
             max_servers: 0,
             allowance_cpu: 0,
             allowance_memory: 0,
@@ -201,6 +208,10 @@ pub struct PayloadGames {
     transfer_attempts: Option<i32>,
     #[garde(inner(range(min = 1, max = 10)))]
     transfer_parallel: Option<i32>,
+    #[garde(inner(range(min = 2, max = 120)))]
+    transfer_stall_minutes: Option<i32>,
+    #[garde(inner(range(min = 5, max = 240)))]
+    transfer_finalize_minutes: Option<i32>,
     #[garde(inner(range(min = 0, max = 1000)))]
     max_servers: Option<i32>,
     #[garde(inner(range(min = 0)))]
@@ -300,6 +311,8 @@ impl PayloadGames {
             transfer_cooldown_hours,
             transfer_attempts,
             transfer_parallel,
+            transfer_stall_minutes,
+            transfer_finalize_minutes,
             max_servers,
             allowance_cpu,
             allowance_memory,
@@ -401,6 +414,14 @@ impl SettingsSerializeExt for AppSettingsGames {
                 "transfer_parallel",
                 self.transfer_parallel.to_compact_string(),
             )
+            .write_raw_setting(
+                "transfer_stall_minutes",
+                self.transfer_stall_minutes.to_compact_string(),
+            )
+            .write_raw_setting(
+                "transfer_finalize_minutes",
+                self.transfer_finalize_minutes.to_compact_string(),
+            )
             .write_raw_setting("max_servers", self.max_servers.to_compact_string())
             .write_raw_setting("allowance_cpu", self.allowance_cpu.to_compact_string())
             .write_raw_setting(
@@ -452,6 +473,8 @@ impl SettingsDeserializeExt for AppSettingsGamesDeserializer {
             transfer_cooldown_hours: parsed!(transfer_cooldown_hours),
             transfer_attempts: parsed!(transfer_attempts),
             transfer_parallel: parsed!(transfer_parallel),
+            transfer_stall_minutes: parsed!(transfer_stall_minutes),
+            transfer_finalize_minutes: parsed!(transfer_finalize_minutes),
             max_servers: parsed!(max_servers),
             allowance_cpu: parsed!(allowance_cpu),
             allowance_memory: parsed!(allowance_memory),
@@ -508,6 +531,8 @@ mod tests {
             transfer_cooldown_hours: None,
             transfer_attempts: None,
             transfer_parallel: None,
+            transfer_stall_minutes: None,
+            transfer_finalize_minutes: None,
             max_servers: Some(3),
             allowance_cpu: None,
             allowance_memory: None,

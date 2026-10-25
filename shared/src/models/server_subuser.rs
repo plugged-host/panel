@@ -348,6 +348,15 @@ impl CreatableModel for ServerSubuser {
 
                 let app_settings = state.settings.get().await?;
 
+                // plugged.host: accounts come from noprofit.space while it is connected; a panel
+                // user made here has no password and could not sign in, so the invite waits until
+                // they have signed up (the Pelican panel refused the same way)
+                if app_settings.noprofit.connected() {
+                    let message = unknown_email_message(&app_settings.app.name);
+                    drop(app_settings);
+                    return Err(sqlx::Error::InvalidArgument(message).into());
+                }
+
                 let create_options = super::user::CreateUserOptions {
                     role_uuid: None,
                     external_id: None,
@@ -605,4 +614,25 @@ pub struct ApiServerSubuser {
     pub ignored_files: Vec<compact_str::CompactString>,
 
     pub created: chrono::DateTime<chrono::Utc>,
+}
+
+/// plugged.host: why an invite to an email no panel user has is refused while noprofit.space is
+/// connected (the Pelican panel's words, in the API's error style).
+fn unknown_email_message(app_name: &str) -> String {
+    format!(
+        "no {app_name} account uses that email yet: ask them to sign up first, then invite them"
+    )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::unknown_email_message;
+
+    #[test]
+    fn the_refusal_names_the_panel() {
+        assert_eq!(
+            unknown_email_message("Example"),
+            "no Example account uses that email yet: ask them to sign up first, then invite them"
+        );
+    }
 }

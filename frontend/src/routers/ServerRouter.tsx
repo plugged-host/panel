@@ -1,6 +1,6 @@
 import { faArrowUpRightFromSquare, faGraduationCap, faServer } from '@fortawesome/free-solid-svg-icons';
 import { Suspense, useEffect, useMemo, useState } from 'react';
-import { Route, Routes, useLocation, useParams } from 'react-router'; // plugged.host: useLocation
+import { Navigate, Route, Routes, useLocation, useParams } from 'react-router'; // plugged.host: Navigate, useLocation
 import { useShallow } from 'zustand/react/shallow';
 import { httpErrorToHuman } from '@/api/axios.ts';
 import getEggCommandSnippets from '@/api/me/servers/eggs/getEggCommandSnippets.ts';
@@ -16,6 +16,7 @@ import Container from '@/elements/layout/Container.tsx';
 import ServerSwitcher from '@/elements/navigation/ServerSwitcher.tsx';
 import Sidebar from '@/elements/navigation/Sidebar.tsx';
 import SidebarBalance from '@/elements/navigation/SidebarBalance.tsx'; // plugged.host
+import SidebarNotifications from '@/elements/navigation/SidebarNotifications.tsx'; // plugged.host
 import QuickActionsTrigger from '@/elements/quickActions/QuickActionsTrigger.tsx';
 import ServerQuickActions from '@/elements/quickActions/ServerQuickActions.tsx';
 import ServerStatusIndicator from '@/elements/ServerStatusIndicator.tsx';
@@ -37,6 +38,7 @@ import { useAuth } from '@/providers/AuthProvider.tsx';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import ServerPermissionGuard from '@/routers/guards/ServerPermissionGuard.tsx';
+import { legacyServerRedirects } from '@/routers/routes/legacyRoutes.ts'; // plugged.host
 import serverRoutes from '@/routers/routes/serverRoutes.ts';
 import { trackActivity } from '@/stores/activity.ts';
 import { useServerStore } from '@/stores/server.ts';
@@ -103,7 +105,7 @@ export default function ServerRouter({ isNormal }: { isNormal: boolean }) {
     if (!routeOrder) {
       return allServerRoutes
         .filter((route) => !!route.name && (!route.filter || route.filter()))
-        .filter((route) => !isOtherGameRoute(route.path, server.egg?.features)) // plugged.host
+        .filter((route) => !isOtherGameRoute(route.path, server.egg)) // plugged.host
         .map((route) => ({
           type: 'route' as const,
           route,
@@ -116,7 +118,7 @@ export default function ServerRouter({ isNormal }: { isNormal: boolean }) {
         if (item.type === 'route') {
           const route = allServerRoutes.find((r) => r.path === item.path);
           if (!route || !route.name || (route.filter && !route.filter())) return null;
-          if (isOtherGameRoute(route.path, server.egg?.features)) return null; // plugged.host
+          if (isOtherGameRoute(route.path, server.egg)) return null; // plugged.host
           return { type: 'route' as const, route, icon: item.icon };
         }
 
@@ -190,6 +192,8 @@ export default function ServerRouter({ isNormal }: { isNormal: boolean }) {
               {!user?.suspended && (
                 <>
                   <QuickActionsTrigger />
+                  {/* plugged.host: the notification inbox (docs/features/notifications.md) */}
+                  <SidebarNotifications />
                   <div className='mt-2' />
                   <ServerStatusIndicator />
                 </>
@@ -321,7 +325,7 @@ export default function ServerRouter({ isNormal }: { isNormal: boolean }) {
                       .filter((route) => !route.filter || route.filter())
                       .filter((route) => !accessibleRoutePaths || accessibleRoutePaths.has(route.path))
                       .filter((route) => !disabledRoutePaths.has(route.path))
-                      .filter((route) => !isOtherGameRoute(route.path, server.egg?.features)) // plugged.host
+                      .filter((route) => !isOtherGameRoute(route.path, server.egg)) // plugged.host
                       .map(({ path, element: Element, permission }) => (
                         <Route
                           key={path}
@@ -331,6 +335,10 @@ export default function ServerRouter({ isNormal }: { isNormal: boolean }) {
                         </Route>
                       ))}
                   </Route>
+                  {/* plugged.host: the Pelican panel's page paths (legacyRoutes.ts) */}
+                  {Object.entries(legacyServerRedirects).map(([from, target]) => (
+                    <Route key={from} path={from} element={<Navigate to={`/server/${params.id}${target}`} replace />} />
+                  ))}
                   <Route
                     path='*'
                     element={

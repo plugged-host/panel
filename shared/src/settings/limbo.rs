@@ -26,6 +26,8 @@ pub struct AppSettingsLimbo {
     pub cost_window_hours: i32,
     /// Servers of accounts with a membership are never stopped or parked.
     pub exempt_members: bool,
+    /// Days a server may stay parked before it is deleted (0: never).
+    pub delete_after_days: i32,
 }
 
 impl Default for AppSettingsLimbo {
@@ -39,6 +41,7 @@ impl Default for AppSettingsLimbo {
             cost_late: 10,
             cost_window_hours: 72,
             exempt_members: true,
+            delete_after_days: 0,
         }
     }
 }
@@ -62,6 +65,8 @@ pub struct PayloadLimbo {
     cost_window_hours: Option<i32>,
     #[garde(skip)]
     exempt_members: Option<bool>,
+    #[garde(inner(range(min = 0, max = 3650)))]
+    delete_after_days: Option<i32>,
 }
 
 impl PayloadLimbo {
@@ -82,7 +87,8 @@ impl PayloadLimbo {
             cost_early,
             cost_late,
             cost_window_hours,
-            exempt_members
+            exempt_members,
+            delete_after_days
         );
     }
 }
@@ -104,7 +110,11 @@ impl SettingsSerializeExt for AppSettingsLimbo {
                 "cost_window_hours",
                 self.cost_window_hours.to_compact_string(),
             )
-            .write_raw_setting("exempt_members", self.exempt_members.to_compact_string()))
+            .write_raw_setting("exempt_members", self.exempt_members.to_compact_string())
+            .write_raw_setting(
+                "delete_after_days",
+                self.delete_after_days.to_compact_string(),
+            ))
     }
 }
 
@@ -151,6 +161,7 @@ impl SettingsDeserializeExt for AppSettingsLimboDeserializer {
             cost_late: read!(cost_late),
             cost_window_hours: read!(cost_window_hours),
             exempt_members: read!(exempt_members),
+            delete_after_days: read!(delete_after_days),
         }))
     }
 }

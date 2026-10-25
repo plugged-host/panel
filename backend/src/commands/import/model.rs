@@ -95,6 +95,7 @@ pub struct SourceLocation {
     pub name: String,
     pub description: Option<String>,
     pub created: Option<DateTime<Utc>>,
+    pub placement: super::mapping::LocationPlacement, // plugged.host: flag, tier, sort, public
 }
 
 pub struct SourceNode {
@@ -117,6 +118,7 @@ pub struct SourceNode {
     pub token_id: String,
     pub token: Readable<CompactString>,
     pub created: Option<DateTime<Utc>>,
+    pub placement: super::mapping::NodePlacement, // plugged.host: role, tags, SRV target, overallocation
 }
 
 pub struct SourceNest {
@@ -150,6 +152,7 @@ pub struct SourceEgg {
     pub startup: SourceEggStartup,
     pub force_outgoing_ip: bool,
     pub created: Option<DateTime<Utc>>,
+    pub tag_features: Vec<CompactString>, // plugged.host: features from Pelican egg tags (mapping.rs)
 }
 
 pub enum SourceEggStartup {
@@ -304,6 +307,7 @@ pub struct SourceAllocation {
     pub server_id: Option<i64>,
     pub notes: Option<String>,
     pub created: Option<DateTime<Utc>>,
+    pub locked: bool, // plugged.host: Pelican's `is_locked` (docs/features/allocations.md)
 }
 
 pub struct SourceData {
@@ -329,6 +333,7 @@ pub struct SourceData {
     pub schedules: Vec<SourceSchedule>,
     pub tasks: Vec<SourceTask>,
     pub allocations: Vec<SourceAllocation>,
+    pub extras: super::extras::SourceExtras, // plugged.host: plugin data, icons, devboxes
 }
 
 /// Keys that already exist in the target database, loaded when importing with `--force`.
@@ -394,6 +399,7 @@ pub struct PlanLocation {
     pub name: String,
     pub description: Option<String>,
     pub created: DateTime<Utc>,
+    pub placement: super::mapping::LocationPlacement, // plugged.host: written by extras.rs
 }
 
 pub struct PlanNode {
@@ -414,6 +420,10 @@ pub struct PlanNode {
     pub token_id: String,
     pub token: CompactString,
     pub created: DateTime<Utc>,
+    // plugged.host: written by extras.rs
+    pub role: CompactString,
+    pub tags: Vec<String>,
+    pub srv_target: Option<String>,
 }
 
 pub struct PlanNest {
@@ -594,6 +604,7 @@ pub struct PlanServerAllocation {
     pub notes: Option<String>,
     pub primary: bool,
     pub created: DateTime<Utc>,
+    pub locked: bool, // plugged.host
 }
 
 #[derive(Default)]
@@ -620,11 +631,13 @@ pub struct Plan {
     pub schedule_steps: Vec<PlanScheduleStep>,
     pub allocations: Vec<PlanAllocation>,
     pub server_allocations: Vec<PlanServerAllocation>,
+    pub extras: super::extras::PlanExtras, // plugged.host: plugin data, icons, noprofit.space links
 }
 
 impl Plan {
     pub fn counts(&self) -> Vec<(&'static str, usize)> {
-        vec![
+        // plugged.host: and the extras' below
+        let mut counts = vec![
             ("users", self.users.len()),
             ("ssh keys", self.ssh_keys.len()),
             ("locations", self.locations.len()),
@@ -642,7 +655,10 @@ impl Plan {
             ("schedules", self.schedules.len()),
             ("schedule steps", self.schedule_steps.len()),
             ("allocations", self.allocations.len()),
-        ]
+        ];
+        counts.extend(self.extras.counts()); // plugged.host
+
+        counts
     }
 }
 

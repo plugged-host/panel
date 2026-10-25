@@ -25,7 +25,7 @@ Admin › Settings › Hosting › Games (`shared/src/settings/games.rs`):
 | Players Create Servers | Turns the create page on |
 | Players Resize Servers | Owners may change their servers' CPU, memory and disk within their allowance ([server-settings.md](server-settings.md)) |
 | Players Delete Servers | Owners may delete their own servers ([server-settings.md](server-settings.md)) |
-| Players Move Servers, Hours Between Moves, Nodes Tried per Move, Moves at Once per Node | Owners may move their servers to another location ([transfers.md](transfers.md)) |
+| Players Move Servers, Hours Between Moves, Nodes Tried per Move, Moves at Once per Node, Minutes Without Progress, Minutes to Finish | Owners may move their servers to another location; when a move's copy stalls ([transfers.md](transfers.md)) |
 | Games | The catalog, in order: an egg, the name and description players see (empty uses the egg's), the icon on its card (a link, `https://…` or `/…`; none shows a gamepad), the egg variable the software choice is written to, and the software choices |
 | Allocations, databases, backups, schedules | What every new server may have; allocations is at least 1 plus the ports its deployment needs |
 | Servers per Account | 0 is no limit |
@@ -38,7 +38,7 @@ is used. The first variant is the default. A game without a variable or variants
 sets up. The save refuses an egg listed twice, two variants with the same value, variants without
 a variable and an icon that is not a link.
 
-A Minecraft game (an egg with the `eula` feature) is created with its first variant: its server's
+A Minecraft game (a Java Edition server egg, [minecraft.md](minecraft.md#which-servers)) is created with its first variant: its server's
 setup asks for the software ([minecraft.md](minecraft.md#setup)), so the create page does not. Other
 games with several variants are asked on the create page.
 
@@ -72,9 +72,13 @@ the check and the write, so two requests at once cannot both spend the same room
    a public plan's, or without a plan the player's own CPU, memory and disk, each at least 1.
 3. A node: the location's nodes ranked like an admin deploy ([placement.md](placement.md)), only
    nodes with the role `game`. On the first node with enough free allocations: the egg
-   configuration's deployment (port ranges, a second port written to a variable), else any free
-   allocation. When none fits, the error says why (every node paused, full, in maintenance, no free
-   allocations).
+   configuration's deployment (port ranges, a second port written to a variable), else a port
+   inside the deployment port ranges, made when the node has no free one, and two in a row for a
+   FiveM or Multi Theft Auto egg, the second written to its variable
+   ([allocations.md](allocations.md)). When none fits, the error says why (every node paused, full,
+   in maintenance, no free allocations). The allocations are claimed with the server; a create that
+   loses one to another create at the same moment picks again (3 tries). They are locked: the
+   player cannot remove them.
 4. The server is created through the native `Server::create` (Wings creates it and installs it),
    with the variant's variable and the deployment's variables set, the plan's limits, the games
    settings' feature limits, and "start after install" on, except for a Minecraft egg: that server

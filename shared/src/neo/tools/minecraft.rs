@@ -1206,9 +1206,11 @@ impl Tool for InstallModpackTool {
         // the progress
         let state = context.state.clone();
         let server = server.clone();
+        let user_uuid = context.user.uuid;
         tokio::spawn(async move {
-            let uuid = server.uuid;
+            let (uuid, name) = (server.uuid, server.name.clone());
             let install = crate::minecraft::modpacks::install(&state, server, start).await;
+            crate::notifications::modpack_ended(&state, user_uuid, uuid, &name, &install).await;
             tracing::info!(
                 server = %uuid,
                 step = ?install.step,

@@ -21,6 +21,7 @@ const typeKeys = {
   discord_invite_clawback: 'discordInviteClawback',
   discord_invite_debt: 'discordInviteDebt',
   discord_boost: 'discordBoost',
+  partner: 'partner', // plugged.host: docs/features/partners.md
 } as const;
 
 export type TypeKey = (typeof typeKeys)[keyof typeof typeKeys] | 'earn';

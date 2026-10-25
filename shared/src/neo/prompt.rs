@@ -121,6 +121,14 @@ pub struct DevboxFacts {
     pub browser: bool,
 }
 
+/// Where the host is reviewed, while reviews are on (docs/features/reviews.md).
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ReviewFacts {
+    pub url: String,
+    /// The review site's name ([`crate::settings::reviews::AppSettingsReviews::site_name`]).
+    pub site: String,
+}
+
 /// neo's own settings that its prompt uses (never its providers or keys).
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct NeoFacts {
@@ -164,6 +172,8 @@ pub struct KnowledgeFacts {
     pub discord: Option<DiscordFacts>,
     /// The public status page's host, while the status page is on.
     pub status_page: Option<String>,
+    /// The review page, while reviews are on.
+    pub review: Option<ReviewFacts>,
     /// The public plans, in their order.
     pub plans: Vec<PlanFacts>,
     /// Public locations of the first and the second membership's tier exist.
@@ -201,6 +211,7 @@ impl KnowledgeFacts {
             accounts: None,
             discord: None,
             status_page: None,
+            review: None,
             plans: Vec::new(),
             plus_locations: false,
             premium_locations: false,
@@ -246,6 +257,10 @@ impl KnowledgeFacts {
             .then(|| settings.status.page_url.as_deref().map(host_of))
             .flatten()
             .filter(|host| !host.is_empty());
+        facts.review = settings.reviews.active().then(|| ReviewFacts {
+            url: settings.reviews.url.to_string(),
+            site: settings.reviews.site_name().to_string(),
+        });
         facts.earn = crate::earn::offered(&settings.economy)
             .into_iter()
             .map(|(provider, reward, daily_cap)| EarnFacts {
@@ -1009,6 +1024,17 @@ pub fn knowledge_text(facts: &KnowledgeFacts) -> String {
             contact_sentence(&facts.neo)
         ),
     );
+    // the review page on request only: review sites forbid asking selectively (an assistant that
+    // chose when to ask would ask the happy ones), asking for good reviews and rewards for them
+    if let Some(review) = &facts.review {
+        item(
+            &mut out,
+            &format!(
+                "Reviews of {app} are written on {}: {}. Give that link when someone asks where to review or rate {app}. Never bring reviews up yourself, never ask for a good review or a number of stars, and never offer or promise anything for one.",
+                review.site, review.url
+            ),
+        );
+    }
     item(
         &mut out,
         &format!(
@@ -1525,11 +1551,25 @@ pub fn knowledge_text(facts: &KnowledgeFacts) -> String {
         } else {
             ""
         };
-        let mut sentence = format!(
-            "When a node is busy (over {}% CPU or memory), starts{restarts} wait in a start queue on the server's queue page and go out automatically when there is room, even if the tab is closed; a start waits {} at most, then goes out anyway",
-            queue.line_percent,
-            seconds(queue.max_wait as i64)
-        );
+        let mut sentence = if queue.min_wait > 0 {
+            let restart = if queue.include_restart {
+                " and restart"
+            } else {
+                ""
+            };
+            format!(
+                "Every start{restart} of a non-admin waits at least {} in a start queue on the server's queue page, longer when the node is busy (over {}% CPU or memory), and goes out automatically, even if the tab is closed; a start waits {} at most, then goes out anyway",
+                seconds(queue.min_wait as i64),
+                queue.line_percent,
+                seconds(queue.max_wait as i64)
+            )
+        } else {
+            format!(
+                "When a node is busy (over {}% CPU or memory), starts{restarts} wait in a start queue on the server's queue page and go out automatically when there is room, even if the tab is closed; a start waits {} at most, then goes out anyway",
+                queue.line_percent,
+                seconds(queue.max_wait as i64)
+            )
+        };
         if queue.pass_minutes > 0 {
             let _ = write!(
                 sentence,
@@ -2267,6 +2307,23 @@ mod tests {
         KnowledgeFacts::defaults("Example Host", "https://panel.example.com/")
     }
 
+    #[test]
+    fn the_review_page_is_only_given_when_set_and_only_on_request() {
+        let mut facts = example();
+        assert!(!knowledge_text(&facts).contains("Reviews of"));
+
+        facts.review = Some(ReviewFacts {
+            url: "https://reviews.example.com/write".to_string(),
+            site: "Example Reviews".to_string(),
+        });
+        let knowledge = knowledge_text(&facts);
+        assert!(knowledge.contains(
+            "Reviews of Example Host are written on Example Reviews: https://reviews.example.com/write."
+        ));
+        assert!(knowledge.contains("Never bring reviews up yourself"));
+        assert!(knowledge.contains("never offer or promise anything for one"));
+    }
+
     fn system_facts(knowledge: KnowledgeFacts, server: Option<ServerFacts>) -> SystemFacts {
         SystemFacts {
             knowledge,
@@ -2474,7 +2531,7 @@ mod tests {
             "Linkvertise 1 per link, up to 5 a day",
             "Gold costs 25 tokens once and is kept for good: the Gold locations, priority in the start queue",
             "PlusPlus needs Gold and is not permanent: 10 tokens for 7 days or 150 credits for 14 days",
-            "starts and restarts wait in a start queue",
+            "Every start and restart of a non-admin waits at least 10 seconds in a start queue",
             "waits 10 minutes at most",
             "Starting a server shows a short ad waiting room (15-30 s)",
             "stopped after 48 hours and parked after 72 hours",

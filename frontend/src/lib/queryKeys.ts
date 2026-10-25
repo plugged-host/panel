@@ -221,6 +221,11 @@ const admin = {
     findings: () => ['admin', 'abuse', 'findings'] as const,
   },
 
+  // plugged.host: Admin › Partners
+  partners: {
+    all: () => ['admin', 'partners'] as const,
+  },
+
   // plugged.host: Admin › Status
   status: {
     all: () => ['admin', 'status'] as const,
@@ -304,6 +309,8 @@ const server = (serverUuid: string) => ({
     installed: () => ['server', serverUuid, 'minecraft', 'installed'] as const,
     settings: () => ['server', serverUuid, 'minecraft', 'settings'] as const,
     players: () => ['server', serverUuid, 'minecraft', 'players'] as const,
+    player: (player: string) => ['server', serverUuid, 'minecraft', 'players', player] as const,
+    online: () => ['server', serverUuid, 'minecraft', 'online'] as const,
     worlds: () => ['server', serverUuid, 'minecraft', 'worlds'] as const,
     logCheck: () => ['server', serverUuid, 'minecraft', 'logCheck'] as const,
     bedrock: () => ['server', serverUuid, 'minecraft', 'bedrock'] as const,
@@ -452,12 +459,19 @@ const user = {
   panelAccess: () => ['user', 'panel-access'] as const, // plugged.host
   balance: () => ['user', 'balance'] as const,
   discord: () => ['user', 'discord'] as const, // plugged.host: docs/features/discord.md
+  partners: () => ['user', 'partners'] as const, // plugged.host: docs/features/partners.md
   ads: () => ['user', 'ads'] as const, // plugged.host: docs/features/ads.md
   // plugged.host: neo's chat (docs/features/neo.md)
   neo: {
     usage: () => ['user', 'neo', 'usage'] as const,
     allConversations: () => ['user', 'neo', 'conversations'] as const,
     conversations: (serverUuid: string | null) => ['user', 'neo', 'conversations', { server: serverUuid }] as const,
+  },
+  // plugged.host: the notification inbox (docs/features/notifications.md)
+  notifications: {
+    all: () => ['user', 'notifications'] as const,
+    list: () => ['user', 'notifications', 'list'] as const,
+    unread: () => ['user', 'notifications', 'unread'] as const,
   },
 };
 

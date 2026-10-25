@@ -17,11 +17,13 @@ nothing connects to Discord until a bot is switched on there.
 | Membership | Checked by the panel: the `sync_discord_members` task, the bot's events, the page's check | noprofit.space's; the panel records it only for the subdomain check |
 | Discord tier | Added to the allowance of members | Part of the noprofit.space plan; the panel adds nothing |
 | Boosts | Each level paid once (credits on) | noprofit.space's |
-| Invites | Counted and paid (credits on) | Counted and shown, not paid: they stay Waiting |
+| Invites | Counted and paid (credits on) | Counted and paid to the noprofit.space balance (credits on, its account sync on), taken back the same way |
 | The page | Linking, membership, tier, invites, boosts, history | Linking on noprofit.space, membership, invites, a link to noprofit.space's Discord page |
 
-"Pays" below means standalone with credits on (Admin › Settings › Economy). Without credits the
-page counts invites and boosts and pays nothing.
+"Pays" below means credits on (Admin › Settings › Economy) and, for boosts, standalone. Invites
+pay with noprofit.space connected too (as the Pelican panel does: noprofit.space pays the boosts and
+the per-server bonus, the panel the invites), when its account sync is on (the API secret).
+Without credits the page counts invites and boosts and pays nothing.
 
 ## The page
 
@@ -34,7 +36,8 @@ for new rewards; then Invite friends (the rules, then Paid, Waiting with the nex
 server, Did not count, Owed back as full-width rows), Boost the server (the two levels, Received
 once paid; with noprofit.space connected, a link to its Discord page in that place) and the
 Reward history. At most one filled button: linking, or joining while not in the server. Without
-credits (or with noprofit.space) the amounts and the history are left out. The rows are
+credits the amounts and the history are left out; with noprofit.space the history (its own
+history has the rewards). The rows are
 `.theme-eco-tx` in a `.theme-eco-list` (`app.css`, the Pelican store's rows); the history is the
 store's ledger (`elements/economy/TransactionRows.tsx`, Pelican's ledger partial).
 
@@ -100,6 +103,13 @@ come back from the inviter's balance (transaction `discord_invite_clawback`); wh
 cannot cover is owed (`discord_members.invite_debt`) and taken from the inviter's next invite
 rewards (`discord_invite_debt`). Coming back counts as a new join: the inviter is the one whose
 invite they used now, and a taken-back invite can pay again, a paid one cannot.
+
+With noprofit.space connected the inviter is the panel user whose noprofit.space account has the
+Discord account, and the rewards, clawbacks and owed credits are written to
+`user_noprofit_credit_changes` instead of the panel's balance, then sent to the account on
+noprofit.space ([noprofit.md](../noprofit.md#what-changes-while-it-is-connected)). A clawback takes
+from the balance noprofit.space last said plus the changes not sent yet. "Credits earned on
+Discord" is then what noprofit.space applied of them (unsent ones counted in full).
 
 The `reconcile_discord_invites` task (hourly, 200 per run) asks Discord about the members still
 counted, the least recently seen first, and records the ones it says are gone: leaves the bot
@@ -219,8 +229,9 @@ User activity: `account:discord.check`. The user permissions (API key scopes) ar
 - `discord_boost_payouts`: `discord_id`, `user_uuid`, `level`, `credits`; unique per Discord account
   and level and per panel account and level.
 
-Credits go through `economy::change` with the transaction types `discord_invite`,
-`discord_invite_clawback`, `discord_invite_debt` and `discord_boost`.
+Credits go through `economy::change` (with noprofit.space: `noprofit::queue_credit_change`) with
+the transaction types `discord_invite`, `discord_invite_clawback`, `discord_invite_debt` and
+`discord_boost`.
 
 ## Differences from Pelican
 
@@ -257,6 +268,7 @@ Credits go through `economy::change` with the transaction types `discord_invite`
 - Subdomains: switch on Linked Discord Required; an owner without a link sees the reason on the
   Subdomains page and cannot add one. Server Membership Required: an owner who left cannot add one.
 - With noprofit.space connected: the page links to noprofit.space for linking, boosts and the tier
-  are gone from it, invites are counted but stay Waiting, no credits are paid.
+  are gone from it. An invite (Hold 0) pays: the credits show on noprofit.space's history as
+  `discord_invite` and in the sidebar balance; the invited account leaving takes them back there.
 - Clear the invite link: no Join or Open button anywhere.
 - Switch Discord off: the account menu entry is gone, the routes answer 404, the bots disconnect.

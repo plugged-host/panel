@@ -1,6 +1,6 @@
 import { faArrowUpRightFromSquare, faCircleUser, faGraduationCap, faServer } from '@fortawesome/free-solid-svg-icons';
 import { Suspense, useMemo } from 'react';
-import { Route, Routes } from 'react-router';
+import { Navigate, Route, Routes } from 'react-router'; // plugged.host: Navigate
 import { AdLayoutFoot, AdLayoutTop } from '@/elements/ads/AdLayout.tsx'; // plugged.host
 import AccountContentContainer from '@/elements/containers/AccountContentContainer.tsx';
 import ExtensionSlot from '@/elements/ExtensionSlot.tsx';
@@ -10,6 +10,7 @@ import Container from '@/elements/layout/Container.tsx';
 import ServerSwitcher from '@/elements/navigation/ServerSwitcher.tsx';
 import Sidebar from '@/elements/navigation/Sidebar.tsx';
 import SidebarBalance from '@/elements/navigation/SidebarBalance.tsx'; // plugged.host
+import SidebarNotifications from '@/elements/navigation/SidebarNotifications.tsx'; // plugged.host
 import QuickActionsTrigger from '@/elements/quickActions/QuickActionsTrigger.tsx';
 import { isAdmin } from '@/lib/auth/permissions.ts';
 import { resolveString } from '@/lib/lazy.ts';
@@ -17,11 +18,13 @@ import { getAccessibleRoutePaths, to } from '@/lib/routes.ts';
 import CreateServer from '@/pages/dashboard/create/CreateServer.tsx'; // plugged.host
 import DashboardHomeAll from '@/pages/dashboard/home/DashboardHomeAll.tsx';
 import DashboardHomeGrouped from '@/pages/dashboard/home/DashboardHomeGrouped.tsx';
+import ReviewPrompt from '@/pages/dashboard/home/ReviewPrompt.tsx'; // plugged.host
 import WelcomeTourPanel from '@/pages/dashboard/home/WelcomeTourPanel.tsx'; // plugged.host
 import { useStartOnGroupedServers } from '@/plugins/server/useStartOnGroupedServers.ts';
 import { useAuth } from '@/providers/AuthProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import accountRoutes from '@/routers/routes/accountRoutes.ts';
+import { legacyDashboardRedirects } from '@/routers/routes/legacyRoutes.ts'; // plugged.host
 import { useGlobalStore } from '@/stores/global.ts';
 
 // plugged.host: the account pages the Pelican panel's sidebar shows as rows of their own, in its
@@ -107,6 +110,8 @@ export default function DashboardRouter({ isNormal }: { isNormal: boolean }) {
               {!user?.suspended && (
                 <>
                   <QuickActionsTrigger />
+                  {/* plugged.host: the notification inbox (docs/features/notifications.md) */}
+                  <SidebarNotifications />
                   <div className='mt-2' />
                 </>
               )}
@@ -214,6 +219,7 @@ export default function DashboardRouter({ isNormal }: { isNormal: boolean }) {
                 name='dashboard-prepended-component'
               />
               <AdLayoutTop area='account' /> {/* plugged.host: docs/features/ads.md */}
+              <ReviewPrompt /> {/* plugged.host: on the server list, docs/features/reviews.md */}
               <Suspense fallback={<Spinner.Centered />}>
                 <Routes>
                   {startOnGroupedServers ? (
@@ -234,6 +240,10 @@ export default function DashboardRouter({ isNormal }: { isNormal: boolean }) {
                     .map(({ path, element: Element }) => (
                       <Route key={path} path={`/account/${path}`.replace('//', '/')} element={<Element />} />
                     ))}
+                  {/* plugged.host: the Pelican panel's page paths (legacyRoutes.ts) */}
+                  {Object.entries(legacyDashboardRedirects).map(([from, target]) => (
+                    <Route key={from} path={from} element={<Navigate to={target} replace />} />
+                  ))}
                   <Route
                     path='*'
                     element={

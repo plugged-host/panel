@@ -1,4 +1,5 @@
 // plugged.host: what the owner and subusers of a suspended server read (docs/features/suspension.md).
+import { Button as MantineButton } from '@mantine/core';
 import { z } from 'zod';
 import { formatDateTime } from '@/lib/format/time.ts';
 import { serverSchema } from '@/lib/schemas/server/server.ts';
@@ -33,7 +34,26 @@ export default function SuspensionNotice({ server }: { server: z.infer<typeof se
           })}
         </p>
       )}
-      <p>{t('elements.screenBlock.serverConflict.suspension.help', {})}</p>
+      {suspension.helpUrl ? (
+        <>
+          <p>{t('elements.screenBlock.serverConflict.suspension.helpLink', {})}</p>
+          {/* neo's support link, else the Discord invite (the Pelican panel's "Get help" action) */}
+          <div>
+            <MantineButton
+              component='a'
+              href={suspension.helpUrl}
+              target='_blank'
+              rel='noopener noreferrer'
+              variant='default'
+              fw={600}
+            >
+              {t('elements.screenBlock.serverConflict.suspension.getHelp', {})}
+            </MantineButton>
+          </div>
+        </>
+      ) : (
+        <p>{t('elements.screenBlock.serverConflict.suspension.help', {})}</p>
+      )}
     </div>
   );
 }

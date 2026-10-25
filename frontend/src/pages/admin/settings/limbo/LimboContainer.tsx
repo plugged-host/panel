@@ -26,6 +26,7 @@ const limboEmptyFormValues: LimboValues = {
   costLate: 10,
   costWindowHours: 72,
   exemptMembers: true,
+  deleteAfterDays: 0,
 };
 
 export default function LimboContainer() {
@@ -86,6 +87,14 @@ export default function LimboContainer() {
       name: 'exemptMembers',
       label: t(`${page}.exemptMembers`, {}),
       description: t(`${page}.exemptMembersDescription`, {}),
+    },
+    {
+      type: 'number',
+      name: 'deleteAfterDays',
+      label: t(`${page}.deleteAfterDays`, {}),
+      description: t(`${page}.deleteAfterDaysDescription`, {}),
+      required: true,
+      props: { min: 0, max: 3650 },
     },
     {
       type: 'divider',

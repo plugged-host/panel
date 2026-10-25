@@ -13,6 +13,7 @@ import Button from '@/elements/buttons/Button.tsx';
 import DismissibleAnnouncementAlert from '@/elements/DismissibleAnnouncementAlert.tsx';
 import Notification from '@/elements/feedback/Notification.tsx';
 import Progress from '@/elements/feedback/Progress.tsx';
+import InstallStuck from '@/elements/InstallStuck.tsx'; // plugged.host
 import Tooltip from '@/elements/overlays/Tooltip.tsx';
 import TransferStrip, { useTransferStrip } from '@/elements/TransferStrip.tsx'; // plugged.host
 import { bytesProgressString } from '@/lib/format/size.ts';
@@ -250,6 +251,9 @@ function ServerContentContainer(props: Props) {
                 <Progress value={(installProgress.progress / installProgress.total) * 100} />
               </Tooltip>
             )}
+
+            {/* plugged.host: docs/features/server-settings.md#stuck-installs */}
+            <InstallStuck />
           </Notification>
         </div>
       ) : server.nodeMaintenanceEnabled ? (

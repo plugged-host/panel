@@ -228,6 +228,7 @@ export function useNodeFormFields({
       options: [
         { label: t('pages.admin.nodes.tabs.general.page.form.roleGame', {}), value: 'game' },
         { label: t('pages.admin.nodes.tabs.general.page.form.roleInternal', {}), value: 'internal' },
+        { label: t('pages.admin.nodes.tabs.general.page.form.roleLimbo', {}), value: 'limbo' },
       ],
     },
     {

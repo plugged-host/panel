@@ -773,8 +773,10 @@ pub async fn handle_startup() -> Result<
     tasks::define_background_tasks(&background_task_builder).await;
     shared::deleted_servers::register(); // plugged.host: docs/features/backups-page.md
     shared::backup_notifications::register(); // plugged.host: docs/features/server-settings.md
+    shared::notifications::register(); // plugged.host: docs/features/notifications.md
     shared::limbo::register(); // plugged.host: docs/features/limbo.md
     shared::rux::register(); // plugged.host: docs/features/rux.md
+    shared::allocations::register(); // plugged.host: docs/features/allocations.md
     shared::neo::discord::register(&state).await; // plugged.host: docs/features/neo-discord.md
 
     background_tasks

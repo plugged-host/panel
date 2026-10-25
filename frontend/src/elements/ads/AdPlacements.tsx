@@ -4,7 +4,7 @@ import { serverPageKind } from '@/lib/ads.ts';
 import { useGlobalStore } from '@/stores/global.ts';
 import { AdSlot } from './AdSlot.tsx';
 
-/** A leaderboard above the page. */
+/** The sponsored top banner above the page (no ad zone since the Pelican panel's ads 2.2.2). */
 export function AdTop() {
   const on = useGlobalStore((state) => !!state.settings.ads?.slotTop);
   if (!on) return null;
@@ -16,7 +16,7 @@ export function AdTop() {
   );
 }
 
-/** A leaderboard, a rectangle and the native unit at the foot of the page. */
+/** A leaderboard and the native unit at the foot of the page (the Pelican panel's ads 2.2.2). */
 export function AdFoot() {
   const on = useGlobalStore((state) => !!state.settings.ads?.slotFoot);
   if (!on) return null;
@@ -24,7 +24,6 @@ export function AdFoot() {
   return (
     <div className='theme-main theme-ad-foot'>
       <AdSlot kind='footLeaderboard' />
-      <AdSlot kind='footRectangle' />
       <AdSlot kind='native' />
     </div>
   );

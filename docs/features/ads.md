@@ -31,14 +31,20 @@ size are shuffled by the page's path, so they take turns from page to page.
 
 | Rank | Slot | Where | Sizes |
 |---|---|---|---|
-| 0 | Top | above every dashboard and server page | 728×90, 468×60, 320×50, or a top banner |
+| 0 | Top | above every dashboard and server page | a sponsored top banner only |
 | 1 | Server pages strip | under the header of a server's pages, not the console, not the waiting rooms | 468×60, 320×50 |
 | 2 | Page rectangle | Create Server, the store, the server list | 300×250 |
-| 3 | Page foot | at the foot of every page: a leaderboard, a rectangle and the native unit | leaderboard sizes, 300×250, native |
+| 3 | Page foot | at the foot of every page: a leaderboard and the native unit | leaderboard sizes, native |
 | 4 | Waiting rooms | the start queue, the waiting room | any zone left, 160×600 and 160×300 too, and the native unit |
 
 The top and foot slots are not on the waiting pages or on a parked server's page. A slot that gets
 nothing takes no room.
+
+As the Pelican panel's ads 2.2.2 (2026-10-25, back to its 2026-10-22 layout), the top slot shows no
+ad zone (only a live sponsored top banner) and the foot has no 300×250. The server pages strip and
+the page rectangles together fill at most **Units per Page** (`max_units_per_page`, 2 by default,
+0 fills none of them; the Pelican panel's `ADS_MAX_UNITS_PER_PAGE`), in rank order; the top, the
+foot and the waiting rooms do not count.
 
 ## Isolation
 
@@ -164,8 +170,11 @@ Adsterra's Banner snippets or `key:WIDTHxHEIGHT:host` lines (default host
 ## Check
 
 - Ads off: no frame, no script, no notice anywhere; `/api/ads/unit?zone=x` is 404.
-- One 728×90 and one 300×250 zone: the server list shows the leaderboard on top, the rectangle in
-  the page and nothing twice; a phone gets the 320×50 or nothing.
+- One 728×90 and one 300×250 zone: the server list shows the rectangle in the page and the
+  leaderboard at the foot, nothing above the page and nothing twice; a phone gets the 320×50 or
+  nothing. A live sponsored top banner shows above the page.
+- Units per Page 0: the server pages strip and the page rectangles stay empty, the foot still
+  shows; back to 2, they fill again.
 - A zone that fills nothing folds after a few seconds.
 - A slot banner of 600×500 replaces the 300×250 zone; its click counts and lands on the link.
 - Waiting room on, lines 0: a start opens the room, the server starts at once, the room lets you

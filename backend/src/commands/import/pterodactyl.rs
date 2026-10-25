@@ -520,6 +520,8 @@ pub(super) async fn read_allocations(
                 server_id: source_optional_i64(row, "server_id")?,
                 notes: source_optional_text(row, "notes")?,
                 created: source_timestamp(row, "created_at"),
+                // plugged.host: Pelican only; Pterodactyl has no locked allocations
+                locked: source_bool(row, "is_locked").unwrap_or(false),
             })
         })
         .await
@@ -558,6 +560,7 @@ pub(super) async fn read(
                 name: source_text(row, "short")?,
                 description: source_optional_text(row, "long")?,
                 created: source_timestamp(row, "created_at"),
+                placement: Default::default(), // plugged.host
             })
         })
         .await?;
@@ -585,6 +588,7 @@ pub(super) async fn read(
                 token: context
                     .decrypt(&source_optional_text(row, "daemon_token")?.unwrap_or_default()),
                 created: source_timestamp(row, "created_at"),
+                placement: Default::default(), // plugged.host
             })
         })
         .await?;
@@ -636,6 +640,7 @@ pub(super) async fn read(
                 startup: SourceEggStartup::Single(source_optional_text(row, "startup")?),
                 force_outgoing_ip: source_bool(row, "force_outgoing_ip")?,
                 created,
+                tag_features: Vec::new(), // plugged.host
             })
         })
         .await?;
@@ -731,5 +736,6 @@ pub(super) async fn read(
         schedules: read_schedules(context).await?,
         tasks: read_tasks(context).await?,
         allocations: read_allocations(context).await?,
+        extras: Default::default(), // plugged.host: Pelican only
     })
 }

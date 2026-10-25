@@ -15,6 +15,7 @@ export const serverSuspensionSchema = z.object({
   reason: z.string().nullable(),
   suspended: z.coerce.date().nullable(),
   deleteAt: z.coerce.date().nullable(),
+  helpUrl: z.string().nullable().default(null),
 });
 
 export const serverAutostartBehavior = z.enum(['always', 'unless_stopped', 'never']);
@@ -42,6 +43,8 @@ export const serverEggSchema = z.looseObject({
   separatePort: z.boolean(),
   features: z.array(z.string()),
   dockerImages: z.record(z.string(), z.string()),
+  // plugged.host: the Minecraft it runs, which decides its game pages (docs/features/minecraft.md#which-servers)
+  minecraft: z.enum(['java', 'proxy', 'bedrock']).nullable().default(null),
   created: z.coerce.date(),
 });
 
@@ -61,6 +64,7 @@ export const serverSchema = z.looseObject({
   egg: z.lazy(() => serverEggSchema),
   eggConfiguration: z.lazy(() => serverEggConfigurationSchema).nullable(),
   status: serverStatus.nullable(),
+  installingSince: z.coerce.date().nullable().default(null), // plugged.host
   isSuspended: z.boolean(),
   suspension: serverSuspensionSchema.nullable(), // plugged.host
   limboState: serverLimboStateSchema.nullable().default(null), // plugged.host

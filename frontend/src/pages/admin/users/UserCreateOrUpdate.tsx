@@ -145,6 +145,7 @@ export default function UserCreateOrUpdate({ contextUser }: { contextUser?: z.in
     languages,
     roles,
     canReadRoles,
+    identityLocked: !!contextUser?.links?.noprofit, // plugged.host
   });
 
   return (

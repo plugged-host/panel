@@ -26,6 +26,7 @@ import {
   IconArrowUp,
   IconAt,
   IconBan,
+  IconBell, // plugged.host: the notification inbox
   IconBolt, // plugged.host
   IconBook,
   IconBrandDocker,
@@ -242,6 +243,7 @@ export const tablerIcons: Record<string, TablerIcon> = {
   at: IconAt,
   ban: IconBan,
   bars: IconMenu2,
+  bell: IconBell, // plugged.host: the notification inbox
   bolt: IconBolt, // plugged.host: neo's "ran without asking"
   book: IconBook,
   box: IconPackage, // plugged.host

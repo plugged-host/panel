@@ -1,12 +1,13 @@
 // plugged.host: the whitelist, operators and bans of a Minecraft server, laid out like the Pelican
-// panel's Players page: the Whitelist section, then one table of everyone on a list
-// (docs/features/minecraft.md)
+// panel's Players page: the Whitelist section, then one table of everyone on a list or who has
+// played, each opening the player's page (docs/features/minecraft.md)
 import { faArrowsRotate, faSearch, faUserSlash } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useQueryClient } from '@tanstack/react-query';
 import { useId, useMemo, useState } from 'react';
 import { z } from 'zod';
 import { getHttpStatus, httpErrorToHuman } from '@/api/axios.ts';
+import getOnlinePlayers from '@/api/server/minecraft/getOnlinePlayers.ts';
 import getPlayers from '@/api/server/minecraft/getPlayers.ts';
 import setWhitelistEnforced from '@/api/server/minecraft/setWhitelistEnforced.ts';
 import ActionIcon from '@/elements/buttons/ActionIcon.tsx';
@@ -37,6 +38,7 @@ function Players({ roster }: { roster: z.infer<typeof minecraftRosterSchema> }) 
   const queryClient = useQueryClient();
   const server = useServerStore((state) => state.server);
   const canManage = useServerCan('minecraft.players');
+  const canConsole = useServerCan('control.console');
   const switchId = useId();
   const [saving, setSaving] = useState(false);
   const [adding, setAdding] = useState(false);
@@ -44,8 +46,26 @@ function Players({ roster }: { roster: z.infer<typeof minecraftRosterSchema> }) 
 
   const rows = useMemo(() => {
     const query = search.trim().toLowerCase();
-    return query ? roster.players.filter((player) => player.name.toLowerCase().includes(query)) : roster.players;
+    return query
+      ? roster.players.filter(
+          (player) => player.name.toLowerCase().includes(query) || player.uuid.toLowerCase().includes(query),
+        )
+      : roster.players;
   }, [roster, search]);
+
+  // who is on: asked once (each ask types `list` into the console), never on a timer
+  const online = useResource({
+    queryKey: queryKeys.server(server.uuid).minecraft.online(),
+    queryFn: () => getOnlinePlayers(server.uuid),
+    enabled: roster.running && canConsole,
+    silent: true,
+  });
+  const isOnline = (player: z.infer<typeof minecraftRosterSchema>['players'][number]) =>
+    !!online.data?.players?.some((entry) =>
+      entry.uuid && player.uuid
+        ? entry.uuid.toLowerCase() === player.uuid.toLowerCase()
+        : !!player.name && entry.name.toLowerCase() === player.name.toLowerCase(),
+    );
 
   const enforce = (enabled: boolean) => {
     setSaving(true);
@@ -118,7 +138,12 @@ function Players({ roster }: { roster: z.infer<typeof minecraftRosterSchema> }) 
           }
         >
           {rows.map((player) => (
-            <PlayerRow key={player.name} player={player} canManage={canManage} />
+            <PlayerRow
+              key={player.uuid || player.name}
+              player={player}
+              canManage={canManage}
+              online={isOnline(player)}
+            />
           ))}
         </Table>
       </div>

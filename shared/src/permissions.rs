@@ -266,6 +266,23 @@ pub(crate) static BASE_USER_PERMISSIONS: LazyLock<IndexMap<&'static str, Permiss
                     ]),
                 },
             ),
+            // plugged.host: the partner program (docs/features/partners.md)
+            (
+                "partners",
+                PermissionGroup {
+                    description: "Permissions that control the ability to apply to the partner program with a Discord server.",
+                    permissions: IndexMap::from([
+                        (
+                            "read",
+                            "Allows viewing the account's partner applications and partnerships.",
+                        ),
+                        (
+                            "apply",
+                            "Allows applying with a Discord server and withdrawing a pending application.",
+                        ),
+                    ]),
+                },
+            ),
             (
                 "activity",
                 PermissionGroup {
@@ -377,6 +394,23 @@ pub(crate) static BASE_ADMIN_PERMISSIONS: LazyLock<IndexMap<&'static str, Permis
                         (
                             "manage",
                             "Allows dismissing and resolving findings and scanning a server on demand.",
+                        ),
+                    ]),
+                },
+            ),
+            // plugged.host: the partner program (docs/features/partners.md)
+            (
+                "partners",
+                PermissionGroup {
+                    description: "Permissions that control the ability to review partner applications.",
+                    permissions: IndexMap::from([
+                        (
+                            "read",
+                            "Allows viewing partner applications, the Discord servers' facts and neo's assessment.",
+                        ),
+                        (
+                            "manage",
+                            "Allows approving (which pays the credits), rejecting, checking again and revoking partnerships.",
                         ),
                     ]),
                 },
@@ -1177,7 +1211,7 @@ pub(crate) static BASE_SERVER_PERMISSIONS: LazyLock<IndexMap<&'static str, Permi
                         ),
                         (
                             "players",
-                            "Allows changing the whitelist, the operators and the bans.",
+                            "Allows seeing the players and their saved data, and changing the whitelist, the operators and the bans. Healing, feeding, killing, teleporting and changing the game mode of a player who is online also needs control.console; changing a stopped server's player files needs files.update, deleting them files.delete.",
                         ),
                         (
                             "worlds",

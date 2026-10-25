@@ -7,6 +7,7 @@ import {
   faEyeSlash,
   faGraduationCap,
   faRotateLeft,
+  faStar, // plugged.host
   faUserCog,
   faWindowRestore,
   IconDefinition,
@@ -273,6 +274,8 @@ function Footer() {
 
   const { confirmLogout, logoutModal } = useLogoutConfirmation();
   const { enabled: tourEnabled, update: updateTour } = useWelcomeTour(); // plugged.host
+  const appName = useGlobalStore((state) => state.settings.app.name); // plugged.host
+  const reviews = useGlobalStore((state) => state.settings.reviews); // plugged.host
 
   const accountRouteDisabled = !isNamedRoutePathAccessible(routeOrder, '/');
 
@@ -329,6 +332,14 @@ function Footer() {
           navigate('/');
         },
       },
+      // plugged.host: the review site, for everyone (docs/features/reviews.md)
+      {
+        type: 'action' as const,
+        icon: faStar,
+        label: t('elements.sidebar.button.review', { app: appName, site: reviews?.site ?? '' }),
+        hidden: !reviews?.url || suspended,
+        onClick: () => openUrl(reviews.url),
+      },
       {
         type: 'divider' as const,
       },
@@ -354,6 +365,8 @@ function Footer() {
       impersonating,
       tourEnabled, // plugged.host
       updateTour, // plugged.host
+      appName, // plugged.host
+      reviews, // plugged.host
       suspended,
     ],
   );

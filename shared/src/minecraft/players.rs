@@ -4,6 +4,10 @@
 //! A running server holds these lists in memory and writes the files itself, so a change goes in
 //! as a console command (`whitelist add`, `op`, `ban` …) while it runs, and into the file while it
 //! is stopped. The answer says which, since a file edit only counts from the next start.
+//!
+//! The roster also holds everyone who has played (a file in `<world>/playerdata`, named from
+//! `usercache.json`), and who is online comes from the console's `list uuids`
+//! ([`online`]); one player's details are in `player_data.rs`.
 
 use super::{config, files};
 use crate::models::server::Server;
@@ -14,7 +18,16 @@ const WHITELIST: &str = "whitelist.json";
 const OPS: &str = "ops.json";
 const BANS: &str = "banned-players.json";
 const PROPERTIES: &str = "server.properties";
-const MAX_SIZE: u64 = 4 * 1024 * 1024;
+pub(super) const USERCACHE: &str = "usercache.json";
+pub(super) const MAX_SIZE: u64 = 4 * 1024 * 1024;
+/// At most this many player data files are listed (two pages of Wings' listing).
+const MAX_JOINED: u64 = 1000;
+const JOINED_PAGE: u64 = 500;
+/// How long an answer of `list` is reused, so a page opened twice asks the console once.
+const ONLINE_TTL: u64 = 10;
+/// How long the console is watched for the answer of `list`.
+const ONLINE_TRIES: usize = 6;
+const ONLINE_WAIT: std::time::Duration = std::time::Duration::from_millis(300);
 
 const PROFILE_TTL: u64 = 24 * 60 * 60;
 const MISS_TTL: u64 = 5 * 60;
@@ -28,6 +41,9 @@ pub struct Player {
     /// The operator level, when the player is one.
     pub operator: Option<u8>,
     pub ban: Option<Ban>,
+    /// When the server last saved the player's data (`<world>/playerdata/<uuid>.dat`), so when
+    /// they last played; `None` for someone who never joined.
+    pub last_played: Option<chrono::DateTime<chrono::Utc>>,
 }
 
 #[derive(ToSchema, Serialize, Debug, Clone)]
@@ -79,6 +95,20 @@ pub enum PlayerError {
     UnknownPlayer(String),
     Lookup(anyhow::Error),
     Wings(anyhow::Error),
+    /// A player this server has never seen (no list entry, no data file).
+    NotFound,
+    /// Nothing saved for the player yet: they never played, or the data file is gone.
+    NoData,
+    /// The player data file is not readable NBT.
+    Damaged(anyhow::Error),
+    /// A file edit while the server is not stopped.
+    Running,
+    /// A console command while the server is not running.
+    NotRunning,
+    NotOnline,
+    Invalid(String),
+    /// The permission the change needs in the server's current state.
+    Forbidden(&'static str),
 }
 
 impl PlayerError {
@@ -112,6 +142,29 @@ impl PlayerError {
                     StatusCode::BAD_GATEWAY,
                 )
             }
+            Self::NotFound => (
+                "this player has never been on this server".to_string(),
+                StatusCode::NOT_FOUND,
+            ),
+            Self::NoData => (
+                "there is no saved data for this player yet".to_string(),
+                StatusCode::NOT_FOUND,
+            ),
+            Self::Damaged(err) => {
+                tracing::warn!("minecraft player data: {err:#}");
+                (
+                    "the player's data file could not be read".to_string(),
+                    StatusCode::UNPROCESSABLE_ENTITY,
+                )
+            }
+            Self::Running => ("stop the server first".to_string(), StatusCode::CONFLICT),
+            Self::NotRunning => ("start the server first".to_string(), StatusCode::CONFLICT),
+            Self::NotOnline => ("the player is not online".to_string(), StatusCode::CONFLICT),
+            Self::Invalid(message) => (message, StatusCode::BAD_REQUEST),
+            Self::Forbidden(permission) => (
+                format!("you do not have permission to perform this action: {permission}"),
+                StatusCode::FORBIDDEN,
+            ),
         };
 
         crate::response::ApiResponse::error(message).with_status(status)
@@ -245,6 +298,7 @@ fn player<'a>(
                 whitelisted: false,
                 operator: None,
                 ban: None,
+                last_played: None,
             });
             players.len() - 1
         }
@@ -253,15 +307,15 @@ fn player<'a>(
     &mut players[index]
 }
 
-struct Files {
-    properties: Option<String>,
+pub(super) struct Files {
+    pub(super) properties: Option<String>,
     whitelist: Vec<serde_json::Map<String, serde_json::Value>>,
     ops: Vec<serde_json::Map<String, serde_json::Value>>,
     bans: Vec<serde_json::Map<String, serde_json::Value>>,
 }
 
 impl Files {
-    async fn read(
+    pub(super) async fn read(
         client: &wings_api::client::WingsClient,
         server: &Server,
     ) -> Result<Self, anyhow::Error> {
@@ -278,7 +332,7 @@ impl Files {
         })
     }
 
-    fn flag(&self, key: &str, default: bool) -> bool {
+    pub(super) fn flag(&self, key: &str, default: bool) -> bool {
         self.properties
             .as_deref()
             .and_then(|raw| config::property(raw, key))
@@ -295,7 +349,7 @@ impl Files {
             .clamp(1, 4)
     }
 
-    fn roster(&self, running: bool) -> Roster {
+    pub(super) fn roster(&self, running: bool) -> Roster {
         let level = self.level();
         let mut players: Vec<Player> = Vec::new();
 
@@ -332,7 +386,7 @@ impl Files {
     }
 }
 
-/// The server's players.
+/// The server's players: the three lists and everyone who has played.
 pub async fn roster(state: &crate::State, server: &Server) -> Result<Roster, anyhow::Error> {
     let client = files::client(state, server).await?;
     let running = matches!(
@@ -340,7 +394,383 @@ pub async fn roster(state: &crate::State, server: &Server) -> Result<Roster, any
         Some(wings_api::ServerState::Running)
     );
 
-    Ok(Files::read(&client, server).await?.roster(running))
+    let files_now = Files::read(&client, server).await?;
+    let mut roster = files_now.roster(running);
+
+    // who has played is extra: the lists stay useful when the world's folder cannot be listed
+    if let Some(world) = super::player_data::world(files_now.properties.as_deref()) {
+        match joined(&client, server, &world).await {
+            Ok(joined) => {
+                let cache = files::read_text(&client, server, USERCACHE, MAX_SIZE)
+                    .await
+                    .ok()
+                    .flatten();
+                merge_joined(&mut roster.players, joined, &usercache(cache.as_deref()));
+            }
+            Err(err) => tracing::warn!("listing the players who joined: {err:#}"),
+        }
+    }
+
+    Ok(roster)
+}
+
+/// The players with a data file in `<world>/playerdata`, with when it was last written.
+async fn joined(
+    client: &wings_api::client::WingsClient,
+    server: &Server,
+    world: &str,
+) -> Result<Vec<(compact_str::CompactString, chrono::DateTime<chrono::Utc>)>, anyhow::Error> {
+    let mut joined = Vec::new();
+
+    for page in 1..=MAX_JOINED / JOINED_PAGE {
+        let list = match client
+            .get_servers_server_files_list(
+                server.uuid,
+                &wings_api::servers_server_files_list::get::Query {
+                    directory: Some(format!("/{world}/playerdata").into()),
+                    per_page: Some(JOINED_PAGE),
+                    page: Some(page),
+                    ..Default::default()
+                },
+            )
+            .await
+        {
+            Ok(list) => list,
+            Err(wings_api::client::ApiHttpError::Http(status, _))
+                if status == reqwest::StatusCode::NOT_FOUND =>
+            {
+                break;
+            }
+            Err(err) => return Err(err.into()),
+        };
+
+        let count = list.entries.len() as u64;
+        joined.extend(list.entries.into_iter().filter_map(|entry| {
+            if !entry.file {
+                return None;
+            }
+            let stem = entry.name.strip_suffix(".dat")?;
+            let uuid = uuid::Uuid::try_parse(stem).ok()?;
+
+            Some((
+                uuid.hyphenated().to_string().into(),
+                entry.modified.with_timezone(&chrono::Utc),
+            ))
+        }));
+
+        if count < JOINED_PAGE || page * JOINED_PAGE >= list.total {
+            break;
+        }
+    }
+
+    Ok(joined)
+}
+
+/// `usercache.json`: the names the server knows, by UUID (lowercase).
+pub(super) fn usercache(
+    raw: Option<&str>,
+) -> Vec<(compact_str::CompactString, compact_str::CompactString)> {
+    entries(raw)
+        .iter()
+        .filter(|entry| !text(entry, "uuid").is_empty())
+        .map(|entry| {
+            (
+                text(entry, "uuid").to_ascii_lowercase().into(),
+                text(entry, "name"),
+            )
+        })
+        .collect()
+}
+
+/// Adds the players who joined to the lists' rows: a listed player gets when they last played,
+/// anyone else a row of their own, named from the user cache when it knows them (unnamed rows
+/// sort last).
+fn merge_joined(
+    players: &mut Vec<Player>,
+    joined: Vec<(compact_str::CompactString, chrono::DateTime<chrono::Utc>)>,
+    cache: &[(compact_str::CompactString, compact_str::CompactString)],
+) {
+    for (uuid, modified) in joined {
+        let name = cache
+            .iter()
+            .find(|(cached, _)| cached.eq_ignore_ascii_case(&uuid))
+            .map(|(_, name)| name.clone());
+
+        let index = players
+            .iter()
+            .position(|player| player.uuid.eq_ignore_ascii_case(&uuid))
+            .or_else(|| {
+                let name = name.as_deref()?;
+                players.iter().position(|player| {
+                    player.uuid.is_empty() && player.name.eq_ignore_ascii_case(name)
+                })
+            });
+
+        match index {
+            Some(index) => {
+                let player = &mut players[index];
+                if player.uuid.is_empty() {
+                    player.uuid = uuid;
+                }
+                player.last_played = Some(modified);
+            }
+            None => players.push(Player {
+                name: name.unwrap_or_default(),
+                uuid,
+                whitelisted: false,
+                operator: None,
+                ban: None,
+                last_played: Some(modified),
+            }),
+        }
+    }
+
+    players.sort_by(|a, b| {
+        (a.name.is_empty(), a.name.to_ascii_lowercase(), &a.uuid).cmp(&(
+            b.name.is_empty(),
+            b.name.to_ascii_lowercase(),
+            &b.uuid,
+        ))
+    });
+}
+
+/// Someone on the server right now, from the console's `list uuids`.
+#[derive(ToSchema, Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct OnlinePlayer {
+    pub name: compact_str::CompactString,
+    /// Missing on servers older than 1.13, whose `list` names only.
+    pub uuid: Option<compact_str::CompactString>,
+}
+
+#[derive(ToSchema, Serialize, Deserialize, Debug, Clone)]
+pub struct Online {
+    pub running: bool,
+    /// Who is online; `None` when it could not be told (no console permission, or the console
+    /// did not answer `list` in time). A stopped server has nobody online.
+    pub players: Option<Vec<OnlinePlayer>>,
+    /// The player limit the server reported.
+    pub max: Option<u32>,
+}
+
+impl Online {
+    /// Whether the player with this UUID is online, `None` when it cannot be told.
+    pub fn has(&self, uuid: &str) -> Option<bool> {
+        if !self.running {
+            return Some(false);
+        }
+        let players = self.players.as_ref()?;
+        if players.iter().any(|player| player.uuid.is_none()) {
+            return None;
+        }
+
+        Some(players.iter().any(|player| {
+            player
+                .uuid
+                .as_deref()
+                .is_some_and(|online| online.eq_ignore_ascii_case(uuid))
+        }))
+    }
+}
+
+/// Who is online. Needs the console (`console`): the server is asked `list uuids` and the answer
+/// read from the console's last lines; it is reused for a few seconds.
+pub async fn online(
+    state: &crate::State,
+    server: &Server,
+    console: bool,
+) -> Result<Online, PlayerError> {
+    let client = files::client(state, server)
+        .await
+        .map_err(PlayerError::Wings)?;
+    if !matches!(
+        files::power_state(&client, server).await,
+        Some(wings_api::ServerState::Running)
+    ) {
+        return Ok(Online {
+            running: false,
+            players: Some(Vec::new()),
+            max: None,
+        });
+    }
+    if !console {
+        return Ok(Online {
+            running: true,
+            players: None,
+            max: None,
+        });
+    }
+
+    let key = format!("minecraft::online::{}", server.uuid);
+    if let Ok(Some(cached)) = state.cache.get::<Online>(&key).await {
+        return Ok(cached);
+    }
+    // one `list` at a time per server: a second page asking waits for the first answer
+    let _lock = state
+        .cache
+        .lock(
+            format!("minecraft::online_lock::{}", server.uuid),
+            Some(10),
+            Some(4000),
+        )
+        .await
+        .ok();
+    if let Ok(Some(cached)) = state.cache.get::<Online>(&key).await {
+        return Ok(cached);
+    }
+
+    // Bukkit's plugins (Essentials) replace `list`; `minecraft:list` is always the game's own,
+    // but only Bukkit servers know that name
+    let paper = super::software(state, server)
+        .await
+        .is_ok_and(|software| software.loader == Some(super::Loader::Paper));
+    let command = if paper {
+        "minecraft:list uuids"
+    } else {
+        "list uuids"
+    };
+
+    let before = console_lines(&client, server).await;
+    if files::command(&client, server, command).await.is_err() {
+        return Ok(Online {
+            running: true,
+            players: None,
+            max: None,
+        });
+    }
+
+    for _ in 0..ONLINE_TRIES {
+        tokio::time::sleep(ONLINE_WAIT).await;
+
+        let after = console_lines(&client, server).await;
+        if let Some((players, max)) = parse_list(&new_lines(&before, after)) {
+            let online = Online {
+                running: true,
+                players: Some(players),
+                max,
+            };
+            state.cache.set(&key, ONLINE_TTL, &online).await.ok();
+
+            return Ok(online);
+        }
+    }
+
+    Ok(Online {
+        running: true,
+        players: None,
+        max: None,
+    })
+}
+
+async fn console_lines(client: &wings_api::client::WingsClient, server: &Server) -> Vec<String> {
+    files::console_tail(client, server, 80, 128 * 1024)
+        .await
+        .unwrap_or_default()
+        .lines()
+        .map(clean_line)
+        .collect()
+}
+
+/// A console line without its colours (ANSI escapes, `§` codes).
+fn clean_line(line: &str) -> String {
+    let mut clean = String::with_capacity(line.len());
+    let mut chars = line.chars().peekable();
+
+    while let Some(c) = chars.next() {
+        match c {
+            '\u{1b}' => {
+                // CSI: ESC [ … final byte in @..~
+                if chars.peek() == Some(&'[') {
+                    chars.next();
+                    for next in chars.by_ref() {
+                        if ('@'..='~').contains(&next) {
+                            break;
+                        }
+                    }
+                }
+            }
+            '§' => {
+                chars.next();
+            }
+            c if c.is_control() => {}
+            c => clean.push(c),
+        }
+    }
+
+    clean.trim().to_string()
+}
+
+/// The lines that arrived after `before`'s last line.
+fn new_lines(before: &[String], after: Vec<String>) -> Vec<String> {
+    let Some(last) = before.iter().rev().find(|line| !line.is_empty()) else {
+        return after;
+    };
+
+    match after.iter().rposition(|line| line == last) {
+        Some(index) => after[index + 1..].to_vec(),
+        None => after,
+    }
+}
+
+/// The message of a log line, without the time and thread in front (`[12:00:00] [Server
+/// thread/INFO]: `, `[12:00:00 INFO]: `).
+fn message(line: &str) -> &str {
+    match line.find("]: ") {
+        Some(index) if line.starts_with('[') => line[index + 3..].trim(),
+        _ => line.trim(),
+    }
+}
+
+/// The last answer of `list` in the lines: who is online and the limit. 1.13+ answers in one
+/// line (`There are 2 of a max of 20 players online: Alex (uuid), Steve (uuid)`), 1.12 in two
+/// (`There are 2/20 players online:`, then the names).
+fn parse_list(lines: &[String]) -> Option<(Vec<OnlinePlayer>, Option<u32>)> {
+    static LIST: std::sync::LazyLock<regex::Regex> = std::sync::LazyLock::new(|| {
+        regex::Regex::new(
+            r"^There are (\d+)(?: of a max(?:imum)? of |/| out of maximum )(\d+) players online[:.]?\s*(.*)$",
+        )
+        .expect("valid regex")
+    });
+    static NAMED: std::sync::LazyLock<regex::Regex> = std::sync::LazyLock::new(|| {
+        regex::Regex::new(r"^(.+?) \(([0-9a-fA-F]{8}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{12})\)$")
+            .expect("valid regex")
+    });
+
+    let (index, captures) = lines
+        .iter()
+        .enumerate()
+        .rev()
+        .find_map(|(index, line)| LIST.captures(message(line)).map(|c| (index, c)))?;
+
+    let count: usize = captures[1].parse().ok()?;
+    let max = captures[2].parse::<u32>().ok();
+    if count == 0 {
+        return Some((Vec::new(), max));
+    }
+
+    let names = match captures[3].trim() {
+        "" => message(lines.get(index + 1)?).to_string(),
+        names => names.to_string(),
+    };
+
+    let players: Vec<OnlinePlayer> = names
+        .split(", ")
+        .map(str::trim)
+        .filter(|name| !name.is_empty())
+        .map(|entry| match NAMED.captures(entry) {
+            Some(named) => OnlinePlayer {
+                name: named[1].trim().into(),
+                uuid: uuid::Uuid::try_parse(&named[2])
+                    .ok()
+                    .map(|uuid| uuid.hyphenated().to_string().into()),
+            },
+            None => OnlinePlayer {
+                name: entry.into(),
+                uuid: None,
+            },
+        })
+        .collect();
+
+    Some((players, max))
 }
 
 /// Whether the change went in live (console) or into the files (from the next start).
@@ -576,5 +1006,153 @@ mod tests {
         assert_eq!(roster.players[1].ban.as_ref().unwrap().reason, "Griefing");
         assert_eq!(roster.players[3].operator, Some(3));
         assert!(!roster.players[3].whitelisted);
+    }
+
+    fn lines(raw: &[&str]) -> Vec<String> {
+        raw.iter().map(|line| clean_line(line)).collect()
+    }
+
+    #[test]
+    fn list_answers_are_read() {
+        // 1.13+, vanilla's log format, with uuids
+        let (players, max) = parse_list(&lines(&[
+            "[12:00:00] [Server thread/INFO]: Done (3.2s)!",
+            "[12:00:01] [Server thread/INFO]: There are 2 of a max of 20 players online: Alex (6AB43178-89FD-4905-97F6-0F67D9D76FD9), .Bedrock_1 (00000000-0000-0000-0009-01f64f65c7c3)",
+        ]))
+        .unwrap();
+        assert_eq!(max, Some(20));
+        assert_eq!(
+            players,
+            vec![
+                OnlinePlayer {
+                    name: "Alex".into(),
+                    uuid: Some("6ab43178-89fd-4905-97f6-0f67d9d76fd9".into()),
+                },
+                OnlinePlayer {
+                    name: ".Bedrock_1".into(),
+                    uuid: Some("00000000-0000-0000-0009-01f64f65c7c3".into()),
+                },
+            ]
+        );
+
+        // Paper's log format with colours, nobody online
+        let (players, max) = parse_list(&lines(&[
+            "\u{1b}[36m[12:00:00 INFO]: \u{1b}[0mThere are 0 of a max of 10 players online: ",
+        ]))
+        .unwrap();
+        assert!(players.is_empty());
+        assert_eq!(max, Some(10));
+
+        // 1.12: the names on the next line, no uuids
+        let (players, _) = parse_list(&lines(&[
+            "[12:00:00] [Server thread/INFO]: There are 1/20 players online:",
+            "[12:00:00] [Server thread/INFO]: Steve",
+        ]))
+        .unwrap();
+        assert_eq!(players[0].name, "Steve");
+        assert_eq!(players[0].uuid, None);
+
+        // the last answer counts; no answer is "unknown"
+        let (players, _) = parse_list(&lines(&[
+            "[1] [Server thread/INFO]: There are 1 of a max of 20 players online: Steve",
+            "[2] [Server thread/INFO]: There are 0 of a max of 20 players online: ",
+        ]))
+        .unwrap();
+        assert!(players.is_empty());
+        assert!(parse_list(&lines(&["[1] [Server thread/INFO]: Unknown command"])).is_none());
+    }
+
+    #[test]
+    fn only_new_console_lines_count() {
+        let before = lines(&["a", "b"]);
+        assert_eq!(new_lines(&before, lines(&["a", "b", "c"])), vec!["c"]);
+        assert_eq!(new_lines(&before, lines(&["b", "c", "d"])), vec!["c", "d"]);
+        assert_eq!(new_lines(&[], lines(&["x"])), vec!["x"]);
+        // the window moved past what was seen: everything is new
+        assert_eq!(new_lines(&before, lines(&["y", "z"])), vec!["y", "z"]);
+    }
+
+    #[test]
+    fn online_is_known_only_with_uuids() {
+        let online = Online {
+            running: true,
+            players: Some(vec![OnlinePlayer {
+                name: "Alex".into(),
+                uuid: Some("6ab43178-89fd-4905-97f6-0f67d9d76fd9".into()),
+            }]),
+            max: Some(20),
+        };
+        assert_eq!(
+            online.has("6AB43178-89FD-4905-97F6-0F67D9D76FD9"),
+            Some(true)
+        );
+        assert_eq!(
+            online.has("b50ad385-829d-3141-a216-7e7d7539ba7f"),
+            Some(false)
+        );
+
+        let unknown = Online {
+            running: true,
+            players: None,
+            max: None,
+        };
+        assert_eq!(unknown.has("x"), None);
+        let stopped = Online {
+            running: false,
+            players: Some(Vec::new()),
+            max: None,
+        };
+        assert_eq!(stopped.has("x"), Some(false));
+    }
+
+    #[test]
+    fn players_who_joined_join_the_roster() {
+        let files = Files {
+            properties: None,
+            whitelist: entries(Some(
+                r#"[{"uuid":"6ab43178-89fd-4905-97f6-0f67d9d76fd9","name":"Alex"},{"name":"Steve"}]"#,
+            )),
+            ops: Vec::new(),
+            bans: Vec::new(),
+        };
+        let mut players = files.roster(false).players;
+        let at = chrono::DateTime::from_timestamp(1_800_000_000, 0).unwrap();
+        let cache = usercache(Some(
+            r#"[{"name":"Steve","uuid":"8667BA71-B85A-4004-AF54-457A9734EED7","expiresOn":"2026-11-01 10:00:00 +0000"},{"name":"Zed","uuid":"b50ad385-829d-3141-a216-7e7d7539ba7f"}]"#,
+        ));
+
+        merge_joined(
+            &mut players,
+            vec![
+                ("6ab43178-89fd-4905-97f6-0f67d9d76fd9".into(), at),
+                ("8667ba71-b85a-4004-af54-457a9734eed7".into(), at),
+                ("b50ad385-829d-3141-a216-7e7d7539ba7f".into(), at),
+                ("0d472393-237b-483f-b337-a31d485a6f47".into(), at),
+            ],
+            &cache,
+        );
+
+        let rows: Vec<(&str, &str, bool, bool)> = players
+            .iter()
+            .map(|player| {
+                (
+                    player.name.as_str(),
+                    player.uuid.as_str(),
+                    player.whitelisted,
+                    player.last_played.is_some(),
+                )
+            })
+            .collect();
+        assert_eq!(
+            rows,
+            vec![
+                ("Alex", "6ab43178-89fd-4905-97f6-0f67d9d76fd9", true, true),
+                // the whitelist's entry without a uuid gets the one the cache knows
+                ("Steve", "8667ba71-b85a-4004-af54-457a9734eed7", true, true),
+                ("Zed", "b50ad385-829d-3141-a216-7e7d7539ba7f", false, true),
+                // a file nobody can name sorts last
+                ("", "0d472393-237b-483f-b337-a31d485a6f47", false, true),
+            ]
+        );
     }
 }

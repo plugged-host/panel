@@ -91,12 +91,16 @@ impl ServerSuspension {
         }))
     }
 
-    pub fn into_api_object(self) -> ApiServerSuspension {
+    pub fn into_api_object(
+        self,
+        help_url: Option<compact_str::CompactString>,
+    ) -> ApiServerSuspension {
         ApiServerSuspension {
             kind: self.kind,
             reason: self.reason,
             suspended: self.suspended.map(|at| at.and_utc()),
             delete_at: self.delete_at.map(|at| at.and_utc()),
+            help_url,
         }
     }
 
@@ -120,6 +124,24 @@ pub struct ApiServerSuspension {
     pub suspended: Option<chrono::DateTime<chrono::Utc>>,
     /// When the purge deletes the server, unless it is unsuspended first.
     pub delete_at: Option<chrono::DateTime<chrono::Utc>>,
+    /// Where to ask for help ([`help_url`]); `None` says to contact the panel's administrators.
+    pub help_url: Option<compact_str::CompactString>,
+}
+
+/// Where the owner of a suspended server asks for help: neo's support link, else the Discord
+/// invite, as on the Pelican panel's suspended page; `None` while neither is set.
+pub fn help_url(settings: &crate::settings::AppSettings) -> Option<compact_str::CompactString> {
+    first_link([&settings.neo.support_url, &settings.discord.invite_url])
+}
+
+fn first_link<'a>(
+    links: impl IntoIterator<Item = &'a compact_str::CompactString>,
+) -> Option<compact_str::CompactString> {
+    links
+        .into_iter()
+        .map(|link| link.trim())
+        .find(|link| !link.is_empty())
+        .map(Into::into)
 }
 
 #[derive(ToSchema, Serialize, Clone, Debug)]
@@ -281,7 +303,8 @@ impl super::Server {
 const PURGE_BATCH: i64 = 20;
 
 /// Deletes suspended servers whose `suspension_delete_at` has passed (the `purge_suspended_servers`
-/// task). Their backups stay. A server whose node cannot delete it is tried again next run.
+/// task). Their backups stay, except for `noprofit` ones (the owner's account is gone). A server
+/// whose node cannot delete it is tried again next run.
 pub async fn purge_due(state: &crate::State) -> Result<usize, anyhow::Error> {
     use crate::models::{ByUuid, DeletableModel};
 
@@ -304,10 +327,20 @@ pub async fn purge_due(state: &crate::State) -> Result<usize, anyhow::Error> {
             _ => continue,
         };
 
-        match server
-            .delete(state, super::DeleteServerOptions { force: false })
-            .await
+        // the owner's noprofit.space account is gone: nobody is left to keep the backups for
+        let result = if server
+            .suspension
+            .as_ref()
+            .is_some_and(|suspension| suspension.kind == SuspensionKind::Noprofit)
         {
+            crate::noprofit::delete_server_with_backups(state, &server).await
+        } else {
+            server
+                .delete(state, super::DeleteServerOptions { force: false })
+                .await
+        };
+
+        match result {
             Ok(()) => {
                 tracing::info!(server = %server_uuid, name = %server.name, "deleted a suspended server whose deletion time passed");
                 deleted += 1;
@@ -329,10 +362,12 @@ pub async fn purge_due(state: &crate::State) -> Result<usize, anyhow::Error> {
     Ok(deleted)
 }
 
-/// Suspends every server a user owns for noprofit.space (the account is gone there).
+/// Suspends every server a user owns for noprofit.space (the account is gone there), to be
+/// deleted at `delete_at` (`None`: never).
 pub async fn suspend_owned_for_noprofit(
     state: &crate::State,
     owner_uuid: uuid::Uuid,
+    delete_at: Option<chrono::DateTime<chrono::Utc>>,
 ) -> Result<(), anyhow::Error> {
     let mut page = 1;
     loop {
@@ -357,7 +392,7 @@ pub async fn suspend_owned_for_noprofit(
                         kind: SuspensionKind::Noprofit,
                         reason: None,
                         by: None,
-                        delete_at: None,
+                        delete_at,
                     },
                 )
                 .await
@@ -367,6 +402,45 @@ pub async fn suspend_owned_for_noprofit(
         }
 
         page += 1;
+    }
+
+    Ok(())
+}
+
+/// Lifts the `noprofit` suspensions of a user's servers: noprofit.space has the account again
+/// (it was missing from an answer by mistake). Other suspensions stay.
+pub async fn unsuspend_owned_for_noprofit(
+    state: &crate::State,
+    owner_uuid: uuid::Uuid,
+) -> Result<(), anyhow::Error> {
+    use crate::models::{ByUuid, UpdatableModel};
+
+    let suspended: Vec<uuid::Uuid> = sqlx::query_scalar(
+        "SELECT uuid FROM servers
+        WHERE owner_uuid = $1 AND suspended AND suspension_kind = 'noprofit'",
+    )
+    .bind(owner_uuid)
+    .fetch_all(state.database.write())
+    .await?;
+
+    for server_uuid in suspended {
+        let Some(mut server) =
+            super::Server::by_uuid_optional(&state.database, server_uuid).await?
+        else {
+            continue;
+        };
+        let options = super::UpdateServerOptions {
+            suspended: Some(false),
+            ..Default::default()
+        };
+
+        if let Err(err) = server.update(state, options).await {
+            tracing::warn!(server = %server_uuid, "failed to lift the noprofit.space suspension of a server: {err:#?}");
+            continue;
+        }
+        if let Err(err) = server.sync(state).await {
+            tracing::warn!(server = %server_uuid, "failed to tell the node a server is no longer suspended: {err:#}");
+        }
     }
 
     Ok(())
@@ -391,5 +465,19 @@ mod tests {
     fn unknown_kind_reads_as_manual() {
         assert_eq!(SuspensionKind::parse(None), SuspensionKind::Manual);
         assert_eq!(SuspensionKind::parse(Some("other")), SuspensionKind::Manual);
+    }
+
+    #[test]
+    fn help_goes_to_support_then_discord() {
+        let support = compact_str::CompactString::from("https://help.example.com");
+        let invite = compact_str::CompactString::from(" https://discord.gg/example ");
+        let empty = compact_str::CompactString::from("  ");
+
+        assert_eq!(first_link([&support, &invite]), Some(support.clone()));
+        assert_eq!(
+            first_link([&empty, &invite]).as_deref(),
+            Some("https://discord.gg/example")
+        );
+        assert_eq!(first_link([&empty, &empty]), None);
     }
 }

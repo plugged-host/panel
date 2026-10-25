@@ -99,6 +99,7 @@ settings do not give; noprofit.space is named only while it is connected.
 | VS Code | `devboxes::*` (offered, members only, browser version) |
 | Minecraft, FiveM | eggs with the `eula` / `cfx` features, `games::minecraft_*`, `games::fivem_enhanced` |
 | Help, legal and privacy contacts, neo's extra usage | `neo::support_url`, `legal_email`, `privacy_email`, `plus_percent`, `plusplus_percent` |
+| The review page, given only when asked ([reviews.md](reviews.md)) | `reviews::url`, the site's name |
 | Discord invite, rewards, tier, subdomain rules | `discord::*` while the section is on; the reward amounts and the tier only without noprofit.space (it pays them then) |
 
 - **neo on Discord** (`prompt::discord_chat`): account support, not server support. It sends server

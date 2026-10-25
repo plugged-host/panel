@@ -22,14 +22,18 @@ pub struct AppSettingsAds {
     /// Accounts with the second membership see no ads; the first one's refresh slower.
     pub member_free: bool,
 
-    /// A leaderboard above every page.
+    /// The sponsored top banners above every page (as the Pelican panel's ads 2.2.2, no ad zone
+    /// there any more).
     pub slot_top: bool,
     /// A strip under the header of a server's pages (not the console).
     pub slot_server_tools: bool,
     /// A rectangle on Create Server, the Resource Store and the server list.
     pub slot_pages: bool,
-    /// A leaderboard, a rectangle and the native unit at the foot of every page.
+    /// A leaderboard and the native unit at the foot of every page.
     pub slot_foot: bool,
+    /// The most units the server tools strip and the page slots fill together on one page (the
+    /// Pelican panel's `max_units_per_page`); 0 fills none of them.
+    pub max_units_per_page: i32,
 
     /// Seconds in view after which a unit reloads; 0 never.
     pub refresh_seconds: i32,
@@ -118,6 +122,7 @@ impl Default for AppSettingsAds {
             slot_server_tools: true,
             slot_pages: true,
             slot_foot: true,
+            max_units_per_page: 2,
             refresh_seconds: 5,
             refresh_member_seconds: 10,
             zones: CompactString::default(),
@@ -216,6 +221,8 @@ pub struct PayloadAds {
     slot_pages: Option<bool>,
     #[garde(skip)]
     slot_foot: Option<bool>,
+    #[garde(inner(range(min = 0, max = 20)))]
+    max_units_per_page: Option<i32>,
     #[garde(inner(range(min = 0, max = 3600)))]
     refresh_seconds: Option<i32>,
     #[garde(inner(range(min = 0, max = 3600)))]
@@ -339,6 +346,7 @@ impl PayloadAds {
             slot_server_tools,
             slot_pages,
             slot_foot,
+            max_units_per_page,
             refresh_seconds,
             refresh_member_seconds,
             native_height,
@@ -499,6 +507,7 @@ impl SettingsSerializeExt for AppSettingsAds {
             slot_server_tools,
             slot_pages,
             slot_foot,
+            max_units_per_page,
             refresh_seconds,
             refresh_member_seconds,
             zones,
@@ -574,6 +583,7 @@ impl SettingsDeserializeExt for AppSettingsAdsDeserializer {
             slot_server_tools,
             slot_pages,
             slot_foot,
+            max_units_per_page,
             refresh_seconds,
             refresh_member_seconds,
             zones,

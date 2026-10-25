@@ -9,8 +9,9 @@
 //! rewards (`discord_members.invite_debt`). [`reconcile`] looks for departures the bot missed;
 //! only Discord saying "no such member" counts.
 //!
-//! With noprofit.space connected invites are counted and shown but not paid (noprofit.space pays
-//! Discord rewards); they stay waiting.
+//! With noprofit.space connected (its account sync on) the rewards, clawbacks and owed credits go
+//! to the account's balance there: queued with the change ([`crate::noprofit::queue_credit_change`])
+//! and sent right after, like Pelican's credit outbox. noprofit.space pays the boosts then.
 
 use super::{Context, TYPE_INVITE, TYPE_INVITE_CLAWBACK, TYPE_INVITE_DEBT, rest};
 use crate::economy::{self, Currency};
@@ -42,6 +43,81 @@ pub fn eligible(
     min_days: i32,
 ) -> bool {
     inviter != joined && now - account_created >= chrono::Duration::days(min_days.max(0) as i64)
+}
+
+/// Where the credits of an invite go.
+enum Ledger {
+    /// The panel's balance (`users.credits`).
+    Panel,
+    /// The account's balance on noprofit.space.
+    Noprofit { account_id: i64 },
+}
+
+impl Ledger {
+    /// The inviter's ledger in `transaction`, with the balance a clawback may take from (with
+    /// noprofit.space: what it last said plus the changes not sent yet). `None`: the inviter's
+    /// noprofit.space account is gone.
+    async fn of(
+        transaction: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+        context: &Context,
+        user_uuid: uuid::Uuid,
+    ) -> Result<Option<(Self, i64)>, sqlx::Error> {
+        if context.connected {
+            return Ok(crate::noprofit::pending_balance(transaction, user_uuid)
+                .await?
+                .map(|(account_id, balance)| (Self::Noprofit { account_id }, balance)));
+        }
+
+        let balance: i64 =
+            sqlx::query_scalar("SELECT credits FROM users WHERE uuid = $1 FOR UPDATE")
+                .bind(user_uuid)
+                .fetch_optional(&mut **transaction)
+                .await?
+                .unwrap_or(0);
+
+        Ok(Some((Self::Panel, balance)))
+    }
+
+    async fn change(
+        &self,
+        transaction: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+        user_uuid: uuid::Uuid,
+        amount: i64,
+        kind: &str,
+        description: &str,
+        data: serde_json::Value,
+    ) -> Result<(), sqlx::Error> {
+        match self {
+            Self::Panel => {
+                economy::change(
+                    transaction,
+                    Currency::Credits,
+                    user_uuid,
+                    amount,
+                    kind,
+                    description,
+                    data,
+                )
+                .await?;
+            }
+            // nothing to send
+            Self::Noprofit { .. } if amount == 0 => {}
+            Self::Noprofit { account_id } => {
+                crate::noprofit::queue_credit_change(
+                    transaction,
+                    user_uuid,
+                    *account_id,
+                    amount,
+                    kind,
+                    description,
+                    data,
+                )
+                .await?;
+            }
+        }
+
+        Ok(())
+    }
 }
 
 /// Splits a clawback into what the balance gives back and what is owed.
@@ -207,34 +283,36 @@ pub async fn record_leave(
     .execute(&mut *transaction)
     .await?;
 
-    if rewarded.is_some() && revoked.is_none() && context.settings.invite_clawback && context.pays()
+    let mut queued = false;
+    if rewarded.is_some()
+        && revoked.is_none()
+        && context.settings.invite_clawback
+        && context.pays_invites()
     {
         let user_uuid = super::user_for_discord_id(state, context, &inviter).await?;
         let mut taken = 0;
-        if let Some(user_uuid) = user_uuid {
-            let balance: i64 =
-                sqlx::query_scalar("SELECT credits FROM users WHERE uuid = $1 FOR UPDATE")
-                    .bind(user_uuid)
-                    .fetch_optional(&mut *transaction)
-                    .await?
-                    .unwrap_or(0);
+        if let Some(user_uuid) = user_uuid
+            && let Some((ledger, balance)) =
+                Ledger::of(&mut transaction, context, user_uuid).await?
+        {
             let (from_balance, owed) = clawback(balance, credits);
             taken = from_balance;
 
-            economy::change(
-                &mut transaction,
-                Currency::Credits,
-                user_uuid,
-                -taken,
-                TYPE_INVITE_CLAWBACK,
-                &if owed > 0 {
-                    format!("An invited member left, {owed} credits owed")
-                } else {
-                    "An invited member left".to_string()
-                },
-                serde_json::json!({ "joined_discord_id": joined, "credits": credits, "owed": owed }),
-            )
-            .await?;
+            ledger
+                .change(
+                    &mut transaction,
+                    user_uuid,
+                    -taken,
+                    TYPE_INVITE_CLAWBACK,
+                    &if owed > 0 {
+                        format!("An invited member left, {owed} credits owed")
+                    } else {
+                        "An invited member left".to_string()
+                    },
+                    serde_json::json!({ "joined_discord_id": joined, "credits": credits, "owed": owed }),
+                )
+                .await?;
+            queued = matches!(ledger, Ledger::Noprofit { .. });
         }
         let owed = credits.max(0) - taken;
         if owed > 0 {
@@ -261,7 +339,19 @@ pub async fn record_leave(
     }
     transaction.commit().await?;
 
+    if queued {
+        send_credit_changes(state).await;
+    }
+
     Ok(leave)
+}
+
+/// Sends the credit changes just queued for noprofit.space; what fails goes with the next
+/// account sync.
+async fn send_credit_changes(state: &crate::State) {
+    if let Err(err) = crate::noprofit::push_credit_changes(state).await {
+        tracing::warn!("failed to send invite credits to noprofit.space: {err:#}");
+    }
 }
 
 /// Pays the held invites that matured (of one inviter, or of everyone), after making sure with
@@ -272,7 +362,7 @@ pub async fn settle(
     context: &Context,
     inviter: Option<&str>,
 ) -> Result<i64, anyhow::Error> {
-    if !context.pays() {
+    if !context.pays_invites() {
         return Ok(0);
     }
     let Some(rest) = context.rest(state) else {
@@ -280,21 +370,26 @@ pub async fn settle(
     };
     let per_invite = context.settings.credits_per_invite.max(0) as i64;
 
-    // only inviters who linked a panel account: the others' joins wait, and must not fill a run
+    // only inviters who linked a panel account (with noprofit.space: whose account there has
+    // their Discord account): the others' joins wait, and must not fill a run
     let rows: Vec<(uuid::Uuid, String, String)> = sqlx::query_as(
         "SELECT i.uuid, i.inviter_discord_id, i.joined_discord_id FROM discord_invites i
         WHERE i.rewarded IS NULL AND i.eligible AND i.departed IS NULL AND i.matures <= NOW()
             AND ($1::varchar IS NULL OR i.inviter_discord_id = $1)
-            AND EXISTS (
+            AND CASE WHEN $4::boolean THEN EXISTS (
+                SELECT 1 FROM user_noprofit_accounts n
+                WHERE n.discord->>'id' = i.inviter_discord_id AND n.deleted IS NULL
+            ) ELSE EXISTS (
                 SELECT 1 FROM user_oauth_links l
                 WHERE l.oauth_provider_uuid = $3 AND l.identifier = i.inviter_discord_id
-            )
+            ) END
         ORDER BY i.matures
         LIMIT $2",
     )
     .bind(inviter)
     .bind(SETTLE_PER_RUN)
     .bind(context.settings.oauth_provider_uuid)
+    .bind(context.connected)
     .fetch_all(state.database.read())
     .await?;
 
@@ -304,6 +399,7 @@ pub async fn settle(
     }
 
     let mut total = 0;
+    let mut queued = false;
     for (inviter, joins) in by_inviter {
         // waits for its inviter to link a panel account
         let Some(user_uuid) = super::user_for_discord_id(state, context, &inviter).await? else {
@@ -341,21 +437,25 @@ pub async fn settle(
             transaction.commit().await?;
             continue;
         }
+        // its noprofit.space account went away meanwhile: they wait (the claim is rolled back)
+        let Some((ledger, _)) = Ledger::of(&mut transaction, context, user_uuid).await? else {
+            continue;
+        };
 
-        economy::change(
-            &mut transaction,
-            Currency::Credits,
-            user_uuid,
-            gross,
-            TYPE_INVITE,
-            &if count == 1 {
-                "1 invited member".to_string()
-            } else {
-                format!("{count} invited members")
-            },
-            serde_json::json!({ "discord_id": inviter, "invites": count, "per_invite": per_invite }),
-        )
-        .await?;
+        ledger
+            .change(
+                &mut transaction,
+                user_uuid,
+                gross,
+                TYPE_INVITE,
+                &if count == 1 {
+                    "1 invited member".to_string()
+                } else {
+                    format!("{count} invited members")
+                },
+                serde_json::json!({ "discord_id": inviter, "invites": count, "per_invite": per_invite }),
+            )
+            .await?;
 
         let debt: i64 = sqlx::query_scalar(
             "SELECT invite_debt FROM discord_members WHERE discord_id = $1 FOR UPDATE",
@@ -373,20 +473,25 @@ pub async fn settle(
             .bind(applied)
             .execute(&mut *transaction)
             .await?;
-            economy::change(
-                &mut transaction,
-                Currency::Credits,
-                user_uuid,
-                -applied,
-                TYPE_INVITE_DEBT,
-                "Owed invite credits",
-                serde_json::json!({ "discord_id": inviter, "owed": debt - applied }),
-            )
-            .await?;
+            ledger
+                .change(
+                    &mut transaction,
+                    user_uuid,
+                    -applied,
+                    TYPE_INVITE_DEBT,
+                    "Owed invite credits",
+                    serde_json::json!({ "discord_id": inviter, "owed": debt - applied }),
+                )
+                .await?;
         }
         transaction.commit().await?;
 
+        queued |= matches!(ledger, Ledger::Noprofit { .. });
         total += gross - applied;
+    }
+
+    if queued {
+        send_credit_changes(state).await;
     }
 
     Ok(total)

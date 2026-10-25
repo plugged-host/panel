@@ -6,19 +6,20 @@
 //! Around it this adds the choice of node and ports, a cooldown, retries on another node of the
 //! location, a cancel, queued moves for "Lighten load", and starting the server again when it was
 //! running. Each move is a row in `server_transfer_requests`; [`settle`] (the `settle_transfers`
-//! task) moves it along once the native transfer is over. What happens to a move is also written to
-//! the server's activity log (`server:transfer.*`, with the request's uuid), which the Transfer page
-//! shows as the move's timeline.
+//! task) moves it along once the native transfer is over, and cancels a copy that stopped moving
+//! (or whose new node never confirmed it) so that it ends like a failed one ([`watch_copy`]). What
+//! happens to a move is also written to the server's activity log (`server:transfer.*`, with the
+//! request's uuid), which the Transfer page shows as the move's timeline.
 
 use crate::{
     models::{
-        ByUuid, CreatableModel,
+        ByUuid, CreatableModel, EventEmittingModel,
         egg_configuration::{EggConfiguration, EggConfigurationTarget},
         location::Location,
         nest_egg_variable::NestEggVariable,
         node::Node,
         node_allocation::NodeAllocation,
-        server::{AdminApiServerLimits, Server, ServerStatus, ServerTransferOptions},
+        server::{AdminApiServerLimits, Server, ServerEvent, ServerStatus, ServerTransferOptions},
         server_activity::{CreateServerActivityOptions, ServerActivity},
         server_allocation::ServerAllocation,
         server_backup::ServerBackup,
@@ -29,7 +30,10 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 use sqlx::Row;
-use std::collections::{BTreeMap, HashMap};
+use std::{
+    collections::{BTreeMap, HashMap, HashSet},
+    sync::{LazyLock, Mutex},
+};
 use utoipa::ToSchema;
 
 /// Waits for its turn ("Lighten load" moves a few at a time).
@@ -43,6 +47,8 @@ pub const CANCELLED: &str = "cancelled";
 
 pub const ORIGIN_USER: &str = "user";
 pub const ORIGIN_ADMIN: &str = "admin";
+/// plugged.host: limbo's restore of a server parked on a limbo node ([`limbo_request`])
+pub const ORIGIN_LIMBO: &str = "limbo";
 
 /// How long the Transfer page shows how the last move ended (and its timeline), in minutes.
 pub const OUTCOME_MINUTES: i64 = 10;
@@ -57,6 +63,19 @@ const TIMELINE: i64 = 40;
 const NO_NODE: &str = "no node can take the server right now";
 const COPY_FAILED: &str = "the copy to the new node failed on every node tried";
 const MOVED_MEANWHILE: &str = "the server moved or changed meanwhile";
+
+/// Why [`settle`] cancelled an attempt, the `reason` of its `server:transfer.attempt-failed` line
+/// (a key of `pages.server.transfer.reasons`): no copy progress for the stall time, or no
+/// confirmation from the new node for the finalize time after the last byte.
+pub const REASON_STALLED: &str = "stalled";
+pub const REASON_UNFINALIZED: &str = "unfinalized";
+/// A cancel asked by the owner or an admin, which Wings did not report either.
+const REASON_CANCELLED: &str = "cancelled";
+/// Seconds Wings gets to report a cancelled copy before [`settle`] releases the server itself.
+const ABORT_GRACE_SECONDS: i64 = 120;
+/// A copy whose old node does not answer the panel may still be streaming: it gets the stall time
+/// plus its size at this rate (the Pelican panel's watcher without its socket does the same).
+const SILENT_RATE: u64 = 5 * 1024 * 1024;
 
 /// The copy speed the offline estimate assumes (the Pelican panel's figure before it measured a
 /// move), and the seconds it adds for the stop, the check on the new node and the start.
@@ -571,6 +590,144 @@ pub fn progress_of(
         rate,
         eta_seconds: rate.map(|rate| total.saturating_sub(done).div_ceil(rate)),
     }
+}
+
+/// What the old node says about a running copy, at one look.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Seen {
+    /// It lists the transfer with its counters.
+    Copying {
+        archived: u64,
+        sent: u64,
+        total: u64,
+        files: u64,
+    },
+    /// It answers but does not list the transfer.
+    Missing,
+    /// It does not answer.
+    Unreachable,
+}
+
+impl Seen {
+    /// Every byte is archived: the new node is checking and unpacking the copy.
+    fn handed_off(self) -> bool {
+        matches!(self, Self::Copying { archived, total, .. } if total > 0 && archived >= total)
+    }
+}
+
+/// What the stall watch keeps of a running copy between two looks. It lives in the panel's memory:
+/// a restart starts its clocks again, which only gives a copy more time.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Watch {
+    /// The attempt it watches; a new attempt starts a new watch.
+    pub attempt: i32,
+    /// The counters last listed: `(archived, sent, total, files)`.
+    pub counters: Option<(u64, u64, u64, u64)>,
+    /// When the counters last changed, or the watch began.
+    pub moved_at: chrono::NaiveDateTime,
+    /// When every byte was first seen archived.
+    pub handed_off_at: Option<chrono::NaiveDateTime>,
+    /// The copy was cancelled through Wings for this reason, at this time.
+    pub aborted: Option<(&'static str, chrono::NaiveDateTime)>,
+}
+
+/// What the stall watch decides after a look.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Verdict {
+    Wait,
+    /// No progress for the stall time (or the old node lost the transfer): cancel it.
+    Stalled,
+    /// Every byte was sent, and the new node has not confirmed it for the finalize time.
+    Unfinalized,
+}
+
+impl Verdict {
+    pub fn reason(self) -> Option<&'static str> {
+        match self {
+            Self::Wait => None,
+            Self::Stalled => Some(REASON_STALLED),
+            Self::Unfinalized => Some(REASON_UNFINALIZED),
+        }
+    }
+}
+
+/// The watch of attempt `attempt` after the old node was seen as `seen` at `now`, and whether the
+/// copy stalled. Like the Pelican panel's watcher: progress is any change of the counters; once
+/// every byte is archived only the finalize time counts; while the old node does not answer the
+/// copy gets the stall time plus its size at [`SILENT_RATE`].
+pub fn watch_copy(
+    previous: Option<&Watch>,
+    attempt: i32,
+    seen: Seen,
+    now: chrono::NaiveDateTime,
+    stall_minutes: i32,
+    finalize_minutes: i32,
+) -> (Watch, Verdict) {
+    let counters = match seen {
+        Seen::Copying {
+            archived,
+            sent,
+            total,
+            files,
+        } => Some((archived, sent, total, files)),
+        _ => None,
+    };
+
+    let Some(previous) = previous.filter(|previous| previous.attempt == attempt) else {
+        return (
+            Watch {
+                attempt,
+                counters,
+                moved_at: now,
+                handed_off_at: seen.handed_off().then_some(now),
+                aborted: None,
+            },
+            Verdict::Wait,
+        );
+    };
+    if previous.aborted.is_some() {
+        return (*previous, Verdict::Wait);
+    }
+
+    let moved = counters.is_some() && counters != previous.counters;
+    let watch = Watch {
+        attempt,
+        counters: counters.or(previous.counters),
+        moved_at: if moved { now } else { previous.moved_at },
+        handed_off_at: match seen {
+            Seen::Copying { .. } if seen.handed_off() => previous.handed_off_at.or(Some(now)),
+            Seen::Copying { .. } => None,
+            _ => previous.handed_off_at,
+        },
+        aborted: None,
+    };
+
+    let verdict = if let Some(handed_off_at) = watch.handed_off_at {
+        if now - handed_off_at > chrono::Duration::minutes(finalize_minutes.max(5) as i64) {
+            Verdict::Unfinalized
+        } else {
+            Verdict::Wait
+        }
+    } else {
+        let mut allowed = chrono::Duration::minutes(stall_minutes.max(2) as i64);
+        if seen == Seen::Unreachable {
+            let total = watch.counters.map_or(0, |(_, _, total, _)| total);
+            allowed += chrono::Duration::seconds(total.div_ceil(SILENT_RATE) as i64);
+        }
+
+        if now - watch.moved_at > allowed {
+            Verdict::Stalled
+        } else {
+            Verdict::Wait
+        }
+    };
+
+    (watch, verdict)
+}
+
+/// Whether a copy cancelled at `at` has had its time for Wings to report it.
+pub fn abort_overdue(at: chrono::NaiveDateTime, now: chrono::NaiveDateTime) -> bool {
+    now - at >= chrono::Duration::seconds(ABORT_GRACE_SECONDS)
 }
 
 /// The timeline line a `server:transfer.*` activity of a move stands for: a key of
@@ -1112,6 +1269,31 @@ pub async fn request_preferring(
     prefer: Option<uuid::Uuid>,
     admin: bool,
 ) -> Result<ApiTransferRequest, TransferError> {
+    request_with(state, server, user, location_uuid, prefer, admin, false).await
+}
+
+/// An admin moves the server to the best node of `location_uuid` (Admin › Servers › Transfer, "Best
+/// node"), the way a player's move goes: ports kept where free, backups along, retried on another
+/// node of the location. `start` starts the server on its new node even when it was off.
+pub async fn admin_request(
+    state: &crate::State,
+    server: &Server,
+    admin: &User,
+    location_uuid: uuid::Uuid,
+    start: bool,
+) -> Result<ApiTransferRequest, TransferError> {
+    request_with(state, server, admin, location_uuid, None, true, start).await
+}
+
+async fn request_with(
+    state: &crate::State,
+    server: &Server,
+    user: &User,
+    location_uuid: uuid::Uuid,
+    prefer: Option<uuid::Uuid>,
+    admin: bool,
+    start: bool,
+) -> Result<ApiTransferRequest, TransferError> {
     let (enabled, cooldown_hours) = {
         let settings = state.settings.get().await?;
         (
@@ -1168,7 +1350,7 @@ pub async fn request_preferring(
     let queued = crate::start_queue::entry(&state.database, server.uuid)
         .await?
         .is_some_and(|entry| entry.waiting());
-    let restart = queued || running(state, server).await;
+    let restart = start || queued || running(state, server).await;
     let mut request = insert(
         state,
         server,
@@ -1228,26 +1410,28 @@ pub(crate) struct Picked {
 }
 
 /// Its own port numbers where `node` has them all free on one address, else what the egg
-/// configuration deploys, else any free ones. `None` when the node has too few free allocations.
+/// configuration deploys, else ports inside the deployment port ranges (its own numbers where it
+/// can, made when missing), else any free ones. Egg variables that held one of its old ports
+/// follow it to the new one (docs/features/allocations.md). `None` when the node has no room.
 pub(crate) async fn pick_allocations(
     state: &crate::State,
     server: &Server,
     node: &Node,
 ) -> Result<Option<Picked>, anyhow::Error> {
-    let mut ports = Vec::new();
-    if let Some(primary) = &server.allocation {
-        ports.push(primary.allocation.port);
+    // plugged.host: a server coming back from a limbo node to its home node first gets its old
+    // ports there (docs/features/limbo.md#parked-on-a-node)
+    if let Some(picked) = crate::limbo::home_allocations(state, server, node).await? {
+        return Ok(Some(picked));
     }
-    for allocation in ServerAllocation::all_by_server_uuid(&state.database, server.uuid).await? {
-        if server
-            .allocation
-            .as_ref()
-            .is_some_and(|primary| primary.uuid == allocation.uuid)
-        {
-            continue;
-        }
-        ports.push(allocation.allocation.port);
-    }
+
+    // the order the new allocations line up with the old ones in (crate::allocations::carry_over)
+    let ports = crate::allocations::move_order(
+        server,
+        ServerAllocation::all_by_server_uuid(&state.database, server.uuid).await?,
+    )
+    .into_iter()
+    .map(|allocation| allocation.allocation.port)
+    .collect::<Vec<_>>();
 
     let has_primary = server.allocation.is_some();
     let split = |uuids: Vec<uuid::Uuid>| {
@@ -1305,14 +1489,37 @@ pub(crate) async fn pick_allocations(
             NodeAllocation::get_from_deployment(state, &deployment, node, &mut variables).await
             && (primary.is_some() || !has_primary)
         {
+            let variables = variables
+                .into_iter()
+                .map(|(name, value)| (name.to_string(), value.to_string()))
+                .collect();
+
+            return following_ports(state, server, &ports, primary, additional, variables)
+                .await
+                .map(Some);
+        }
+    }
+
+    match crate::allocations::deploy_for_move(state, node, &ports).await {
+        Ok(Some(picked)) => {
+            let new = picked.iter().map(|(_, port)| *port).collect::<Vec<_>>();
+            let (primary, additional) = split(picked.into_iter().map(|(uuid, _)| uuid).collect());
+
             return Ok(Some(Picked {
                 primary,
                 additional,
-                variables: variables
-                    .into_iter()
-                    .map(|(name, value)| (name.to_string(), value.to_string()))
-                    .collect(),
+                variables: crate::allocations::followed_variables(
+                    &state.database,
+                    server,
+                    &ports,
+                    &new,
+                )
+                .await?,
             }));
+        }
+        Ok(None) => {}
+        Err(err) => {
+            tracing::warn!(server = %server.uuid, node = %node.uuid, "failed to pick ports in the deployment port ranges: {err:?}");
         }
     }
 
@@ -1332,11 +1539,42 @@ pub(crate) async fn pick_allocations(
 
     let (primary, additional) = split(random);
 
-    Ok(Some(Picked {
+    following_ports(state, server, &ports, primary, additional, HashMap::new())
+        .await
+        .map(Some)
+}
+
+/// [`Picked`] with the egg variables that held one of the `old` ports set to the new port in the
+/// same place; `variables` (an egg configuration's) win.
+async fn following_ports(
+    state: &crate::State,
+    server: &Server,
+    old: &[i32],
+    primary: Option<uuid::Uuid>,
+    additional: Vec<uuid::Uuid>,
+    mut variables: HashMap<String, String>,
+) -> Result<Picked, anyhow::Error> {
+    let uuids = primary
+        .into_iter()
+        .chain(additional.iter().copied())
+        .collect::<Vec<_>>();
+    let ports = crate::allocations::ports_of(&state.database, &uuids).await?;
+    let new = uuids
+        .iter()
+        .filter_map(|uuid| ports.get(uuid).copied())
+        .collect::<Vec<_>>();
+
+    for (name, value) in
+        crate::allocations::followed_variables(&state.database, server, old, &new).await?
+    {
+        variables.entry(name).or_insert(value);
+    }
+
+    Ok(Picked {
         primary,
         additional,
-        variables: HashMap::new(),
-    }))
+        variables,
+    })
 }
 
 pub(crate) fn limits(server: &Server) -> AdminApiServerLimits {
@@ -1364,7 +1602,8 @@ async fn start_attempt(
     let source = server.node.fetch_cached(&state.database).await?;
     let location_uuid = request.location_uuid.unwrap_or(source.location.uuid);
     // players' servers go to game nodes; an admin's move stays among nodes of the source's role
-    let role = if request.origin == ORIGIN_USER {
+    // plugged.host: a limbo restore leaves a limbo node for a game node
+    let role = if request.origin == ORIGIN_USER || request.origin == ORIGIN_LIMBO {
         GAME_ROLE
     } else {
         source.role.as_str()
@@ -1486,7 +1725,8 @@ pub async fn cancel(
             TransferError::NotMoving
         });
     };
-    if request.origin == ORIGIN_ADMIN && !admin {
+    // plugged.host: a limbo restore's move is limbo's (it fails the restore when cancelled)
+    if request.origin != ORIGIN_USER && !admin {
         return Err(TransferError::AdminMove);
     }
 
@@ -1595,7 +1835,8 @@ async fn fail(state: &crate::State, request: &TransferRequest) {
     .await;
 }
 
-/// Writes the new ports into the egg variables the egg configuration named.
+/// Writes the new ports into the egg variables the egg configuration named and the ones that held
+/// one of the server's old ports (docs/features/allocations.md).
 async fn write_variables(
     state: &crate::State,
     request: &TransferRequest,
@@ -1625,28 +1866,241 @@ async fn write_variables(
     Ok(())
 }
 
+/// Ends the server's native transfer as failed, the way Wings' own failure report does
+/// (`POST /api/remote/servers/{server}/transfer/failure`): the server stays on its node, the
+/// allocations it got on the new node are given back, the new node drops its copy, and
+/// `TransferCompleted { successful: false }` is emitted. The old node keeps its copy until the panel
+/// records a success, so nothing is lost. `false` when no transfer was under way any more.
+pub async fn release(state: &crate::State, server: &Server) -> Result<bool, anyhow::Error> {
+    let Some(destination) = &server.destination_node else {
+        return Ok(false);
+    };
+    let destination = destination.fetch_cached(&state.database).await?;
+
+    let mut transaction = state.database.write().begin().await?;
+
+    // a success reported meanwhile moved the server: nothing to release then
+    let released = sqlx::query(
+        "UPDATE servers
+        SET destination_allocation_uuid = NULL, destination_node_uuid = NULL
+        WHERE servers.uuid = $1 AND servers.node_uuid = $2 AND servers.destination_node_uuid = $3",
+    )
+    .bind(server.uuid)
+    .bind(server.node.uuid)
+    .bind(destination.uuid)
+    .execute(&mut *transaction)
+    .await?
+    .rows_affected()
+        > 0;
+    if !released {
+        transaction.rollback().await?;
+        return Ok(false);
+    }
+
+    sqlx::query(
+        "DELETE FROM server_allocations
+        USING node_allocations
+        WHERE node_allocations.uuid = server_allocations.allocation_uuid
+            AND server_allocations.server_uuid = $1 AND node_allocations.node_uuid <> $2",
+    )
+    .bind(server.uuid)
+    .bind(server.node.uuid)
+    .execute(&mut *transaction)
+    .await?;
+
+    transaction.commit().await?;
+
+    Server::invalidate_cached(&state.database, server.uuid).await;
+
+    if let Err(err) = destination
+        .api_client(&state.database)
+        .await?
+        .delete_servers_server(server.uuid)
+        .await
+    {
+        tracing::error!("failed to delete server on destination node: {:?}", err);
+    }
+
+    Server::get_event_emitter().emit(
+        state.clone(),
+        ServerEvent::TransferCompleted {
+            server: Box::new(server.clone()),
+            destination_node: Box::new(destination),
+            successful: false,
+        },
+    );
+
+    Ok(true)
+}
+
+/// The stall watch of every running move, by request (see [`Watch`]).
+static WATCHES: LazyLock<Mutex<HashMap<uuid::Uuid, Watch>>> = LazyLock::new(Default::default);
+
+fn watches() -> std::sync::MutexGuard<'static, HashMap<uuid::Uuid, Watch>> {
+    WATCHES
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner)
+}
+
+/// Looks at a move whose native transfer still runs. A copy that stalled (or that its new node
+/// never confirmed) is cancelled on the old node, like an owner's cancel; when Wings has not
+/// reported a cancelled copy within [`ABORT_GRACE_SECONDS`], the server is released here
+/// ([`release`]). Returns why the attempt ended when it was released.
+async fn watch(
+    state: &crate::State,
+    request: &TransferRequest,
+    server: &Server,
+    stall_minutes: i32,
+    finalize_minutes: i32,
+) -> Option<&'static str> {
+    let now = chrono::Utc::now().naive_utc();
+    let previous = watches()
+        .get(&request.uuid)
+        .copied()
+        .filter(|watch| watch.attempt == request.attempts);
+
+    let aborted = match previous.and_then(|watch| watch.aborted) {
+        Some(aborted) => aborted,
+        // an owner's or an admin's cancel: Wings gets its time to report it first
+        None if request.status == CANCELLING => {
+            let mut watch = previous.unwrap_or(Watch {
+                attempt: request.attempts,
+                counters: None,
+                moved_at: now,
+                handed_off_at: None,
+                aborted: None,
+            });
+            watch.aborted = Some((REASON_CANCELLED, now));
+            watches().insert(request.uuid, watch);
+
+            return None;
+        }
+        None => {
+            let seen = match async {
+                server
+                    .node
+                    .fetch_cached(&state.database)
+                    .await?
+                    .api_client(&state.database)
+                    .await?
+                    .get_transfers()
+                    .await
+                    .map_err(anyhow::Error::from)
+            }
+            .await
+            {
+                Ok(transfers) => transfers
+                    .get(&server.uuid)
+                    .map_or(Seen::Missing, |progress| Seen::Copying {
+                        archived: progress.archive_bytes_processed,
+                        sent: progress.network_bytes_processed,
+                        total: progress.bytes_total,
+                        files: progress.files_processed,
+                    }),
+                Err(_) => Seen::Unreachable,
+            };
+
+            let (mut watch, verdict) = watch_copy(
+                previous.as_ref(),
+                request.attempts,
+                seen,
+                now,
+                stall_minutes,
+                finalize_minutes,
+            );
+            if let Some(reason) = verdict.reason() {
+                tracing::warn!(
+                    server = %server.uuid,
+                    attempt = request.attempts,
+                    reason,
+                    "cancelling a move whose copy stalled"
+                );
+                if let Err(err) = async {
+                    server
+                        .node
+                        .fetch_cached(&state.database)
+                        .await?
+                        .api_client(&state.database)
+                        .await?
+                        .delete_servers_server_transfer(server.uuid)
+                        .await
+                        .map_err(anyhow::Error::from)
+                }
+                .await
+                {
+                    tracing::warn!(server = %server.uuid, "failed to cancel a stalled copy on its node: {err:#}");
+                }
+                watch.aborted = Some((reason, now));
+            }
+            watches().insert(request.uuid, watch);
+
+            return None;
+        }
+    };
+
+    let (reason, at) = aborted;
+    if !abort_overdue(at, now) {
+        return None;
+    }
+
+    match release(state, server).await {
+        Ok(true) => {
+            tracing::warn!(server = %server.uuid, reason, "released a move Wings did not report");
+            Some(reason)
+        }
+        Ok(false) => None,
+        Err(err) => {
+            tracing::warn!(server = %server.uuid, "failed to release a stalled move: {err:#}");
+            None
+        }
+    }
+}
+
 /// The `settle_transfers` task: closes moves whose native transfer is over (done, failed and
-/// retried on another node, or cancelled), and starts queued ones while their node has a free
-/// turn.
+/// retried on another node, or cancelled), cancels copies that stalled ([`watch`]), and starts
+/// queued ones while their node has a free turn.
 pub async fn settle(state: &crate::State) -> Result<(), anyhow::Error> {
-    let (max_attempts, parallel) = {
+    let (max_attempts, parallel, stall_minutes, finalize_minutes) = {
         let settings = state.settings.get().await?;
         (
             settings.games.transfer_attempts,
             settings.games.transfer_parallel,
+            settings.games.transfer_stall_minutes,
+            settings.games.transfer_finalize_minutes,
         )
     };
 
+    let mut watched = HashSet::new();
     for mut request in
         TransferRequest::all_with_status(&state.database, &[RUNNING, CANCELLING]).await?
     {
-        let Some(server) = Server::by_uuid_optional(&state.database, request.server_uuid).await?
+        watched.insert(request.uuid);
+        let Some(mut server) =
+            Server::by_uuid_optional(&state.database, request.server_uuid).await?
         else {
             continue;
         };
         if server.destination_node.is_some() {
-            continue;
+            if watch(state, &request, &server, stall_minutes, finalize_minutes)
+                .await
+                .is_none()
+            {
+                continue;
+            }
+
+            // released here: the attempt ends like one Wings reported as failed
+            match Server::by_uuid_optional(&state.database, request.server_uuid).await? {
+                Some(released) if released.destination_node.is_none() => server = released,
+                _ => continue,
+            }
         }
+        // why the panel cancelled this attempt, if it did
+        let stalled = watches()
+            .remove(&request.uuid)
+            .filter(|watch| watch.attempt == request.attempts)
+            .and_then(|watch| watch.aborted)
+            .map(|(reason, _)| reason)
+            .filter(|reason| *reason != REASON_CANCELLED);
 
         if Some(server.node.uuid) == request.destination_node_uuid {
             log(
@@ -1669,6 +2123,7 @@ pub async fn settle(state: &crate::State) -> Result<(), anyhow::Error> {
                 serde_json::json!({ "address": address(&server) }),
             )
             .await;
+            crate::notifications::transfer_ended(state, &request).await;
 
             if request.restart {
                 start_again(state, &request, &server, true).await;
@@ -1690,9 +2145,15 @@ pub async fn settle(state: &crate::State) -> Result<(), anyhow::Error> {
                 state,
                 &request,
                 "server:transfer.attempt-failed",
-                serde_json::json!({ "attempt": request.attempts, "reason": "copyFailed" }),
+                serde_json::json!({
+                    "attempt": request.attempts,
+                    "reason": stalled.unwrap_or("copyFailed"),
+                }),
             )
             .await;
+            if let Some(reason) = stalled {
+                tracing::info!(server = %server.uuid, attempt = request.attempts, reason, "a stalled move attempt ended");
+            }
 
             if retries(request.attempts, max_attempts) {
                 match start_attempt(state, &mut request, None).await {
@@ -1703,6 +2164,7 @@ pub async fn settle(state: &crate::State) -> Result<(), anyhow::Error> {
                 request.finish(FAILED, Some(COPY_FAILED.into()));
             }
             fail(state, &request).await;
+            crate::notifications::transfer_ended(state, &request).await;
         }
         request.save(&state.database).await?;
 
@@ -1710,6 +2172,8 @@ pub async fn settle(state: &crate::State) -> Result<(), anyhow::Error> {
             start_again(state, &request, &server, false).await;
         }
     }
+    // moves that ended without passing here (deleted servers, ended elsewhere)
+    watches().retain(|request, _| watched.contains(request));
 
     // queued moves, a few per source node at a time
     let mut moving: HashMap<uuid::Uuid, i32> = HashMap::new();
@@ -1747,6 +2211,7 @@ pub async fn settle(state: &crate::State) -> Result<(), anyhow::Error> {
             request.finish(FAILED, Some(err.message()));
             request.save(&state.database).await?;
             fail(state, &request).await;
+            crate::notifications::transfer_ended(state, &request).await;
             continue;
         }
 
@@ -1802,6 +2267,7 @@ pub async fn lighten(
         SELECT servers.uuid FROM servers
         WHERE servers.node_uuid = $1 AND servers.destination_node_uuid IS NULL
             AND servers.status IS NULL
+            AND (servers.limbo_state IS NULL OR servers.limbo_state = 'stopped')
             AND NOT EXISTS (SELECT 1 FROM devboxes WHERE devboxes.server_uuid = servers.uuid)
             AND NOT EXISTS (
                 SELECT 1 FROM server_transfer_requests requests
@@ -1868,6 +2334,46 @@ pub async fn queue_admin_move(
     let restart = running(state, server).await;
 
     insert(state, server, None, ORIGIN_ADMIN, location_uuid, restart).await
+}
+
+/// plugged.host: limbo's restore of a server parked on a limbo node (docs/features/limbo.md
+/// #parked-on-a-node): a move off that node to the best game node of `location_uuid`, `prefer`
+/// (its home node) first, its old ports there when they are free (`limbo::home_allocations`),
+/// retried on another node of the location like a player's move. It stays off; limbo follows the
+/// request and ends the restore. `user_uuid` is who asked for it.
+pub async fn limbo_request(
+    state: &crate::State,
+    server: &Server,
+    user_uuid: uuid::Uuid,
+    location_uuid: uuid::Uuid,
+    prefer: Option<uuid::Uuid>,
+) -> Result<TransferRequest, TransferError> {
+    if server.destination_node.is_some()
+        || TransferRequest::latest(&state.database, server.uuid)
+            .await?
+            .is_some_and(|request| request.active())
+    {
+        return Err(TransferError::Busy);
+    }
+
+    let mut request = insert(
+        state,
+        server,
+        Some(user_uuid),
+        ORIGIN_LIMBO,
+        location_uuid,
+        false,
+    )
+    .await?;
+    if let Err(err) = start_attempt(state, &mut request, prefer).await {
+        request.finish(FAILED, Some(err.message()));
+        request.save(&state.database).await?;
+        fail(state, &request).await;
+
+        return Err(err);
+    }
+
+    Ok(request)
 }
 
 /// What a location can still take, for Admin › Overview › Capacity.
@@ -2308,6 +2814,135 @@ mod tests {
             }),
             None
         );
+    }
+
+    fn copying(archived: u64, total: u64) -> Seen {
+        Seen::Copying {
+            archived,
+            sent: archived,
+            total,
+            files: archived / 10,
+        }
+    }
+
+    fn minutes(minutes: i64) -> chrono::NaiveDateTime {
+        at(12) + chrono::Duration::minutes(minutes)
+    }
+
+    /// Looks at the copy once a minute through `seen` (one entry per minute from 0) and returns the
+    /// minute of the first verdict that is not `Wait`.
+    fn first_verdict(seen: &[Seen], stall: i32, finalize: i32) -> Option<(usize, Verdict)> {
+        let mut watch = None;
+        for (minute, seen) in seen.iter().enumerate() {
+            let (next, verdict) = watch_copy(
+                watch.as_ref(),
+                1,
+                *seen,
+                minutes(minute as i64),
+                stall,
+                finalize,
+            );
+            if verdict != Verdict::Wait {
+                return Some((minute, verdict));
+            }
+            watch = Some(next);
+        }
+
+        None
+    }
+
+    #[test]
+    fn a_moving_copy_is_never_stalled() {
+        let seen = (0..60)
+            .map(|minute| copying(minute * 10, 1000))
+            .collect::<Vec<_>>();
+        assert_eq!(first_verdict(&seen, 10, 20), None);
+    }
+
+    #[test]
+    fn a_copy_without_progress_stalls_after_the_stall_time() {
+        let mut seen = vec![copying(100, 1000), copying(200, 1000)];
+        seen.extend(std::iter::repeat_n(copying(200, 1000), 20));
+        // last moved at minute 1, stalled once more than 10 minutes passed
+        assert_eq!(first_verdict(&seen, 10, 20), Some((12, Verdict::Stalled)));
+
+        // the stop before the copy counts too: no counters moving
+        let stopping = std::iter::repeat_n(copying(0, 0), 20).collect::<Vec<_>>();
+        assert_eq!(
+            first_verdict(&stopping, 10, 20),
+            Some((11, Verdict::Stalled))
+        );
+    }
+
+    #[test]
+    fn a_transfer_the_old_node_lost_stalls_too() {
+        let mut seen = vec![copying(100, 1000)];
+        seen.extend(std::iter::repeat_n(Seen::Missing, 20));
+        assert_eq!(first_verdict(&seen, 10, 20), Some((11, Verdict::Stalled)));
+
+        // listed again with the same counters is no progress
+        let mut back = vec![copying(100, 1000), Seen::Missing];
+        back.extend(std::iter::repeat_n(copying(100, 1000), 20));
+        assert_eq!(first_verdict(&back, 10, 20), Some((11, Verdict::Stalled)));
+    }
+
+    #[test]
+    fn a_silent_old_node_gets_time_for_the_size() {
+        // 3000 MiB at 5 MiB/s is 10 more minutes
+        let total = 3000 * 1024 * 1024;
+        let mut seen = vec![copying(0, total)];
+        seen.extend(std::iter::repeat_n(Seen::Unreachable, 40));
+        assert_eq!(first_verdict(&seen, 10, 20), Some((21, Verdict::Stalled)));
+    }
+
+    #[test]
+    fn a_finished_copy_waits_for_the_finalize_time() {
+        let mut seen = vec![copying(500, 1000), copying(1000, 1000)];
+        seen.extend(std::iter::repeat_n(copying(1000, 1000), 40));
+        // handed off at minute 1: no stall verdict, only the finalize time
+        assert_eq!(
+            first_verdict(&seen, 10, 20),
+            Some((22, Verdict::Unfinalized))
+        );
+        assert_eq!(Verdict::Unfinalized.reason(), Some(REASON_UNFINALIZED));
+        assert_eq!(Verdict::Stalled.reason(), Some(REASON_STALLED));
+        assert_eq!(Verdict::Wait.reason(), None);
+    }
+
+    #[test]
+    fn the_watch_starts_again_for_a_new_attempt_and_stays_aborted() {
+        let (watch, _) = watch_copy(None, 1, copying(100, 1000), minutes(0), 10, 20);
+        let (next, verdict) = watch_copy(Some(&watch), 2, copying(100, 1000), minutes(30), 10, 20);
+        assert_eq!(
+            (next.attempt, next.moved_at, verdict),
+            (2, minutes(30), Verdict::Wait)
+        );
+
+        let aborted = Watch {
+            aborted: Some((REASON_STALLED, minutes(0))),
+            ..watch
+        };
+        let (kept, verdict) =
+            watch_copy(Some(&aborted), 1, copying(100, 1000), minutes(30), 10, 20);
+        assert_eq!((kept, verdict), (aborted, Verdict::Wait));
+
+        // tiny settings are held to the Pelican panel's floors
+        let (watch, _) = watch_copy(None, 1, copying(1, 10), minutes(0), 0, 0);
+        assert_eq!(
+            watch_copy(Some(&watch), 1, copying(1, 10), minutes(2), 0, 0).1,
+            Verdict::Wait
+        );
+        assert_eq!(
+            watch_copy(Some(&watch), 1, copying(1, 10), minutes(3), 0, 0).1,
+            Verdict::Stalled
+        );
+    }
+
+    #[test]
+    fn wings_gets_two_minutes_to_report_a_cancel() {
+        assert!(!abort_overdue(minutes(0), minutes(1)));
+        assert!(abort_overdue(minutes(0), minutes(2)));
+        assert_eq!(reason_key(REASON_STALLED), None);
     }
 
     #[test]

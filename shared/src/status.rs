@@ -1092,10 +1092,13 @@ pub async fn history(state: &crate::State) -> Result<Value, anyhow::Error> {
     let mut recent_rows: HashMap<uuid::Uuid, Vec<(String, f64, i64)>> = HashMap::new();
     for row in sqlx::query(
         r#"
-        SELECT node_uuid, sampled, cpu_percent, cpu_threads, memory_used
-        FROM node_telemetry_samples
-        WHERE node_uuid = ANY($1) AND reachable AND sampled > NOW() - INTERVAL '60 minutes'
-        ORDER BY sampled
+        SELECT samples.node_uuid, samples.sampled, samples.cpu_percent,
+            node_telemetry.cpu_threads, samples.memory_used
+        FROM node_telemetry_samples samples
+        LEFT JOIN node_telemetry ON node_telemetry.node_uuid = samples.node_uuid
+        WHERE samples.node_uuid = ANY($1) AND samples.reachable
+            AND samples.sampled > NOW() - INTERVAL '60 minutes'
+        ORDER BY samples.sampled
         "#,
     )
     .bind(&node_uuids)

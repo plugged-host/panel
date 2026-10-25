@@ -84,7 +84,16 @@ mod post {
         // A reinstall plus hundreds of downloads outlast a request: the page polls the state.
         let server = server.0;
         tokio::spawn(async move {
+            let (server_uuid, server_name) = (server.uuid, server.name.clone());
             let install = shared::minecraft::modpacks::install(&state, server, start).await;
+            shared::notifications::modpack_ended(
+                &state,
+                activity_logger.user_uuid,
+                server_uuid,
+                &server_name,
+                &install,
+            )
+            .await;
 
             activity_logger
                 .log(

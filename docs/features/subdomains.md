@@ -6,11 +6,11 @@ and follows the server when it moves. In `shared/src/subdomains/`.
 
 ## Which servers
 
-The egg's features decide what a server gets (`records::Service::of_features`):
+The egg's features decide what a server gets (`records::Service::of_egg`):
 
 | Feature | Records | Players join with |
 |---|---|---|
-| `eula` (Minecraft) or `srv-minecraft` | A + `_minecraft._tcp` SRV | `play.example.com` |
+| A Minecraft server (`eula` and a `server.properties`, [minecraft.md](minecraft.md#which-servers); not a proxy such as Velocity) or `srv-minecraft` | A + `_minecraft._tcp` SRV | `play.example.com` |
 | `cfx` (FiveM, RedM) or `srv-fivem` / `srv-cfx` | A + `_cfx._udp` and `_cfx._tcp` SRV (weight 5) | `connect play.example.com` |
 | `srv-mumble`, `srv-teamspeak` | A + `_mumble._tcp` / `_ts3._udp` SRV | `play.example.com:<port>` |
 | `srv-factorio`, `srv-rust`, `srv-scpsl` | A + `_factorio._udp` / `_rust._udp` / `_scpsl._udp` SRV | `play.example.com:<port>` |

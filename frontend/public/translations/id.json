@@ -889,7 +889,8 @@
           "discordInvite": "Undangan Discord",
           "discordInviteClawback": "Undangan ditarik kembali",
           "discordInviteDebt": "Kredit undangan terutang",
-          "discordBoost": "Boost Discord"
+          "discordBoost": "Boost Discord",
+          "partner": "Program partner"
         }
       },
       "chartLegend": {
@@ -988,6 +989,7 @@
           "themeLight": "Terang",
           "redactAddresses": "Sembunyikan Alamat",
           "resetDeviceOverrides": "Atur Ulang Pengaturan Perangkat ({count})",
+          "review": "Ulas {app} di {site}",
           "openMenu": "Buka Menu"
         },
         "profileSettings": "Pengaturan Profil",
@@ -1003,6 +1005,142 @@
           "disk": "Disk",
           "openStore": "Dapatkan lebih banyak di Toko Sumber Daya",
           "openTokens": "Buka halaman Token"
+        }
+      },
+      "notifications": {
+        "title": "Notifikasi",
+        "open": "Notifikasi, {count} belum dibaca",
+        "unreadLabel": "Notifikasi belum dibaca",
+        "markAllRead": "Tandai semua sudah dibaca",
+        "clear": "Bersihkan",
+        "markRead": "Tandai sudah dibaca",
+        "delete": "Hapus notifikasi",
+        "openServer": "Buka server",
+        "viewBackups": "Lihat cadangan",
+        "showMore": "Tampilkan lebih banyak",
+        "empty": "Tidak ada notifikasi",
+        "emptyHint": "Silakan periksa kembali nanti.",
+        "unknown": "Notifikasi",
+        "address": "Alamat baru: {address}",
+        "reason": "Alasan: {reason}",
+        "kinds": {
+          "transferCompleted": {
+            "title": "Server dipindahkan",
+            "body": "{server} sekarang berada di {location}.",
+            "bodyAnywhere": "{server} sekarang berada di node lain."
+          },
+          "transferFailed": {
+            "title": "Pemindahan gagal",
+            "body": "{server} tidak dapat dipindahkan ke {location}. Server masih berada di tempat semula, lengkap dengan semua file.",
+            "bodyAnywhere": "{server} tidak dapat dipindahkan. Server masih berada di tempat semula, lengkap dengan semua file."
+          },
+          "allowanceCut": {
+            "title": "Server Anda sekarang punya sumber daya lebih sedikit",
+            "body": "Sumber daya akun Anda berkurang dan server Anda memakai lebih dari yang dimiliki akun sekarang, jadi selisihnya dikurangi dari server secara merata: {servers}.",
+            "cpu": "−{amount}% CPU",
+            "memory": "−{amount} RAM",
+            "disk": "−{amount} disk"
+          },
+          "membershipEnded": {
+            "title": "{membership} telah berakhir",
+            "body": "Server di Lokasi Premium sedang dipindahkan ke lokasi lain: {servers}. Pantau di halaman Pemindahan setiap server."
+          },
+          "failoverDone": {
+            "title": "Server dipulihkan",
+            "body": "Node {server} offline, jadi server dipulihkan ke node yang sehat dari cadangan terbarunya. Mulai server kapan pun Anda siap.",
+            "drillTitle": "Server dipindahkan ke node lain",
+            "drillBody": "{server} dipulihkan ke node lain dari cadangan terbarunya dalam uji pemulihan. Mulai server kapan pun Anda siap.",
+            "backup": "File sesuai kondisi pada {time}."
+          },
+          "failoverFailed": {
+            "title": "Masalah pada node server",
+            "body": "Node {server} offline dan pemulihan ke node yang sehat tidak selesai. Hubungi dukungan jika server Anda tetap tidak tersedia."
+          },
+          "modpackInstalled": {
+            "title": "Modpack terinstal",
+            "body": "{name} terinstal di {server} dan {count} file diunduh. Mulai server dan pantau konsolnya.",
+            "skipped": "Beberapa file tidak dapat diunduh dan perlu ditambahkan secara manual."
+          },
+          "modpackFailed": {
+            "title": "Instalasi modpack gagal",
+            "body": "{name} gagal diinstal di {server}. Periksa konsol dan daftar file sebelum memulai server."
+          },
+          "frameworkInstalled": {
+            "title": "{recipe} terinstal di {server}",
+            "body": "Berada di {folder}, dan server sedang dimulai dengannya."
+          },
+          "frameworkFailed": {
+            "title": "Instalasi {recipe} di {server} gagal"
+          },
+          "worldImported": {
+            "title": "Dunia diimpor",
+            "body": "Dunia yang diunggah sekarang menjadi dunia {server}.",
+            "kept": "Dunia sebelumnya disimpan sebagai {world}."
+          },
+          "worldImportFailed": {
+            "title": "Dunia tidak dapat diimpor",
+            "body": "Dunia yang diunggah tidak dapat dimuat di {server}."
+          },
+          "serverInstalled": {
+            "title": "Instalasi server selesai",
+            "body": "{server} sudah terinstal dan bisa dijalankan."
+          },
+          "serverInstallFailed": {
+            "title": "Instalasi server gagal",
+            "body": "{server} gagal diinstal. Buka server untuk menginstalnya lagi."
+          },
+          "subuserAdded": {
+            "title": "Ditambahkan ke server",
+            "body": "Anda telah ditambahkan sebagai subpengguna di {server}."
+          },
+          "subuserRemoved": {
+            "title": "Dihapus dari server",
+            "body": "Anda telah dihapus sebagai subpengguna dari {server}."
+          },
+          "backupCompleted": {
+            "title": "Pencadangan selesai",
+            "body": "Cadangan {name} dari {server} sudah siap."
+          },
+          "backupFailed": {
+            "title": "Pencadangan gagal",
+            "body": "Cadangan {name} dari {server} gagal dibuat."
+          },
+          "partnerApproved": {
+            "title": "Kemitraan disetujui",
+            "body": "{guild} sekarang menjadi partner dan mendapat {credits} kredit per bulan. Bulan pertama sudah dibayar."
+          },
+          "partnerRejected": {
+            "title": "Pendaftaran partner tidak diterima",
+            "body": "{guild} tidak diterima sebagai partner."
+          },
+          "partnerRevoked": {
+            "title": "Kemitraan berakhir",
+            "body": "Kemitraan {guild} telah berakhir dan pembayaran bulanannya dihentikan."
+          },
+          "partnerPaid": {
+            "title": "Kredit partner diterima",
+            "body": "{credits} kredit untuk {guild} bulan ini."
+          },
+          "partnerCheckFailed": {
+            "title": "Pemeriksaan partner gagal",
+            "body": "{guild} tidak lagi memenuhi syarat partner, jadi pembayaran bulan ini ditahan. Perbaiki sebelum {until}, atau kemitraan akan ditangguhkan. Halaman Partner menunjukkan apa yang salah."
+          },
+          "partnerSuspended": {
+            "title": "Kemitraan ditangguhkan",
+            "body": "{guild} masih belum memenuhi syarat, jadi kemitraan ditangguhkan. Perbaiki, lalu gunakan Periksa lagi di halaman Partner."
+          },
+          "partnerPaused": {
+            "title": "Pembayaran partner dijeda",
+            "body": "Administrator menjeda pembayaran bulanan untuk {guild}."
+          },
+          "partnerResumed": {
+            "title": "Pembayaran partner dilanjutkan",
+            "body": "Pembayaran bulanan untuk {guild} berjalan lagi."
+          },
+          "partnerCreditsChanged": {
+            "title": "Kredit partner diubah",
+            "body": "{guild} sekarang mendapat {credits} kredit per bulan."
+          }
         }
       },
       "welcomeTour": {
@@ -1207,7 +1345,9 @@
             },
             "reason": "Alasan: {reason}",
             "deleteAt": "Server ini akan dihapus beserta filenya pada {date}, kecuali penangguhan dicabut sebelum tanggal tersebut.",
-            "help": "Jika menurut Anda ini sebuah kesalahan, hubungi administrator panel dan sertakan nama server."
+            "help": "Jika menurut Anda ini sebuah kesalahan, hubungi administrator panel dan sertakan nama server.",
+            "helpLink": "Jika menurut Anda ini sebuah kesalahan, mintalah bantuan dan sertakan nama server.",
+            "getHelp": "Dapatkan bantuan"
           },
           "contentNodeMaintenance": "Server ini berada di node yang sedang dalam pemeliharaan dan tidak dapat diakses.",
           "contentTransferring": "Server ini sedang dipindahkan dan tidak dapat diakses hingga pemindahan selesai.",
@@ -1944,6 +2084,11 @@
           },
           "emptyGroup": "Grup ini kosong. Seret server ke sini untuk menambahkannya.",
           "emptyAccess": "Anda tidak memiliki akses ke server mana pun!",
+          "review": {
+            "title": "Bagaimana pengalaman Anda dengan {app}?",
+            "body": "Ceritakan kepada pemain lain bagaimana pengalaman Anda lewat ulasan di {site}, baik atau buruk.",
+            "write": "Tulis Ulasan"
+          },
           "card": {
             "cpu": "CPU",
             "memory": "RAM",
@@ -2893,6 +3038,111 @@
             "nothing": "Semua sudah beres, tidak ada yang baru untuk dibayarkan."
           }
         },
+        "partners": {
+          "title": "Partner",
+          "closed": "Pendaftaran sedang ditutup.",
+          "promo": {
+            "title": "Program partner",
+            "text": "Mengelola komunitas Discord untuk server FiveM atau Minecraft? Partner mendapatkan kredit setiap bulan.",
+            "open": "Buka program partner"
+          },
+          "intro": {
+            "heading": "Jadi partner",
+            "body": "Mengelola komunitas Discord dengan setidaknya {members} anggota untuk server FiveM atau Minecraft? Jadilah partner {app} dan dapatkan hingga {credits} kredit setiap bulan.",
+            "review": "Setiap pendaftaran ditinjau oleh administrator. Sebelum setiap pembayaran bulanan, server diperiksa lagi; jika tidak lagi memenuhi syarat, pembayaran ditahan dan Anda punya waktu {days} hari untuk memperbaikinya.",
+            "reviewDay": "Setiap pendaftaran ditinjau oleh administrator. Sebelum setiap pembayaran bulanan, server diperiksa lagi; jika tidak lagi memenuhi syarat, pembayaran ditahan dan Anda punya waktu {days} hari untuk memperbaikinya.",
+            "reviewNow": "Setiap pendaftaran ditinjau oleh administrator. Sebelum setiap pembayaran bulanan, server diperiksa lagi; jika tidak lagi memenuhi syarat, kemitraan ditangguhkan sampai syaratnya terpenuhi lagi."
+          },
+          "requirements": {
+            "title": "Yang dibutuhkan server Anda",
+            "linked": "Akun Discord Anda tertaut",
+            "linkedAs": "Tertaut sebagai {name}",
+            "notLinked": "Belum tertaut",
+            "done": "Selesai",
+            "link": "Tautkan Discord",
+            "linkNoprofit": "Tautkan Discord di noprofit.space",
+            "bot": "{bot} ada di server",
+            "botHint": "Bot ini hanya membaca jumlah anggota, peran Anda, dan saluran, jadi tidak memerlukan izin apa pun.",
+            "addBot": "Tambahkan {bot}",
+            "members": "Setidaknya {members} anggota",
+            "membersHint": "Menurut hitungan Discord, saat mendaftar dan sebelum setiap pembayaran.",
+            "admin": "Anda pemilik server atau administrator di sana",
+            "adminHint": "Pemilik, atau peran dengan izin Administrator.",
+            "channel": "Saluran tentang {app}",
+            "channelHint": "Terlihat oleh @everyone, dengan {names} di nama atau topiknya.",
+            "channelLinkHint": "Topiknya juga harus berisi tautan ke {links}.",
+            "game": "Komunitas FiveM atau Minecraft",
+            "gameHint": "Server game-nya boleh di-hosting di mana saja. Sebutkan yang ada di panel ini dalam pendaftaran."
+          },
+          "problems": {
+            "notLinked": "Tautkan akun Discord Anda terlebih dahulu.",
+            "invalidLink": "Masukkan tautan undangan Discord atau ID server.",
+            "unknownInvite": "Undangan ini tidak ada atau sudah kedaluwarsa. Gunakan undangan yang tidak pernah kedaluwarsa.",
+            "botMissing": "{bot} tidak ada di server ini. Tambahkan, lalu daftar lagi.",
+            "tooFewMembers": "Server ini punya {count} anggota dan membutuhkan setidaknya {members}.",
+            "notAdmin": "Anda harus menjadi pemilik server ini atau punya peran dengan izin Administrator di sana.",
+            "channelMissing": "Tidak ditemukan saluran tentang {app}: nama atau topiknya harus memuat {app} dan saluran itu harus terlihat oleh @everyone.",
+            "channelHidden": "{channel} tersembunyi dari @everyone. Semua orang di server harus bisa melihatnya.",
+            "channelLink": "Topik {channel} harus berisi tautan ke {links}.",
+            "pending": "Anda sudah punya pendaftaran yang menunggu ditinjau.",
+            "taken": "Server ini sudah menjadi partner atau punya pendaftaran yang sedang menunggu.",
+            "cooldown": "Pendaftaran terakhir Anda tidak diterima. Anda bisa mendaftar lagi pada {date}."
+          },
+          "form": {
+            "title": "Daftar",
+            "server": "Server Discord",
+            "serverHint": "Tautan undangan yang tidak pernah kedaluwarsa, atau ID server.",
+            "game": "Game",
+            "description": "Tentang komunitas Anda",
+            "descriptionHint": "Apa yang dimainkan, seberapa aktif, dan apa yang membuatnya istimewa. 20 sampai 1000 karakter.",
+            "servers": "Server di panel ini",
+            "serversHint": "Opsional: hingga 10 server Anda di sini tempat komunitas bermain.",
+            "submit": "Kirim pendaftaran",
+            "sent": "Pendaftaran terkirim. Anda akan mendapat notifikasi setelah ada keputusan."
+          },
+          "games": {
+            "fivem": "FiveM",
+            "minecraft": "Minecraft",
+            "both": "FiveM dan Minecraft"
+          },
+          "refusal": {
+            "title": "Server belum memenuhi syarat",
+            "titleServer": "{server} belum memenuhi syarat"
+          },
+          "status": {
+            "pending": "Menunggu tinjauan",
+            "approved": "Partner",
+            "paused": "Dijeda",
+            "suspended": "Ditangguhkan",
+            "rejected": "Tidak diterima",
+            "revoked": "Berakhir",
+            "withdrawn": "Ditarik"
+          },
+          "partnership": {
+            "monthly": "{credits} kredit per bulan",
+            "nextPayment": "Pembayaran berikutnya pada {date}",
+            "paused": "Administrator menjeda pembayaran.",
+            "pausedReason": "Administrator menjeda pembayaran: {reason}",
+            "failing": "Pemeriksaan terakhir gagal, jadi pembayaran bulan ini ditahan. Perbaiki sebelum {date}, atau kemitraan akan ditangguhkan.",
+            "suspended": "Kemitraan ditangguhkan karena server tidak lagi memenuhi syarat. Perbaiki lalu periksa lagi agar pembayaran berlanjut.",
+            "check": "Periksa lagi",
+            "checkPassed": "Server memenuhi syarat.",
+            "checkFailed": "Server belum memenuhi syarat.",
+            "payments": "Pembayaran",
+            "paidTotal": "Total {credits} kredit diterima",
+            "paymentsEmpty": "Belum ada pembayaran."
+          },
+          "pending": {
+            "title": "Pendaftaran Anda sedang ditinjau",
+            "body": "Administrator akan melihat {server} dan memutuskan. Anda akan mendapat notifikasi.",
+            "withdraw": "Tarik pendaftaran",
+            "withdrawn": "Pendaftaran ditarik."
+          },
+          "history": {
+            "title": "Pendaftaran sebelumnya",
+            "reason": "Alasan: {reason}"
+          }
+        },
         "devboxOpen": {
           "title": "VS Code",
           "opening": "Membuka devbox…",
@@ -2960,6 +3210,17 @@
             "installing": "Server Anda sedang diinstal. Silakan tunggu...",
             "pendingRestart": "Server Anda memiliki perubahan tertunda yang memerlukan mulai ulang. Silakan mulai ulang server Anda untuk menerapkan perubahan ini."
           },
+          "installStuck": {
+            "content": "Ini memakan waktu jauh lebih lama dari seharusnya, jadi instalasi kemungkinan macet. Anda dapat memulai ulang instalasi atau menghapus server.",
+            "reinstall": {
+              "button": "Instal Ulang",
+              "title": "Mulai ulang instalasi?",
+              "content": "Instalasi akan berjalan lagi dari awal. File yang sudah ditulis oleh instalasi dapat diganti."
+            },
+            "toast": {
+              "reinstalling": "Instalasi telah dimulai ulang."
+            }
+          },
           "message": {
             "serverMarkedAs": "Server ditandai sebagai {state}...",
             "installFailed": "Instalasi gagal.",
@@ -3025,6 +3286,13 @@
               "button": {
                 "update": "Perbarui Image Docker"
               }
+            },
+            "pidLimit": {
+              "titleAdmin": "Batas memori atau proses tercapai",
+              "titleUser": "Kemungkinan batas sumber daya tercapai",
+              "contentAdmin": "Server ini telah mencapai batas maksimum proses atau memori. Menaikkan `container_pid_limit` di bawah `docker` pada konfigurasi Wings, `config.yml`, mungkin membantu.",
+              "contentAdminRestart": "**Wings harus dimulai ulang agar perubahan berlaku.**",
+              "contentUser": "Server ini mencoba menggunakan lebih banyak sumber daya daripada yang dimilikinya. Silakan hubungi administrator dan berikan error di bawah ini."
             }
           },
           "details": {
@@ -5035,7 +5303,8 @@
             "title": "Alokasi"
           },
           "tooltip": {
-            "limitReached": "Server ini dibatasi hingga {max} alokasi."
+            "limitReached": "Server ini dibatasi hingga {max} alokasi.",
+            "locked": "Terkunci: hanya administrator yang dapat menghapusnya."
           },
           "table": {
             "columns": {
@@ -5055,7 +5324,8 @@
               "title": "Konfirmasi Penghapusan Alokasi",
               "content": "Yakin ingin menghapus **{allocations}** dari server ini?",
               "alert": {
-                "skipped": "{allocations} akan dilewati. Alokasi utama tidak dapat dihapus."
+                "skipped": "{allocations} akan dilewati. Alokasi utama tidak dapat dihapus.",
+                "skippedLocked": "{allocations} akan dilewati. Alokasi utama dan alokasi yang terkunci tidak dapat dihapus."
               }
             },
             "removeAllocation": {
@@ -5642,6 +5912,7 @@
           "title": "Server dihibernasi",
           "body": "Server ini tidak aktif selama beberapa waktu, jadi dipindahkan ke hibernasi untuk mengosongkan kapasitas. Pulihkan untuk membuatnya online kembali.",
           "entered": "Dihibernasi {time}",
+          "deletesAt": "Server ini akan dihapus {time} beserta file-nya, kecuali kamu memulihkannya sebelum itu.",
           "failed": "Pemulihan terakhir gagal: {error}",
           "costLabel": "Biaya pemulihan",
           "balanceLabel": "Saldo Anda",
@@ -5748,7 +6019,9 @@
           "reasons": {
             "noNode": "tidak ada node yang punya ruang",
             "copyFailed": "penyalinan terputus",
-            "skippedMoved": "server sudah dipindahkan sementara itu"
+            "skippedMoved": "server sudah dipindahkan sementara itu",
+            "stalled": "penyalinan tidak mengalami kemajuan",
+            "unfinalized": "node baru tidak mengonfirmasi salinannya"
           },
           "events": {
             "requested": "Pemindahan ke {location} diminta",
@@ -5902,10 +6175,16 @@
             "propertiesNote": "Komentar, urutan kunci, dan kunci yang tidak ditampilkan di sini tetap seperti semula. Port dan kata sandi RCON diatur oleh panel.",
             "yamlNote": "Komentar dan semua isi lain di file tetap seperti semula. Daftar dan nilai yang lebih dari satu baris tidak ditampilkan di sini: edit file sebagai teks untuk itu.",
             "button": {
-              "editText": "Edit sebagai Teks"
+              "editText": "Edit sebagai Teks",
+              "restart": "Mulai ulang server"
             },
             "toast": {
-              "saved": "{file} disimpan ({count} diubah). Mulai ulang server untuk menerapkannya."
+              "saved": "{file} disimpan ({count} diubah). Mulai ulang server untuk menerapkannya.",
+              "restarting": "Server sedang dimulai ulang"
+            },
+            "restart": {
+              "title": "Mulai ulang server sekarang?",
+              "description": "Server berhenti lalu menyala lagi agar membaca pengaturan yang disimpan. Semua yang sedang bermain terputus selama server dimulai ulang."
             }
           },
           "players": {
@@ -5923,6 +6202,8 @@
             "emptyHeading": "Belum ada pemain",
             "emptyBody": "Belum ada pemain yang ada di whitelist atau menjadi operator di server ini. Tambahkan pemain untuk memulai.",
             "noMatch": "Tidak ada pemain yang cocok dengan pencarian itu.",
+            "unnamed": "Nama belum diketahui",
+            "lastPlayed": "Terakhir bermain {date}",
             "table": {
               "player": "Pemain",
               "whitelisted": "Di Whitelist",
@@ -5931,7 +6212,8 @@
             },
             "badge": {
               "operator": "Level {level}",
-              "banned": "Di-ban"
+              "banned": "Di-ban",
+              "online": "Online"
             },
             "button": {
               "refresh": "Muat ulang",
@@ -5985,6 +6267,140 @@
               "enforcedOn": "Whitelist diaktifkan.",
               "enforcedOff": "Whitelist dinonaktifkan.",
               "atNextStart": "Disimpan ke file server - berlaku saat server dimulai berikutnya."
+            },
+            "details": {
+              "back": "Semua pemain",
+              "online": "Online",
+              "offline": "Offline",
+              "bedrock": "Bedrock",
+              "copyUuid": "Salin UUID",
+              "saved": "Terakhir disimpan {date}",
+              "savedNote": "Ditampilkan sesuai simpanan terakhir. Server yang berjalan menyimpan pemainnya setiap beberapa menit dan saat mereka keluar.",
+              "noData": "Belum ada yang disimpan untuk pemain ini. Detailnya muncul di sini setelah mereka bermain dan server menyimpan.",
+              "damaged": "File data pemain tidak dapat dibaca. Minecraft kembali ke versi sebelumnya, atau memulai pemain dari awal di titik spawn.",
+              "gameMode": "Mode permainan",
+              "gameModes": {
+                "survival": "Bertahan Hidup",
+                "creative": "Kreatif",
+                "adventure": "Petualangan",
+                "spectator": "Penonton"
+              },
+              "reason": {
+                "notRunning": "Jalankan server untuk melakukan ini.",
+                "notOnline": "Pemain tidak sedang online.",
+                "noConsole": "Ini memerlukan akses ke konsol.",
+                "stopFirst": "Hentikan server untuk mengubah data yang tersimpan.",
+                "noFiles": "Ini memerlukan izin untuk mengubah file."
+              },
+              "vitals": {
+                "title": "Nyawa dan pengalaman",
+                "health": "Nyawa",
+                "food": "Makanan",
+                "level": "Level {level}",
+                "points": "Total {points} poin",
+                "heal": "Sembuhkan",
+                "feed": "Beri makan",
+                "kill": "Bunuh",
+                "killTitle": "Bunuh {name}?",
+                "killContent": "Pemain mati di dalam game dan menjatuhkan barang bawaannya, kecuali keepInventory aktif."
+              },
+              "access": {
+                "title": "Akses",
+                "whitelisted": "Di Whitelist",
+                "operator": "Operator",
+                "banned": "Di-ban",
+                "unnamed": "Daftar memerlukan nama pemain, yang belum diketahui server."
+              },
+              "inventory": {
+                "title": "Inventaris",
+                "equipment": "Zirah dan tangan kedua",
+                "main": "Inventaris",
+                "hotbar": "Hotbar",
+                "enderChest": "Peti Ender"
+              },
+              "position": {
+                "title": "Posisi",
+                "coordinates": "Koordinat",
+                "dimension": "Dimensi",
+                "respawn": "Titik respawn",
+                "lastDeath": "Kematian terakhir",
+                "unknown": "Belum diatur",
+                "teleport": "Teleportasi",
+                "overworld": "Dunia Atas",
+                "nether": "Nether",
+                "end": "The End"
+              },
+              "teleport": {
+                "title": "Teleportasi {name}",
+                "coordinates": "Koordinat",
+                "spawn": "Spawn dunia",
+                "player": "Ke pemain",
+                "current": "Dimensi tempatnya sekarang",
+                "target": "Pemain",
+                "noTargets": "Tidak ada pemain lain untuk dituju.",
+                "spawnHint": "Titik spawn dunia yang dimuat server.",
+                "live": "Pemain langsung dipindahkan.",
+                "file": "Server sedang berhenti: posisi tersimpannya berubah, dan pemain muncul di sana saat bergabung berikutnya.",
+                "submit": "Teleportasi"
+              },
+              "stats": {
+                "title": "Statistik",
+                "empty": "Belum ada statistik yang tersimpan.",
+                "playTime": "Waktu bermain",
+                "playerKills": "Pemain dibunuh",
+                "mobKills": "Mob dibunuh",
+                "deaths": "Kematian",
+                "kdr": "Kill per kematian",
+                "distance": "Jarak tempuh",
+                "blocks": "{count} blok",
+                "mined": "Blok ditambang",
+                "used": "Item digunakan",
+                "killed": "Mob dibunuh",
+                "nothing": "Belum ada",
+                "ways": {
+                  "walk": "Berjalan",
+                  "sprint": "Berlari",
+                  "crouch": "Mengendap",
+                  "swim": "Berenang",
+                  "fall": "Jatuh",
+                  "climb": "Memanjat",
+                  "fly": "Terbang",
+                  "aviate": "Melayang dengan elytra",
+                  "boat": "Naik perahu",
+                  "minecart": "Naik minecart",
+                  "horse": "Naik kuda",
+                  "pig": "Naik babi",
+                  "strider": "Naik strider",
+                  "walkOnWater": "Berjalan di atas air",
+                  "walkUnderWater": "Berjalan di bawah air"
+                }
+              },
+              "remove": {
+                "title": "Hapus data pemain",
+                "description": "Hanya saat server berhenti. Centang yang ingin dihapus.",
+                "xp": "Pengalaman",
+                "inventory": "Inventaris dan zirah",
+                "enderChest": "Peti Ender",
+                "playerData": "File data pemain",
+                "playerDataHint": "Semua yang disimpan server tentang pemain: mereka mulai lagi di titik spawn.",
+                "statistics": "Statistik",
+                "advancements": "Kemajuan",
+                "missing": "Tidak ada yang tersimpan",
+                "submit": "Hapus",
+                "confirmTitle": "Hapus data terpilih milik {name}?",
+                "edited": "File data pemain ditulis ulang; versi sebelumnya tetap ada di sebelahnya sebagai {file}.",
+                "trash": "File yang dihapus masuk ke tempat sampah.",
+                "gone": "File yang dihapus tidak dapat dikembalikan."
+              },
+              "toast": {
+                "healed": "{name} telah disembuhkan.",
+                "fed": "{name} telah diberi makan.",
+                "killed": "{name} telah dibunuh.",
+                "gameMode": "{name} sekarang bermain dalam mode {mode}.",
+                "teleported": "{name} telah diteleportasi.",
+                "nextJoin": "Disimpan ke file pemain - berlaku saat mereka bergabung berikutnya.",
+                "deleted": "Data terpilih milik {name} telah dihapus."
+              }
             }
           },
           "worlds": {
@@ -6698,9 +7114,12 @@
         "chat": {
           "title": "Obrolan",
           "empty": "Belum ada pesan. Sapa dulu.",
+          "emptyReadOnly": "Belum ada pesan.",
           "placeholder": "Tulis pesan…",
           "loadOlder": "Muat pesan lama",
-          "deletedUser": "Pengguna dihapus"
+          "deletedUser": "Pengguna dihapus",
+          "newMessages": "Pesan baru",
+          "readOnly": "Anda dapat membaca obrolan ini, tetapi tidak dapat menulis di sini."
         }
       }
     }

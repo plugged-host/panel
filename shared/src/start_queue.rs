@@ -1,13 +1,15 @@
 //! plugged.host: the start queue, start gate 20: a start on a busy node waits its turn
 //! (docs/features/start-queue.md).
 //!
-//! A start (and, by setting, a restart) of a user who is not an admin joins its node's line when
-//! the node's newest sample is over the line (memory or CPU, lower on a small node) or others are
-//! already waiting there; otherwise it goes on to the next gate. The `release_start_queue` task
-//! lets the front of each line go once the node, asked right then, is under the line, at most one
-//! start per node every `release_interval` seconds, and everyone who waited `max_wait` whatever
-//! the node looks like: a queue without a ceiling is an outage with a progress bar. Members go
-//! first (the second membership, then the first), then by arrival.
+//! A start (and, by setting, a restart) of a user who is not an admin or in an exempt role joins
+//! its node's line when the node's newest sample is over the line (memory or CPU, lower on a small
+//! node) or others are already waiting there, and always while `min_wait` is above 0 (as on the
+//! Pelican panel); otherwise it goes on to the next gate. The `release_start_queue` task lets the
+//! front of each line go once it waited `min_wait` and the node, asked right then, is under the
+//! line, at most one start per node every `release_interval` seconds, and everyone who waited
+//! `max_wait` whatever the node looks like: a queue without a ceiling is an outage with a progress
+//! bar. Members go first (the second membership, then the first), then by arrival; a membership
+//! bought while waiting moves the start up at once ([`restamp`]).
 //!
 //! A released start goes straight to Wings, past the other gates, and the server's next start
 //! within `pass_minutes` skips the queue. One row per server in `server_start_queue`, reused:
@@ -292,7 +294,7 @@ impl StartGate for QueueGate {
         drop(settings);
 
         if !queue.enabled
-            || user.admin
+            || queue.exempt(user.admin, user.role.as_ref().map(|role| role.uuid))
             || (matches!(action, wings_api::ServerPowerAction::Restart) && !queue.include_restart)
             || server.suspended
             || server.status.is_some()
@@ -325,7 +327,8 @@ impl StartGate for QueueGate {
             _ => {}
         }
 
-        if !busy(state, node_uuid, &queue, &placement).await? {
+        // with a minimum wait every start queues, as on the Pelican panel
+        if queue.min_wait <= 0 && !busy(state, node_uuid, &queue, &placement).await? {
             return Ok(Decision::Pass);
         }
 
@@ -392,6 +395,27 @@ async fn busy(
         latest.memory_used,
         latest.memory_total,
     ))
+}
+
+/// Moves the account's waiting starts up to its membership's place right away, after a membership
+/// was bought or given (the Pelican panel's `stampWaiting`); otherwise the next press or queue page
+/// poll would.
+pub async fn restamp(state: &crate::State, user_uuid: uuid::Uuid) -> Result<(), anyhow::Error> {
+    let priority = priority(state, user_uuid).await?;
+    if priority <= 0 {
+        return Ok(());
+    }
+
+    sqlx::query(
+        "UPDATE server_start_queue SET priority = $2
+        WHERE user_uuid = $1 AND status = 'waiting' AND priority < $2",
+    )
+    .bind(user_uuid)
+    .bind(priority)
+    .execute(state.database.write())
+    .await?;
+
+    Ok(())
 }
 
 /// Takes the server out of the line without starting it. False when it was not waiting.
@@ -537,6 +561,9 @@ async fn settle_node(
     let Some(front) = rest.first() else {
         return Ok(());
     };
+    if front.waited(now) < queue.min_wait as i64 {
+        return Ok(());
+    }
 
     let last: Option<chrono::NaiveDateTime> = sqlx::query_scalar(
         "SELECT MAX(released) FROM server_start_queue WHERE node_uuid = $1 AND status = 'released'",

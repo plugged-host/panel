@@ -246,6 +246,8 @@ export interface RegisteredFormIds {
   'admin.settings.rux': true; // plugged.host
   'admin.settings.devboxes': true; // plugged.host
   'admin.settings.neo': true; // plugged.host
+  'admin.settings.reviews': true; // plugged.host
+  'admin.settings.partners': true; // plugged.host
   'admin.domains.create': true; // plugged.host
   'admin.settings.application': true;
   'admin.settings.metadata': true;

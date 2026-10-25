@@ -889,7 +889,8 @@
           "discordInvite": "Discord davetleri",
           "discordInviteClawback": "Davet ödülü geri alındı",
           "discordInviteDebt": "Davet kredisi borcu",
-          "discordBoost": "Discord takviyesi"
+          "discordBoost": "Discord takviyesi",
+          "partner": "Ortaklık programı"
         }
       },
       "chartLegend": {
@@ -988,6 +989,7 @@
           "themeLight": "Açık",
           "redactAddresses": "Adresleri Gizle",
           "resetDeviceOverrides": "Cihaza Özel Ayarları Sıfırla ({count})",
+          "review": "{site} Üzerinde Değerlendir",
           "openMenu": "Menüyü Aç"
         },
         "profileSettings": "Profil Ayarları",
@@ -1003,6 +1005,142 @@
           "disk": "Disk",
           "openStore": "Kaynak Mağazası'ndan daha fazlasını alın",
           "openTokens": "Jetonlar sayfasını aç"
+        }
+      },
+      "notifications": {
+        "title": "Bildirimler",
+        "open": "Bildirimler, {count} okunmamış",
+        "unreadLabel": "Okunmamış bildirim",
+        "markAllRead": "Tümünü okundu işaretle",
+        "clear": "Temizle",
+        "markRead": "Okundu işaretle",
+        "delete": "Bildirimi sil",
+        "openServer": "Sunucuyu aç",
+        "viewBackups": "Yedekleri görüntüle",
+        "showMore": "Daha fazla göster",
+        "empty": "Bildirim yok",
+        "emptyHint": "Lütfen daha sonra tekrar kontrol edin.",
+        "unknown": "Bildirim",
+        "address": "Yeni adres: {address}",
+        "reason": "Neden: {reason}",
+        "kinds": {
+          "transferCompleted": {
+            "title": "Sunucu taşındı",
+            "body": "{server} artık {location} konumunda.",
+            "bodyAnywhere": "{server} artık başka bir node'da."
+          },
+          "transferFailed": {
+            "title": "Taşıma başarısız oldu",
+            "body": "{server}, {location} konumuna taşınamadı. Tüm dosyalarıyla birlikte hâlâ olduğu yerde.",
+            "bodyAnywhere": "{server} taşınamadı. Tüm dosyalarıyla birlikte hâlâ olduğu yerde."
+          },
+          "allowanceCut": {
+            "title": "Sunucularınızın artık daha az kaynağı var",
+            "body": "Hesabınızın kaynakları azaldı ve sunucularınız hesabınızın şu an sahip olduğundan fazlasını kullanıyordu, bu yüzden fark sunuculardan eşit olarak düşüldü: {servers}.",
+            "cpu": "−%{amount} CPU",
+            "memory": "−{amount} RAM",
+            "disk": "−{amount} disk"
+          },
+          "membershipEnded": {
+            "title": "{membership} sona erdi",
+            "body": "Premium konumlardaki sunucular başka bir konuma taşınıyor: {servers}. İlerlemeyi her sunucunun Taşıma sayfasından takip edin."
+          },
+          "failoverDone": {
+            "title": "Sunucu kurtarıldı",
+            "body": "{server} sunucusunun node'u çevrimdışı oldu, bu yüzden sunucu en son yedeğinden sağlıklı bir node'a geri yüklendi. Hazır olduğunuzda başlatın.",
+            "drillTitle": "Sunucu başka bir node'a taşındı",
+            "drillBody": "{server}, bir kurtarma denetimi sırasında en son yedeğinden başka bir node'a geri yüklendi. Hazır olduğunuzda başlatın.",
+            "backup": "Dosyalar {time} tarihindeki halinde."
+          },
+          "failoverFailed": {
+            "title": "Sunucunun node'unda sorun",
+            "body": "{server} sunucusunun node'u çevrimdışı oldu ve sağlıklı bir node'a geri yükleme tamamlanamadı. Sunucunuz erişilemez kalırsa lütfen destekle iletişime geçin."
+          },
+          "modpackInstalled": {
+            "title": "Mod paketi kuruldu",
+            "body": "{name}, {server} sunucusuna kuruldu ve {count} dosya indirildi. Sunucuyu başlatın ve konsolu izleyin.",
+            "skipped": "Bazı dosyalar indirilemedi ve elle eklenmeleri gerekiyor."
+          },
+          "modpackFailed": {
+            "title": "Mod paketi kurulumu başarısız oldu",
+            "body": "{name}, {server} sunucusuna kurulamadı. Sunucuyu başlatmadan önce konsolu ve dosya listesini kontrol edin."
+          },
+          "frameworkInstalled": {
+            "title": "{recipe}, {server} sunucusuna kuruldu",
+            "body": "{folder} klasöründe ve sunucu onunla başlatılıyor."
+          },
+          "frameworkFailed": {
+            "title": "{recipe}, {server} sunucusuna kurulamadı"
+          },
+          "worldImported": {
+            "title": "Dünya içe aktarıldı",
+            "body": "Yüklenen dünya artık {server} sunucusunun dünyası.",
+            "kept": "Önceki dünya {world} adıyla saklandı."
+          },
+          "worldImportFailed": {
+            "title": "Dünya içe aktarılamadı",
+            "body": "Yüklenen dünya {server} sunucusunda açılamadı."
+          },
+          "serverInstalled": {
+            "title": "Sunucu kurulumu tamamlandı",
+            "body": "{server} kuruldu ve başlatılabilir."
+          },
+          "serverInstallFailed": {
+            "title": "Sunucu kurulumu başarısız oldu",
+            "body": "{server} kurulamadı. Yeniden kurmak için sunucuyu açın."
+          },
+          "subuserAdded": {
+            "title": "Sunucuya eklendiniz",
+            "body": "{server} sunucusuna alt kullanıcı olarak eklendiniz."
+          },
+          "subuserRemoved": {
+            "title": "Sunucudan çıkarıldınız",
+            "body": "{server} sunucusundan alt kullanıcı olarak çıkarıldınız."
+          },
+          "backupCompleted": {
+            "title": "Yedekleme tamamlandı",
+            "body": "{server} sunucusunun {name} yedeği hazır."
+          },
+          "backupFailed": {
+            "title": "Yedekleme başarısız oldu",
+            "body": "{server} sunucusunun {name} yedeği oluşturulamadı."
+          },
+          "partnerApproved": {
+            "title": "Ortaklık onaylandı",
+            "body": "{guild} artık ortak ve ayda {credits} kredi kazanıyor. İlk ay ödendi."
+          },
+          "partnerRejected": {
+            "title": "Ortaklık başvurusu kabul edilmedi",
+            "body": "{guild} ortak olarak kabul edilmedi."
+          },
+          "partnerRevoked": {
+            "title": "Ortaklık sona erdi",
+            "body": "{guild} ortaklığı sona erdi ve aylık ödemeler durdu."
+          },
+          "partnerPaid": {
+            "title": "Ortaklık kredileri alındı",
+            "body": "Bu ay {guild} için {credits} kredi."
+          },
+          "partnerCheckFailed": {
+            "title": "Ortaklık kontrolü başarısız",
+            "body": "{guild} artık ortaklık koşullarını karşılamıyor, bu yüzden bu ayın ödemesi bekletiliyor. {until} tarihine kadar düzeltin, yoksa ortaklık askıya alınır. Neyin eksik olduğu Ortaklar sayfasında görünür."
+          },
+          "partnerSuspended": {
+            "title": "Ortaklık askıya alındı",
+            "body": "{guild} hâlâ koşulları karşılamıyor, bu yüzden ortaklık askıya alındı. Sorunu düzeltin, ardından Ortaklar sayfasında Yeniden kontrol et seçeneğini kullanın."
+          },
+          "partnerPaused": {
+            "title": "Ortaklık ödemeleri duraklatıldı",
+            "body": "Bir yönetici {guild} için aylık ödemeleri duraklattı."
+          },
+          "partnerResumed": {
+            "title": "Ortaklık ödemeleri devam ediyor",
+            "body": "{guild} için aylık ödemeler yeniden başladı."
+          },
+          "partnerCreditsChanged": {
+            "title": "Ortaklık kredileri değişti",
+            "body": "{guild} artık ayda {credits} kredi kazanıyor."
+          }
         }
       },
       "welcomeTour": {
@@ -1207,7 +1345,9 @@
             },
             "reason": "Sebep: {reason}",
             "deleteAt": "Askıya alma o tarihten önce kaldırılmazsa sunucu, dosyalarıyla birlikte {date} tarihinde silinecek.",
-            "help": "Bunun bir hata olduğunu düşünüyorsanız panel yöneticileriyle iletişime geçin ve sunucunun adını belirtin."
+            "help": "Bunun bir hata olduğunu düşünüyorsanız panel yöneticileriyle iletişime geçin ve sunucunun adını belirtin.",
+            "helpLink": "Bunun bir hata olduğunu düşünüyorsanız yardım isteyin ve sunucunun adını belirtin.",
+            "getHelp": "Yardım al"
           },
           "contentNodeMaintenance": "Bu sunucu bakımda olan bir node üzerinde ve erişilemez.",
           "contentTransferring": "Bu sunucu şu anda taşınıyor ve işlem bitene kadar erişilemez.",
@@ -1944,6 +2084,11 @@
           },
           "emptyGroup": "Bu grup boş. Eklemek için buraya bir sunucu sürükleyin.",
           "emptyAccess": "Hiçbir sunucuya erişiminiz yok!",
+          "review": {
+            "title": "{app} ile deneyiminiz nasıl?",
+            "body": "Diğer oyunculara {site} üzerinde bir yorumla deneyiminizi anlatın, iyi ya da kötü.",
+            "write": "Yorum Yaz"
+          },
           "card": {
             "cpu": "CPU",
             "memory": "RAM",
@@ -2896,6 +3041,111 @@
             "nothing": "Her şey güncel, ödenecek yeni bir şey yok."
           }
         },
+        "partners": {
+          "title": "Ortaklar",
+          "closed": "Başvurular şu anda kapalı.",
+          "promo": {
+            "title": "Ortaklık programı",
+            "text": "Bir FiveM veya Minecraft sunucusu için Discord topluluğu mu yönetiyorsunuz? Ortaklar her ay kredi kazanır.",
+            "open": "Ortaklık programını aç"
+          },
+          "intro": {
+            "heading": "Ortak olun",
+            "body": "Bir FiveM veya Minecraft sunucusu için en az {members} üyeli bir Discord topluluğu mu yönetiyorsunuz? {app} ile ortak olun ve her ay {credits} krediye kadar kazanın.",
+            "review": "Her başvuruyu bir yönetici inceler. Her aylık ödemeden önce sunucu yeniden kontrol edilir; artık koşulları karşılamıyorsa ödeme bekletilir ve düzeltmek için {days} gününüz olur.",
+            "reviewDay": "Her başvuruyu bir yönetici inceler. Her aylık ödemeden önce sunucu yeniden kontrol edilir; artık koşulları karşılamıyorsa ödeme bekletilir ve düzeltmek için {days} gününüz olur.",
+            "reviewNow": "Her başvuruyu bir yönetici inceler. Her aylık ödemeden önce sunucu yeniden kontrol edilir; artık koşulları karşılamıyorsa ortaklık, yeniden karşılayana kadar askıya alınır."
+          },
+          "requirements": {
+            "title": "Sunucunuzun ihtiyaçları",
+            "linked": "Discord hesabınız bağlı",
+            "linkedAs": "{name} olarak bağlı",
+            "notLinked": "Henüz bağlı değil",
+            "done": "Tamam",
+            "link": "Discord bağla",
+            "linkNoprofit": "Discord'u noprofit.space üzerinde bağla",
+            "bot": "{bot} sunucuda",
+            "botHint": "Yalnızca üye sayısını, rollerinizi ve kanalları okur; bu yüzden hiçbir izne ihtiyacı yoktur.",
+            "addBot": "{bot} ekle",
+            "members": "En az {members} üye",
+            "membersHint": "Discord'un saydığı şekilde, başvuruda ve her ödemeden önce.",
+            "admin": "Sunucunun sahibisiniz veya orada yöneticisiniz",
+            "adminHint": "Sahip ya da Yönetici iznine sahip bir rol.",
+            "channel": "{app} hakkında bir kanal",
+            "channelHint": "@everyone tarafından görülebilir, adında veya konusunda {names} geçer.",
+            "channelLinkHint": "Konusunda ayrıca {links} bağlantısı olmalı.",
+            "game": "Bir FiveM veya Minecraft topluluğu",
+            "gameHint": "Oyun sunucusu her yerde barındırılabilir. Bu paneldekileri başvuruda belirtin."
+          },
+          "problems": {
+            "notLinked": "Önce Discord hesabınızı bağlayın.",
+            "invalidLink": "Bir Discord davet bağlantısı veya sunucu kimliği girin.",
+            "unknownInvite": "Bu davet yok ya da süresi dolmuş. Süresi hiç dolmayan bir davet kullanın.",
+            "botMissing": "{bot} bu sunucuda değil. Ekleyin ve yeniden başvurun.",
+            "tooFewMembers": "Bu sunucunun {count} üyesi var, en az {members} gerekiyor.",
+            "notAdmin": "Bu sunucunun sahibi olmalı ya da sunucuda Yönetici iznine sahip bir rolünüz olmalı.",
+            "channelMissing": "{app} hakkında bir kanal bulunamadı: adında veya konusunda {app} geçmeli ve @everyone tarafından görülebilmeli.",
+            "channelHidden": "{channel} @everyone için gizli. Sunucudaki herkes onu görebilmeli.",
+            "channelLink": "{channel} kanalının konusunda {links} bağlantısı olmalı.",
+            "pending": "İncelenmeyi bekleyen bir başvurunuz zaten var.",
+            "taken": "Bu sunucu zaten ortak ya da bekleyen bir başvurusu var.",
+            "cooldown": "Son başvurunuz kabul edilmedi. {date} tarihinde yeniden başvurabilirsiniz."
+          },
+          "form": {
+            "title": "Başvur",
+            "server": "Discord sunucusu",
+            "serverHint": "Süresi hiç dolmayan bir davet bağlantısı veya sunucu kimliği.",
+            "game": "Oyun",
+            "description": "Topluluğunuz hakkında",
+            "descriptionHint": "Ne oynadığı, ne kadar aktif olduğu ve onu neyin özel kıldığı. 20 ile 1000 karakter arası.",
+            "servers": "Bu paneldeki sunucular",
+            "serversHint": "İsteğe bağlı: topluluğun oynadığı, buradaki en fazla 10 sunucunuz.",
+            "submit": "Başvuruyu gönder",
+            "sent": "Başvuru gönderildi. Karar verildiğinde bildirim alacaksınız."
+          },
+          "games": {
+            "fivem": "FiveM",
+            "minecraft": "Minecraft",
+            "both": "FiveM ve Minecraft"
+          },
+          "refusal": {
+            "title": "Sunucu henüz koşulları karşılamıyor",
+            "titleServer": "{server} henüz koşulları karşılamıyor"
+          },
+          "status": {
+            "pending": "İnceleme bekliyor",
+            "approved": "Ortak",
+            "paused": "Duraklatıldı",
+            "suspended": "Askıya alındı",
+            "rejected": "Kabul edilmedi",
+            "revoked": "Sona erdi",
+            "withdrawn": "Geri çekildi"
+          },
+          "partnership": {
+            "monthly": "Ayda {credits} kredi",
+            "nextPayment": "Sonraki ödeme: {date}",
+            "paused": "Bir yönetici ödemeleri duraklattı.",
+            "pausedReason": "Bir yönetici ödemeleri duraklattı: {reason}",
+            "failing": "Son kontrol başarısız oldu, bu yüzden bu ayın ödemesi bekletiliyor. {date} tarihine kadar düzeltin, yoksa ortaklık askıya alınır.",
+            "suspended": "Sunucu artık koşulları karşılamadığı için ortaklık askıya alındı. Ödemelerin devam etmesi için sorunu düzeltin ve yeniden kontrol edin.",
+            "check": "Yeniden kontrol et",
+            "checkPassed": "Sunucu koşulları karşılıyor.",
+            "checkFailed": "Sunucu henüz koşulları karşılamıyor.",
+            "payments": "Ödemeler",
+            "paidTotal": "Toplam {credits} kredi alındı",
+            "paymentsEmpty": "Henüz ödeme yok."
+          },
+          "pending": {
+            "title": "Başvurunuz inceleniyor",
+            "body": "Bir yönetici {server} sunucusuna bakıp karar verecek. Bildirim alacaksınız.",
+            "withdraw": "Başvuruyu geri çek",
+            "withdrawn": "Başvuru geri çekildi."
+          },
+          "history": {
+            "title": "Önceki başvurular",
+            "reason": "Neden: {reason}"
+          }
+        },
         "devboxOpen": {
           "title": "VS Code",
           "opening": "devbox açılıyor…",
@@ -2963,6 +3213,17 @@
             "installing": "Sunucunuz şu anda kuruluyor. Lütfen bekleyin...",
             "pendingRestart": "Sunucunuzda yeniden başlatma gerektiren bekleyen değişiklikler var. Bu değişiklikleri uygulamak için lütfen sunucunuzu yeniden başlatın."
           },
+          "installStuck": {
+            "content": "Bu, olması gerekenden çok daha uzun sürüyor, bu yüzden kurulum muhtemelen takıldı. Kurulumu baştan başlatabilir veya sunucuyu silebilirsiniz.",
+            "reinstall": {
+              "button": "Yeniden Kur",
+              "title": "Kurulum baştan başlatılsın mı?",
+              "content": "Kurulum en baştan tekrar çalışır. Kurulumun zaten yazdığı dosyalar değiştirilebilir."
+            },
+            "toast": {
+              "reinstalling": "Kurulum baştan başladı."
+            }
+          },
           "message": {
             "serverMarkedAs": "Sunucu {state} olarak işaretlendi...",
             "installFailed": "Kurulum başarısız oldu.",
@@ -3028,6 +3289,13 @@
               "button": {
                 "update": "Docker İmajını Güncelle"
               }
+            },
+            "pidLimit": {
+              "titleAdmin": "Bellek veya işlem sınırına ulaşıldı",
+              "titleUser": "Olası kaynak sınırına ulaşıldı",
+              "contentAdmin": "Bu sunucu azami işlem veya bellek sınırına ulaştı. Wings yapılandırmasında, `config.yml`, `docker` altındaki `container_pid_limit` değerini artırmak yardımcı olabilir.",
+              "contentAdminRestart": "**Değişikliğin geçerli olması için Wings yeniden başlatılmalıdır.**",
+              "contentUser": "Bu sunucu sahip olduğundan daha fazla kaynak kullanmaya çalışıyor. Lütfen yöneticiyle iletişime geçin ve ona aşağıdaki hatayı iletin."
             }
           },
           "details": {
@@ -5038,7 +5306,8 @@
             "title": "Tahsisler"
           },
           "tooltip": {
-            "limitReached": "Bu sunucu {max} tahsis ile sınırlıdır."
+            "limitReached": "Bu sunucu {max} tahsis ile sınırlıdır.",
+            "locked": "Kilitli: yalnızca bir yönetici kaldırabilir."
           },
           "table": {
             "columns": {
@@ -5058,7 +5327,8 @@
               "title": "Tahsis Kaldırma Onayı",
               "content": "**{allocations}** bu sunucudan kaldırılacak. Emin misiniz?",
               "alert": {
-                "skipped": "{allocations} atlanacak. Birincil tahsis kaldırılamaz."
+                "skipped": "{allocations} atlanacak. Birincil tahsis kaldırılamaz.",
+                "skippedLocked": "{allocations} atlanacak. Birincil tahsis ve kilitli tahsisler kaldırılamaz."
               }
             },
             "removeAllocation": {
@@ -5645,6 +5915,7 @@
           "title": "Sunucu uyku modunda",
           "body": "Bu sunucu bir süredir boştaydı, bu yüzden kapasite açmak için uyku moduna alındı. Tekrar çevrimiçi yapmak için geri yükleyin.",
           "entered": "{time} uyku moduna alındı",
+          "deletesAt": "{time} dosyalarıyla birlikte silinecek, o zamana kadar geri yüklemezsen.",
           "failed": "Son geri yükleme başarısız oldu: {error}",
           "costLabel": "Geri yükleme maliyeti",
           "balanceLabel": "Bakiyeniz",
@@ -5751,7 +6022,9 @@
           "reasons": {
             "noNode": "yeri olan bir node bulunamadı",
             "copyFailed": "kopyalama yarıda kesildi",
-            "skippedMoved": "bu arada zaten taşınmıştı"
+            "skippedMoved": "bu arada zaten taşınmıştı",
+            "stalled": "kopyalama ilerlemedi",
+            "unfinalized": "yeni node kopyayı onaylamadı"
           },
           "events": {
             "requested": "{location} lokasyonuna taşıma istendi",
@@ -5905,10 +6178,16 @@
             "propertiesNote": "Yorumlar, anahtarların sırası ve burada gösterilmeyen anahtarlar olduğu gibi kalır. Portlar ve RCON şifresi panel tarafından ayarlanır.",
             "yamlNote": "Yorumlar ve dosyadaki diğer her şey olduğu gibi kalır. Listeler ve birden fazla satıra yayılan değerler burada gösterilmez: bunlar için dosyayı metin olarak düzenleyin.",
             "button": {
-              "editText": "Metin Olarak Düzenle"
+              "editText": "Metin Olarak Düzenle",
+              "restart": "Sunucuyu yeniden başlat"
             },
             "toast": {
-              "saved": "{file} kaydedildi ({count} değişiklik). Uygulamak için sunucuyu yeniden başlatın."
+              "saved": "{file} kaydedildi ({count} değişiklik). Uygulamak için sunucuyu yeniden başlatın.",
+              "restarting": "Sunucu yeniden başlatılıyor"
+            },
+            "restart": {
+              "title": "Sunucu şimdi yeniden başlatılsın mı?",
+              "description": "Sunucu, kaydedilen ayarları okuması için durup yeniden başlar. Yeniden başlarken oynayan herkesin bağlantısı kesilir."
             }
           },
           "players": {
@@ -5926,6 +6205,8 @@
             "emptyHeading": "Henüz oyuncu yok",
             "emptyBody": "Bu sunucuda beyaz listede olan veya operatör olan kimse yok. Başlamak için bir oyuncu ekleyin.",
             "noMatch": "Bu aramayla eşleşen oyuncu yok.",
+            "unnamed": "Adı henüz bilinmiyor",
+            "lastPlayed": "Son oynama {date}",
             "table": {
               "player": "Oyuncu",
               "whitelisted": "Beyaz listede",
@@ -5934,7 +6215,8 @@
             },
             "badge": {
               "operator": "Seviye {level}",
-              "banned": "Yasaklı"
+              "banned": "Yasaklı",
+              "online": "Çevrimiçi"
             },
             "button": {
               "refresh": "Yenile",
@@ -5988,6 +6270,140 @@
               "enforcedOn": "Beyaz liste açıldı.",
               "enforcedOff": "Beyaz liste kapatıldı.",
               "atNextStart": "Sunucu dosyalarına kaydedildi - sunucu bir sonraki başlatıldığında uygulanır."
+            },
+            "details": {
+              "back": "Tüm oyuncular",
+              "online": "Çevrimiçi",
+              "offline": "Çevrimdışı",
+              "bedrock": "Bedrock",
+              "copyUuid": "UUID'yi kopyala",
+              "saved": "Son kayıt {date}",
+              "savedNote": "Son kayıttaki hâli gösterilir. Çalışan bir sunucu oyuncularını birkaç dakikada bir ve oyundan çıktıklarında kaydeder.",
+              "noData": "Bu oyuncu için henüz bir şey kaydedilmedi. Oyuncu oynadıktan ve sunucu kaydettikten sonra ayrıntılar burada görünür.",
+              "damaged": "Oyuncu veri dosyası okunamadı. Minecraft dosyanın önceki sürümüne döner ya da oyuncuyu doğma noktasında yeniden başlatır.",
+              "gameMode": "Oyun modu",
+              "gameModes": {
+                "survival": "Hayatta Kalma",
+                "creative": "Yaratıcı",
+                "adventure": "Macera",
+                "spectator": "İzleyici"
+              },
+              "reason": {
+                "notRunning": "Bunu yapmak için sunucuyu başlatın.",
+                "notOnline": "Oyuncu çevrimiçi değil.",
+                "noConsole": "Bunun için konsol erişimi gerekir.",
+                "stopFirst": "Kayıtlı verileri değiştirmek için sunucuyu durdurun.",
+                "noFiles": "Bunun için dosyaları değiştirme izni gerekir."
+              },
+              "vitals": {
+                "title": "Can ve deneyim",
+                "health": "Can",
+                "food": "Açlık",
+                "level": "Seviye {level}",
+                "points": "Toplam {points} puan",
+                "heal": "İyileştir",
+                "feed": "Doyur",
+                "kill": "Öldür",
+                "killTitle": "{name} öldürülsün mü?",
+                "killContent": "Oyuncu oyunda ölür ve keepInventory açık değilse taşıdıklarını düşürür."
+              },
+              "access": {
+                "title": "Erişim",
+                "whitelisted": "Beyaz listede",
+                "operator": "Operatör",
+                "banned": "Yasaklı",
+                "unnamed": "Listeler için oyuncunun adı gerekir ve sunucu bu adı henüz bilmiyor."
+              },
+              "inventory": {
+                "title": "Envanter",
+                "equipment": "Zırh ve ikincil el",
+                "main": "Envanter",
+                "hotbar": "Hızlı erişim çubuğu",
+                "enderChest": "Ender sandığı"
+              },
+              "position": {
+                "title": "Konum",
+                "coordinates": "Koordinatlar",
+                "dimension": "Boyut",
+                "respawn": "Yeniden doğma noktası",
+                "lastDeath": "Son ölüm",
+                "unknown": "Ayarlanmamış",
+                "teleport": "Işınla",
+                "overworld": "Ana Dünya",
+                "nether": "Nether",
+                "end": "End"
+              },
+              "teleport": {
+                "title": "{name} ışınlansın",
+                "coordinates": "Koordinatlar",
+                "spawn": "Dünya doğma noktası",
+                "player": "Bir oyuncuya",
+                "current": "Şu an bulunduğu boyut",
+                "target": "Oyuncu",
+                "noTargets": "Işınlanılacak başka oyuncu yok.",
+                "spawnHint": "Sunucunun yüklediği dünyanın doğma noktası.",
+                "live": "Oyuncu hemen taşınır.",
+                "file": "Sunucu durdurulmuş: kayıtlı konumu değişir ve oyuncu bir sonraki girişinde orada belirir.",
+                "submit": "Işınla"
+              },
+              "stats": {
+                "title": "İstatistikler",
+                "empty": "Henüz istatistik kaydedilmedi.",
+                "playTime": "Oynama süresi",
+                "playerKills": "Öldürülen oyuncular",
+                "mobKills": "Öldürülen yaratıklar",
+                "deaths": "Ölümler",
+                "kdr": "Ölüm başına öldürme",
+                "distance": "Katedilen mesafe",
+                "blocks": "{count} blok",
+                "mined": "Kazılan bloklar",
+                "used": "Kullanılan eşyalar",
+                "killed": "Öldürülen yaratıklar",
+                "nothing": "Henüz yok",
+                "ways": {
+                  "walk": "Yürüyerek",
+                  "sprint": "Koşarak",
+                  "crouch": "Eğilerek",
+                  "swim": "Yüzerek",
+                  "fall": "Düşerek",
+                  "climb": "Tırmanarak",
+                  "fly": "Uçarak",
+                  "aviate": "Elytra ile süzülerek",
+                  "boat": "Tekneyle",
+                  "minecart": "Maden arabasıyla",
+                  "horse": "At sırtında",
+                  "pig": "Domuz sırtında",
+                  "strider": "Lav yürüyeni sırtında",
+                  "walkOnWater": "Su üstünde yürüyerek",
+                  "walkUnderWater": "Su altında yürüyerek"
+                }
+              },
+              "remove": {
+                "title": "Oyuncu verilerini sil",
+                "description": "Yalnızca sunucu durdurulmuşken. Silinecekleri işaretleyin.",
+                "xp": "Deneyim",
+                "inventory": "Envanter ve zırh",
+                "enderChest": "Ender sandığı",
+                "playerData": "Oyuncu veri dosyası",
+                "playerDataHint": "Sunucunun oyuncu hakkında kaydettiği her şey: oyuncu doğma noktasında yeniden başlar.",
+                "statistics": "İstatistikler",
+                "advancements": "Gelişmeler",
+                "missing": "Kayıtlı bir şey yok",
+                "submit": "Sil",
+                "confirmTitle": "{name} için seçilen veriler silinsin mi?",
+                "edited": "Oyuncu veri dosyası yeniden yazılır; önceki sürümü yanında {file} olarak kalır.",
+                "trash": "Silinen dosyalar çöp kutusuna gider.",
+                "gone": "Silinen dosyalar geri getirilemez."
+              },
+              "toast": {
+                "healed": "{name} iyileştirildi.",
+                "fed": "{name} doyuruldu.",
+                "killed": "{name} öldürüldü.",
+                "gameMode": "{name} artık {mode} modunda oynuyor.",
+                "teleported": "{name} ışınlandı.",
+                "nextJoin": "Oyuncunun dosyasına kaydedildi - bir sonraki girişinde uygulanır.",
+                "deleted": "{name} için seçilen veriler silindi."
+              }
             }
           },
           "worlds": {
@@ -6701,9 +7117,12 @@
         "chat": {
           "title": "Sohbet",
           "empty": "Henüz mesaj yok. Merhaba deyin.",
+          "emptyReadOnly": "Henüz mesaj yok.",
           "placeholder": "Bir mesaj yazın…",
           "loadOlder": "Eski mesajları yükle",
-          "deletedUser": "Silinmiş kullanıcı"
+          "deletedUser": "Silinmiş kullanıcı",
+          "newMessages": "Yeni mesajlar",
+          "readOnly": "Bu sohbeti okuyabilirsiniz ama yazamazsınız."
         }
       }
     }

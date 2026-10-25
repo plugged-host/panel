@@ -11,10 +11,13 @@
 //! 3. `restoring` → `done` or `failed`, from the restore's outcome.
 //!
 //! Once the old node answers again, a `done` server's copy there is removed (the Wings fork's `POST
-//! /api/system/orphans`). A server that failed before its row moved stays on the old node.
+//! /api/system/orphans`). A server that failed before its row moved stays on the old node; a failed
+//! server can be tried again ([`resume`]).
 //! Automatic failovers (Admin › Settings › Hosting › Recovery) start for a node that missed enough
 //! checks in a row, one at a time, and only while most other nodes answer: when many nodes look
-//! down at once, the panel's own network is the likelier cause.
+//! down at once, the panel's own network is the likelier cause. In the notify mode the same node is
+//! only reported to the admins with what a failover would do ([`plan`], a `notify` row whose servers
+//! are `planned`); [`plan`] is also the Failover tab's dry run.
 
 use crate::{
     models::{
@@ -34,18 +37,24 @@ use utoipa::ToSchema;
 pub const MODE_AUTO: &str = "auto";
 pub const MODE_MANUAL: &str = "manual";
 pub const MODE_DRILL: &str = "drill";
+/// A down node reported in the notify mode: nothing moves.
+pub const MODE_NOTIFY: &str = "notify";
 
 /// A node failover's status.
 pub const RUNNING: &str = "running";
 /// A node failover's and a server's status.
 pub const DONE: &str = "done";
 pub const CANCELLED: &str = "cancelled";
+/// A `notify` row's status: the admins were told.
+pub const NOTIFIED: &str = "notified";
 
 /// A server's status.
 pub const QUEUED: &str = "queued";
 pub const REHOMING: &str = "rehoming";
 pub const RESTORING: &str = "restoring";
 pub const FAILED: &str = "failed";
+/// A server of a `notify` row: where a failover would put it; nothing moved.
+pub const PLANNED: &str = "planned";
 
 /// How long a server may wait for its new node's Wings to take the restore.
 const REHOME_TIMEOUT_MINUTES: i64 = 10;
@@ -63,6 +72,10 @@ pub enum FailoverError {
     /// Nothing to fail over.
     NoServers,
     NotRunning,
+    /// No such server row in the node's failovers.
+    NotFound,
+    /// The server row cannot be tried again, and why.
+    NotResumable(&'static str),
     Other(anyhow::Error),
 }
 
@@ -76,6 +89,8 @@ impl FailoverError {
             Self::NotOnNode => "that server is not on this node".into(),
             Self::NoServers => "this node has no servers".into(),
             Self::NotRunning => "no failover of this node is under way".into(),
+            Self::NotFound => "that server is not in this node's failovers".into(),
+            Self::NotResumable(why) => (*why).into(),
             Self::Other(err) => format!("{err:#}"),
         }
     }
@@ -83,8 +98,9 @@ impl FailoverError {
     pub fn status(&self) -> u16 {
         match self {
             Self::Disabled => 403,
-            Self::Running | Self::NoServers | Self::NotRunning => 409,
+            Self::Running | Self::NoServers | Self::NotRunning | Self::NotResumable(_) => 409,
             Self::NotOnNode => 400,
+            Self::NotFound => 404,
             Self::Other(_) => 500,
         }
     }
@@ -177,6 +193,69 @@ pub fn restore_outcome(status: Option<ServerStatus>, minutes: i64) -> RestoreOut
         }
         _ => RestoreOutcome::Wait,
     }
+}
+
+/// A node a failover could put servers on, as the dry run sees it.
+#[derive(Clone, Debug, PartialEq)]
+pub struct PlanNode {
+    pub uuid: uuid::Uuid,
+    /// Its limits in MiB; 0 is none.
+    pub memory: i64,
+    pub disk: i64,
+    /// What its servers were given (suspended ones at the placement's penalty).
+    pub used_memory: i64,
+    pub used_disk: i64,
+    /// Its 5-minute load in percent (`node_telemetry::PRESSURE_SQL`).
+    pub pressure: Option<f32>,
+    /// It answered its newest check.
+    pub answers: bool,
+}
+
+/// Where each server (`(memory, disk)`, in order) would go: the index of its node, or `None` when
+/// no node that answers has room. Like placement without its randomness: the node least full after
+/// taking the server (allocated memory, allocated disk or load, whichever is highest), and every
+/// server planned takes its room on its node, so one failover spreads like the real one.
+pub fn plan_destinations(servers: &[(i64, i64)], nodes: &mut [PlanNode]) -> Vec<Option<usize>> {
+    let ratio = |used: i64, limit: i64| {
+        if limit == 0 {
+            0.0
+        } else {
+            used as f64 / limit as f64
+        }
+    };
+
+    servers
+        .iter()
+        .map(|&(memory, disk)| {
+            let picked = nodes
+                .iter()
+                .enumerate()
+                .filter(|(_, node)| {
+                    node.answers
+                        && (node.memory == 0 || node.used_memory + memory <= node.memory)
+                        && (node.disk == 0 || node.used_disk + disk <= node.disk)
+                })
+                .map(|(index, node)| {
+                    let fullness = ratio(node.used_memory + memory, node.memory)
+                        .max(ratio(node.used_disk + disk, node.disk))
+                        .max(
+                            node.pressure
+                                .map_or(0.0, |pressure| pressure as f64 / 100.0),
+                        );
+
+                    (index, fullness)
+                })
+                .min_by(|(_, a), (_, b)| a.total_cmp(b))
+                .map(|(index, _)| index);
+
+            if let Some(index) = picked {
+                nodes[index].used_memory += memory;
+                nodes[index].used_disk += disk;
+            }
+
+            picked
+        })
+        .collect()
 }
 
 /// Whether a failover is creating the server on its new node (the install Wings reports then is
@@ -462,6 +541,7 @@ async fn fail(state: &crate::State, row: &ServerFailover, error: &str) -> Result
         serde_json::json!({ "error": error, "drill": row.mode == MODE_DRILL }),
     )
     .await;
+    crate::notifications::failover_failed(state, row.server_uuid, row.source_node_uuid).await;
 
     Ok(())
 }
@@ -528,12 +608,7 @@ async fn rehome_server(state: &crate::State, row: &ServerFailover) -> Result<(),
 
     let (Some(backup), reachable_backups) = newest_off_node_backup(state, server.uuid).await?
     else {
-        fail(
-            state,
-            row,
-            "no finished backup on storage other nodes reach (S3, or restic off the nodes)",
-        )
-        .await?;
+        fail(state, row, NO_BACKUP).await?;
         return Ok(());
     };
 
@@ -580,12 +655,7 @@ async fn rehome_server(state: &crate::State, row: &ServerFailover) -> Result<(),
         }
     }
     let Some((node, picked)) = destination else {
-        fail(
-            state,
-            row,
-            "no other node of the location answers and has room and free ports",
-        )
-        .await?;
+        fail(state, row, NO_NODE).await?;
         return Ok(());
     };
 
@@ -754,14 +824,23 @@ async fn check_restore(state: &crate::State, row: &ServerFailover) -> Result<(),
             )
             .await;
             tracing::info!(server = %server.uuid, "a server was failed over");
+            crate::notifications::failover_done(
+                state,
+                &server,
+                row.backup_uuid,
+                row.mode == MODE_DRILL,
+            )
+            .await;
         }
     }
 
     Ok(())
 }
 
-/// Starts an automatic failover when one is due.
-async fn auto_start(state: &crate::State, after: i32) -> Result<(), anyhow::Error> {
+/// Starts an automatic failover when one is due, or in the notify mode (`notify`) reports the node
+/// to the admins instead.
+async fn auto_start(state: &crate::State, after: i32, notify: bool) -> Result<(), anyhow::Error> {
+    // a report does not keep an automatic failover from starting once the mode is automatic
     let rows = sqlx::query(
         "SELECT nodes.uuid, node_telemetry.consecutive_outages, node_telemetry.reachable,
             (SELECT COUNT(*) FROM servers WHERE servers.node_uuid = nodes.uuid) AS servers,
@@ -769,10 +848,13 @@ async fn auto_start(state: &crate::State, after: i32) -> Result<(), anyhow::Erro
                 SELECT 1 FROM node_failovers
                 WHERE node_failovers.node_uuid = nodes.uuid
                     AND node_failovers.created > COALESCE(node_telemetry.last_reachable, 'epoch')
+                    AND ($1 OR node_failovers.mode <> $2)
             ) AS failed_over
         FROM nodes
         JOIN node_telemetry ON node_telemetry.node_uuid = nodes.uuid",
     )
+    .bind(notify)
+    .bind(MODE_NOTIFY)
     .fetch_all(state.database.write())
     .await?;
 
@@ -793,7 +875,12 @@ async fn auto_start(state: &crate::State, after: i32) -> Result<(), anyhow::Erro
             .fetch_one(state.database.write())
             .await?;
 
-    if let Some(node_uuid) = auto_pick(&nodes, after, running) {
+    // a failover by hand elsewhere does not keep another down node from being reported
+    if let Some(node_uuid) = auto_pick(&nodes, after, running && !notify) {
+        if notify {
+            return report_down(state, node_uuid).await;
+        }
+
         match create(state, node_uuid, MODE_AUTO, None, None).await {
             Ok(_) | Err(FailoverError::Running) | Err(FailoverError::NoServers) => {}
             Err(err) => return Err(anyhow::anyhow!(err.message())),
@@ -871,6 +958,349 @@ async fn clean_sources(state: &crate::State) -> Result<(), anyhow::Error> {
     Ok(())
 }
 
+/// One server of a dry run: where a failover would put it and from which backup, or why it would
+/// fail.
+#[derive(ToSchema, Serialize, Clone, Debug)]
+pub struct AdminApiFailoverPlan {
+    pub server_uuid: uuid::Uuid,
+    pub server_name: String,
+    pub destination_node_uuid: Option<uuid::Uuid>,
+    pub destination_node_name: Option<String>,
+    pub backup_uuid: Option<uuid::Uuid>,
+    pub backup_created: Option<chrono::DateTime<chrono::Utc>>,
+    pub error: Option<String>,
+}
+
+const NO_BACKUP: &str =
+    "no finished backup on storage other nodes reach (S3, or restic off the nodes)";
+const NO_NODE: &str = "no other node of the location answers and has room and free ports";
+
+/// What a failover of `node` (or a drill of `only_server`) would do now, without doing anything:
+/// each server's newest off-node backup and the node it would go to ([`plan_destinations`]). The
+/// real failover picks with placement's randomness and checks the ports when it moves a server, so
+/// it may pick another node of the same location.
+pub async fn plan(
+    state: &crate::State,
+    node: &Node,
+    only_server: Option<uuid::Uuid>,
+) -> Result<Vec<AdminApiFailoverPlan>, FailoverError> {
+    let servers: Vec<(uuid::Uuid, String, i64, i64)> = sqlx::query_as(
+        "SELECT uuid, name, memory, disk FROM servers
+        WHERE node_uuid = $1 AND ($2::uuid IS NULL OR uuid = $2)
+            AND limbo_state IS DISTINCT FROM 'parked'
+            AND NOT EXISTS (SELECT 1 FROM devboxes WHERE devboxes.server_uuid = servers.uuid)
+        ORDER BY name",
+    )
+    .bind(node.uuid)
+    .bind(only_server)
+    .fetch_all(state.database.read())
+    .await?;
+    if servers.is_empty() {
+        return Err(if only_server.is_some() {
+            FailoverError::NotOnNode
+        } else {
+            FailoverError::NoServers
+        });
+    }
+
+    let rows = sqlx::query(sqlx::AssertSqlSafe(format!(
+        r#"
+        WITH server_usage AS (
+            SELECT node_uuid,
+                COALESCE(SUM((memory + memory_overhead) * CASE WHEN suspended THEN $4 ELSE 1.0 END), 0)::BIGINT AS used_memory,
+                COALESCE(SUM(disk * CASE WHEN suspended THEN $4 ELSE 1.0 END), 0)::BIGINT AS used_disk
+            FROM servers
+            WHERE servers.limbo_state IS DISTINCT FROM 'parked'
+            GROUP BY node_uuid
+        )
+        SELECT nodes.uuid, nodes.name, nodes.memory, nodes.disk,
+            COALESCE(u.used_memory, 0) AS used_memory, COALESCE(u.used_disk, 0) AS used_disk,
+            {} AS pressure, COALESCE(telemetry.reachable, FALSE) AS answers
+        FROM nodes
+        LEFT JOIN server_usage u ON u.node_uuid = nodes.uuid
+        LEFT JOIN node_telemetry telemetry ON telemetry.node_uuid = nodes.uuid
+        WHERE nodes.location_uuid = $1 AND nodes.uuid <> $2 AND nodes.role = $3
+            AND nodes.deployment_enabled AND NOT nodes.maintenance_enabled
+            AND NOT nodes.deployment_paused
+        ORDER BY nodes.name
+        "#,
+        crate::node_telemetry::PRESSURE_SQL,
+    )))
+    .bind(node.location.uuid)
+    .bind(node.uuid)
+    .bind(node.role.as_str())
+    .bind(SUSPENSION_PENALTY)
+    .fetch_all(state.database.read())
+    .await?;
+
+    let mut names = Vec::with_capacity(rows.len());
+    let mut nodes = Vec::with_capacity(rows.len());
+    for row in &rows {
+        names.push(row.try_get::<String, _>("name")?);
+        nodes.push(PlanNode {
+            uuid: row.try_get("uuid")?,
+            memory: row.try_get("memory")?,
+            disk: row.try_get("disk")?,
+            used_memory: row.try_get("used_memory")?,
+            used_disk: row.try_get("used_disk")?,
+            pressure: row.try_get("pressure")?,
+            answers: row.try_get("answers")?,
+        });
+    }
+
+    let mut planned = Vec::with_capacity(servers.len());
+    let mut sizes = Vec::new();
+    for (uuid, name, memory, disk) in servers {
+        let (backup, _) = newest_off_node_backup(state, uuid).await?;
+        if backup.is_some() {
+            sizes.push((memory, disk));
+        }
+
+        planned.push(AdminApiFailoverPlan {
+            server_uuid: uuid,
+            server_name: name,
+            destination_node_uuid: None,
+            destination_node_name: None,
+            backup_uuid: backup.as_ref().map(|backup| backup.uuid),
+            backup_created: backup.map(|backup| backup.created.and_utc()),
+            error: None,
+        });
+    }
+
+    let mut destinations = plan_destinations(&sizes, &mut nodes).into_iter();
+    for entry in &mut planned {
+        if entry.backup_uuid.is_none() {
+            entry.error = Some(NO_BACKUP.into());
+            continue;
+        }
+
+        match destinations.next().flatten() {
+            Some(index) => {
+                entry.destination_node_uuid = Some(nodes[index].uuid);
+                entry.destination_node_name = Some(names[index].clone());
+            }
+            None => entry.error = Some(NO_NODE.into()),
+        }
+    }
+
+    Ok(planned)
+}
+
+/// The notify mode found `node` down: the admins get what a failover would do, as a `notify` row
+/// on the node's Failover tab, and nothing moves.
+async fn report_down(state: &crate::State, node_uuid: uuid::Uuid) -> Result<(), anyhow::Error> {
+    let Some(node) = Node::by_uuid_optional(&state.database, node_uuid).await? else {
+        return Ok(());
+    };
+    let planned = match plan(state, &node, None).await {
+        Ok(planned) => planned,
+        Err(FailoverError::NoServers) => return Ok(()),
+        Err(err) => return Err(anyhow::anyhow!(err.message())),
+    };
+
+    let mut transaction = state.database.write().begin().await?;
+    let failover_uuid: uuid::Uuid = sqlx::query_scalar(
+        "INSERT INTO node_failovers (node_uuid, mode, status, finished)
+        VALUES ($1, $2, $3, NOW())
+        RETURNING uuid",
+    )
+    .bind(node.uuid)
+    .bind(MODE_NOTIFY)
+    .bind(NOTIFIED)
+    .fetch_one(&mut *transaction)
+    .await?;
+
+    for entry in &planned {
+        sqlx::query(
+            "INSERT INTO server_failovers (node_failover_uuid, server_uuid, server_name,
+                source_node_uuid, destination_node_uuid, backup_uuid, status, error, finished)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())",
+        )
+        .bind(failover_uuid)
+        .bind(entry.server_uuid)
+        .bind(&entry.server_name)
+        .bind(node.uuid)
+        .bind(entry.destination_node_uuid)
+        .bind(entry.backup_uuid)
+        .bind(PLANNED)
+        .bind(&entry.error)
+        .execute(&mut *transaction)
+        .await?;
+    }
+    transaction.commit().await?;
+
+    notify_admins_node_down(state, &node, failover_uuid, &planned).await;
+
+    Ok(())
+}
+
+async fn notify_admins_node_down(
+    state: &crate::State,
+    node: &Node,
+    failover_uuid: uuid::Uuid,
+    planned: &[AdminApiFailoverPlan],
+) {
+    let restorable = planned
+        .iter()
+        .filter(|entry| entry.destination_node_uuid.is_some())
+        .count();
+    tracing::warn!(
+        node = %node.name,
+        servers = planned.len(),
+        restorable,
+        "a node is down; failover is in the notify mode, nothing was moved"
+    );
+
+    if let Err(err) = crate::models::admin_activity::AdminActivity::create(
+        state,
+        crate::models::admin_activity::CreateAdminActivityOptions {
+            user_uuid: None,
+            impersonator_uuid: None,
+            api_key_uuid: None,
+            event: "node:failover.notify".into(),
+            ip: None,
+            data: serde_json::json!({
+                "uuid": node.uuid,
+                "name": node.name,
+                "failover": failover_uuid,
+                "servers": planned.len(),
+                "restorable": restorable,
+            }),
+            created: None,
+        },
+    )
+    .await
+    {
+        tracing::warn!(node = %node.uuid, "failed to log a down node: {err:#?}");
+    }
+}
+
+/// Tries a failed server of the node's failovers again: one already on its new node gets its
+/// backup restored again ([`restore_server`]), one still on the old node starts over (`queued`).
+/// Its failover runs again until the server is done.
+pub async fn resume(
+    state: &crate::State,
+    node_uuid: uuid::Uuid,
+    server_failover_uuid: uuid::Uuid,
+) -> Result<uuid::Uuid, FailoverError> {
+    if state.settings.get().await?.recovery.failover_mode == FailoverMode::Off {
+        return Err(FailoverError::Disabled);
+    }
+
+    let row: Option<(
+        uuid::Uuid,
+        uuid::Uuid,
+        uuid::Uuid,
+        Option<uuid::Uuid>,
+        Option<uuid::Uuid>,
+        String,
+    )> = sqlx::query_as(
+        "SELECT server_failovers.node_failover_uuid, server_failovers.server_uuid,
+            server_failovers.source_node_uuid, server_failovers.destination_node_uuid,
+            server_failovers.backup_uuid, server_failovers.status
+        FROM server_failovers
+        JOIN node_failovers ON node_failovers.uuid = server_failovers.node_failover_uuid
+        WHERE server_failovers.uuid = $1 AND node_failovers.node_uuid = $2",
+    )
+    .bind(server_failover_uuid)
+    .bind(node_uuid)
+    .fetch_optional(state.database.write())
+    .await?;
+    let Some((failover_uuid, server_uuid, source_uuid, destination_uuid, backup_uuid, status)) =
+        row
+    else {
+        return Err(FailoverError::NotFound);
+    };
+    if status != FAILED {
+        return Err(FailoverError::NotResumable(
+            "only a server whose failover failed can be tried again",
+        ));
+    }
+
+    let Some(mut server) = Server::by_uuid_optional(&state.database, server_uuid).await? else {
+        return Err(FailoverError::NotResumable("the server was deleted"));
+    };
+    let moved = destination_uuid == Some(server.node.uuid);
+    if !moved && server.node.uuid != source_uuid {
+        return Err(FailoverError::NotResumable(
+            "the server is on another node now",
+        ));
+    }
+    if moved
+        && match backup_uuid {
+            Some(backup_uuid) => ServerBackup::by_uuid_optional(&state.database, backup_uuid)
+                .await?
+                .is_none(),
+            None => true,
+        }
+    {
+        return Err(FailoverError::NotResumable(
+            "the backup it was restoring was deleted",
+        ));
+    }
+
+    let mut transaction = state.database.write().begin().await?;
+    sqlx::query("SELECT pg_advisory_xact_lock(hashtext('node_failover:' || $1::text))")
+        .bind(node_uuid)
+        .execute(&mut *transaction)
+        .await?;
+
+    let other_running: bool = sqlx::query_scalar(
+        "SELECT EXISTS (
+            SELECT 1 FROM node_failovers WHERE node_uuid = $1 AND status = $2 AND uuid <> $3
+        )",
+    )
+    .bind(node_uuid)
+    .bind(RUNNING)
+    .bind(failover_uuid)
+    .fetch_one(&mut *transaction)
+    .await?;
+    if other_running {
+        return Err(FailoverError::Running);
+    }
+
+    if moved {
+        // the restore that failed (or never finished) left its status behind
+        if server.status.is_some() {
+            server.set_status(&mut *transaction, None).await?;
+        }
+
+        sqlx::query(
+            "UPDATE server_failovers
+            SET status = $2, error = NULL, finished = NULL, updated = NOW()
+            WHERE uuid = $1",
+        )
+        .bind(server_failover_uuid)
+        .bind(REHOMING)
+        .execute(&mut *transaction)
+        .await?;
+    } else {
+        sqlx::query(
+            "UPDATE server_failovers
+            SET status = $2, destination_node_uuid = NULL, backup_uuid = NULL, error = NULL,
+                finished = NULL, updated = NOW()
+            WHERE uuid = $1",
+        )
+        .bind(server_failover_uuid)
+        .bind(QUEUED)
+        .execute(&mut *transaction)
+        .await?;
+    }
+
+    sqlx::query("UPDATE node_failovers SET status = $2, finished = NULL WHERE uuid = $1")
+        .bind(failover_uuid)
+        .bind(RUNNING)
+        .execute(&mut *transaction)
+        .await?;
+
+    transaction.commit().await?;
+    Server::invalidate_cached(&state.database, server.uuid).await;
+
+    tracing::info!(server = %server.uuid, moved, "a failed failover was resumed");
+
+    Ok(server.uuid)
+}
+
 /// The `settle_failovers` task.
 pub async fn settle(state: &crate::State) -> Result<(), anyhow::Error> {
     let (mode, after, parallel) = {
@@ -882,8 +1312,8 @@ pub async fn settle(state: &crate::State) -> Result<(), anyhow::Error> {
         )
     };
 
-    if mode == FailoverMode::Auto
-        && let Err(err) = auto_start(state, after).await
+    if matches!(mode, FailoverMode::Auto | FailoverMode::Notify)
+        && let Err(err) = auto_start(state, after, mode == FailoverMode::Notify).await
     {
         tracing::error!("failed to start an automatic failover: {err:#}");
     }
@@ -1101,6 +1531,55 @@ mod tests {
         let nodes = vec![node(20, false, 0), failed_over, node(0, true, 1)];
 
         assert_eq!(auto_pick(&nodes, 10, false), None);
+    }
+
+    fn plan_node(n: u128, memory: i64, used_memory: i64, pressure: Option<f32>) -> PlanNode {
+        PlanNode {
+            uuid: uuid::Uuid::from_u128(n),
+            memory,
+            disk: 0,
+            used_memory,
+            used_disk: 0,
+            pressure,
+            answers: true,
+        }
+    }
+
+    #[test]
+    fn a_plan_spreads_servers_by_room_and_load() {
+        let mut nodes = vec![
+            plan_node(1, 1000, 0, Some(10.0)),
+            plan_node(2, 1000, 400, None),
+        ];
+
+        // the first goes to the emptier node, which then is the fuller one
+        assert_eq!(
+            plan_destinations(&[(500, 0), (500, 0), (300, 0), (300, 0)], &mut nodes),
+            vec![Some(0), Some(1), Some(0), None]
+        );
+        assert_eq!((nodes[0].used_memory, nodes[1].used_memory), (800, 900));
+    }
+
+    #[test]
+    fn a_plan_skips_silent_busy_or_full_nodes() {
+        let mut silent = plan_node(1, 0, 0, None);
+        silent.answers = false;
+        let mut nodes = vec![
+            silent,
+            plan_node(2, 0, 0, Some(90.0)),
+            plan_node(3, 0, 0, Some(30.0)),
+        ];
+        assert_eq!(plan_destinations(&[(100, 0)], &mut nodes), vec![Some(2)]);
+
+        let mut full_disk = plan_node(4, 0, 0, None);
+        full_disk.disk = 100;
+        full_disk.used_disk = 90;
+        assert_eq!(
+            plan_destinations(&[(1, 20), (1, 5)], &mut [full_disk]),
+            vec![None, Some(0)]
+        );
+
+        assert_eq!(plan_destinations(&[(1, 1)], &mut []), vec![None]);
     }
 
     #[test]

@@ -7,17 +7,19 @@ export type AdZone = z.infer<typeof adsZoneSchema>;
 export type AdBanner = z.infer<typeof adBannerSchema>;
 
 /** Where a slot sits; a lower rank picks first. */
-export type AdSlotKind = 'top' | 'tools' | 'page' | 'footLeaderboard' | 'footRectangle' | 'native' | 'room';
+export type AdSlotKind = 'top' | 'tools' | 'page' | 'footLeaderboard' | 'native' | 'room';
 
 const RANK: Record<AdSlotKind, number> = {
   top: 0,
   tools: 1,
   page: 2,
   footLeaderboard: 3,
-  footRectangle: 3,
   native: 3,
   room: 4,
 };
+
+/** The slots the per-page cap counts (the Pelican panel's named slots). */
+const CAPPED: ReadonlySet<AdSlotKind> = new Set<AdSlotKind>(['tools', 'page']);
 
 const LEADERBOARDS: [number, number][] = [
   [728, 90],
@@ -25,16 +27,18 @@ const LEADERBOARDS: [number, number][] = [
   [320, 50],
 ];
 
-/** The sizes a slot takes; `null` takes any (the waiting rooms show what is left). */
+/**
+ * The sizes a slot takes; `null` takes any (the waiting rooms show what is left). The top slot
+ * takes no zone, only a sponsored top banner, as on the Pelican panel since its ads 2.2.2.
+ */
 const SIZES: Record<AdSlotKind, [number, number][] | null> = {
-  top: LEADERBOARDS,
+  top: [],
   tools: [
     [468, 60],
     [320, 50],
   ],
   page: [[300, 250]],
   footLeaderboard: LEADERBOARDS,
-  footRectangle: [[300, 250]],
   native: [],
   room: null,
 };
@@ -95,13 +99,15 @@ export function adAreaOf(pathname: string): 'account' | 'server' {
 /**
  * Gives each slot of a page at most one unit, no unit twice: slots pick by rank (then in the order
  * they appeared), each the widest unit of its sizes that fits; a sponsored banner goes before a
- * zone of its size, and a "top" banner takes the top slot.
+ * zone of its size, and a "top" banner takes the top slot. The server tools strip and the page
+ * slots fill at most `maxUnits` together (`max_units_per_page`).
  */
 export function allocate(
   slots: AdSlotState[],
   zones: AdZone[],
   banners: AdBanner[],
   native: boolean,
+  maxUnits: number,
 ): Map<number, AdUnit> {
   const units: AdUnit[] = [];
   for (const banner of banners) {
@@ -118,10 +124,12 @@ export function allocate(
   const topBanners = banners.filter((banner) => banner.placement === 'top');
   const used = new Set<string>();
   const result = new Map<number, AdUnit>();
+  let capped = 0;
 
   const ordered = [...slots].sort((a, b) => RANK[a.kind] - RANK[b.kind] || a.id - b.id);
   for (const slot of ordered) {
     if (slot.width <= 0) continue;
+    if (CAPPED.has(slot.kind) && capped >= maxUnits) continue;
 
     if (slot.kind === 'native') {
       if (native && !used.has('native')) {
@@ -157,6 +165,7 @@ export function allocate(
     if (unit) {
       used.add(unit.id);
       result.set(slot.id, unit);
+      if (CAPPED.has(slot.kind)) capped++;
     }
   }
 

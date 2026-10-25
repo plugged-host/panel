@@ -625,15 +625,16 @@ pub async fn write_plan(
     for allocation in &plan.server_allocations {
         sqlx::query(
             r#"
-            INSERT INTO server_allocations (uuid, server_uuid, allocation_uuid, notes, created)
-            VALUES ($1, $2, $3, $4, $5)
-            "#,
+            INSERT INTO server_allocations (uuid, server_uuid, allocation_uuid, notes, created, locked)
+            VALUES ($1, $2, $3, $4, $5, $6)
+            "#, // plugged.host: locked
         )
         .bind(allocation.uuid)
         .bind(allocation.server_uuid)
         .bind(allocation.allocation_uuid)
         .bind(&allocation.notes)
         .bind(allocation.created.naive_utc())
+        .bind(allocation.locked) // plugged.host
         .execute(&mut *tx)
         .await
         .with_context(|| at("allocations", allocation.source_id))?;
@@ -647,6 +648,9 @@ pub async fn write_plan(
                 .with_context(|| at("allocations", allocation.source_id))?;
         }
     }
+
+    super::extras::write(&mut tx, plan).await?; // plugged.host: Pelican's own data (extras.rs)
+    super::limbo::write(&mut tx, plan).await?; // plugged.host: limbo's servers (limbo.rs)
 
     tx.commit().await?;
 

@@ -8,6 +8,7 @@ import ScreenBlock from '@/elements/feedback/ScreenBlock.tsx';
 import Spinner from '@/elements/feedback/Spinner.tsx';
 import Container from '@/elements/layout/Container.tsx';
 import Sidebar from '@/elements/navigation/Sidebar.tsx';
+import SidebarNotifications from '@/elements/navigation/SidebarNotifications.tsx'; // plugged.host
 import QuickActionsTrigger from '@/elements/quickActions/QuickActionsTrigger.tsx';
 import { resolveString } from '@/lib/lazy.ts';
 import { to } from '@/lib/routes.ts';
@@ -74,6 +75,8 @@ export default function AdminRouter({ isNormal }: { isNormal: boolean }) {
               {!user?.suspended && (
                 <>
                   <QuickActionsTrigger />
+                  {/* plugged.host: the notification inbox (docs/features/notifications.md) */}
+                  <SidebarNotifications />
                   <div className='mt-2' />
                   <Sidebar.Link to='/' end icon={faReply} name={t('common.button.back', {})} />
                   <Sidebar.Divider />

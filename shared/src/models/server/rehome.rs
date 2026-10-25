@@ -72,6 +72,20 @@ impl Server {
         .execute(&mut *transaction)
         .await?;
 
+        // the new allocations keep the old ones' lock and notes (docs/features/allocations.md)
+        crate::allocations::carry_over(
+            &mut *transaction,
+            self.uuid,
+            self.allocation.as_ref().map(|allocation| allocation.uuid),
+            options.node_uuid,
+            &options
+                .allocation_uuid
+                .into_iter()
+                .chain(options.allocation_uuids.iter().copied())
+                .collect::<Vec<_>>(),
+        )
+        .await?;
+
         sqlx::query(
             "DELETE FROM server_allocations
             USING node_allocations

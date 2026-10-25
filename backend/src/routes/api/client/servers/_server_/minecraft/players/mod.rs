@@ -1,5 +1,5 @@
-// plugged.host: the whitelist, operators and bans of a Minecraft server
-// (shared/src/minecraft/players.rs, docs/features/minecraft.md).
+// plugged.host: the whitelist, operators and bans of a Minecraft server, who is online and each
+// player's details (shared/src/minecraft/players.rs, player_data.rs, docs/features/minecraft.md).
 use super::State;
 use shared::{
     minecraft::players::Change,
@@ -8,8 +8,11 @@ use shared::{
 };
 use utoipa_axum::{router::OpenApiRouter, routes};
 
+mod _player_;
 mod bans;
 mod enforce;
+mod item_icon;
+mod online;
 mod operators;
 mod whitelist;
 
@@ -95,5 +98,8 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         .nest("/operators", operators::router(state))
         .nest("/bans", bans::router(state))
         .nest("/enforce", enforce::router(state))
+        .nest("/online", online::router(state))
+        .nest("/item-icon", item_icon::router(state))
+        .nest("/{player}", _player_::router(state))
         .with_state(state.clone())
 }

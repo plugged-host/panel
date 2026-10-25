@@ -63,6 +63,7 @@ export default function RecoveryContainer() {
       options: [
         { value: 'off', label: t(`${page}.failoverModeOff`, {}) },
         { value: 'manual', label: t(`${page}.failoverModeManual`, {}) },
+        { value: 'notify', label: t(`${page}.failoverModeNotify`, {}) },
         { value: 'auto', label: t(`${page}.failoverModeAuto`, {}) },
       ],
       required: true,

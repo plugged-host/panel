@@ -44,6 +44,7 @@ const ServerMinecraftContent = lazy(() => import('@/pages/server/minecraft/conte
 const ServerMinecraftContentRedirect = lazy(
   () => import('@/pages/server/minecraft/content/ServerMinecraftContentRedirect.tsx'),
 ); // plugged.host
+const ServerMinecraftPlayer = lazy(() => import('@/pages/server/minecraft/players/ServerMinecraftPlayer.tsx')); // plugged.host
 const ServerMinecraftPlayers = lazy(() => import('@/pages/server/minecraft/players/ServerMinecraftPlayers.tsx')); // plugged.host
 const ServerMinecraftSettings = lazy(() => import('@/pages/server/minecraft/settings/ServerMinecraftSettings.tsx')); // plugged.host
 const ServerMinecraftSetup = lazy(() => import('@/pages/server/minecraft/setup/ServerMinecraftSetup.tsx')); // plugged.host
@@ -173,6 +174,13 @@ const routes: ServerRouteDefinition[] = [
     icon: faUsers,
     path: '/minecraft/players',
     element: ServerMinecraftPlayers,
+    permission: 'minecraft.players',
+  },
+  // plugged.host: one player, opened from the Players table (docs/features/minecraft.md#player-details)
+  {
+    name: undefined,
+    path: '/minecraft/players/:uuid',
+    element: ServerMinecraftPlayer,
     permission: 'minecraft.players',
   },
   // plugged.host: FiveM and RedM servers only (lib/domain/games.ts, docs/features/fivem.md), in the Pelican panel's

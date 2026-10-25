@@ -3,6 +3,7 @@
 // buttons, the server's details, the setup guide's callout while it waits, the sidebar, Settings and
 // the way back. A step or bullet about something this person cannot see is left out.
 import WelcomeTour, { TourStep } from '@/elements/WelcomeTour.tsx';
+import { isMinecraftServer } from '@/lib/domain/games.ts';
 import { useMinecraftSetup } from '@/pages/server/minecraft/setup/useMinecraftSetup.ts';
 import { useServerCan } from '@/plugins/usePermissions.ts';
 import { useWelcomeTour } from '@/plugins/useWelcomeTour.ts';
@@ -17,7 +18,7 @@ type SidebarBullet = 'files' | 'content' | 'worlds' | 'gameSettings' | 'backups'
 export default function WelcomeTourServer() {
   const { t } = useTranslations();
   const { tour, update } = useWelcomeTour();
-  const minecraft = useServerStore((state) => !!state.server.egg?.features?.includes('eula'));
+  const minecraft = useServerStore((state) => isMinecraftServer(state.server.egg));
   const setup = useMinecraftSetup(!!tour?.serverActive);
   const canSetUp = useServerCan('minecraft.settings');
   const canContent = useServerCan('minecraft.content');

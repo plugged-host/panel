@@ -5,7 +5,8 @@
 //! column, the store prices with [`crate::pricing`] and what was bought is `users.extra_*`, added
 //! to the games allowance. With noprofit.space connected credits and the store are
 //! noprofit.space's: the balance is the account's snapshot, the store is its store, and what was
-//! bought arrives with the account's plan.
+//! bought arrives with the account's plan. Credits the panel gives or takes then (an admin's
+//! change, Discord invite rewards) are sent to noprofit.space ([`crate::noprofit::queue_credit_change`]).
 //!
 //! Tokens are earned from sponsored links ([`crate::earn`]) and buy the memberships, which are
 //! always the panel's: Plus once, for good (the `plus` locations), PlusPlus for a while with
@@ -263,10 +264,14 @@ pub async fn sync_burst(
 }
 
 /// [`sync_burst`] for one account right after its membership changed; a failure waits for the
-/// next minute's run.
+/// next minute's run. Its starts waiting in the start queue move up too
+/// ([`crate::start_queue::restamp`]).
 async fn sync_burst_now(state: &crate::State, user_uuid: uuid::Uuid) {
     if let Err(err) = sync_burst(state, Some(user_uuid)).await {
         tracing::warn!(user = %user_uuid, "failed to sync the burst cores: {err:#}");
+    }
+    if let Err(err) = crate::start_queue::restamp(state, user_uuid).await {
+        tracing::warn!(user = %user_uuid, "failed to move the queued starts up: {err:#}");
     }
 }
 
@@ -1412,6 +1417,9 @@ pub struct ApiAdminEconomy {
     pub summary: ApiEconomy,
     /// The panel's own credits (without noprofit.space the balance, with it unused).
     pub panel_credits: i64,
+    /// Whether an admin can change the credits here: always without noprofit.space; with it
+    /// while its account sync is on and the user has an account there (the change is sent to it).
+    pub credits_changeable: bool,
     /// What the panel's store sold the account.
     pub extras: Resources,
     pub plusplus_purchases: i32,
@@ -1425,24 +1433,77 @@ pub async fn admin_view(
 ) -> Result<ApiAdminEconomy, anyhow::Error> {
     let summary = summary(state, user).await?;
     let (panel_credits, _, _) = balances(&state.database, user.uuid).await?;
+    let noprofit = {
+        let settings = state.settings.get().await?;
+        settings
+            .noprofit
+            .config()
+            .map(|noprofit| noprofit.sync_enabled())
+    };
+    let (credits_changeable, credit_transactions) = match noprofit {
+        None => (
+            true,
+            transactions(&state.database, Currency::Credits, user.uuid, 20).await?,
+        ),
+        Some(sync) => (
+            sync && crate::noprofit::Link::by_user_uuid(&state.database, user.uuid)
+                .await?
+                .is_some_and(|link| link.deleted.is_none()),
+            noprofit_credit_changes(&state.database, user.uuid, 20).await?,
+        ),
+    };
 
     Ok(ApiAdminEconomy {
         summary,
         panel_credits,
+        credits_changeable,
         extras: extras(&state.database, user.uuid).await?,
         plusplus_purchases: membership(&state.database, user.uuid)
             .await?
             .plusplus_purchases,
-        credit_transactions: transactions(&state.database, Currency::Credits, user.uuid, 20)
-            .await?,
+        credit_transactions,
         token_transactions: transactions(&state.database, Currency::Tokens, user.uuid, 20).await?,
     })
+}
+
+/// The credit changes made here that noprofit.space applied (with noprofit.space connected the
+/// panel's credit history), newest first.
+async fn noprofit_credit_changes(
+    database: &crate::database::Database,
+    user_uuid: uuid::Uuid,
+    limit: i64,
+) -> Result<Vec<ApiTransaction>, sqlx::Error> {
+    let rows: Vec<(i64, i64, String, String, chrono::NaiveDateTime)> = sqlx::query_as(
+        "SELECT applied, balance_after, type, description, created
+        FROM user_noprofit_credit_changes
+        WHERE user_uuid = $1 AND applied IS NOT NULL AND balance_after IS NOT NULL
+        ORDER BY created DESC
+        LIMIT $2",
+    )
+    .bind(user_uuid)
+    .bind(limit)
+    .fetch_all(database.read())
+    .await?;
+
+    Ok(rows
+        .into_iter()
+        .map(
+            |(amount, balance_after, kind, description, created)| ApiTransaction {
+                amount,
+                balance_after,
+                kind: kind.into(),
+                description,
+                created: Some(created.and_utc()),
+            },
+        )
+        .collect())
 }
 
 /// An admin's change to a user's economy; every field optional.
 #[derive(Default)]
 pub struct AdminChange {
-    /// Added to the panel's credits (negative takes away).
+    /// Added to the panel's credits (negative takes away); with noprofit.space connected sent to
+    /// the account there.
     pub credits: Option<i64>,
     pub tokens: Option<i64>,
     /// Shown in the user's history.
@@ -1457,12 +1518,24 @@ pub async fn admin_change(
     user: &User,
     change_request: AdminChange,
 ) -> Result<(), EconomyError> {
-    let connected = state.settings.get().await?.noprofit.connected();
-    if change_request.credits.is_some_and(|credits| credits != 0) && connected {
-        return Err(EconomyError::BadRequest(
-            "credits are noprofit.space's while it is connected",
-        ));
-    }
+    // plugged.host: with noprofit.space the credits are its own; a change goes to it
+    let noprofit = state
+        .settings
+        .get()
+        .await?
+        .noprofit
+        .config()
+        .map(|noprofit| noprofit.sync_enabled());
+    let credits_change = change_request.credits.is_some_and(|credits| credits != 0);
+    let credits_to_noprofit = match noprofit {
+        Some(true) => credits_change,
+        Some(false) if credits_change => {
+            return Err(EconomyError::BadRequest(
+                "credits are noprofit.space's and its account sync is off: change them there",
+            ));
+        }
+        _ => false,
+    };
 
     let reason = change_request
         .reason
@@ -1479,6 +1552,31 @@ pub async fn admin_change(
         let Some(amount) = amount.filter(|amount| *amount != 0) else {
             continue;
         };
+
+        if currency == Currency::Credits && credits_to_noprofit {
+            let Some((account_id, balance)) =
+                crate::noprofit::pending_balance(&mut transaction, user.uuid).await?
+            else {
+                return Err(EconomyError::BadRequest(
+                    "the user has no noprofit.space account",
+                ));
+            };
+            if balance + amount < 0 {
+                return Err(EconomyError::BadRequest("the balance would go below zero"));
+            }
+
+            crate::noprofit::queue_credit_change(
+                &mut transaction,
+                user.uuid,
+                account_id,
+                amount,
+                TYPE_ADMIN,
+                reason,
+                serde_json::json!({}),
+            )
+            .await?;
+            continue;
+        }
 
         if change(
             &mut transaction,
@@ -1526,6 +1624,11 @@ pub async fn admin_change(
     transaction.commit().await?;
     sync_burst_now(state, user.uuid).await;
     User::invalidate_cached(&state.database, user.uuid).await;
+
+    // sent now, so the admin sees the balance noprofit.space answers; the account sync retries
+    if credits_to_noprofit && let Err(err) = crate::noprofit::push_credit_changes(state).await {
+        tracing::warn!(user = %user.uuid, "failed to send an admin's credit change to noprofit.space: {err:#}");
+    }
 
     Ok(())
 }
@@ -1607,6 +1710,7 @@ async fn settle_lapse(state: &crate::State, user_uuid: uuid::Uuid) -> Result<(),
 
     let locations = crate::server_creation::locations(state, &user).await?;
 
+    let mut moving = Vec::new(); // plugged.host: for the owner's notification
     for row in servers {
         if row.try_get::<bool, _>("moving")? {
             continue;
@@ -1635,7 +1739,9 @@ async fn settle_lapse(state: &crate::State, user_uuid: uuid::Uuid) -> Result<(),
 
         crate::server_transfers::queue_admin_move(state, &server, destination.uuid).await?;
         tracing::info!(server = %server_uuid, location = %destination.uuid, "PlusPlus ran out, moving the server off its premium location");
+        moving.push(server.name.to_string());
     }
+    crate::notifications::membership_ended(state, user_uuid, &moving).await;
 
     Ok(())
 }

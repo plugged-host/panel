@@ -43,6 +43,7 @@ that moves its accounts to the default language. Details: [features/languages.md
 | noprofit.space | Yes: the panel signs people in on its own | [noprofit.md](noprofit.md) |
 | Telemetry to calagopus.com | Yes | Admin › Settings › General › Application |
 | Ads, Discord bots, the AI assistant (later phases) | Yes | Their settings sections |
+| Asking players for reviews on a review site | Yes | Admin › Settings › Accounts › Reviews, your own review page ([features/reviews.md](features/reviews.md)) |
 
 Nothing in the panel needs plugged.host's machines or accounts.
 

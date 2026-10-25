@@ -664,9 +664,10 @@ impl User {
                 r#"
                 FROM users
                 LEFT JOIN roles ON roles.uuid = users.role_uuid
-                WHERE {search}
+                WHERE ({search} OR {discord})
                 "#,
                 search = super::search_sql(1, &["users.username", "users.email"], &["users.uuid"]),
+                discord = crate::user_links::discord_search_sql(1), // plugged.host
             ),
             "users.created, users.uuid",
         )
@@ -1039,6 +1040,7 @@ impl IntoAdminApiObject for User {
                 password_login_disabled: self.password_login_disabled,
                 language: self.language,
                 has_password: self.has_password,
+                links: None, // plugged.host: Admin › Users fills it (user_links.rs)
                 created: self.created.and_utc(),
             },
             api_object,
@@ -1614,6 +1616,10 @@ pub struct AdminApiUser {
     pub language: compact_str::CompactString,
 
     pub has_password: bool,
+
+    /// plugged.host: the noprofit.space and Discord accounts linked to the user, on Admin › Users'
+    /// list and user page; `None` elsewhere (user_links.rs)
+    pub links: Option<crate::user_links::ApiUserLinks>,
 
     pub created: chrono::DateTime<chrono::Utc>,
 }

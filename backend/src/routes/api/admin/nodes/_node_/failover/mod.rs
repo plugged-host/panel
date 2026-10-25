@@ -5,6 +5,8 @@ use super::State;
 use utoipa_axum::{router::OpenApiRouter, routes};
 
 mod cancel;
+mod plan;
+mod resume;
 
 mod get {
     use serde::Serialize;
@@ -142,5 +144,7 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         .routes(routes!(get::route))
         .routes(routes!(post::route))
         .nest("/cancel", cancel::router(state))
+        .nest("/plan", plan::router(state))
+        .nest("/resume", resume::router(state))
         .with_state(state.clone())
 }

@@ -1438,6 +1438,121 @@ strong {
 }
 
 /* =============================================================================
+ * plugged.host: the notification inbox (elements/navigation/SidebarNotifications.tsx and
+ * elements/notifications/; Theme v2's ".phv2-notifications" row and Filament's database
+ * notifications slide-over). docs/features/notifications.md
+ * ============================================================================= */
+
+/* The row's unread count, Theme v2's ".phv2-notifications-badge": inline at the trailing edge. */
+.theme-notifications-badge {
+  min-width: 1.25rem;
+  padding: 0 0.375rem;
+  border-radius: 9999px;
+  background-color: var(--theme-accent);
+  color: var(--theme-text);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.25rem;
+  text-align: center;
+}
+
+.theme-notifications-heading {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* "Mark all as read" and "Clear": Filament's header actions, under the heading. */
+.theme-notifications-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0 1rem 0.5rem;
+}
+
+/* One notification: Filament's "divide-y" list, the unread ones marked by a 2px accent bar at
+   the start edge (".fi-no-notification-unread-ctn"). */
+.theme-notification {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 1rem;
+  border-inline-start: 2px solid transparent;
+}
+
+.theme-notification + .theme-notification {
+  border-top: 1px solid var(--theme-hairline);
+}
+
+.theme-notification-unread {
+  border-inline-start-color: var(--theme-accent-bright);
+}
+
+.theme-notification-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.theme-notification-title {
+  margin: 0;
+  color: var(--theme-text);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.25rem;
+}
+
+.theme-notification-date {
+  color: var(--theme-text-faint);
+  font-size: 0.75rem;
+}
+
+.theme-notification-body {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  overflow-wrap: anywhere;
+}
+
+.theme-notification-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+/* The row's links ("Open server", "Mark as read"), like the backups page's. */
+.theme-notification-action {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--theme-text-nav);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 150ms ease;
+}
+
+.theme-notification-action:hover {
+  color: var(--theme-text);
+}
+
+.theme-notification-action:focus-visible {
+  outline: 2px solid var(--theme-accent-bright);
+  outline-offset: 2px;
+}
+
+.theme-notifications-more {
+  display: flex;
+  justify-content: center;
+  padding: 0.5rem 1rem 1rem;
+}
+
+/* =============================================================================
  * plugged.host: Theme v2's usage card and balances over the sidebar's footer
  * (elements/navigation/SidebarBalance.tsx; Pelican's ".phv2-balance"). A part that leads
  * somewhere gets the rows' hover, and only then.
@@ -4581,6 +4696,269 @@ span.theme-neo-image {
 }
 
 /* =============================================================================
+ * plugged.host: the server chat (pages/server/chat/ServerChat.tsx, docs/features/server-chat.md), in
+ * neo's look: one card reaching down to the window's foot with the thread in it, one's own messages
+ * as neo's bubbles at the end, the others' as text beside their avatar under one name and time per
+ * run, each day under a hairline and its label, and neo's composer (.theme-neo-compose) at the foot.
+ * ============================================================================= */
+.theme-chat {
+  /* the room under the card: .theme-main's foot */
+  --theme-chat-room: 2rem;
+
+  display: flex;
+  flex-direction: column;
+  height: calc(var(--theme-chat-height, 75dvh) - var(--theme-chat-room));
+  min-height: 20rem;
+  overflow: hidden;
+  border-radius: 1rem;
+  background-color: var(--theme-raise);
+  color: var(--theme-text);
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+/* neo's launcher sits in the window's corner: the composer ends above it */
+:root:has(.theme-neo-launcher) .theme-chat {
+  --theme-chat-room: calc(4.75rem + env(safe-area-inset-bottom));
+}
+
+/* a phone's keyboard is open: the composer sits right on it (the launcher is behind it), also when
+   little room is left above it */
+:root .theme-chat[data-keyboard] {
+  --theme-chat-room: 0.5rem;
+
+  min-height: 8rem;
+}
+
+.theme-chat-view {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* the page keeps the reader's place itself (ServerChat), so the browser's own anchoring is off */
+.theme-chat-body {
+  flex: 1;
+  min-height: 0;
+  padding: 1rem;
+  overflow-y: auto;
+  overflow-anchor: none;
+  overscroll-behavior: contain;
+}
+
+.theme-chat-body:focus-visible {
+  outline: 2px solid var(--theme-accent-bright);
+  outline-offset: -2px;
+}
+
+/* a short chat sits at the bottom, by the composer */
+.theme-chat-thread {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 1rem;
+  min-height: 100%;
+}
+
+.theme-chat-older {
+  display: flex;
+  justify-content: center;
+}
+
+.theme-chat-empty {
+  margin-block: auto;
+  padding: 1rem 0.25rem;
+  color: var(--theme-text-muted);
+  font-size: 0.8125rem;
+  text-align: center;
+}
+
+.theme-chat-day {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.theme-chat-day-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--theme-text-faint);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.theme-chat-day-label::before,
+.theme-chat-day-label::after {
+  flex: 1;
+  border-block-start: 1px solid var(--theme-hairline);
+  content: "";
+}
+
+/* someone else's run: the avatar, then the name and time over their lines */
+.theme-chat-run {
+  display: grid;
+  grid-template-columns: 1.75rem minmax(0, 1fr);
+  align-items: start;
+  column-gap: 0.625rem;
+}
+
+.theme-chat-avatar-none {
+  display: block;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 9999px;
+  background-color: var(--theme-raise-2);
+}
+
+.theme-chat-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+  max-width: 48rem;
+}
+
+.theme-chat-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.theme-chat-name {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--theme-text);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.theme-chat-time {
+  color: var(--theme-text-faint);
+  font-size: 0.75rem;
+  white-space: nowrap;
+  cursor: help;
+}
+
+.theme-chat-text {
+  color: var(--theme-text-nav);
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+/* one's own run: the time, then neo's bubbles at the line's end */
+.theme-chat-run.theme-chat-run-own {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+}
+
+.theme-chat-bubble {
+  max-width: min(85%, 36rem);
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.75rem;
+  border-end-end-radius: 0.25rem;
+  background-color: var(--theme-raise-2);
+  color: var(--theme-text);
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+/* a run's bubbles hang together: the corner towards the one above is small as well */
+.theme-chat-bubble + .theme-chat-bubble {
+  border-start-end-radius: 0.25rem;
+}
+
+.theme-chat-pending {
+  opacity: 0.6;
+}
+
+/* new messages below while the reader is further up: a quiet pill like neo's launcher */
+.theme-chat-jump {
+  position: absolute;
+  inset-block-end: 0.75rem;
+  inset-inline: 0;
+  width: fit-content;
+  min-height: 2rem;
+  margin-inline: auto;
+  padding-inline: 0.875rem;
+  border: 1px solid var(--theme-hairline);
+  border-radius: 9999px;
+  background-color: var(--theme-dropdown);
+  color: var(--theme-text);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 150ms ease;
+}
+
+.theme-chat-jump:hover {
+  background-color: color-mix(in srgb, var(--theme-dropdown), #fff 5%);
+}
+
+.theme-chat-jump:focus-visible {
+  outline: 2px solid var(--theme-accent-bright);
+  outline-offset: 2px;
+}
+
+.theme-chat-foot {
+  padding: 0.625rem 0.75rem 0.75rem;
+  border-block-start: 1px solid var(--theme-hairline);
+}
+
+/* the length near the limit, beside the send button */
+.theme-chat-count {
+  flex: none;
+  align-self: flex-end;
+  padding-inline: 0.25rem;
+  color: var(--theme-text-faint);
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 2.25rem;
+}
+
+.theme-chat-count[data-full] {
+  color: var(--mantine-color-yellow-text);
+}
+
+.theme-chat-readonly {
+  margin: 0;
+  padding-block: 0.375rem;
+  color: var(--theme-text-muted);
+  font-size: 0.8125rem;
+  text-align: center;
+}
+
+@media (max-width: 39.99rem) {
+  .theme-chat-body {
+    padding: 0.75rem;
+  }
+
+  .theme-chat-foot {
+    padding: 0.5rem;
+  }
+
+  .theme-chat-bubble {
+    max-width: 90%;
+  }
+
+  .theme-chat-count {
+    line-height: 2.75rem;
+  }
+
+  .theme-chat-jump {
+    min-height: 2.75rem;
+    padding-inline: 1rem;
+  }
+}
+
+/* =============================================================================
  * plugged.host: Filament's aside section (`->aside()`, elements/data-display/AsideSection.tsx):
  * the heading and description in the first of three columns, the fields on a card over the other
  * two; one column below md. Filament's helper text sits under the field at text-sm.
@@ -6100,6 +6478,318 @@ span.theme-neo-image {
   .theme-world-stats {
     grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
   }
+}
+
+/* =============================================================================
+ * plugged.host: one Minecraft player (pages/server/minecraft/players/ServerMinecraftPlayer.tsx):
+ * the head next to the name, the sections in two columns from 64rem, health and food as the
+ * game's icons, the inventory as rows of nine slots. Slots, heads and icons are pixel art, so
+ * they are scaled without smoothing. Sections are TitleCards; inside them only whitespace.
+ * ============================================================================= */
+.theme-player-identity {
+  display: flex;
+  min-inline-size: 0;
+  align-items: center;
+  gap: 0.875rem;
+}
+
+.theme-player-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.75rem;
+  margin-block-start: 0.25rem;
+  color: var(--theme-text-muted);
+  font-size: 0.8125rem;
+}
+
+.theme-player-uuid {
+  overflow-wrap: anywhere;
+  font-family: var(--mantine-font-family-monospace);
+  font-size: 0.75rem;
+}
+
+.theme-player-head {
+  display: block;
+  flex: none;
+  inline-size: 1.75rem;
+  block-size: 1.75rem;
+  border-radius: 0.25rem;
+  background-color: var(--theme-raise-2);
+  image-rendering: pixelated;
+}
+
+.theme-player-head[data-size="lg"] {
+  inline-size: 3.5rem;
+  block-size: 3.5rem;
+  border-radius: 0.5rem;
+}
+
+.theme-player-head-fallback {
+  display: grid;
+  place-items: center;
+  color: var(--theme-text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.theme-player-head-fallback[data-size="lg"] {
+  font-size: 1.25rem;
+}
+
+.theme-player-name {
+  display: flex;
+  min-inline-size: 0;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.theme-player-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.theme-player-column {
+  display: flex;
+  min-inline-size: 0;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+@media (min-width: 64rem) {
+  .theme-player-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+
+.theme-player-note {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.8125rem;
+}
+
+.theme-player-caption {
+  margin: 0 0 0.5rem;
+  color: var(--theme-text-muted);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  line-height: 1rem;
+  text-transform: uppercase;
+}
+
+.theme-player-vital + .theme-player-vital {
+  margin-block-start: 1.25rem;
+}
+
+.theme-player-vital-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-block-end: 0.375rem;
+  color: var(--theme-text-muted);
+  font-size: 0.8125rem;
+}
+
+.theme-player-vital-head strong {
+  color: var(--theme-text);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.theme-player-pixels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.125rem;
+}
+
+.theme-player-pixel {
+  display: block;
+  inline-size: 1.125rem;
+  block-size: 1.125rem;
+  shape-rendering: crispEdges;
+}
+
+.theme-player-pixel-heart {
+  fill: var(--mantine-color-red-6);
+}
+
+.theme-player-pixel-meat {
+  fill: var(--mantine-color-orange-6);
+}
+
+.theme-player-pixel-bone {
+  fill: var(--mantine-color-gray-3);
+}
+
+.theme-player-pixel-empty {
+  fill: var(--theme-raise-3);
+}
+
+.theme-player-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.theme-player-section + .theme-player-section {
+  margin-block-start: 1.25rem;
+}
+
+.theme-player-slots {
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  gap: 0.25rem;
+  max-inline-size: 28rem;
+}
+
+.theme-player-cell {
+  aspect-ratio: 1;
+  min-inline-size: 0;
+}
+
+.theme-player-cell > span {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+.theme-player-offhand {
+  grid-column: 6;
+}
+
+.theme-player-slot {
+  position: relative;
+  display: grid;
+  inline-size: 100%;
+  block-size: 100%;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid transparent;
+  border-radius: 0.375rem;
+  background-color: var(--theme-raise-2);
+}
+
+.theme-player-slot[data-enchanted] {
+  border-color: var(--theme-accent-edge);
+}
+
+.theme-player-slot:focus-visible {
+  outline: 2px solid var(--theme-accent-bright);
+  outline-offset: 1px;
+}
+
+.theme-player-slot img {
+  inline-size: 78%;
+  block-size: 78%;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.theme-player-slot-text {
+  color: var(--theme-text-muted);
+  font-size: 0.625rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.theme-player-slot-count {
+  position: absolute;
+  inset-inline-end: 0.1875rem;
+  inset-block-end: 0.0625rem;
+  color: var(--theme-text);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1rem;
+}
+
+.theme-player-tip {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+}
+
+.theme-player-tip-muted {
+  color: var(--theme-text-muted);
+  font-size: 0.75rem;
+}
+
+.theme-player-value {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+  color: var(--theme-text);
+  font-size: 0.875rem;
+}
+
+.theme-player-value[data-mono] {
+  font-family: var(--mantine-font-family-monospace);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.theme-player-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem 1.5rem;
+}
+
+@media (min-width: 40rem) {
+  .theme-player-stats {
+    grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+  }
+}
+
+.theme-player-rankings {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.5rem;
+  margin-block-start: 1.5rem;
+}
+
+@media (min-width: 48rem) {
+  .theme-player-rankings {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 80rem) {
+  .theme-player-rankings {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.theme-player-ranking {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.theme-player-ranking li {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-block: 0.25rem;
+  font-size: 0.875rem;
+}
+
+.theme-player-ranking li span:last-child {
+  flex: none;
+  color: var(--theme-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Players list: the head before the name. */
+.theme-player-row-name {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
 }
 
 /* =============================================================================

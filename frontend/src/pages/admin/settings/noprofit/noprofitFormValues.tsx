@@ -14,6 +14,7 @@ export const noprofitEmptyFormValues: NoprofitFormValues = {
   ssoCallbackUrl: null,
   adminsOnly: false,
   linkByEmail: true,
+  deletedAccountDays: 7,
   ssoSecret: '',
   apiSecret: '',
   neoSecret: '',
@@ -102,6 +103,14 @@ export function useNoprofitFormFields(stored: {
       name: 'linkByEmail',
       label: t('pages.admin.settings.tabs.noprofit.page.form.linkByEmail', {}),
       description: t('pages.admin.settings.tabs.noprofit.page.form.linkByEmailDescription', {}),
+    },
+    {
+      type: 'number',
+      name: 'deletedAccountDays',
+      label: t('pages.admin.settings.tabs.noprofit.page.form.deletedAccountDays', {}),
+      description: t('pages.admin.settings.tabs.noprofit.page.form.deletedAccountDaysDescription', {}),
+      required: true,
+      props: { min: 0, max: 365 },
     },
     {
       type: 'text',

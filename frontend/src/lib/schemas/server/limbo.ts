@@ -8,6 +8,7 @@ export const serverLimboSchema = z.object({
   state: serverLimboStateSchema.nullable(),
   lastActivity: z.string().nullable(),
   parked: z.string().nullable(),
+  deleteAt: z.string().nullable(),
   cost: z.number(),
   tokens: z.number().nullable(),
   homeAvailable: z.boolean(),

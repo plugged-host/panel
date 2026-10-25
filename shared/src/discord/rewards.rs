@@ -58,7 +58,8 @@ pub struct ApiDiscordBoosts {
 #[derive(ToSchema, Serialize, Clone, Debug)]
 pub struct ApiDiscordRewards {
     pub source: Source,
-    /// The panel pays rewards (standalone, with credits on).
+    /// The panel pays invite rewards, with credits on (standalone, or into noprofit.space's
+    /// balance); boosts are paid here only standalone (`boosts`).
     pub pays: bool,
     pub account: Option<ApiDiscordAccount>,
     /// `None` when nobody checked yet (or nobody can).
@@ -75,7 +76,8 @@ pub struct ApiDiscordRewards {
     pub invites: invites::Summary,
     /// Standalone only (noprofit.space pays boosts).
     pub boosts: Option<ApiDiscordBoosts>,
-    /// Credits the panel paid for Discord, taken-back and owed ones counted off.
+    /// Credits the panel paid for Discord, taken-back and owed ones counted off (with
+    /// noprofit.space: what it applied of the changes sent, and the ones not sent yet).
     pub earned: i64,
     pub history: Vec<ApiTransaction>,
 }
@@ -175,10 +177,14 @@ pub async fn page(
     };
 
     let types: Vec<String> = LEDGER_TYPES.iter().map(|kind| kind.to_string()).collect();
-    let earned: i64 = sqlx::query_scalar(
+    let earned: i64 = sqlx::query_scalar(if context.connected {
+        "SELECT COALESCE(SUM(COALESCE(applied, amount)), 0)::BIGINT
+        FROM user_noprofit_credit_changes
+        WHERE user_uuid = $1 AND type = ANY($2)"
+    } else {
         "SELECT COALESCE(SUM(amount), 0)::BIGINT FROM user_credit_transactions
-        WHERE user_uuid = $1 AND type = ANY($2)",
-    )
+        WHERE user_uuid = $1 AND type = ANY($2)"
+    })
     .bind(user_uuid)
     .bind(&types)
     .fetch_one(state.database.read())
@@ -210,7 +216,7 @@ pub async fn page(
         } else {
             Source::Panel
         },
-        pays: context.pays(),
+        pays: context.pays_invites(),
         account,
         in_guild,
         checked,
@@ -259,7 +265,7 @@ pub async fn check(state: &crate::State, user_uuid: uuid::Uuid) -> Result<(), an
     }
     super::members::check_user(state, &context, user_uuid).await?;
 
-    if context.pays()
+    if context.pays_invites()
         && let Some(discord_id) = super::linked_discord_id(state, &context, user_uuid).await?
     {
         invites::settle(state, &context, Some(&discord_id)).await?;

@@ -24,6 +24,8 @@ const placementEmptyFormValues: PlacementValues = {
   smallMemoryGb: 34,
   smallThreads: 9,
   unreachableAfter: 3,
+  diskPercent: 85,
+  portRanges: '30000-50000,25000-30000',
 };
 
 export default function PlacementContainer() {
@@ -72,6 +74,14 @@ export default function PlacementContainer() {
       props: { min: 1, max: 60 },
     },
     {
+      type: 'number',
+      name: 'diskPercent',
+      label: t(`${page}.diskPercent`, {}),
+      description: t(`${page}.diskPercentDescription`, {}),
+      required: true,
+      props: { min: 0, max: 100 },
+    },
+    {
       type: 'divider',
       name: 'smallDivider',
       label: t(`${page}.small`, {}),
@@ -97,6 +107,18 @@ export default function PlacementContainer() {
       label: t(`${page}.smallThreads`, {}),
       required: true,
       props: { min: 0, max: 1024 },
+    },
+    {
+      type: 'divider',
+      name: 'portsDivider',
+      label: t(`${page}.ports`, {}),
+    },
+    {
+      type: 'text',
+      name: 'portRanges',
+      label: t(`${page}.portRanges`, {}),
+      description: t(`${page}.portRangesDescription`, {}),
+      required: true,
     },
   ];
 

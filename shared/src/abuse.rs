@@ -834,10 +834,15 @@ pub async fn scan_all(state: &crate::State) -> Result<(), anyhow::Error> {
         return Ok(());
     }
 
-    let uuids: Vec<uuid::Uuid> =
-        sqlx::query_scalar("SELECT uuid FROM servers WHERE NOT suspended ORDER BY created")
-            .fetch_all(state.database.read())
-            .await?;
+    // a parked server (limbo) runs nothing and has nothing on a node to scan, or only its files
+    // kept on a limbo node
+    let uuids: Vec<uuid::Uuid> = sqlx::query_scalar(
+        "SELECT uuid FROM servers
+        WHERE NOT suspended AND (limbo_state IS NULL OR limbo_state = 'stopped')
+        ORDER BY created",
+    )
+    .fetch_all(state.database.read())
+    .await?;
 
     let mut scans = futures_util::stream::iter(uuids.into_iter().map(|uuid| async move {
         let server = match Server::by_uuid_optional(&state.database, uuid).await {

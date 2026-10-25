@@ -1,6 +1,6 @@
-// plugged.host: one player of the Players table, the Pelican panel's row: the name (copied on a
-// click) over the UUID, whitelisted, operator level, ban, then the changes as text links
-// (docs/features/minecraft.md)
+// plugged.host: one player of the Players table, the Pelican panel's row: the head and the name (a link
+// to the player's page) over the UUID (copied on a click), whitelisted, operator level, ban, then the
+// changes as text links (docs/features/minecraft.md)
 import { faCircleCheck, faCircleXmark } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useState } from 'react';
@@ -9,23 +9,29 @@ import UnstyledButton from '@/elements/buttons/UnstyledButton.tsx';
 import CopyOnClick from '@/elements/CopyOnClick.tsx';
 import Badge from '@/elements/data-display/Badge.tsx';
 import { TableData, TableRow } from '@/elements/data-display/Table.tsx';
+import TableLink from '@/elements/data-display/TableLink.tsx';
 import TextInput from '@/elements/input/TextInput.tsx';
 import Stack from '@/elements/layout/Stack.tsx';
 import ConfirmationModal from '@/elements/modals/ConfirmationModal.tsx';
 import Tooltip from '@/elements/overlays/Tooltip.tsx';
+import FormattedTimestamp from '@/elements/time/FormattedTimestamp.tsx';
 import Text from '@/elements/typography/Text.tsx';
 import { minecraftPlayerListSchema, minecraftPlayerSchema } from '@/lib/schemas/server/minecraft.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
+import { useServerStore } from '@/stores/server.ts';
+import PlayerHead from './PlayerHead.tsx';
 import { usePlayerChange } from './usePlayerChange.ts';
 
 interface Props {
   player: z.infer<typeof minecraftPlayerSchema>;
   canManage: boolean;
+  online: boolean;
 }
 
-export default function PlayerRow({ player, canManage }: Props) {
-  const { t } = useTranslations();
+export default function PlayerRow({ player, canManage, online }: Props) {
+  const { t, tReact } = useTranslations();
   const change = usePlayerChange();
+  const server = useServerStore((state) => state.server);
 
   const [openModal, setOpenModal] = useState<'unwhitelist' | 'op' | 'deop' | 'ban' | null>(null);
   const [reason, setReason] = useState('');
@@ -42,6 +48,8 @@ export default function PlayerRow({ player, canManage }: Props) {
     apply(list, add).then(() => setOpenModal(null));
 
   const placeholder = <span className='theme-placeholder'>—</span>;
+  // someone who played but whose name the server does not know yet: the lists need a name
+  const unnamed = !player.name;
 
   return (
     <>
@@ -100,15 +108,32 @@ export default function PlayerRow({ player, canManage }: Props) {
 
       <TableRow>
         <TableData>
-          <div className='flex flex-col items-start'>
-            <CopyOnClick content={player.name} className='text-start'>
-              <Text size='sm'>{player.name}</Text>
-            </CopyOnClick>
-            {player.uuid && (
-              <Text size='sm' c='dimmed'>
-                {player.uuid}
-              </Text>
-            )}
+          <div className='theme-player-row-name'>
+            <PlayerHead uuid={player.uuid} name={player.name} />
+            <div className='flex min-w-0 flex-col items-start'>
+              <div className='flex items-center gap-2'>
+                {player.uuid ? (
+                  <TableLink to={`/server/${server.uuidShort}/minecraft/players/${player.uuid}`}>
+                    {player.name || t(`${base}.unnamed`, {})}
+                  </TableLink>
+                ) : (
+                  <Text size='sm'>{player.name}</Text>
+                )}
+                {online && <Badge color='green'>{t(`${base}.badge.online`, {})}</Badge>}
+              </div>
+              {player.uuid && (
+                <CopyOnClick content={player.uuid} className='text-start'>
+                  <Text size='sm' c='dimmed' dir='ltr'>
+                    {player.uuid}
+                  </Text>
+                </CopyOnClick>
+              )}
+              {player.lastPlayed && (
+                <Text size='xs' c='dimmed'>
+                  {tReact(`${base}.lastPlayed`, { date: <FormattedTimestamp timestamp={player.lastPlayed} /> })}
+                </Text>
+              )}
+            </div>
           </div>
         </TableData>
 
@@ -139,7 +164,8 @@ export default function PlayerRow({ player, canManage }: Props) {
           )}
         </TableData>
 
-        {canManage && (
+        {canManage && unnamed && <TableData />}
+        {canManage && !unnamed && (
           <TableData className='text-end'>
             <div className='theme-link-actions'>
               {player.whitelisted ? (

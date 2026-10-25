@@ -95,6 +95,10 @@ mod post {
     #[derive(ToSchema, Deserialize)]
     pub struct Payload {
         allocation_uuid: uuid::Uuid,
+        /// plugged.host: players cannot remove it; locked unless said otherwise, like the
+        /// allocations a server is created with (docs/features/allocations.md)
+        #[serde(default)]
+        locked: Option<bool>,
     }
 
     #[derive(ToSchema, Serialize)]
@@ -145,9 +149,18 @@ mod post {
         )
         .await
         {
-            Ok(allocation_uuid) => ServerAllocation::by_uuid(&state.database, allocation_uuid)
-                .await?
-                .ok_or_else(|| anyhow::anyhow!("allocation not found after creation"))?,
+            Ok(allocation_uuid) => {
+                // plugged.host: an admin's allocation is locked unless said otherwise
+                sqlx::query("UPDATE server_allocations SET locked = $2 WHERE uuid = $1")
+                    .bind(allocation_uuid)
+                    .bind(data.locked.unwrap_or(true))
+                    .execute(state.database.write())
+                    .await?;
+
+                ServerAllocation::by_uuid(&state.database, allocation_uuid)
+                    .await?
+                    .ok_or_else(|| anyhow::anyhow!("allocation not found after creation"))?
+            }
             Err(err) => return ApiResponse::from(err).ok(),
         };
 

@@ -889,7 +889,8 @@
           "discordInvite": "Invitations Discord",
           "discordInviteClawback": "Invitation reprise",
           "discordInviteDebt": "Crédits d'invitation dus",
-          "discordBoost": "Boost Discord"
+          "discordBoost": "Boost Discord",
+          "partner": "Programme partenaire"
         }
       },
       "chartLegend": {
@@ -988,6 +989,7 @@
           "themeLight": "Clair",
           "redactAddresses": "Masquer les adresses",
           "resetDeviceOverrides": "Réinitialiser les paramètres de cet appareil ({count})",
+          "review": "Évaluer {app} sur {site}",
           "openMenu": "Ouvrir le menu"
         },
         "profileSettings": "Paramètres du profil",
@@ -1003,6 +1005,142 @@
           "disk": "Disque",
           "openStore": "Obtenir plus dans la Boutique de ressources",
           "openTokens": "Ouvrir la page Jetons"
+        }
+      },
+      "notifications": {
+        "title": "Notifications",
+        "open": "Notifications, {count} non lues",
+        "unreadLabel": "Notification non lue",
+        "markAllRead": "Tout marquer comme lu",
+        "clear": "Effacer",
+        "markRead": "Marquer comme lu",
+        "delete": "Supprimer la notification",
+        "openServer": "Ouvrir le serveur",
+        "viewBackups": "Afficher les sauvegardes",
+        "showMore": "Afficher plus",
+        "empty": "Aucune notification",
+        "emptyHint": "Revenez plus tard.",
+        "unknown": "Notification",
+        "address": "Nouvelle adresse : {address}",
+        "reason": "Raison : {reason}",
+        "kinds": {
+          "transferCompleted": {
+            "title": "Serveur transféré",
+            "body": "{server} se trouve maintenant à l'emplacement {location}.",
+            "bodyAnywhere": "{server} se trouve maintenant sur un autre nœud."
+          },
+          "transferFailed": {
+            "title": "Échec du transfert",
+            "body": "{server} n'a pas pu être transféré vers {location}. Il est toujours là où il était, avec tous ses fichiers.",
+            "bodyAnywhere": "{server} n'a pas pu être transféré. Il est toujours là où il était, avec tous ses fichiers."
+          },
+          "allowanceCut": {
+            "title": "Vos serveurs ont maintenant moins de ressources",
+            "body": "Les ressources de votre compte ont baissé et vos serveurs en utilisaient plus que ce qu'il a maintenant, la différence leur a donc été retirée de façon égale : {servers}.",
+            "cpu": "−{amount} % de CPU",
+            "memory": "−{amount} de RAM",
+            "disk": "−{amount} de disque"
+          },
+          "membershipEnded": {
+            "title": "{membership} a pris fin",
+            "body": "Les serveurs sur des emplacements Premium sont transférés vers un autre emplacement : {servers}. Suivez le transfert sur la page Transfert de chaque serveur."
+          },
+          "failoverDone": {
+            "title": "Serveur rétabli",
+            "body": "Le nœud de {server} est tombé en panne, le serveur a donc été restauré sur un nœud sain à partir de sa dernière sauvegarde. Démarrez-le quand vous le souhaitez.",
+            "drillTitle": "Serveur déplacé vers un autre nœud",
+            "drillBody": "{server} a été restauré sur un autre nœud à partir de sa dernière sauvegarde lors d'un test de reprise. Démarrez-le quand vous le souhaitez.",
+            "backup": "Les fichiers sont dans l'état du {time}."
+          },
+          "failoverFailed": {
+            "title": "Problème avec le nœud du serveur",
+            "body": "Le nœud de {server} est tombé en panne et sa restauration sur un nœud sain n'a pas abouti. Contactez le support si votre serveur reste indisponible."
+          },
+          "modpackInstalled": {
+            "title": "Modpack installé",
+            "body": "{name} est installé sur {server} et {count} fichiers ont été téléchargés. Démarrez le serveur et surveillez la console.",
+            "skipped": "Certains fichiers n'ont pas pu être téléchargés et doivent être ajoutés à la main."
+          },
+          "modpackFailed": {
+            "title": "Échec de l'installation du modpack",
+            "body": "{name} n'a pas pu être installé sur {server}. Vérifiez la console et la liste des fichiers avant de démarrer le serveur."
+          },
+          "frameworkInstalled": {
+            "title": "{recipe} est installé sur {server}",
+            "body": "Il se trouve dans {folder}, et le serveur démarre dessus."
+          },
+          "frameworkFailed": {
+            "title": "L'installation de {recipe} sur {server} a échoué"
+          },
+          "worldImported": {
+            "title": "Monde importé",
+            "body": "Le monde envoyé est maintenant le monde de {server}.",
+            "kept": "L'ancien monde a été conservé sous le nom {world}."
+          },
+          "worldImportFailed": {
+            "title": "Le monde n'a pas pu être importé",
+            "body": "Le monde envoyé n'a pas pu être chargé sur {server}."
+          },
+          "serverInstalled": {
+            "title": "Installation du serveur terminée",
+            "body": "{server} est installé et peut être démarré."
+          },
+          "serverInstallFailed": {
+            "title": "Échec de l'installation du serveur",
+            "body": "{server} n'a pas pu être installé. Ouvrez le serveur pour relancer l'installation."
+          },
+          "subuserAdded": {
+            "title": "Ajouté au serveur",
+            "body": "Vous avez été ajouté en tant que sous-utilisateur à {server}."
+          },
+          "subuserRemoved": {
+            "title": "Retiré du serveur",
+            "body": "Vous avez été retiré en tant que sous-utilisateur de {server}."
+          },
+          "backupCompleted": {
+            "title": "Sauvegarde terminée",
+            "body": "La sauvegarde {name} de {server} est prête."
+          },
+          "backupFailed": {
+            "title": "Échec de la sauvegarde",
+            "body": "La sauvegarde {name} de {server} n'a pas pu être créée."
+          },
+          "partnerApproved": {
+            "title": "Partenariat accepté",
+            "body": "{guild} est maintenant partenaire et gagne {credits} crédits par mois. Le premier mois est payé."
+          },
+          "partnerRejected": {
+            "title": "Candidature partenaire non acceptée",
+            "body": "{guild} n'a pas été accepté comme partenaire."
+          },
+          "partnerRevoked": {
+            "title": "Partenariat terminé",
+            "body": "Le partenariat de {guild} est terminé et ses paiements mensuels sont arrêtés."
+          },
+          "partnerPaid": {
+            "title": "Crédits partenaire reçus",
+            "body": "{credits} crédits pour {guild} ce mois-ci."
+          },
+          "partnerCheckFailed": {
+            "title": "Vérification partenaire échouée",
+            "body": "{guild} ne remplit plus les conditions de partenariat, le paiement de ce mois est donc en attente. Corrigez le problème avant le {until}, sinon le partenariat sera suspendu. La page Partenaires indique ce qui ne va pas."
+          },
+          "partnerSuspended": {
+            "title": "Partenariat suspendu",
+            "body": "{guild} ne remplit toujours pas les conditions de partenariat, le partenariat est donc suspendu. Corrigez le problème, puis utilisez Vérifier à nouveau sur la page Partenaires."
+          },
+          "partnerPaused": {
+            "title": "Paiements partenaire en pause",
+            "body": "Un administrateur a mis en pause les paiements mensuels pour {guild}."
+          },
+          "partnerResumed": {
+            "title": "Paiements partenaire repris",
+            "body": "Les paiements mensuels pour {guild} ont repris."
+          },
+          "partnerCreditsChanged": {
+            "title": "Crédits partenaire modifiés",
+            "body": "{guild} gagne maintenant {credits} crédits par mois."
+          }
         }
       },
       "welcomeTour": {
@@ -1207,7 +1345,9 @@
             },
             "reason": "Raison : {reason}",
             "deleteAt": "Il sera supprimé avec ses fichiers le {date}, sauf si la suspension est levée d'ici là.",
-            "help": "Si vous pensez qu'il s'agit d'une erreur, contactez les administrateurs du panel en indiquant le nom du serveur."
+            "help": "Si vous pensez qu'il s'agit d'une erreur, contactez les administrateurs du panel en indiquant le nom du serveur.",
+            "helpLink": "Si vous pensez qu'il s'agit d'une erreur, demandez de l'aide en indiquant le nom du serveur.",
+            "getHelp": "Obtenir de l'aide"
           },
           "contentNodeMaintenance": "Ce serveur est sur un nœud actuellement en maintenance et n'est pas accessible.",
           "contentTransferring": "Ce serveur est en cours de transfert et ne sera pas accessible tant que le transfert n'est pas terminé.",
@@ -1944,6 +2084,11 @@
           },
           "emptyGroup": "Ce groupe est vide. Faites glisser un serveur ici pour l'ajouter.",
           "emptyAccess": "Vous n'avez accès à aucun serveur !",
+          "review": {
+            "title": "Comment se passe votre expérience avec {app} ?",
+            "body": "Dites aux autres joueurs comment cela se passe dans un avis sur {site}, en bien comme en mal.",
+            "write": "Écrire un avis"
+          },
           "card": {
             "cpu": "CPU",
             "memory": "RAM",
@@ -2894,6 +3039,111 @@
             "checked": "Vérification effectuée avec Discord.",
             "paid": "{credits} nouveaux crédits ajoutés.",
             "nothing": "Tout est à jour, rien de nouveau à verser."
+          }
+        },
+        "partners": {
+          "title": "Partenaires",
+          "closed": "Les candidatures sont fermées pour le moment.",
+          "promo": {
+            "title": "Programme partenaire",
+            "text": "Vous gérez une communauté Discord pour un serveur FiveM ou Minecraft ? Les partenaires gagnent des crédits chaque mois.",
+            "open": "Ouvrir le programme partenaire"
+          },
+          "intro": {
+            "heading": "Devenir partenaire",
+            "body": "Vous gérez une communauté Discord d'au moins {members} membres pour un serveur FiveM ou Minecraft ? Devenez partenaire de {app} et gagnez jusqu'à {credits} crédits par mois.",
+            "review": "Un administrateur examine chaque candidature. Avant chaque paiement mensuel, le serveur est vérifié à nouveau ; s'il ne remplit plus les conditions, le paiement attend et vous avez {days} jours pour corriger le problème.",
+            "reviewDay": "Un administrateur examine chaque candidature. Avant chaque paiement mensuel, le serveur est vérifié à nouveau ; s'il ne remplit plus les conditions, le paiement attend et vous avez {days} jour pour corriger le problème.",
+            "reviewNow": "Un administrateur examine chaque candidature. Avant chaque paiement mensuel, le serveur est vérifié à nouveau ; s'il ne remplit plus les conditions, le partenariat est suspendu jusqu'à ce qu'il les remplisse."
+          },
+          "requirements": {
+            "title": "Ce dont votre serveur a besoin",
+            "linked": "Votre compte Discord est associé",
+            "linkedAs": "Associé en tant que {name}",
+            "notLinked": "Pas encore associé",
+            "done": "Fait",
+            "link": "Associer Discord",
+            "linkNoprofit": "Associer Discord sur noprofit.space",
+            "bot": "{bot} est sur le serveur",
+            "botHint": "Il lit seulement le nombre de membres, vos rôles et les salons, il n'a donc besoin d'aucune permission.",
+            "addBot": "Ajouter {bot}",
+            "members": "Au moins {members} membres",
+            "membersHint": "Selon le décompte de Discord, à la candidature et avant chaque paiement.",
+            "admin": "Vous êtes propriétaire ou administrateur du serveur",
+            "adminHint": "Le propriétaire, ou un rôle avec la permission Administrateur.",
+            "channel": "Un salon consacré à {app}",
+            "channelHint": "Visible par @everyone, avec {names} dans son nom ou son sujet.",
+            "channelLinkHint": "Son sujet doit aussi contenir un lien vers {links}.",
+            "game": "Une communauté FiveM ou Minecraft",
+            "gameHint": "Son serveur de jeu peut être hébergé n'importe où. Indiquez ceux de ce panel dans la candidature."
+          },
+          "problems": {
+            "notLinked": "Associez d'abord votre compte Discord.",
+            "invalidLink": "Saisissez un lien d'invitation Discord ou un identifiant de serveur.",
+            "unknownInvite": "Cette invitation n'existe pas ou a expiré. Utilisez-en une qui n'expire jamais.",
+            "botMissing": "{bot} n'est pas sur ce serveur. Ajoutez-le, puis postulez à nouveau.",
+            "tooFewMembers": "Ce serveur compte {count} membres et doit en avoir au moins {members}.",
+            "notAdmin": "Vous devez être propriétaire de ce serveur ou y avoir un rôle avec la permission Administrateur.",
+            "channelMissing": "Aucun salon consacré à {app} n'a été trouvé : il doit contenir {app} dans son nom ou son sujet et être visible par @everyone.",
+            "channelHidden": "{channel} est masqué pour @everyone. Tout le monde sur le serveur doit pouvoir le voir.",
+            "channelLink": "Le sujet de {channel} doit contenir un lien vers {links}.",
+            "pending": "Vous avez déjà une candidature en attente d'examen.",
+            "taken": "Ce serveur est déjà partenaire ou a une candidature en attente.",
+            "cooldown": "Votre dernière candidature n'a pas été acceptée. Vous pourrez postuler à nouveau le {date}."
+          },
+          "form": {
+            "title": "Postuler",
+            "server": "Serveur Discord",
+            "serverHint": "Un lien d'invitation qui n'expire jamais, ou l'identifiant du serveur.",
+            "game": "Jeu",
+            "description": "À propos de votre communauté",
+            "descriptionHint": "À quoi elle joue, à quel point elle est active et ce qui la rend unique. Entre 20 et 1000 caractères.",
+            "servers": "Serveurs sur ce panel",
+            "serversHint": "Facultatif : jusqu'à 10 de vos serveurs ici sur lesquels joue la communauté.",
+            "submit": "Envoyer la candidature",
+            "sent": "Candidature envoyée. Vous recevrez une notification dès qu'une décision sera prise."
+          },
+          "games": {
+            "fivem": "FiveM",
+            "minecraft": "Minecraft",
+            "both": "FiveM et Minecraft"
+          },
+          "refusal": {
+            "title": "Le serveur ne remplit pas encore les conditions",
+            "titleServer": "{server} ne remplit pas encore les conditions"
+          },
+          "status": {
+            "pending": "En attente d'examen",
+            "approved": "Partenaire",
+            "paused": "En pause",
+            "suspended": "Suspendu",
+            "rejected": "Non acceptée",
+            "revoked": "Terminé",
+            "withdrawn": "Retirée"
+          },
+          "partnership": {
+            "monthly": "{credits} crédits par mois",
+            "nextPayment": "Prochain paiement le {date}",
+            "paused": "Un administrateur a mis les paiements en pause.",
+            "pausedReason": "Un administrateur a mis les paiements en pause : {reason}",
+            "failing": "La dernière vérification a échoué, le paiement de ce mois est donc en attente. Corrigez le problème avant le {date}, sinon le partenariat sera suspendu.",
+            "suspended": "Le partenariat est suspendu car le serveur ne remplit plus les conditions. Corrigez le problème et vérifiez à nouveau pour reprendre les paiements.",
+            "check": "Vérifier à nouveau",
+            "checkPassed": "Le serveur remplit les conditions.",
+            "checkFailed": "Le serveur ne remplit pas encore les conditions.",
+            "payments": "Paiements",
+            "paidTotal": "{credits} crédits reçus au total",
+            "paymentsEmpty": "Aucun paiement pour le moment."
+          },
+          "pending": {
+            "title": "Votre candidature est en cours d'examen",
+            "body": "Un administrateur examine {server} et décide. Vous recevrez une notification.",
+            "withdraw": "Retirer la candidature",
+            "withdrawn": "Candidature retirée."
+          },
+          "history": {
+            "title": "Candidatures précédentes",
+            "reason": "Motif : {reason}"
           }
         },
         "devboxOpen": {
@@ -4841,6 +5091,17 @@
             "installing": "Votre serveur est en train d'être installé. Veuillez patienter...",
             "pendingRestart": "Votre serveur a des changements en attente nécessitant un redémarrage. Veuillez redémarrer votre serveur pour appliquer ces changements."
           },
+          "installStuck": {
+            "content": "Cela prend beaucoup plus de temps que prévu, l'installation est donc probablement bloquée. Vous pouvez la recommencer ou supprimer le serveur.",
+            "reinstall": {
+              "button": "Réinstaller",
+              "title": "Recommencer l'installation ?",
+              "content": "L'installation s'exécute à nouveau depuis le début. Les fichiers qu'elle a déjà écrits peuvent être remplacés."
+            },
+            "toast": {
+              "reinstalling": "L'installation a recommencé."
+            }
+          },
           "message": {
             "serverMarkedAs": "Serveur marqué comme {state}...",
             "installFailed": "L'installation a échoué.",
@@ -4906,6 +5167,13 @@
               "button": {
                 "update": "Mettre à jour l'image Docker"
               }
+            },
+            "pidLimit": {
+              "titleAdmin": "Limite de mémoire ou de processus atteinte",
+              "titleUser": "Limite de ressources probablement atteinte",
+              "contentAdmin": "Ce serveur a atteint la limite maximale de processus ou de mémoire. Augmenter `container_pid_limit` sous `docker` dans la configuration de Wings, `config.yml`, peut aider.",
+              "contentAdminRestart": "**Wings doit être redémarré pour que la modification prenne effet.**",
+              "contentUser": "Ce serveur essaie d'utiliser plus de ressources qu'il n'en a. Veuillez contacter l'administrateur et lui transmettre l'erreur ci-dessous."
             }
           },
           "details": {
@@ -6916,7 +7184,8 @@
             "title": "Allocations"
           },
           "tooltip": {
-            "limitReached": "Ce serveur est limité à {max} allocations."
+            "limitReached": "Ce serveur est limité à {max} allocations.",
+            "locked": "Verrouillée : seul un administrateur peut la supprimer."
           },
           "table": {
             "columns": {
@@ -6936,7 +7205,8 @@
               "title": "Confirmer la suppression des allocations",
               "content": "Êtes-vous sûr de vouloir supprimer **{allocations}** de ce serveur ?",
               "alert": {
-                "skipped": "{allocations} seront ignorées. L'allocation primaire ne peut pas être supprimée."
+                "skipped": "{allocations} seront ignorées. L'allocation primaire ne peut pas être supprimée.",
+                "skippedLocked": "{allocations} seront ignorées. L'allocation primaire et les allocations verrouillées ne peuvent pas être supprimées."
               }
             },
             "removeAllocation": {
@@ -7523,6 +7793,7 @@
           "title": "Serveur en hibernation",
           "body": "Ce serveur était inactif depuis un moment, il a donc été mis en hibernation pour libérer de la capacité. Restaurez-le pour le remettre en ligne.",
           "entered": "Mis en hibernation {time}",
+          "deletesAt": "Il sera supprimé {time}, avec ses fichiers, sauf si vous le restaurez avant.",
           "failed": "La dernière restauration a échoué : {error}",
           "costLabel": "Coût de la restauration",
           "balanceLabel": "Votre solde",
@@ -7629,7 +7900,9 @@
           "reasons": {
             "noNode": "aucun nœud avec de la place n'était disponible",
             "copyFailed": "la copie a été interrompue",
-            "skippedMoved": "il avait été transféré entre-temps"
+            "skippedMoved": "il avait été transféré entre-temps",
+            "stalled": "la copie n'avançait plus",
+            "unfinalized": "le nouveau nœud n'a pas confirmé la copie"
           },
           "events": {
             "requested": "Transfert vers {location} demandé",
@@ -7783,10 +8056,16 @@
             "propertiesNote": "Les commentaires, l'ordre des clés et les clés non affichées ici restent tels quels. Les ports et le mot de passe RCON sont définis par le panel.",
             "yamlNote": "Les commentaires et tout le reste du fichier restent tels quels. Les listes et les valeurs sur plusieurs lignes ne sont pas affichées ici : pour celles-ci, modifiez le fichier en texte.",
             "button": {
-              "editText": "Modifier en texte"
+              "editText": "Modifier en texte",
+              "restart": "Redémarrer le serveur"
             },
             "toast": {
-              "saved": "Fichier {file} enregistré (modifications : {count}). Redémarrez le serveur pour les appliquer."
+              "saved": "Fichier {file} enregistré (modifications : {count}). Redémarrez le serveur pour les appliquer.",
+              "restarting": "Le serveur redémarre"
+            },
+            "restart": {
+              "title": "Redémarrer le serveur maintenant ?",
+              "description": "Le serveur s'arrête puis redémarre pour lire les réglages enregistrés. Tous les joueurs sont déconnectés pendant le redémarrage."
             }
           },
           "players": {
@@ -7804,6 +8083,8 @@
             "emptyHeading": "Aucun joueur pour l'instant",
             "emptyBody": "Personne n'est dans la whitelist ni opérateur sur ce serveur. Ajoutez un joueur pour commencer.",
             "noMatch": "Aucun joueur ne correspond à cette recherche.",
+            "unnamed": "Nom pas encore connu",
+            "lastPlayed": "Dernière partie {date}",
             "table": {
               "player": "Joueur",
               "whitelisted": "Dans la whitelist",
@@ -7812,7 +8093,8 @@
             },
             "badge": {
               "operator": "Niveau {level}",
-              "banned": "Banni"
+              "banned": "Banni",
+              "online": "En ligne"
             },
             "button": {
               "refresh": "Recharger",
@@ -7866,6 +8148,140 @@
               "enforcedOn": "Whitelist activée.",
               "enforcedOff": "Whitelist désactivée.",
               "atNextStart": "Enregistré dans les fichiers du serveur - cela s'applique au prochain démarrage du serveur."
+            },
+            "details": {
+              "back": "Tous les joueurs",
+              "online": "En ligne",
+              "offline": "Hors ligne",
+              "bedrock": "Bedrock",
+              "copyUuid": "Copier l'UUID",
+              "saved": "Dernière sauvegarde {date}",
+              "savedNote": "Affiché tel qu'à la dernière sauvegarde. Un serveur en marche sauvegarde ses joueurs toutes les quelques minutes et quand ils partent.",
+              "noData": "Rien n'est encore sauvegardé pour ce joueur. Ses détails apparaissent ici une fois qu'il a joué et que le serveur a sauvegardé.",
+              "damaged": "Le fichier de données du joueur n'a pas pu être lu. Minecraft revient à sa version précédente, ou fait repartir le joueur au point d'apparition.",
+              "gameMode": "Mode de jeu",
+              "gameModes": {
+                "survival": "Survie",
+                "creative": "Créatif",
+                "adventure": "Aventure",
+                "spectator": "Spectateur"
+              },
+              "reason": {
+                "notRunning": "Démarrez le serveur pour faire cela.",
+                "notOnline": "Le joueur n'est pas en ligne.",
+                "noConsole": "Cela nécessite l'accès à la console.",
+                "stopFirst": "Arrêtez le serveur pour modifier les données sauvegardées.",
+                "noFiles": "Cela nécessite la permission de modifier les fichiers."
+              },
+              "vitals": {
+                "title": "Santé et expérience",
+                "health": "Santé",
+                "food": "Nourriture",
+                "level": "Niveau {level}",
+                "points": "{points} points au total",
+                "heal": "Soigner",
+                "feed": "Nourrir",
+                "kill": "Tuer",
+                "killTitle": "Tuer {name} ?",
+                "killContent": "Le joueur meurt dans le jeu et lâche ce qu'il porte, sauf si keepInventory est activé."
+              },
+              "access": {
+                "title": "Accès",
+                "whitelisted": "Dans la whitelist",
+                "operator": "Opérateur",
+                "banned": "Banni",
+                "unnamed": "Les listes ont besoin du nom du joueur, que le serveur ne connaît pas encore."
+              },
+              "inventory": {
+                "title": "Inventaire",
+                "equipment": "Armure et main secondaire",
+                "main": "Inventaire",
+                "hotbar": "Barre d'action",
+                "enderChest": "Coffre de l'Ender"
+              },
+              "position": {
+                "title": "Position",
+                "coordinates": "Coordonnées",
+                "dimension": "Dimension",
+                "respawn": "Point de réapparition",
+                "lastDeath": "Dernière mort",
+                "unknown": "Non défini",
+                "teleport": "Téléporter",
+                "overworld": "Surface",
+                "nether": "Nether",
+                "end": "L'End"
+              },
+              "teleport": {
+                "title": "Téléporter {name}",
+                "coordinates": "Coordonnées",
+                "spawn": "Point d'apparition du monde",
+                "player": "Vers un joueur",
+                "current": "Celle où il se trouve",
+                "target": "Joueur",
+                "noTargets": "Il n'y a aucun autre joueur vers qui téléporter.",
+                "spawnHint": "Le point d'apparition du monde que le serveur charge.",
+                "live": "Le joueur est déplacé immédiatement.",
+                "file": "Le serveur est arrêté : sa position sauvegardée change, et il apparaîtra là à sa prochaine connexion.",
+                "submit": "Téléporter"
+              },
+              "stats": {
+                "title": "Statistiques",
+                "empty": "Aucune statistique sauvegardée pour le moment.",
+                "playTime": "Temps de jeu",
+                "playerKills": "Joueurs tués",
+                "mobKills": "Créatures tuées",
+                "deaths": "Morts",
+                "kdr": "Éliminations par mort",
+                "distance": "Distance parcourue",
+                "blocks": "{count} blocs",
+                "mined": "Blocs minés",
+                "used": "Objets utilisés",
+                "killed": "Créatures tuées",
+                "nothing": "Rien pour le moment",
+                "ways": {
+                  "walk": "À pied",
+                  "sprint": "En courant",
+                  "crouch": "Accroupi",
+                  "swim": "À la nage",
+                  "fall": "En tombant",
+                  "climb": "En grimpant",
+                  "fly": "En volant",
+                  "aviate": "En élytres",
+                  "boat": "En bateau",
+                  "minecart": "En wagonnet",
+                  "horse": "À cheval",
+                  "pig": "À dos de cochon",
+                  "strider": "À dos d'arpenteur",
+                  "walkOnWater": "Sur l'eau",
+                  "walkUnderWater": "Sous l'eau"
+                }
+              },
+              "remove": {
+                "title": "Supprimer les données du joueur",
+                "description": "Uniquement quand le serveur est arrêté. Cochez ce qui doit partir.",
+                "xp": "Expérience",
+                "inventory": "Inventaire et armure",
+                "enderChest": "Coffre de l'Ender",
+                "playerData": "Fichier de données du joueur",
+                "playerDataHint": "Tout ce que le serveur a sauvegardé sur lui : il recommence au point d'apparition.",
+                "statistics": "Statistiques",
+                "advancements": "Progrès",
+                "missing": "Rien de sauvegardé",
+                "submit": "Supprimer",
+                "confirmTitle": "Supprimer les données sélectionnées de {name} ?",
+                "edited": "Le fichier de données du joueur est réécrit ; sa version précédente reste à côté sous le nom {file}.",
+                "trash": "Les fichiers supprimés vont dans la corbeille.",
+                "gone": "Les fichiers supprimés ne peuvent pas être récupérés."
+              },
+              "toast": {
+                "healed": "{name} a été soigné.",
+                "fed": "{name} a été nourri.",
+                "killed": "{name} a été tué.",
+                "gameMode": "{name} joue maintenant en mode {mode}.",
+                "teleported": "{name} a été téléporté.",
+                "nextJoin": "Enregistré dans son fichier - cela s'applique à sa prochaine connexion.",
+                "deleted": "Les données sélectionnées de {name} ont été supprimées."
+              }
             }
           },
           "worlds": {
@@ -8579,9 +8995,12 @@
         "chat": {
           "title": "Discussion",
           "empty": "Aucun message pour l'instant. Dites bonjour.",
+          "emptyReadOnly": "Aucun message pour l'instant.",
           "placeholder": "Écrivez un message…",
           "loadOlder": "Charger les messages plus anciens",
-          "deletedUser": "Utilisateur supprimé"
+          "deletedUser": "Utilisateur supprimé",
+          "newMessages": "Nouveaux messages",
+          "readOnly": "Vous pouvez lire cette discussion, mais pas y écrire."
         }
       }
     }

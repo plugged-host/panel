@@ -19,7 +19,7 @@
     },
     "file_denylist": [],
     "startup_commands": {
-        "Default": "$(pwd)/alpine/opt/cfx-server/ld-musl-x86_64.so.1 --library-path \"$(pwd)/alpine/usr/lib/v8/:$(pwd)/alpine/lib/:$(pwd)/alpine/usr/lib/\" -- $(pwd)/alpine/opt/cfx-server/FXServer +set citizen_dir $(pwd)/alpine/opt/cfx-server/citizen/ +set txAdminManagerMode true"
+        "Default": "TXHOST_FXS_PORT={{SERVER_PORT}} TXHOST_PROVIDER_NAME={{TXHOST_PROVIDER_NAME}} $(pwd)/alpine/opt/cfx-server/ld-musl-x86_64.so.1 --library-path \"$(pwd)/alpine/usr/lib/v8/:$(pwd)/alpine/lib/:$(pwd)/alpine/usr/lib/\" -- $(pwd)/alpine/opt/cfx-server/FXServer +set citizen_dir $(pwd)/alpine/opt/cfx-server/citizen/ +set txAdminManagerMode true"
     },
     "config": {
         "files": "{}",
@@ -70,6 +70,20 @@
             "rules": [
                 "required",
                 "in:legacy,enhanced"
+            ]
+        },
+        {
+            "sort": 100,
+            "name": "Hosting Provider Name",
+            "description": "The hosting provider's name txAdmin shows (2 to 16 letters, digits, dots, dashes or underscores, no spaces: the start line passes it unquoted). Put your own in place of example.com.",
+            "env_variable": "TXHOST_PROVIDER_NAME",
+            "default_value": "example.com",
+            "user_viewable": false,
+            "user_editable": false,
+            "rules": [
+                "required",
+                "string",
+                "regex:/^[A-Za-z0-9._-]{2,16}$/"
             ]
         }
     ]

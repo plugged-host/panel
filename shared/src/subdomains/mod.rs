@@ -279,7 +279,8 @@ pub struct Target {
     pub port: Option<i32>,
 }
 
-fn host_of(url: &reqwest::Url) -> Option<String> {
+/// The host of a node URL, without the brackets of an IPv6 address.
+pub(crate) fn host_of(url: &reqwest::Url) -> Option<String> {
     url.host_str().map(|host| {
         host.trim_start_matches('[')
             .trim_end_matches(']')
@@ -287,11 +288,13 @@ fn host_of(url: &reqwest::Url) -> Option<String> {
     })
 }
 
-fn routable(ip: std::net::IpAddr) -> bool {
+pub(crate) fn routable(ip: std::net::IpAddr) -> bool {
     !ip.is_unspecified() && !ip.is_loopback()
 }
 
-async fn resolve(host: &str) -> Option<std::net::IpAddr> {
+/// The address a host name (or IP) points at, IPv4 first; `None` for 0.0.0.0, loopback or a
+/// lookup that fails or takes over 5 seconds.
+pub(crate) async fn resolve(host: &str) -> Option<std::net::IpAddr> {
     if let Ok(ip) = host.parse::<std::net::IpAddr>() {
         return routable(ip).then_some(ip);
     }
@@ -533,7 +536,7 @@ pub async fn overview(
     let tokens_enabled = settings.economy.tokens_enabled;
     drop(settings);
 
-    let service = Service::of_features(&server.egg.features);
+    let service = Service::of_egg(&server.egg);
     let target = target(state, server).await?;
     let port = target.as_ref().and_then(|target| target.port);
     let subdomains = Subdomain::all_by_server_uuid(&state.database, server.uuid).await?;
@@ -804,7 +807,7 @@ pub async fn create(
     request: Create,
 ) -> Result<Subdomain, SubdomainError> {
     let context = context(state).await?;
-    let service = Service::of_features(&server.egg.features).ok_or(SubdomainError::Unsupported)?;
+    let service = Service::of_egg(&server.egg).ok_or(SubdomainError::Unsupported)?;
     match crate::discord::subdomain_gate(state, server.owner.uuid, true).await? {
         crate::discord::Gate::Open => {}
         crate::discord::Gate::NeedsLink => return Err(SubdomainError::DiscordLink),
@@ -938,7 +941,7 @@ pub async fn update(
     name: Option<String>,
 ) -> Result<Subdomain, SubdomainError> {
     let context = context(state).await?;
-    let service = Service::of_features(&server.egg.features).ok_or(SubdomainError::Unsupported)?;
+    let service = Service::of_egg(&server.egg).ok_or(SubdomainError::Unsupported)?;
     let target = target(state, server)
         .await?
         .ok_or(SubdomainError::NoAddress)?;
@@ -1054,7 +1057,7 @@ async fn follow_now(state: &crate::State, server_uuid: uuid::Uuid) -> Result<(),
     let Some(server) = Server::by_uuid_optional(&state.database, server_uuid).await? else {
         return Ok(());
     };
-    let Some(service) = Service::of_features(&server.egg.features) else {
+    let Some(service) = Service::of_egg(&server.egg) else {
         return Ok(());
     };
     let Some(target) = target(state, &server).await? else {
@@ -1317,7 +1320,7 @@ pub async fn delete_domain(state: &crate::State, uuid: uuid::Uuid) -> Result<u64
     for subdomain in Subdomain::all_by_domain_uuid(&state.database, uuid).await? {
         let service = match Server::by_uuid_optional(&state.database, subdomain.server_uuid).await?
         {
-            Some(server) => Service::of_features(&server.egg.features),
+            Some(server) => Service::of_egg(&server.egg),
             None => None,
         };
         delete(state, &subdomain, service).await?;

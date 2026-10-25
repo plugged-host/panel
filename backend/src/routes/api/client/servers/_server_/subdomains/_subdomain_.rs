@@ -88,7 +88,7 @@ mod patch {
 
         let port = server.allocation.as_ref().map(|a| a.allocation.port);
         ApiResponse::new_serialized(Response {
-            subdomain: subdomain.into_api(Service::of_features(&server.egg.features), port),
+            subdomain: subdomain.into_api(Service::of_egg(&server.egg), port),
         })
         .ok()
     }
@@ -147,12 +147,8 @@ mod delete {
                 .ok();
         };
 
-        let Some(refunded) = shared::subdomains::delete(
-            &state,
-            &subdomain,
-            Service::of_features(&server.egg.features),
-        )
-        .await?
+        let Some(refunded) =
+            shared::subdomains::delete(&state, &subdomain, Service::of_egg(&server.egg)).await?
         else {
             return ApiResponse::error("subdomain not found")
                 .with_status(StatusCode::NOT_FOUND)

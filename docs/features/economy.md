@@ -147,9 +147,14 @@ membership change. Suspended users don't see it.
 ## Admins
 
 Admin › Users › a user › Economy (`users.economy`): credits, tokens, what was earned, both
-memberships, what the panel's store sold, and both histories. Add or take away credits (without
-noprofit.space) and tokens with a reason the user sees, give or take the first membership, set or
-end the second. Admin activity `user:economy`.
+memberships, what the panel's store sold, and both histories. Add or take away credits and tokens
+with a reason the user sees, give or take the first membership, set or end the second. Admin
+activity `user:economy`. With noprofit.space connected a credit change is sent to the user's account
+there (type `admin`, the reason as its description; [noprofit.md](../noprofit.md#what-changes-while-it-is-connected)),
+and the credit history is the changes made here that noprofit.space applied. That needs its account
+sync on (the API secret) and the user linked; otherwise the credits field is hidden and the page
+says to change credits on noprofit.space. A deduction may not take the balance (the last snapshot
+plus the changes not sent yet) below zero.
 
 ## Panel access
 
@@ -232,8 +237,8 @@ Turning credits, tokens or memberships off hides their page; balances and member
 ## Without noprofit.space
 
 Credits, the store and its prices are the panel's own, as above. With noprofit.space the panel needs
-three routes of the accounts app ([noprofit.md](../noprofit.md#wire-format)): `/store`, `/purchase`
-and `/credits/spend`.
+four routes of the accounts app ([noprofit.md](../noprofit.md#wire-format)): `/store`, `/purchase`,
+`/credits/spend` and `/credits/apply` (credits an admin or a Discord invite gives or takes).
 
 ## Check
 

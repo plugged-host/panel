@@ -5,17 +5,15 @@
 //! and sends the choice (a plan, or its own CPU, memory and disk) to [`create`], which checks it
 //! against the same rules and then goes the native way: the most eligible node of the location
 //! (`Node::by_location_uuids_most_eligible`, which skips paused nodes and ranks by load), the
-//! allocations its egg configuration deploys (`NodeAllocation::get_from_deployment`), and
-//! `Server::create`. An account creates one server at a time.
+//! allocations its egg configuration deploys (`NodeAllocation::get_from_deployment`), else ports
+//! inside the deployment port ranges, made when missing (`allocations::deploy`, two in a row for a
+//! game with a second port), and `Server::create`. An account creates one server at a time.
 
 use crate::{
     allowance::{Allowance, Refusal, Resources},
     models::{
         ByUuid, CreatableModel,
-        egg_configuration::{
-            EggConfigAllocationDeploymentPrimaryAllocation, EggConfigAllocationsDeployment,
-            EggConfiguration, EggConfigurationTarget,
-        },
+        egg_configuration::{EggConfiguration, EggConfigurationTarget},
         location::Location,
         nest_egg::NestEgg,
         nest_egg_variable::NestEggVariable,
@@ -43,6 +41,8 @@ pub const SUSPENSION_PENALTY: f64 = 0.5;
 pub const RANDOMNESS: f64 = 0.5;
 /// The longest server name a player may give (the Pelican panel's).
 pub const NAME_MAX: usize = 191;
+/// Creates tried again when a picked port was claimed by someone else in the meantime.
+const CLAIM_ATTEMPTS: usize = 3;
 
 #[derive(ToSchema, Serialize)]
 pub struct ApiGameVariant {
@@ -531,28 +531,173 @@ async fn create_locked(
     .collect::<Vec<_>>();
 
     let egg_configurations = EggConfiguration::all_cached(&state.database).await?;
-    // without an egg configuration that deploys allocations, any free one of the node
-    let fallback = EggConfigAllocationsDeployment {
-        dedicated: false,
-        primary: Some(EggConfigAllocationDeploymentPrimaryAllocation {
-            start_port: 1,
-            end_port: u16::MAX,
-            assign_to_variable: None,
-        }),
-        additional: Vec::new(),
+    let variables = NestEggVariable::all_by_egg_uuid(&state.database, egg.uuid).await?;
+    // txAdmin's or Multi Theft Auto's web port: a second port right after the first
+    let second_port = crate::allocations::second_port_variable(
+        crate::fivem::is_fivem(&egg),
+        variables
+            .iter()
+            .map(|variable| variable.env_variable.as_str()),
+    );
+
+    // a port another create or move claimed between the pick and this claim: pick again
+    let mut attempt = 0;
+    let server = loop {
+        attempt += 1;
+
+        let (node_uuid, allocation_uuid, allocation_uuids, deployment_variables) =
+            match place(state, &nodes, &egg, &egg_configurations, second_port).await? {
+                Ok(placed) => placed,
+                Err(allocation_error) => {
+                    let reason = match Node::find_deployment_blocker(
+                        &state.database,
+                        &[location.uuid],
+                        limits,
+                        false,
+                        SUSPENSION_PENALTY,
+                    )
+                    .await?
+                    {
+                        Some(blocker) => blocker.message().to_string(),
+                        None => allocation_error.unwrap_or_else(|| "no eligible node".to_string()),
+                    };
+
+                    return Err(CreateError::NoNode(reason));
+                }
+            };
+
+        let mut server_variables = HashMap::new();
+        let mut set_variable = |env: &str, value: compact_str::CompactString| {
+            if let Some(variable) = variables.iter().find(|v| v.env_variable == env) {
+                server_variables.insert(variable.uuid, value);
+            }
+        };
+        if let (Some(variable), Some(variant)) = (&game.variable, variant) {
+            set_variable(variable, variant.value.clone());
+        }
+        for (name, value) in deployment_variables {
+            set_variable(&name, value);
+        }
+
+        let feature_limits: ApiServerFeatureLimits = serde_json::from_value(serde_json::json!({
+            "allocations": limit_allocations.max(1 + allocation_uuids.len() as i32),
+            "databases": limit_databases,
+            "backups": limit_backups,
+            "schedules": limit_schedules,
+        }))?;
+
+        match Server::create(
+            state,
+            CreateServerOptions {
+                node_uuid,
+                owner_uuid: user.uuid,
+                egg_uuid: egg.uuid,
+                backup_configuration_uuid: None,
+                allocation_uuid,
+                allocation_uuids,
+                start_on_completion: !setup,
+                skip_installer: false,
+                external_id: None,
+                name: request.name.trim().into(),
+                description: None,
+                limits,
+                pinned_cpus: Vec::new(),
+                startup: startup.clone(),
+                image: image.clone(),
+                labels: Default::default(),
+                timezone: None,
+                trash: None,
+                hugepages_passthrough_enabled: false,
+                kvm_passthrough_enabled: false,
+                feature_limits,
+                variables: server_variables,
+            },
+        )
+        .await
+        {
+            Ok(server) => break server,
+            Err(err)
+                if attempt < CLAIM_ATTEMPTS
+                    && err.is_unique_constraint_violation(
+                        "server_allocations_allocation_uuid_idx",
+                    ) =>
+            {
+                tracing::info!(
+                    attempt,
+                    "a port of a new server was taken meanwhile, picking again"
+                );
+                continue;
+            }
+            Err(err) => return Err(err.into()),
+        }
     };
 
-    let mut placed = None;
+    if request.eula {
+        state
+            .cache
+            .set(&eula_marker(server.uuid), EULA_MARKER_SECONDS, &true)
+            .await
+            .ok();
+    }
+    if setup && let Err(err) = crate::minecraft::onboarding::require(state, server.uuid).await {
+        // without the mark the server is just not started: its player starts it themselves
+        tracing::warn!(server = %server.uuid, "failed to mark the server for setup: {err:#}");
+    }
+
+    Ok(server)
+}
+
+/// A node for a new server, its allocations and the variables they go into: the first of `nodes`
+/// that has them. Its egg configuration's deployment when it has one, else ports inside the
+/// deployment port ranges, made when missing, the second one for `second_port`
+/// (docs/features/allocations.md). `Err` with why none had room.
+async fn place(
+    state: &crate::State,
+    nodes: &[Node],
+    egg: &NestEgg,
+    egg_configurations: &[EggConfiguration],
+    second_port: Option<&'static str>,
+) -> Result<Result<Placed, Option<String>>, CreateError> {
     let mut allocation_error = None;
-    for node in &nodes {
-        let deployment = EggConfiguration::merge(
-            &egg_configurations,
-            &EggConfigurationTarget::new(&egg, node),
-        )
-        .config_allocations
-        .map(|allocations| allocations.deployment)
-        .filter(|deployment| deployment.primary.is_some())
-        .unwrap_or_else(|| fallback.clone());
+    for node in nodes {
+        let deployment =
+            EggConfiguration::merge(egg_configurations, &EggConfigurationTarget::new(egg, node))
+                .config_allocations
+                .map(|allocations| allocations.deployment)
+                .filter(|deployment| deployment.primary.is_some());
+
+        let Some(deployment) = deployment else {
+            let count = 1 + usize::from(second_port.is_some());
+            match crate::allocations::deploy(state, node, count).await {
+                Ok(Some(picked)) => {
+                    let variables = match (second_port, picked.get(1)) {
+                        (Some(name), Some((_, port))) => {
+                            vec![(name.into(), compact_str::format_compact!("{port}"))]
+                        }
+                        _ => Vec::new(),
+                    };
+
+                    return Ok(Ok((
+                        node.uuid,
+                        picked.first().map(|(uuid, _)| *uuid),
+                        picked.iter().skip(1).map(|(uuid, _)| *uuid).collect(),
+                        variables,
+                    )));
+                }
+                Ok(None) => {
+                    allocation_error = Some("not enough free allocations".to_string());
+                }
+                Err(crate::allocations::PortError::Unreachable(_)) => {
+                    allocation_error =
+                        Some("the node did not say which ports are free".to_string());
+                }
+                Err(err) => {
+                    tracing::warn!(node = %node.uuid, "failed to pick ports for a new server: {err:?}");
+                    allocation_error = Some("not enough free allocations".to_string());
+                }
+            }
+            continue;
+        };
 
         let mut deployment_variables = HashMap::new();
         let (primary, additional) = match NodeAllocation::get_from_deployment(
@@ -580,91 +725,19 @@ async fn create_locked(
             .map(|(name, value)| (compact_str::CompactString::from(name), value))
             .collect::<Vec<_>>();
 
-        placed = Some((node.uuid, primary, additional, deployment_variables));
-        break;
+        return Ok(Ok((node.uuid, primary, additional, deployment_variables)));
     }
 
-    let Some((node_uuid, allocation_uuid, allocation_uuids, deployment_variables)) = placed else {
-        let reason = match Node::find_deployment_blocker(
-            &state.database,
-            &[location.uuid],
-            limits,
-            false,
-            SUSPENSION_PENALTY,
-        )
-        .await?
-        {
-            Some(blocker) => blocker.message().to_string(),
-            None => allocation_error.unwrap_or_else(|| "no eligible node".to_string()),
-        };
-
-        return Err(CreateError::NoNode(reason));
-    };
-
-    let variables = NestEggVariable::all_by_egg_uuid(&state.database, egg.uuid).await?;
-    let mut server_variables = HashMap::new();
-    let mut set_variable = |env: &str, value: compact_str::CompactString| {
-        if let Some(variable) = variables.iter().find(|v| v.env_variable == env) {
-            server_variables.insert(variable.uuid, value);
-        }
-    };
-    if let (Some(variable), Some(variant)) = (&game.variable, variant) {
-        set_variable(variable, variant.value.clone());
-    }
-    for (name, value) in deployment_variables {
-        set_variable(&name, value);
-    }
-
-    let feature_limits: ApiServerFeatureLimits = serde_json::from_value(serde_json::json!({
-        "allocations": limit_allocations.max(1 + allocation_uuids.len() as i32),
-        "databases": limit_databases,
-        "backups": limit_backups,
-        "schedules": limit_schedules,
-    }))?;
-
-    let server = Server::create(
-        state,
-        CreateServerOptions {
-            node_uuid,
-            owner_uuid: user.uuid,
-            egg_uuid: egg.uuid,
-            backup_configuration_uuid: None,
-            allocation_uuid,
-            allocation_uuids,
-            start_on_completion: !setup,
-            skip_installer: false,
-            external_id: None,
-            name: request.name.trim().into(),
-            description: None,
-            limits,
-            pinned_cpus: Vec::new(),
-            startup,
-            image,
-            labels: Default::default(),
-            timezone: None,
-            trash: None,
-            hugepages_passthrough_enabled: false,
-            kvm_passthrough_enabled: false,
-            feature_limits,
-            variables: server_variables,
-        },
-    )
-    .await?;
-
-    if request.eula {
-        state
-            .cache
-            .set(&eula_marker(server.uuid), EULA_MARKER_SECONDS, &true)
-            .await
-            .ok();
-    }
-    if setup && let Err(err) = crate::minecraft::onboarding::require(state, server.uuid).await {
-        // without the mark the server is just not started: its player starts it themselves
-        tracing::warn!(server = %server.uuid, "failed to mark the server for setup: {err:#}");
-    }
-
-    Ok(server)
+    Ok(Err(allocation_error))
 }
+
+/// A node, its primary allocation, the others and the variables they go into.
+type Placed = (
+    uuid::Uuid,
+    Option<uuid::Uuid>,
+    Vec<uuid::Uuid>,
+    Vec<(compact_str::CompactString, compact_str::CompactString)>,
+);
 
 fn eula_marker(server_uuid: uuid::Uuid) -> String {
     format!("server_creation::eula::{server_uuid}")

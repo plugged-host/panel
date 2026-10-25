@@ -187,6 +187,7 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
     ssoCallbackUrl: null,
     adminsOnly: false,
     linkByEmail: true,
+    deletedAccountDays: 7,
     ssoSecret: null,
     apiSecret: null,
     neoSecret: null,
@@ -223,6 +224,8 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
     transferCooldownHours: 24,
     transferAttempts: 2,
     transferParallel: 2,
+    transferStallMinutes: 10,
+    transferFinalizeMinutes: 20,
     maxServers: 0,
     allowanceCpu: 0,
     allowanceMemory: 0,
@@ -241,14 +244,18 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
     smallMemoryGb: 34,
     smallThreads: 9,
     unreachableAfter: 3,
+    diskPercent: 85,
+    portRanges: '30000-50000,25000-30000',
   },
   queue: {
     enabled: false,
     includeRestart: true,
     linePercent: 85,
+    minWait: 10,
     maxWait: 600,
     releaseInterval: 20,
     passMinutes: 10,
+    exemptRoles: [],
     moveOffer: true,
     moveRequiresMembership: true,
     moveMaxDisk: 3072,
@@ -262,6 +269,7 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
     slotServerTools: true,
     slotPages: true,
     slotFoot: true,
+    maxUnitsPerPage: 2,
     refreshSeconds: 5,
     refreshMemberSeconds: 10,
     zones: '',
@@ -431,10 +439,32 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
     costLate: 10,
     costWindowHours: 72,
     exemptMembers: true,
+    deleteAfterDays: 0,
   },
   tour: {
     enabled: false,
     version: 1,
+  },
+  // plugged.host: docs/features/reviews.md
+  reviews: {
+    url: '',
+    site: '',
+    delayDays: 3,
+    intervalDays: 180,
+  },
+  // plugged.host: docs/features/partners.md
+  partners: {
+    enabled: false,
+    minMembers: 500,
+    minCredits: 500,
+    maxCredits: 5000,
+    cooldownDays: 30,
+    graceDays: 7,
+    channelRequired: true,
+    channelNames: '',
+    channelLinks: '',
+    neoAssessment: true,
+    guidance: '',
   },
   recovery: {
     deletedHoldDays: 7,
@@ -537,6 +567,8 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
       games: value.games, // plugged.host
       placement: value.placement, // plugged.host
       tour: value.tour, // plugged.host
+      reviews: value.reviews, // plugged.host
+      partners: value.partners, // plugged.host
       recovery: value.recovery, // plugged.host
       economy: value.economy, // plugged.host
       queue: value.queue, // plugged.host
@@ -568,6 +600,8 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
       ...(value.games ? { games: { ...state.games, ...value.games } } : {}), // plugged.host
       ...(value.placement ? { placement: { ...state.placement, ...value.placement } } : {}), // plugged.host
       ...(value.tour ? { tour: { ...state.tour, ...value.tour } } : {}), // plugged.host
+      ...(value.reviews ? { reviews: { ...state.reviews, ...value.reviews } } : {}), // plugged.host
+      ...(value.partners ? { partners: { ...state.partners, ...value.partners } } : {}), // plugged.host
       ...(value.recovery ? { recovery: { ...state.recovery, ...value.recovery } } : {}), // plugged.host
       ...(value.economy ? { economy: { ...state.economy, ...value.economy } } : {}), // plugged.host
       ...(value.queue ? { queue: { ...state.queue, ...value.queue } } : {}), // plugged.host

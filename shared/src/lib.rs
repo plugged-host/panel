@@ -20,6 +20,7 @@ use utoipa::ToSchema;
 
 pub mod abuse; // plugged.host
 pub mod ads; // plugged.host
+pub mod allocations; // plugged.host
 pub mod allowance; // plugged.host
 pub mod allowance_cuts; // plugged.host
 pub mod backup_notifications; // plugged.host
@@ -52,11 +53,14 @@ pub mod minecraft; // plugged.host
 pub mod models;
 pub mod neo; // plugged.host
 pub mod net;
+pub mod network_address; // plugged.host
 pub mod node_failover; // plugged.host
 pub mod node_telemetry; // plugged.host
 pub mod noprofit;
+pub mod notifications; // plugged.host
 pub mod ntp;
 pub mod panel_access; // plugged.host
+pub mod partners; // plugged.host
 pub mod payload;
 pub mod permissions;
 pub mod prelude;
@@ -75,10 +79,12 @@ pub mod start_queue; // plugged.host
 pub mod startup_preview; // plugged.host
 pub mod status; // plugged.host
 pub mod storage;
+pub mod stuck_installs; // plugged.host
 pub mod subdomains; // plugged.host
 pub mod telemetry;
 pub mod tunnel;
 pub mod updates;
+pub mod user_links; // plugged.host
 pub mod utils;
 pub mod waiting_room; // plugged.host
 pub mod welcome_tour; // plugged.host

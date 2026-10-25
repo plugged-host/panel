@@ -14,7 +14,11 @@ use std::{
     sync::Arc,
 };
 
+mod countries; // plugged.host
+mod extras; // plugged.host
 mod issues;
+mod limbo; // plugged.host
+mod mapping; // plugged.host
 mod model;
 mod pelican;
 mod pterodactyl;
@@ -769,7 +773,7 @@ pub(super) async fn run(
 
     let source = match kind {
         model::SourceKind::Pterodactyl => pterodactyl::read(&context, &app_url).await,
-        model::SourceKind::Pelican => pelican::read(&context, &app_url).await,
+        model::SourceKind::Pelican => pelican::read(&context, &app_url, environment).await, // plugged.host
     };
     let source = match source {
         Ok(source) => source,
@@ -782,6 +786,7 @@ pub(super) async fn run(
             return Ok(1);
         }
     };
+    let source = extras::leave_out_devboxes(source); // plugged.host: the panel makes them anew
 
     let cache = shared::cache::Cache::new(&env).await;
     let database = Arc::new(shared::database::Database::new(&env, cache.clone()).await);
@@ -894,6 +899,8 @@ pub(super) async fn run(
             err
         );
     }
+
+    extras::store_icons(&database, settings.clone(), &plan.extras.icons).await; // plugged.host
 
     tracing::info!(
         "finished import, took {:.2} seconds. restart the panel if it is running.",

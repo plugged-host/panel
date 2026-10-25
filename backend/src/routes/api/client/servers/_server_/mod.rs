@@ -78,6 +78,7 @@ pub async fn auth(
         "/api/client/servers/{server}",
         "/api/client/servers/{server}/websocket",
         "/api/client/servers/{server}/settings/install/cancel",
+        "/api/client/servers/{server}/settings/install/retry", // plugged.host: a stuck install's way out
         "/api/client/servers/{server}/backups/unlock",
         // plugged.host: a move's state and its cancel stay reachable while it runs
         "/api/client/servers/{server}/transfer",

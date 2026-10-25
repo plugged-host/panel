@@ -2,6 +2,7 @@ use super::State;
 use utoipa_axum::{router::OpenApiRouter, routes};
 
 mod cancel;
+mod location; // plugged.host: best node of a location (docs/features/transfers.md)
 
 mod post {
     use axum::http::StatusCode;
@@ -114,5 +115,6 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
     OpenApiRouter::new()
         .routes(routes!(post::route))
         .nest("/cancel", cancel::router(state))
+        .nest("/location", location::router(state)) // plugged.host
         .with_state(state.clone())
 }

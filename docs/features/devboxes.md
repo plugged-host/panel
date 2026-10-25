@@ -15,7 +15,8 @@ starts, stops and deletes itself:
 - It is owned by a system account (`devboxes@system.invalid`, suspended, no password, made on first
   use, kept in `devboxes::system_user_uuid`), so it never shows in anyone's server list, and
   nobody reaches its own pages.
-- It runs on the game server's node, on a free allocation of that node (its SSH port), with the
+- It runs on the game server's node, on a free allocation of that node (its SSH port; inside the
+  deployment port ranges and made when missing, else any free one: [allocations.md](allocations.md)), with the
   resources from the settings on top of the game server's.
 - Its own volume is `/home/container` (VS Code's server, extensions, shell history, caches). The
   game server's volume is mounted at `/server`.

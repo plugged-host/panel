@@ -50,6 +50,9 @@ function Parked({
           {limbo.parked && (
             <p className='theme-row-body'>{t(`${page}.entered`, { time: formatTimestamp(limbo.parked) })}</p>
           )}
+          {limbo.deleteAt && (
+            <p className='theme-row-body'>{t(`${page}.deletesAt`, { time: formatTimestamp(limbo.deleteAt) })}</p>
+          )}
           {limbo.error && (
             <p className='theme-row-body theme-row-error'>{t(`${page}.failed`, { error: limbo.error })}</p>
           )}

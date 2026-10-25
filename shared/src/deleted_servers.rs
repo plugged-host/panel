@@ -80,9 +80,14 @@ pub enum DeleteServerError {
 /// Deletes a server the way its owner does (the client delete route, neo's `delete_server`): the
 /// server, then its backups, but for its system backups while deleted servers are held (the owner
 /// downloads those from the Backups page). A backup that fails to delete is logged; the server is
-/// gone either way.
+/// gone either way. Its node must agree, unless its install failed or is stuck.
 pub async fn delete_server(state: &crate::State, server: &Server) -> Result<(), DeleteServerError> {
     let holding = holding(state).await.map_err(DeleteServerError::Lookup)?;
+    // a failed or stuck install goes without its node agreeing, as on the Pelican panel: Wings
+    // often does not know such a server at all (stuck_installs.rs)
+    let force = crate::stuck_installs::delete_without_node(&state.database, server)
+        .await
+        .map_err(|err| DeleteServerError::Lookup(err.into()))?;
     let backups = ServerBackup::all_by_server_uuid(&state.database, server.uuid)
         .await
         .map_err(|err| DeleteServerError::Lookup(err.into()))?
@@ -91,10 +96,7 @@ pub async fn delete_server(state: &crate::State, server: &Server) -> Result<(), 
         .collect::<Vec<_>>();
 
     server
-        .delete(
-            state,
-            crate::models::server::DeleteServerOptions { force: false },
-        )
+        .delete(state, crate::models::server::DeleteServerOptions { force })
         .await
         .map_err(DeleteServerError::Delete)?;
 

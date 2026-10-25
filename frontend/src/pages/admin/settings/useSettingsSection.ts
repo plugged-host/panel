@@ -30,6 +30,8 @@ type SettingsStoreKey =
   | 'games' // plugged.host
   | 'placement' // plugged.host
   | 'tour' // plugged.host
+  | 'reviews' // plugged.host
+  | 'partners' // plugged.host
   | 'recovery' // plugged.host
   | 'economy' // plugged.host
   | 'queue' // plugged.host

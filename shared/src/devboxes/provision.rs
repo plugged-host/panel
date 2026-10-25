@@ -374,8 +374,16 @@ async fn create_server(
     Ok(())
 }
 
-/// Any free allocation of the node.
+/// A free allocation of the node inside the deployment port ranges, made when missing
+/// (docs/features/allocations.md), else any free allocation of the node.
 async fn free_allocation(state: &crate::State, node: &Node) -> Result<uuid::Uuid, DevboxError> {
+    match crate::allocations::deploy(state, node, 1).await {
+        Ok(Some(picked)) if !picked.is_empty() => return Ok(picked[0].0),
+        Ok(_) | Err(crate::allocations::PortError::NoPort) => {}
+        Err(crate::allocations::PortError::Unreachable(_)) => return Err(DevboxError::NodeDown),
+        Err(crate::allocations::PortError::Other(err)) => return Err(DevboxError::Other(err)),
+    }
+
     let deployment = EggConfigAllocationsDeployment {
         dedicated: false,
         primary: Some(EggConfigAllocationDeploymentPrimaryAllocation {

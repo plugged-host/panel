@@ -997,6 +997,7 @@ impl IntoApiObject for NestEgg {
         _args: Self::ExtraArgs<'a>,
     ) -> Result<Self::ApiObject, crate::database::DatabaseError> {
         let api_object = ApiNestEgg::init_hooks(&self, state).await?;
+        let minecraft = crate::minecraft::Edition::of_egg(&self); // plugged.host
 
         let api_object = finish_extendible!(
             ApiNestEgg {
@@ -1007,6 +1008,7 @@ impl IntoApiObject for NestEgg {
                 separate_port: self.separate_port,
                 features: self.features,
                 docker_images: self.docker_images,
+                minecraft, // plugged.host
                 created: self.created.and_utc(),
             },
             api_object,
@@ -1573,6 +1575,8 @@ pub struct ApiNestEgg {
 
     pub features: Vec<compact_str::CompactString>,
     pub docker_images: IndexMap<compact_str::CompactString, compact_str::CompactString>,
+    /// plugged.host: the Minecraft it runs, which decides its game pages (docs/features/minecraft.md#which-servers)
+    pub minecraft: Option<crate::minecraft::Edition>,
 
     pub created: chrono::DateTime<chrono::Utc>,
 }

@@ -13,6 +13,7 @@ import ConfirmationModal from '@/elements/modals/ConfirmationModal.tsx';
 import { ObjectSet } from '@/lib/objectSet.ts';
 import { serverAllocationSchema } from '@/lib/schemas/server/allocations.ts';
 import { useBulkAction } from '@/plugins/selection/useBulkAction.ts';
+import { useAdminCan } from '@/plugins/usePermissions.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useServerStore } from '@/stores/server.ts';
 
@@ -31,8 +32,15 @@ export default function AllocationActionBar({
 
   const [confirming, setConfirming] = useState(false);
 
-  const removable = selectedAllocations.values().filter((allocation) => !allocation.isPrimary);
+  // plugged.host: locked allocations are removed by an admin only (docs/features/allocations.md)
+  const canRemoveLocked = useAdminCan('servers.allocations');
+  const removable = selectedAllocations
+    .values()
+    .filter((allocation) => !allocation.isPrimary && (!allocation.locked || canRemoveLocked));
   const skippedRemovals = selectedAllocations.size - removable.length;
+  const skippedLocked = selectedAllocations
+    .values()
+    .some((allocation) => !allocation.isPrimary && allocation.locked && !canRemoveLocked); // plugged.host
 
   const finish = () => {
     clearSelection();
@@ -69,9 +77,14 @@ export default function AllocationActionBar({
 
           {skippedRemovals > 0 && (
             <Alert color='yellow' icon={<FontAwesomeIcon icon={faTriangleExclamation} />}>
-              {t('pages.server.network.modal.removeAllocations.alert.skipped', {
-                allocations: tItem('serverAllocation', skippedRemovals),
-              })}
+              {t(
+                skippedLocked // plugged.host
+                  ? 'pages.server.network.modal.removeAllocations.alert.skippedLocked'
+                  : 'pages.server.network.modal.removeAllocations.alert.skipped',
+                {
+                  allocations: tItem('serverAllocation', skippedRemovals),
+                },
+              )}
             </Alert>
           )}
         </Stack>

@@ -37,6 +37,13 @@ start (and in the install script) and keeps `alpine/` on the build the server's 
 | `FIVEM_VERSION` | `recommended`, `latest` (follow Cfx's channel: every start installs its current build when it changed) or a build number (stays on it) | the Artifacts page |
 | `FIVEM_EDITION` | `legacy` or `enhanced` | the GTAV Enhanced page |
 
+The egg's start line begins as the Pelican panel's did:
+`TXHOST_FXS_PORT={{SERVER_PORT}} TXHOST_PROVIDER_NAME={{TXHOST_PROVIDER_NAME}}`. The first puts
+FXServer on the server's allocation instead of txAdmin's default port 30120; the second is the
+hosting provider name txAdmin shows, the egg's hidden `TXHOST_PROVIDER_NAME` variable (default
+`example.com`: set your own in Admin › Nests & Eggs, 2 to 16 letters, digits, dots, dashes or
+underscores, since the start line passes it unquoted).
+
 After installing, it writes `alpine/.plugged-host.json` (`{"edition", "build", "installed_at"}`),
 which is how the Artifacts page knows what is installed. The image's source is
 `plugged-host-fivem/image/` in [plugged-host/plugins](https://github.com/plugged-host/plugins), and
@@ -229,6 +236,9 @@ restarts like a build change; the activity log records `server:fivem.edition`.
   older tab: refused, reload asked for. Save again without changing anything: "Nothing changed".
   **Edit as text** opens the file in a modal; saving it updates the form.
 - The database picker fills host, port, user, name and password from a MySQL database.
+- A server made from the imported `docs/eggs/fivem.json` on a port other than 30120 starts
+  FXServer on its allocation's port (the console's `endpoint_add_tcp` lines), and txAdmin names the
+  egg's `TXHOST_PROVIDER_NAME` as the provider.
 - Players: join the server; the player shows within 12 seconds, and the search finds it by name and
   by `#id`. Stop it: "not answering".
 - Artifacts: with the image set, switch to Follow Latest (no restart), install an older build on a

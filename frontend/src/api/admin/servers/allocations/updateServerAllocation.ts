@@ -5,6 +5,7 @@ import { serializeForApi } from '@/lib/serialization/api-transform.ts';
 const updateAllocationSchema = z.object({
   notes: z.string().nullable().optional(),
   primary: z.boolean().optional(),
+  locked: z.boolean().optional(), // plugged.host
 });
 
 export default async (

@@ -1,4 +1,4 @@
-// plugged.host: the placement settings section: when a loaded node stops taking new servers (docs/features/placement.md).
+// plugged.host: the placement settings section: when a loaded or full node stops taking new servers (docs/features/placement.md).
 
 use super::{
     ExtensionSettings, SettingsDeserializeExt, SettingsDeserializer, SettingsSerializeExt,
@@ -24,6 +24,13 @@ pub struct AppSettingsPlacement {
     pub small_threads: i32,
     /// Samples in a row without an answer after which a node is paused.
     pub unreachable_after: i32,
+    /// Disk use in percent above which a node takes no new servers, moves or restores; 0 turns
+    /// the disk guard off. Works whether or not `pause_enabled` is on.
+    pub disk_percent: i32,
+    /// The ports allocations are made on when a node has no free one (a new server, a move, a
+    /// restore, a port a player adds): ranges and single ports, comma separated, earlier ones
+    /// first (shared/src/allocations.rs).
+    pub port_ranges: compact_str::CompactString,
 }
 
 impl Default for AppSettingsPlacement {
@@ -35,6 +42,8 @@ impl Default for AppSettingsPlacement {
             small_memory_gb: 34,
             small_threads: 9,
             unreachable_after: 3,
+            disk_percent: 85,
+            port_ranges: crate::allocations::DEFAULT_PORT_RANGES.into(),
         }
     }
 }
@@ -54,6 +63,11 @@ pub struct PayloadPlacement {
     small_threads: Option<i32>,
     #[garde(inner(range(min = 1, max = 60)))]
     unreachable_after: Option<i32>,
+    #[garde(inner(range(min = 0, max = 100)))]
+    disk_percent: Option<i32>,
+    #[garde(inner(custom(crate::allocations::validate_ranges)))]
+    #[schema(value_type = Option<String>)]
+    port_ranges: Option<compact_str::CompactString>,
 }
 
 impl PayloadPlacement {
@@ -71,8 +85,12 @@ impl PayloadPlacement {
             small_offset,
             small_memory_gb,
             small_threads,
-            unreachable_after
+            unreachable_after,
+            disk_percent
         );
+        if let Some(port_ranges) = self.port_ranges {
+            settings.port_ranges = port_ranges.trim().into();
+        }
     }
 }
 
@@ -91,7 +109,9 @@ impl SettingsSerializeExt for AppSettingsPlacement {
             .write_raw_setting(
                 "unreachable_after",
                 self.unreachable_after.to_compact_string(),
-            ))
+            )
+            .write_raw_setting("disk_percent", self.disk_percent.to_compact_string())
+            .write_raw_setting("port_ranges", self.port_ranges.clone()))
     }
 }
 
@@ -121,6 +141,11 @@ impl SettingsDeserializeExt for AppSettingsPlacementDeserializer {
             small_memory_gb: parsed!(small_memory_gb),
             small_threads: parsed!(small_threads),
             unreachable_after: parsed!(unreachable_after),
+            disk_percent: parsed!(disk_percent),
+            port_ranges: deserializer
+                .take_raw_setting("port_ranges")
+                .filter(|value| crate::allocations::parse_ranges(value).is_ok())
+                .unwrap_or(defaults.port_ranges),
         }))
     }
 }

@@ -40,7 +40,8 @@ mod get {
         // the check publishes the log, so it needs what reading the log needs
         permissions.has_server_permission("control.console")?;
         permissions.has_server_permission("files.read-content")?;
-        shared::minecraft::require(&server)?;
+        // every edition: Velocity and Bedrock servers have logs too
+        shared::minecraft::require_any(&server)?;
 
         if !shared::minecraft::log_check::enabled(&state).await {
             return ApiResponse::new_serialized(Response {

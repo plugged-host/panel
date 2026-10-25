@@ -297,6 +297,10 @@ mod put {
         admins_only: Option<bool>,
         #[garde(skip)]
         link_by_email: Option<bool>,
+        /// Days until the user and servers of an account noprofit.space no longer has are
+        /// deleted; 0 never.
+        #[garde(range(min = 0, max = 365))]
+        deleted_account_days: Option<i32>,
         /// At least 32 characters. An empty string keeps the stored secret, `null` removes it.
         #[garde(length(chars, max = 512))]
         #[serde(default, with = "::serde_with::rust::double_option")]
@@ -420,6 +424,10 @@ mod put {
         #[schema(inline)]
         #[garde(dive)]
         tour: Option<shared::settings::tour::PayloadTour>,
+        // plugged.host: docs/features/reviews.md
+        #[schema(inline)]
+        #[garde(dive)]
+        reviews: Option<shared::settings::reviews::PayloadReviews>,
         // plugged.host
         #[schema(inline)]
         #[garde(dive)]
@@ -464,6 +472,10 @@ mod put {
         #[schema(inline)]
         #[garde(dive)]
         neo_discord: Option<shared::settings::neo_discord::PayloadNeoDiscord>,
+        // plugged.host: docs/features/partners.md
+        #[schema(inline)]
+        #[garde(dive)]
+        partners: Option<shared::settings::partners::PayloadPartners>,
         #[schema(inline)]
         #[garde(dive)]
         updates: Option<PayloadUpdates>,
@@ -853,6 +865,9 @@ mod put {
             if let Some(link_by_email) = noprofit.link_by_email {
                 settings.noprofit.link_by_email = link_by_email;
             }
+            if let Some(deleted_account_days) = noprofit.deleted_account_days {
+                settings.noprofit.deleted_account_days = deleted_account_days;
+            }
             let stored_secrets = &mut settings.noprofit;
             for (secret, stored) in [
                 (noprofit.sso_secret, &mut stored_secrets.sso_secret),
@@ -968,6 +983,14 @@ mod put {
         if let Some(tour) = data.tour {
             tour.apply(&mut settings.tour);
         }
+        // plugged.host: asking players for a review
+        if let Some(reviews) = data.reviews
+            && let Err(error) = reviews.apply(&mut settings.reviews)
+        {
+            return ApiResponse::error(error.message())
+                .with_status(StatusCode::BAD_REQUEST)
+                .ok();
+        }
         // plugged.host: deleted servers' copies
         if let Some(recovery) = data.recovery {
             recovery.apply(&mut settings.recovery);
@@ -1051,6 +1074,14 @@ mod put {
         // plugged.host: neo on Discord
         if let Some(neo_discord) = data.neo_discord {
             neo_discord.apply(&mut settings.neo_discord);
+        }
+        // plugged.host: the partner program
+        if let Some(partners) = data.partners
+            && let Err(error) = partners.apply(&mut settings.partners)
+        {
+            return ApiResponse::error(error)
+                .with_status(StatusCode::BAD_REQUEST)
+                .ok();
         }
 
         if !settings.app.password_login_enabled {

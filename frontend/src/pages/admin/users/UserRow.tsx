@@ -1,6 +1,7 @@
 import { faCrown, faLock, faLockOpen } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { z } from 'zod';
+import CopyOnClick from '@/elements/CopyOnClick.tsx'; // plugged.host
 import Avatar from '@/elements/data-display/Avatar.tsx';
 import { TableData, TableRow } from '@/elements/data-display/Table.tsx';
 import TableLink from '@/elements/data-display/TableLink.tsx';
@@ -44,6 +45,19 @@ export default function UserRow({ user }: { user: z.infer<typeof adminFullUserSc
             </Tooltip>
           )}
         </span>
+      </TableData>
+
+      {/* plugged.host: the linked Discord account; the tooltip shows its id, a click copies it */}
+      <TableData>
+        {user.links?.discord ? (
+          <Tooltip label={user.links.discord.id}>
+            <CopyOnClick content={user.links.discord.id}>
+              {user.links.discord.username ?? user.links.discord.id}
+            </CopyOnClick>
+          </Tooltip>
+        ) : (
+          t('common.na', {})
+        )}
       </TableData>
 
       <TableData>

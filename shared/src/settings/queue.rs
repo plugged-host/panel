@@ -18,6 +18,10 @@ pub struct AppSettingsQueue {
     /// Memory or CPU use in percent above which a node holds starts back; lower on a small node by
     /// the placement settings' offset.
     pub line_percent: i32,
+    /// Seconds every queued start waits at least. Above 0, every start joins the line, not only
+    /// one on a busy node (the Pelican panel's queue: the queue page is seen on every start); 0
+    /// queues busy nodes only.
+    pub min_wait: i32,
     /// Seconds after which a start goes out however busy the node is.
     pub max_wait: i32,
     /// Seconds between two releases on one node.
@@ -31,6 +35,15 @@ pub struct AppSettingsQueue {
     /// Only to servers whose disk limit is under this, in MiB (0: any size); never to a server with
     /// unlimited disk.
     pub move_max_disk: i32,
+    /// Roles whose members skip the queue, like admins.
+    pub exempt_roles: Vec<uuid::Uuid>,
+}
+
+impl AppSettingsQueue {
+    /// Whether a user skips the queue: admins, and members of an exempt role.
+    pub fn exempt(&self, admin: bool, role: Option<uuid::Uuid>) -> bool {
+        admin || role.is_some_and(|role| self.exempt_roles.contains(&role))
+    }
 }
 
 impl Default for AppSettingsQueue {
@@ -39,12 +52,14 @@ impl Default for AppSettingsQueue {
             enabled: false,
             include_restart: true,
             line_percent: 85,
+            min_wait: 10,
             max_wait: 600,
             release_interval: 20,
             pass_minutes: 10,
             move_offer: true,
             move_requires_membership: true,
             move_max_disk: 3072,
+            exempt_roles: Vec::new(),
         }
     }
 }
@@ -58,6 +73,8 @@ pub struct PayloadQueue {
     include_restart: Option<bool>,
     #[garde(inner(range(min = 1, max = 100)))]
     line_percent: Option<i32>,
+    #[garde(inner(range(min = 0, max = 300)))]
+    min_wait: Option<i32>,
     #[garde(inner(range(min = 30, max = 86400)))]
     max_wait: Option<i32>,
     #[garde(inner(range(min = 0, max = 3600)))]
@@ -70,6 +87,8 @@ pub struct PayloadQueue {
     move_requires_membership: Option<bool>,
     #[garde(inner(range(min = 0, max = 1048576)))]
     move_max_disk: Option<i32>,
+    #[garde(inner(length(max = 100)))]
+    exempt_roles: Option<Vec<uuid::Uuid>>,
 }
 
 impl PayloadQueue {
@@ -86,12 +105,14 @@ impl PayloadQueue {
             enabled,
             include_restart,
             line_percent,
+            min_wait,
             max_wait,
             release_interval,
             pass_minutes,
             move_offer,
             move_requires_membership,
-            move_max_disk
+            move_max_disk,
+            exempt_roles
         );
     }
 }
@@ -106,6 +127,7 @@ impl SettingsSerializeExt for AppSettingsQueue {
             .write_raw_setting("enabled", self.enabled.to_compact_string())
             .write_raw_setting("include_restart", self.include_restart.to_compact_string())
             .write_raw_setting("line_percent", self.line_percent.to_compact_string())
+            .write_raw_setting("min_wait", self.min_wait.to_compact_string())
             .write_raw_setting("max_wait", self.max_wait.to_compact_string())
             .write_raw_setting(
                 "release_interval",
@@ -117,7 +139,8 @@ impl SettingsSerializeExt for AppSettingsQueue {
                 "move_requires_membership",
                 self.move_requires_membership.to_compact_string(),
             )
-            .write_raw_setting("move_max_disk", self.move_max_disk.to_compact_string()))
+            .write_raw_setting("move_max_disk", self.move_max_disk.to_compact_string())
+            .write_serde_setting("exempt_roles", &self.exempt_roles)?)
     }
 }
 
@@ -144,12 +167,36 @@ impl SettingsDeserializeExt for AppSettingsQueueDeserializer {
             enabled: read!(enabled),
             include_restart: read!(include_restart),
             line_percent: read!(line_percent),
+            min_wait: read!(min_wait),
             max_wait: read!(max_wait),
             release_interval: read!(release_interval),
             pass_minutes: read!(pass_minutes),
             move_offer: read!(move_offer),
             move_requires_membership: read!(move_requires_membership),
             move_max_disk: read!(move_max_disk),
+            exempt_roles: deserializer
+                .read_serde_setting("exempt_roles")
+                .unwrap_or_default(),
         }))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::AppSettingsQueue;
+
+    #[test]
+    fn admins_and_exempt_roles_skip_the_queue() {
+        let staff = uuid::Uuid::from_u128(1);
+        let queue = AppSettingsQueue {
+            exempt_roles: vec![staff],
+            ..AppSettingsQueue::default()
+        };
+
+        assert!(queue.exempt(true, None));
+        assert!(queue.exempt(false, Some(staff)));
+        assert!(!queue.exempt(false, Some(uuid::Uuid::from_u128(2))));
+        assert!(!queue.exempt(false, None));
+        assert!(!AppSettingsQueue::default().exempt(false, Some(staff)));
     }
 }

@@ -75,6 +75,7 @@ pub mod user_activity;
 pub mod user_api_key;
 pub mod user_command_snippet;
 pub mod user_email_verification;
+pub mod user_notification; // plugged.host
 pub mod user_oauth_link;
 pub mod user_password_reset;
 pub mod user_recovery_code;

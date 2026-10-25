@@ -1,4 +1,4 @@
-import { faStar, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faLock, faStar, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useQueryClient } from '@tanstack/react-query';
 import debounce from 'debounce';
@@ -19,7 +19,7 @@ import RedactedText from '@/elements/typography/RedactedText.tsx';
 import { queryKeys } from '@/lib/queryKeys.ts';
 import { serverAllocationSchema } from '@/lib/schemas/server/allocations.ts';
 import { useRedactedAddress } from '@/plugins/privacy/useRedactAddresses.ts';
-import { useServerCan } from '@/plugins/usePermissions.ts';
+import { useAdminCan, useServerCan } from '@/plugins/usePermissions.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useServerStore } from '@/stores/server.ts';
@@ -49,6 +49,8 @@ const AllocationRow = forwardRef<HTMLTableRowElement, AllocationRowProps>(functi
   const [notes, setNotes] = useState(allocation.notes ?? '');
   const canUpdate = useServerCan('allocations.update');
   const canUnsetPrimary = !server.eggConfiguration?.allocationSelfAssignRequirePrimary;
+  // plugged.host: a locked allocation is removed by an admin only (docs/features/allocations.md)
+  const canRemoveLocked = useAdminCan('servers.allocations');
 
   const setDebouncedNotes = useMemo(
     () =>
@@ -150,6 +152,7 @@ const AllocationRow = forwardRef<HTMLTableRowElement, AllocationRowProps>(functi
             type: 'action',
             icon: faTrash,
             label: t('common.button.remove', {}),
+            disabled: allocation.locked && !canRemoveLocked, // plugged.host
             onClick: () => setOpenModal('remove'),
             color: 'red',
             canAccess: useServerCan('allocations.delete'),
@@ -183,10 +186,26 @@ const AllocationRow = forwardRef<HTMLTableRowElement, AllocationRowProps>(functi
               <Code>
                 <RedactedText value={allocation.ipAlias ?? allocation.ip} />
               </Code>
+              {/* plugged.host: the IP players reach it on (shared/src/network_address.rs) */}
+              {allocation.resolvedIp && (
+                <span dir='ltr' className='ms-2 font-mono text-xs text-(--mantine-color-dimmed)'>
+                  (<RedactedText value={allocation.resolvedIp} />)
+                </span>
+              )}
             </TableData>
 
             <TableData>
               <Code>{allocation.port}</Code>
+              {/* plugged.host: docs/features/allocations.md */}
+              {allocation.locked && (
+                <Tooltip label={t('pages.server.network.tooltip.locked', {})}>
+                  <FontAwesomeIcon
+                    icon={faLock}
+                    className='ms-2 text-(--mantine-color-dimmed)'
+                    aria-label={t('pages.server.network.tooltip.locked', {})}
+                  />
+                </Tooltip>
+              )}
             </TableData>
 
             <TableData>

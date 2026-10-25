@@ -262,6 +262,9 @@ fn map_permission(permission: &str) -> Option<&'static [&'static str]> {
         "settings.reinstall" => &["settings.install"],
         "settings.change-icon" => &["settings.change-icon"], // plugged.host: servers have icons
         "activity.read" => &["activity.read"],
+        "transfer.move" => &["settings.transfer"], // plugged.host: the Pelican plugins' own
+        "devbox.connect" => &["devbox.connect"],   // plugged.host
+        "neo.access" => &["neo.access"],           // plugged.host
         _ => return None,
     })
 }
@@ -577,6 +580,15 @@ impl Validator<'_> {
         let schedules = self.schedules(&servers);
         self.tasks(&schedules);
         self.allocations(&nodes, &servers);
+
+        // plugged.host: the Pelican panel's plugin data, icons and noprofit.space links (extras.rs)
+        for (table, note) in super::extras::plan(self.source, &users, &servers, &mut self.plan) {
+            self.note(table, note);
+        }
+        // plugged.host: servers the Pelican panel's limbo parked on a node stay there (limbo.rs)
+        for (table, note) in super::limbo::plan(self.source, &nodes, &servers, &mut self.plan) {
+            self.note(table, note);
+        }
     }
 
     fn backup_configs(&mut self) -> IdMap {
@@ -750,9 +762,21 @@ impl Validator<'_> {
                 }
             }
 
+            // plugged.host: a regional code goes to the language the panel ships (mapping.rs)
+            let regional = user.language.as_deref().and_then(|language| {
+                super::mapping::regional_language(language, &self.options.languages)
+            });
             let language = match user.language.as_deref() {
                 Some(language) if self.options.languages.iter().any(|l| l == language) => {
                     language.to_string()
+                }
+                // plugged.host
+                Some(_) if regional.is_some() => {
+                    self.note(
+                        "users",
+                        "regional languages were replaced with the language the panel ships (pt_BR with pt)",
+                    );
+                    regional.as_deref().unwrap_or_default().to_string()
                 }
                 Some(_) => {
                     self.note(
@@ -953,6 +977,19 @@ impl Validator<'_> {
             );
             let description =
                 self.optional_text(&mut row, "description", location.description.clone(), 1024);
+            // plugged.host: flag, tier, sort and public from the Pelican node tags (mapping.rs)
+            let placement =
+                super::mapping::LocationPlacement {
+                    flag: location.placement.flag.clone().filter(|flag| {
+                        flag.len() == 2 && flag.bytes().all(|b| b.is_ascii_lowercase())
+                    }),
+                    tier: location
+                        .placement
+                        .tier
+                        .clone()
+                        .filter(|tier| (1..=32).contains(&chars(tier))),
+                    ..location.placement.clone()
+                };
 
             self.backstop(
                 &mut row,
@@ -964,10 +1001,10 @@ impl Validator<'_> {
                     backup_configuration_uuid,
                     name: name.as_str().into(),
                     description: description.as_deref().map(Into::into),
-                    flag: None,
-                    tier: None,   // plugged.host
-                    sort: 0,      // plugged.host
-                    public: true, // plugged.host
+                    flag: placement.flag.as_deref().map(Into::into), // plugged.host
+                    tier: placement.tier.as_deref().map(Into::into), // plugged.host
+                    sort: placement.sort,                            // plugged.host
+                    public: placement.public,                        // plugged.host
                 },
             );
 
@@ -986,6 +1023,7 @@ impl Validator<'_> {
                 name,
                 description,
                 created: location.created.unwrap_or(self.now),
+                placement, // plugged.host
             });
         }
 
@@ -1157,8 +1195,55 @@ impl Validator<'_> {
                     "negative memory or disk capacities were replaced with 0",
                 );
             }
-            let memory = node.memory.max(0);
-            let disk = node.disk.max(0);
+            // plugged.host: Pelican's overallocation, -1 being unlimited (mapping.rs)
+            if super::mapping::becomes_unlimited(node.memory, node.placement.memory_overallocate)
+                || super::mapping::becomes_unlimited(node.disk, node.placement.disk_overallocate)
+            {
+                self.note(
+                    "nodes",
+                    "nodes the source panel let take any amount (overallocation -1) were imported with unlimited memory or disk",
+                );
+            }
+            let memory =
+                super::mapping::node_capacity(node.memory, node.placement.memory_overallocate); // plugged.host
+            let disk = super::mapping::node_capacity(node.disk, node.placement.disk_overallocate); // plugged.host
+
+            // plugged.host: role, tags and SRV target (mapping.rs)
+            let role: CompactString = node
+                .placement
+                .role
+                .as_deref()
+                .map_or_else(shared::models::node::placement::default_role, Into::into);
+            let mut tags: Vec<CompactString> = Vec::new();
+            for tag in &node.placement.tags {
+                let tag: CompactString = tag.trim().into();
+                if shared::models::node::placement::validate_tags(std::slice::from_ref(&tag), &())
+                    .is_ok()
+                {
+                    tags.push(tag);
+                } else {
+                    self.note(
+                        "nodes",
+                        "node tags that are not 1-64 letters, digits, dashes, underscores or dots were dropped",
+                    );
+                }
+            }
+            let mut tags = shared::models::node::placement::normalize_tags(&tags);
+            if tags.len() > shared::models::node::placement::MAX_TAGS {
+                self.note("nodes", "node tags past the 32nd were dropped");
+                tags.truncate(shared::models::node::placement::MAX_TAGS);
+            }
+            let srv_target = match non_empty(node.placement.srv_target.clone()) {
+                Some(target) if chars(target.trim()) <= 255 => Some(target.trim().to_string()),
+                Some(_) => {
+                    self.note(
+                        "nodes",
+                        "SRV targets longer than 255 characters were dropped",
+                    );
+                    None
+                }
+                None => None,
+            };
 
             if let Some(location_uuid) = location_uuid {
                 self.backstop(
@@ -1183,9 +1268,9 @@ impl Validator<'_> {
                         sftp_port: sftp_port.max(1),
                         memory,
                         disk,
-                        role: shared::models::node::placement::default_role(), // plugged.host
-                        tags: Vec::new(),                                      // plugged.host
-                        srv_target: None,                                      // plugged.host
+                        role: role.clone(), // plugged.host
+                        tags: tags.iter().map(|tag| tag.as_str().into()).collect(), // plugged.host
+                        srv_target: srv_target.as_deref().map(Into::into), // plugged.host
                     },
                 );
             }
@@ -1223,6 +1308,10 @@ impl Validator<'_> {
                 token_id,
                 token,
                 created: node.created.unwrap_or(self.now),
+                // plugged.host
+                role,
+                tags,
+                srv_target,
             });
         }
 
@@ -1391,6 +1480,7 @@ impl Validator<'_> {
                 self.note("eggs", "unreadable feature lists were imported empty");
                 Vec::new()
             });
+            let features = super::mapping::with_features(features, &egg.tag_features); // plugged.host
             let file_denylist = inherited(
                 &egg.file_denylist,
                 config_parent.map(|parent| &parent.file_denylist),
@@ -2487,6 +2577,12 @@ impl Validator<'_> {
                     Vec::new()
                 });
 
+            // plugged.host: what the Pelican plugins gated with core permissions (mapping.rs)
+            let derived = if source.extras.pelican {
+                super::mapping::derived_permissions(&raw_permissions)
+            } else {
+                Vec::new()
+            };
             let mut permissions: Vec<CompactString> = Vec::new();
             for permission in raw_permissions {
                 match map_permission(&permission) {
@@ -2501,6 +2597,12 @@ impl Validator<'_> {
                         "subusers",
                         format!("the permission {permission:?} has no equivalent and was dropped"),
                     ),
+                }
+            }
+            // plugged.host
+            for permission in derived {
+                if !permissions.iter().any(|p| p == permission) {
+                    permissions.push(permission.into());
                 }
             }
 
@@ -2783,6 +2885,7 @@ impl Validator<'_> {
         const MAX_SLEEP: u64 = 24 * 60 * 60 * 1000;
 
         let source = self.source;
+        let may_start = super::mapping::schedules_that_may_start(source); // plugged.host
         let mut tasks: Vec<&SourceTask> = source.tasks.iter().collect();
         tasks.sort_by_key(|task| (task.schedule_id, task.sequence_id, task.id));
         let mut next_order: HashMap<uuid::Uuid, i16> = HashMap::new();
@@ -2857,6 +2960,16 @@ impl Validator<'_> {
             let Some(action) = action else {
                 continue;
             };
+            // plugged.host: only admins' schedules may start a server (docs/features/start-gates.md)
+            if shared::start_gates::schedule_step_starts(&action)
+                && !may_start.contains(&task.schedule_id)
+            {
+                self.note(
+                    "tasks",
+                    "start steps of servers whose owner is not an admin were left out: a schedule cannot start a server past the start gates",
+                );
+                continue;
+            }
 
             let step = CreateServerScheduleStepOptions {
                 schedule_uuid,
@@ -3008,6 +3121,7 @@ impl Validator<'_> {
                     notes: non_empty(allocation.notes.clone()).map(|notes| truncate(&notes, 1024)),
                     primary: primary.get(&allocation.id) == Some(&server_id),
                     created,
+                    locked: allocation.locked, // plugged.host
                 });
             }
         }
@@ -3076,6 +3190,7 @@ mod tests {
             schedules: vec![],
             tasks: vec![],
             allocations: vec![],
+            extras: Default::default(), // plugged.host
         }
     }
 
@@ -3103,6 +3218,7 @@ mod tests {
             name: format!("location{id}"),
             description: None,
             created: None,
+            placement: Default::default(), // plugged.host
         }
     }
 
@@ -3127,6 +3243,7 @@ mod tests {
             token_id: format!("tokenid{id:09}"),
             token: Ok(format!("{id:0>64}").into()),
             created: None,
+            placement: Default::default(), // plugged.host
         }
     }
 
@@ -3163,6 +3280,7 @@ mod tests {
             startup: SourceEggStartup::Single(Some("java -jar server.jar".into())),
             force_outgoing_ip: false,
             created: None,
+            tag_features: Vec::new(), // plugged.host
         }
     }
 
@@ -3339,6 +3457,7 @@ mod tests {
             server_id: None,
             notes: None,
             created: None,
+            locked: false, // plugged.host
         }
     }
 
@@ -4117,6 +4236,10 @@ mod tests {
             map_permission("settings.change-icon"),
             Some(&["settings.change-icon"][..])
         );
+        assert_eq!(
+            map_permission("transfer.move"),
+            Some(&["settings.transfer"][..])
+        ); // plugged.host
         assert_eq!(map_permission("made.up"), None);
     }
 
@@ -4130,6 +4253,9 @@ mod tests {
             "database.view_password",
             "settings.reinstall",
             "settings.change-icon", // plugged.host
+            "transfer.move",        // plugged.host
+            "devbox.connect",       // plugged.host
+            "neo.access",           // plugged.host
         ] {
             for mapped in map_permission(permission).unwrap() {
                 assert!(known.contains(*mapped), "{permission} -> {mapped}");
@@ -4311,5 +4437,489 @@ mod tests {
         };
         assert!(!primary(1));
         assert!(primary(2));
+    }
+
+    // plugged.host: the Pelican panel's own conventions and plugin data
+    // (mapping.rs, extras.rs, docs/features/import.md)
+
+    #[test]
+    fn egg_tags_add_their_features() {
+        let mut source = with_server();
+        source.eggs[0].tag_features = vec!["cfx".into()];
+        source.eggs[0].features = Some(r#"["pid_limit"]"#.into());
+
+        let (plan, findings) = plan(&source, OnInvalid::Ask);
+
+        assert!(findings.pending.is_empty(), "{:?}", findings.pending);
+        assert_eq!(plan.eggs[0].features, ["pid_limit", "cfx"]);
+    }
+
+    #[test]
+    fn regional_languages_map_to_the_shipped_language() {
+        let mut source = source();
+        source.users.push(user(1));
+        source.users.push(user(2));
+        source.users[0].language = Some("de_AT".into());
+        source.users[1].language = Some("zh_CN".into());
+
+        let (plan, findings) = plan(&source, OnInvalid::Ask);
+
+        assert!(findings.pending.is_empty(), "{:?}", findings.pending);
+        assert_eq!(plan.users[0].language, "de");
+        assert_eq!(plan.users[1].language, "en");
+        assert!(
+            findings
+                .notes
+                .keys()
+                .any(|(table, note)| *table == "users" && note.contains("pt_BR"))
+        );
+    }
+
+    #[test]
+    fn pelican_plugin_permissions_are_derived() {
+        let all = r#"["file.read","file.read-content","file.create","file.update","file.delete","control.restart","allocation.read","transfer.move","devbox.connect","neo.access"]"#;
+
+        let mut source = with_server();
+        source.users.push(user(2));
+        source.subusers.push(subuser(1, 2, 1, all));
+        source.extras.pelican = true;
+
+        let (planned, findings) = plan(&source, OnInvalid::Ask);
+
+        assert!(findings.pending.is_empty(), "{:?}", findings.pending);
+        let permissions = &planned.subusers[0].permissions;
+        for permission in [
+            "files.read",
+            "settings.transfer",
+            "devbox.connect",
+            "neo.access",
+            "minecraft.content",
+            "minecraft.settings",
+            "minecraft.worlds",
+            "minecraft.bedrock",
+            "fivem.config",
+            "fivem.players",
+            "subdomains.read",
+        ] {
+            assert!(permissions.iter().any(|p| p == permission), "{permission}");
+        }
+        for permission in ["subdomains.create", "settings.software", "settings.resize"] {
+            assert!(!permissions.iter().any(|p| p == permission), "{permission}");
+        }
+        assert!(
+            !findings
+                .notes
+                .keys()
+                .any(|(_, note)| note.contains("has no equivalent"))
+        );
+
+        // a Pterodactyl panel had none of these plugins
+        source.extras.pelican = false;
+        let (planned, _) = plan(&source, OnInvalid::Ask);
+        let permissions = &planned.subusers[0].permissions;
+        assert!(permissions.iter().any(|p| p == "settings.transfer"));
+        assert!(!permissions.iter().any(|p| p == "fivem.players"));
+        assert!(!permissions.iter().any(|p| p == "minecraft.content"));
+    }
+
+    #[test]
+    fn scheduled_starts_need_an_admin_owner() {
+        let mut source = with_server();
+        source.users.push(user(2));
+        source.users[1].admin = true;
+        source.servers.push(server(2));
+        source.servers[1].owner_id = 2;
+        source.schedules.push(schedule(1, 1));
+        source.schedules.push(schedule(2, 2));
+        source.tasks.push(task(1, 1, 1, "power", "start"));
+        source.tasks.push(task(2, 1, 2, "command", "say hello"));
+        source.tasks.push(task(3, 2, 1, "power", "start"));
+        source.tasks[0].time_offset = 10;
+
+        let (plan, findings) = plan(&source, OnInvalid::Ask);
+
+        assert!(findings.pending.is_empty(), "{:?}", findings.pending);
+        let steps = |schedule_id: i64| -> Vec<i64> {
+            let uuid = plan
+                .schedules
+                .iter()
+                .find(|s| s.source_id == schedule_id)
+                .unwrap()
+                .uuid;
+            plan.schedule_steps
+                .iter()
+                .filter(|s| s.schedule_uuid == uuid)
+                .map(|s| s.source_id)
+                .collect()
+        };
+        // the start and its delay are gone, the rest of the schedule stays
+        assert_eq!(steps(1), [2]);
+        assert_eq!(steps(2), [3]);
+        assert!(
+            findings
+                .notes
+                .keys()
+                .any(|(table, note)| *table == "tasks" && note.contains("start gates"))
+        );
+    }
+
+    #[test]
+    fn node_overallocation_role_tags_and_srv_target_are_imported() {
+        let mut source = with_server();
+        source.nodes[0].memory = 1_024_000;
+        source.nodes[0].disk = 2048;
+        source.nodes[0].placement = super::super::mapping::NodePlacement {
+            role: Some("internal".into()),
+            tags: vec!["NL".into(), "bad tag!".into(), "premium".into()],
+            srv_target: Some(" srv.example.com ".into()),
+            memory_overallocate: Some(-1),
+            disk_overallocate: Some(50),
+        };
+
+        let (planned, findings) = plan(&source, OnInvalid::Ask);
+
+        assert!(findings.pending.is_empty(), "{:?}", findings.pending);
+        let node = &planned.nodes[0];
+        assert_eq!(node.memory, 0);
+        assert_eq!(node.disk, 3072);
+        assert_eq!(node.role, "internal");
+        assert_eq!(node.tags, ["nl", "premium"]);
+        assert_eq!(node.srv_target.as_deref(), Some("srv.example.com"));
+        assert!(
+            findings
+                .notes
+                .keys()
+                .any(|(table, note)| *table == "nodes" && note.contains("overallocation"))
+        );
+        assert!(
+            findings
+                .notes
+                .keys()
+                .any(|(table, note)| *table == "nodes" && note.contains("tags"))
+        );
+
+        // upstream's nodes keep their values and the default role
+        let (planned, _) = plan(&with_server(), OnInvalid::Ask);
+        assert_eq!(planned.nodes[0].memory, 4096);
+        assert_eq!(planned.nodes[0].role, "game");
+        assert!(planned.nodes[0].tags.is_empty());
+    }
+
+    #[test]
+    fn location_placement_is_imported() {
+        let mut source = with_server();
+        source.locations[0].placement = super::super::mapping::LocationPlacement {
+            flag: Some("de".into()),
+            tier: Some("premium".into()),
+            sort: 0,
+            public: false,
+        };
+        source.locations.push(location(2));
+        source.locations[1].placement.flag = Some("DEU".into());
+
+        let (plan, findings) = plan(&source, OnInvalid::Ask);
+
+        assert!(findings.pending.is_empty(), "{:?}", findings.pending);
+        assert_eq!(plan.locations[0].placement.flag.as_deref(), Some("de"));
+        assert_eq!(plan.locations[0].placement.tier.as_deref(), Some("premium"));
+        assert!(!plan.locations[0].placement.public);
+        assert_eq!(plan.locations[1].placement.flag, None);
+        assert!(plan.locations[1].placement.public);
+    }
+
+    #[test]
+    fn plugin_data_follows_the_imported_users_and_servers() {
+        use super::super::extras::{
+            SourceCredits, SourceDiscordInvite, SourceDiscordLink, SourceDomain, SourceMembership,
+            SourceServerExtras, SourceSubdomain, SourceTokens, SourceTransaction, SourceUserExtras,
+        };
+
+        let time = |text: &str| Some(text.parse::<chrono::DateTime<chrono::Utc>>().unwrap());
+
+        let mut source = with_server();
+        source.users.push(user(2));
+        source.users.push(user(3));
+        let extras = &mut source.extras;
+        extras.pelican = true;
+        for (id, account) in [(1, Some(42)), (2, Some(42)), (3, Some(7))] {
+            extras.users.push(SourceUserExtras {
+                id,
+                noprofit_account_id: account,
+                console_font_size: (id == 1).then_some(16),
+            });
+        }
+        extras.servers.push(SourceServerExtras {
+            id: 1,
+            subdomain_limit: Some(3),
+            icon: Some("/srv/icons/one.png".into()),
+        });
+        extras.servers.push(SourceServerExtras {
+            id: 9,
+            subdomain_limit: Some(3),
+            icon: None,
+        });
+        extras.tokens.push(SourceTokens {
+            user_id: 1,
+            tokens: 120,
+            earned: 400,
+            daily_granted: chrono::NaiveDate::from_ymd_opt(2026, 10, 1),
+        });
+        for (user_id, kind) in [(1, "subdomain_create"), (99, "daily")] {
+            extras.token_transactions.push(SourceTransaction {
+                user_id,
+                amount: -20,
+                balance_after: 100,
+                kind: kind.into(),
+                description: "Subdomain".into(),
+                metadata: Some(r#"{"subdomain":1}"#.into()),
+                created: time("2026-10-01T10:00:00Z"),
+            });
+        }
+        extras.credits.push(SourceCredits {
+            user_id: 2,
+            credits: 50,
+            extra_cpu: 100,
+            extra_memory: 1024,
+            extra_disk: i64::MAX,
+        });
+        extras.memberships.push(SourceMembership {
+            user_id: 1,
+            plus_since: time("2026-09-01T00:00:00Z"),
+            plusplus_until: time("2026-11-01T00:00:00Z"),
+            plusplus_settled: None,
+            plusplus_purchases: 2,
+            created: None,
+        });
+        extras.discord_links.push(SourceDiscordLink {
+            user_id: 1,
+            discord_id: Some("123456789012345678".into()),
+            username: Some("someone".into()),
+            avatar: Some("a_0123456789abcdef".into()),
+            in_guild: true,
+            invite_debt: 25,
+            boost_count: 3,
+            boosts_rewarded: 2,
+            boosting: true,
+            boosted_since: time("2026-08-01T00:00:00Z"),
+            verified: time("2026-10-20T00:00:00Z"),
+            created: None,
+        });
+        extras.discord_links.push(SourceDiscordLink {
+            user_id: 2,
+            discord_id: None,
+            username: None,
+            avatar: None,
+            in_guild: false,
+            invite_debt: 0,
+            boost_count: 0,
+            boosts_rewarded: 0,
+            boosting: false,
+            boosted_since: None,
+            verified: None,
+            created: None,
+        });
+        extras.discord_invites.push(SourceDiscordInvite {
+            inviter: "123456789012345678".into(),
+            joined: "876543210987654321".into(),
+            invite_code: Some("abcdef".into()),
+            account_created: None,
+            joined_at: time("2026-10-01T00:00:00Z"),
+            eligible: true,
+            rewarded: true,
+            rewarded_at: None,
+            matures: None,
+            left: false,
+            left_at: None,
+            leave_count: 0,
+            rejoin_count: 1,
+            revoked_at: None,
+            revoked_credits: 0,
+            last_seen: None,
+            created: None,
+        });
+        extras.domains.push(SourceDomain {
+            id: 1,
+            name: "Play.Example.com.".into(),
+            zone_id: Some("zone".into()),
+            created: None,
+        });
+        for (id, server_id, records) in [
+            (1, 1, Some("0123456789abcdef")),
+            (2, 9, Some(r#"{"a":"x"}"#)),
+        ] {
+            extras.subdomains.push(SourceSubdomain {
+                id,
+                name: "Lobby".into(),
+                record_type: Some("srv".into()),
+                token_cost: 20,
+                records: records.map(Into::into),
+                domain_id: 1,
+                server_id,
+                created: None,
+            });
+        }
+
+        let (plan, findings) = plan(&source, OnInvalid::Fix);
+        let user_uuid = |id: i64| {
+            plan.users
+                .iter()
+                .find(|user| user.source_id == id)
+                .unwrap()
+                .uuid
+        };
+        let extras = &plan.extras;
+
+        // one link per account, the first user keeps it
+        assert_eq!(extras.noprofit_links.len(), 2);
+        assert_eq!(extras.noprofit_links[0].account_id, 42);
+        assert_eq!(extras.noprofit_links[0].user_uuid, user_uuid(1));
+        assert_eq!(extras.noprofit_links[0].email, "user1@example.com");
+        assert_eq!(
+            extras.user_settings,
+            [(
+                user_uuid(1),
+                serde_json::json!({ "console::font_size": 16 })
+            )]
+        );
+
+        assert_eq!(extras.tokens[0].tokens, 120);
+        assert_eq!(extras.tokens[0].earned, 400);
+        assert_eq!(extras.token_transactions.len(), 1);
+        assert_eq!(extras.token_transactions[0].kind, "subdomain");
+        assert_eq!(
+            extras.token_transactions[0].data,
+            serde_json::json!({ "subdomain": 1 })
+        );
+        assert_eq!(extras.credits[0].extra_disk, i32::MAX);
+        assert_eq!(extras.memberships[0].plusplus_purchases, 2);
+
+        assert_eq!(extras.discord_members.len(), 1);
+        let member = &extras.discord_members[0];
+        assert_eq!(member.user_uuid, Some(user_uuid(1)));
+        assert_eq!(member.boosts, 2);
+        assert_eq!(member.invite_debt, 25);
+        assert!(member.premium_since.is_some());
+        let levels: Vec<(i16, i64)> = extras
+            .boost_payouts
+            .iter()
+            .map(|payout| (payout.level, payout.credits))
+            .collect();
+        assert_eq!(levels, [(1, 500), (2, 750)]);
+
+        let invite = &extras.discord_invites[0];
+        assert_eq!(invite.matures, time("2026-10-01T06:00:00Z").unwrap());
+        assert_eq!(invite.rewarded, Some(invite.matures));
+        assert_eq!(invite.credits, 50);
+        assert_eq!(invite.account_created, invite.joined_at);
+
+        assert_eq!(extras.domains[0].name, "play.example.com");
+        assert_eq!(extras.subdomains.len(), 1);
+        let subdomain = &extras.subdomains[0];
+        assert_eq!(subdomain.name, "lobby");
+        assert_eq!(subdomain.record_type, "SRV");
+        assert_eq!(
+            subdomain.records,
+            serde_json::json!({ "a": "0123456789abcdef" })
+        );
+        assert_eq!(extras.subdomain_limits.len(), 1);
+        assert_eq!(extras.icons.len(), 1);
+
+        for table in [
+            "user_noprofit_accounts",
+            "token_transactions",
+            "discord_links",
+            "subdomains",
+        ] {
+            assert!(findings.notes.keys().any(|(t, _)| *t == table), "{table}");
+        }
+    }
+
+    #[test]
+    fn devboxes_are_left_out() {
+        use super::super::extras::{SourceDevboxes, SourceServerExtras, leave_out_devboxes};
+
+        let mut source = with_server();
+        source.users.push(user(2));
+        source.nests.push(nest(2));
+        source.eggs.push(egg(2, 2));
+        source.egg_variables.push(egg_variable(1, 2));
+        source.servers.push(server(2));
+        source.servers[1].owner_id = 2;
+        source.servers[1].egg_id = 2;
+        source.mounts.push(mount(1));
+        source.mounts.push(mount(2));
+        source.server_mounts.push(SourceMountLink {
+            mount_id: 1,
+            target_id: 2,
+        });
+        source.server_mounts.push(SourceMountLink {
+            mount_id: 2,
+            target_id: 1,
+        });
+        source.schedules.push(schedule(1, 2));
+        source.tasks.push(task(1, 1, 1, "command", "x"));
+        let mut port = allocation(1, "127.0.0.1", 2222);
+        port.server_id = Some(2);
+        source.allocations.push(port);
+        source.extras.servers.push(SourceServerExtras {
+            id: 2,
+            subdomain_limit: None,
+            icon: None,
+        });
+        source.extras.devboxes = Some(SourceDevboxes {
+            server_ids: [2].into_iter().collect(),
+            mount_ids: [1].into_iter().collect(),
+        });
+
+        let source = leave_out_devboxes(source);
+
+        assert_eq!(source.servers.len(), 1);
+        assert_eq!(source.servers[0].id, 1);
+        assert_eq!(source.users.len(), 1);
+        assert_eq!(source.eggs.len(), 1);
+        assert!(source.egg_variables.is_empty());
+        assert_eq!(source.nests.len(), 1);
+        assert_eq!(source.mounts.len(), 1);
+        assert_eq!(source.server_mounts.len(), 1);
+        assert!(source.schedules.is_empty() && source.tasks.is_empty());
+        assert_eq!(source.allocations[0].server_id, None);
+        assert!(source.extras.servers.is_empty());
+        assert_eq!(source.extras.notes.len(), 1);
+
+        let (plan, findings) = plan(&source, OnInvalid::Ask);
+        assert!(findings.pending.is_empty(), "{:?}", findings.pending);
+        assert_eq!(plan.servers.len(), 1);
+        assert_eq!(plan.allocations.len(), 1);
+        assert!(
+            findings
+                .notes
+                .keys()
+                .any(|(table, note)| *table == "servers" && note.contains("devboxes"))
+        );
+    }
+
+    #[test]
+    fn devboxes_keep_what_others_use() {
+        use super::super::extras::{SourceDevboxes, leave_out_devboxes};
+
+        // the devbox runs the same egg as a game server, and its owner owns a game server
+        let mut source = with_server();
+        source.servers.push(server(2));
+        source.extras.devboxes = Some(SourceDevboxes {
+            server_ids: [2].into_iter().collect(),
+            mount_ids: Default::default(),
+        });
+
+        let source = leave_out_devboxes(source);
+
+        assert_eq!(source.servers.len(), 1);
+        assert_eq!(source.eggs.len(), 1);
+        assert_eq!(source.users.len(), 1);
+
+        // without the devbox table nothing changes
+        let mut source = with_server();
+        source.servers.push(server(2));
+        let source = leave_out_devboxes(source);
+        assert_eq!(source.servers.len(), 2);
     }
 }

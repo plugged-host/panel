@@ -12,8 +12,15 @@
 //!   security keys are off,
 //! - with the API secret the panel keeps its users in step by pulling their snapshots (profile,
 //!   admin flag, plan, credits, Discord; [`Config::pull`], every minute), suspends the users whose
-//!   account noprofit.space no longer has, and lets noprofit.space check the SFTP passwords of its
-//!   users, who have none on the panel ([`Config::verify_password`]),
+//!   account noprofit.space no longer has (and deletes them after the days the settings give),
+//!   and lets noprofit.space check the SFTP passwords of its users, who have none on the panel
+//!   ([`Config::verify_password`]),
+//! - with the API secret noprofit.space also calls the panel: what deleting an account deletes
+//!   here, and deleting it ([`account_summary`], [`delete_account`], `/api/noprofit/account/*`,
+//!   signed like the panel's own calls, [`Config::verify`]),
+//! - the credits the panel gives or takes itself (Discord invite rewards and their clawbacks, an
+//!   admin's change) are queued and sent to noprofit.space, which holds the balance
+//!   ([`queue_credit_change`], [`push_credit_changes`]),
 //! - with "admins only" only noprofit.space admins may sign in (while the panel is not open to
 //!   everyone yet).
 //!
@@ -451,6 +458,144 @@ impl Config {
             status => anyhow::bail!("noprofit.space answered {status} to a credit spend"),
         }
     }
+
+    /// Whether noprofit.space signed this request to the panel (`/api/noprofit/*`) with the API
+    /// secret, at most [`REQUEST_TOLERANCE`] seconds from `now`. Without an API secret nothing
+    /// is. The caller still has to accept each nonce once.
+    pub fn verify(&self, request: &SignedRequest<'_>, now: i64) -> bool {
+        self.api_secret
+            .as_deref()
+            .is_some_and(|secret| request.signed_with(secret, now))
+    }
+
+    /// Gives (or, negative, takes) credits made on this panel (a Discord invite reward, its
+    /// clawback, an admin's change). Once per `key`, however often it is sent; noprofit.space
+    /// takes at most what the balance holds and says how much it applied.
+    /// [`CreditAnswer::Failed`] is worth trying again, an `Err` stops this round of sending
+    /// (unreachable, refused secret, throttled).
+    #[allow(clippy::too_many_arguments)]
+    pub async fn apply_credits(
+        &self,
+        client: &reqwest::Client,
+        account_id: i64,
+        user_uuid: uuid::Uuid,
+        amount: i64,
+        kind: &str,
+        description: &str,
+        key: &str,
+    ) -> Result<CreditAnswer, anyhow::Error> {
+        const PATH: &str = "/api/v1/internal/calagopus/credits/apply";
+
+        let response = self
+            .post(
+                client,
+                PATH,
+                &serde_json::json!({
+                    "account_id": account_id,
+                    "user_uuid": user_uuid,
+                    "delta": amount,
+                    "type": kind,
+                    "description": description,
+                    "idempotency_key": key,
+                }),
+            )
+            .await?;
+        let status = response.status();
+
+        #[derive(Deserialize)]
+        struct Applied {
+            applied: i64,
+            credits: i64,
+        }
+
+        match status {
+            status if status.is_success() => {
+                let answer = response.json::<Applied>().await?;
+
+                Ok(CreditAnswer::Applied {
+                    applied: answer.applied,
+                    credits: answer.credits,
+                })
+            }
+            reqwest::StatusCode::NOT_FOUND
+            | reqwest::StatusCode::CONFLICT
+            | reqwest::StatusCode::UNPROCESSABLE_ENTITY => Ok(CreditAnswer::Refused(status)),
+            reqwest::StatusCode::UNAUTHORIZED | reqwest::StatusCode::TOO_MANY_REQUESTS => {
+                anyhow::bail!("noprofit.space answered {status} to a credit change")
+            }
+            status => Ok(CreditAnswer::Failed(status)),
+        }
+    }
+}
+
+/// How far the timestamp of a request noprofit.space signed may be from the panel's clock, in
+/// seconds (noprofit.space's own tolerance).
+pub const REQUEST_TOLERANCE: i64 = 60;
+
+/// A request to the panel signed by noprofit.space (`X-NP-*` headers), as it arrived.
+pub struct SignedRequest<'a> {
+    pub method: &'a str,
+    /// The path without the query, as noprofit.space signed it (`/api/noprofit/account/delete`).
+    pub path: &'a str,
+    pub timestamp: &'a str,
+    pub nonce: &'a str,
+    pub signature: &'a str,
+    pub body: &'a [u8],
+}
+
+impl SignedRequest<'_> {
+    /// Whether `secret` signed it: a timestamp at most [`REQUEST_TOLERANCE`] seconds from
+    /// `now`, a nonce of 16 to 64 of `[A-Za-z0-9_-]` and the signature over all of it
+    /// ([`request_signature`]). Short secrets reject everything.
+    pub fn signed_with(&self, secret: &str, now: i64) -> bool {
+        if secret.len() < MIN_SECRET_LENGTH
+            || self.timestamp.is_empty()
+            || !self.timestamp.bytes().all(|b| b.is_ascii_digit())
+            || !(16..=64).contains(&self.nonce.len())
+            || !self
+                .nonce
+                .bytes()
+                .all(|b| b.is_ascii_alphanumeric() || b == b'_' || b == b'-')
+        {
+            return false;
+        }
+        let Ok(timestamp) = self.timestamp.parse::<i64>() else {
+            return false;
+        };
+        if (now - timestamp).abs() > REQUEST_TOLERANCE {
+            return false;
+        }
+        let Ok(signature) = hex::decode(self.signature) else {
+            return false;
+        };
+
+        let canonical = format!(
+            "{}\n/{}\n{}\n{}\n{}",
+            self.method.to_ascii_uppercase(),
+            self.path.trim_start_matches('/'),
+            self.timestamp,
+            self.nonce,
+            hex::encode(Sha256::digest(self.body)),
+        );
+        let mut mac = Hmac::<Sha256>::new_from_slice(secret.as_bytes())
+            .expect("hmac accepts keys of any length");
+        mac.update(canonical.as_bytes());
+
+        mac.verify_slice(&signature).is_ok()
+    }
+}
+
+/// noprofit.space's answer to a credit change ([`Config::apply_credits`]).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CreditAnswer {
+    /// Applied, now or before under the same key: `applied` is what was applied then (a
+    /// deduction takes at most the balance), `credits` the balance now.
+    Applied { applied: i64, credits: i64 },
+    /// Refused for good: no such account (404), the key belongs to another change (409), invalid
+    /// (422).
+    Refused(reqwest::StatusCode),
+    /// Not applied this time (a 5xx): sent again later.
+    Failed(reqwest::StatusCode),
 }
 
 /// noprofit.space's Resource Store for one account.
@@ -717,6 +862,17 @@ impl Link {
         .await
     }
 
+    /// Every account noprofit.space was found to no longer have, longest gone first.
+    pub async fn deleted_account_ids(
+        database: &crate::database::Database,
+    ) -> Result<Vec<i64>, sqlx::Error> {
+        sqlx::query_scalar(
+            "SELECT account_id FROM user_noprofit_accounts WHERE deleted IS NOT NULL ORDER BY deleted ASC",
+        )
+        .fetch_all(database.read())
+        .await
+    }
+
     /// Links a user to an account, or refreshes the link, with the account's snapshot. A smaller
     /// plan than before is written down for the servers to give back
     /// ([`crate::allowance_cuts`]).
@@ -938,22 +1094,36 @@ pub async fn apply_snapshot(
 }
 
 /// Pulls every linked account's snapshot and applies it; suspends the users whose account
-/// noprofit.space no longer has. Runs every minute on the primary instance (backend tasks.rs).
+/// noprofit.space no longer has, with their servers, until the deletion time the settings give
+/// (`deleted_account_days`). Accounts found missing before are asked about again: one that is
+/// back is restored, one still missing once the days are over is deleted with its servers
+/// ([`delete_account`]). Sends the panel's credit changes first ([`push_credit_changes`]). Runs
+/// every minute on the primary instance (backend tasks.rs).
 pub async fn sync_all(state: &crate::State) -> Result<(), anyhow::Error> {
-    use crate::models::{ByUuid, UpdatableModel};
+    use crate::models::ByUuid;
 
-    let Some(noprofit) = state
-        .settings
-        .get()
-        .await?
-        .noprofit
-        .config()
-        .filter(|noprofit| noprofit.sync_enabled())
-    else {
+    let (noprofit, deleted_days) = {
+        let settings = state.settings.get().await?;
+
+        (
+            settings
+                .noprofit
+                .config()
+                .filter(|noprofit| noprofit.sync_enabled()),
+            settings.noprofit.deleted_account_days,
+        )
+    };
+    let Some(noprofit) = noprofit else {
         return Ok(());
     };
 
+    // first, so the snapshots below already count them
+    if let Err(err) = push_credit_changes(state).await {
+        tracing::warn!("failed to send credit changes to noprofit.space: {err:#}");
+    }
+
     let account_ids = Link::live_account_ids(&state.database).await?;
+    let delete_at = deletion_time(chrono::Utc::now(), deleted_days);
 
     for batch in account_ids.chunks(PULL_BATCH) {
         let usage = Usage::of(&state.database, batch).await?;
@@ -987,32 +1157,619 @@ pub async fn sync_all(state: &crate::State) -> Result<(), anyhow::Error> {
             .collect();
 
         for user_uuid in Link::mark_deleted(&state.database, &missing).await? {
-            let Some(mut user) =
-                crate::models::user::User::by_uuid_optional(&state.database, user_uuid).await?
-            else {
-                continue;
-            };
+            suspend_vanished(state, user_uuid, delete_at).await;
+        }
+    }
 
-            tracing::info!(user = %user.uuid, "noprofit.space no longer has this account, suspending its user");
+    // the accounts found missing before: back, or (after the days) deleted here too
+    let gone = Link::deleted_account_ids(&state.database).await?;
+    for batch in gone.chunks(PULL_BATCH) {
+        for snapshot in noprofit.pull(&state.client, batch, &[]).await? {
+            restore_vanished(state, &snapshot).await;
+        }
+    }
 
-            let options = crate::models::user::UpdateUserOptions {
-                suspended: Some(true),
-                ..Default::default()
-            };
+    if deleted_days > 0 {
+        let due: Vec<i64> = sqlx::query_scalar(
+            "SELECT account_id FROM user_noprofit_accounts
+            WHERE deleted IS NOT NULL AND deleted <= NOW() - make_interval(days => $1)
+            ORDER BY synced
+            LIMIT $2",
+        )
+        .bind(deleted_days)
+        .bind(DELETE_BATCH)
+        .fetch_all(state.database.write())
+        .await?;
 
-            if let Err(err) = user.update(state, options).await {
-                tracing::warn!(user = %user.uuid, "failed to suspend the user of a deleted noprofit.space account: {err:#?}");
-            }
-
-            // plugged.host: its servers stop too (docs/features/suspension.md)
-            if let Err(err) =
-                crate::models::server::suspension::suspend_owned_for_noprofit(state, user.uuid)
-                    .await
-            {
-                tracing::warn!(user = %user.uuid, "failed to suspend the servers of a deleted noprofit.space account: {err:#?}");
+        for account_id in due {
+            match delete_account(state, account_id).await {
+                Ok(AccountDeletion::Deleted { servers }) => {
+                    tracing::info!(
+                        account_id,
+                        servers,
+                        "deleted the user of a noprofit.space account that is gone"
+                    );
+                }
+                Ok(AccountDeletion::Refused(reason)) => {
+                    tracing::warn!(
+                        account_id,
+                        "the user of a noprofit.space account that is gone was not deleted: {reason}"
+                    );
+                    retry_later(state, account_id).await;
+                }
+                Err(err) => {
+                    tracing::warn!(
+                        account_id,
+                        "failed to delete the user of a noprofit.space account that is gone: {err:#}"
+                    );
+                    retry_later(state, account_id).await;
+                }
             }
         }
     }
+
+    Ok(())
+}
+
+/// Users of accounts gone from noprofit.space deleted per run of [`sync_all`] at most.
+const DELETE_BATCH: i64 = 10;
+
+/// Puts a deletion that did not go through at the back of the line (`synced` orders them), so
+/// it never holds up the others.
+async fn retry_later(state: &crate::State, account_id: i64) {
+    if let Err(err) =
+        sqlx::query("UPDATE user_noprofit_accounts SET synced = NOW() WHERE account_id = $1")
+            .bind(account_id)
+            .execute(state.database.write())
+            .await
+    {
+        tracing::warn!(
+            account_id,
+            "failed to put a noprofit.space deletion back in line: {err:#}"
+        );
+    }
+}
+
+/// When the servers of an account found missing now are deleted: `days` later, never for 0.
+pub fn deletion_time(
+    now: chrono::DateTime<chrono::Utc>,
+    days: i32,
+) -> Option<chrono::DateTime<chrono::Utc>> {
+    (days > 0).then(|| now + chrono::Duration::days(days as i64))
+}
+
+/// noprofit.space no longer has the account of this user: the user is suspended (noted in the
+/// link, so a return lifts it) and its servers too, until `delete_at`.
+async fn suspend_vanished(
+    state: &crate::State,
+    user_uuid: uuid::Uuid,
+    delete_at: Option<chrono::DateTime<chrono::Utc>>,
+) {
+    use crate::models::{ByUuid, UpdatableModel};
+
+    let mut user = match crate::models::user::User::by_uuid_optional(&state.database, user_uuid)
+        .await
+    {
+        Ok(Some(user)) => user,
+        Ok(None) => return,
+        Err(err) => {
+            tracing::warn!(user = %user_uuid, "failed to load the user of a deleted noprofit.space account: {err:#}");
+            return;
+        }
+    };
+
+    tracing::info!(user = %user.uuid, "noprofit.space no longer has this account, suspending its user");
+
+    // a user suspended already (by an admin) stays so if the account comes back
+    if !user.suspended {
+        let options = crate::models::user::UpdateUserOptions {
+            suspended: Some(true),
+            ..Default::default()
+        };
+
+        match user.update(state, options).await {
+            Ok(()) => {
+                if let Err(err) = sqlx::query(
+                    "UPDATE user_noprofit_accounts SET user_suspended = true WHERE user_uuid = $1",
+                )
+                .bind(user.uuid)
+                .execute(state.database.write())
+                .await
+                {
+                    tracing::warn!(user = %user.uuid, "failed to note the suspension of a deleted noprofit.space account: {err:#}");
+                }
+            }
+            Err(err) => {
+                tracing::warn!(user = %user.uuid, "failed to suspend the user of a deleted noprofit.space account: {err:#?}");
+            }
+        }
+    }
+
+    // plugged.host: its servers stop too (docs/features/suspension.md)
+    if let Err(err) =
+        crate::models::server::suspension::suspend_owned_for_noprofit(state, user.uuid, delete_at)
+            .await
+    {
+        tracing::warn!(user = %user.uuid, "failed to suspend the servers of a deleted noprofit.space account: {err:#?}");
+    }
+}
+
+/// An account found missing before is in noprofit.space's answer again (it was left out by
+/// mistake): its link is live again, and the suspensions the sync made are lifted.
+async fn restore_vanished(state: &crate::State, snapshot: &Snapshot) {
+    use crate::models::{ByUuid, UpdatableModel};
+
+    let link = match Link::by_account_id(&state.database, snapshot.account_id).await {
+        Ok(Some(link)) if link.deleted.is_some() => link,
+        Ok(_) => return,
+        Err(err) => {
+            tracing::warn!(
+                account_id = snapshot.account_id,
+                "failed to load a noprofit.space link: {err:#}"
+            );
+            return;
+        }
+    };
+    let mut user = match crate::models::user::User::by_uuid_optional(
+        &state.database,
+        link.user_uuid,
+    )
+    .await
+    {
+        Ok(Some(user)) => user,
+        Ok(None) => return,
+        Err(err) => {
+            tracing::warn!(user = %link.user_uuid, "failed to load the user of a noprofit.space account: {err:#}");
+            return;
+        }
+    };
+
+    tracing::info!(user = %user.uuid, "noprofit.space has this account again, lifting its suspension");
+
+    // the link is live again (Link::store)
+    if let Err(err) = apply_snapshot(state, &mut user, snapshot).await {
+        tracing::warn!(user = %user.uuid, "failed to apply a noprofit.space snapshot: {err:#?}");
+        return;
+    }
+
+    // the CTE reads the row as it was before this statement changes it
+    let suspended_by_sync = match sqlx::query_scalar::<_, bool>(
+        "WITH old AS (SELECT user_suspended FROM user_noprofit_accounts WHERE user_uuid = $1)
+        UPDATE user_noprofit_accounts SET user_suspended = false
+        WHERE user_uuid = $1
+        RETURNING (SELECT user_suspended FROM old)",
+    )
+    .bind(user.uuid)
+    .fetch_optional(state.database.write())
+    .await
+    {
+        Ok(suspended) => suspended.unwrap_or(false),
+        Err(err) => {
+            tracing::warn!(user = %user.uuid, "failed to read the suspension of a noprofit.space account: {err:#}");
+            return;
+        }
+    };
+
+    if suspended_by_sync && user.suspended {
+        let options = crate::models::user::UpdateUserOptions {
+            suspended: Some(false),
+            ..Default::default()
+        };
+
+        if let Err(err) = user.update(state, options).await {
+            tracing::warn!(user = %user.uuid, "failed to lift the suspension of a noprofit.space account: {err:#?}");
+        }
+    }
+
+    if let Err(err) =
+        crate::models::server::suspension::unsuspend_owned_for_noprofit(state, user.uuid).await
+    {
+        tracing::warn!(user = %user.uuid, "failed to lift the suspension of a noprofit.space account's servers: {err:#}");
+    }
+}
+
+/// What deleting an account on noprofit.space also deletes here, for its confirmation page:
+/// the panel user's name and its servers' names. `None` when no user here has the account.
+pub async fn account_summary(
+    state: &crate::State,
+    account_id: i64,
+) -> Result<Option<(compact_str::CompactString, Vec<compact_str::CompactString>)>, anyhow::Error> {
+    use crate::models::ByUuid;
+
+    let Some(link) = Link::by_account_id(&state.database, account_id).await? else {
+        return Ok(None);
+    };
+    let Some(user) =
+        crate::models::user::User::by_uuid_optional(&state.database, link.user_uuid).await?
+    else {
+        return Ok(None);
+    };
+    let servers: Vec<String> =
+        sqlx::query_scalar("SELECT name FROM servers WHERE owner_uuid = $1 ORDER BY name")
+            .bind(user.uuid)
+            .fetch_all(state.database.read())
+            .await?;
+
+    Ok(Some((
+        user.username,
+        servers.into_iter().map(Into::into).collect(),
+    )))
+}
+
+/// What [`delete_account`] did.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum AccountDeletion {
+    /// The user is gone (or there was none), with this many servers.
+    Deleted { servers: usize },
+    /// Nothing more was deleted, for this reason (shown on noprofit.space). Servers deleted
+    /// before it stay deleted; asking again carries on.
+    Refused(String),
+}
+
+/// Deletes the panel user of a noprofit.space account, all the way: every server it owns (on
+/// its node too, with all their backups: the owner is gone, nobody is left to keep them for),
+/// the backups still kept of servers deleted before, the activity that names it (it carries
+/// its addresses) and the user with everything that belongs to it. The panel's last admin is
+/// never deleted. A server whose node cannot delete it stops the deletion there.
+pub async fn delete_account(
+    state: &crate::State,
+    account_id: i64,
+) -> Result<AccountDeletion, anyhow::Error> {
+    use crate::models::{ByUuid, DeletableModel};
+
+    // one at a time per account (noprofit.space asking again, the sync)
+    let _lock = state
+        .cache
+        .lock(
+            format!("noprofit::account_delete::{account_id}"),
+            Some(600),
+            None,
+        )
+        .await?;
+
+    let Some(link) = Link::by_account_id(&state.database, account_id).await? else {
+        return Ok(AccountDeletion::Deleted { servers: 0 });
+    };
+    let Some(user) =
+        crate::models::user::User::by_uuid_optional(&state.database, link.user_uuid).await?
+    else {
+        return Ok(AccountDeletion::Deleted { servers: 0 });
+    };
+
+    if user.admin {
+        let admins: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM users WHERE admin")
+            .fetch_one(state.database.write())
+            .await?;
+
+        if admins <= 1 {
+            return Ok(AccountDeletion::Refused(
+                "This is the last administrator of the panel, so it cannot be deleted.".into(),
+            ));
+        }
+    }
+
+    let mut deleted = 0;
+    loop {
+        let servers = crate::models::server::Server::by_owner_uuid_with_pagination(
+            &state.database,
+            user.uuid,
+            1,
+            50,
+            None,
+        )
+        .await?;
+        if servers.data.is_empty() {
+            break;
+        }
+
+        for server in servers.data {
+            if let Err(err) = delete_server_with_backups(state, &server).await {
+                tracing::warn!(user = %user.uuid, server = %server.uuid, "failed to delete a server of a deleted noprofit.space account: {err:#}");
+
+                let mut reason = format!(
+                    "The server \"{}\" could not be deleted, so the account was left alone.",
+                    server.name
+                );
+                if deleted > 0 {
+                    reason.push_str(&format!(
+                        " {deleted} server(s) had already been deleted before that happened."
+                    ));
+                }
+
+                return Ok(AccountDeletion::Refused(reason));
+            }
+
+            deleted += 1;
+        }
+    }
+
+    // the copies of its servers deleted before, kept for it (shared/src/deleted_servers.rs)
+    let held: Vec<uuid::Uuid> = sqlx::query_scalar(
+        "SELECT server_backups.uuid
+        FROM deleted_servers
+        JOIN server_backups ON server_backups.uuid = ANY(deleted_servers.backups)
+        WHERE deleted_servers.owner_uuid = $1
+            AND server_backups.deleted IS NULL
+            AND server_backups.deleting IS NULL",
+    )
+    .bind(user.uuid)
+    .fetch_all(state.database.write())
+    .await?;
+    for backup_uuid in held {
+        if let Some(backup) = crate::models::server_backup::ServerBackup::by_uuid_optional(
+            &state.database,
+            backup_uuid,
+        )
+        .await?
+            && let Err(err) = backup.delete(state, Default::default()).await
+        {
+            tracing::warn!(user = %user.uuid, backup = %backup_uuid, "failed to delete a kept backup of a deleted noprofit.space account: {err:#}");
+        }
+    }
+
+    for table in ["server_activities", "admin_activities"] {
+        sqlx::query(sqlx::AssertSqlSafe(format!(
+            "DELETE FROM {table} WHERE user_uuid = $1"
+        )))
+        .bind(user.uuid)
+        .execute(state.database.write())
+        .await?;
+    }
+
+    user.delete(state, ()).await?;
+
+    tracing::info!(user = %user.uuid, account_id, servers = deleted, "deleted the panel user of a deleted noprofit.space account");
+
+    Ok(AccountDeletion::Deleted { servers: deleted })
+}
+
+/// Deletes a server with all its backups, system backups included (the server delete of
+/// upstream's admin route with "delete backups"). A backup that fails to delete is logged; the
+/// server is gone either way.
+pub async fn delete_server_with_backups(
+    state: &crate::State,
+    server: &crate::models::server::Server,
+) -> Result<(), anyhow::Error> {
+    use crate::models::DeletableModel;
+
+    let backups = crate::models::server_backup::ServerBackup::all_by_server_uuid(
+        &state.database,
+        server.uuid,
+    )
+    .await?;
+
+    server
+        .delete(
+            state,
+            crate::models::server::DeleteServerOptions { force: false },
+        )
+        .await?;
+
+    for backup in backups {
+        let backup_uuid = backup.uuid;
+        if let Err(err) = backup.delete(state, Default::default()).await {
+            tracing::warn!(server = %server.uuid, backup = %backup_uuid, "failed to delete a backup of a deleted server: {err:#}");
+        }
+    }
+
+    Ok(())
+}
+
+/// Credits changes sent per run of [`push_credit_changes`] at most.
+const PUSH_BATCH: i64 = 100;
+
+/// The balance a credit change may count on: what noprofit.space last said plus the changes it
+/// has not confirmed yet. Locks the link row for the caller's transaction. `None` when the user
+/// has no live noprofit.space account. Returns `(account_id, balance)`.
+pub async fn pending_balance(
+    transaction: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+    user_uuid: uuid::Uuid,
+) -> Result<Option<(i64, i64)>, sqlx::Error> {
+    let link: Option<(i64, i64)> = sqlx::query_as(
+        "SELECT account_id, credits FROM user_noprofit_accounts
+        WHERE user_uuid = $1 AND deleted IS NULL
+        FOR UPDATE",
+    )
+    .bind(user_uuid)
+    .fetch_optional(&mut **transaction)
+    .await?;
+    let Some((account_id, credits)) = link else {
+        return Ok(None);
+    };
+    let unsent: i64 = sqlx::query_scalar(
+        "SELECT COALESCE(SUM(amount), 0)::BIGINT FROM user_noprofit_credit_changes
+        WHERE user_uuid = $1 AND sent IS NULL",
+    )
+    .bind(user_uuid)
+    .fetch_one(&mut **transaction)
+    .await?;
+
+    Ok(Some((account_id, credits + unsent)))
+}
+
+/// Records a credit change made here while noprofit.space holds the balance (a Discord invite
+/// reward, its clawback, an admin's change), in the caller's transaction. It is sent once the
+/// transaction is committed ([`spawn_credit_push`]) or by the next account sync.
+#[allow(clippy::too_many_arguments)]
+pub async fn queue_credit_change(
+    transaction: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+    user_uuid: uuid::Uuid,
+    account_id: i64,
+    amount: i64,
+    kind: &str,
+    description: &str,
+    data: serde_json::Value,
+) -> Result<(), sqlx::Error> {
+    let description: String = description.chars().take(255).collect();
+
+    sqlx::query(
+        "INSERT INTO user_noprofit_credit_changes
+            (user_uuid, account_id, amount, type, description, data)
+        VALUES ($1, $2, $3, $4, $5, $6)",
+    )
+    .bind(user_uuid)
+    .bind(account_id)
+    .bind(amount)
+    .bind(kind)
+    .bind(description)
+    .bind(data)
+    .execute(&mut **transaction)
+    .await?;
+
+    Ok(())
+}
+
+/// Sends the queued credit changes now, in the background (after the transaction that queued
+/// them is committed). What fails waits for the next account sync.
+pub fn spawn_credit_push(state: &crate::State) {
+    let state = std::sync::Arc::clone(state);
+
+    tokio::spawn(async move {
+        if let Err(err) = push_credit_changes(&state).await {
+            tracing::warn!("failed to send credit changes to noprofit.space: {err:#}");
+        }
+    });
+}
+
+/// Sends the credit changes noprofit.space has not confirmed, oldest first, each under its own
+/// key (so a resend applies nothing twice), and keeps what it answers: how much it applied and
+/// the balance after, which is also the account's balance here now. A refused change (no such
+/// account, invalid) is kept as sent with nothing applied. When noprofit.space cannot be reached
+/// the round stops; a change it failed (5xx) holds back that user's later ones until the next
+/// round, so their order is kept.
+pub async fn push_credit_changes(state: &crate::State) -> Result<(), anyhow::Error> {
+    let Some(noprofit) = state
+        .settings
+        .get()
+        .await?
+        .noprofit
+        .config()
+        .filter(|noprofit| noprofit.sync_enabled())
+    else {
+        return Ok(());
+    };
+
+    // one round at a time; the other one sends these
+    let Ok(_lock) = state
+        .cache
+        .lock("noprofit::credit_push", Some(120), Some(200))
+        .await
+    else {
+        return Ok(());
+    };
+
+    #[derive(sqlx::FromRow)]
+    struct Change {
+        uuid: uuid::Uuid,
+        user_uuid: uuid::Uuid,
+        account_id: i64,
+        amount: i64,
+        #[sqlx(rename = "type")]
+        kind: String,
+        description: String,
+    }
+
+    let changes: Vec<Change> = sqlx::query_as(
+        "SELECT uuid, user_uuid, account_id, amount, type, description
+        FROM user_noprofit_credit_changes
+        WHERE sent IS NULL
+        ORDER BY created, uuid
+        LIMIT $1",
+    )
+    .bind(PUSH_BATCH)
+    .fetch_all(state.database.write())
+    .await?;
+
+    let mut held_back = std::collections::HashSet::new();
+    for change in changes {
+        if held_back.contains(&change.user_uuid) {
+            continue;
+        }
+
+        let answer = noprofit
+            .apply_credits(
+                &state.client,
+                change.account_id,
+                change.user_uuid,
+                change.amount,
+                &change.kind,
+                &change.description,
+                &change.uuid.to_string(),
+            )
+            .await;
+
+        match answer {
+            Ok(CreditAnswer::Applied { applied, credits }) => {
+                let mut transaction = state.database.write().begin().await?;
+                sqlx::query(
+                    "UPDATE user_noprofit_credit_changes
+                    SET sent = NOW(), applied = $2, balance_after = $3, last_error = NULL
+                    WHERE uuid = $1",
+                )
+                .bind(change.uuid)
+                .bind(applied)
+                .bind(credits)
+                .execute(&mut *transaction)
+                .await?;
+                sqlx::query(
+                    "UPDATE user_noprofit_accounts SET credits = $3
+                    WHERE user_uuid = $1 AND account_id = $2",
+                )
+                .bind(change.user_uuid)
+                .bind(change.account_id)
+                .bind(credits)
+                .execute(&mut *transaction)
+                .await?;
+                transaction.commit().await?;
+
+                if applied != change.amount {
+                    tracing::info!(change = %change.uuid, user = %change.user_uuid, amount = change.amount, applied, "noprofit.space applied part of a credit change");
+                }
+            }
+            Ok(CreditAnswer::Refused(status)) => {
+                tracing::warn!(change = %change.uuid, user = %change.user_uuid, amount = change.amount, "noprofit.space refused a credit change ({status})");
+
+                sqlx::query(
+                    "UPDATE user_noprofit_credit_changes
+                    SET sent = NOW(), applied = 0, attempts = attempts + 1, last_error = $2
+                    WHERE uuid = $1",
+                )
+                .bind(change.uuid)
+                .bind(format!("refused: {status}"))
+                .execute(state.database.write())
+                .await?;
+            }
+            Ok(CreditAnswer::Failed(status)) => {
+                held_back.insert(change.user_uuid);
+                record_failure(state, change.uuid, &status.to_string()).await?;
+            }
+            Err(err) => {
+                record_failure(state, change.uuid, &format!("{err:#}")).await?;
+
+                return Err(err);
+            }
+        }
+    }
+
+    Ok(())
+}
+
+async fn record_failure(
+    state: &crate::State,
+    change_uuid: uuid::Uuid,
+    error: &str,
+) -> Result<(), sqlx::Error> {
+    let error: String = error.chars().take(1000).collect();
+
+    sqlx::query(
+        "UPDATE user_noprofit_credit_changes
+        SET attempts = attempts + 1, last_error = $2
+        WHERE uuid = $1",
+    )
+    .bind(change_uuid)
+    .bind(error)
+    .execute(state.database.write())
+    .await?;
 
     Ok(())
 }
@@ -1154,5 +1911,77 @@ mod tests {
             ),
             "bf6d6ccbaa9363281b768107160b56d9d764cbf1d4a24a550363de8a369af746"
         );
+    }
+
+    fn signed(signature: &'static str) -> SignedRequest<'static> {
+        SignedRequest {
+            method: "POST",
+            path: "/api/noprofit/account/delete",
+            timestamp: "1760000000",
+            nonce: "abcdefghijklmnop0123456789ABCDEF",
+            signature,
+            body: br#"{"account_id":42}"#,
+        }
+    }
+
+    /// The same vector, as noprofit.space sends it to the panel.
+    #[test]
+    fn verifies_requests_noprofit_space_signed() {
+        let request = signed("bf6d6ccbaa9363281b768107160b56d9d764cbf1d4a24a550363de8a369af746");
+
+        assert!(config().verify(&request, 1_760_000_000));
+        assert!(config().verify(&request, 1_760_000_000 + REQUEST_TOLERANCE));
+        assert!(config().verify(&request, 1_760_000_000 - REQUEST_TOLERANCE));
+    }
+
+    #[test]
+    fn refuses_old_altered_or_unsigned_requests() {
+        let good = "bf6d6ccbaa9363281b768107160b56d9d764cbf1d4a24a550363de8a369af746";
+
+        // too old, or from the future
+        assert!(!config().verify(&signed(good), 1_760_000_000 + REQUEST_TOLERANCE + 1));
+        assert!(!config().verify(&signed(good), 1_760_000_000 - REQUEST_TOLERANCE - 1));
+
+        // another body, path, method or nonce
+        let mut request = signed(good);
+        request.body = br#"{"account_id":43}"#;
+        assert!(!config().verify(&request, 1_760_000_000));
+        let mut request = signed(good);
+        request.path = "/api/noprofit/account/summary";
+        assert!(!config().verify(&request, 1_760_000_000));
+        let mut request = signed(good);
+        request.method = "GET";
+        assert!(!config().verify(&request, 1_760_000_000));
+        let mut request = signed(good);
+        request.nonce = "abcdefghijklmnop0123456789ABCDEG";
+        assert!(!config().verify(&request, 1_760_000_000));
+
+        // malformed headers
+        assert!(!config().verify(&signed("not hex"), 1_760_000_000));
+        assert!(!config().verify(&signed(""), 1_760_000_000));
+        let mut request = signed(good);
+        request.nonce = "short";
+        assert!(!config().verify(&request, 1_760_000_000));
+        let mut request = signed(good);
+        request.timestamp = "+1760000000";
+        assert!(!config().verify(&request, 1_760_000_000));
+
+        // another secret, or none
+        assert!(
+            !signed(good).signed_with("another-secret-0123456789abcdef0123456789", 1_760_000_000)
+        );
+        assert!(!signed(good).signed_with("short", 1_760_000_000));
+        let mut without = config();
+        without.api_secret = None;
+        assert!(!without.verify(&signed(good), 1_760_000_000));
+    }
+
+    #[test]
+    fn missing_accounts_are_deleted_after_the_days_set() {
+        let now = chrono::DateTime::from_timestamp(1_800_000_000, 0).unwrap();
+
+        assert_eq!(deletion_time(now, 0), None);
+        assert_eq!(deletion_time(now, -3), None);
+        assert_eq!(deletion_time(now, 7), Some(now + chrono::Duration::days(7)));
     }
 }

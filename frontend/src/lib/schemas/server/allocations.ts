@@ -8,6 +8,8 @@ export const serverAllocationSchema = z.looseObject({
   port: z.number(),
   notes: z.string().nullable(),
   isPrimary: z.boolean(),
+  locked: z.boolean().default(false), // plugged.host: only an admin may remove it
+  resolvedIp: z.string().nullable().default(null), // plugged.host: the IP beside its host name
   created: z.coerce.date(),
 });
 

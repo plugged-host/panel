@@ -127,10 +127,17 @@ pub struct SrvSpec {
 }
 
 impl Service {
+    /// The egg's game: [`of_features`](Self::of_features), with Minecraft being a Java Edition
+    /// game server (`crate::minecraft::is_minecraft`), not a proxy such as Velocity.
+    pub fn of_egg(egg: &crate::models::nest_egg::NestEgg) -> Option<Self> {
+        Self::of_features(&egg.features, crate::minecraft::is_minecraft(egg))
+    }
+
     /// The egg's game from its features: `srv-<service>` names one (`srv-minecraft`, `srv-fivem`,
     /// `srv-teamspeak`, ...), `subdomain` asks for an address record alone, and otherwise
-    /// Minecraft (`eula`) and FiveM / RedM (`cfx`) are recognised. `None`: no subdomains.
-    pub fn of_features(features: &[compact_str::CompactString]) -> Option<Self> {
+    /// FiveM / RedM (`cfx`) and a Minecraft server (`minecraft`) are recognised. `None`: no
+    /// subdomains.
+    pub fn of_features(features: &[compact_str::CompactString], minecraft: bool) -> Option<Self> {
         let has = |name: &str| features.iter().any(|feature| feature == name);
 
         for (feature, service) in [
@@ -144,14 +151,13 @@ impl Service {
             ("srv-teamspeak", Self::Teamspeak),
             ("subdomain", Self::Plain),
             (crate::fivem::FEATURE, Self::Fivem),
-            (crate::server_creation::EULA_FEATURE, Self::Minecraft),
         ] {
             if has(feature) {
                 return Some(service);
             }
         }
 
-        None
+        minecraft.then_some(Self::Minecraft)
     }
 
     pub fn key(self) -> &'static str {
@@ -301,22 +307,31 @@ mod tests {
         };
 
         assert_eq!(
-            Service::of_features(&features(&["eula", "java_version"])),
+            Service::of_features(&features(&["eula", "java_version"]), true),
             Some(Service::Minecraft)
         );
+        // Velocity: `eula`, but a proxy
         assert_eq!(
-            Service::of_features(&features(&["cfx"])),
+            Service::of_features(&features(&["eula", "java_version"]), false),
+            None
+        );
+        assert_eq!(
+            Service::of_features(&features(&["cfx"]), false),
             Some(Service::Fivem)
         );
         assert_eq!(
-            Service::of_features(&features(&["eula", "srv-teamspeak"])),
+            Service::of_features(&features(&["eula", "srv-teamspeak"]), true),
             Some(Service::Teamspeak)
         );
         assert_eq!(
-            Service::of_features(&features(&["subdomain"])),
+            Service::of_features(&features(&["eula", "srv-minecraft"]), false),
+            Some(Service::Minecraft)
+        );
+        assert_eq!(
+            Service::of_features(&features(&["subdomain"]), false),
             Some(Service::Plain)
         );
-        assert_eq!(Service::of_features(&features(&["pid_limit"])), None);
+        assert_eq!(Service::of_features(&features(&["pid_limit"]), false), None);
         assert_eq!(Service::Fivem.srv().len(), 2);
         assert!(Service::Plain.srv().is_empty());
     }

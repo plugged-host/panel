@@ -100,6 +100,10 @@ mod patch {
 
         #[garde(skip)]
         primary: Option<bool>,
+
+        /// plugged.host: players cannot remove a locked allocation (docs/features/allocations.md)
+        #[garde(skip)]
+        locked: Option<bool>,
     }
 
     #[derive(ToSchema, Serialize)]
@@ -155,7 +159,10 @@ mod patch {
         allocation
             .update_with_transaction(
                 &state,
-                UpdateServerAllocationOptions { notes: data.notes },
+                UpdateServerAllocationOptions {
+                    notes: data.notes,
+                    locked: data.locked, // plugged.host
+                },
                 &mut transaction,
             )
             .await?;
@@ -218,6 +225,7 @@ mod patch {
 
                     "notes": allocation.notes,
                     "primary": data.primary,
+                    "locked": data.locked, // plugged.host
                 }),
             )
             .await;

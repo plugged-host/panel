@@ -6,6 +6,7 @@ import {
   faCloud,
   faCoins, // plugged.host
   faFingerprint,
+  faHandshake, // plugged.host
   faKey,
   faKeyboard,
   faLock, // plugged.host
@@ -34,6 +35,7 @@ const DashboardDiscord = lazy(() => import('@/pages/dashboard/discord/DashboardD
 const DashboardMembership = lazy(() => import('@/pages/dashboard/membership/DashboardMembership.tsx')); // plugged.host
 const DashboardOAuthLinks = lazy(() => import('@/pages/dashboard/oauth-links/DashboardOAuthLinks.tsx'));
 const DashboardPanelAccess = lazy(() => import('@/pages/dashboard/panel-access/DashboardPanelAccess.tsx')); // plugged.host
+const DashboardPartners = lazy(() => import('@/pages/dashboard/partners/DashboardPartners.tsx')); // plugged.host
 const DashboardSecurityKeys = lazy(() => import('@/pages/dashboard/security-keys/DashboardSecurityKeys.tsx'));
 const DashboardSessions = lazy(() => import('@/pages/dashboard/sessions/DashboardSessions.tsx'));
 const DashboardShortcuts = lazy(() => import('@/pages/dashboard/shortcuts/DashboardShortcuts.tsx'));
@@ -151,6 +153,14 @@ const routes: RouteDefinition[] = [
     path: '/discord',
     element: DashboardDiscord,
     filter: () => !!useGlobalStore.getState().settings.discord?.enabled,
+  },
+  // plugged.host: the partner program (docs/features/partners.md)
+  {
+    name: () => getTranslations().t('pages.account.partners.title', {}),
+    icon: faHandshake,
+    path: '/partners',
+    element: DashboardPartners,
+    filter: () => !!useGlobalStore.getState().settings.partners?.enabled,
   },
   // plugged.host: back to a devbox in the browser (docs/features/devboxes.md)
   {

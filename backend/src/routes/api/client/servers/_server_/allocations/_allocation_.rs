@@ -70,6 +70,17 @@ mod delete {
                 .with_status(StatusCode::BAD_REQUEST)
                 .ok();
         }
+        // plugged.host: a locked allocation is removed by an admin only, like in Pelican
+        // (docs/features/allocations.md)
+        if allocation.locked
+            && permissions
+                .has_admin_permission("servers.allocations")
+                .is_err()
+        {
+            return ApiResponse::error("this allocation is locked, only an admin can remove it")
+                .with_status(StatusCode::BAD_REQUEST)
+                .ok();
+        }
 
         allocation.delete(&state, ()).await?;
 
@@ -168,7 +179,10 @@ mod patch {
         allocation
             .update_with_transaction(
                 &state,
-                UpdateServerAllocationOptions { notes: data.notes },
+                UpdateServerAllocationOptions {
+                    notes: data.notes,
+                    ..Default::default() // plugged.host: the lock is the admin's
+                },
                 &mut transaction,
             )
             .await?;

@@ -43,7 +43,7 @@ const EVENTS = [
   'restarted',
   'restartFailed',
 ] as const;
-const REASONS = ['noNode', 'copyFailed', 'skippedMoved'] as const;
+const REASONS = ['noNode', 'copyFailed', 'skippedMoved', 'stalled', 'unfinalized'] as const;
 const BLOCKED = ['disabled', 'busy', 'suspended', 'installing', 'restoring', 'backupRunning', 'cooldown'] as const;
 
 /** The stepper's steps, in order (backups travel inside the copy, so they have none of their own). */

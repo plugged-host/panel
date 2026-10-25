@@ -67,6 +67,7 @@ garde = { workspace = true }
 indexmap = { workspace = true }
 regex = { workspace = true }
 md5 = "0.8.1" # plugged.host: offline-mode Minecraft player UUIDs
+fastnbt = "2.6.3" # plugged.host: Minecraft player data (NBT)
 sentry = { workspace = true }
 sentry-anyhow = { workspace = true }
 sentry-tracing = { workspace = true }

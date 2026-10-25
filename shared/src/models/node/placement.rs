@@ -1,13 +1,15 @@
 //! plugged.host: what a node is for and how it is labelled: `nodes.role`, `nodes.tags`,
 //! `nodes.srv_target` and `nodes.deployment_paused` (docs/features/node-telemetry.md), and the
-//! automatic deployment pause (docs/features/placement.md).
+//! automatic deployment pause with its disk guard (docs/features/placement.md).
 
 use crate::settings::placement::AppSettingsPlacement;
 use sqlx::Row;
 
 /// The roles a node can have. A `game` node takes players' servers; an `internal` node is only
-/// used by admins (tests, builds, a node being set up) and is never picked for players' servers.
-pub const ROLES: &[&str] = &["game", "internal"];
+/// used by admins (tests, builds, a node being set up) and is never picked for players' servers;
+/// a `limbo` node keeps the files of servers parked on it (the Pelican panel's limbo node, kept by
+/// an import, docs/features/limbo.md#parked-on-a-node) and is never picked for anything new.
+pub const ROLES: &[&str] = &["game", "internal", crate::limbo::NODE_ROLE];
 
 pub const MAX_TAGS: usize = 32;
 pub const MAX_TAG_LENGTH: usize = 64;
@@ -82,6 +84,8 @@ pub fn normalize_tags(tags: &[compact_str::CompactString]) -> Vec<String> {
 pub const PAUSED_FOR_MEMORY: &str = "memory";
 pub const PAUSED_FOR_CPU: &str = "cpu";
 pub const PAUSED_UNREACHABLE: &str = "unreachable";
+/// Its disk is fuller than `disk_percent`: the disk guard, which works with the load pause off too.
+pub const PAUSED_FOR_DISK: &str = "disk";
 
 /// What the deployment pause does with a node this minute.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -107,6 +111,8 @@ pub struct PauseReading<'a> {
     pub threads: Option<i32>,
     /// The higher of memory and CPU use, averaged over the last minutes.
     pub pressure: Option<f32>,
+    pub disk_used: Option<i64>,
+    pub disk_total: Option<i64>,
 }
 
 /// The line in percent: lower on a small node. Unknown sizes count as big.
@@ -124,24 +130,41 @@ pub fn pause_line(
     ((settings.pause_percent - offset) as f32).max(1.0)
 }
 
+/// Disk use in percent, when the node reported its disk.
+pub fn disk_percent(disk_used: Option<i64>, disk_total: Option<i64>) -> Option<f32> {
+    match (disk_used, disk_total) {
+        (Some(used), Some(total)) if total > 0 => Some(used as f32 * 100.0 / total as f32),
+        _ => None,
+    }
+}
+
 /// Pauses a node over the line (memory first, then CPU) or one that stopped answering, and reopens
-/// it once it is under the line and its recent average is too. A node an admin paused is theirs.
+/// it once it is under the line and its recent average is too. The disk guard pauses a node whose
+/// disk is fuller than `disk_percent` and reopens it once it is not, or once its disk is unknown
+/// (missing numbers never block on their own, like the Pelican panel's storage guard). A node an
+/// admin paused is theirs.
 pub fn decide(settings: &AppSettingsPlacement, reading: &PauseReading) -> PauseDecision {
     let ours = reading.paused && reading.reason.is_some();
+    let load = settings.pause_enabled;
+    let disk = settings.disk_percent > 0;
 
-    if !settings.pause_enabled {
-        return if ours {
-            PauseDecision::Open
-        } else {
-            PauseDecision::Keep
-        };
+    if reading.paused && !ours {
+        return PauseDecision::Keep;
     }
-    if (reading.paused && !ours) || !reading.fresh {
+    // a pause whose switch was turned off
+    let disk_pause = reading.reason == Some(PAUSED_FOR_DISK);
+    if ours && ((disk_pause && !disk) || (!disk_pause && !load)) {
+        return PauseDecision::Open;
+    }
+    if (!load && !disk) || !reading.fresh {
         return PauseDecision::Keep;
     }
 
     if !reading.reachable {
-        return if !reading.paused && reading.consecutive_failures >= settings.unreachable_after {
+        return if load
+            && !reading.paused
+            && reading.consecutive_failures >= settings.unreachable_after
+        {
             PauseDecision::Pause(PAUSED_UNREACHABLE)
         } else {
             PauseDecision::Keep
@@ -154,10 +177,15 @@ pub fn decide(settings: &AppSettingsPlacement, reading: &PauseReading) -> PauseD
         _ => None,
     };
 
-    let over = if memory.is_some_and(|memory| memory > line) {
+    let over = if load && memory.is_some_and(|memory| memory > line) {
         Some(PAUSED_FOR_MEMORY)
-    } else if reading.cpu_percent.is_some_and(|cpu| cpu > line) {
+    } else if load && reading.cpu_percent.is_some_and(|cpu| cpu > line) {
         Some(PAUSED_FOR_CPU)
+    } else if disk
+        && disk_percent(reading.disk_used, reading.disk_total)
+            .is_some_and(|used| used > settings.disk_percent as f32)
+    {
+        Some(PAUSED_FOR_DISK)
     } else {
         None
     };
@@ -166,7 +194,9 @@ pub fn decide(settings: &AppSettingsPlacement, reading: &PauseReading) -> PauseD
         Some(reason) if reading.paused && reading.reason == Some(reason) => PauseDecision::Keep,
         Some(reason) => PauseDecision::Pause(reason),
         None if !reading.paused => PauseDecision::Keep,
-        None if reading.reason == Some(PAUSED_UNREACHABLE) => PauseDecision::Open,
+        None if matches!(reading.reason, Some(PAUSED_UNREACHABLE | PAUSED_FOR_DISK)) => {
+            PauseDecision::Open
+        }
         None if reading.pressure.is_some_and(|pressure| pressure > line) => PauseDecision::Keep,
         None => PauseDecision::Open,
     }
@@ -183,7 +213,7 @@ pub async fn pause_overloaded(state: &crate::State) -> Result<(), anyhow::Error>
             COALESCE(telemetry.reachable, FALSE) AS reachable,
             COALESCE(telemetry.consecutive_failures, 0) AS consecutive_failures,
             telemetry.cpu_percent, telemetry.memory_used, telemetry.memory_total,
-            telemetry.cpu_threads, telemetry.pressure
+            telemetry.cpu_threads, telemetry.pressure, telemetry.disk_used, telemetry.disk_total
         FROM nodes
         LEFT JOIN node_telemetry telemetry ON telemetry.node_uuid = nodes.uuid
         "#,
@@ -207,6 +237,8 @@ pub async fn pause_overloaded(state: &crate::State) -> Result<(), anyhow::Error>
             memory_total: row.try_get("memory_total")?,
             threads: row.try_get("cpu_threads")?,
             pressure: row.try_get("pressure")?,
+            disk_used: row.try_get("disk_used")?,
+            disk_total: row.try_get("disk_total")?,
         };
 
         let changed = match decide(&settings, &reading) {
@@ -257,6 +289,7 @@ mod tests {
     fn roles() {
         assert!(validate_role(&"game".into(), &()).is_ok());
         assert!(validate_role(&"internal".into(), &()).is_ok());
+        assert!(validate_role(&"limbo".into(), &()).is_ok());
         assert!(validate_role(&"storage".into(), &()).is_err());
         assert!(validate_optional_role(&None, &()).is_ok());
     }
@@ -291,6 +324,8 @@ mod tests {
             memory_total: Some(64 * 1024 * 1024 * 1024),
             threads: Some(16),
             pressure: Some(20.0),
+            disk_used: Some(40),
+            disk_total: Some(100),
         }
     }
 
@@ -356,6 +391,106 @@ mod tests {
             decide(&settings, &reading(true, Some(PAUSED_UNREACHABLE))),
             PauseDecision::Open
         );
+    }
+
+    #[test]
+    fn a_full_disk_pauses_and_reopens_once_it_has_room() {
+        let settings = AppSettingsPlacement::default();
+
+        let mut full = reading(false, None);
+        full.disk_used = Some(90);
+        assert_eq!(
+            decide(&settings, &full),
+            PauseDecision::Pause(PAUSED_FOR_DISK)
+        );
+
+        // memory goes first, and a disk pause turns into a memory one
+        let mut both = full.clone();
+        both.memory_used = Some(both.memory_total.unwrap() / 10 * 9);
+        assert_eq!(
+            decide(&settings, &both),
+            PauseDecision::Pause(PAUSED_FOR_MEMORY)
+        );
+        both.paused = true;
+        both.reason = Some(PAUSED_FOR_DISK);
+        assert_eq!(
+            decide(&settings, &both),
+            PauseDecision::Pause(PAUSED_FOR_MEMORY)
+        );
+
+        full.paused = true;
+        full.reason = Some(PAUSED_FOR_DISK);
+        assert_eq!(decide(&settings, &full), PauseDecision::Keep);
+
+        // room again: open at once, the load average does not matter for disk
+        let mut roomy = reading(true, Some(PAUSED_FOR_DISK));
+        roomy.pressure = Some(95.0);
+        assert_eq!(decide(&settings, &roomy), PauseDecision::Open);
+
+        // the line itself is not over it
+        let mut at_line = reading(false, None);
+        at_line.disk_used = Some(85);
+        assert_eq!(decide(&settings, &at_line), PauseDecision::Keep);
+    }
+
+    #[test]
+    fn missing_disk_numbers_never_block() {
+        let settings = AppSettingsPlacement::default();
+
+        let mut unknown = reading(true, Some(PAUSED_FOR_DISK));
+        unknown.disk_total = None;
+        assert_eq!(decide(&settings, &unknown), PauseDecision::Open);
+
+        unknown.disk_total = Some(0);
+        assert_eq!(decide(&settings, &unknown), PauseDecision::Open);
+
+        let mut fresh_unknown = reading(false, None);
+        fresh_unknown.disk_used = None;
+        assert_eq!(decide(&settings, &fresh_unknown), PauseDecision::Keep);
+
+        // a node that does not answer is the load pause's business
+        let mut gone = reading(false, None);
+        gone.reachable = false;
+        gone.disk_used = Some(99);
+        assert_eq!(decide(&settings, &gone), PauseDecision::Keep);
+    }
+
+    #[test]
+    fn the_disk_guard_and_the_load_pause_switch_separately() {
+        let mut settings = AppSettingsPlacement {
+            pause_enabled: false,
+            ..AppSettingsPlacement::default()
+        };
+
+        let mut full = reading(false, None);
+        full.disk_used = Some(90);
+        full.cpu_percent = Some(99.0);
+        assert_eq!(
+            decide(&settings, &full),
+            PauseDecision::Pause(PAUSED_FOR_DISK)
+        );
+        assert_eq!(
+            decide(&settings, &reading(true, Some(PAUSED_FOR_CPU))),
+            PauseDecision::Open
+        );
+        assert_eq!(
+            decide(&settings, &reading(true, Some(PAUSED_UNREACHABLE))),
+            PauseDecision::Open
+        );
+
+        settings.pause_enabled = true;
+        settings.disk_percent = 0;
+        full.cpu_percent = Some(20.0);
+        assert_eq!(decide(&settings, &full), PauseDecision::Keep);
+        assert_eq!(
+            decide(&settings, &reading(true, Some(PAUSED_FOR_DISK))),
+            PauseDecision::Open
+        );
+
+        settings.pause_enabled = false;
+        assert_eq!(decide(&settings, &full), PauseDecision::Keep);
+        assert_eq!(disk_percent(Some(50), Some(200)), Some(25.0));
+        assert_eq!(disk_percent(Some(50), None), None);
     }
 
     #[test]

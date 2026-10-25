@@ -5,6 +5,7 @@ import { Button as MantineButton } from '@mantine/core';
 import { useQueryClient } from '@tanstack/react-query';
 import classNames from 'classnames';
 import { ReactNode, useState } from 'react';
+import { useNavigate } from 'react-router';
 import { z } from 'zod';
 import { getHttpStatus, httpErrorToHuman } from '@/api/axios.ts';
 import getStore from '@/api/me/economy/getStore.ts';
@@ -22,6 +23,7 @@ import { storeCatalogEntrySchema, storeResourceSchema, userStoreSchema } from '@
 import { useResource } from '@/plugins/resource/useResource.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
+import { useGlobalStore } from '@/stores/global.ts';
 import StorePerks from './StorePerks.tsx';
 
 type Resource = z.infer<typeof storeResourceSchema>;
@@ -155,6 +157,8 @@ export default function DashboardStore() {
   const { t, language } = useTranslations();
   const { addToast } = useToast();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const partnersEnabled = useGlobalStore((state) => !!state.settings.partners?.enabled);
   const number = new Intl.NumberFormat(intlLocale(language));
 
   const store = useResource({
@@ -234,18 +238,26 @@ export default function DashboardStore() {
                 {store.rewardsUrl && <p className='theme-eco-muted'>{t(`${page}.balanceHint`, {})}</p>}
               </div>
 
-              {store.rewardsUrl && (
-                <div>
-                  <MantineButton
-                    component='a'
-                    href={store.rewardsUrl}
-                    target='_blank'
-                    rel='noopener noreferrer'
-                    variant='default'
-                    fw={600}
-                  >
-                    {t(`${page}.earnDiscordRewards`, {})}
-                  </MantineButton>
+              {(store.rewardsUrl || partnersEnabled) && (
+                <div className='flex flex-wrap gap-3'>
+                  {store.rewardsUrl && (
+                    <MantineButton
+                      component='a'
+                      href={store.rewardsUrl}
+                      target='_blank'
+                      rel='noopener noreferrer'
+                      variant='default'
+                      fw={600}
+                    >
+                      {t(`${page}.earnDiscordRewards`, {})}
+                    </MantineButton>
+                  )}
+                  {/* plugged.host: the partner program (docs/features/partners.md) */}
+                  {partnersEnabled && (
+                    <Button variant='default' onClick={() => navigate('/account/partners')}>
+                      {t('pages.account.partners.promo.open', {})}
+                    </Button>
+                  )}
                 </div>
               )}
             </section>

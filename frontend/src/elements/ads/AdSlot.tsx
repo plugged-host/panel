@@ -19,8 +19,11 @@ function useAdUnits(): Map<number, AdUnit> {
   const banners = useMemo(() => shuffled(account?.banners ?? [], pathname), [account?.banners, pathname]);
 
   return useMemo(
-    () => (shown ? allocate([...slots.values()], settings.zones, banners, settings.native) : new Map<number, AdUnit>()),
-    [shown, slots, settings?.zones, settings?.native, banners],
+    () =>
+      shown
+        ? allocate([...slots.values()], settings.zones, banners, settings.native, settings.maxUnitsPerPage)
+        : new Map<number, AdUnit>(),
+    [shown, slots, settings?.zones, settings?.native, settings?.maxUnitsPerPage, banners],
   );
 }
 

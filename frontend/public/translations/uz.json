@@ -889,7 +889,8 @@
           "discordInvite": "Discord takliflari",
           "discordInviteClawback": "Taklif krediti qaytarib olindi",
           "discordInviteDebt": "Takliflar boʻyicha kredit qarzi",
-          "discordBoost": "Discord boost"
+          "discordBoost": "Discord boost",
+          "partner": "Hamkorlik dasturi"
         }
       },
       "chartLegend": {
@@ -988,6 +989,7 @@
           "themeLight": "Yorugʻ",
           "redactAddresses": "Manzillarni yashirish",
           "resetDeviceOverrides": "Qurilmadagi alohida sozlamalarni bekor qilish ({count})",
+          "review": "{site} saytida {app} haqida sharh yozish",
           "openMenu": "Menyuni ochish"
         },
         "profileSettings": "Profil sozlamalari",
@@ -1003,6 +1005,142 @@
           "disk": "Disk",
           "openStore": "Resurslar doʻkonidan koʻproq oling",
           "openTokens": "Jetonlar sahifasini ochish"
+        }
+      },
+      "notifications": {
+        "title": "Bildirishnomalar",
+        "open": "Bildirishnomalar, {count} ta oʻqilmagan",
+        "unreadLabel": "Oʻqilmagan bildirishnoma",
+        "markAllRead": "Hammasini oʻqilgan deb belgilash",
+        "clear": "Tozalash",
+        "markRead": "Oʻqilgan deb belgilash",
+        "delete": "Bildirishnomani oʻchirish",
+        "openServer": "Serverni ochish",
+        "viewBackups": "Zaxira nusxalarni koʻrish",
+        "showMore": "Koʻproq koʻrsatish",
+        "empty": "Bildirishnomalar yoʻq",
+        "emptyHint": "Keyinroq yana tekshirib koʻring.",
+        "unknown": "Bildirishnoma",
+        "address": "Yangi manzil: {address}",
+        "reason": "Sabab: {reason}",
+        "kinds": {
+          "transferCompleted": {
+            "title": "Server koʻchirildi",
+            "body": "{server} endi {location} joylashuvida.",
+            "bodyAnywhere": "{server} endi boshqa tugunda."
+          },
+          "transferFailed": {
+            "title": "Koʻchirish amalga oshmadi",
+            "body": "{server} serverini {location} joylashuviga koʻchirib boʻlmadi. U barcha fayllari bilan joyida qoldi.",
+            "bodyAnywhere": "{server} serverini koʻchirib boʻlmadi. U barcha fayllari bilan joyida qoldi."
+          },
+          "allowanceCut": {
+            "title": "Serverlaringizda endi resurslar kamroq",
+            "body": "Hisobingiz resurslari kamaydi va serverlaringiz hisobda hozir borligidan koʻproq foydalanayotgan edi, shuning uchun farq ulardan teng ayirildi: {servers}.",
+            "cpu": "−{amount}% CPU",
+            "memory": "−{amount} RAM",
+            "disk": "−{amount} disk"
+          },
+          "membershipEnded": {
+            "title": "{membership} tugadi",
+            "body": "Premium joylashuvlardagi serverlar boshqa joylashuvga koʻchirilmoqda: {servers}. Jarayonni har bir serverning Koʻchirish sahifasida kuzating."
+          },
+          "failoverDone": {
+            "title": "Server tiklandi",
+            "body": "{server} serverining tuguni oʻchib qoldi, shuning uchun server eng soʻnggi zaxira nusxasidan soz tugunga tiklandi. Tayyor boʻlganingizda ishga tushiring.",
+            "drillTitle": "Server boshqa tugunga koʻchirildi",
+            "drillBody": "{server} tiklashni tekshirish paytida eng soʻnggi zaxira nusxasidan boshqa tugunga tiklandi. Tayyor boʻlganingizda ishga tushiring.",
+            "backup": "Fayllar {time} holatida."
+          },
+          "failoverFailed": {
+            "title": "Server tugunida muammo",
+            "body": "{server} serverining tuguni oʻchib qoldi va uni soz tugunga tiklash yakunlanmadi. Serveringiz ishlamay qolsa, qoʻllab-quvvatlash xizmatiga murojaat qiling."
+          },
+          "modpackInstalled": {
+            "title": "Modpak oʻrnatildi",
+            "body": "{name} {server} serveriga oʻrnatildi va {count} ta fayl yuklab olindi. Serverni ishga tushiring va konsolni kuzating.",
+            "skipped": "Baʼzi fayllarni yuklab boʻlmadi, ularni qoʻlda qoʻshish kerak."
+          },
+          "modpackFailed": {
+            "title": "Modpakni oʻrnatib boʻlmadi",
+            "body": "{name} modpakini {server} serveriga oʻrnatib boʻlmadi. Serverni ishga tushirishdan oldin konsol va fayllar roʻyxatini tekshiring."
+          },
+          "frameworkInstalled": {
+            "title": "{recipe} {server} serveriga oʻrnatildi",
+            "body": "U {folder} papkasida va server u bilan ishga tushmoqda."
+          },
+          "frameworkFailed": {
+            "title": "{server} serveriga {recipe} oʻrnatilmadi"
+          },
+          "worldImported": {
+            "title": "Dunyo import qilindi",
+            "body": "Yuklangan dunyo endi {server} serverining dunyosi.",
+            "kept": "Avvalgi dunyo {world} nomi bilan saqlandi."
+          },
+          "worldImportFailed": {
+            "title": "Dunyoni import qilib boʻlmadi",
+            "body": "Yuklangan dunyoni {server} serverida ochib boʻlmadi."
+          },
+          "serverInstalled": {
+            "title": "Server oʻrnatildi",
+            "body": "{server} oʻrnatildi va uni ishga tushirish mumkin."
+          },
+          "serverInstallFailed": {
+            "title": "Serverni oʻrnatib boʻlmadi",
+            "body": "{server} serverini oʻrnatib boʻlmadi. Qayta oʻrnatish uchun serverni oching."
+          },
+          "subuserAdded": {
+            "title": "Serverga qoʻshildingiz",
+            "body": "Siz {server} serveriga qoʻshimcha foydalanuvchi sifatida qoʻshildingiz."
+          },
+          "subuserRemoved": {
+            "title": "Serverdan olib tashlandingiz",
+            "body": "Siz {server} serveridan qoʻshimcha foydalanuvchi sifatida olib tashlandingiz."
+          },
+          "backupCompleted": {
+            "title": "Zaxira nusxa tayyor",
+            "body": "{server} serverining {name} zaxira nusxasi tayyor."
+          },
+          "backupFailed": {
+            "title": "Zaxira nusxa yaratilmadi",
+            "body": "{server} serverining {name} zaxira nusxasini yaratib boʻlmadi."
+          },
+          "partnerApproved": {
+            "title": "Hamkorlik tasdiqlandi",
+            "body": "{guild} endi hamkor va oyiga {credits} kredit oladi. Birinchi oy toʻlandi."
+          },
+          "partnerRejected": {
+            "title": "Hamkorlik arizasi qabul qilinmadi",
+            "body": "{guild} hamkor sifatida qabul qilinmadi."
+          },
+          "partnerRevoked": {
+            "title": "Hamkorlik tugadi",
+            "body": "{guild} bilan hamkorlik tugadi va oylik toʻlovlar toʻxtadi."
+          },
+          "partnerPaid": {
+            "title": "Hamkorlik kreditlari olindi",
+            "body": "Bu oy {guild} uchun {credits} kredit."
+          },
+          "partnerCheckFailed": {
+            "title": "Hamkorlik tekshiruvidan oʻtilmadi",
+            "body": "{guild} endi hamkorlik talablariga javob bermaydi, shuning uchun bu oydagi toʻlov kutib turibdi. {until} gacha tuzating, aks holda hamkorlik toʻxtatiladi. Nima notoʻgʻriligi Hamkorlar sahifasida koʻrsatilgan."
+          },
+          "partnerSuspended": {
+            "title": "Hamkorlik toʻxtatildi",
+            "body": "{guild} hali ham talablarga javob bermaydi, shuning uchun hamkorlik toʻxtatildi. Muammoni tuzating, soʻng Hamkorlar sahifasida Qayta tekshirish tugmasini bosing."
+          },
+          "partnerPaused": {
+            "title": "Hamkorlik toʻlovlari pauzada",
+            "body": "Administrator {guild} uchun oylik toʻlovlarni pauza qildi."
+          },
+          "partnerResumed": {
+            "title": "Hamkorlik toʻlovlari qayta boshlandi",
+            "body": "{guild} uchun oylik toʻlovlar yana davom etmoqda."
+          },
+          "partnerCreditsChanged": {
+            "title": "Hamkorlik kreditlari oʻzgardi",
+            "body": "{guild} endi oyiga {credits} kredit oladi."
+          }
         }
       },
       "welcomeTour": {
@@ -1207,7 +1345,9 @@
             },
             "reason": "Sabab: {reason}",
             "deleteAt": "Oʻchirilish sanasi: {date}. Agar muzlatish bungacha bekor qilinmasa, server fayllari bilan birga oʻchiriladi.",
-            "help": "Agar bu xato deb hisoblasangiz, panel administratorlariga murojaat qiling va server nomini koʻrsating."
+            "help": "Agar bu xato deb hisoblasangiz, panel administratorlariga murojaat qiling va server nomini koʻrsating.",
+            "helpLink": "Agar bu xato deb hisoblasangiz, yordam soʻrang va server nomini koʻrsating.",
+            "getHelp": "Yordam olish"
           },
           "contentNodeMaintenance": "Bu server hozir texnik xizmatdagi tugunda joylashgan, shu sababli unga kirib boʻlmaydi.",
           "contentTransferring": "Bu server hozir koʻchirilmoqda, koʻchirish tugamaguncha unga kirib boʻlmaydi.",
@@ -1944,6 +2084,11 @@
           },
           "emptyGroup": "Bu guruh boʻsh. Server qoʻshish uchun uni shu yerga sudrab olib keling.",
           "emptyAccess": "Sizda hech qanday serverga kirish huquqi yoʻq!",
+          "review": {
+            "title": "{app} bilan tajribangiz qanday?",
+            "body": "Boshqa oʻyinchilarga {site} saytidagi sharhda tajribangiz haqida aytib bering, yaxshimi yoki yomonmi.",
+            "write": "Sharh yozish"
+          },
           "card": {
             "cpu": "CPU",
             "memory": "RAM",
@@ -2893,6 +3038,111 @@
             "nothing": "Hammasi joyida, toʻlanadigan yangi narsa yoʻq."
           }
         },
+        "partners": {
+          "title": "Hamkorlar",
+          "closed": "Arizalar hozircha qabul qilinmayapti.",
+          "promo": {
+            "title": "Hamkorlik dasturi",
+            "text": "FiveM yoki Minecraft serveri uchun Discord hamjamiyatini boshqarasizmi? Hamkorlar har oy kredit oladi.",
+            "open": "Hamkorlik dasturini ochish"
+          },
+          "intro": {
+            "heading": "Hamkor boʻling",
+            "body": "FiveM yoki Minecraft serveri uchun kamida {members} aʼzoli Discord hamjamiyatini boshqarasizmi? {app} bilan hamkor boʻling va har oy {credits} kreditgacha ishlab oling.",
+            "review": "Har bir arizani administrator koʻrib chiqadi. Har oylik toʻlovdan oldin server qayta tekshiriladi; agar u endi talablarga javob bermasa, toʻlov kutib turadi va tuzatish uchun sizda {days} kun boʻladi.",
+            "reviewDay": "Har bir arizani administrator koʻrib chiqadi. Har oylik toʻlovdan oldin server qayta tekshiriladi; agar u endi talablarga javob bermasa, toʻlov kutib turadi va tuzatish uchun sizda {days} kun boʻladi.",
+            "reviewNow": "Har bir arizani administrator koʻrib chiqadi. Har oylik toʻlovdan oldin server qayta tekshiriladi; agar u endi talablarga javob bermasa, hamkorlik yana javob berguncha toʻxtatib qoʻyiladi."
+          },
+          "requirements": {
+            "title": "Serveringizga nima kerak",
+            "linked": "Discord hisobingiz ulangan",
+            "linkedAs": "{name} sifatida ulangan",
+            "notLinked": "Hali ulanmagan",
+            "done": "Bajarildi",
+            "link": "Discordni ulash",
+            "linkNoprofit": "Discordni noprofit.space orqali ulash",
+            "bot": "{bot} serverda",
+            "botHint": "U faqat aʼzolar sonini, rollaringizni va kanallarni oʻqiydi, shuning uchun unga hech qanday ruxsat kerak emas.",
+            "addBot": "{bot}ni qoʻshish",
+            "members": "Kamida {members} aʼzo",
+            "membersHint": "Discord hisobi boʻyicha, ariza berishda va har bir toʻlovdan oldin.",
+            "admin": "Siz server egasi yoki undagi administratorsiz",
+            "adminHint": "Ega yoki Administrator ruxsatiga ega rol.",
+            "channel": "{app} haqida kanal",
+            "channelHint": "@everyone uchun koʻrinadigan, nomida yoki mavzusida {names} boʻlgan.",
+            "channelLinkHint": "Mavzusida {links} havolasi ham boʻlishi kerak.",
+            "game": "FiveM yoki Minecraft hamjamiyati",
+            "gameHint": "Uning oʻyin serveri istalgan joyda boʻlishi mumkin. Bu paneldagilarini arizada koʻrsating."
+          },
+          "problems": {
+            "notLinked": "Avval Discord hisobingizni ulang.",
+            "invalidLink": "Discord taklif havolasi yoki server ID raqamini kiriting.",
+            "unknownInvite": "Bu taklif mavjud emas yoki muddati tugagan. Muddati hech tugamaydigan taklifdan foydalaning.",
+            "botMissing": "{bot} bu serverda yoʻq. Uni qoʻshing va qayta ariza bering.",
+            "tooFewMembers": "Bu serverda {count} aʼzo bor, kamida {members} kerak.",
+            "notAdmin": "Siz bu serverning egasi boʻlishingiz yoki unda Administrator ruxsatiga ega rolingiz boʻlishi kerak.",
+            "channelMissing": "{app} haqida kanal topilmadi: uning nomi yoki mavzusida {app} boʻlishi va u @everyone uchun koʻrinishi kerak.",
+            "channelHidden": "{channel} @everyone uchun yashirilgan. Serverdagi hamma uni koʻra olishi kerak.",
+            "channelLink": "{channel} mavzusida {links} havolasi boʻlishi kerak.",
+            "pending": "Sizda koʻrib chiqilishini kutayotgan ariza allaqachon bor.",
+            "taken": "Bu server allaqachon hamkor yoki uning kutilayotgan arizasi bor.",
+            "cooldown": "Oxirgi arizangiz qabul qilinmadi. {date} kuni qayta ariza berishingiz mumkin."
+          },
+          "form": {
+            "title": "Ariza berish",
+            "server": "Discord serveri",
+            "serverHint": "Muddati hech tugamaydigan taklif havolasi yoki server ID raqami.",
+            "game": "Oʻyin",
+            "description": "Hamjamiyatingiz haqida",
+            "descriptionHint": "U nima oʻynaydi, qanchalik faol va uni nima alohida qiladi. 20 dan 1000 gacha belgi.",
+            "servers": "Bu paneldagi serverlar",
+            "serversHint": "Ixtiyoriy: hamjamiyat oʻynaydigan, bu yerdagi 10 tagacha serveringiz.",
+            "submit": "Arizani yuborish",
+            "sent": "Ariza yuborildi. Qaror qabul qilinganda bildirishnoma olasiz."
+          },
+          "games": {
+            "fivem": "FiveM",
+            "minecraft": "Minecraft",
+            "both": "FiveM va Minecraft"
+          },
+          "refusal": {
+            "title": "Server hali talablarga javob bermaydi",
+            "titleServer": "{server} hali talablarga javob bermaydi"
+          },
+          "status": {
+            "pending": "Koʻrib chiqilishini kutmoqda",
+            "approved": "Hamkor",
+            "paused": "Pauzada",
+            "suspended": "Toʻxtatilgan",
+            "rejected": "Qabul qilinmagan",
+            "revoked": "Tugagan",
+            "withdrawn": "Qaytarib olingan"
+          },
+          "partnership": {
+            "monthly": "Oyiga {credits} kredit",
+            "nextPayment": "Keyingi toʻlov: {date}",
+            "paused": "Administrator toʻlovlarni pauza qildi.",
+            "pausedReason": "Administrator toʻlovlarni pauza qildi: {reason}",
+            "failing": "Oxirgi tekshiruvdan oʻtilmadi, shuning uchun bu oydagi toʻlov kutib turibdi. {date} gacha tuzating, aks holda hamkorlik toʻxtatiladi.",
+            "suspended": "Server endi talablarga javob bermagani uchun hamkorlik toʻxtatilgan. Toʻlovlar davom etishi uchun muammoni tuzating va qayta tekshiring.",
+            "check": "Qayta tekshirish",
+            "checkPassed": "Server talablarga javob beradi.",
+            "checkFailed": "Server hali talablarga javob bermaydi.",
+            "payments": "Toʻlovlar",
+            "paidTotal": "Jami {credits} kredit olindi",
+            "paymentsEmpty": "Hali toʻlovlar yoʻq."
+          },
+          "pending": {
+            "title": "Arizangiz koʻrib chiqilmoqda",
+            "body": "Administrator {server} ni koʻrib chiqib qaror qiladi. Bildirishnoma olasiz.",
+            "withdraw": "Arizani qaytarib olish",
+            "withdrawn": "Ariza qaytarib olindi."
+          },
+          "history": {
+            "title": "Oldingi arizalar",
+            "reason": "Sabab: {reason}"
+          }
+        },
         "devboxOpen": {
           "title": "VS Code",
           "opening": "devbox ochilmoqda…",
@@ -2960,6 +3210,17 @@
             "installing": "Serveringiz hozir oʻrnatilmoqda. Iltimos, kuting...",
             "pendingRestart": "Serveringizda qayta ishga tushirishni talab qiladigan oʻzgarishlar bor. Bu oʻzgarishlarni qoʻllash uchun, iltimos, serveringizni qayta ishga tushiring."
           },
+          "installStuck": {
+            "content": "Bu kerakligidan ancha uzoq davom etmoqda, demak oʻrnatish qotib qolgan boʻlishi mumkin. Uni qaytadan boshlashingiz yoki serverni oʻchirishingiz mumkin.",
+            "reinstall": {
+              "button": "Qayta oʻrnatish",
+              "title": "Oʻrnatish qaytadan boshlansinmi?",
+              "content": "Oʻrnatish boshidan qayta ishlaydi. Oʻrnatish allaqachon yozgan fayllar almashtirilishi mumkin."
+            },
+            "toast": {
+              "reinstalling": "Oʻrnatish qaytadan boshlandi."
+            }
+          },
           "message": {
             "serverMarkedAs": "Server holati: {state}...",
             "installFailed": "Oʻrnatish amalga oshmadi.",
@@ -3025,6 +3286,13 @@
               "button": {
                 "update": "Docker obrazini yangilash"
               }
+            },
+            "pidLimit": {
+              "titleAdmin": "Xotira yoki jarayonlar chegarasiga yetildi",
+              "titleUser": "Resurslar chegarasiga yetilgan boʻlishi mumkin",
+              "contentAdmin": "Bu server jarayonlar yoki xotiraning eng yuqori chegarasiga yetdi. Wings sozlamalarida, `config.yml`, `docker` ostidagi `container_pid_limit` qiymatini oshirish yordam berishi mumkin.",
+              "contentAdminRestart": "**Oʻzgarish kuchga kirishi uchun Wings qayta ishga tushirilishi kerak.**",
+              "contentUser": "Bu server oʻzida bor resurslardan koʻproq foydalanishga urinmoqda. Iltimos, administratorga murojaat qiling va unga quyidagi xatoni yetkazing."
             }
           },
           "details": {
@@ -5035,7 +5303,8 @@
             "title": "Ajratmalar"
           },
           "tooltip": {
-            "limitReached": "Bu serverda koʻpi bilan {max} ta ajratma boʻlishi mumkin."
+            "limitReached": "Bu serverda koʻpi bilan {max} ta ajratma boʻlishi mumkin.",
+            "locked": "Qulflangan: uni faqat administrator olib tashlay oladi."
           },
           "table": {
             "columns": {
@@ -5055,7 +5324,8 @@
               "title": "Ajratmalarni olib tashlashni tasdiqlash",
               "content": "Haqiqatan ham bu serverdan **{allocations}** olib tashlansinmi?",
               "alert": {
-                "skipped": "{allocations} oʻtkazib yuboriladi. Asosiy ajratmani olib tashlab boʻlmaydi."
+                "skipped": "{allocations} oʻtkazib yuboriladi. Asosiy ajratmani olib tashlab boʻlmaydi.",
+                "skippedLocked": "{allocations} oʻtkazib yuboriladi. Asosiy ajratmani va qulflangan ajratmalarni olib tashlab boʻlmaydi."
               }
             },
             "removeAllocation": {
@@ -5642,6 +5912,7 @@
           "title": "Server uyqu rejimida",
           "body": "Bu server bir muddat harakatsiz turdi, shuning uchun resurslarni boʻshatish maqsadida uyqu rejimiga oʻtkazildi. Uni qayta onlayn qilish uchun tiklang.",
           "entered": "Uyqu rejimiga oʻtkazilgan: {time}",
+          "deletesAt": "U {time} fayllari bilan birga oʻchiriladi, agar undan oldin uni tiklamasangiz.",
           "failed": "Oxirgi tiklash amalga oshmadi: {error}",
           "costLabel": "Tiklash narxi",
           "balanceLabel": "Balansingiz",
@@ -5748,7 +6019,9 @@
           "reasons": {
             "noNode": "boʻsh joyi bor tugun topilmadi",
             "copyFailed": "nusxalash uzilib qoldi",
-            "skippedMoved": "server bu orada koʻchirilgan edi"
+            "skippedMoved": "server bu orada koʻchirilgan edi",
+            "stalled": "nusxalash oldinga siljimadi",
+            "unfinalized": "yangi tugun nusxani tasdiqlamadi"
           },
           "events": {
             "requested": "{location} joylashuviga koʻchirish soʻraldi",
@@ -5902,10 +6175,16 @@
             "propertiesNote": "Izohlar, kalitlar tartibi va bu yerda koʻrsatilmagan kalitlar oʻzgarishsiz qoladi. Portlar va RCON paroli panel tomonidan belgilanadi.",
             "yamlNote": "Izohlar va fayldagi boshqa hamma narsa oʻzgarishsiz qoladi. Roʻyxatlar va bir necha qatorli qiymatlar bu yerda koʻrsatilmaydi: ular uchun faylni matn sifatida tahrirlang.",
             "button": {
-              "editText": "Matn sifatida tahrirlash"
+              "editText": "Matn sifatida tahrirlash",
+              "restart": "Serverni qayta ishga tushirish"
             },
             "toast": {
-              "saved": "{file} fayli saqlandi ({count} ta oʻzgarish). Oʻzgarishlarni qoʻllash uchun serverni qayta ishga tushiring."
+              "saved": "{file} fayli saqlandi ({count} ta oʻzgarish). Oʻzgarishlarni qoʻllash uchun serverni qayta ishga tushiring.",
+              "restarting": "Server qayta ishga tushirilmoqda"
+            },
+            "restart": {
+              "title": "Server hozir qayta ishga tushirilsinmi?",
+              "description": "Server saqlangan sozlamalarni oʻqishi uchun toʻxtab, qayta ishga tushadi. Qayta ishga tushish vaqtida oʻynayotgan hamma uziladi."
             }
           },
           "players": {
@@ -5923,6 +6202,8 @@
             "emptyHeading": "Hali oʻyinchilar yoʻq",
             "emptyBody": "Bu serverda oq roʻyxatda ham, operator sifatida ham hech kim yoʻq. Boshlash uchun oʻyinchi qoʻshing.",
             "noMatch": "Bu qidiruvga mos oʻyinchi yoʻq.",
+            "unnamed": "Ismi hali nomaʼlum",
+            "lastPlayed": "Oxirgi marta oʻynagan {date}",
             "table": {
               "player": "Oʻyinchi",
               "whitelisted": "Oq roʻyxatda",
@@ -5931,7 +6212,8 @@
             },
             "badge": {
               "operator": "{level}-daraja",
-              "banned": "Bloklangan"
+              "banned": "Bloklangan",
+              "online": "Onlayn"
             },
             "button": {
               "refresh": "Qayta yuklash",
@@ -5985,6 +6267,140 @@
               "enforcedOn": "Oq roʻyxat yoqildi.",
               "enforcedOff": "Oq roʻyxat oʻchirildi.",
               "atNextStart": "Server fayllariga saqlandi - bu server keyingi safar ishga tushganda qoʻllanadi."
+            },
+            "details": {
+              "back": "Barcha oʻyinchilar",
+              "online": "Onlayn",
+              "offline": "Oflayn",
+              "bedrock": "Bedrock",
+              "copyUuid": "UUID nusxasini olish",
+              "saved": "Oxirgi saqlangan {date}",
+              "savedNote": "Oxirgi saqlashdagi holati koʻrsatilgan. Ishlab turgan server oʻyinchilarini har bir necha daqiqada va ular chiqib ketganda saqlaydi.",
+              "noData": "Bu oʻyinchi uchun hali hech narsa saqlanmagan. U oʻynab, server saqlaganidan keyin tafsilotlar shu yerda chiqadi.",
+              "damaged": "Oʻyinchi maʼlumotlari fayli oʻqilmadi. Minecraft uning oldingi versiyasiga qaytadi yoki oʻyinchini paydo boʻlish nuqtasida qaytadan boshlaydi.",
+              "gameMode": "Oʻyin rejimi",
+              "gameModes": {
+                "survival": "Omon qolish",
+                "creative": "Ijodkorlik",
+                "adventure": "Sarguzasht",
+                "spectator": "Tomoshabin"
+              },
+              "reason": {
+                "notRunning": "Buni qilish uchun serverni ishga tushiring.",
+                "notOnline": "Oʻyinchi onlayn emas.",
+                "noConsole": "Buning uchun konsolga kirish huquqi kerak.",
+                "stopFirst": "Saqlangan maʼlumotlarni oʻzgartirish uchun serverni toʻxtating.",
+                "noFiles": "Buning uchun fayllarni oʻzgartirish huquqi kerak."
+              },
+              "vitals": {
+                "title": "Sogʻliq va tajriba",
+                "health": "Sogʻliq",
+                "food": "Ovqat",
+                "level": "{level}-daraja",
+                "points": "Jami {points} ochko",
+                "heal": "Davolash",
+                "feed": "Ovqatlantirish",
+                "kill": "Oʻldirish",
+                "killTitle": "{name} oʻldirilsinmi?",
+                "killContent": "Oʻyinchi oʻyinda oʻladi va keepInventory yoqilmagan boʻlsa, koʻtarib yurgan narsalarini tushirib yuboradi."
+              },
+              "access": {
+                "title": "Kirish",
+                "whitelisted": "Oq roʻyxatda",
+                "operator": "Operator",
+                "banned": "Bloklangan",
+                "unnamed": "Roʻyxatlarga oʻyinchining ismi kerak, server esa uni hali bilmaydi."
+              },
+              "inventory": {
+                "title": "Inventar",
+                "equipment": "Zirh va ikkinchi qoʻl",
+                "main": "Inventar",
+                "hotbar": "Tezkor panel",
+                "enderChest": "Ender sandigʻi"
+              },
+              "position": {
+                "title": "Joylashuv",
+                "coordinates": "Koordinatalar",
+                "dimension": "Olam",
+                "respawn": "Qayta tugʻilish nuqtasi",
+                "lastDeath": "Oxirgi oʻlim",
+                "unknown": "Belgilanmagan",
+                "teleport": "Teleport qilish",
+                "overworld": "Yer usti dunyosi",
+                "nether": "Nether",
+                "end": "The End"
+              },
+              "teleport": {
+                "title": "Teleport qilish: {name}",
+                "coordinates": "Koordinatalar",
+                "spawn": "Dunyoning paydo boʻlish nuqtasi",
+                "player": "Oʻyinchi oldiga",
+                "current": "Hozir turgan olami",
+                "target": "Oʻyinchi",
+                "noTargets": "Teleport qilish mumkin boʻlgan boshqa oʻyinchi yoʻq.",
+                "spawnHint": "Server yuklaydigan dunyoning paydo boʻlish nuqtasi.",
+                "live": "Oʻyinchi darhol koʻchiriladi.",
+                "file": "Server toʻxtatilgan: saqlangan joylashuvi oʻzgaradi va u keyingi safar kirganda oʻsha yerda paydo boʻladi.",
+                "submit": "Teleport qilish"
+              },
+              "stats": {
+                "title": "Statistika",
+                "empty": "Hali statistika saqlanmagan.",
+                "playTime": "Oʻyin vaqti",
+                "playerKills": "Oʻldirilgan oʻyinchilar",
+                "mobKills": "Oʻldirilgan maxluqlar",
+                "deaths": "Oʻlimlar",
+                "kdr": "Har bir oʻlimga oʻldirishlar",
+                "distance": "Bosib oʻtilgan masofa",
+                "blocks": "{count} blok",
+                "mined": "Qazilgan bloklar",
+                "used": "Ishlatilgan buyumlar",
+                "killed": "Oʻldirilgan maxluqlar",
+                "nothing": "Hali yoʻq",
+                "ways": {
+                  "walk": "Piyoda",
+                  "sprint": "Yugurib",
+                  "crouch": "Engashib",
+                  "swim": "Suzib",
+                  "fall": "Yiqilib",
+                  "climb": "Tirmashib",
+                  "fly": "Uchib",
+                  "aviate": "Elitrada sirpanib",
+                  "boat": "Qayiqda",
+                  "minecart": "Vagonetkada",
+                  "horse": "Otda",
+                  "pig": "Choʻchqada",
+                  "strider": "Striderda",
+                  "walkOnWater": "Suv ustida yurib",
+                  "walkUnderWater": "Suv ostida yurib"
+                }
+              },
+              "remove": {
+                "title": "Oʻyinchi maʼlumotlarini oʻchirish",
+                "description": "Faqat server toʻxtatilganda. Nima oʻchirilishini belgilang.",
+                "xp": "Tajriba",
+                "inventory": "Inventar va zirh",
+                "enderChest": "Ender sandigʻi",
+                "playerData": "Oʻyinchi maʼlumotlari fayli",
+                "playerDataHint": "Server u haqida saqlagan hamma narsa: u paydo boʻlish nuqtasida qaytadan boshlaydi.",
+                "statistics": "Statistika",
+                "advancements": "Yutuqlar",
+                "missing": "Hech narsa saqlanmagan",
+                "submit": "Oʻchirish",
+                "confirmTitle": "{name}: tanlangan maʼlumotlar oʻchirilsinmi?",
+                "edited": "Oʻyinchi maʼlumotlari fayli qayta yoziladi; oldingi versiyasi yonida {file} sifatida qoladi.",
+                "trash": "Oʻchirilgan fayllar savatga tushadi.",
+                "gone": "Oʻchirilgan fayllarni qaytarib boʻlmaydi."
+              },
+              "toast": {
+                "healed": "{name} davolandi.",
+                "fed": "{name} ovqatlantirildi.",
+                "killed": "{name} oʻldirildi.",
+                "gameMode": "{name} endi {mode} rejimida oʻynaydi.",
+                "teleported": "{name} teleport qilindi.",
+                "nextJoin": "Uning fayliga saqlandi - keyingi safar kirganda qoʻllanadi.",
+                "deleted": "{name}: tanlangan maʼlumotlar oʻchirildi."
+              }
             }
           },
           "worlds": {
@@ -6698,9 +7114,12 @@
         "chat": {
           "title": "Suhbat",
           "empty": "Hozircha xabar yo‘q. Salomlashing.",
+          "emptyReadOnly": "Hozircha xabar yo‘q.",
           "placeholder": "Xabar yozing…",
           "loadOlder": "Eski xabarlarni yuklash",
-          "deletedUser": "O'chirilgan foydalanuvchi"
+          "deletedUser": "O'chirilgan foydalanuvchi",
+          "newMessages": "Yangi xabarlar",
+          "readOnly": "Siz bu suhbatni o‘qiy olasiz, lekin unga yoza olmaysiz."
         }
       }
     }

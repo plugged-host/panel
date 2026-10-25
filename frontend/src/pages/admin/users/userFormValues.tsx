@@ -45,6 +45,7 @@ interface UserFormFieldsOptions {
   languages: string[];
   roles: ReturnType<typeof useSearchableResource<z.infer<typeof roleSchema>>>;
   canReadRoles: boolean;
+  identityLocked?: boolean; // plugged.host: username and email are noprofit.space's
 }
 
 export function useUserFormFields({
@@ -54,8 +55,13 @@ export function useUserFormFields({
   languages,
   roles,
   canReadRoles,
+  identityLocked = false, // plugged.host
 }: UserFormFieldsOptions): FieldDef<UserFormValues>[] {
   const { t } = useTranslations();
+  // plugged.host: why the username and email of a noprofit.space account cannot be changed here
+  const lockedDescription = identityLocked
+    ? t('pages.admin.users.tabs.general.page.form.identityLocked', {})
+    : undefined;
 
   return [
     {
@@ -64,14 +70,20 @@ export function useUserFormFields({
       label: t('common.table.columns.username', {}),
       tooltip: t('common.form.rule.username', {}),
       required: true,
-      props: ignorePasswordManagerProps,
+      description: lockedDescription, // plugged.host
+      props: { disabled: identityLocked, ...ignorePasswordManagerProps }, // plugged.host: disabled
     },
     {
       type: 'text',
       name: 'email',
       label: t('common.form.email', {}),
       required: true,
-      props: { type: 'email', disabled: !isRootAdmin && editingOtherUser, ...ignorePasswordManagerProps },
+      description: lockedDescription, // plugged.host
+      props: {
+        type: 'email',
+        disabled: (!isRootAdmin && editingOtherUser) || identityLocked, // plugged.host: identityLocked
+        ...ignorePasswordManagerProps,
+      },
     },
     { type: 'text', name: 'nameFirst', label: t('common.form.firstName', {}) },
     { type: 'text', name: 'nameLast', label: t('common.form.lastName', {}) },

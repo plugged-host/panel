@@ -32,6 +32,14 @@ export const adminFullUserSchema = z.lazy(() =>
     requireEmailVerification: z.boolean(),
     passwordLoginDisabled: z.boolean(),
     hasPassword: z.boolean(),
+    // plugged.host: the noprofit.space and Discord accounts it is linked to (shared/src/user_links.rs)
+    links: z
+      .object({
+        noprofit: z.boolean(),
+        discord: z.object({ id: z.string(), username: z.string().nullable() }).nullable(),
+      })
+      .nullable()
+      .default(null),
   }),
 );
 

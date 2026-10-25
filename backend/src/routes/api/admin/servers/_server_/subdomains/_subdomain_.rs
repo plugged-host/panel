@@ -54,13 +54,9 @@ mod delete {
                 .ok();
         };
 
-        let refunded = shared::subdomains::delete(
-            &state,
-            &subdomain,
-            Service::of_features(&server.egg.features),
-        )
-        .await?
-        .unwrap_or_default();
+        let refunded = shared::subdomains::delete(&state, &subdomain, Service::of_egg(&server.egg))
+            .await?
+            .unwrap_or_default();
 
         activity_logger
             .log(

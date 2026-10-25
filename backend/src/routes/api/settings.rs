@@ -101,6 +101,16 @@ mod get {
         enabled: bool,
     }
 
+    /// plugged.host: where players are asked for a review (docs/features/reviews.md); an empty
+    /// `url` turns the prompt and the link off.
+    #[derive(ToSchema, Serialize)]
+    struct ResponseReviews<'a> {
+        url: &'a str,
+        site: compact_str::CompactString,
+        delay_days: i32,
+        interval_days: i32,
+    }
+
     /// plugged.host: which parts of the economy players see (docs/features/economy.md).
     #[derive(ToSchema, Serialize)]
     struct ResponseEconomy<'a> {
@@ -126,6 +136,14 @@ mod get {
         invite_url: &'a str,
     }
 
+    /// plugged.host: Account › Partners (docs/features/partners.md): shown while the program is
+    /// on, the form open while the bot and credits are set up too.
+    #[derive(ToSchema, Serialize)]
+    struct ResponsePartners {
+        enabled: bool,
+        open: bool,
+    }
+
     #[derive(ToSchema, Serialize)]
     struct Response<'a> {
         time: chrono::DateTime<chrono::Utc>,
@@ -149,6 +167,8 @@ mod get {
         #[schema(inline)]
         tour: ResponseTour, // plugged.host
         #[schema(inline)]
+        reviews: ResponseReviews<'a>, // plugged.host
+        #[schema(inline)]
         economy: ResponseEconomy<'a>, // plugged.host
         #[schema(inline)]
         discord: ResponseDiscord<'a>, // plugged.host
@@ -156,6 +176,8 @@ mod get {
         ads: shared::ads::ApiAdsSettings, // plugged.host
         #[schema(inline)]
         neo: ResponseNeo, // plugged.host
+        #[schema(inline)]
+        partners: ResponsePartners, // plugged.host
     }
 
     #[utoipa::path(get, path = "/", responses(
@@ -255,6 +277,12 @@ mod get {
             tour: ResponseTour {
                 enabled: settings.tour.enabled,
             },
+            reviews: ResponseReviews {
+                url: &settings.reviews.url,
+                site: settings.reviews.site_name(),
+                delay_days: settings.reviews.delay_days,
+                interval_days: settings.reviews.interval_days,
+            },
             economy: ResponseEconomy {
                 credits_enabled: settings.economy.credits_enabled,
                 tokens_enabled: settings.economy.tokens_enabled,
@@ -270,6 +298,10 @@ mod get {
             ads: shared::ads::ApiAdsSettings::new(&settings.ads),
             neo: ResponseNeo {
                 enabled: shared::neo::offered(&settings),
+            },
+            partners: ResponsePartners {
+                enabled: settings.partners.enabled,
+                open: shared::partners::offered(&settings),
             },
         })
         .ok()

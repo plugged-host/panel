@@ -11,6 +11,8 @@ pub mod log_check;
 pub mod modpacks;
 pub mod modrinth;
 pub mod onboarding;
+pub mod player_data;
+pub mod player_images;
 pub mod players;
 pub mod spigot;
 pub mod versions;
@@ -30,12 +32,57 @@ const TTL: u64 = 3600;
 const SEARCH_TTL: u64 = 300;
 const TIMEOUT: std::time::Duration = std::time::Duration::from_secs(8);
 
-/// Whether the egg runs Minecraft: Java Edition, decided like upstream's EULA prompt: by the
-/// egg's `eula` feature.
+/// The file a Minecraft server keeps its settings in; a proxy (Velocity, BungeeCord) has none.
+pub const PROPERTIES_FILE: &str = "server.properties";
+
+/// What kind of Minecraft an egg runs (docs/features/minecraft.md#which-servers).
+#[derive(ToSchema, Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub enum Edition {
+    /// A Java Edition game server: upstream's `eula` feature and a `server.properties` the egg
+    /// configures. The Minecraft pages, Minecraft subdomains and the log check.
+    Java,
+    /// A Java Edition proxy (Velocity, BungeeCord): `eula` without a `server.properties`. No
+    /// worlds, players or plugins of its own to manage: the log check only.
+    Proxy,
+    /// Bedrock Edition: a `server.properties` without `eula`. The log check only.
+    Bedrock,
+}
+
+impl Edition {
+    /// From an egg's features and the files it configures; `None` for anything but Minecraft.
+    pub fn of<'a>(
+        features: &[compact_str::CompactString],
+        config_files: impl IntoIterator<Item = &'a str>,
+    ) -> Option<Self> {
+        let eula = features
+            .iter()
+            .any(|feature| feature == crate::server_creation::EULA_FEATURE);
+        let properties = config_files
+            .into_iter()
+            .any(|file| file.trim_start_matches(['/', '.']) == PROPERTIES_FILE);
+
+        match (eula, properties) {
+            (true, true) => Some(Self::Java),
+            (true, false) => Some(Self::Proxy),
+            (false, true) => Some(Self::Bedrock),
+            (false, false) => None,
+        }
+    }
+
+    pub fn of_egg(egg: &NestEgg) -> Option<Self> {
+        Self::of(
+            &egg.features,
+            egg.config_files.iter().map(|file| file.file.as_str()),
+        )
+    }
+}
+
+/// Whether the egg runs a Minecraft: Java Edition game server, the one kind the Minecraft pages
+/// work on: upstream's `eula` feature (its EULA prompt) and a `server.properties`. Velocity, which
+/// carries `eula` too, is a proxy and gets no pages, as on the Pelican panel.
 pub fn is_minecraft(egg: &NestEgg) -> bool {
-    egg.features
-        .iter()
-        .any(|feature| feature == crate::server_creation::EULA_FEATURE)
+    Edition::of_egg(egg) == Some(Edition::Java)
 }
 
 /// Refuses the Minecraft pages for a server whose egg is not Minecraft's.
@@ -43,11 +90,22 @@ pub fn require(server: &Server) -> Result<(), crate::response::ApiResponse> {
     if is_minecraft(&server.egg) {
         Ok(())
     } else {
-        Err(
-            crate::response::ApiResponse::error("this server does not run minecraft")
-                .with_status(axum::http::StatusCode::NOT_FOUND),
-        )
+        Err(not_minecraft())
     }
+}
+
+/// Refuses what every edition has (the log check) for a server whose egg runs no Minecraft at all.
+pub fn require_any(server: &Server) -> Result<(), crate::response::ApiResponse> {
+    if Edition::of_egg(&server.egg).is_some() {
+        Ok(())
+    } else {
+        Err(not_minecraft())
+    }
+}
+
+fn not_minecraft() -> crate::response::ApiResponse {
+    crate::response::ApiResponse::error("this server does not run minecraft")
+        .with_status(axum::http::StatusCode::NOT_FOUND)
 }
 
 /// The software families content is made for.
@@ -396,6 +454,43 @@ pub fn plain_file_name(name: &str) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn editions_come_from_the_eula_feature_and_server_properties() {
+        let features = |names: &[&str]| -> Vec<compact_str::CompactString> {
+            names.iter().map(|name| (*name).into()).collect()
+        };
+
+        // the Java egg, Velocity and Vanilla Bedrock as docs/eggs ships them
+        assert_eq!(
+            Edition::of(
+                &features(&["eula", "java_version", "pid_limit"]),
+                ["server.properties"]
+            ),
+            Some(Edition::Java)
+        );
+        assert_eq!(
+            Edition::of(
+                &features(&["eula", "java_version", "pid_limit"]),
+                ["velocity.toml"]
+            ),
+            Some(Edition::Proxy)
+        );
+        assert_eq!(
+            Edition::of(&features(&["pid_limit"]), ["server.properties"]),
+            Some(Edition::Bedrock)
+        );
+        assert_eq!(
+            Edition::of(&features(&["eula"]), ["/server.properties", "config.yml"]),
+            Some(Edition::Java)
+        );
+        assert_eq!(Edition::of(&features(&["eula"]), []), Some(Edition::Proxy));
+        assert_eq!(Edition::of(&features(&["cfx"]), ["server.cfg"]), None);
+        assert_eq!(
+            Edition::of(&features(&[]), ["plugins/server.properties"]),
+            None
+        );
+    }
 
     #[test]
     fn loaders_come_from_values_and_names() {

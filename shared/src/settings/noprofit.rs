@@ -31,6 +31,9 @@ pub struct AppSettingsNoprofit {
     pub admins_only: bool,
     /// A first sign-in takes over the panel user with the same email.
     pub link_by_email: bool,
+    /// Days after noprofit.space was found to no longer have an account until its panel user and
+    /// servers are deleted (suspended meanwhile); 0 never deletes them.
+    pub deleted_account_days: i32,
 
     /// The secret the sign-in tokens are signed with (at least 32 characters).
     #[serde(serialize_with = "serialize_secret")]
@@ -47,6 +50,10 @@ pub struct AppSettingsNoprofit {
     #[schema(value_type = Option<String>)]
     pub neo_secret: Option<compact_str::CompactString>,
 }
+
+/// Days until the user and servers of an account noprofit.space no longer has are deleted.
+pub const DEFAULT_DELETED_ACCOUNT_DAYS: i32 = 7;
+pub const MAX_DELETED_ACCOUNT_DAYS: i32 = 365;
 
 /// A set secret is shown as [`crate::censor::CENSORED_PLACEHOLDER`], an unset one as `null`.
 pub(crate) fn serialize_secret<S: Serializer>(
@@ -109,7 +116,11 @@ impl SettingsSerializeExt for AppSettingsNoprofit {
                 self.sso_callback_url.clone().unwrap_or_default(),
             )
             .write_raw_setting("admins_only", self.admins_only.to_compact_string())
-            .write_raw_setting("link_by_email", self.link_by_email.to_compact_string());
+            .write_raw_setting("link_by_email", self.link_by_email.to_compact_string())
+            .write_raw_setting(
+                "deleted_account_days",
+                self.deleted_account_days.to_compact_string(),
+            );
 
         // An unset secret is stored empty, so the environment no longer fills it in.
         for (key, secret) in [
@@ -191,6 +202,12 @@ impl SettingsDeserializeExt for AppSettingsNoprofitDeserializer {
                 .map(|s| s == "true")
                 .or_else(|| env_flag("NOPROFIT_LINK_BY_EMAIL"))
                 .unwrap_or(true),
+            deleted_account_days: deserializer
+                .take_raw_setting("deleted_account_days")
+                .and_then(|s| s.parse::<i32>().ok())
+                .map_or(DEFAULT_DELETED_ACCOUNT_DAYS, |days| {
+                    days.clamp(0, MAX_DELETED_ACCOUNT_DAYS)
+                }),
             sso_secret: sso_secret.and_then(|s| s.into_optional()),
             api_secret: api_secret.and_then(|s| s.into_optional()),
             neo_secret: neo_secret.and_then(|s| s.into_optional()),

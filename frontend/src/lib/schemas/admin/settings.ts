@@ -329,6 +329,7 @@ export const adminSettingsNoprofitSchema = z.object({
   ),
   adminsOnly: z.boolean(),
   linkByEmail: z.boolean(),
+  deletedAccountDays: z.number().int().min(0).max(365),
   ssoSecret: z.string().max(512).nullable(),
   apiSecret: z.string().max(512).nullable(),
   neoSecret: z.string().max(512).nullable(),
@@ -409,6 +410,8 @@ export const adminSettingsGamesSchema = z.object({
   transferCooldownHours: z.number().int().min(0).max(720),
   transferAttempts: z.number().int().min(1).max(5),
   transferParallel: z.number().int().min(1).max(10),
+  transferStallMinutes: z.number().int().min(2).max(120),
+  transferFinalizeMinutes: z.number().int().min(5).max(240),
   maxServers: z.number().int().min(0).max(1000),
   allowanceCpu: z.number().int().min(0),
   allowanceMemory: z.number().int().min(0),
@@ -766,6 +769,12 @@ export const adminSettingsPlacementSchema = z.object({
   smallMemoryGb: z.number().int().min(0).max(4096),
   smallThreads: z.number().int().min(0).max(1024),
   unreachableAfter: z.number().int().min(1).max(60),
+  diskPercent: z.number().int().min(0).max(100),
+  // ranges and single ports from 1024 up, comma separated (shared/src/allocations.rs)
+  portRanges: z
+    .string()
+    .trim()
+    .regex(/^\d{4,5}(-\d{4,5})?(\s*,\s*\d{4,5}(-\d{4,5})?)*$/),
 });
 
 // plugged.host: the start queue (shared/src/settings/queue.rs, docs/features/start-queue.md)
@@ -773,9 +782,11 @@ export const adminSettingsQueueSchema = z.object({
   enabled: z.boolean(),
   includeRestart: z.boolean(),
   linePercent: z.number().int().min(1).max(100),
+  minWait: z.number().int().min(0).max(300),
   maxWait: z.number().int().min(30).max(86400),
   releaseInterval: z.number().int().min(0).max(3600),
   passMinutes: z.number().int().min(0).max(1440),
+  exemptRoles: z.array(z.string()).max(100),
   moveOffer: z.boolean(),
   moveRequiresMembership: z.boolean(),
   moveMaxDisk: z.number().int().min(0).max(1048576),
@@ -791,6 +802,7 @@ export const adminSettingsLimboSchema = z.object({
   costLate: z.number().int().min(0).max(100000),
   costWindowHours: z.number().int().min(0).max(8760),
   exemptMembers: z.boolean(),
+  deleteAfterDays: z.number().int().min(0).max(3650),
 });
 
 // plugged.host: ads, the waiting room, the ad-block notice, in-game messages (shared/src/settings/ads.rs, docs/features/ads.md)
@@ -803,6 +815,7 @@ export const adminSettingsAdsSchema = z.object({
   slotServerTools: z.boolean(),
   slotPages: z.boolean(),
   slotFoot: z.boolean(),
+  maxUnitsPerPage: z.number().int().min(0).max(20),
   refreshSeconds: z.number().int().min(0).max(3600),
   refreshMemberSeconds: z.number().int().min(0).max(3600),
   zones: z.string().max(20000),
@@ -849,7 +862,7 @@ export const adminSettingsAdsSchema = z.object({
 // plugged.host: deleted servers' copies and node failover (shared/src/settings/recovery.rs, docs/features/backups-page.md, failover.md)
 export const adminSettingsRecoverySchema = z.object({
   deletedHoldDays: z.number().int().min(0).max(90),
-  failoverMode: z.enum(['off', 'manual', 'auto']),
+  failoverMode: z.enum(['off', 'manual', 'notify', 'auto']),
   failoverAfter: z.number().int().min(3).max(1440),
   failoverParallel: z.number().int().min(1).max(20),
 });
@@ -935,6 +948,31 @@ export const adminSettingsTourSchema = z.object({
   version: z.number().int().min(1).max(1000),
 });
 
+// plugged.host: asking players for a review (shared/src/settings/reviews.rs, docs/features/reviews.md)
+export const adminSettingsReviewsSchema = z.object({
+  url: z.union([z.literal(''), z.url({ protocol: /^https$/ }).max(512)]),
+  site: z.string().max(64),
+  delayDays: z.number().int().min(0).max(365),
+  intervalDays: z.number().int().min(0).max(3650),
+});
+
+// plugged.host: the partner program (shared/src/settings/partners.rs, docs/features/partners.md)
+export const adminSettingsPartnersSchema = z
+  .object({
+    enabled: z.boolean(),
+    minMembers: z.number().int().min(1).max(10_000_000),
+    minCredits: z.number().int().min(0).max(10_000_000),
+    maxCredits: z.number().int().min(0).max(10_000_000),
+    cooldownDays: z.number().int().min(0).max(365),
+    graceDays: z.number().int().min(0).max(60),
+    channelRequired: z.boolean(),
+    channelNames: z.string().max(500),
+    channelLinks: z.string().max(500),
+    neoAssessment: z.boolean(),
+    guidance: z.string().max(2000),
+  })
+  .refine((values) => values.minCredits <= values.maxCredits, { path: ['minCredits'] });
+
 // plugged.host: neo on Discord (shared/src/settings/neo_discord.rs, docs/features/neo-discord.md)
 export const adminSettingsNeoDiscordSchema = z.object({
   nameCalls: z.boolean(),
@@ -971,6 +1009,8 @@ export const adminSettingsSchema = z.object({
   games: adminSettingsGamesStoreSchema, // plugged.host
   placement: adminSettingsPlacementSchema, // plugged.host
   tour: adminSettingsTourSchema, // plugged.host
+  reviews: adminSettingsReviewsSchema, // plugged.host
+  partners: adminSettingsPartnersSchema, // plugged.host
   recovery: adminSettingsRecoverySchema, // plugged.host
   economy: adminSettingsEconomySchema, // plugged.host
   queue: adminSettingsQueueSchema, // plugged.host

@@ -13,6 +13,7 @@ import UserView from '@/pages/admin/users/UserView.tsx';
 import { useSearchablePaginatedTable } from '@/plugins/resource/useSearchablePaginatedTable.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import AdminPermissionGuard from '@/routers/guards/AdminPermissionGuard.tsx';
+import { useGlobalStore } from '@/stores/global.ts'; // plugged.host
 import ExternalIdLookupModal from './modals/ExternalIdLookupModal.tsx';
 import UserCreateOrUpdate from './UserCreateOrUpdate.tsx';
 import UserRow from './UserRow.tsx';
@@ -21,6 +22,8 @@ function UsersContainer() {
   const navigate = useNavigate();
   const { t } = useTranslations();
   const [lookupOpen, setLookupOpen] = useState(false);
+  // plugged.host: users come from noprofit.space sign-ins while it is connected (user_links.rs)
+  const noprofitConnected = useGlobalStore((state) => Boolean(state.settings.noprofit?.enabled));
 
   const {
     data: users,
@@ -53,15 +56,18 @@ function UsersContainer() {
               {t('pages.admin.users.externalIdLookup.button', {})}
             </Button>
           </AdminCan>
-          <AdminCan action='users.create'>
-            <Button
-              onClick={() => navigate('/admin/users/new')}
-              color='blue'
-              leftSection={<FontAwesomeIcon icon={faPlus} />}
-            >
-              {t('common.button.create', {})}
-            </Button>
-          </AdminCan>
+          {/* plugged.host: no panel-made users while noprofit.space is connected */}
+          {!noprofitConnected && (
+            <AdminCan action='users.create'>
+              <Button
+                onClick={() => navigate('/admin/users/new')}
+                color='blue'
+                leftSection={<FontAwesomeIcon icon={faPlus} />}
+              >
+                {t('common.button.create', {})}
+              </Button>
+            </AdminCan>
+          )}
         </>
       }
     >

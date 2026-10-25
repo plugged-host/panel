@@ -36,10 +36,12 @@ pub mod metadata;
 pub mod neo; // plugged.host
 pub mod neo_discord; // plugged.host
 pub mod noprofit; // plugged.host
+pub mod partners; // plugged.host
 pub mod placement; // plugged.host
 pub mod queue; // plugged.host
 pub mod ratelimits;
 pub mod recovery; // plugged.host
+pub mod reviews; // plugged.host
 pub mod rux; // plugged.host
 pub mod server;
 pub mod status; // plugged.host
@@ -439,6 +441,9 @@ pub struct AppSettings {
     // plugged.host: the welcome tour
     #[schema(inline)]
     pub tour: tour::AppSettingsTour,
+    // plugged.host: asking players for a review (docs/features/reviews.md)
+    #[schema(inline)]
+    pub reviews: reviews::AppSettingsReviews,
     // plugged.host: deleted servers' copies (and, later, node failover)
     #[schema(inline)]
     pub recovery: recovery::AppSettingsRecovery,
@@ -472,6 +477,9 @@ pub struct AppSettings {
     // plugged.host: neo on Discord (docs/features/neo-discord.md)
     #[schema(inline)]
     pub neo_discord: neo_discord::AppSettingsNeoDiscord,
+    // plugged.host: the partner program (docs/features/partners.md)
+    #[schema(inline)]
+    pub partners: partners::AppSettingsPartners,
     #[schema(inline)]
     pub updates: updates::AppSettingsUpdates,
 
@@ -771,6 +779,8 @@ impl SettingsSerializeExt for AppSettings {
             .await?
             .nest("tour", &self.tour) // plugged.host
             .await?
+            .nest("reviews", &self.reviews) // plugged.host
+            .await?
             .nest("recovery", &self.recovery) // plugged.host
             .await?
             .nest("economy", &self.economy) // plugged.host
@@ -792,6 +802,8 @@ impl SettingsSerializeExt for AppSettings {
             .nest("rux", &self.rux) // plugged.host
             .await?
             .nest("neo_discord", &self.neo_discord) // plugged.host
+            .await?
+            .nest("partners", &self.partners) // plugged.host
             .await?
             .nest("updates", &self.updates)
             .await?;
@@ -1090,6 +1102,9 @@ impl SettingsDeserializeExt for AppSettingsDeserializer {
             tour: deserializer // plugged.host
                 .nest("tour", &tour::AppSettingsTourDeserializer)
                 .await?,
+            reviews: deserializer // plugged.host
+                .nest("reviews", &reviews::AppSettingsReviewsDeserializer)
+                .await?,
             recovery: deserializer // plugged.host
                 .nest("recovery", &recovery::AppSettingsRecoveryDeserializer)
                 .await?,
@@ -1122,6 +1137,9 @@ impl SettingsDeserializeExt for AppSettingsDeserializer {
                 .await?,
             neo_discord: deserializer // plugged.host
                 .nest("neo_discord", &neo_discord::AppSettingsNeoDiscordDeserializer)
+                .await?,
+            partners: deserializer // plugged.host
+                .nest("partners", &partners::AppSettingsPartnersDeserializer)
                 .await?,
             updates: deserializer
                 .nest("updates", &updates::AppSettingsUpdatesDeserializer)

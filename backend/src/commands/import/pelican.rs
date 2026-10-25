@@ -157,6 +157,7 @@ async fn read_backup_hosts(
 pub(super) async fn read(
     context: &SourceContext,
     app_url: &str,
+    environment: &str, // plugged.host: where the panel's files are (extras.rs)
 ) -> Result<SourceData, anyhow::Error> {
     let mut settings = pterodactyl::read_settings(context, app_url).await?;
     if settings.app_name.is_none() {
@@ -261,6 +262,7 @@ pub(super) async fn read(
                     )),
                     name: tag,
                     created,
+                    placement: Default::default(), // plugged.host
                 });
             }
 
@@ -293,9 +295,17 @@ pub(super) async fn read(
                 token: context
                     .decrypt(&source_optional_text(row, "daemon_token")?.unwrap_or_default()),
                 created,
+                placement: super::extras::node_placement(table, row)?, // plugged.host
             })
         })
         .await?;
+    // plugged.host: country tags become locations with a flag and a tier, and nodes that take no
+    // players' servers become internal (mapping.rs, docs/features/import.md#locations-and-nodes)
+    let (locations, nodes) = super::mapping::place_nodes(
+        locations,
+        nodes,
+        &super::mapping::TagRules::from_env(env_var),
+    );
 
     let mut nests = Vec::new();
     let mut nest_groups = TagGroups::new();
@@ -344,6 +354,10 @@ pub(super) async fn read(
                 },
                 force_outgoing_ip: source_bool(row, "force_outgoing_ip")?,
                 created,
+                // plugged.host: the `cfx` tag marks FiveM eggs (mapping.rs)
+                tag_features: super::mapping::tag_features(
+                    source_optional_text(row, "tags")?.as_deref(),
+                ),
             })
         })
         .await?;
@@ -510,5 +524,6 @@ pub(super) async fn read(
         schedules: pterodactyl::read_schedules(context).await?,
         tasks: pterodactyl::read_tasks(context).await?,
         allocations: pterodactyl::read_allocations(context).await?,
+        extras: super::extras::read(context, environment).await?, // plugged.host
     })
 }

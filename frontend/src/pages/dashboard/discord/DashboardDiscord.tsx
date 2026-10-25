@@ -115,6 +115,8 @@ function Linked({
   const { t } = useTranslations();
   const appName = useGlobalStore((state) => state.settings.app.name);
   const { rules, invites, boosts } = rewards;
+  const navigate = useNavigate();
+  const partnersEnabled = useGlobalStore((state) => !!state.settings.partners?.enabled);
   const name = account.username ?? account.id;
   const twoBoostCredits = Math.max(0, rules.boostTwoCredits - rules.boostOneCredits);
 
@@ -313,6 +315,21 @@ function Linked({
               <p className='theme-eco-small'>{t(`${page}.boosts.once`, {})}</p>
             </>
           )}
+        </section>
+      )}
+
+      {/* plugged.host: communities that run their own Discord server (docs/features/partners.md) */}
+      {partnersEnabled && (
+        <section className='flex flex-col gap-3'>
+          <div className='flex flex-col gap-1'>
+            <h3 className='theme-eco-heading'>{t('pages.account.partners.promo.title', {})}</h3>
+            <p className='theme-eco-muted max-w-2xl'>{t('pages.account.partners.promo.text', {})}</p>
+          </div>
+          <div>
+            <Button variant='default' onClick={() => navigate('/account/partners')}>
+              {t('pages.account.partners.promo.open', {})}
+            </Button>
+          </div>
         </section>
       )}
 

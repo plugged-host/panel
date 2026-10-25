@@ -1,6 +1,7 @@
 //! plugged.host: the console's automatic log check (docs/features/minecraft.md), the way Aternos
 //! does it: the server's `logs/latest.log` goes to mclo.gs and the problems it recognises show
-//! above the console.
+//! above the console. Without one (Bedrock writes none), or with one too big, the console's last
+//! lines go instead, as on the Pelican panel.
 //!
 //! Secrets are masked before the log leaves the panel; mclo.gs strips IP addresses itself. One
 //! result per server, shared by everyone watching its console. A log is uploaded only when it
@@ -18,8 +19,12 @@ use utoipa::ToSchema;
 const API: &str = "https://api.mclo.gs/1";
 const SITE: &str = "https://mclo.gs/";
 const LATEST_LOG: &str = "logs/latest.log";
-/// Bigger logs are not checked (mclo.gs takes 10 MB; a log this long is days of a session).
+/// Bigger logs are checked from the console's last lines instead (mclo.gs takes 10 MB; a log this
+/// long is days of a session).
 const MAX_LOG_BYTES: u64 = 4 * 1024 * 1024;
+/// The console lines checked without a usable `latest.log` (the Pelican panel's console history).
+const CONSOLE_LINES: u64 = 100;
+const CONSOLE_MAX_BYTES: u64 = 256 * 1024;
 /// Seconds between uploads of a running server's log.
 const UPLOAD_EVERY: i64 = 120;
 const KEEP: u64 = 24 * 60 * 60;
@@ -104,14 +109,24 @@ pub async fn check(
         return Ok(last.map(|stored| stored.result));
     };
 
-    let log = match files::read_text(&client, server, LATEST_LOG, MAX_LOG_BYTES).await {
-        Ok(Some(log)) => crate::redact::redact(&crate::redact::strip_ansi(&log)),
-        Ok(None) => return Ok(last.map(|stored| stored.result)),
+    let latest = match files::read_text(&client, server, LATEST_LOG, MAX_LOG_BYTES).await {
+        Ok(log) => log,
+        // a log over the limit is refused by Wings: the console's last lines then
         Err(err) => {
             tracing::debug!(server = %server.uuid, "log check could not read the log: {err:#}");
-            return Ok(last.map(|stored| stored.result));
+            None
         }
     };
+    let raw = match usable(latest) {
+        Some(log) => log,
+        None => {
+            match files::console_tail(&client, server, CONSOLE_LINES, CONSOLE_MAX_BYTES).await {
+                Some(console) => console,
+                None => return Ok(last.map(|stored| stored.result)),
+            }
+        }
+    };
+    let log = crate::redact::redact(&crate::redact::strip_ansi(&raw));
     if log.trim().is_empty() {
         return Ok(last.map(|stored| stored.result));
     }
@@ -152,6 +167,11 @@ pub async fn check(
     state.cache.set(&key(server), KEEP, &stored).await.ok();
 
     Ok(Some(stored.result))
+}
+
+/// `latest.log` when it holds something; `None` sends the check to the console's last lines.
+fn usable(log: Option<String>) -> Option<String> {
+    log.filter(|log| !log.trim().is_empty())
 }
 
 /// A paste id as mclo.gs gives it out.
@@ -414,6 +434,16 @@ fn problems(value: &serde_json::Value) -> Vec<Problem> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn an_empty_or_missing_latest_log_falls_back_to_the_console() {
+        assert_eq!(usable(None), None);
+        assert_eq!(usable(Some(" \n\n".into())), None);
+        assert_eq!(
+            usable(Some("[12:00:00] [Server thread/INFO]: Done".into())).as_deref(),
+            Some("[12:00:00] [Server thread/INFO]: Done")
+        );
+    }
 
     #[test]
     fn problems_take_the_first_fix() {

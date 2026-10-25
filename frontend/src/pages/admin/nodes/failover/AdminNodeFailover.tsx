@@ -1,10 +1,12 @@
 // plugged.host: a node's Failover tab: restore its servers on other nodes of its location from
-// their newest backup, a drill on one server, and the newest failovers (docs/features/failover.md).
+// their newest backup, a drill on one server, a dry run, and the newest failovers with a retry for
+// failed servers (docs/features/failover.md).
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { z } from 'zod';
 import cancelNodeFailover from '@/api/admin/nodes/failover/cancelNodeFailover.ts';
 import getNodeFailovers from '@/api/admin/nodes/failover/getNodeFailovers.ts';
+import resumeNodeFailover from '@/api/admin/nodes/failover/resumeNodeFailover.ts';
 import startNodeFailover from '@/api/admin/nodes/failover/startNodeFailover.ts';
 import { httpErrorToHuman } from '@/api/axios.ts';
 import Button from '@/elements/buttons/Button.tsx';
@@ -28,11 +30,13 @@ import { adminNodeSchema } from '@/lib/schemas/admin/nodes.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import FailoverDrillModal from './modals/FailoverDrillModal.tsx';
+import FailoverPlanModal from './modals/FailoverPlanModal.tsx';
 
 const failoverColors: Record<z.infer<typeof adminNodeFailoverSchema>['status'], string> = {
   running: 'blue',
   done: 'green',
   cancelled: 'gray',
+  notified: 'yellow',
 };
 
 const serverColors: Record<z.infer<typeof adminServerFailoverSchema>['status'], string> = {
@@ -42,6 +46,7 @@ const serverColors: Record<z.infer<typeof adminServerFailoverSchema>['status'], 
   done: 'green',
   failed: 'red',
   cancelled: 'gray',
+  planned: 'yellow',
 };
 
 export default function AdminNodeFailover({ node }: { node: z.infer<typeof adminNodeSchema> }) {
@@ -56,7 +61,8 @@ export default function AdminNodeFailover({ node }: { node: z.infer<typeof admin
       query.state.data?.failovers.some((failover) => failover.status === 'running') ? 15_000 : false,
   });
 
-  const [openModal, setOpenModal] = useState<'start' | 'drill' | 'cancel' | null>(null);
+  const [openModal, setOpenModal] = useState<'start' | 'drill' | 'cancel' | 'plan' | null>(null);
+  const [resuming, setResuming] = useState<string | null>(null);
 
   const running = failovers.data?.failovers.some((failover) => failover.status === 'running') ?? false;
   const off = failovers.data?.mode === 'off';
@@ -66,6 +72,18 @@ export default function AdminNodeFailover({ node }: { node: z.infer<typeof admin
     addToast(t(`${page}.toast.started`, {}), 'success');
     setOpenModal(null);
     failovers.refetch();
+  };
+
+  const doResume = (serverFailoverUuid: string) => {
+    setResuming(serverFailoverUuid);
+
+    resumeNodeFailover(node.uuid, serverFailoverUuid)
+      .then(() => {
+        addToast(t(`${page}.toast.resumed`, {}), 'success');
+        failovers.refetch();
+      })
+      .catch((error) => addToast(httpErrorToHuman(error), 'error'))
+      .finally(() => setResuming(null));
   };
 
   const doCancel = async () => {
@@ -80,8 +98,11 @@ export default function AdminNodeFailover({ node }: { node: z.infer<typeof admin
       title={t(`${page}.title`, {})}
       titleOrder={2}
       contentRight={
-        <AdminCan action='nodes.failover'>
-          <Group gap='xs'>
+        <Group gap='xs'>
+          <Button variant='default' onClick={() => setOpenModal('plan')}>
+            {t(`${page}.button.plan`, {})}
+          </Button>
+          <AdminCan action='nodes.failover'>
             {running ? (
               <Button variant='default' onClick={() => setOpenModal('cancel')}>
                 {t(`${page}.button.cancel`, {})}
@@ -96,8 +117,8 @@ export default function AdminNodeFailover({ node }: { node: z.infer<typeof admin
                 </Button>
               </>
             )}
-          </Group>
-        </AdminCan>
+          </AdminCan>
+        </Group>
       }
     >
       <ConfirmationModal
@@ -126,6 +147,8 @@ export default function AdminNodeFailover({ node }: { node: z.infer<typeof admin
         onClose={() => setOpenModal(null)}
         onConfirmed={(serverUuid) => doStart(serverUuid)}
       />
+
+      <FailoverPlanModal node={node} opened={openModal === 'plan'} onClose={() => setOpenModal(null)} />
 
       {failovers.isLoading ? (
         <Spinner.Centered />
@@ -184,6 +207,19 @@ export default function AdminNodeFailover({ node }: { node: z.infer<typeof admin
                           <Text size='xs' c='dimmed'>
                             {server.error}
                           </Text>
+                        )}
+                        {server.status === 'failed' && !off && (
+                          <AdminCan action='nodes.failover'>
+                            <Button
+                              size='xs'
+                              variant='subtle'
+                              loading={resuming === server.uuid}
+                              disabled={resuming !== null}
+                              onClick={() => doResume(server.uuid)}
+                            >
+                              {t(`${page}.button.resume`, {})}
+                            </Button>
+                          </AdminCan>
                         )}
                       </TableData>
                       <TableData>

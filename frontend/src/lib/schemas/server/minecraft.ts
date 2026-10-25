@@ -146,6 +146,7 @@ export const minecraftPlayerSchema = z.object({
       source: z.string(),
     })
     .nullable(),
+  lastPlayed: z.coerce.date().nullable(),
 });
 
 export const minecraftRosterSchema = z.object({
@@ -160,6 +161,96 @@ export const minecraftPlayerListSchema = z.enum(['whitelist', 'operators', 'bans
 
 export const minecraftOutcomeSchema = z.object({
   live: z.boolean(),
+});
+
+// One player in detail (shared/src/minecraft/player_data.rs)
+export const minecraftGameModeSchema = z.enum(['survival', 'creative', 'adventure', 'spectator']);
+
+export const minecraftPlayerActionSchema = z.enum(['heal', 'feed', 'kill']);
+
+export const minecraftPositionSchema = z.object({
+  x: z.number(),
+  y: z.number(),
+  z: z.number(),
+  dimension: z.string(),
+});
+
+export const minecraftItemSchema = z.object({
+  slot: z.number(),
+  id: z.string(),
+  label: z.string(),
+  customName: z.string().nullable(),
+  count: z.number(),
+  enchantments: z.array(z.object({ id: z.string(), label: z.string() })),
+});
+
+export const minecraftStatCountSchema = z.object({
+  id: z.string(),
+  label: z.string(),
+  value: z.number(),
+});
+
+export const minecraftStatRankingSchema = z.object({
+  total: z.number(),
+  top: z.array(minecraftStatCountSchema),
+});
+
+export const minecraftPlayerStatsSchema = z.object({
+  playTime: z.number(),
+  playerKills: z.number(),
+  mobKills: z.number(),
+  deaths: z.number(),
+  kdr: z.number(),
+  distance: minecraftStatRankingSchema,
+  mined: minecraftStatRankingSchema,
+  used: minecraftStatRankingSchema,
+  killed: minecraftStatRankingSchema,
+});
+
+export const minecraftPlayerDataSchema = z.object({
+  gameMode: minecraftGameModeSchema.nullable(),
+  health: z.number(),
+  maxHealth: z.number(),
+  food: z.number(),
+  saturation: z.number(),
+  xpLevel: z.number(),
+  xpProgress: z.number(),
+  xpTotal: z.number(),
+  position: minecraftPositionSchema.nullable(),
+  respawn: minecraftPositionSchema.nullable(),
+  lastDeath: minecraftPositionSchema.nullable(),
+  inventory: z.array(minecraftItemSchema),
+  enderChest: z.array(minecraftItemSchema),
+});
+
+export const minecraftPlayerDetailsSchema = z.object({
+  uuid: z.string(),
+  name: z.string().nullable(),
+  bedrock: z.boolean(),
+  whitelisted: z.boolean(),
+  operator: z.number().nullable(),
+  ban: minecraftPlayerSchema.shape.ban,
+  onlineMode: z.boolean(),
+  running: z.boolean(),
+  stopped: z.boolean(),
+  saved: z.coerce.date().nullable(),
+  gameVersion: z.string().nullable(),
+  world: z.string().nullable(),
+  data: minecraftPlayerDataSchema.nullable(),
+  damaged: z.boolean(),
+  stats: minecraftPlayerStatsSchema.nullable(),
+  files: z.object({
+    playerData: z.boolean(),
+    statistics: z.boolean(),
+    advancements: z.boolean(),
+  }),
+  trash: z.boolean(),
+});
+
+export const minecraftOnlineSchema = z.object({
+  running: z.boolean(),
+  players: z.array(z.object({ name: z.string(), uuid: z.string().nullable() })).nullable(),
+  max: z.number().nullable(),
 });
 
 export const minecraftWorldSchema = z.object({

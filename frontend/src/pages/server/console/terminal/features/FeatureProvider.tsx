@@ -1,6 +1,7 @@
 import { useServerStore } from '@/stores/server.ts';
 import EulaModalFeature from './EulaModalFeature.tsx';
 import JavaVersionModalFeature from './JavaVersionModalFeature.tsx';
+import PidLimitModalFeature from './PidLimitModalFeature.tsx'; // plugged.host
 
 export default function FeatureProvider() {
   const eggFeatures = useServerStore((state) => state.server.egg.features);
@@ -9,6 +10,7 @@ export default function FeatureProvider() {
     <>
       {eggFeatures.includes('eula') && <EulaModalFeature />}
       {eggFeatures.includes('java_version') && <JavaVersionModalFeature />}
+      {eggFeatures.includes('pid_limit') && <PidLimitModalFeature />} {/* plugged.host */}
       {window.extensionContext.extensionRegistry.pages.server.console.features
         .filter((feature) => !feature.filter || feature.filter(eggFeatures))
         .map(({ component: Component }, i) => (

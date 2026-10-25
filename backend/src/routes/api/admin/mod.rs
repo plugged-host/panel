@@ -42,6 +42,7 @@ mod ad_banners; // plugged.host
 mod nests;
 mod nodes;
 mod oauth_providers;
+mod partners; // plugged.host
 mod plans; // plugged.host
 mod roles;
 mod rux; // plugged.host
@@ -126,6 +127,7 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         .nest("/announcements", announcements::router(state))
         .nest("/status", status::router(state)) // plugged.host
         .nest("/abuse", abuse::router(state)) // plugged.host
+        .nest("/partners", partners::router(state)) // plugged.host
         .route_layer(axum::middleware::from_fn_with_state(state.clone(), auth))
         .route_layer(axum::middleware::from_fn_with_state(
             state.clone(),

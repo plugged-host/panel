@@ -41,7 +41,7 @@ mod get {
         permissions.has_admin_permission("servers.subdomains")?;
 
         let default_limit = state.settings.get().await?.subdomains.default_limit;
-        let service = Service::of_features(&server.egg.features);
+        let service = Service::of_egg(&server.egg);
         let port = server.allocation.as_ref().map(|a| a.allocation.port);
 
         ApiResponse::new_serialized(Response {

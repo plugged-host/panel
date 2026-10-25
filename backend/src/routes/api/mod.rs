@@ -11,6 +11,7 @@ pub mod client;
 mod devbox; // plugged.host
 mod icons;
 mod languages;
+mod noprofit; // plugged.host
 pub mod remote;
 mod settings;
 mod timezones;
@@ -51,5 +52,6 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         .nest("/admin", admin::router(state))
         .nest("/remote", remote::router(state))
         .nest("/devbox", devbox::router(state)) // plugged.host: docs/features/devboxes.md
+        .nest("/noprofit", noprofit::router(state)) // plugged.host: docs/noprofit.md
         .with_state(state.clone())
 }

@@ -29,6 +29,8 @@ import { useSearchableResource } from '@/plugins/resource/useSearchableResource.
 import { useAdminCan } from '@/plugins/usePermissions.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
+// plugged.host: a location's best node (docs/features/transfers.md)
+import ServerTransferLocationModal, { TRANSFER_BY_HAND, TransferTargetSelect } from './ServerTransferLocationModal.tsx';
 
 export default function ServerTransferModal({ server, ...props }: ModalProps & { server: AdminServer }) {
   const { t } = useTranslations();
@@ -37,6 +39,7 @@ export default function ServerTransferModal({ server, ...props }: ModalProps & {
   const canReadNodeAllocations = useAdminCan('nodes.allocations');
 
   const [openModal, setOpenModal] = useState<'confirm' | null>(null);
+  const [target, setTarget] = useState<string>(TRANSFER_BY_HAND); // plugged.host
   const [selectedNodeUuid, setSelectedNodeUuid] = useState<string | null>(null);
   const [selectedPrimaryAllocationUuid, setSelectedPrimaryAllocationUuid] = useState<string | null>(null);
   const [selectedAllocationUuids, setSelectedAllocationUuids] = useState<string[]>([]);
@@ -106,6 +109,11 @@ export default function ServerTransferModal({ server, ...props }: ModalProps & {
       });
   };
 
+  // plugged.host: a location's best node goes through the moves players make (docs/features/transfers.md)
+  if (target !== TRANSFER_BY_HAND) {
+    return <ServerTransferLocationModal server={server} target={target} onTargetChange={setTarget} {...props} />;
+  }
+
   return (
     <>
       <ConfirmationModal
@@ -133,6 +141,9 @@ export default function ServerTransferModal({ server, ...props }: ModalProps & {
         opened={props.opened && !openModal}
       >
         <Stack>
+          {/* plugged.host: a location's best node (docs/features/transfers.md) */}
+          <TransferTargetSelect server={server} value={target} onChange={setTarget} />
+
           <Select
             withAsterisk
             label={t('common.table.columns.node', {})}

@@ -889,7 +889,8 @@
           "discordInvite": "Lời mời Discord",
           "discordInviteClawback": "Thu hồi thưởng lời mời",
           "discordInviteDebt": "Credit lời mời còn nợ",
-          "discordBoost": "Boost Discord"
+          "discordBoost": "Boost Discord",
+          "partner": "Chương trình đối tác"
         }
       },
       "chartLegend": {
@@ -988,6 +989,7 @@
           "themeLight": "Sáng",
           "redactAddresses": "Ẩn các địa chỉ",
           "resetDeviceOverrides": "Đặt lại các tùy chọn ghi đè thiết bị ({count})",
+          "review": "Đánh Giá {app} Trên {site}",
           "openMenu": "Mở Menu"
         },
         "profileSettings": "Cài Đặt Hồ Sơ",
@@ -1003,6 +1005,142 @@
           "disk": "Ổ đĩa",
           "openStore": "Mua thêm tại Cửa Hàng Tài Nguyên",
           "openTokens": "Mở trang Token"
+        }
+      },
+      "notifications": {
+        "title": "Thông báo",
+        "open": "Thông báo, {count} chưa đọc",
+        "unreadLabel": "Thông báo chưa đọc",
+        "markAllRead": "Đánh dấu tất cả là đã đọc",
+        "clear": "Xóa tất cả",
+        "markRead": "Đánh dấu là đã đọc",
+        "delete": "Xóa thông báo",
+        "openServer": "Mở máy chủ",
+        "viewBackups": "Xem bản sao lưu",
+        "showMore": "Xem thêm",
+        "empty": "Không có thông báo",
+        "emptyHint": "Vui lòng kiểm tra lại sau.",
+        "unknown": "Thông báo",
+        "address": "Địa chỉ mới: {address}",
+        "reason": "Lý do: {reason}",
+        "kinds": {
+          "transferCompleted": {
+            "title": "Đã chuyển máy chủ",
+            "body": "{server} hiện ở {location}.",
+            "bodyAnywhere": "{server} hiện ở trên một node khác."
+          },
+          "transferFailed": {
+            "title": "Chuyển thất bại",
+            "body": "Không thể chuyển {server} đến {location}. Máy chủ vẫn ở chỗ cũ với toàn bộ tệp.",
+            "bodyAnywhere": "Không thể chuyển {server}. Máy chủ vẫn ở chỗ cũ với toàn bộ tệp."
+          },
+          "allowanceCut": {
+            "title": "Máy chủ của bạn giờ có ít tài nguyên hơn",
+            "body": "Tài nguyên của tài khoản bạn đã giảm và các máy chủ đang dùng nhiều hơn mức tài khoản hiện có, nên phần chênh lệch đã được trừ đều khỏi chúng: {servers}.",
+            "cpu": "−{amount}% CPU",
+            "memory": "−{amount} RAM",
+            "disk": "−{amount} ổ đĩa"
+          },
+          "membershipEnded": {
+            "title": "{membership} đã kết thúc",
+            "body": "Các máy chủ ở vị trí Premium đang được chuyển sang vị trí khác: {servers}. Theo dõi trên trang Chuyển Máy Chủ của từng máy chủ."
+          },
+          "failoverDone": {
+            "title": "Đã khôi phục máy chủ",
+            "body": "Node của {server} đã ngừng hoạt động, nên máy chủ đã được khôi phục lên một node ổn định từ bản sao lưu mới nhất. Hãy khởi động khi bạn sẵn sàng.",
+            "drillTitle": "Máy chủ đã được chuyển sang node khác",
+            "drillBody": "{server} đã được khôi phục lên một node khác từ bản sao lưu mới nhất trong một lần kiểm tra khôi phục. Hãy khởi động khi bạn sẵn sàng.",
+            "backup": "Các tệp ở trạng thái lúc {time}."
+          },
+          "failoverFailed": {
+            "title": "Sự cố node của máy chủ",
+            "body": "Node của {server} đã ngừng hoạt động và việc khôi phục lên một node ổn định chưa hoàn tất. Vui lòng liên hệ hỗ trợ nếu máy chủ vẫn không truy cập được."
+          },
+          "modpackInstalled": {
+            "title": "Đã cài đặt modpack",
+            "body": "{name} đã được cài đặt trên {server} và {count} tệp đã được tải xuống. Hãy khởi động máy chủ và theo dõi bảng điều khiển.",
+            "skipped": "Một số tệp không tải xuống được và cần được thêm thủ công."
+          },
+          "modpackFailed": {
+            "title": "Cài đặt modpack thất bại",
+            "body": "Không thể cài đặt {name} trên {server}. Hãy kiểm tra bảng điều khiển và danh sách tệp trước khi khởi động máy chủ."
+          },
+          "frameworkInstalled": {
+            "title": "Đã cài đặt {recipe} trên {server}",
+            "body": "Nó nằm trong {folder}, và máy chủ đang khởi động với nó."
+          },
+          "frameworkFailed": {
+            "title": "Cài đặt {recipe} trên {server} thất bại"
+          },
+          "worldImported": {
+            "title": "Đã nhập thế giới",
+            "body": "Thế giới đã tải lên giờ là thế giới của {server}.",
+            "kept": "Thế giới trước đó được giữ lại với tên {world}."
+          },
+          "worldImportFailed": {
+            "title": "Không thể nhập thế giới",
+            "body": "Không thể nạp thế giới đã tải lên trên {server}."
+          },
+          "serverInstalled": {
+            "title": "Đã cài đặt máy chủ xong",
+            "body": "{server} đã được cài đặt và có thể khởi động."
+          },
+          "serverInstallFailed": {
+            "title": "Cài đặt máy chủ thất bại",
+            "body": "Không thể cài đặt {server}. Hãy mở máy chủ để cài đặt lại."
+          },
+          "subuserAdded": {
+            "title": "Đã được thêm vào máy chủ",
+            "body": "Bạn đã được thêm làm người dùng phụ của {server}."
+          },
+          "subuserRemoved": {
+            "title": "Đã bị xóa khỏi máy chủ",
+            "body": "Bạn không còn là người dùng phụ của {server}."
+          },
+          "backupCompleted": {
+            "title": "Sao lưu hoàn tất",
+            "body": "Bản sao lưu {name} của {server} đã sẵn sàng."
+          },
+          "backupFailed": {
+            "title": "Sao lưu thất bại",
+            "body": "Không thể tạo bản sao lưu {name} của {server}."
+          },
+          "partnerApproved": {
+            "title": "Đã duyệt đối tác",
+            "body": "{guild} giờ là đối tác và nhận {credits} credit mỗi tháng. Tháng đầu tiên đã được trả."
+          },
+          "partnerRejected": {
+            "title": "Đơn đối tác không được chấp nhận",
+            "body": "{guild} không được chấp nhận làm đối tác."
+          },
+          "partnerRevoked": {
+            "title": "Quan hệ đối tác đã kết thúc",
+            "body": "Quan hệ đối tác của {guild} đã kết thúc và các khoản thanh toán hằng tháng đã dừng."
+          },
+          "partnerPaid": {
+            "title": "Đã nhận credit đối tác",
+            "body": "{credits} credit cho {guild} trong tháng này."
+          },
+          "partnerCheckFailed": {
+            "title": "Kiểm tra đối tác không đạt",
+            "body": "{guild} không còn đạt yêu cầu đối tác nên khoản thanh toán tháng này đang bị giữ. Hãy khắc phục trước {until}, nếu không quan hệ đối tác sẽ bị tạm ngưng. Trang Đối tác cho biết vấn đề."
+          },
+          "partnerSuspended": {
+            "title": "Quan hệ đối tác bị tạm ngưng",
+            "body": "{guild} vẫn chưa đạt yêu cầu nên quan hệ đối tác bị tạm ngưng. Hãy khắc phục rồi bấm Kiểm tra lại trên trang Đối tác."
+          },
+          "partnerPaused": {
+            "title": "Thanh toán đối tác tạm dừng",
+            "body": "Quản trị viên đã tạm dừng các khoản thanh toán hằng tháng cho {guild}."
+          },
+          "partnerResumed": {
+            "title": "Thanh toán đối tác tiếp tục",
+            "body": "Các khoản thanh toán hằng tháng cho {guild} đã hoạt động trở lại."
+          },
+          "partnerCreditsChanged": {
+            "title": "Credit đối tác đã thay đổi",
+            "body": "{guild} giờ nhận {credits} credit mỗi tháng."
+          }
         }
       },
       "welcomeTour": {
@@ -1207,7 +1345,9 @@
             },
             "reason": "Lý do: {reason}",
             "deleteAt": "Máy chủ cùng các tệp của nó sẽ bị xóa vào {date}, trừ khi lệnh đình chỉ được gỡ trước thời điểm đó.",
-            "help": "Nếu bạn cho rằng đây là nhầm lẫn, hãy liên hệ quản trị viên của panel và gửi kèm tên máy chủ."
+            "help": "Nếu bạn cho rằng đây là nhầm lẫn, hãy liên hệ quản trị viên của panel và gửi kèm tên máy chủ.",
+            "helpLink": "Nếu bạn cho rằng đây là nhầm lẫn, hãy nhờ hỗ trợ và gửi kèm tên máy chủ.",
+            "getHelp": "Nhận trợ giúp"
           },
           "contentNodeMaintenance": "Máy chủ này đang trên một node đang bảo trì và không thể truy cập cho đến khi bảo trì hoàn tất.",
           "contentTransferring": "Máy chủ này đang được di chuyển đến một node khác và không thể truy cập cho đến khi quá trình di chuyển hoàn tất.",
@@ -1944,6 +2084,11 @@
           },
           "emptyGroup": "Nhóm này đang trống. Kéo một máy chủ vào đây để thêm.",
           "emptyAccess": "Bạn không có quyền truy cập máy chủ nào!",
+          "review": {
+            "title": "Trải nghiệm của bạn với {app} thế nào?",
+            "body": "Hãy kể cho những người chơi khác về trải nghiệm của bạn trong một bài đánh giá trên {site}, dù tốt hay chưa tốt.",
+            "write": "Viết Đánh Giá"
+          },
           "card": {
             "cpu": "CPU",
             "memory": "RAM",
@@ -2894,6 +3039,111 @@
             "checked": "Đã kiểm tra với Discord.",
             "paid": "Đã cộng {credits} credit mới.",
             "nothing": "Đã cập nhật đầy đủ, không có gì mới để trả."
+          }
+        },
+        "partners": {
+          "title": "Đối tác",
+          "closed": "Hiện chưa nhận đơn đăng ký.",
+          "promo": {
+            "title": "Chương trình đối tác",
+            "text": "Bạn quản lý một cộng đồng Discord cho máy chủ FiveM hoặc Minecraft? Đối tác nhận credit mỗi tháng.",
+            "open": "Mở chương trình đối tác"
+          },
+          "intro": {
+            "heading": "Trở thành đối tác",
+            "body": "Bạn quản lý một cộng đồng Discord có ít nhất {members} thành viên cho máy chủ FiveM hoặc Minecraft? Hãy làm đối tác của {app} và nhận tới {credits} credit mỗi tháng.",
+            "review": "Quản trị viên xem xét từng đơn. Trước mỗi lần thanh toán hằng tháng, máy chủ được kiểm tra lại; nếu không còn đạt yêu cầu, khoản thanh toán sẽ bị giữ lại và bạn có {days} ngày để khắc phục.",
+            "reviewDay": "Quản trị viên xem xét từng đơn. Trước mỗi lần thanh toán hằng tháng, máy chủ được kiểm tra lại; nếu không còn đạt yêu cầu, khoản thanh toán sẽ bị giữ lại và bạn có {days} ngày để khắc phục.",
+            "reviewNow": "Quản trị viên xem xét từng đơn. Trước mỗi lần thanh toán hằng tháng, máy chủ được kiểm tra lại; nếu không còn đạt yêu cầu, quan hệ đối tác bị tạm ngưng cho đến khi đạt lại."
+          },
+          "requirements": {
+            "title": "Máy chủ của bạn cần gì",
+            "linked": "Tài khoản Discord của bạn đã được liên kết",
+            "linkedAs": "Đã liên kết với tên {name}",
+            "notLinked": "Chưa liên kết",
+            "done": "Xong",
+            "link": "Liên kết Discord",
+            "linkNoprofit": "Liên kết Discord trên noprofit.space",
+            "bot": "{bot} có trong máy chủ",
+            "botHint": "Bot chỉ đọc số thành viên, vai trò của bạn và các kênh, nên không cần quyền nào.",
+            "addBot": "Thêm {bot}",
+            "members": "Ít nhất {members} thành viên",
+            "membersHint": "Theo cách Discord đếm, khi đăng ký và trước mỗi lần thanh toán.",
+            "admin": "Bạn là chủ hoặc quản trị viên của máy chủ",
+            "adminHint": "Chủ máy chủ, hoặc một vai trò có quyền Quản trị viên.",
+            "channel": "Một kênh về {app}",
+            "channelHint": "Hiển thị với @everyone, có {names} trong tên hoặc chủ đề.",
+            "channelLinkHint": "Chủ đề cũng phải có liên kết tới {links}.",
+            "game": "Một cộng đồng FiveM hoặc Minecraft",
+            "gameHint": "Máy chủ game có thể được host ở bất kỳ đâu. Hãy ghi các máy chủ trên panel này vào đơn."
+          },
+          "problems": {
+            "notLinked": "Hãy liên kết tài khoản Discord trước.",
+            "invalidLink": "Nhập một liên kết mời Discord hoặc ID máy chủ.",
+            "unknownInvite": "Lời mời này không tồn tại hoặc đã hết hạn. Hãy dùng lời mời không bao giờ hết hạn.",
+            "botMissing": "{bot} không có trong máy chủ này. Hãy thêm bot rồi đăng ký lại.",
+            "tooFewMembers": "Máy chủ này có {count} thành viên và cần ít nhất {members}.",
+            "notAdmin": "Bạn phải là chủ máy chủ này hoặc có vai trò với quyền Quản trị viên trong đó.",
+            "channelMissing": "Không tìm thấy kênh nào về {app}: tên hoặc chủ đề kênh phải có {app} và kênh phải hiển thị với @everyone.",
+            "channelHidden": "{channel} đang bị ẩn với @everyone. Mọi người trong máy chủ phải xem được kênh này.",
+            "channelLink": "Chủ đề của {channel} phải có liên kết tới {links}.",
+            "pending": "Bạn đã có một đơn đang chờ xem xét.",
+            "taken": "Máy chủ này đã là đối tác hoặc đang có đơn chờ xét.",
+            "cooldown": "Đơn gần nhất của bạn không được chấp nhận. Bạn có thể đăng ký lại vào {date}."
+          },
+          "form": {
+            "title": "Đăng ký",
+            "server": "Máy chủ Discord",
+            "serverHint": "Một liên kết mời không bao giờ hết hạn, hoặc ID máy chủ.",
+            "game": "Trò chơi",
+            "description": "Về cộng đồng của bạn",
+            "descriptionHint": "Cộng đồng chơi gì, hoạt động sôi nổi đến đâu và có gì đặc biệt. Từ 20 đến 1000 ký tự.",
+            "servers": "Máy chủ trên panel này",
+            "serversHint": "Không bắt buộc: tối đa 10 máy chủ của bạn ở đây mà cộng đồng đang chơi.",
+            "submit": "Gửi đơn",
+            "sent": "Đã gửi đơn. Bạn sẽ nhận thông báo khi có quyết định."
+          },
+          "games": {
+            "fivem": "FiveM",
+            "minecraft": "Minecraft",
+            "both": "FiveM và Minecraft"
+          },
+          "refusal": {
+            "title": "Máy chủ chưa đạt yêu cầu",
+            "titleServer": "{server} chưa đạt yêu cầu"
+          },
+          "status": {
+            "pending": "Đang chờ xem xét",
+            "approved": "Đối tác",
+            "paused": "Tạm dừng",
+            "suspended": "Bị tạm ngưng",
+            "rejected": "Không được chấp nhận",
+            "revoked": "Đã kết thúc",
+            "withdrawn": "Đã rút"
+          },
+          "partnership": {
+            "monthly": "{credits} credit mỗi tháng",
+            "nextPayment": "Lần thanh toán tiếp theo vào {date}",
+            "paused": "Quản trị viên đã tạm dừng thanh toán.",
+            "pausedReason": "Quản trị viên đã tạm dừng thanh toán: {reason}",
+            "failing": "Lần kiểm tra gần nhất không đạt nên khoản thanh toán tháng này đang bị giữ. Hãy khắc phục trước {date}, nếu không quan hệ đối tác sẽ bị tạm ngưng.",
+            "suspended": "Quan hệ đối tác bị tạm ngưng vì máy chủ không còn đạt yêu cầu. Hãy khắc phục rồi kiểm tra lại để tiếp tục nhận thanh toán.",
+            "check": "Kiểm tra lại",
+            "checkPassed": "Máy chủ đạt yêu cầu.",
+            "checkFailed": "Máy chủ chưa đạt yêu cầu.",
+            "payments": "Thanh toán",
+            "paidTotal": "Tổng cộng đã nhận {credits} credit",
+            "paymentsEmpty": "Chưa có khoản thanh toán nào."
+          },
+          "pending": {
+            "title": "Đơn của bạn đang được xem xét",
+            "body": "Quản trị viên sẽ xem {server} và quyết định. Bạn sẽ nhận được thông báo.",
+            "withdraw": "Rút đơn",
+            "withdrawn": "Đã rút đơn."
+          },
+          "history": {
+            "title": "Các đơn trước đây",
+            "reason": "Lý do: {reason}"
           }
         },
         "devboxOpen": {
@@ -5934,6 +6184,17 @@
             "installing": "Máy chủ của bạn hiện đang được cài đặt. Vui lòng chờ...",
             "pendingRestart": "Máy chủ của bạn có các thay đổi đang chờ yêu cầu khởi động lại. Vui lòng khởi động lại máy chủ để áp dụng các thay đổi này."
           },
+          "installStuck": {
+            "content": "Việc này mất nhiều thời gian hơn bình thường, nên quá trình cài đặt có thể đã bị treo. Bạn có thể bắt đầu cài đặt lại hoặc xóa máy chủ.",
+            "reinstall": {
+              "button": "Cài đặt lại",
+              "title": "Bắt đầu cài đặt lại từ đầu?",
+              "content": "Quá trình cài đặt sẽ chạy lại từ đầu. Các tệp mà quá trình cài đặt đã ghi có thể bị thay thế."
+            },
+            "toast": {
+              "reinstalling": "Quá trình cài đặt đã bắt đầu lại."
+            }
+          },
           "message": {
             "serverMarkedAs": "Máy chủ được đánh dấu là {state}...",
             "installFailed": "Cài đặt đã thất bại.",
@@ -5999,6 +6260,13 @@
               "button": {
                 "update": "Cập Nhật Hình Ảnh Docker"
               }
+            },
+            "pidLimit": {
+              "titleAdmin": "Đã đạt giới hạn bộ nhớ hoặc tiến trình",
+              "titleUser": "Có thể đã đạt giới hạn tài nguyên",
+              "contentAdmin": "Máy chủ này đã đạt giới hạn tối đa về tiến trình hoặc bộ nhớ. Tăng `container_pid_limit` trong mục `docker` của cấu hình Wings, `config.yml`, có thể giúp ích.",
+              "contentAdminRestart": "**Cần khởi động lại Wings để thay đổi có hiệu lực.**",
+              "contentUser": "Máy chủ này đang cố dùng nhiều tài nguyên hơn mức nó có. Vui lòng liên hệ quản trị viên và gửi họ lỗi bên dưới."
             }
           },
           "details": {
@@ -8009,7 +8277,8 @@
             "title": "Phân bổ"
           },
           "tooltip": {
-            "limitReached": "Máy chủ này được giới hạn ở {max} phân bổ."
+            "limitReached": "Máy chủ này được giới hạn ở {max} phân bổ.",
+            "locked": "Đã khóa: chỉ quản trị viên mới có thể xóa phân bổ này."
           },
           "table": {
             "columns": {
@@ -8029,7 +8298,8 @@
               "title": "Xác Nhận Xóa Phân Bổ",
               "content": "Bạn có chắc muốn xóa **{allocations}** khỏi máy chủ này không?",
               "alert": {
-                "skipped": "{allocations} sẽ bị bỏ qua. Không thể xóa phân bổ chính."
+                "skipped": "{allocations} sẽ bị bỏ qua. Không thể xóa phân bổ chính.",
+                "skippedLocked": "{allocations} sẽ bị bỏ qua. Không thể xóa phân bổ chính và các phân bổ đã khóa."
               }
             },
             "removeAllocation": {
@@ -8616,6 +8886,7 @@
           "title": "Máy chủ đang ngủ đông",
           "body": "Máy chủ này đã không hoạt động một thời gian, nên đã được chuyển sang ngủ đông để giải phóng tài nguyên. Hãy khôi phục để đưa máy chủ trực tuyến trở lại.",
           "entered": "Ngủ đông từ {time}",
+          "deletesAt": "Máy chủ sẽ bị xóa {time} cùng với các tệp của nó, trừ khi bạn khôi phục trước thời điểm đó.",
           "failed": "Lần khôi phục gần nhất thất bại: {error}",
           "costLabel": "Chi phí khôi phục",
           "balanceLabel": "Số dư của bạn",
@@ -8722,7 +8993,9 @@
           "reasons": {
             "noNode": "không có node nào còn chỗ",
             "copyFailed": "việc sao chép bị gián đoạn",
-            "skippedMoved": "máy chủ đã được chuyển trong lúc đó"
+            "skippedMoved": "máy chủ đã được chuyển trong lúc đó",
+            "stalled": "việc sao chép không có tiến triển",
+            "unfinalized": "node mới không xác nhận bản sao"
           },
           "events": {
             "requested": "Đã yêu cầu chuyển đến {location}",
@@ -8876,10 +9149,16 @@
             "propertiesNote": "Chú thích, thứ tự các khóa và những khóa không hiển thị ở đây được giữ nguyên. Các cổng và mật khẩu RCON do panel đặt.",
             "yamlNote": "Chú thích và mọi nội dung khác trong tệp được giữ nguyên. Danh sách và giá trị nhiều dòng không hiển thị ở đây: hãy chỉnh sửa tệp dạng văn bản cho những mục đó.",
             "button": {
-              "editText": "Chỉnh Sửa Dạng Văn Bản"
+              "editText": "Chỉnh Sửa Dạng Văn Bản",
+              "restart": "Khởi động lại máy chủ"
             },
             "toast": {
-              "saved": "Đã lưu {file} ({count} thay đổi). Khởi động lại máy chủ để áp dụng."
+              "saved": "Đã lưu {file} ({count} thay đổi). Khởi động lại máy chủ để áp dụng.",
+              "restarting": "Máy chủ đang khởi động lại"
+            },
+            "restart": {
+              "title": "Khởi động lại máy chủ ngay bây giờ?",
+              "description": "Máy chủ sẽ dừng rồi khởi động lại để đọc các cài đặt đã lưu. Mọi người đang chơi sẽ bị ngắt kết nối trong lúc khởi động lại."
             }
           },
           "players": {
@@ -8897,6 +9176,8 @@
             "emptyHeading": "Chưa có người chơi nào",
             "emptyBody": "Chưa có ai trong whitelist hoặc là OP trên máy chủ này. Thêm một người chơi để bắt đầu.",
             "noMatch": "Không có người chơi nào khớp với tìm kiếm đó.",
+            "unnamed": "Chưa biết tên",
+            "lastPlayed": "Chơi lần cuối {date}",
             "table": {
               "player": "Người Chơi",
               "whitelisted": "Có Trong Whitelist",
@@ -8905,7 +9186,8 @@
             },
             "badge": {
               "operator": "Cấp {level}",
-              "banned": "Bị Cấm"
+              "banned": "Bị Cấm",
+              "online": "Trực Tuyến"
             },
             "button": {
               "refresh": "Tải Lại",
@@ -8959,6 +9241,140 @@
               "enforcedOn": "Đã bật whitelist.",
               "enforcedOff": "Đã tắt whitelist.",
               "atNextStart": "Đã lưu vào tệp máy chủ - thay đổi sẽ áp dụng ở lần khởi động tiếp theo."
+            },
+            "details": {
+              "back": "Tất cả người chơi",
+              "online": "Trực tuyến",
+              "offline": "Ngoại tuyến",
+              "bedrock": "Bedrock",
+              "copyUuid": "Sao chép UUID",
+              "saved": "Lưu lần cuối {date}",
+              "savedNote": "Hiển thị theo lần lưu gần nhất. Máy chủ đang chạy lưu người chơi vài phút một lần và khi họ rời đi.",
+              "noData": "Chưa có gì được lưu cho người chơi này. Thông tin sẽ hiện ở đây khi họ đã chơi và máy chủ đã lưu.",
+              "damaged": "Không đọc được tệp dữ liệu người chơi. Minecraft sẽ dùng phiên bản trước đó, hoặc cho người chơi bắt đầu lại ở điểm hồi sinh.",
+              "gameMode": "Chế độ chơi",
+              "gameModes": {
+                "survival": "Sinh tồn",
+                "creative": "Sáng tạo",
+                "adventure": "Phiêu lưu",
+                "spectator": "Khán giả"
+              },
+              "reason": {
+                "notRunning": "Hãy khởi động máy chủ để làm việc này.",
+                "notOnline": "Người chơi không trực tuyến.",
+                "noConsole": "Cần quyền truy cập bảng điều khiển.",
+                "stopFirst": "Hãy dừng máy chủ để thay đổi dữ liệu đã lưu.",
+                "noFiles": "Cần quyền thay đổi tệp."
+              },
+              "vitals": {
+                "title": "Máu và kinh nghiệm",
+                "health": "Máu",
+                "food": "Thức ăn",
+                "level": "Cấp {level}",
+                "points": "Tổng cộng {points} điểm",
+                "heal": "Hồi máu",
+                "feed": "Cho ăn",
+                "kill": "Giết",
+                "killTitle": "Giết {name}?",
+                "killContent": "Người chơi chết trong game và làm rơi đồ đang mang, trừ khi bật keepInventory."
+              },
+              "access": {
+                "title": "Quyền vào",
+                "whitelisted": "Có trong whitelist",
+                "operator": "OP",
+                "banned": "Bị cấm",
+                "unnamed": "Các danh sách cần tên người chơi, mà máy chủ chưa biết."
+              },
+              "inventory": {
+                "title": "Túi đồ",
+                "equipment": "Giáp và tay phụ",
+                "main": "Túi đồ",
+                "hotbar": "Thanh công cụ",
+                "enderChest": "Rương Ender"
+              },
+              "position": {
+                "title": "Vị trí",
+                "coordinates": "Tọa độ",
+                "dimension": "Chiều không gian",
+                "respawn": "Điểm hồi sinh",
+                "lastDeath": "Lần chết gần nhất",
+                "unknown": "Chưa đặt",
+                "teleport": "Dịch chuyển",
+                "overworld": "Thế giới chính",
+                "nether": "Nether",
+                "end": "The End"
+              },
+              "teleport": {
+                "title": "Dịch chuyển {name}",
+                "coordinates": "Tọa độ",
+                "spawn": "Điểm sinh của thế giới",
+                "player": "Đến một người chơi",
+                "current": "Nơi họ đang ở",
+                "target": "Người chơi",
+                "noTargets": "Không có người chơi nào khác để dịch chuyển đến.",
+                "spawnHint": "Điểm sinh của thế giới mà máy chủ đang tải.",
+                "live": "Người chơi được dịch chuyển ngay.",
+                "file": "Máy chủ đang dừng: vị trí đã lưu của họ thay đổi, và họ xuất hiện ở đó khi vào lần tới.",
+                "submit": "Dịch chuyển"
+              },
+              "stats": {
+                "title": "Thống kê",
+                "empty": "Chưa có thống kê nào được lưu.",
+                "playTime": "Thời gian chơi",
+                "playerKills": "Người chơi đã giết",
+                "mobKills": "Mob đã giết",
+                "deaths": "Số lần chết",
+                "kdr": "Số lần giết mỗi lần chết",
+                "distance": "Quãng đường đã đi",
+                "blocks": "{count} khối",
+                "mined": "Khối đã đào",
+                "used": "Vật phẩm đã dùng",
+                "killed": "Mob đã giết",
+                "nothing": "Chưa có",
+                "ways": {
+                  "walk": "Đi bộ",
+                  "sprint": "Chạy nhanh",
+                  "crouch": "Lén",
+                  "swim": "Bơi",
+                  "fall": "Rơi",
+                  "climb": "Leo",
+                  "fly": "Bay",
+                  "aviate": "Lượn bằng cánh cứng",
+                  "boat": "Đi thuyền",
+                  "minecart": "Đi xe goòng",
+                  "horse": "Cưỡi ngựa",
+                  "pig": "Cưỡi lợn",
+                  "strider": "Cưỡi strider",
+                  "walkOnWater": "Đi trên mặt nước",
+                  "walkUnderWater": "Đi dưới nước"
+                }
+              },
+              "remove": {
+                "title": "Xóa dữ liệu người chơi",
+                "description": "Chỉ khi máy chủ đã dừng. Đánh dấu những gì cần xóa.",
+                "xp": "Kinh nghiệm",
+                "inventory": "Túi đồ và giáp",
+                "enderChest": "Rương Ender",
+                "playerData": "Tệp dữ liệu người chơi",
+                "playerDataHint": "Mọi thứ máy chủ đã lưu về họ: họ bắt đầu lại ở điểm sinh.",
+                "statistics": "Thống kê",
+                "advancements": "Tiến trình",
+                "missing": "Chưa có gì được lưu",
+                "submit": "Xóa",
+                "confirmTitle": "Xóa dữ liệu đã chọn của {name}?",
+                "edited": "Tệp dữ liệu người chơi được ghi lại; phiên bản trước vẫn nằm bên cạnh với tên {file}.",
+                "trash": "Tệp đã xóa sẽ vào thùng rác.",
+                "gone": "Tệp đã xóa không thể khôi phục."
+              },
+              "toast": {
+                "healed": "Đã hồi máu cho {name}.",
+                "fed": "Đã cho {name} ăn.",
+                "killed": "Đã giết {name}.",
+                "gameMode": "{name} giờ chơi ở chế độ {mode}.",
+                "teleported": "Đã dịch chuyển {name}.",
+                "nextJoin": "Đã lưu vào tệp của họ - áp dụng khi họ vào lần tới.",
+                "deleted": "Đã xóa dữ liệu đã chọn của {name}."
+              }
             }
           },
           "worlds": {
@@ -9672,9 +10088,12 @@
         "chat": {
           "title": "Trò chuyện",
           "empty": "Chưa có tin nhắn. Hãy chào hỏi.",
+          "emptyReadOnly": "Chưa có tin nhắn.",
           "placeholder": "Viết tin nhắn…",
           "loadOlder": "Tải tin nhắn cũ hơn",
-          "deletedUser": "Người dùng đã xóa"
+          "deletedUser": "Người dùng đã xóa",
+          "newMessages": "Tin nhắn mới",
+          "readOnly": "Bạn có thể đọc cuộc trò chuyện này nhưng không thể viết vào đó."
         }
       }
     }

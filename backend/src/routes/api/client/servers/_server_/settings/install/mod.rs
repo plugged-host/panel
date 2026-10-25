@@ -2,6 +2,7 @@ use super::State;
 use utoipa_axum::{router::OpenApiRouter, routes};
 
 mod cancel;
+mod retry; // plugged.host
 mod unlock;
 
 mod post {
@@ -86,6 +87,7 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
     OpenApiRouter::new()
         .routes(routes!(post::route))
         .nest("/cancel", cancel::router(state))
+        .nest("/retry", retry::router(state)) // plugged.host
         .nest("/unlock", unlock::router(state))
         .with_state(state.clone())
 }

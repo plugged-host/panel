@@ -405,7 +405,7 @@ async fn invites_embed(
         ),
         field("Left", summary.left.to_string(), true),
     ];
-    if context.pays() {
+    if context.pays_invites() {
         fields.push(field(
             "Credits from invites",
             format!("+{}", summary.credits),
@@ -434,7 +434,7 @@ async fn invites_embed(
         "Panel account",
         match user_uuid {
             Some(_) => "Linked",
-            None if context.pays() => "Not linked yet: rewards wait until it is",
+            None if context.pays_invites() => "Not linked yet: rewards wait until it is",
             None => "Not linked",
         },
         false,
@@ -461,7 +461,7 @@ async fn leaderboard_embed(
     limit: i64,
 ) -> Result<serde_json::Value, anyhow::Error> {
     let top = invites::leaderboard(&state.database, limit).await?;
-    let pays = context.pays();
+    let pays = context.pays_invites();
 
     let description = if top.is_empty() {
         "No invites were counted yet.".to_string()
@@ -615,6 +615,7 @@ mod tests {
         let context = Context {
             settings: crate::settings::discord::AppSettingsDiscord::default(),
             connected: false,
+            noprofit_sync: false,
             credits_enabled: true,
             accounts_url: None,
             app_name: "Panel".into(),

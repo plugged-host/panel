@@ -71,12 +71,12 @@ mod get {
 
         let storage_url_retriever = state.storage.retrieve_urls().await?;
 
-        ApiResponse::new_serialized(Response {
-            users: users
-                .try_async_map(|user| user.into_admin_api_object(&state, &storage_url_retriever))
-                .await?,
-        })
-        .ok()
+        let mut users = users
+            .try_async_map(|user| user.into_admin_api_object(&state, &storage_url_retriever))
+            .await?;
+        shared::user_links::attach(&state, &mut users.data).await?; // plugged.host
+
+        ApiResponse::new_serialized(Response { users }).ok()
     }
 }
 

@@ -1,4 +1,4 @@
-import { faStar, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faLock, faLockOpen, faStar, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useDebouncedCallback } from '@mantine/hooks';
 import { useQueryClient } from '@tanstack/react-query';
@@ -75,6 +75,26 @@ export default function ServerAllocationRow({
       });
   };
 
+  // plugged.host: a locked allocation is removed by an admin only (docs/features/allocations.md)
+  const setLocked = (next: boolean) => {
+    updateServerAllocation(server.uuid, allocation.uuid, { locked: next })
+      .then(() => {
+        invalidateAllocations();
+        addToast(
+          t(
+            next
+              ? 'pages.admin.servers.tabs.allocations.page.toast.locked'
+              : 'pages.admin.servers.tabs.allocations.page.toast.unlocked',
+            {},
+          ),
+          'success',
+        );
+      })
+      .catch((msg) => {
+        addToast(httpErrorToHuman(msg), 'error');
+      });
+  };
+
   const doRemove = async () => {
     await deleteServerAllocation(server.uuid, allocation.uuid)
       .then(async () => {
@@ -120,6 +140,23 @@ export default function ServerAllocationRow({
             onClick: () => setPrimary(false),
             color: 'red',
           },
+          // plugged.host: docs/features/allocations.md
+          {
+            type: 'action',
+            icon: faLock,
+            label: t('pages.admin.servers.tabs.allocations.page.button.lock', {}),
+            hidden: allocation.locked,
+            onClick: () => setLocked(true),
+            color: 'gray',
+          },
+          {
+            type: 'action',
+            icon: faLockOpen,
+            label: t('pages.admin.servers.tabs.allocations.page.button.unlock', {}),
+            hidden: !allocation.locked,
+            onClick: () => setLocked(false),
+            color: 'gray',
+          },
           {
             type: 'action',
             icon: faTrash,
@@ -158,6 +195,16 @@ export default function ServerAllocationRow({
 
             <TableData>
               <Code>{allocation.port}</Code>
+              {/* plugged.host: docs/features/allocations.md */}
+              {allocation.locked && (
+                <Tooltip label={t('pages.admin.servers.tabs.allocations.page.tooltip.locked', {})}>
+                  <FontAwesomeIcon
+                    icon={faLock}
+                    className='ms-2 text-(--mantine-color-dimmed)'
+                    aria-label={t('pages.admin.servers.tabs.allocations.page.tooltip.locked', {})}
+                  />
+                </Tooltip>
+              )}
             </TableData>
 
             <TableData>

@@ -148,6 +148,7 @@ export const redemptionSchema = z.object({
 
 export const adminUserEconomySchema = userEconomySchema.extend({
   panelCredits: z.number(),
+  creditsChangeable: z.boolean(),
   extras: z.object({
     cpu: z.number(),
     memory: z.number(),

@@ -2221,14 +2221,21 @@ impl super::IntoApiObject for Server {
         let feature_limits = ApiServerFeatureLimits::init_hooks(&self, state).await?;
         let api_object = ApiServer::init_hooks(&self, state).await?;
         let trash = self.api_trash(&*state.settings.get().await?);
-        // plugged.host: its icon, and its game's to show without one (icon.rs)
-        let (icon, egg_icon) = {
+        // plugged.host: its icon, and its game's to show without one (icon.rs); where to ask for
+        // help while suspended (suspension.rs)
+        let (icon, egg_icon, help_url) = {
             let urls = state.storage.retrieve_urls().await?;
             (
                 self.icon.as_ref().map(|icon| urls.get_url(icon)),
                 icon::egg_icon(&urls.get_settings().games.catalog, self.egg.uuid),
+                self.suspension
+                    .as_ref()
+                    .and_then(|_| suspension::help_url(urls.get_settings())),
             )
         };
+        // plugged.host: when an install began, for the stuck-install way out (stuck_installs.rs)
+        let installing_since =
+            crate::stuck_installs::installing_since(&state.database, &self).await?;
 
         let allocation_uuid = self.allocation.as_ref().map(|a| a.uuid);
         let allocation = match self.allocation {
@@ -2283,10 +2290,11 @@ impl super::IntoApiObject for Server {
                 }),
                 sftp_port: node.sftp_port,
                 status: self.status,
+                installing_since, // plugged.host
                 is_suspended: self.suspended,
                 suspension: self
                     .suspension
-                    .map(suspension::ServerSuspension::into_api_object), // plugged.host
+                    .map(|suspension| suspension.into_api_object(help_url)), // plugged.host
                 limbo_state: self.limbo, // plugged.host
                 is_owner: self.owner.uuid == user.uuid,
                 is_transferring: self.destination_node.is_some(),
@@ -3173,8 +3181,7 @@ impl DeletableModel for Server {
 
         let state = state.clone();
         let server_uuid = self.uuid;
-        let subdomain_service =
-            crate::subdomains::records::Service::of_features(&self.egg.features); // plugged.host
+        let subdomain_service = crate::subdomains::records::Service::of_egg(&self.egg); // plugged.host
         let icon = self.icon.clone(); // plugged.host
 
         tokio::spawn(async move {
@@ -3460,6 +3467,9 @@ pub struct ApiServer {
     pub egg_configuration: super::egg_configuration::ApiEggConfiguration,
 
     pub status: Option<ServerStatus>,
+    /// plugged.host: when the install began, while installing
+    /// (docs/features/server-settings.md#stuck-installs)
+    pub installing_since: Option<chrono::DateTime<chrono::Utc>>,
 
     pub is_owner: bool,
     pub is_suspended: bool,

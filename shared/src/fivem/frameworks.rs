@@ -671,6 +671,7 @@ pub async fn install(
         }
     }
     store(&state, &server, &mut install).await;
+    crate::notifications::framework_ended(&state, logger.user_uuid, &server, &install).await;
 }
 
 async fn create_database(

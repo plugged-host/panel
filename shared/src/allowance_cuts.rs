@@ -437,6 +437,7 @@ pub async fn settle_user(
 
     if !changed.is_empty() {
         tracing::info!(user = %user_uuid, servers = changed.len(), "brought servers down to a lowered allowance");
+        crate::notifications::allowance_cut(state, user_uuid, serde_json::json!(changed)).await;
     }
 
     Ok(true)

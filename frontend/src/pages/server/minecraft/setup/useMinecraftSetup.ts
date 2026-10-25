@@ -2,6 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { z } from 'zod';
 import getMinecraftOnboarding from '@/api/server/minecraft/getMinecraftOnboarding.ts';
+import { isMinecraftServer } from '@/lib/domain/games.ts';
 import { queryKeys } from '@/lib/queryKeys.ts';
 import { minecraftOnboardingProgressSchema } from '@/lib/schemas/server/minecraft.ts';
 import { useServerCan } from '@/plugins/usePermissions.ts';
@@ -21,7 +22,7 @@ export function useMinecraftSetup(enabled = true) {
   return useQuery({
     queryKey: queryKeys.server(server.uuid).minecraft.onboarding(),
     queryFn: () => getMinecraftOnboarding(server.uuid),
-    enabled: enabled && !!server.uuid && canSetUp && !!server.egg?.features?.includes('eula'),
+    enabled: enabled && !!server.uuid && canSetUp && isMinecraftServer(server.egg),
     retry: false,
     // applying the answers runs after their request: poll it until it ends
     refetchInterval: (query) => (setupRunning(query.state.data?.progress) ? 3000 : false),

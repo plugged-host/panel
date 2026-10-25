@@ -19,6 +19,9 @@ pub enum FailoverMode {
     /// Only when an admin starts it on the node's Failover tab.
     #[default]
     Manual,
+    /// By hand, and a node unreachable for `failover_after` checks is reported to the admins with
+    /// what a failover would do, without restoring anything.
+    Notify,
     /// Also on its own, once a node has been unreachable for `failover_after` checks.
     Auto,
 }
@@ -28,6 +31,7 @@ impl FailoverMode {
         match self {
             Self::Off => "off",
             Self::Manual => "manual",
+            Self::Notify => "notify",
             Self::Auto => "auto",
         }
     }
@@ -36,6 +40,7 @@ impl FailoverMode {
         match value {
             "off" => Some(Self::Off),
             "manual" => Some(Self::Manual),
+            "notify" => Some(Self::Notify),
             "auto" => Some(Self::Auto),
             _ => None,
         }

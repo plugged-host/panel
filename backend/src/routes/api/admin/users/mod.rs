@@ -64,12 +64,12 @@ mod get {
 
         let storage_url_retriever = state.storage.retrieve_urls().await?;
 
-        ApiResponse::new_serialized(Response {
-            users: users
-                .try_async_map(|user| user.into_admin_api_object(&state, &storage_url_retriever))
-                .await?,
-        })
-        .ok()
+        let mut users = users
+            .try_async_map(|user| user.into_admin_api_object(&state, &storage_url_retriever))
+            .await?;
+        shared::user_links::attach(&state, &mut users.data).await?; // plugged.host
+
+        ApiResponse::new_serialized(Response { users }).ok()
     }
 }
 
@@ -104,6 +104,14 @@ mod post {
         shared::Payload(data): shared::Payload<CreateUserOptions>,
     ) -> ApiResponseResult {
         permissions.has_admin_permission("users.create")?;
+
+        // plugged.host: accounts come from noprofit.space while it is connected (a panel-made
+        // user could not sign in); emergency admins are made with the `users create` command
+        if state.settings.get().await?.noprofit.connected() {
+            return ApiResponse::error("users are created by signing in with noprofit.space")
+                .with_status(StatusCode::CONFLICT)
+                .ok();
+        }
 
         if !permissions.is_unrestricted_admin() {
             if data.admin {

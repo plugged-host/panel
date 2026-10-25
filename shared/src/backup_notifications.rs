@@ -4,8 +4,9 @@
 //!
 //! The choice is per person and server (`server_notification_settings`; a person with both off has
 //! no row). When a backup of the server finishes, its owner and the subusers who may read its
-//! backups get the `backup_completed` mail if they asked for that kind. System backups (Admin ›
-//! System Backup Policies) send none.
+//! backups get the `backup_completed` mail if they asked for that kind, and a notification in the
+//! panel (docs/features/notifications.md). System backups (Admin › System Backup Policies) send
+//! none.
 
 use crate::models::{
     ByUuid, EventEmittingModel,
@@ -197,6 +198,14 @@ async fn notify(
         let Some(user) = User::by_uuid_optional(&state.database, user_uuid).await? else {
             continue;
         };
+        crate::notifications::backup_ended(
+            state,
+            user_uuid,
+            &server,
+            backup.name.as_str(),
+            successful,
+        )
+        .await;
 
         state
             .mail

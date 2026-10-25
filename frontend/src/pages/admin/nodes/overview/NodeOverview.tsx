@@ -206,7 +206,9 @@ export default function NodeOverview({ node }: { node: Node }) {
                 <Text size='sm'>
                   {node.role === 'internal'
                     ? t('pages.admin.nodes.tabs.general.page.form.roleInternal', {})
-                    : t('pages.admin.nodes.tabs.general.page.form.roleGame', {})}
+                    : node.role === 'limbo'
+                      ? t('pages.admin.nodes.tabs.general.page.form.roleLimbo', {})
+                      : t('pages.admin.nodes.tabs.general.page.form.roleGame', {})}
                 </Text>
               </InfoRow>
               {node.tags.length > 0 && (

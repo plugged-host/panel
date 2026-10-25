@@ -7,11 +7,13 @@ import Button from '@/elements/buttons/Button.tsx';
 import { ServerCan } from '@/elements/Can.tsx';
 import ServerContentContainer from '@/elements/containers/ServerContentContainer.tsx';
 import ScreenBlock from '@/elements/feedback/ScreenBlock.tsx';
+import { DeleteServerButton } from '@/elements/InstallStuck.tsx'; // plugged.host
 import ConfirmationModal from '@/elements/modals/ConfirmationModal.tsx';
 import { isInLimbo } from '@/lib/domain/limbo.ts'; // plugged.host
 import { isConflictingState, serverStatusInfo } from '@/lib/domain/server.ts';
 import ServerLimbo from '@/pages/server/limbo/ServerLimbo.tsx'; // plugged.host
 import { SETUP_PATH, useMinecraftSetup } from '@/pages/server/minecraft/setup/useMinecraftSetup.ts'; // plugged.host
+import { useCanDeleteServer } from '@/pages/server/settings/useSettingsSections.ts'; // plugged.host
 import { useAdminCan } from '@/plugins/usePermissions.ts';
 import { useAuth } from '@/providers/AuthProvider.tsx';
 import { useToast } from '@/providers/ToastProvider.tsx';
@@ -29,6 +31,7 @@ export default function ServerStateGuard() {
   const updateServer = useServerStore((state) => state.updateServer);
   const canReadInstallationLogs = useAdminCan('servers.read');
   const canUpdateServers = useAdminCan('servers.update');
+  const canDeleteServer = useCanDeleteServer(); // plugged.host
   const location = useLocation();
 
   const [openModal, setOpenModal] = useState<'acknowledgeFailure' | null>(null);
@@ -166,6 +169,8 @@ export default function ServerStateGuard() {
               </Button>
             </ServerCan>
           )}
+          {/* plugged.host: a failed install's server can go, as on the Pelican panel (docs/features/server-settings.md#stuck-installs) */}
+          {server.status === 'install_failed' && canDeleteServer && <DeleteServerButton />}
         </ScreenBlock>
       </ServerContentContainer>
     );

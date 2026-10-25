@@ -61,6 +61,7 @@ export const adsSettingsSchema = z.object({
   slotServerTools: z.boolean(),
   slotPages: z.boolean(),
   slotFoot: z.boolean(),
+  maxUnitsPerPage: z.number().default(2),
   refreshSeconds: z.number(),
   refreshMemberSeconds: z.number(),
   zones: z.array(adsZoneSchema),
@@ -167,6 +168,13 @@ export const publicSettingsSchema = z.object({
   tour: z.object({
     enabled: z.boolean(),
   }),
+  // plugged.host: where players are asked for a review (docs/features/reviews.md); an empty url is off
+  reviews: z.object({
+    url: z.string(),
+    site: z.string(),
+    delayDays: z.number(),
+    intervalDays: z.number(),
+  }),
   // plugged.host: which parts of the economy players see (docs/features/economy.md)
   economy: z.object({
     creditsEnabled: z.boolean(),
@@ -186,5 +194,10 @@ export const publicSettingsSchema = z.object({
   // plugged.host: the chat with neo is offered (docs/features/neo.md)
   neo: z.object({
     enabled: z.boolean(),
+  }),
+  // plugged.host: Account › Partners shown, its form open (docs/features/partners.md)
+  partners: z.object({
+    enabled: z.boolean(),
+    open: z.boolean(),
   }),
 });

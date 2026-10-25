@@ -5,7 +5,9 @@
 //! account (its snapshot). Without noprofit.space the panel checks membership of the Discord
 //! server itself ([`members`]), adds the Discord tier to the allowance of members, pays every boost
 //! level once and pays invites ([`invites`]); with noprofit.space connected noprofit.space does
-//! the membership, the bonus and the boosts, and the panel only shows them.
+//! the membership, the bonus and the boosts, and the panel only shows them. Invites the panel
+//! pays either way (with credits on): connected, the rewards and clawbacks are sent to
+//! noprofit.space, which holds the balance ([`crate::noprofit::queue_credit_change`]).
 //!
 //! The gateway ([`gateway`]) keeps the bots connected on the primary instance only; the invite and
 //! boost bot ([`rewards_bot`]) records who joined through whose invite and answers `/invites`,
@@ -87,6 +89,8 @@ pub fn avatar_url(discord_id: &str, avatar: Option<&str>) -> Option<String> {
 pub struct Context {
     pub settings: AppSettingsDiscord,
     pub connected: bool,
+    /// noprofit.space is connected with its account sync on: it takes the panel's credit changes.
+    pub noprofit_sync: bool,
     pub credits_enabled: bool,
     /// noprofit.space's accounts site, while it is connected.
     pub accounts_url: Option<String>,
@@ -101,6 +105,9 @@ impl Context {
         Ok(Self {
             settings: settings.discord.clone(),
             connected: noprofit.is_some(),
+            noprofit_sync: noprofit
+                .as_ref()
+                .is_some_and(|config| config.sync_enabled()),
             credits_enabled: settings.economy.credits_enabled,
             accounts_url: noprofit.map(|config| config.accounts_url),
             app_name: settings.app.name.to_string(),
@@ -127,6 +134,15 @@ impl Context {
     /// The panel pays invite and boost rewards: standalone, with credits on.
     pub fn pays(&self) -> bool {
         self.standalone() && self.credits_enabled
+    }
+
+    /// The panel pays invite rewards (and takes them back), with credits on: standalone into
+    /// its own balances, or with noprofit.space connected (its sync on, a bot token here) into
+    /// noprofit.space's. Boosts are noprofit.space's then ([`Self::pays`]).
+    pub fn pays_invites(&self) -> bool {
+        self.credits_enabled
+            && (self.standalone()
+                || (self.connected && self.noprofit_sync && self.settings.can_check()))
     }
 }
 
@@ -325,5 +341,40 @@ mod tests {
         );
         assert_eq!(avatar_url("1", Some("../x")), None);
         assert_eq!(avatar_url("1", None), None);
+    }
+
+    #[test]
+    fn invites_pay_with_noprofit_space_too_boosts_do_not() {
+        let settings = AppSettingsDiscord {
+            enabled: true,
+            guild_id: "123456789012345678".into(),
+            bot_token: Some("token".into()),
+            oauth_provider_uuid: Some(uuid::Uuid::nil()),
+            ..Default::default()
+        };
+        let context = |connected, noprofit_sync, credits_enabled| Context {
+            settings: settings.clone(),
+            connected,
+            noprofit_sync,
+            credits_enabled,
+            accounts_url: None,
+            app_name: "Panel".into(),
+        };
+
+        // standalone: both
+        assert!(context(false, false, true).pays());
+        assert!(context(false, false, true).pays_invites());
+        // noprofit.space: invites only, and only while it takes the changes
+        assert!(!context(true, true, true).pays());
+        assert!(context(true, true, true).pays_invites());
+        assert!(!context(true, false, true).pays_invites());
+        // credits off: nothing
+        assert!(!context(false, false, false).pays_invites());
+        assert!(!context(true, true, false).pays_invites());
+
+        // without a bot token nobody can check the members
+        let mut silent = context(true, true, true);
+        silent.settings.bot_token = None;
+        assert!(!silent.pays_invites());
     }
 }

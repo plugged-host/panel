@@ -30,6 +30,7 @@ import {
   faServer,
   faShareNodes,
   faShieldHalved,
+  faStar, // plugged.host
   faStore, // plugged.host
   faTableColumns, // plugged.host
   faToolbox,
@@ -71,10 +72,12 @@ import MinecraftContainer from './minecraft/MinecraftContainer.tsx'; // plugged.
 import NeoContainer from './neo/NeoContainer.tsx'; // plugged.host
 import NeoDiscordContainer from './neoDiscord/NeoDiscordContainer.tsx'; // plugged.host
 import NoprofitContainer from './noprofit/NoprofitContainer.tsx';
+import PartnersContainer from './partners/PartnersContainer.tsx'; // plugged.host
 import PlacementContainer from './placement/PlacementContainer.tsx'; // plugged.host
 import QueueContainer from './queue/QueueContainer.tsx'; // plugged.host
 import RatelimitsContainer from './ratelimits/RatelimitsContainer.tsx';
 import RecoveryContainer from './recovery/RecoveryContainer.tsx'; // plugged.host
+import ReviewsContainer from './reviews/ReviewsContainer.tsx'; // plugged.host
 import RuxContainer from './rux/RuxContainer.tsx'; // plugged.host
 import ServerContainer from './server/ServerContainer.tsx';
 import StatusContainer from './status/StatusContainer.tsx';
@@ -199,6 +202,13 @@ export const settingsGroups: SettingsGroup[] = [
         icon: faCircleQuestion,
         path: '/tour',
         element: <TourContainer />,
+      },
+      // plugged.host: asking players for a review (docs/features/reviews.md)
+      {
+        name: t('pages.admin.settings.tabs.reviews.title', {}),
+        icon: faStar,
+        path: '/reviews',
+        element: <ReviewsContainer />,
       },
     ],
   },
@@ -327,6 +337,13 @@ export const settingsGroups: SettingsGroup[] = [
         icon: faMedal,
         path: '/memberships',
         element: <EconomyContainer part='memberships' />,
+      },
+      // plugged.host: the partner program (docs/features/partners.md)
+      {
+        name: t('pages.admin.settings.tabs.partners.title', {}),
+        icon: faHandshake,
+        path: '/partners',
+        element: <PartnersContainer />,
       },
     ],
   },

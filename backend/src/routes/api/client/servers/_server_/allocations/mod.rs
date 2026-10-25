@@ -71,12 +71,14 @@ mod get {
 
         let allocation_uuid = server.0.allocation.map(|a| a.uuid);
 
-        ApiResponse::new_serialized(Response {
-            allocations: allocations
-                .try_async_map(|allocation| allocation.into_api_object(&state, allocation_uuid))
-                .await?,
-        })
-        .ok()
+        let mut allocations = allocations
+            .try_async_map(|allocation| allocation.into_api_object(&state, allocation_uuid))
+            .await?;
+        // plugged.host: the IP beside each host name (shared/src/network_address.rs)
+        let node = server.0.node.fetch_cached(&state.database).await?;
+        shared::network_address::fill(&state, &node, &mut allocations.data).await;
+
+        ApiResponse::new_serialized(Response { allocations }).ok()
     }
 }
 
@@ -122,9 +124,12 @@ mod post {
 
         let egg_configuration = server.egg_configuration(&state.database).await?;
 
-        if !egg_configuration
+        // plugged.host: without an egg configuration for allocations, the next free port above the
+        // primary inside the deployment port ranges, made when missing (docs/features/allocations.md)
+        let self_assign = egg_configuration.config_allocations.is_some();
+        if egg_configuration
             .config_allocations
-            .is_some_and(|config| config.user_self_assign.enabled)
+            .is_some_and(|config| !config.user_self_assign.enabled)
         {
             return ApiResponse::error("self-assigning allocations is not enabled for this server")
                 .with_status(StatusCode::EXPECTATION_FAILED)
@@ -148,7 +153,16 @@ mod post {
                 .ok();
         }
 
-        let allocation = match ServerAllocation::create_random(&state, &server).await {
+        let created = if self_assign {
+            ServerAllocation::create_random(&state, &server)
+                .await
+                .map_err(anyhow::Error::from)
+        } else {
+            shared::allocations::add_port(&state, &server, None) // plugged.host
+                .await
+                .map_err(|err| err.into_anyhow())
+        };
+        let allocation = match created {
             Ok(allocation_uuid) => ServerAllocation::by_uuid(&state.database, allocation_uuid)
                 .await?
                 .ok_or_else(|| anyhow::anyhow!("allocation not found after creation"))?,

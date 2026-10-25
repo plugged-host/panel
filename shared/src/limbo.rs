@@ -18,21 +18,38 @@
 //!    (`restoring`), the final backup is restored (`unpacking`), and it is an ordinary server
 //!    again.
 //!
+//! 4. A server parked for `delete_after_days` (0: never) is deleted ([`purge_due`], same task);
+//!    its backups go to the deleted servers' hold like any deleted server's. The limbo page says
+//!    when, and a restore is refused once the time has passed.
+//!
 //! At most `max_per_run` stops start per run and `max_per_run` parks run at once; after 3 failed
 //! parks in an hour and none that worked, parking waits for the hour to pass. A server whose park
 //! failed is tried again after a day. Activity clears `stopped`; a start during `parking` cancels
 //! it (the backup stays an ordinary, unlocked backup).
+//!
+//! A server can also be parked **on a node**: the Pelican panel parked idle servers by moving them
+//! to a node it kept for them, and an import keeps them there ([`NODE_ROLE`], the node's role). Such
+//! a server is `parked` without a final backup; its files are on that node ([`way`]). Its restore is
+//! a move off the node to a game node (`server_transfers::limbo_request`): home (`server_limbo.
+//! home_node_uuid`, on its old ports there when they are free, [`home_allocations`]) or the location
+//! picked, retried on another node of the location like a player's move. The task follows the
+//! move ([`move_outcome`]); a move that fails leaves the server parked where it was, its tokens
+//! refunded, and nothing is ever deleted from that node. Nothing new is parked on such a node, and
+//! its servers are never stopped or parked again.
 
 use crate::{
     economy::{Currency, change},
     models::{
-        ByUuid, CreatableModel,
+        ByUuid, CreatableModel, EventEmittingModel,
         node::Node,
-        server::{Server, ServerStatus, rehome::RehomeOptions},
+        node_allocation::NodeAllocation,
+        server::{Server, ServerEvent, ServerStatus, rehome::RehomeOptions},
         server_activity::{CreateServerActivityOptions, ServerActivity},
+        server_allocation::ServerAllocation,
         server_backup::{CreateServerBackupOptions, ServerBackup, ServerBackupRestoreOptions},
         user::User,
     },
+    server_transfers::{Picked, TransferError, TransferRequest},
     settings::limbo::AppSettingsLimbo,
     start_gates::{Decision, StartGate},
 };
@@ -54,6 +71,66 @@ const RETRY_HOURS: i64 = 24;
 /// Failed parks in the last hour (with none that worked) that pause parking.
 const BREAKER_FAILURES: i64 = 3;
 
+/// The role of a node that keeps parked servers' files (`nodes.role`, see the module docs). It is
+/// never picked for players' servers (those go to `game` nodes), and limbo parks nothing there.
+pub const NODE_ROLE: &str = "limbo";
+
+/// How a parked server comes back.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Way {
+    /// Its files are in its final backup: Wings creates it, the backup is restored into it.
+    Unpack,
+    /// Its files are on the limbo node it is parked on: it is moved off that node.
+    Move,
+}
+
+/// How a parked server on a node of `node_role` comes back. A server parked on a limbo node has
+/// no final backup; one that has a final backup comes back from it wherever it is.
+pub fn way(node_role: &str, final_backup: bool) -> Way {
+    if node_role == NODE_ROLE && !final_backup {
+        Way::Move
+    } else {
+        Way::Unpack
+    }
+}
+
+/// Where a restore that moves a server off a limbo node stands.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum MoveOutcome {
+    Wait,
+    /// The server is on its new node: an ordinary server again.
+    Done,
+    /// The move gave up; the server is still on the limbo node and is parked again.
+    Failed(String),
+}
+
+/// What the task does with a restore by move, from the status and error of the move it asked
+/// for (`None` until that exists), whether the server is still on the limbo node and the minutes
+/// since the restore began.
+pub fn move_outcome(
+    request: Option<(&str, Option<&str>)>,
+    on_limbo_node: bool,
+    minutes: i64,
+) -> MoveOutcome {
+    use crate::server_transfers::{CANCELLED, CANCELLING, QUEUED, RUNNING};
+
+    match request {
+        None if minutes >= CREATE_TIMEOUT_MINUTES => {
+            MoveOutcome::Failed("the move off the limbo node did not start".into())
+        }
+        None => MoveOutcome::Wait,
+        Some((QUEUED | RUNNING | CANCELLING, _)) => MoveOutcome::Wait,
+        // the move is over and the files left the limbo node
+        Some(_) if !on_limbo_node => MoveOutcome::Done,
+        Some((CANCELLED, _)) => MoveOutcome::Failed("the move was cancelled".into()),
+        Some((_, error)) => MoveOutcome::Failed(
+            error
+                .unwrap_or("the copy to the new node failed")
+                .to_string(),
+        ),
+    }
+}
+
 #[derive(ToSchema, Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum LimboState {
@@ -61,7 +138,8 @@ pub enum LimboState {
     Stopped,
     /// Off, its final backup running.
     Parking,
-    /// Deleted from Wings; the row and the backup wait for a restore.
+    /// Deleted from Wings; the row and the backup wait for a restore. Or kept as it is on a
+    /// `limbo` node (NODE_ROLE), where a restore moves it from.
     Parked,
     /// Being created on a node again.
     Restoring,
@@ -124,6 +202,74 @@ pub fn cost(
     .max(0) as i64
 }
 
+/// When a server parked at `parked` is deleted (`delete_after_days`), or `None` when it is not.
+pub fn deletes_at(
+    settings: &AppSettingsLimbo,
+    parked: Option<chrono::NaiveDateTime>,
+) -> Option<chrono::NaiveDateTime> {
+    if settings.delete_after_days <= 0 {
+        return None;
+    }
+
+    parked.map(|parked| parked + chrono::Duration::days(settings.delete_after_days as i64))
+}
+
+/// Parked servers deleted per run at most.
+const PURGE_BATCH: i64 = 20;
+
+/// Deletes servers parked for longer than `delete_after_days` (run by `settle`, also with limbo
+/// off). Only `parked` ones: a restore under way stops the clock. A server whose node cannot
+/// delete it is tried again next run.
+pub async fn purge_due(state: &crate::State) -> Result<usize, anyhow::Error> {
+    use crate::models::DeletableModel;
+
+    let days = state.settings.get().await?.limbo.delete_after_days;
+    if days <= 0 {
+        return Ok(0);
+    }
+
+    let due: Vec<uuid::Uuid> = sqlx::query_scalar(
+        r#"
+        SELECT servers.uuid FROM servers
+        JOIN server_limbo ON server_limbo.server_uuid = servers.uuid
+        WHERE servers.limbo_state = 'parked' AND server_limbo.parked IS NOT NULL
+            AND server_limbo.parked <= NOW() - make_interval(days => $1)
+        ORDER BY server_limbo.parked
+        LIMIT $2
+        "#,
+    )
+    .bind(days)
+    .bind(PURGE_BATCH)
+    .fetch_all(state.database.write())
+    .await?;
+
+    let mut deleted = 0;
+    for server_uuid in due {
+        let server = match Server::by_uuid_optional(&state.database, server_uuid).await? {
+            Some(server) if server.limbo == Some(LimboState::Parked) => server,
+            _ => continue,
+        };
+
+        match server
+            .delete(
+                state,
+                crate::models::server::DeleteServerOptions { force: false },
+            )
+            .await
+        {
+            Ok(()) => {
+                tracing::info!(server = %server_uuid, name = %server.name, "deleted a server parked for longer than limbo keeps it");
+                deleted += 1;
+            }
+            Err(err) => {
+                tracing::warn!(server = %server_uuid, "failed to delete a parked server: {err:#}");
+            }
+        }
+    }
+
+    Ok(deleted)
+}
+
 /// What to do with an idle candidate.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Action {
@@ -172,6 +318,26 @@ pub fn register() {
             })
         },
     );
+
+    // a server parked on a limbo node that an admin moved off it by hand (Admin › Servers ›
+    // Transfer) is back: its files are on the new node
+    let _ = Server::register_event_handler(|state, event| async move {
+        if let ServerEvent::TransferCompleted {
+            server,
+            destination_node,
+            successful: true,
+        } = &*event
+            && server.limbo == Some(LimboState::Parked)
+            && server.node.fetch_cached(&state.database).await?.role == NODE_ROLE
+        {
+            let details = details(&state.database, server.uuid).await?;
+            if way(NODE_ROLE, details.backup_uuid.is_some()) == Way::Move {
+                finish_restore(&state, server, &details, destination_node.uuid).await?;
+            }
+        }
+
+        Ok(())
+    });
 }
 
 /// Whether limbo is creating the server on a node (the install Wings reports then is the skipped
@@ -335,6 +501,8 @@ struct Details {
     paid: i64,
     payer_uuid: Option<uuid::Uuid>,
     error: Option<String>,
+    /// Parked on a limbo node: the node it came from, when it is still there.
+    home_node_uuid: Option<uuid::Uuid>,
 }
 
 async fn details(
@@ -342,7 +510,8 @@ async fn details(
     server_uuid: uuid::Uuid,
 ) -> Result<Details, sqlx::Error> {
     let row = sqlx::query(
-        "SELECT since, backup_uuid, parked, paid, payer_uuid, error FROM server_limbo
+        "SELECT since, backup_uuid, parked, paid, payer_uuid, error, home_node_uuid
+        FROM server_limbo
         WHERE server_uuid = $1",
     )
     .bind(server_uuid)
@@ -357,6 +526,7 @@ async fn details(
             paid: row.try_get::<i32, _>("paid")? as i64,
             payer_uuid: row.try_get("payer_uuid")?,
             error: row.try_get("error")?,
+            home_node_uuid: row.try_get("home_node_uuid")?,
         }),
         None => Ok(Details::default()),
     }
@@ -456,8 +626,9 @@ async fn advance_park(state: &crate::State, server: &Server) -> Result<(), anyho
     Ok(())
 }
 
-/// A restore that did not work: the server is parked again (gone from the node it was being
-/// restored on) and whoever paid gets the tokens back.
+/// A restore that did not work: the server is parked again and whoever paid gets the tokens
+/// back. A restore from the final backup removes the half-made copy from the node it was being
+/// restored on; a server parked on a limbo node keeps its files there, so nothing is removed.
 async fn fail_restore(
     state: &crate::State,
     server: &Server,
@@ -466,6 +637,7 @@ async fn fail_restore(
     let details = details(&state.database, server.uuid).await?;
 
     if let Ok(node) = server.node.fetch_cached(&state.database).await
+        && way(&node.role, details.backup_uuid.is_some()) == Way::Unpack
         && let Ok(client) = node.api_client(&state.database).await
         && let Err(err) = client.delete_servers_server(server.uuid).await
     {
@@ -538,13 +710,105 @@ async fn create_on(
     }
 }
 
-/// `restoring` → `unpacking` → done.
+/// The end of a restore: an ordinary server again on `node_uuid`, its idle clock restarted, its
+/// final backup (if any) unlocked.
+async fn finish_restore(
+    state: &crate::State,
+    server: &Server,
+    details: &Details,
+    node_uuid: uuid::Uuid,
+) -> Result<(), anyhow::Error> {
+    let mut transaction = state.database.write().begin().await?;
+    set_state(&mut *transaction, server.uuid, None).await?;
+    sqlx::query("UPDATE servers SET last_activity = NOW() WHERE uuid = $1")
+        .bind(server.uuid)
+        .execute(&mut *transaction)
+        .await?;
+    sqlx::query(
+        "UPDATE server_limbo SET parked = NULL, paid = 0, payer_uuid = NULL, error = NULL,
+            failed = NULL, home_node_uuid = NULL, home_ports = '{}'
+        WHERE server_uuid = $1",
+    )
+    .bind(server.uuid)
+    .execute(&mut *transaction)
+    .await?;
+    transaction.commit().await?;
+    Server::invalidate_cached(&state.database, server.uuid).await;
+    if let Some(backup_uuid) = details.backup_uuid {
+        lock_backup(&state.database, backup_uuid, false).await?;
+    }
+
+    log(
+        state,
+        server.uuid,
+        None,
+        "server:limbo.restored",
+        serde_json::json!({ "node": node_uuid }),
+    )
+    .await;
+    tracing::info!(server = %server.uuid, node = %node_uuid, "restored a parked server");
+
+    Ok(())
+}
+
+/// The move a restore of a server parked on a limbo node asked for: `Some` when the restore is a
+/// move (with the request, `None` until it exists), `None` when it unpacks the final backup.
+async fn restore_move(
+    state: &crate::State,
+    server: &Server,
+    details: &Details,
+) -> Result<Option<Option<TransferRequest>>, anyhow::Error> {
+    let request = TransferRequest::latest(&state.database, server.uuid)
+        .await?
+        .filter(|request| {
+            request.origin == crate::server_transfers::ORIGIN_LIMBO
+                && details.since.is_none_or(|since| request.created >= since)
+        });
+    if request.is_some() {
+        return Ok(Some(request));
+    }
+
+    let node = server.node.fetch_cached(&state.database).await?;
+    Ok((way(&node.role, details.backup_uuid.is_some()) == Way::Move).then_some(None))
+}
+
+/// `restoring` by a move off a limbo node → done, or parked again.
+async fn advance_move(
+    state: &crate::State,
+    server: &Server,
+    details: &Details,
+    request: Option<TransferRequest>,
+    minutes: i64,
+) -> Result<(), anyhow::Error> {
+    let node = server.node.fetch_cached(&state.database).await?;
+    let outcome = move_outcome(
+        request
+            .as_ref()
+            .map(|request| (request.status.as_str(), request.error.as_deref())),
+        node.role == NODE_ROLE,
+        minutes,
+    );
+
+    match outcome {
+        MoveOutcome::Wait => Ok(()),
+        MoveOutcome::Done => finish_restore(state, server, details, node.uuid).await,
+        MoveOutcome::Failed(error) => fail_restore(state, server, &error).await,
+    }
+}
+
+/// `restoring` → `unpacking` → done, or (parked on a limbo node) `restoring` by a move → done.
 async fn advance_restore(state: &crate::State, server: Server) -> Result<(), anyhow::Error> {
     let details = details(&state.database, server.uuid).await?;
     let minutes = details
         .since
         .map(|since| (chrono::Utc::now().naive_utc() - since).num_minutes())
         .unwrap_or_default();
+
+    if server.limbo == Some(LimboState::Restoring)
+        && let Some(request) = restore_move(state, &server, &details).await?
+    {
+        return advance_move(state, &server, &details, request, minutes).await;
+    }
 
     if server.limbo == Some(LimboState::Unpacking) {
         return match crate::node_failover::restore_outcome(server.status, minutes) {
@@ -553,37 +817,7 @@ async fn advance_restore(state: &crate::State, server: Server) -> Result<(), any
                 fail_restore(state, &server, error).await
             }
             crate::node_failover::RestoreOutcome::Done => {
-                let mut transaction = state.database.write().begin().await?;
-                set_state(&mut *transaction, server.uuid, None).await?;
-                sqlx::query("UPDATE servers SET last_activity = NOW() WHERE uuid = $1")
-                    .bind(server.uuid)
-                    .execute(&mut *transaction)
-                    .await?;
-                sqlx::query(
-                    "UPDATE server_limbo SET parked = NULL, paid = 0, payer_uuid = NULL,
-                        error = NULL, failed = NULL
-                    WHERE server_uuid = $1",
-                )
-                .bind(server.uuid)
-                .execute(&mut *transaction)
-                .await?;
-                transaction.commit().await?;
-                Server::invalidate_cached(&state.database, server.uuid).await;
-                if let Some(backup_uuid) = details.backup_uuid {
-                    lock_backup(&state.database, backup_uuid, false).await?;
-                }
-
-                log(
-                    state,
-                    server.uuid,
-                    None,
-                    "server:limbo.restored",
-                    serde_json::json!({ "node": server.node.uuid }),
-                )
-                .await;
-                tracing::info!(server = %server.uuid, "restored a parked server");
-
-                Ok(())
+                finish_restore(state, &server, &details, server.node.uuid).await
             }
         };
     }
@@ -704,6 +938,9 @@ async fn candidates(
             AND (servers.limbo_state IS NULL OR servers.limbo_state = 'stopped')
             AND NOT users.admin
             AND NOT EXISTS (SELECT 1 FROM devboxes WHERE devboxes.server_uuid = servers.uuid)
+            AND NOT EXISTS (
+                SELECT 1 FROM nodes WHERE nodes.uuid = servers.node_uuid AND nodes.role = $4
+            )
             AND servers.last_activity < NOW() - make_interval(mins => $1)
             AND (server_limbo.failed IS NULL OR server_limbo.failed < NOW() - make_interval(hours => $2))
             AND NOT ($3 AND EXISTS (
@@ -718,6 +955,7 @@ async fn candidates(
     .bind(settings.stop_minutes.min(settings.park_minutes))
     .bind(RETRY_HOURS as i32)
     .bind(exempt_members)
+    .bind(NODE_ROLE)
     .fetch_all(state.database.read())
     .await?;
 
@@ -848,6 +1086,10 @@ pub async fn settle(state: &crate::State) -> Result<(), anyhow::Error> {
         }
     }
 
+    if let Err(err) = purge_due(state).await {
+        tracing::warn!("failed to delete servers parked too long: {err:#}");
+    }
+
     let settings = state.settings.get().await?;
     let limbo = settings.limbo.clone();
     let exempt_members = limbo.exempt_members && settings.economy.membership_enabled;
@@ -946,6 +1188,10 @@ pub enum LimboError {
     LocationUnavailable,
     /// Not enough tokens.
     Short,
+    /// The limbo node that has the server's files does not answer.
+    FilesUnreachable,
+    /// It was parked for longer than limbo keeps servers: it is being deleted.
+    Expired,
     Other(anyhow::Error),
 }
 
@@ -976,15 +1222,23 @@ impl LimboError {
             }
             Self::LocationUnavailable => "that location cannot take the server right now".into(),
             Self::Short => "not enough tokens".into(),
+            Self::FilesUnreachable => {
+                "the node that keeps the server's files does not answer right now, try again later"
+                    .into()
+            }
+            Self::Expired => "the server was parked for too long and is being deleted".into(),
             Self::Other(err) => format!("{err:#}"),
         }
     }
 
     pub fn status(&self) -> u16 {
         match self {
-            Self::NotParked | Self::HomeUnavailable | Self::LocationUnavailable | Self::Short => {
-                409
-            }
+            Self::NotParked
+            | Self::HomeUnavailable
+            | Self::LocationUnavailable
+            | Self::Short
+            | Self::FilesUnreachable
+            | Self::Expired => 409,
             Self::Other(_) => 500,
         }
     }
@@ -1018,81 +1272,141 @@ async fn home_available(state: &crate::State, server: &Server) -> Result<bool, a
     Ok(eligible.iter().any(|eligible| eligible.uuid == node.uuid))
 }
 
-/// Restores a parked server, home or (`location_uuid`) to a node of that location; `user` pays
-/// unless `admin`.
-pub async fn restore(
+/// Whether the owner may bring the server back in the location: one they may create servers in,
+/// with room.
+async fn location_open(
+    state: &crate::State,
+    server: &Server,
+    location_uuid: uuid::Uuid,
+) -> Result<bool, anyhow::Error> {
+    Ok(crate::server_creation::locations(state, &server.owner)
+        .await?
+        .into_iter()
+        .any(|location| location.uuid == location_uuid && location.unlocked && location.available))
+}
+
+/// Whether a game node of the location answers and has room for the server.
+async fn location_has_room(
+    state: &crate::State,
+    server: &Server,
+    location_uuid: uuid::Uuid,
+) -> Result<bool, anyhow::Error> {
+    let nodes = Node::by_location_uuids_most_eligible(
+        &state.database,
+        &[location_uuid],
+        crate::server_transfers::limits(server),
+        false,
+        crate::server_creation::SUSPENSION_PENALTY,
+        0.0,
+    )
+    .await?;
+
+    for node in nodes {
+        if node.role == crate::server_creation::GAME_ROLE && answers(state, node.uuid).await {
+            return Ok(true);
+        }
+    }
+
+    Ok(false)
+}
+
+/// The home of a server parked on a limbo node: the node it came from, when that still exists,
+/// and whether a game node of its location has room for the server now.
+async fn move_home(
+    state: &crate::State,
+    server: &Server,
+    details: &Details,
+) -> Result<Option<(Node, bool)>, anyhow::Error> {
+    let Some(home_uuid) = details.home_node_uuid else {
+        return Ok(None);
+    };
+    let Some(home) = Node::by_uuid_optional(&state.database, home_uuid).await? else {
+        return Ok(None);
+    };
+    let room = location_has_room(state, server, home.location.uuid).await?;
+
+    Ok(Some((home, room)))
+}
+
+/// The old ports of a server coming back from a limbo node to its home node, when `node` is that
+/// node, has them all free on one address and the server has as many allocations as it had there:
+/// its address is then the one it had before it was parked, as with the Pelican panel's restore.
+/// The egg variables that held one of its ports on the limbo node follow. Asked by
+/// `server_transfers::pick_allocations` before anything else.
+pub(crate) async fn home_allocations(
+    state: &crate::State,
+    server: &Server,
+    node: &Node,
+) -> Result<Option<Picked>, anyhow::Error> {
+    if server.limbo != Some(LimboState::Restoring) {
+        return Ok(None);
+    }
+
+    let ports: Option<Vec<i32>> = sqlx::query_scalar(
+        "SELECT home_ports FROM server_limbo WHERE server_uuid = $1 AND home_node_uuid = $2",
+    )
+    .bind(server.uuid)
+    .bind(node.uuid)
+    .fetch_optional(state.database.read())
+    .await?;
+    let Some(ports) = ports.filter(|ports| !ports.is_empty()) else {
+        return Ok(None);
+    };
+    // one old port per allocation it has now, else the move picks them as for any server
+    let current = crate::allocations::move_order(
+        server,
+        ServerAllocation::all_by_server_uuid(&state.database, server.uuid).await?,
+    )
+    .into_iter()
+    .map(|allocation| allocation.allocation.port)
+    .collect::<Vec<_>>();
+    if current.len() != ports.len() {
+        return Ok(None);
+    }
+
+    let used = NodeAllocation::used_by_node_any_ip(state, node).await?;
+    let Some((_, preserved)) =
+        NodeAllocation::get_preserved(&state.database, node.uuid, &ports, &used).await?
+    else {
+        return Ok(None);
+    };
+    let mut by_port: HashMap<i32, Vec<uuid::Uuid>> = HashMap::new();
+    for (uuid, port) in preserved {
+        by_port.entry(port).or_default().push(uuid);
+    }
+    let Some(kept) = ports
+        .iter()
+        .map(|port| by_port.get_mut(port).and_then(Vec::pop))
+        .collect::<Option<Vec<_>>>()
+    else {
+        return Ok(None);
+    };
+
+    let variables =
+        crate::allocations::followed_variables(&state.database, server, &current, &ports).await?;
+
+    let mut kept = kept.into_iter();
+    let primary = if server.allocation.is_some() {
+        kept.next()
+    } else {
+        None
+    };
+
+    Ok(Some(Picked {
+        primary,
+        additional: kept.collect(),
+        variables,
+    }))
+}
+
+/// Charges the restore and claims the server (`restoring`) in one transaction, so that a restore
+/// cannot be paid twice.
+async fn claim(
     state: &crate::State,
     server: &Server,
     user: &User,
-    location_uuid: Option<uuid::Uuid>,
-    admin: bool,
+    cost: i64,
 ) -> Result<(), LimboError> {
-    if server.limbo != Some(LimboState::Parked) {
-        return Err(LimboError::NotParked);
-    }
-
-    let details = details(&state.database, server.uuid).await?;
-    let settings = state.settings.get().await?;
-    let limbo = settings.limbo.clone();
-    let tokens_enabled = settings.economy.tokens_enabled;
-    drop(settings);
-
-    let now = chrono::Utc::now().naive_utc();
-    let cost = if admin || !tokens_enabled {
-        0
-    } else {
-        cost(&limbo, details.parked, now)
-    };
-
-    // where it goes: home, or the best node of the location picked
-    let destination = match location_uuid {
-        None if home_available(state, server).await? => None,
-        None => return Err(LimboError::HomeUnavailable),
-        Some(location_uuid) => {
-            let open = crate::server_creation::locations(state, &server.owner)
-                .await?
-                .into_iter()
-                .any(|location| {
-                    location.uuid == location_uuid && location.unlocked && location.available
-                });
-            if !open && !admin {
-                return Err(LimboError::LocationUnavailable);
-            }
-
-            let current = server.node.fetch_cached(&state.database).await?;
-            let nodes = Node::by_location_uuids_most_eligible(
-                &state.database,
-                &[location_uuid],
-                crate::server_transfers::limits(server),
-                false,
-                crate::server_creation::SUSPENSION_PENALTY,
-                crate::server_creation::RANDOMNESS,
-            )
-            .await?
-            .into_iter()
-            .filter(|node| node.role == current.role);
-
-            let mut picked = None;
-            for node in nodes {
-                if !answers(state, node.uuid).await {
-                    continue;
-                }
-                if node.uuid == current.uuid {
-                    picked = Some(None);
-                    break;
-                }
-                if let Some(allocations) =
-                    crate::server_transfers::pick_allocations(state, server, &node).await?
-                {
-                    picked = Some(Some((node, allocations)));
-                    break;
-                }
-            }
-
-            picked.ok_or(LimboError::LocationUnavailable)?
-        }
-    };
-
     let mut transaction = state.database.write().begin().await?;
     if cost > 0
         && change(
@@ -1134,6 +1448,157 @@ pub async fn restore(
     .await?;
     transaction.commit().await?;
     Server::invalidate_cached(&state.database, server.uuid).await;
+
+    Ok(())
+}
+
+/// [`restore`] of a server parked on a limbo node: a move off that node to the best game node of
+/// its home location (its home node first), or of the location picked (see the module docs).
+async fn restore_by_move(
+    state: &crate::State,
+    server: &Server,
+    user: &User,
+    location_uuid: Option<uuid::Uuid>,
+    admin: bool,
+    details: &Details,
+    cost: i64,
+) -> Result<(), LimboError> {
+    // the files are on that node: it has to answer to send them
+    let node = server.node.fetch_cached(&state.database).await?;
+    if !answers(state, node.uuid).await {
+        return Err(LimboError::FilesUnreachable);
+    }
+
+    let home = move_home(state, server, details).await?;
+    let (destination, prefer) = match location_uuid {
+        None => match home {
+            Some((home, true)) => (home.location.uuid, Some(home.uuid)),
+            _ => return Err(LimboError::HomeUnavailable),
+        },
+        Some(location_uuid) => {
+            if (!admin && !location_open(state, server, location_uuid).await?)
+                || !location_has_room(state, server, location_uuid).await?
+            {
+                return Err(LimboError::LocationUnavailable);
+            }
+            (location_uuid, home.map(|(home, _)| home.uuid))
+        }
+    };
+
+    claim(state, server, user, cost).await?;
+
+    let request =
+        match crate::server_transfers::limbo_request(state, server, user.uuid, destination, prefer)
+            .await
+        {
+            Ok(request) => request,
+            Err(err) => {
+                // nothing left the node: parked again where it was, the tokens back
+                fail_restore(state, server, &err.message()).await?;
+
+                return Err(match err {
+                    TransferError::NoNode(_) if location_uuid.is_none() => {
+                        LimboError::HomeUnavailable
+                    }
+                    TransferError::NoNode(_) => LimboError::LocationUnavailable,
+                    err => LimboError::Other(anyhow::anyhow!(err.message())),
+                });
+            }
+        };
+
+    log(
+        state,
+        server.uuid,
+        Some(user.uuid),
+        "server:limbo.restore",
+        serde_json::json!({
+            "node": request.destination_node_uuid,
+            "cost": cost,
+            "request": request.uuid,
+        }),
+    )
+    .await;
+
+    Ok(())
+}
+
+/// Restores a parked server, home or (`location_uuid`) to a node of that location; `user` pays
+/// unless `admin`.
+pub async fn restore(
+    state: &crate::State,
+    server: &Server,
+    user: &User,
+    location_uuid: Option<uuid::Uuid>,
+    admin: bool,
+) -> Result<(), LimboError> {
+    if server.limbo != Some(LimboState::Parked) {
+        return Err(LimboError::NotParked);
+    }
+
+    let details = details(&state.database, server.uuid).await?;
+    let settings = state.settings.get().await?;
+    let limbo = settings.limbo.clone();
+    let tokens_enabled = settings.economy.tokens_enabled;
+    drop(settings);
+
+    let now = chrono::Utc::now().naive_utc();
+    if deletes_at(&limbo, details.parked).is_some_and(|at| at <= now) {
+        return Err(LimboError::Expired);
+    }
+    let cost = if admin || !tokens_enabled {
+        0
+    } else {
+        cost(&limbo, details.parked, now)
+    };
+
+    let current = server.node.fetch_cached(&state.database).await?;
+    if way(&current.role, details.backup_uuid.is_some()) == Way::Move {
+        return restore_by_move(state, server, user, location_uuid, admin, &details, cost).await;
+    }
+
+    // where it goes: home, or the best node of the location picked
+    let destination = match location_uuid {
+        None if home_available(state, server).await? => None,
+        None => return Err(LimboError::HomeUnavailable),
+        Some(location_uuid) => {
+            if !admin && !location_open(state, server, location_uuid).await? {
+                return Err(LimboError::LocationUnavailable);
+            }
+
+            let nodes = Node::by_location_uuids_most_eligible(
+                &state.database,
+                &[location_uuid],
+                crate::server_transfers::limits(server),
+                false,
+                crate::server_creation::SUSPENSION_PENALTY,
+                crate::server_creation::RANDOMNESS,
+            )
+            .await?
+            .into_iter()
+            .filter(|node| node.role == current.role);
+
+            let mut picked = None;
+            for node in nodes {
+                if !answers(state, node.uuid).await {
+                    continue;
+                }
+                if node.uuid == current.uuid {
+                    picked = Some(None);
+                    break;
+                }
+                if let Some(allocations) =
+                    crate::server_transfers::pick_allocations(state, server, &node).await?
+                {
+                    picked = Some(Some((node, allocations)));
+                    break;
+                }
+            }
+
+            picked.ok_or(LimboError::LocationUnavailable)?
+        }
+    };
+
+    claim(state, server, user, cost).await?;
 
     let node = match destination {
         None => server.node.fetch_cached(&state.database).await?,
@@ -1187,6 +1652,8 @@ pub struct ApiLimbo {
     pub state: Option<LimboState>,
     pub last_activity: Option<chrono::DateTime<chrono::Utc>>,
     pub parked: Option<chrono::DateTime<chrono::Utc>>,
+    /// When the server is deleted unless it is restored first (`delete_after_days`).
+    pub delete_at: Option<chrono::DateTime<chrono::Utc>>,
     /// Tokens the restore costs this user.
     pub cost: i64,
     /// The user's tokens; `None` with tokens off.
@@ -1227,19 +1694,35 @@ pub async fn view(
 
     let parked = server.limbo == Some(LimboState::Parked);
     let node = server.node.fetch_cached(&state.database).await?;
+    // parked on a limbo node, home is the location of the node it came from
+    let (home_available, home_location_uuid) = if !parked {
+        (false, node.location.uuid)
+    } else if way(&node.role, details.backup_uuid.is_some()) == Way::Move {
+        match move_home(state, server, &details).await? {
+            Some((home, room)) => (room, home.location.uuid),
+            None => (false, node.location.uuid),
+        }
+    } else {
+        (home_available(state, server).await?, node.location.uuid)
+    };
 
     Ok(ApiLimbo {
         state: server.limbo,
         last_activity: last_activity.map(|at| at.and_utc()),
         parked: details.parked.map(|at| at.and_utc()),
+        delete_at: if parked {
+            deletes_at(&limbo, details.parked).map(|at| at.and_utc())
+        } else {
+            None
+        },
         cost: if admin || !tokens_enabled {
             0
         } else {
             cost(&limbo, details.parked, chrono::Utc::now().naive_utc())
         },
         tokens,
-        home_available: parked && home_available(state, server).await?,
-        home_location_uuid: node.location.uuid,
+        home_available,
+        home_location_uuid,
         locations: if parked {
             crate::server_creation::locations(state, &server.owner).await?
         } else {
@@ -1289,6 +1772,19 @@ mod tests {
     }
 
     #[test]
+    fn a_parked_server_is_deleted_after_the_days_set_and_never_with_0() {
+        let off = AppSettingsLimbo::default();
+        assert_eq!(deletes_at(&off, Some(at(0))), None);
+
+        let week = AppSettingsLimbo {
+            delete_after_days: 7,
+            ..Default::default()
+        };
+        assert_eq!(deletes_at(&week, Some(at(0))), Some(at(7 * 24)));
+        assert_eq!(deletes_at(&week, None), None);
+    }
+
+    #[test]
     fn a_restore_costs_more_after_the_window() {
         let settings = AppSettingsLimbo::default();
 
@@ -1301,5 +1797,68 @@ mod tests {
             ..Default::default()
         };
         assert_eq!(cost(&negative, Some(at(0)), at(1)), 0);
+    }
+
+    #[test]
+    fn only_a_server_on_a_limbo_node_without_a_backup_comes_back_by_a_move() {
+        assert_eq!(way(NODE_ROLE, false), Way::Move);
+        // parked the panel's way somewhere: its final backup has the files
+        assert_eq!(way(NODE_ROLE, true), Way::Unpack);
+        assert_eq!(way("game", false), Way::Unpack);
+        assert_eq!(way("game", true), Way::Unpack);
+        assert_eq!(way("internal", false), Way::Unpack);
+        assert!(crate::models::node::placement::ROLES.contains(&NODE_ROLE));
+    }
+
+    #[test]
+    fn a_move_waits_for_its_request_and_never_gives_up_files_it_moved() {
+        use crate::server_transfers::{CANCELLED, CANCELLING, COMPLETED, FAILED, QUEUED, RUNNING};
+
+        // not asked for yet: waits, then gives up without having moved anything
+        assert_eq!(move_outcome(None, true, 0), MoveOutcome::Wait);
+        assert_eq!(
+            move_outcome(None, true, CREATE_TIMEOUT_MINUTES - 1),
+            MoveOutcome::Wait
+        );
+        assert!(matches!(
+            move_outcome(None, true, CREATE_TIMEOUT_MINUTES),
+            MoveOutcome::Failed(_)
+        ));
+
+        // under way, however long it takes (the move has its own stall watch)
+        for status in [QUEUED, RUNNING, CANCELLING] {
+            assert_eq!(
+                move_outcome(Some((status, None)), true, 600),
+                MoveOutcome::Wait
+            );
+        }
+
+        assert_eq!(
+            move_outcome(Some((COMPLETED, None)), false, 3),
+            MoveOutcome::Done
+        );
+        // over, and the files left the limbo node anyway (moved meanwhile)
+        assert_eq!(
+            move_outcome(Some((FAILED, Some("x"))), false, 3),
+            MoveOutcome::Done
+        );
+
+        // over, still on the limbo node: parked again with why
+        assert_eq!(
+            move_outcome(Some((FAILED, Some("no node can take the server"))), true, 3),
+            MoveOutcome::Failed("no node can take the server".into())
+        );
+        assert_eq!(
+            move_outcome(Some((FAILED, None)), true, 3),
+            MoveOutcome::Failed("the copy to the new node failed".into())
+        );
+        assert_eq!(
+            move_outcome(Some((CANCELLED, None)), true, 3),
+            MoveOutcome::Failed("the move was cancelled".into())
+        );
+        assert!(matches!(
+            move_outcome(Some((COMPLETED, None)), true, 3),
+            MoveOutcome::Failed(_)
+        ));
     }
 }

@@ -1116,10 +1116,12 @@ impl IntoApiObject for MergedEggConfiguration {
 
         let api_object = finish_extendible!(
             ApiEggConfiguration {
+                // plugged.host: without a configuration a player adds a port inside the
+                // deployment port ranges (docs/features/allocations.md)
                 allocation_self_assign_enabled: self
                     .config_allocations
                     .as_ref()
-                    .is_some_and(|c| c.user_self_assign.enabled),
+                    .is_none_or(|c| c.user_self_assign.enabled),
                 allocation_self_assign_require_primary: self
                     .config_allocations
                     .as_ref()

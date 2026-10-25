@@ -501,6 +501,7 @@ export const userTableColumns = (): string[] => {
     '',
     t('common.table.columns.id', {}),
     t('common.table.columns.username', {}),
+    t('pages.admin.users.table.columns.discord', {}), // plugged.host
     t('pages.admin.users.table.columns.role', {}),
     t('common.table.columns.created', {}),
   ];

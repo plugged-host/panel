@@ -31,13 +31,24 @@ servers; its servers keep running.
 | Memory use is over the line | Pauses, reason `memory` |
 | CPU use is over the line (memory is not) | Pauses, reason `cpu` |
 | The node missed `unreachable_after` samples in a row | Pauses, reason `unreachable` |
+| Disk use (`disk_used` / `disk_total` of the sample) is over the disk line (memory and CPU are not) | Pauses, reason `disk` |
 | A load pause, now under the line and the 5-minute average too | Reopens |
-| An `unreachable` pause, and the node answers | Reopens |
+| An `unreachable` or `disk` pause, and the node answers under that line | Reopens |
 | No sample in the last 3 minutes | Changes nothing |
 
 The **line** is `pause_percent` (85), lowered by `small_offset` (10) on a small node: less memory
 than `small_memory_gb` (34 GiB) or fewer threads than `small_threads` (9), so a small node is
 paused at 75%. Waiting for the 5-minute average before reopening keeps a node from flapping.
+
+The **disk guard** (`disk_percent`, 85) is the Pelican panel's storage guard (`NodeCapacity`): a
+node whose disk is fuller than that takes no new servers, moves or restores, since every one of them
+picks its node through the pause (creates, players' and admins' moves, Lighten Load, the start
+queue's moves, failover and limbo restores; `Node::by_location_uuids_most_eligible`). It works with
+"Pause Busy Nodes" off too, and 0 turns it off. A node whose sample has no disk numbers is never
+paused for its disk (a `disk` pause then reopens), and an unreachable node is left to the
+`unreachable` pause. Like the Pelican panel's strict mode, a location whose every node is too full
+takes nothing; nothing falls back to a full node. Resizing a server picks no node, so the guard does
+not apply to it.
 
 The reason is stored in `nodes.deployment_paused_reason`. A node an admin paused (on the node form)
 has no reason and is never reopened by the panel; an admin unpausing a node the panel paused clears
@@ -61,6 +72,8 @@ Admin › Settings › Hosting › Placement (`shared/src/settings/placement.rs`
 | Memory Under (GiB) | 34 | 0 to 4096, 0 is never small |
 | Threads Under | 9 | 0 to 1024, 0 is never small |
 | Missed Checks | 3 | 1 to 60 |
+| Disk Line (%) | 85 | 0 to 100, 0 is off; independent of "Pause Busy Nodes" |
+| Deployment Port Ranges | `30000-50000,25000-30000` | Where the panel makes allocations by itself ([allocations.md](allocations.md)) |
 
 ## Without noprofit.space
 
@@ -74,3 +87,7 @@ Nothing changes: placement only talks to the nodes.
 - Pause a node by hand on its form: the panel leaves it paused whatever its load.
 - Stop Wings on a test node: after three missed checks it is paused (unreachable); start Wings and
   it reopens on the next sample.
+- Set "Disk Line (%)" under a test node's disk use (its Overview shows the disk): within two minutes
+  the node shows "Deployment Paused (disk)", and creating a server or moving one to its location
+  picks another node (or says the location is full). Set it back: the node reopens on the next
+  sample. With "Pause Busy Nodes" off the disk pause still happens; with "Disk Line" 0 it reopens.

@@ -890,7 +890,8 @@
           "discordInvite": "Discord invites",
           "discordInviteClawback": "Invite taken back",
           "discordInviteDebt": "Owed invite credits",
-          "discordBoost": "Discord boost"
+          "discordBoost": "Discord boost",
+          "partner": "Partner program"
         }
       },
       "chartLegend": {
@@ -989,6 +990,7 @@
           "themeLight": "Light",
           "redactAddresses": "Hide Addresses",
           "resetDeviceOverrides": "Reset Device Overrides ({count})",
+          "review": "Review {app} on {site}",
           "openMenu": "Open Menu"
         },
         "profileSettings": "Profile Settings",
@@ -1004,6 +1006,157 @@
           "disk": "Disk",
           "openStore": "Get more in the Resource Store",
           "openTokens": "Open the Tokens page"
+        }
+      },
+      "notifications": {
+        "title": "Notifications",
+        "open": "Notifications, {count} unread",
+        "unreadLabel": "Unread notification",
+        "markAllRead": "Mark all as read",
+        "clear": "Clear",
+        "markRead": "Mark as read",
+        "delete": "Delete notification",
+        "openServer": "Open server",
+        "viewBackups": "View backups",
+        "showMore": "Show more",
+        "empty": "No notifications",
+        "emptyHint": "Please check again later.",
+        "unknown": "Notification",
+        "address": "New address: {address}",
+        "reason": "Reason: {reason}",
+        "kinds": {
+          "transferCompleted": {
+            "title": "Server moved",
+            "body": "{server} is now in {location}.",
+            "bodyAnywhere": "{server} is now on another node."
+          },
+          "transferFailed": {
+            "title": "Move failed",
+            "body": "{server} could not be moved to {location}. It is still where it was, with all its files.",
+            "bodyAnywhere": "{server} could not be moved. It is still where it was, with all its files."
+          },
+          "allowanceCut": {
+            "title": "Your servers have fewer resources now",
+            "body": "Your account's resources went down and your servers used more than it has now, so the difference came off them evenly: {servers}.",
+            "cpu": "−{amount}% CPU",
+            "memory": "−{amount} RAM",
+            "disk": "−{amount} disk"
+          },
+          "membershipEnded": {
+            "title": "{membership} has ended",
+            "body": "Servers on premium locations are moving to another location: {servers}. Follow it on each server's Transfer page."
+          },
+          "failoverDone": {
+            "title": "Server recovered",
+            "body": "{server}'s node went offline, so it was restored onto a healthy node from its latest backup. Start it whenever you are ready.",
+            "drillTitle": "Server moved to another node",
+            "drillBody": "{server} was restored onto another node from its latest backup in a recovery check. Start it whenever you are ready.",
+            "backup": "Files are as they were at {time}."
+          },
+          "failoverFailed": {
+            "title": "Server node issue",
+            "body": "{server}'s node went offline and restoring it onto a healthy node did not complete. Please contact support if your server stays unavailable."
+          },
+          "modpackInstalled": {
+            "title": "Modpack installed",
+            "body": "{name} is installed on {server} and {count} files were downloaded. Start it and watch the console.",
+            "skipped": "Some files could not be downloaded and need adding by hand."
+          },
+          "modpackFailed": {
+            "title": "Modpack installation failed",
+            "body": "{name} could not be installed on {server}. Check the console and the file list before starting the server."
+          },
+          "frameworkInstalled": {
+            "title": "{recipe} is installed on {server}",
+            "body": "It is in {folder}, and the server is starting on it."
+          },
+          "frameworkFailed": {
+            "title": "Installing {recipe} on {server} failed"
+          },
+          "worldImported": {
+            "title": "World imported",
+            "body": "The uploaded world is now the world of {server}.",
+            "kept": "The previous world was kept as {world}."
+          },
+          "worldImportFailed": {
+            "title": "The world could not be imported",
+            "body": "The uploaded world could not be loaded on {server}."
+          },
+          "serverInstalled": {
+            "title": "Server installation completed",
+            "body": "{server} is installed and can be started."
+          },
+          "serverInstallFailed": {
+            "title": "Server installation failed",
+            "body": "{server} could not be installed. Open the server to install it again."
+          },
+          "subuserAdded": {
+            "title": "Added to server",
+            "body": "You have been added as a subuser to {server}."
+          },
+          "subuserRemoved": {
+            "title": "Removed from server",
+            "body": "You have been removed as a subuser from {server}."
+          },
+          "backupCompleted": {
+            "title": "Backup completed",
+            "body": "The backup {name} of {server} is ready."
+          },
+          "backupFailed": {
+            "title": "Backup failed",
+            "body": "The backup {name} of {server} could not be made."
+          },
+          "partnerApproved": {
+            "title": "Partnership approved",
+            "body": "{guild} is now a partner and earns {credits} credits a month. The first month is paid."
+          },
+          "partnerRejected": {
+            "title": "Partner application not accepted",
+            "body": "{guild} was not accepted as a partner."
+          },
+          "partnerRevoked": {
+            "title": "Partnership ended",
+            "body": "The partnership of {guild} has ended and its monthly payments have stopped."
+          },
+          "partnerPaid": {
+            "title": "Partner credits received",
+            "body": "{credits} credits for {guild} this month."
+          },
+          "partnerCheckFailed": {
+            "title": "Partner check failed",
+            "body": "{guild} no longer meets the partner requirements, so this month’s payment is on hold. Fix it by {until} or the partnership is suspended. The Partners page shows what is wrong."
+          },
+          "partnerSuspended": {
+            "title": "Partnership suspended",
+            "body": "{guild} still does not meet the partner requirements, so the partnership is suspended. Fix it, then use Check again on the Partners page."
+          },
+          "partnerPaused": {
+            "title": "Partner payments paused",
+            "body": "An administrator paused the monthly payments for {guild}."
+          },
+          "partnerResumed": {
+            "title": "Partner payments resumed",
+            "body": "The monthly payments for {guild} are back on."
+          },
+          "partnerCreditsChanged": {
+            "title": "Partner credits changed",
+            "body": "{guild} now earns {credits} credits a month."
+          },
+          "admin": {
+            "transferFailed": {
+              "title": "Move failed: {server}",
+              "body": "The move of {server} to {location} gave up. The server stayed on its old node.",
+              "bodyAnywhere": "The move of {server} gave up. The server stayed on its old node."
+            },
+            "partnerApplication": {
+              "title": "Partner application: {guild}",
+              "body": "{user} applied to make {guild} a partner."
+            },
+            "partnerSuspended": {
+              "title": "Partnership suspended: {guild}",
+              "body": "{guild} failed its monthly check past the grace period and was suspended."
+            }
+          }
         }
       },
       "welcomeTour": {
@@ -1208,7 +1361,9 @@
             },
             "reason": "Reason: {reason}",
             "deleteAt": "It will be deleted with its files on {date}, unless the suspension is lifted before then.",
-            "help": "If you think this is a mistake, contact the panel's administrators and include the server's name."
+            "help": "If you think this is a mistake, contact the panel's administrators and include the server's name.",
+            "helpLink": "If you think this is a mistake, ask for help and include the server's name.",
+            "getHelp": "Get help"
           },
           "contentNodeMaintenance": "This server is on a node that is currently under maintenance and cannot be accessed.",
           "contentTransferring": "This server is currently being transferred and cannot be accessed until the transfer is complete.",
@@ -1945,6 +2100,11 @@
           },
           "emptyGroup": "This group is empty. Drag a server here to add it.",
           "emptyAccess": "You don't have access to any servers!",
+          "review": {
+            "title": "How is {app} working for you?",
+            "body": "Tell other players how it went in a review on {site}, good or bad.",
+            "write": "Write a Review"
+          },
           "card": {
             "cpu": "CPU",
             "memory": "RAM",
@@ -2913,6 +3073,111 @@
             "nothing": "All caught up, nothing new to pay out."
           }
         },
+        "partners": {
+          "title": "Partners",
+          "closed": "Applications are closed right now.",
+          "promo": {
+            "title": "Partner program",
+            "text": "Run a Discord community for a FiveM or Minecraft server? Partners earn credits every month.",
+            "open": "Open the partner program"
+          },
+          "intro": {
+            "heading": "Become a partner",
+            "body": "Run a Discord community of at least {members} members for a FiveM or Minecraft server? Partner with {app} and earn up to {credits} credits every month.",
+            "review": "An administrator reviews every application. Before each monthly payment the server is checked again; if it no longer qualifies, the payment waits and you have {days} days to fix it.",
+            "reviewDay": "An administrator reviews every application. Before each monthly payment the server is checked again; if it no longer qualifies, the payment waits and you have {days} day to fix it.",
+            "reviewNow": "An administrator reviews every application. Before each monthly payment the server is checked again; if it no longer qualifies, the partnership is suspended until it does."
+          },
+          "requirements": {
+            "title": "What your server needs",
+            "linked": "Your Discord account is linked",
+            "linkedAs": "Linked as {name}",
+            "notLinked": "Not linked yet",
+            "done": "Done",
+            "link": "Link Discord",
+            "linkNoprofit": "Link Discord on noprofit.space",
+            "bot": "{bot} is in the server",
+            "botHint": "It only reads the member count, your roles and the channels, so it needs no permissions.",
+            "addBot": "Add {bot}",
+            "members": "At least {members} members",
+            "membersHint": "As Discord counts them, when you apply and before every payment.",
+            "admin": "You own the server or are an administrator there",
+            "adminHint": "The owner, or a role with the Administrator permission.",
+            "channel": "A channel about {app}",
+            "channelHint": "Visible to @everyone, with {names} in its name or topic.",
+            "channelLinkHint": "Its topic also needs a link to {links}.",
+            "game": "A FiveM or Minecraft community",
+            "gameHint": "Its game server can be hosted anywhere. Add the ones on this panel to the application."
+          },
+          "problems": {
+            "notLinked": "Link your Discord account first.",
+            "invalidLink": "Enter a Discord invite link or a server ID.",
+            "unknownInvite": "This invite does not exist or has expired. Use one that never expires.",
+            "botMissing": "{bot} is not in this server. Add it, then apply again.",
+            "tooFewMembers": "This server has {count} members and needs at least {members}.",
+            "notAdmin": "You must own this server or have a role with the Administrator permission in it.",
+            "channelMissing": "No channel about {app} was found: it needs {app} in its name or topic and must be visible to @everyone.",
+            "channelHidden": "{channel} is hidden from @everyone. Everyone in the server must be able to see it.",
+            "channelLink": "The topic of {channel} needs a link to {links}.",
+            "pending": "You already have an application waiting for review.",
+            "taken": "This server is already a partner or has an application waiting.",
+            "cooldown": "Your last application was not accepted. You can apply again on {date}."
+          },
+          "form": {
+            "title": "Apply",
+            "server": "Discord server",
+            "serverHint": "An invite link that never expires, or the server ID.",
+            "game": "Game",
+            "description": "About your community",
+            "descriptionHint": "What it plays, how active it is and what makes it special. 20 to 1000 characters.",
+            "servers": "Servers on this panel",
+            "serversHint": "Optional: up to 10 of your servers here that the community plays on.",
+            "submit": "Send application",
+            "sent": "Application sent. You get a notification once it is decided."
+          },
+          "games": {
+            "fivem": "FiveM",
+            "minecraft": "Minecraft",
+            "both": "FiveM and Minecraft"
+          },
+          "refusal": {
+            "title": "The server does not qualify yet",
+            "titleServer": "{server} does not qualify yet"
+          },
+          "status": {
+            "pending": "Waiting for review",
+            "approved": "Partner",
+            "paused": "Paused",
+            "suspended": "Suspended",
+            "rejected": "Not accepted",
+            "revoked": "Ended",
+            "withdrawn": "Withdrawn"
+          },
+          "partnership": {
+            "monthly": "{credits} credits a month",
+            "nextPayment": "Next payment on {date}",
+            "paused": "An administrator paused the payments.",
+            "pausedReason": "An administrator paused the payments: {reason}",
+            "failing": "The last check failed, so this month’s payment is on hold. Fix it by {date} or the partnership is suspended.",
+            "suspended": "The partnership is suspended because the server no longer qualifies. Fix it and check again to resume the payments.",
+            "check": "Check again",
+            "checkPassed": "The server qualifies.",
+            "checkFailed": "The server does not qualify yet.",
+            "payments": "Payments",
+            "paidTotal": "{credits} credits received in total",
+            "paymentsEmpty": "No payments yet."
+          },
+          "pending": {
+            "title": "Your application is being reviewed",
+            "body": "An administrator looks at {server} and decides. You get a notification.",
+            "withdraw": "Withdraw application",
+            "withdrawn": "Application withdrawn."
+          },
+          "history": {
+            "title": "Earlier applications",
+            "reason": "Reason: {reason}"
+          }
+        },
         "devboxOpen": {
           "title": "VS Code",
           "opening": "Opening the devbox…",
@@ -3112,7 +3377,8 @@
                 },
                 "origin": {
                   "user": "Player",
-                  "admin": "Admin"
+                  "admin": "Admin",
+                  "limbo": "Limbo Restore"
                 }
               }
             }
@@ -3420,6 +3686,8 @@
                   "adminsOnlyDescription": "Only noprofit.space admins may sign in.",
                   "linkByEmail": "Link by Email",
                   "linkByEmailDescription": "A first sign-in takes over the panel user with the same email instead of refusing it.",
+                  "deletedAccountDays": "Delete Gone Accounts After (Days)",
+                  "deletedAccountDaysDescription": "When noprofit.space no longer has an account (deleted there without reaching this panel), its user and servers are suspended, then deleted after this many days. 0: never.",
                   "ssoAudience": "Token Audience",
                   "ssoAudienceDescription": "Empty: the sign-in client followed by \":sso\".",
                   "ssoCallbackUrl": "Callback URL",
@@ -3665,6 +3933,10 @@
                   "transferAttemptsDescription": "When a move fails, it is tried again on another node until this many nodes were tried.",
                   "transferParallel": "Moves at Once per Node",
                   "transferParallelDescription": "How many queued moves (from Lighten Load) leave one node at the same time.",
+                  "transferStallMinutes": "Minutes Without Progress",
+                  "transferStallMinutesDescription": "A move whose copy makes no progress for this long, or that the old node no longer knows, is cancelled and counts as a failed try.",
+                  "transferFinalizeMinutes": "Minutes to Finish",
+                  "transferFinalizeMinutesDescription": "How long the new node may take to confirm a copy that was sent completely before the move is cancelled and counts as a failed try.",
                   "limits": "Every New Server",
                   "limitAllocations": "Allocations",
                   "limitDatabases": "Databases",
@@ -4047,11 +4319,16 @@
                   "pausePercentDescription": "Memory or CPU use above which a node is paused.",
                   "unreachableAfter": "Missed Checks",
                   "unreachableAfterDescription": "Checks in a row a node may miss before it is paused. The panel checks every node once a minute.",
+                  "diskPercent": "Disk Line (%)",
+                  "diskPercentDescription": "Disk use above which a node takes no new servers, moves or restores, even with Pause Busy Nodes off. 0 turns it off. A node that reports no disk use is never paused for it.",
                   "small": "Small Nodes",
                   "smallOffset": "Lower Line by (Points)",
                   "smallOffsetDescription": "On a small node the line is this much lower, as one busy server weighs more there.",
                   "smallMemoryGb": "Memory Under (GiB)",
-                  "smallThreads": "Threads Under"
+                  "smallThreads": "Threads Under",
+                  "ports": "Ports",
+                  "portRanges": "Deployment Port Ranges",
+                  "portRangesDescription": "Ports the panel makes new allocations on when a node has no free one: for a new server, a move, a restore or a port a player adds. Ranges and single ports from 1024 up, comma separated; earlier ones are used first."
                 },
                 "toast": {
                   "updated": "Placement settings updated."
@@ -4064,17 +4341,21 @@
                 "title": "Start Queue Settings",
                 "form": {
                   "enabled": "Queue Starts on Busy Nodes",
-                  "enabledDescription": "A player's start waits its turn while the server's node is over the line or others are already waiting there. Admins never wait.",
+                  "enabledDescription": "A player's start waits its turn while the server's node is over the line or others are already waiting there, and every start waits while the shortest wait is above 0. Admins and the exempt roles never wait.",
                   "includeRestart": "Queue Restarts",
                   "includeRestartDescription": "A restart waits too; the server keeps running until its turn.",
                   "linePercent": "Line (%)",
                   "linePercentDescription": "Memory or CPU use above which a node holds starts back. On a small node it is lower by the placement settings' offset.",
+                  "minWait": "Shortest Wait (Seconds)",
+                  "minWaitDescription": "Every start waits at least this long on the queue page, even on a quiet node, as on the Pelican panel. 0 queues starts on busy nodes only.",
                   "maxWait": "Longest Wait (Seconds)",
                   "maxWaitDescription": "After this a start goes out however busy the node is.",
                   "releaseInterval": "Seconds Between Starts",
                   "releaseIntervalDescription": "A node lets one start go at a time and waits this long before it is measured for the next.",
                   "passMinutes": "Free Pass (Minutes)",
                   "passMinutesDescription": "After a start was let go, the server's next start within this time does not wait.",
+                  "exemptRoles": "Exempt Roles",
+                  "exemptRolesDescription": "Members of these roles never wait, like admins.",
                   "move": "Moving Off a Busy Node",
                   "moveOffer": "Offer a Move",
                   "moveOfferDescription": "The queue page offers to move the server to the quietest other node of its location, when moving servers is on and the user may move this one.",
@@ -4103,6 +4384,8 @@
                   "maxPerRunDescription": "How many servers are stopped and how many are parked each minute, at most.",
                   "exemptMembers": "Spare Members",
                   "exemptMembersDescription": "Servers of accounts with a membership are never stopped or parked.",
+                  "deleteAfterDays": "Delete After (Days)",
+                  "deleteAfterDaysDescription": "A server parked for this long is deleted, with its files, unless its owner restored it first. Its backups go to the deleted servers' hold. 0 never deletes.",
                   "cost": "Restoring",
                   "costEarly": "Early Restore (Tokens)",
                   "costEarlyDescription": "What a restore costs soon after parking. 0 is free.",
@@ -4143,13 +4426,15 @@
                   "memberFreeDescription": "Accounts with the second membership see no ads; the first membership's ads refresh slower.",
                   "slots": "Slots",
                   "slotTop": "Top Banner",
-                  "slotTopDescription": "A 728×90 banner, or a smaller one, above every page.",
+                  "slotTopDescription": "The sponsored top banners (Admin › Sponsored Banners) above every page.",
                   "slotServerTools": "Server Pages Strip",
                   "slotServerToolsDescription": "A 468×60 or 320×50 banner under the header of a server's pages, not on the console.",
                   "slotPages": "Page Rectangles",
                   "slotPagesDescription": "A 300×250 banner on Create Server, the store and the server list.",
                   "slotFoot": "Page Foot",
-                  "slotFootDescription": "A leaderboard, a rectangle and the native unit at the foot of every page.",
+                  "slotFootDescription": "A leaderboard and the native unit at the foot of every page.",
+                  "maxUnitsPerPage": "Units per Page",
+                  "maxUnitsPerPageDescription": "The most units the server pages strip and the page rectangles fill together on one page. 0 fills none of them.",
                   "refresh": "Refresh",
                   "refreshSeconds": "Refresh After (Seconds)",
                   "refreshSecondsDescription": "A unit that holds an ad reloads after this long in view. 0 never.",
@@ -4262,6 +4547,25 @@
                 }
               }
             },
+            "reviews": {
+              "title": "Reviews",
+              "page": {
+                "title": "Review Settings",
+                "form": {
+                  "url": "Review Page",
+                  "urlDescription": "Where players write a review: the https link a review site gives for writing one. Players then see a prompt above their server list and a link in the account menu. Leave it empty to turn both off.",
+                  "site": "Site Name",
+                  "siteDescription": "The review site's name as players see it. Empty: the review page's host name.",
+                  "delayDays": "Ask After (Days)",
+                  "delayDaysDescription": "How old an account with a server must be before the prompt shows. Everyone is asked the same way at the same point; staff (anyone with admin permissions) never are, as review sites forbid it.",
+                  "intervalDays": "Ask Again After (Days)",
+                  "intervalDaysDescription": "How long the prompt stays away once a player closed or followed it. 0: it never comes back."
+                },
+                "toast": {
+                  "updated": "Review settings updated."
+                }
+              }
+            },
             "recovery": {
               "title": "Recovery",
               "page": {
@@ -4273,9 +4577,10 @@
                   "failoverModeDescription": "Whether a down node’s servers are restored on the other nodes of its location from their newest backup off the node (the node’s Failover tab).",
                   "failoverModeOff": "Off",
                   "failoverModeManual": "By hand, from the node’s Failover tab",
+                  "failoverModeNotify": "By hand, and report a down node to the admins without restoring",
                   "failoverModeAuto": "Automatically, and by hand",
                   "failoverAfter": "Automatic Failover After (Minutes)",
-                  "failoverAfterDescription": "How long a node must be unreachable (checked once a minute) before its servers are failed over. One failover runs at a time, and only while most other nodes answer.",
+                  "failoverAfterDescription": "How long a node must be unreachable (checked once a minute) before its servers are failed over, or the node is reported. One failover runs at a time, and only while most other nodes answer.",
                   "failoverParallel": "Servers Restored at Once",
                   "failoverParallelDescription": "How many servers of one failover are moved and restored at the same time."
                 },
@@ -4377,6 +4682,39 @@
                 },
                 "toast": {
                   "updated": "Economy settings saved."
+                }
+              }
+            },
+            "partners": {
+              "title": "Partners",
+              "page": {
+                "title": "Partner Program",
+                "toast": {
+                  "updated": "Partner settings saved."
+                },
+                "form": {
+                  "enabled": "Partner Program",
+                  "enabledDescription": "Discord communities of FiveM or Minecraft servers apply on Account › Partners and earn credits every month once an administrator approves them. Needs credits and the rux bot with its application ID.",
+                  "minMembers": "Minimum Members",
+                  "minMembersDescription": "Members the Discord server needs, as Discord counts them. Checked when applying and before every payment.",
+                  "minCredits": "Minimum Credits per Month",
+                  "minCreditsDescription": "The lowest monthly amount neo may suggest and an administrator may set.",
+                  "maxCredits": "Maximum Credits per Month",
+                  "maxCreditsDescription": "The highest monthly amount neo may suggest and an administrator may set.",
+                  "graceDays": "Grace Period (Days)",
+                  "graceDaysDescription": "After a failed monthly check the payment waits this many days for a fix, then the partnership is suspended. 0 suspends at once.",
+                  "cooldownDays": "Cooldown After Rejection (Days)",
+                  "cooldownDaysDescription": "Days before someone whose application was rejected may apply again. 0 allows it at once.",
+                  "channelRequired": "Channel About the Host",
+                  "channelRequiredDescription": "Partners need a channel that @everyone can see, with “{app}” or one of the names below in its name or topic.",
+                  "channelNames": "Other Channel Names",
+                  "channelNamesDescription": "One per line, compared by letters and digits only. “{app}” is always accepted.",
+                  "channelLinks": "Required Links",
+                  "channelLinksDescription": "One per line, such as panel.example.com. When set, the channel’s topic must contain one of them. Empty: no link is needed.",
+                  "neoAssessment": "neo’s Assessment",
+                  "neoAssessmentDescription": "neo reads each application and suggests accepting or rejecting it, with a monthly amount. Administrators always decide.",
+                  "guidance": "Guidance for neo",
+                  "guidanceDescription": "What this panel looks for in partners, given to neo with every application."
                 }
               }
             },
@@ -4618,6 +4956,138 @@
             "toast": {
               "dismissed": "Finding dismissed.",
               "resolved": "Finding resolved."
+            }
+          }
+        },
+        "partners": {
+          "title": "Partners",
+          "enum": {
+            "status": {
+              "pending": "Pending",
+              "approved": "Partner",
+              "paused": "Paused",
+              "suspended": "Suspended",
+              "rejected": "Rejected",
+              "revoked": "Revoked",
+              "withdrawn": "Withdrawn",
+              "partners": "All partnerships",
+              "failing": "Failing check"
+            },
+            "problem": {
+              "botMissing": "Bot not in the server",
+              "tooFewMembers": "Too few members",
+              "notAdmin": "Neither owner nor administrator",
+              "channelMissing": "No channel about the host",
+              "channelHidden": "Channel hidden from @everyone",
+              "channelLink": "Link missing from the channel topic"
+            },
+            "standing": {
+              "owner": "Owner",
+              "administrator": "Administrator",
+              "member": "Member without Administrator",
+              "absent": "Not in the server"
+            },
+            "assessmentError": {
+              "off": "neo is off",
+              "unavailable": "neo was unavailable",
+              "busy": "neo was busy",
+              "unreadable": "neo’s answer could not be read"
+            }
+          },
+          "page": {
+            "allStatuses": "All statuses",
+            "column": {
+              "server": "Discord Server",
+              "applicant": "Applicant",
+              "members": "Members",
+              "neo": "neo",
+              "credits": "Credits / Month"
+            },
+            "neo": {
+              "accept": "Accept, {credits}/month",
+              "reject": "Reject",
+              "waiting": "Assessing…",
+              "none": "No assessment"
+            },
+            "button": {
+              "approve": "Approve",
+              "saveCredits": "Save",
+              "revoke": "Revoke",
+              "pause": "Pause Payments",
+              "reject": "Reject",
+              "recheck": "Check Again",
+              "credits": "Change Credits",
+              "resume": "Resume Payments"
+            },
+            "toast": {
+              "rechecked": "Checked again.",
+              "creditsChanged": "Monthly credits changed.",
+              "approved": "Partnership approved and the first month paid.",
+              "revoked": "Partnership revoked.",
+              "paused": "Payments paused.",
+              "rejected": "Application rejected.",
+              "resumed": "Payments resumed."
+            },
+            "modal": {
+              "approve": {
+                "title": "Approve {server}",
+                "content": "Credits are paid every month, the first month right away. neo’s suggestion is filled in; the amount is yours to decide."
+              },
+              "credits": {
+                "title": "Monthly credits of {server}",
+                "content": "From the next payment on."
+              },
+              "reject": {
+                "title": "Reject {server}",
+                "content": "The applicant sees the reason and can apply again after the cooldown."
+              },
+              "revoke": {
+                "title": "Revoke the partnership of {server}",
+                "content": "The monthly payments stop. Credits already paid are kept. The partner sees the reason."
+              },
+              "pause": {
+                "title": "Pause the payments of {server}",
+                "content": "Nothing is paid until you resume; the months in between are not paid later. The partner sees the reason."
+              },
+              "creditsLabel": "Credits per Month",
+              "reasonLabel": "Reason",
+              "reasonHint": "Shown to the applicant."
+            },
+            "detail": {
+              "server": "Discord Server",
+              "guildId": "Server ID",
+              "invite": "Invite",
+              "members": "Members",
+              "membersValue": "{members} members, {online} online ({share})",
+              "serverCreated": "Created",
+              "boosts": "Boosts",
+              "boostsValue": "Level {level}, {boosts} boosts",
+              "verification": "Verification Level",
+              "features": "Features",
+              "standing": "Applicant in the Server",
+              "channel": "Channel About the Host",
+              "channelNone": "None found",
+              "checked": "Checked",
+              "problems": "Problems",
+              "serverDescription": "Server Description",
+              "application": "Application",
+              "applicant": "Applicant",
+              "accountSince": "Account Since",
+              "discordId": "Discord ID",
+              "game": "Game",
+              "servers": "Servers Here",
+              "neo": "neo",
+              "neoSuggested": "Suggests {credits} credits a month",
+              "neoModel": "Model: {model}",
+              "neoOnlySuggests": "neo only suggests. Nothing is paid until an administrator approves.",
+              "decision": "Decision",
+              "decided": "Decided",
+              "reason": "Reason",
+              "partnerSince": "Partner Since",
+              "monthly": "Credits per Month",
+              "nextPayment": "Next Payment",
+              "suspendAfter": "Suspended After",
+              "payments": "Payments ({total} credits in total)"
             }
           }
         },
@@ -4937,6 +5407,7 @@
           },
           "table": {
             "columns": {
+              "discord": "Discord",
               "role": "Role"
             }
           },
@@ -4958,7 +5429,8 @@
                   "frozenDescription": "Frozen users cannot make any changes to their account information.",
                   "suspended": "Suspended",
                   "suspendedDescription": "Suspended users cannot access the panel in any meaningful way.",
-                  "role": "Role"
+                  "role": "Role",
+                  "identityLocked": "Managed on noprofit.space, where this user signs in."
                 },
                 "modal": {
                   "delete": {
@@ -5039,6 +5511,7 @@
                 "title": "Credits, Tokens and Memberships",
                 "summary": "{credits} credits, {tokens} tokens ({earned} earned).",
                 "noprofit": "Credits and the Resource Store are noprofit.space’s: change credits there.",
+                "noprofitSent": "Credits and the Resource Store are noprofit.space’s: a credit change made here is sent to the account there.",
                 "plusSince": "{name} since",
                 "noPlus": "No {name}.",
                 "plusplusRuns": "{name} runs until",
@@ -5341,9 +5814,10 @@
                   "deploymentPaused": "Deployment Paused",
                   "deploymentPausedDescription": "A paused node takes no new servers until it is unpaused.",
                   "role": "Role",
-                  "roleDescription": "Game nodes take players' servers. Internal nodes are only used by admins and are never picked for players.",
+                  "roleDescription": "Game nodes take players' servers. Internal nodes are only used by admins and are never picked for players. A limbo node keeps the servers that were parked on it until they are restored, and takes nothing new.",
                   "roleGame": "Game",
                   "roleInternal": "Internal",
+                  "roleLimbo": "Limbo",
                   "tags": "Tags",
                   "tagsDescription": "Short labels for grouping nodes, such as nvme or ddos-protected: letters, digits, dashes, underscores and dots."
                 },
@@ -5494,7 +5968,8 @@
                   "pauseReason": {
                     "memory": "memory",
                     "cpu": "CPU",
-                    "unreachable": "not answering"
+                    "unreachable": "not answering",
+                    "disk": "disk"
                   },
                   "maintenanceDisabled": "Not Under Maintenance"
                 },
@@ -5806,17 +6281,21 @@
                 "button": {
                   "start": "Fail Over",
                   "drill": "Drill",
-                  "cancel": "Cancel Failover"
+                  "cancel": "Cancel Failover",
+                  "plan": "Preview",
+                  "resume": "Try Again"
                 },
                 "mode": {
                   "auto": "Automatic Failover",
                   "manual": "Failover",
-                  "drill": "Drill"
+                  "drill": "Drill",
+                  "notify": "Down, Reported"
                 },
                 "status": {
                   "running": "Running",
                   "done": "Done",
-                  "cancelled": "Cancelled"
+                  "cancelled": "Cancelled",
+                  "notified": "Reported"
                 },
                 "serverStatus": {
                   "queued": "Queued",
@@ -5824,7 +6303,8 @@
                   "restoring": "Restoring",
                   "done": "Restored",
                   "failed": "Failed",
-                  "cancelled": "Cancelled"
+                  "cancelled": "Cancelled",
+                  "planned": "Would Move"
                 },
                 "table": {
                   "destination": "New Node",
@@ -5845,11 +6325,16 @@
                   "cancel": {
                     "title": "Cancel Failover",
                     "content": "Servers not moved yet stay on this node. Servers being moved or restored finish on their new node."
+                  },
+                  "plan": {
+                    "title": "Failover Preview",
+                    "content": "Where a failover would put each server of this node now, and from which backup. Nothing is moved. The failover itself checks the ports when it moves a server and may pick another node of the same location."
                   }
                 },
                 "toast": {
                   "started": "Failover started.",
-                  "cancelled": "Failover cancelled."
+                  "cancelled": "Failover cancelled.",
+                  "resumed": "The server is tried again."
                 }
               }
             },
@@ -6209,12 +6694,21 @@
                 "form": {
                   "notesPlaceholder": "Notes"
                 },
+                "button": {
+                  "lock": "Lock",
+                  "unlock": "Unlock"
+                },
+                "tooltip": {
+                  "locked": "Locked: the server's users cannot remove it."
+                },
                 "toast": {
                   "updated": "Allocation updated.",
                   "setPrimary": "Allocation set as primary.",
                   "unsetPrimary": "Allocation unset as primary.",
                   "removed": "Allocation removed.",
-                  "added": "{count} allocations added."
+                  "added": "{count} allocations added.",
+                  "locked": "Allocation locked.",
+                  "unlocked": "Allocation unlocked."
                 },
                 "modal": {
                   "add": {
@@ -6348,7 +6842,15 @@
                   "modal": {
                     "title": "Server Transfer",
                     "form": {
-                      "backupsToTransfer": "Backups to transfer"
+                      "backupsToTransfer": "Backups to transfer",
+                      "target": "Destination",
+                      "targetDescription": "The best node is the one of that location with room and the least load, as for a player’s move. When the move fails, another node there is tried.",
+                      "targetOwnLocation": "Best other node of {location}",
+                      "targetLocation": "Best node of {location}",
+                      "targetNode": "A node chosen by hand",
+                      "start": "Start the Server When It Arrives",
+                      "startDescription": "Off: it is started again only if it was running before the move.",
+                      "locationInfo": "Its ports are kept where they are free on the new node and made otherwise. Its backups move along, and the old copy is removed only once the new node has confirmed everything."
                     },
                     "tooltip": {
                       "aioNotSupported": "Transfers to the All-In-One node are not supported."
@@ -6356,6 +6858,7 @@
                     "confirm": {
                       "title": "Confirm Server Transfer",
                       "content": "Are you sure you want to transfer **{name}** from **{from}** to **{to}**?",
+                      "contentLocation": "Move **{name}** from **{from}** to the best node of **{location}**?",
                       "alert": {
                         "notAllBackupsSelected": "You have not selected all backups to transfer, the remaining backups will become partially detached if the transfer completes successfully."
                       }
@@ -8003,6 +8506,17 @@
             "installing": "Your Server is currently being installed. Please wait...",
             "pendingRestart": "Your Server has pending changes that require a restart. Please restart your server to apply these changes."
           },
+          "installStuck": {
+            "content": "This is taking much longer than it should, so the install is probably stuck. You can start it over or delete the server.",
+            "reinstall": {
+              "button": "Reinstall",
+              "title": "Start the install over?",
+              "content": "The install runs again from the start. Files the install already wrote may be replaced."
+            },
+            "toast": {
+              "reinstalling": "The install has started over."
+            }
+          },
           "message": {
             "serverMarkedAs": "Server marked as {state}...",
             "installFailed": "Installation has failed.",
@@ -8068,6 +8582,13 @@
               "button": {
                 "update": "Update Docker Image"
               }
+            },
+            "pidLimit": {
+              "titleAdmin": "Memory or process limit reached",
+              "titleUser": "Possible resource limit reached",
+              "contentAdmin": "This server has reached the maximum process or memory limit. Raising `container_pid_limit` under `docker` in the Wings configuration, `config.yml`, might help.",
+              "contentAdminRestart": "**Wings must be restarted for the change to take effect.**",
+              "contentUser": "This server is trying to use more resources than it has. Please contact the administrator and give them the error below."
             }
           },
           "details": {
@@ -10078,7 +10599,8 @@
             "title": "Allocations"
           },
           "tooltip": {
-            "limitReached": "This server is limited to {max} allocations."
+            "limitReached": "This server is limited to {max} allocations.",
+            "locked": "Locked: only an admin can remove it."
           },
           "table": {
             "columns": {
@@ -10098,7 +10620,8 @@
               "title": "Confirm Allocation Removal",
               "content": "Are you sure you want to remove **{allocations}** from this server?",
               "alert": {
-                "skipped": "{allocations} will be skipped. The primary allocation cannot be removed."
+                "skipped": "{allocations} will be skipped. The primary allocation cannot be removed.",
+                "skippedLocked": "{allocations} will be skipped. The primary allocation and locked allocations cannot be removed."
               }
             },
             "removeAllocation": {
@@ -10685,6 +11208,7 @@
           "title": "Server hibernated",
           "body": "This server was idle for a while, so it was moved to hibernation to free up capacity. Restore it to bring it back online.",
           "entered": "Hibernated {time}",
+          "deletesAt": "It will be deleted {time}, with its files, unless you restore it before then.",
           "failed": "The last restore failed: {error}",
           "costLabel": "Restore cost",
           "balanceLabel": "Your balance",
@@ -10791,7 +11315,9 @@
           "reasons": {
             "noNode": "no node with room was available",
             "copyFailed": "the copy was interrupted",
-            "skippedMoved": "it had been moved in the meantime"
+            "skippedMoved": "it had been moved in the meantime",
+            "stalled": "the copy made no progress",
+            "unfinalized": "the new node did not confirm the copy"
           },
           "events": {
             "requested": "Move to {location} requested",
@@ -10945,10 +11471,16 @@
             "propertiesNote": "Comments, the order of the keys and keys not shown here stay as they are. The ports and the RCON password are set by the panel.",
             "yamlNote": "Comments and everything else in the file stay as they are. Lists and values over several lines are not shown here: edit the file as text for those.",
             "button": {
-              "editText": "Edit as Text"
+              "editText": "Edit as Text",
+              "restart": "Restart server"
             },
             "toast": {
-              "saved": "{file} saved ({count} changed). Restart the server to apply it."
+              "saved": "{file} saved ({count} changed). Restart the server to apply it.",
+              "restarting": "Server restarting"
+            },
+            "restart": {
+              "title": "Restart the server now?",
+              "description": "The server stops and starts again so it reads the saved settings. Anyone playing is disconnected while it restarts."
             }
           },
           "players": {
@@ -10966,6 +11498,8 @@
             "emptyHeading": "No players yet",
             "emptyBody": "Nobody is whitelisted or an operator on this server. Add a player to get started.",
             "noMatch": "No player matches that search.",
+            "unnamed": "Name not known yet",
+            "lastPlayed": "Last played {date}",
             "table": {
               "player": "Player",
               "whitelisted": "Whitelisted",
@@ -10974,7 +11508,8 @@
             },
             "badge": {
               "operator": "Level {level}",
-              "banned": "Banned"
+              "banned": "Banned",
+              "online": "Online"
             },
             "button": {
               "refresh": "Reload",
@@ -11028,6 +11563,140 @@
               "enforcedOn": "Whitelist turned on.",
               "enforcedOff": "Whitelist turned off.",
               "atNextStart": "Saved to the server files - it applies the next time the server starts."
+            },
+            "details": {
+              "back": "All players",
+              "online": "Online",
+              "offline": "Offline",
+              "bedrock": "Bedrock",
+              "copyUuid": "Copy the UUID",
+              "saved": "Last saved {date}",
+              "savedNote": "Shown as of the last save. A running server saves its players every few minutes and when they leave.",
+              "noData": "Nothing is saved for this player yet. Their details show here once they have played and the server has saved.",
+              "damaged": "The player data file could not be read. Minecraft falls back to its previous version, or starts them over at the spawn.",
+              "gameMode": "Game mode",
+              "gameModes": {
+                "survival": "Survival",
+                "creative": "Creative",
+                "adventure": "Adventure",
+                "spectator": "Spectator"
+              },
+              "reason": {
+                "notRunning": "Start the server to do this.",
+                "notOnline": "The player is not online.",
+                "noConsole": "This needs access to the console.",
+                "stopFirst": "Stop the server to change saved data.",
+                "noFiles": "This needs permission to change files."
+              },
+              "vitals": {
+                "title": "Health and experience",
+                "health": "Health",
+                "food": "Food",
+                "level": "Level {level}",
+                "points": "{points} points in total",
+                "heal": "Heal",
+                "feed": "Feed",
+                "kill": "Kill",
+                "killTitle": "Kill {name}?",
+                "killContent": "They die in the game and drop what they carry, unless keepInventory is on."
+              },
+              "access": {
+                "title": "Access",
+                "whitelisted": "Whitelisted",
+                "operator": "Operator",
+                "banned": "Banned",
+                "unnamed": "The lists need the player's name, which the server does not know yet."
+              },
+              "inventory": {
+                "title": "Inventory",
+                "equipment": "Armor and off hand",
+                "main": "Inventory",
+                "hotbar": "Hotbar",
+                "enderChest": "Ender chest"
+              },
+              "position": {
+                "title": "Position",
+                "coordinates": "Coordinates",
+                "dimension": "Dimension",
+                "respawn": "Respawn point",
+                "lastDeath": "Last death",
+                "unknown": "Not set",
+                "teleport": "Teleport",
+                "overworld": "Overworld",
+                "nether": "The Nether",
+                "end": "The End"
+              },
+              "teleport": {
+                "title": "Teleport {name}",
+                "coordinates": "Coordinates",
+                "spawn": "World spawn",
+                "player": "To a player",
+                "current": "The one they are in",
+                "target": "Player",
+                "noTargets": "There is no other player to teleport to.",
+                "spawnHint": "The spawn point of the world the server loads.",
+                "live": "They are moved right away.",
+                "file": "The server is stopped: their saved position changes, and they appear there when they next join.",
+                "submit": "Teleport"
+              },
+              "stats": {
+                "title": "Statistics",
+                "empty": "No statistics saved yet.",
+                "playTime": "Play time",
+                "playerKills": "Player kills",
+                "mobKills": "Mob kills",
+                "deaths": "Deaths",
+                "kdr": "Kills per death",
+                "distance": "Distance travelled",
+                "blocks": "{count} blocks",
+                "mined": "Blocks mined",
+                "used": "Items used",
+                "killed": "Mobs killed",
+                "nothing": "None yet",
+                "ways": {
+                  "walk": "Walking",
+                  "sprint": "Sprinting",
+                  "crouch": "Sneaking",
+                  "swim": "Swimming",
+                  "fall": "Falling",
+                  "climb": "Climbing",
+                  "fly": "Flying",
+                  "aviate": "Gliding with elytra",
+                  "boat": "By boat",
+                  "minecart": "By minecart",
+                  "horse": "On horseback",
+                  "pig": "On a pig",
+                  "strider": "On a strider",
+                  "walkOnWater": "Walking on water",
+                  "walkUnderWater": "Walking under water"
+                }
+              },
+              "remove": {
+                "title": "Delete player data",
+                "description": "Only while the server is stopped. Tick what should go.",
+                "xp": "Experience",
+                "inventory": "Inventory and armor",
+                "enderChest": "Ender chest",
+                "playerData": "Player data file",
+                "playerDataHint": "Everything the server saved about them: they start over at the spawn.",
+                "statistics": "Statistics",
+                "advancements": "Advancements",
+                "missing": "Nothing saved",
+                "submit": "Delete",
+                "confirmTitle": "Delete the selected data of {name}?",
+                "edited": "The player data file is rewritten; its previous version stays next to it as {file}.",
+                "trash": "Deleted files go to the trash.",
+                "gone": "Deleted files cannot be brought back."
+              },
+              "toast": {
+                "healed": "{name} was healed.",
+                "fed": "{name} was fed.",
+                "killed": "{name} was killed.",
+                "gameMode": "{name} now plays in {mode}.",
+                "teleported": "{name} was teleported.",
+                "nextJoin": "Saved to their file - it applies when they next join.",
+                "deleted": "The selected data of {name} was deleted."
+              }
             }
           },
           "worlds": {
@@ -11741,9 +12410,12 @@
         "chat": {
           "title": "Chat",
           "empty": "No messages yet. Say hello.",
+          "emptyReadOnly": "No messages yet.",
           "placeholder": "Write a message…",
           "loadOlder": "Load older messages",
-          "deletedUser": "Deleted user"
+          "deletedUser": "Deleted user",
+          "newMessages": "New messages",
+          "readOnly": "You can read this chat but not write in it."
         }
       }
     }

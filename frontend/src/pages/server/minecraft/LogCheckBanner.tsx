@@ -6,7 +6,7 @@
 import { useQuery } from '@tanstack/react-query';
 import getLogCheck from '@/api/server/minecraft/getLogCheck.ts';
 import Button from '@/elements/buttons/Button.tsx';
-import { isOtherGameRoute } from '@/lib/domain/games.ts';
+import { hasMinecraftLogs } from '@/lib/domain/games.ts';
 import { queryKeys } from '@/lib/queryKeys.ts';
 import { useServerCan } from '@/plugins/usePermissions.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
@@ -24,7 +24,8 @@ export default function LogCheckBanner() {
   const neoEnabled = useGlobalStore((state) => state.settings.neo.enabled);
   const canUseNeo = useServerCan('neo.access');
   const canAsk = neoEnabled && canUseNeo;
-  const minecraft = !isOtherGameRoute('/minecraft', server.egg?.features);
+  // every edition, Velocity and Bedrock included (shared/src/minecraft/mod.rs `require_any`)
+  const minecraft = hasMinecraftLogs(server.egg);
   const base = 'pages.server.minecraft.logCheck';
 
   const { data } = useQuery({

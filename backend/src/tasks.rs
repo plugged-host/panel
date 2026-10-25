@@ -531,6 +531,12 @@ pub async fn define_background_tasks(
                 }
             }
 
+            // plugged.host: old notifications go with old activity (docs/features/notifications.md)
+            let deleted_notifications = shared::notifications::prune(&state).await?;
+            if deleted_notifications > 0 {
+                tracing::info!("deleted {} old notifications", deleted_notifications);
+            }
+
             Ok(())
         })
         .await;
@@ -1126,6 +1132,15 @@ pub async fn define_background_tasks(
             "scan_abuse",
             croner::Cron::from_str("0 7 */3 * * *").unwrap(),
             async |state| shared::abuse::scan_all(&state).await,
+        )
+        .await;
+    // plugged.host: the partner program (shared::partners): partnerships whose payment day came
+    // checked and paid, held or suspended; suspended ones checked again once a day
+    background_task_builder
+        .add_cron_task(
+            "settle_partners",
+            croner::Cron::from_str("0 */15 * * * *").unwrap(),
+            async |state| shared::partners::settle(&state).await,
         )
         .await;
     background_task_builder

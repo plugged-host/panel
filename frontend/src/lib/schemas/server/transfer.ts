@@ -10,7 +10,7 @@ export const serverTransferPlaceSchema = z.object({
 
 export const serverTransferRequestSchema = z.object({
   uuid: z.string(),
-  origin: z.enum(['user', 'admin']),
+  origin: z.enum(['user', 'admin', 'limbo']),
   status: z.enum(['queued', 'running', 'cancelling', 'completed', 'failed', 'cancelled']),
   locationUuid: z.string().nullable(),
   attempts: z.number(),

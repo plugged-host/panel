@@ -336,6 +336,8 @@ pub struct ApiAdsSettings {
     pub slot_server_tools: bool,
     pub slot_pages: bool,
     pub slot_foot: bool,
+    /// The most units the server tools strip and the page slots fill together on one page.
+    pub max_units_per_page: i32,
     pub refresh_seconds: i32,
     pub refresh_member_seconds: i32,
     pub zones: Vec<Zone>,
@@ -398,6 +400,7 @@ impl ApiAdsSettings {
             slot_server_tools: settings.slot_server_tools,
             slot_pages: settings.slot_pages,
             slot_foot: settings.slot_foot,
+            max_units_per_page: settings.max_units_per_page,
             refresh_seconds: settings.refresh_seconds,
             refresh_member_seconds: settings.refresh_member_seconds,
             zones: if on {

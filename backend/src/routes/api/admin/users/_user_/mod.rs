@@ -109,14 +109,14 @@ mod get {
     ) -> ApiResponseResult {
         permissions.has_admin_permission("users.read")?;
 
-        ApiResponse::new_serialized(Response {
-            user: user
-                .0
-                .0
-                .into_admin_api_object(&state, &state.storage.retrieve_urls().await?)
-                .await?,
-        })
-        .ok()
+        let mut user = user
+            .0
+            .0
+            .into_admin_api_object(&state, &state.storage.retrieve_urls().await?)
+            .await?;
+        shared::user_links::attach(&state, std::slice::from_mut(&mut user)).await?; // plugged.host
+
+        ApiResponse::new_serialized(Response { user }).ok()
     }
 }
 
@@ -322,6 +322,23 @@ mod patch {
                         .ok();
                 }
             }
+        }
+
+        // plugged.host: a noprofit.space account's username and email are noprofit.space's
+        // (the Pelican panel's identity lock; user_links.rs)
+        if (data
+            .username
+            .as_ref()
+            .is_some_and(|username| *username != user.username)
+            || data
+                .email
+                .as_ref()
+                .is_some_and(|email| *email != user.email))
+            && shared::user_links::identity_locked(&state, user.uuid).await?
+        {
+            return ApiResponse::error("username and email are managed on noprofit.space")
+                .with_status(StatusCode::CONFLICT)
+                .ok();
         }
 
         let old_email = user.email.clone();

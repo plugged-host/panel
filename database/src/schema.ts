@@ -233,6 +233,31 @@ export const userActivitiesTable = pgTable(
   ],
 );
 
+// plugged.host: the notification inbox (shared/src/notifications.rs, docs/features/notifications.md):
+// what the panel tells a person after the fact (a server moved, a modpack installed). `kind` names
+// the text, which the panel draws in the reader's language from `data`; `server_uuid` is the server
+// it is about, kept as a link while the server exists.
+export const userNotificationsTable = pgTable(
+  'user_notifications',
+  {
+    uuid: uuid().default(sql`gen_random_uuid()`).primaryKey().notNull(),
+    user_uuid: uuid()
+      .references(() => usersTable.uuid, { onDelete: 'cascade' })
+      .notNull(),
+    server_uuid: uuid().references(() => serversTable.uuid, { onDelete: 'set null' }),
+    kind: varchar({ length: 64 }).notNull(),
+    data: jsonb().notNull(),
+    read: timestamp(),
+    created: timestamp().defaultNow().notNull(),
+  },
+  (cols) => [
+    index('user_notifications_user_uuid_created_idx').on(cols.user_uuid, cols.created),
+    index('user_notifications_user_uuid_unread_idx').on(cols.user_uuid).where(sql`read IS NULL`),
+    index('user_notifications_server_uuid_idx').on(cols.server_uuid),
+    index('user_notifications_created_idx').on(cols.created),
+  ],
+);
+
 export const userSessionsTable = pgTable(
   'user_sessions',
   {
@@ -438,10 +463,40 @@ export const userNoprofitAccountsTable = pgTable(
     plan: jsonb(),
     discord: jsonb(),
     deleted: timestamp(),
+    // plugged.host: the sync suspended the user when the account went missing (lifted if it comes back)
+    user_suspended: boolean().default(false).notNull(),
     synced: timestamp().defaultNow().notNull(),
     created: timestamp().defaultNow().notNull(),
   },
   (cols) => [uniqueIndex('user_noprofit_accounts_account_id_idx').on(cols.account_id)],
+);
+
+// plugged.host: credits the panel gives or takes while noprofit.space holds the balance (Discord
+// invite rewards, their clawbacks, admin changes), sent to noprofit.space once each; `sent` is
+// empty until noprofit.space confirmed it (shared/src/noprofit.rs, docs/noprofit.md)
+export const userNoprofitCreditChangesTable = pgTable(
+  'user_noprofit_credit_changes',
+  {
+    uuid: uuid().default(sql`gen_random_uuid()`).primaryKey().notNull(),
+    user_uuid: uuid()
+      .references(() => usersTable.uuid, { onDelete: 'cascade' })
+      .notNull(),
+    account_id: bigint({ mode: 'number' }).notNull(),
+    amount: bigint({ mode: 'number' }).notNull(),
+    type: varchar({ length: 64 }).notNull(),
+    description: varchar({ length: 255 }).notNull(),
+    data: jsonb().notNull(),
+    applied: bigint({ mode: 'number' }),
+    balance_after: bigint({ mode: 'number' }),
+    attempts: integer().default(0).notNull(),
+    last_error: text(),
+    sent: timestamp(),
+    created: timestamp().defaultNow().notNull(),
+  },
+  (cols) => [
+    index('user_noprofit_credit_changes_user_uuid_created_idx').on(cols.user_uuid, cols.created),
+    index('user_noprofit_credit_changes_sent_created_idx').on(cols.sent, cols.created),
+  ],
 );
 
 // plugged.host: the economy's ledgers, earn claims and memberships (shared/src/economy.rs,
@@ -588,6 +643,70 @@ export const discordBoostPayoutsTable = pgTable(
   (cols) => [
     uniqueIndex('discord_boost_payouts_discord_id_level_idx').on(cols.discord_id, cols.level),
     uniqueIndex('discord_boost_payouts_user_uuid_level_idx').on(cols.user_uuid, cols.level),
+  ],
+);
+
+// plugged.host: the partner program (shared/src/partners.rs, docs/features/partners.md): Discord
+// communities that applied, what the bot checked (`facts`, `problems`), neo's suggestion
+// (`assessment`), the admin's decision and, once approved, the partnership's monthly credits and
+// payment day. One application waiting per account, one open application or partnership per
+// Discord server.
+export const partnerApplicationsTable = pgTable(
+  'partner_applications',
+  {
+    uuid: uuid().default(sql`gen_random_uuid()`).primaryKey().notNull(),
+    user_uuid: uuid()
+      .references(() => usersTable.uuid, { onDelete: 'cascade' })
+      .notNull(),
+    // the Discord account it applied with, checked again every month
+    discord_id: varchar({ length: 32 }).notNull(),
+    guild_id: varchar({ length: 32 }).notNull(),
+    guild_name: varchar({ length: 100 * UTF8_MAX_SCALAR_SIZE }).notNull(),
+    invite: varchar({ length: 64 }),
+    game: varchar({ length: 16 }).notNull(),
+    description: text().notNull(),
+    server_uuids: uuid().array().default([]).notNull(),
+    facts: jsonb().notNull(),
+    problems: text().array().default([]).notNull(),
+    checked: timestamp().notNull(),
+    assessment: jsonb(),
+    assessed: timestamp(),
+    status: varchar({ length: 16 }).default('pending').notNull(),
+    monthly_credits: bigint({ mode: 'number' }).default(0).notNull(),
+    reason: varchar({ length: 500 * UTF8_MAX_SCALAR_SIZE }),
+    decided_by: uuid().references(() => usersTable.uuid, { onDelete: 'set null' }),
+    decided: timestamp(),
+    approved: timestamp(),
+    next_payment: timestamp(),
+    // the monthly check has failed since then; the month is held for the grace days
+    failing_since: timestamp(),
+    created: timestamp().defaultNow().notNull(),
+  },
+  (cols) => [
+    uniqueIndex('partner_applications_user_uuid_pending_idx').on(cols.user_uuid).where(sql`status = 'pending'`),
+    uniqueIndex('partner_applications_guild_id_open_idx')
+      .on(cols.guild_id)
+      .where(sql`status IN ('pending', 'approved', 'paused', 'suspended')`),
+    index('partner_applications_status_created_idx').on(cols.status, cols.created),
+    index('partner_applications_status_next_payment_idx').on(cols.status, cols.next_payment),
+    index('partner_applications_user_uuid_created_idx').on(cols.user_uuid, cols.created),
+  ],
+);
+
+// plugged.host: each month a partnership was paid, once (unique per partnership and `YYYY-MM`)
+export const partnerPaymentsTable = pgTable(
+  'partner_payments',
+  {
+    uuid: uuid().default(sql`gen_random_uuid()`).primaryKey().notNull(),
+    application_uuid: uuid()
+      .references(() => partnerApplicationsTable.uuid, { onDelete: 'cascade' })
+      .notNull(),
+    period: varchar({ length: 7 }).notNull(),
+    credits: bigint({ mode: 'number' }).notNull(),
+    created: timestamp().defaultNow().notNull(),
+  },
+  (cols) => [
+    uniqueIndex('partner_payments_application_uuid_period_idx').on(cols.application_uuid, cols.period),
   ],
 );
 
@@ -1745,6 +1864,10 @@ export const serverLimboTable = pgTable('server_limbo', {
   error: text(),
   failed: timestamp(),
   updated: timestamp().defaultNow().notNull(),
+  // parked on a limbo node (an import of the Pelican panel's limbo): the node it came from and its
+  // ports there, primary first, where a restore takes it back to (docs/features/limbo.md)
+  home_node_uuid: uuid().references(() => nodesTable.uuid, { onDelete: 'set null' }),
+  home_ports: integer().array().default([]).notNull(),
 });
 
 // plugged.host: one user's start waiting room for one server, and the pass it leaves
@@ -1791,6 +1914,7 @@ export const serverAllocationsTable = pgTable(
       .references(() => nodeAllocationsTable.uuid, { onDelete: 'cascade' })
       .notNull(),
     notes: text(),
+    locked: boolean().default(false).notNull(), // plugged.host: only an admin may remove it (docs/features/allocations.md)
     created: timestamp().defaultNow().notNull(),
   },
   (cols) => [

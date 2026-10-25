@@ -28,6 +28,19 @@ pub async fn read_text(
     path: &str,
     limit: u64,
 ) -> Result<Option<String>, anyhow::Error> {
+    Ok(read_bytes(client, server, path, limit)
+        .await?
+        .map(|content| String::from_utf8_lossy(&content).into_owned()))
+}
+
+/// A file's bytes, as [`read_text`]. Wings hands a gzip file over unpacked (it detects the
+/// compression by its first bytes), so a reader of `.dat` files must accept both.
+pub async fn read_bytes(
+    client: &wings_api::client::WingsClient,
+    server: &Server,
+    path: &str,
+    limit: u64,
+) -> Result<Option<Vec<u8>>, anyhow::Error> {
     tokio::time::timeout(TIMEOUT, async {
         let reader = match client
             .get_servers_server_files_contents(
@@ -52,10 +65,40 @@ pub async fn read_text(
         let mut content = Vec::new();
         reader.take(limit).read_to_end(&mut content).await?;
 
-        Ok(Some(String::from_utf8_lossy(&content).into_owned()))
+        Ok(Some(content))
     })
     .await
     .map_err(|_| anyhow::anyhow!("reading {path} timed out"))?
+}
+
+/// The console's last `lines` lines Wings keeps (at most `limit` bytes), `None` when Wings does
+/// not answer.
+pub async fn console_tail(
+    client: &wings_api::client::WingsClient,
+    server: &Server,
+    lines: u64,
+    limit: u64,
+) -> Option<String> {
+    tokio::time::timeout(TIMEOUT, async {
+        let reader = client
+            .get_servers_server_logs(
+                server.uuid,
+                &wings_api::servers_server_logs::get::Query {
+                    lines: Some(lines),
+                    ..Default::default()
+                },
+            )
+            .await
+            .ok()?;
+
+        let mut content = Vec::new();
+        reader.take(limit).read_to_end(&mut content).await.ok()?;
+
+        Some(String::from_utf8_lossy(&content).into_owned())
+    })
+    .await
+    .ok()
+    .flatten()
 }
 
 /// Writes a text file, creating it when it is not there.
@@ -65,10 +108,20 @@ pub async fn write_text(
     path: &str,
     contents: String,
 ) -> Result<(), anyhow::Error> {
+    write_bytes(client, server, path, contents.into_bytes()).await
+}
+
+/// Writes a file's bytes, creating it when it is not there.
+pub async fn write_bytes(
+    client: &wings_api::client::WingsClient,
+    server: &Server,
+    path: &str,
+    contents: Vec<u8>,
+) -> Result<(), anyhow::Error> {
     client
         .post_servers_server_files_write(
             server.uuid,
-            wings_api::client::AsyncRequestReader::new(std::io::Cursor::new(contents.into_bytes())),
+            wings_api::client::AsyncRequestReader::new(std::io::Cursor::new(contents)),
             &wings_api::servers_server_files_write::post::Query {
                 file: Some(format!("/{path}").into()),
                 ..Default::default()

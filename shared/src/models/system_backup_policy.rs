@@ -327,6 +327,7 @@ impl SystemBackupPolicy {
                     AND servers.status IS NULL
                     AND coverage.attached IS NOT NULL
                     AND NOT EXISTS (SELECT 1 FROM devboxes WHERE devboxes.server_uuid = servers.uuid) -- plugged.host
+                    AND (servers.limbo_state IS NULL OR servers.limbo_state = 'stopped' OR (servers.limbo_state = 'parked' AND nodes.role = 'limbo' AND NOT EXISTS (SELECT 1 FROM server_limbo WHERE server_limbo.server_uuid = servers.uuid AND server_limbo.backup_uuid IS NOT NULL))) -- plugged.host: a server in limbo is not on Wings, except one parked on a limbo node (docs/features/limbo.md)
             ) AS candidates
             ORDER BY COALESCE(candidates.last_attempt, candidates.coverage_start) ASC
             LIMIT $2

@@ -29,8 +29,12 @@ show the plain upstream text.
 - **The abuse checks** (Phase 1, [abuse.md](abuse.md)): `Server::suspend` with kind `abuse` and a
   deletion time from the abuse settings.
 - **noprofit.space**: when the account sync finds an account deleted there, it suspends the panel
-  user (upstream's user suspension) and every server the user owns, kind `noprofit`, no deletion
-  time. Without noprofit.space this never happens.
+  user (upstream's user suspension) and every server the user owns, kind `noprofit`, deleted after
+  Admin › Settings › noprofit.space's *Delete gone accounts after* (7 days by default; 0: no
+  deletion time). The sync deletes the user itself once that time has passed
+  ([noprofit.md](../noprofit.md#what-changes-while-it-is-connected)); if the account comes back
+  first, it lifts the `noprofit` suspensions (and the user's, when the sync made it). Without
+  noprofit.space this never happens.
 
 `Server::suspend` leaves a server that is already suspended as it is, so a manual suspension is not
 overwritten by an automatic one.
@@ -38,7 +42,11 @@ overwritten by an automatic one.
 ## What the owner sees
 
 The server's pages are blocked as upstream does it; the block says who suspended it and when, the
-reason, the deletion date if there is one, and to contact the panel's administrators.
+reason, the deletion date if there is one, and where to get help: a **Get help** button to the
+first link that is set of Admin › Settings › neo's support link and Admin › Settings › Discord's
+invite link (`suspension::help_url`, sent as the suspension's `help_url`), as the Pelican panel's
+suspended page links its support page or Discord. With neither set, it says to contact the panel's
+administrators.
 
 Admins see a **Suspension** card on the server's Overview: by whom, the admin, since when, the
 reason and the deletion date. The activity log's `server:update` carries `suspended`,
@@ -48,7 +56,8 @@ reason and the deletion date. The activity log's `server:update` carries `suspen
 
 `purge_suspended_servers` runs every 5 minutes on the primary instance and deletes up to 20
 suspended servers whose `suspension_delete_at` has passed, oldest first, through the native server
-delete (not forced: a node that cannot delete it is tried again next run). Backups stay.
+delete (not forced: a node that cannot delete it is tried again next run). Backups stay, except for
+kind `noprofit`: its owner's account is gone, so its backups go with it.
 
 ## Without noprofit.space
 
@@ -60,3 +69,5 @@ Everything but the `noprofit` kind works the same.
   the server page shows the reason and the date.
 - Unsuspend: the card disappears, the owner gets the server back.
 - Suspend with no reason and "never": the owner sees who and when, without a reason line.
+- With a Discord invite link (or neo's support link) set, the block shows **Get help**, opening that
+  link in a new tab; with both empty, the line about contacting the administrators instead.

@@ -7,17 +7,27 @@ console and the Minecraft version in Settings › Software
 the [setup](#setup).
 
 The code is in `shared/src/minecraft/` (sources, versions, installed jars, `config.rs`,
-`players.rs`, `worlds.rs`, `bedrock.rs`, `modpacks.rs`, `onboarding.rs`, `log_check.rs`, `files.rs` for reading and
+`players.rs`, `player_data.rs`, `player_images.rs`, `worlds.rs`, `bedrock.rs`, `modpacks.rs`, `onboarding.rs`, `log_check.rs`, `files.rs` for reading and
 writing the server's files through Wings; `shared/src/redact.rs` masks secrets), the routes in
 `backend/src/routes/api/client/servers/_server_/minecraft/`, the pages in
 `frontend/src/pages/server/minecraft/`.
 
 ## Which servers
 
-A server is a Minecraft server when its egg has the `eula` feature (every Minecraft Java egg has
-it). Other servers neither show the pages (`frontend/src/lib/domain/games.ts` hides `/minecraft/*`
-routes from the sidebar and the router) nor answer the routes (404 "this server does not run
-minecraft").
+An egg's Minecraft (`minecraft::Edition`, sent as `egg.minecraft` with the server) comes from its
+`eula` feature, which every Minecraft Java egg has for upstream's EULA prompt, and whether it
+configures a `server.properties`:
+
+| Edition | Egg | Gets |
+|---|---|---|
+| `java` | `eula` and a `server.properties` (Paper, Purpur, Fabric, Forge, Vanilla, the egg in `docs/eggs`) | the pages, Minecraft subdomains, the setup, neo's Minecraft tools, the log check |
+| `proxy` | `eula` without one (Velocity's `velocity.toml`, BungeeCord's `config.yml`) | the log check only |
+| `bedrock` | a `server.properties` without `eula` (Vanilla Bedrock, PocketMine, Nukkit) | the log check only |
+
+A proxy has no worlds, whitelist or plugins the pages could manage, so it gets none of them, as on
+the Pelican panel (which showed them only on its catalog egg, never on Velocity). Other servers
+neither show the pages (`frontend/src/lib/domain/games.ts` hides `/minecraft/*` routes from the
+sidebar and the router) nor answer the routes (404 "this server does not run minecraft").
 
 What the server runs is read from:
 
@@ -150,9 +160,11 @@ Forge; the button is hidden there). It asks for a confirmation that says what it
 address Bedrock players join once there is one (`shared/src/minecraft/bedrock.rs`):
 
 1. **The port.** The server's allocation noted `Bedrock (Geyser)`, else (a Geyser set up by hand) a
-   non-primary allocation on the port its config listens on; else the panel takes the node's lowest
+   non-primary allocation on the port its config listens on; else the panel takes a port the way a
+   player's Add does (the first free one above the primary inside the deployment port ranges, made
+   when missing, [allocations.md](allocations.md)), and when the ranges are full the node's lowest
    free port on the primary allocation's IP (ports something on the node already listens on are
-   skipped) and adds it to the server with that note, under the server's allocation lock. It does
+   skipped), and adds it to the server with that note, under the server's allocation lock. It does
    not count against the server's allocation limit. Wings maps every allocation for TCP and UDP, so
    Bedrock's UDP listener is reachable. No free port: 409 "this node has no free port left for
    bedrock".
@@ -251,7 +263,11 @@ type is quoted.
 **Save** sends only what changed (up to 1000 values). The panel reads the file again, changes those
 lines and nothing else (comments, order, blank lines and keys it does not show stay as they are)
 and writes it only when something differs; activity `server:minecraft.settings.update` with the
-file and the count. The change applies when the server restarts.
+file and the count. The change applies when the server restarts: the restart button in the
+header (with `control.restart`, icon-only like the console's power buttons, so Save stays the
+page's one filled button) asks first, then restarts the server through the power route, so a start
+gate holding the start sends the user to its page, as the Pelican panel's Game Settings restart
+did.
 
 ## Players
 
@@ -262,9 +278,13 @@ console while the server runs. Under the switch, a server in offline mode says t
 under any name.
 
 Below it, one table of everyone on the whitelist (`whitelist.json`), an operator (`ops.json`, with
-the level) or banned (`banned-players.json`, with the reason), sorted by name, with a search: the
-name (copied on a click) over the UUID, Whitelisted (a check or a cross), Operator ("Level 4") and
-Banned (the reason on hover), "—" when not. The Banned column and the ban links are v3's own; Pelican
+the level), banned (`banned-players.json`, with the reason) or who has played (a file in
+`<world>/playerdata`, named from `usercache.json`; "Name not known yet" when the cache has
+forgotten them; the first 1000 files), sorted by name, with a search on the name and the UUID: the
+player's head and name (a link to their [details](#player-details)) with **Online** while they
+play, over the UUID (copied on a click) and "Last played" (when their file was last written),
+Whitelisted (a check or a cross), Operator ("Level 4") and Banned (the reason on hover), "—" when
+not. A row without a name has no actions: the lists are kept by name. The Banned column and the ban links are v3's own; Pelican
 has no bans. **Add player** (the table's action) takes a Minecraft username (1 to 16 letters, digits
 and `_`) and **Give them**: access to the server (the whitelist), operator powers, or both. A row's
 text links whitelist or remove from the whitelist, make or remove an operator, ban with an optional
@@ -287,6 +307,74 @@ A change that is already in place (adding someone who is on the list) does nothi
 in the activity log as `server:minecraft.players.{whitelist,unwhitelist,op,deop,ban,pardon}` with
 the name, the reason and whether it went through the console; the switch as
 `server:minecraft.players.enforce`.
+
+### Player details
+
+`/server/<id>/minecraft/players/<uuid>`, permission `minecraft.players`, opened from a row of the
+table (not in the sidebar); `shared/src/minecraft/player_data.rs` and `player_images.rs`, the page
+in `frontend/src/pages/server/minecraft/players/ServerMinecraftPlayer.tsx`. A UUID nobody knows (not
+on a list, not in `usercache.json`, no data file) is a 404.
+
+Where it comes from: the world is `level-name` in `server.properties` (a plain folder name), the
+player's data `<world>/playerdata/<uuid>.dat` (gzip NBT, read with the `fastnbt` crate), the
+statistics `<world>/stats/<uuid>.json`, all through Wings. A running server writes a player's file
+every few minutes and when they leave, so the page shows the last save ("Last saved" in the header,
+and a note while the server runs). A file that cannot be read shows a red callout; a player without
+one shows only the header, Access and their statistics. Both item formats are read (`Count`/`tag`
+before 1.20.5, `count`/`components` after, armour in `equipment` from 1.21.5), the old numeric
+`Dimension`, both attribute names for maximum health, the old and new respawn fields, and the old
+flat statistics (`stat.mineBlock.…`, before 1.13).
+
+- **Header**: the head, the name, **Online**/**Offline** (only while the server runs and the caller
+  has `control.console`), **Bedrock** for a Floodgate UUID, the UUID (copied on a click), the game
+  mode (a choice), **All players** and **Reload**. Who is online is asked once when the page opens
+  and on Reload, never on a timer: the console is sent `list uuids` (`minecraft:list uuids` on
+  Paper, past plugins that replace `list`) and the answer, read from the console, is reused for
+  10 seconds. On a server whose `list` has no UUIDs (before 1.13) the name decides.
+- **Health and experience**: hearts and food as the game draws them (half icons; more hearts with a
+  higher maximum health), the level with its bar and the total points. **Heal**
+  (`effect give <uuid> minecraft:instant_health 1 20 true`), **Feed**
+  (`effect give <uuid> minecraft:saturation 1 20 true`) and **Kill** (`kill <uuid>`, asks first)
+  are console commands: they need the server running, the player online and `control.console`;
+  otherwise they are disabled with the reason on hover. No Starve: it only serves griefing.
+- **Access**: the Whitelisted, Operator and Banned switches make the table's changes (same
+  confirmations, same activity); disabled while the server does not know the player's name.
+- **Inventory**: armour and off hand, the 27 slots, the hotbar and the ender chest, each with its
+  count, and the name (a renamed item's own), the enchantments and the id on hover. The icon comes
+  through the panel (`/players/item-icon`): minecraft.wiki's inventory icon, else the item's or
+  block's texture for the server's Minecraft version from mcasset.cloud; cached 7 days, a miss a
+  day. An item without one (a mod's) shows its initials.
+- **Position**: coordinates and dimension, the respawn point and the last death. **Teleport** to
+  coordinates (in the dimension they are in, or another one), to the world spawn (`level.dat`) or to
+  another player. While the server runs: `execute in <dimension> run tp <uuid> <x> <y> <z>` (or
+  `tp <uuid> <x> <y> <z>`, `tp <uuid> <other uuid>`), the player online, `control.console`. While it
+  is stopped: the file's `Pos` and `Dimension` change (and a ridden entity's position; fall
+  distance reset), "to a player" being where that player was saved; `files.update`.
+- **Game mode**: `gamemode <mode> <uuid>` while running, `playerGameType` in the file while stopped.
+  With `force-gamemode=true` the server puts everyone back on the default when they join.
+- **Statistics**: play time, player and mob kills, deaths, kills per death (deaths counted as at
+  least one), the distance travelled by way of moving (centimetres shown as blocks), and the five
+  blocks mined, items used and mobs killed most.
+- **Delete player data** (only while the server is stopped; red section, one button, asks first):
+  experience, inventory and armour, ender chest (edits in the data file, `files.update`), the whole
+  player data file (the player starts over at the spawn), statistics, advancements (`files.delete`).
+  What was not saved is greyed out.
+
+An edit writes the file as the game does, keeping each tag's type (an `Int` stays an `Int`, a
+`Float` a `Float`), and keeps the version before it as `<uuid>.dat_old`, the game's own backup name,
+which it loads when the `.dat` is broken; deleting the data file deletes its `.dat_old` too, or the
+game would load that. Deleted files go to the server's trash when it has one. Commands use the UUID,
+so live changes need Minecraft 1.13 or newer.
+
+Heads are 64×64 PNGs cut from the skin by the panel (face and hat layer): Mojang's session server for
+an online-mode UUID, Geyser's skin API for a Bedrock (Floodgate) UUID, Mojang's profile by name
+otherwise, the default skin when there is none; cached a day per UUID and name, 10 minutes after an
+error. The browser only ever loads heads and icons from the panel.
+
+Every change is in the activity log with the player's `uuid` and `name`:
+`server:minecraft.players.{heal,feed,kill}`, `server:minecraft.players.gamemode` (`mode`, `live`),
+`server:minecraft.players.teleport` (`destination`, `live`) and
+`server:minecraft.players.delete-data` (`removed`).
 
 ## Worlds
 
@@ -343,10 +431,12 @@ Activity: `server:minecraft.worlds.{create,activate,delete,import}`.
 
 ## Log check
 
-Above the console of a Minecraft server, for whoever may read the console and files
-(`control.console` and `files.read-content`; `shared/src/minecraft/log_check.rs`), like Aternos does
-it. The page asks every minute; the panel then reads `logs/latest.log` through Wings (at most 4 MB),
-strips colour codes, masks secrets (`shared/src/redact.rs`: `key=value`, `key: value` and JSON
+Above the console of every Minecraft edition (a server, a proxy such as Velocity, Bedrock), for
+whoever may read the console and files (`control.console` and `files.read-content`;
+`shared/src/minecraft/log_check.rs`), like Aternos does it. The page asks every minute; the panel
+then reads `logs/latest.log` through Wings (at most 4 MB) and, when there is none (Bedrock writes
+none), it is empty or it is bigger, the console's last 100 lines Wings keeps, as the Pelican panel
+did. It strips colour codes, masks secrets (`shared/src/redact.rs`: `key=value`, `key: value` and JSON
 entries whose key looks secret such as passwords, RCON, tokens, API keys and webhooks; JWTs; Discord
 bot tokens; the token half of Discord webhook URLs; `sk-`, `gsk_`, `ghp_`, `xox?-` keys) and uploads
 it to mclo.gs (`api.mclo.gs/1/log`), which strips IP addresses itself. mclo.gs's analysis
@@ -363,6 +453,16 @@ server's `neo.access`; it sends the window event `neo:ask` with `{ log: <mclo.gs
 neo chat answers by starting a chat on that log ([neo](neo.md)); neo's `read_mclogs` reads the
 paste back through the same module (`log_check::paste`, `entries`). Without neo the card only links the
 log. Admin › Settings › Hosting › Minecraft › Log Check turns it off (the console then shows nothing).
+
+## Thread limit notice
+
+The Pelican panel's `pid_limit` egg feature (eggs 1 Minecraft Java, 7 Velocity and 14 Bedrock carry
+it): when the console of a starting or running server prints that it cannot create a thread
+(`pthread_create failed`, `unable to create new native thread`, … the Pelican panel's
+`PIDLimitSchema` list), a dialog opens once per run (`PidLimitModalFeature.tsx`). Admins read
+"Memory or process limit reached" with the Wings setting to raise (`docker.container_pid_limit` in
+`config.yml`, then restart Wings); everyone else "Possible resource limit reached" with the error to
+pass on to the administrator. Any egg with the `pid_limit` feature gets it.
 
 ## Routes
 
@@ -392,11 +492,19 @@ used only with `control.console` too):
 
 | Route | Does |
 |---|---|
-| `GET /` | The players, whether the whitelist is on, online mode, the operator level, whether the server runs |
+| `GET /` | The players (with everyone who has played and when they last did), whether the whitelist is on, online mode, the operator level, whether the server runs |
 | `POST /whitelist`, `DELETE /whitelist` `{name}` | Adds to or removes from the whitelist; answers whether it applied live |
 | `POST /operators`, `DELETE /operators` `{name}` | Makes or removes an operator |
 | `POST /bans` `{name, reason?}`, `DELETE /bans` `{name}` | Bans or pardons |
 | `PUT /enforce` `{enabled}` | Turns the whitelist on or off |
+| `GET /online` | `{running, players: [{name, uuid?}], max}` from `list uuids`; `players` is null without `control.console` or when the console did not answer |
+| `GET /item-icon?id&version` | An item's icon (PNG, cached by the browser a week); 404 when there is none, 400 for a bad id or version |
+| `GET /{player}` | One player's [details](#player-details): lists, saved data, statistics, which files exist, whether the server runs or is stopped, whether deleting uses the trash; 404 for a player the server never knew |
+| `GET /{player}/head?name` | The player's head (PNG, 64×64) |
+| `POST /{player}/action` `{action: heal\|feed\|kill}` | The console command (also `control.console`; 409 when the server is not running or the player is not online) |
+| `PUT /{player}/game-mode` `{mode}` | Live with `control.console`, or in the file of a stopped server with `files.update`; answers `{live}` |
+| `POST /{player}/teleport` `{destination: {kind: coordinates, x, y, z, dimension?} \| {kind: spawn} \| {kind: player, uuid}}` | The same way; answers `{live}` |
+| `DELETE /{player}/data` `{xp, inventory, ender_chest, player_data, statistics, advancements}` | Stopped server only (409 otherwise); edits need `files.update`, deleting files `files.delete` |
 
 Under `/api/client/servers/{server}/minecraft/worlds`, with `minecraft.worlds`:
 
@@ -459,6 +567,21 @@ Nothing here uses noprofit.space.
 - The "Only allow whitelisted players" switch on and off; `server.properties` shows `white-list` and
   `enforce-whitelist`. Search finds a player by part of the name.
 - An unknown name on an online-mode server is refused; any name works in offline mode.
+- Players lists everyone who has played (with "Last played"), with their heads; Online shows next
+  to whoever plays while the server runs; a name opens their details page.
+- Player details on a running server with the player online: health, food and level match the game
+  (after a save); Heal, Feed and Kill (asks first) work and the console shows the commands; the
+  game mode choice changes it in the game; Teleport to coordinates in the Nether, to the spawn and
+  to another player. With the player offline these are disabled with the reason on hover.
+- The inventory, armour, off hand and ender chest match the game, with counts, names and
+  enchantments on hover; a modded item shows its initials. A 1.20.4 and a 1.21.5+ server both work.
+- Statistics: play time, kills, deaths, distances and the top blocks, items and mobs.
+- On a stopped server: change the game mode and teleport (the toast says it applies on the next
+  join; the player appears there); Delete player data with only the inventory ticked, then start
+  and join: the inventory is empty and `<uuid>.dat_old` is next to the file. Ticking the player data
+  file starts them over at the spawn; with the trash on, the files are in the trash.
+- A subuser with `minecraft.players` but not `control.console` sees the details but no Online
+  badge, and Heal/Feed/Kill are disabled.
 - A subuser without `minecraft.settings` or `minecraft.players` does not see those pages.
 - Game Settings: `level-type` shows as a choice (Normal etc.) on a server the game wrote
   `minecraft\:normal` into; a MOTD with `§` colours saves and the server shows the colours.
@@ -501,3 +624,14 @@ Nothing here uses noprofit.space.
 - A subuser with Game Settings opens the console of a server still waiting for its setup: "Your
   server is not set up yet" with Start setup.
 - A server an admin creates starts after its install as before and has no setup.
+- Which servers: a Paper server shows the Minecraft pages; a Velocity server and a Vanilla Bedrock
+  server show none of them in the sidebar, and `/server/<id>/minecraft/settings` typed by hand goes
+  to the not-found page; both still show the log check above the console.
+- The log check on a Bedrock server (no `logs/latest.log`): after a start the card or quiet line
+  comes from the console's last lines.
+- Game Settings: the restart icon in the header asks first, then the console shows the restart; a
+  subuser without `control.restart` has no icon. With the start queue holding starts, the restart
+  goes to the queue page.
+- Thread limit notice: on a running Minecraft server, send `say unable to create new native thread`
+  in the console: the dialog opens once per run (a second `say` does not open it again; after a
+  restart it does), as an admin with the Wings setting, as a player with the error to pass on.

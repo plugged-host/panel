@@ -13,6 +13,7 @@ import {
   faFingerprint,
   faFolderOpen,
   faGlobe, // plugged.host
+  faHandshake, // plugged.host
   faHeartPulse,
   faLayerGroup,
   faRectangleAd, // plugged.host
@@ -44,6 +45,7 @@ const AdminLocations = lazy(() => import('@/pages/admin/locations/AdminLocations
 const AdminNests = lazy(() => import('@/pages/admin/nests/AdminNests.tsx'));
 const AdminNodes = lazy(() => import('@/pages/admin/nodes/AdminNodes.tsx'));
 const AdminOAuthProviders = lazy(() => import('@/pages/admin/oauth-providers/AdminOAuthProviders.tsx'));
+const AdminPartners = lazy(() => import('@/pages/admin/partners/AdminPartners.tsx')); // plugged.host
 const AdminPlans = lazy(() => import('@/pages/admin/plans/AdminPlans.tsx')); // plugged.host
 const AdminRoles = lazy(() => import('@/pages/admin/roles/AdminRoles.tsx'));
 const AdminServers = lazy(() => import('@/pages/admin/servers/AdminServers.tsx'));
@@ -222,6 +224,15 @@ const routes: AdminRouteDefinition[] = [
     path: '/activity',
     element: AdminActivity,
     permission: ['activity.*'],
+    category: 'access',
+  },
+  // plugged.host: the partner program (docs/features/partners.md)
+  {
+    name: () => getTranslations().t('pages.admin.partners.title', {}),
+    icon: faHandshake,
+    path: '/partners',
+    element: AdminPartners,
+    permission: ['partners.*'],
     category: 'access',
   },
 

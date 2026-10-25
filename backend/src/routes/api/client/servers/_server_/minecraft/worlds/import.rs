@@ -83,9 +83,25 @@ mod post {
                             }),
                         )
                         .await;
+                    shared::notifications::world_import_ended(
+                        &state,
+                        activity_logger.user_uuid,
+                        &server,
+                        replaced.kept.as_deref(),
+                        None,
+                    )
+                    .await;
                 }
                 Err(err) => {
                     tracing::info!(server = %server.uuid, "world import failed: {}", err.message());
+                    shared::notifications::world_import_ended(
+                        &state,
+                        activity_logger.user_uuid,
+                        &server,
+                        None,
+                        Some(&err.message()),
+                    )
+                    .await;
                 }
             }
         });
