@@ -15,7 +15,7 @@ use super::{
     tools::{self, ToolContext, ToolError, ToolResult, ToolRisk, ToolScope},
 };
 use crate::models::{
-    server::{Server, ServerStatus},
+    server::Server,
     user::{PermissionManager, User},
 };
 use serde::Serialize;
@@ -1022,34 +1022,10 @@ fn state_of(conversation: &Conversation) -> StepResult {
     })
 }
 
-/// Why the chat's server cannot be acted on right now, or `None` when it can.
+/// Why the chat's server cannot be acted on right now, or `None` when it can (the rules are
+/// `tools::console::blocked`, which `server_status` reports too).
 pub async fn server_blocked(state: &crate::State, server: &Server) -> Option<&'static str> {
-    if server.suspended {
-        return Some("the server is suspended");
-    }
-    match server.status {
-        Some(ServerStatus::Installing) => return Some("the server is still installing"),
-        Some(ServerStatus::InstallFailed) => return Some("the server's installation failed"),
-        Some(ServerStatus::RestoringBackup) => return Some("the server is restoring a backup"),
-        _ => {}
-    }
-    if server.destination_node.is_some() {
-        return Some("the server is being moved to another node");
-    }
-    if let Some(limbo) = &server.limbo
-        && !matches!(limbo, crate::limbo::LimboState::Stopped)
-    {
-        return Some("the server is hibernated; the owner restores it from its page");
-    }
-
-    match server.node.fetch_cached(&state.database).await {
-        Ok(node) if node.maintenance_enabled => Some("the node is under maintenance"),
-        Ok(_) => None,
-        Err(err) => {
-            tracing::warn!(server = %server.uuid, "neo could not read the server's node: {err:#}");
-            None
-        }
-    }
+    tools::console::blocked(state, server).await
 }
 
 #[cfg(test)]

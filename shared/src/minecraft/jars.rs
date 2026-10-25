@@ -888,6 +888,42 @@ async fn row_by_file(
     Ok(Some((row(&jar, identity.as_ref(), &folders), identity)))
 }
 
+/// Identifies one jar again, now, in place of what was remembered for it (a source that did not
+/// answer the first time, a jar replaced by hand under the same name and size). Answers its row.
+pub async fn identify_again(
+    state: &crate::State,
+    server: &Server,
+    loader: Loader,
+    file: &str,
+) -> Result<InstalledJar, JarError> {
+    let client = client(state, server).await?;
+    let directory = loader.directory();
+    let (jars, folders) = listing(&client, server, directory).await;
+    let Some(jar) = jars.into_iter().find(|jar| jar.name == file) else {
+        return Err(JarError::NotInstalled);
+    };
+
+    let Some(identity) = identify(
+        state,
+        &client,
+        server,
+        loader,
+        directory,
+        std::slice::from_ref(&jar),
+    )
+    .await
+    .into_iter()
+    .next() else {
+        return Err(JarError::NotInstalled);
+    };
+    let _ = state
+        .cache
+        .set(&identity_key(server, &jar), IDENTITY_TTL, &identity)
+        .await;
+
+    Ok(row(&jar, Some(&identity), &folders))
+}
+
 #[derive(Debug)]
 pub enum JarError {
     NotInstalled,

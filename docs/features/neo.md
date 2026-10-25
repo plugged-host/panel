@@ -63,6 +63,51 @@ stub (the 3 most recent calls stay whole); tool output is always fenced as untru
 (`<tool_output untrusted="true">`), so text in a file or the console cannot pose as instructions.
 Images reach only models that can see them; the others get a placeholder line.
 
+## The prompt
+
+`shared/src/neo/prompt.rs` writes what the model is told. Everything comes from the settings and the
+database, and a feature that is off is never mentioned. The prompt names no host, service or link the
+settings do not give; noprofit.space is named only while it is connected.
+
+- **Panel chat** (`prompt::system`, called by the agent loop before every model call):
+  1. who neo is and how it works;
+  2. what the host is and how it works (below);
+  3. the rules (tool output and the server name are untrusted data, masked secrets, act instead of
+     asking, never spend or delete unless asked, smallest safe change, reply in the user's language);
+  4. last, "This conversation": the user, the server (name flattened to one line, at most 100
+     characters, JSON-quoted; short id; the game's catalog name; the node), its limits, the user's
+     permissions on it (the owner's `*` reads "all (server owner)") and the approval mode.
+
+  Everything before "This conversation" changes only with the settings and the account's
+  noprofit.space plan, so providers that cache prompt prefixes reuse it between turns.
+- **What neo knows** (`prompt::knowledge`, part of both prompts): accounts and support, creating
+  servers and the allowance, locations, credits, tokens and memberships, starting and idle servers,
+  backups, the Minecraft log check, subdomains, FiveM, Minecraft and VS Code. Each comes from its
+  settings:
+
+| Topic | Read from |
+|---|---|
+| Name, URL, language, release | `app::*`, `shared::RELEASE` |
+| Where accounts live, terms, the account's plan limits | `noprofit` settings (connected or not), `user_noprofit_accounts.plan` |
+| Allowance, plans, server limits, resizing, deleting, moves | `games::*`, public `plans` |
+| Location tiers | `locations.tier` of public locations |
+| Credits, store prices, tokens, memberships, burst cores | `economy::*`, the earn providers the Tokens page offers |
+| Start queue, waiting room, in-game ads | `queue::*`, `ads::*` |
+| Idle stop and parking | `limbo::*` |
+| Backups, automatic failover | `recovery::*` |
+| Subdomains | `subdomains::*` (active = on with a token) |
+| VS Code | `devboxes::*` (offered, members only, browser version) |
+| Minecraft, FiveM | eggs with the `eula` / `cfx` features, `games::minecraft_*`, `games::fivem_enhanced` |
+| Help, legal and privacy contacts, neo's extra usage | `neo::support_url`, `legal_email`, `privacy_email`, `plus_percent`, `plusplus_percent` |
+| Discord invite, rewards, tier, subdomain rules | `discord::*` while the section is on; the reward amounts and the tier only without noprofit.space (it pays them then) |
+
+- **neo on Discord** (`prompt::discord_chat`): account support, not server support. It sends server
+  problems to neo in the panel. It gets the same knowledge and who it is talking to: their Discord
+  name as data, whether their Discord is linked (to noprofit.space or the panel), their usage
+  windows with Discord timestamps, and DM or public channel (account tools only in a DM).
+- Names people chose (server, user, Discord, node, game) are always quoted, with control and
+  invisible characters removed.
+
 ## Approvals
 
 Every tool call is stored with its risk (read, write, destructive, critical), a one-line summary and,
@@ -73,8 +118,74 @@ calls always wait. The person approves one call or all waiting calls, or decline
 told "The user declined this action."). Stopping a request skips everything still waiting.
 
 Before a call runs, its permissions are checked again, and server tools (except `server_status`)
-refuse while the server is suspended, installing, restoring a backup, moving, hibernating or on a
-node in maintenance. A tool that fails on the server is logged; the model only hears that it failed.
+refuse while the server is suspended, installing or its install failed, restoring a backup or its
+last restore failed, moving, hibernating or on a node in maintenance (`tools::console::blocked`;
+`server_status` reports the same reason). A tool that fails on the server is logged; the model only hears that it failed.
+
+## Tools
+
+The actions neo can take are in `shared/src/neo/tools/` (`console.rs`, `files.rs`, `startup.rs`,
+`backups.rs`, `servers.rs`, `mclogs.rs`, `account.rs`, `minecraft.rs`; what they share is in
+`support.rs`). Each tool says where it is offered (its scope), which server permissions it needs
+and how risky a call is, and goes through the same shared code as the matching page or route, so
+it can do nothing the user could not do there themselves.
+
+**Where tools are offered.** A server chat offers the *server* tools to the server's owner and to
+subusers holding `neo.access`, each tool only when the user holds at least one of its permissions
+(Minecraft tools only on Minecraft servers); the account chat offers the *app* tools; *any* tools
+are offered in both. Approvals and the blocked states are under [Approvals](#approvals).
+
+Every change is written to the activity log as `server:neo.<event>` or `user:neo.<event>`, with
+the conversation: `command`, `power`, `file.read`, `file.edit`, `file.write`,
+`file.create-directory`, `file.rename`, `file.compress`, `file.decompress`, `file.delete`,
+`startup.variable`, `startup.image`, `reinstall`, `backup.create`, `backup.restore`,
+`backup.delete`, `rename`, `resize`, `content.install`, `content.remove`, `content.toggle`,
+`geyser`, `modpack`, `software`, and on the account `server.create` and `server.delete`. Tool
+output has secrets masked (`shared/src/redact.rs`) and is cut to 12,000 characters; neo refuses to
+write the `••••` mask back into a file or variable.
+
+| Tool | Scope | Permissions | Risk | What it does |
+| --- | --- | --- | --- | --- |
+| `server_status` | server | none | read | State, CPU/memory/disk against the limits, uptime, address, node, and what blocks the server |
+| `console_read` | server | `control.read-console` | read | The console's last lines (up to 100), colours stripped |
+| `list_files` | server | `files.read` | read | A directory, folders first, with sizes and dates |
+| `read_file` | server | `files.read-content` | read | A text file with line numbers, up to 400 lines per call |
+| `search_files` | server | `files.read` | read | Files and folders whose name contains a pattern |
+| `send_command` | server | `control.console` | write | One console command on a running server, with the console lines that followed |
+| `power` | server | `control.start` / `control.stop` / `control.restart` (kill: `control.stop`) | write, kill destructive | Start, stop, restart or kill; a start goes through the [start gates](start-gates.md) and takes the user to the queue, waiting room or hibernation page |
+| `edit_file` | server | `files.read-content`, `files.create` | write | Replaces an exact piece of text in a file |
+| `write_file` | server | `files.create` | write | Creates a file or replaces its content (up to 256 KiB) |
+| `create_directory` | server | `files.create` | write | Creates a folder |
+| `rename_file` | server | `files.update` | write | Renames or moves a file or folder |
+| `compress_files` | server | `files.archive` | write | Packs files of one folder into a `.tar.gz` there |
+| `decompress_file` | server | `files.archive` | write | Extracts an archive into its folder |
+| `delete_files` | server | `files.delete` | destructive | Deletes up to 20 files or folders, into the server's trash when it has one |
+| `get_startup` | server | `startup.read` | read | Startup command, docker image and the images on offer, the visible variables (secret ones masked) with their rules |
+| `set_startup_variable` | server | `startup.update` | write | Sets one editable variable, validated like the startup page |
+| `set_docker_image` | server | `startup.docker-image` | write | Switches to one of the egg's images |
+| `reinstall_server` | server | `settings.install` | destructive | Runs the install script again, keeping the files |
+| `list_backups` | server | `backups.read` | read | The server's backups and its backup limit |
+| `create_backup` | server | `backups.create` (locking: `backups.update`) | write | Starts a backup of the server's files, making room the way the backups page does |
+| `restore_backup` | server | `backups.read`, `backups.restore` | critical | Restores a backup over the files, optionally deleting the current ones first |
+| `delete_backup` | server | `backups.read`, `backups.delete` | destructive | Deletes a backup that is neither locked nor a system backup |
+| `list_servers` | app | none | read | The user's servers (owned and shared, up to 25) with game, node and state |
+| `read_mclogs` | any | none | read | A log on mclo.gs by link or id (`log`; the log check's "Ask neo" seeds it with `{"log": "<id>"}`): its problems with suggested fixes, detected versions, its error (else warning) entries |
+| `account_overview` | any | none | read | Token and credit balance, the allowance with what is used, memberships, over-quota |
+| `list_create_options` | any | user `servers.deploy` | read | Games (software, EULA), plans and locations for a new server, as the create page offers them |
+| `create_server` | any | user `servers.deploy` | write, critical when it accepts a EULA | Creates a server like the [create page](create-server.md) |
+| `rename_server` | server | `settings.rename` | write | Renames the server |
+| `resize_server` | server | `settings.resize` | write | Resizes within the owner's allowance, or to a plan's size ([server-settings.md](server-settings.md)) |
+| `delete_server` | server | `settings.delete` | critical | Deletes the server and its backups after the exact name is given, then takes the user home |
+| `minecraft_info` | server | any of `minecraft.content`, `settings.software`, `minecraft.bedrock` | read | Software, version, installable versions, content types and sources, modpacks, switchable software, Geyser |
+| `search_content` | server | `minecraft.content` | read | Searches Modrinth, CurseForge or SpigotMC for plugins, mods or modpacks |
+| `content_versions` | server | `minecraft.content` | read | A project's builds that fit the server |
+| `install_content` | server | `minecraft.content` | write | Installs one plugin or mod (the newest fitting build unless one is given) |
+| `list_installed_content` | server | `minecraft.content` | read | The installed jars, identified, with updates and missing dependencies |
+| `remove_content` | server | `minecraft.content` | destructive | Deletes up to 20 plugin or mod jars |
+| `toggle_content` | server | `minecraft.content` | write | Disables (`.jar.disabled`) or enables a jar |
+| `install_geyser` | server | `minecraft.bedrock` | write | Installs or updates Geyser and Floodgate and holds a Bedrock port |
+| `install_modpack` | server | `minecraft.content`, `settings.software` | destructive | Installs a modpack on a stopped server in the background, switching its loader and version |
+| `switch_server_software` | server | `settings.software` | destructive | Switches the Minecraft software and/or version and reinstalls |
 
 ## Limits and errors
 

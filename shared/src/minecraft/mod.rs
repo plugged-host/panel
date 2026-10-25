@@ -173,6 +173,9 @@ pub struct Project {
     pub kind: Kind,
     /// The panel can download it (a SpigotMC resource hosted elsewhere cannot be).
     pub installable: bool,
+    /// Its author marks it as client-side only, so it may do nothing on a server (Modrinth only).
+    #[serde(default)]
+    pub client_only: bool,
 }
 
 /// One build of a project.

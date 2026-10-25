@@ -6,6 +6,7 @@ export const serverDevboxStateSchema = z.enum([
   'locked',
   'none',
   'stopped',
+  'creating',
   'starting',
   'stopping',
   'failed',

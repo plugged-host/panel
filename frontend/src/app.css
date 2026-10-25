@@ -681,6 +681,11 @@ strong {
     border-bottom: 1px solid var(--theme-hairline) !important;
   }
 
+  /* A section that is only its heading (and description) has nothing to divide off. */
+  #title-card-header:last-child {
+    border-bottom: 0 !important;
+  }
+
   #title-card-icon {
     display: none !important;
   }
@@ -2798,10 +2803,42 @@ strong {
   padding-block-start: 0;
 }
 
+/* a waiting page's stack part: one "Sponsored" caption over its units, two columns on a wide
+   screen (the Pelican panel's interstitial-units partial); the caption goes while no unit shows */
 .theme-ad-stack {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.5rem;
+}
+
+.theme-ad-stack-label {
+  display: block;
+  color: var(--theme-text-faint);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.05em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.theme-ad-stack:not(:has(.theme-ad-frame:not(.theme-ad-folded), .theme-ad-sponsored)) > .theme-ad-stack-label {
+  display: none;
+}
+
+.theme-ad-stack-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.theme-ad-stack-grid .theme-ad-slot:not([data-empty]) {
+  margin-block-start: 0;
+}
+
+@media (min-width: 64rem) {
+  .theme-ad-stack-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .theme-ad-preview {
@@ -4965,12 +5002,21 @@ span.theme-neo-image {
 
 .theme-link-action {
   padding: 0.125rem 0.25rem;
+  border: 0;
   border-radius: 0.375rem;
+  background: none;
   color: var(--theme-text-nav);
+  font: inherit;
   font-size: 0.875rem;
   font-weight: 500;
   line-height: 1.25rem;
+  cursor: pointer;
   transition: color 150ms ease;
+}
+
+/* the primary record action ("1-Click Install"): Filament's link in the primary colour */
+.theme-link-action[data-accent] {
+  color: var(--theme-accent-bright);
 }
 
 .theme-link-action[data-danger] {
@@ -4980,6 +5026,11 @@ span.theme-neo-image {
 .theme-link-action:hover:not(:disabled),
 .theme-link-action:focus-visible {
   text-decoration: underline;
+}
+
+.theme-link-action:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
 }
 
 .theme-link-action:disabled {
@@ -5279,4 +5330,1819 @@ span.theme-neo-image {
 .theme-backups-link:focus-visible {
   outline: 2px solid var(--theme-accent-bright);
   outline-offset: 2px;
+}
+
+/* =============================================================================
+ * plugged.host: the server settings pages, Theme v2's settings page on the Pelican panel
+ * (server-form.blade.php ".phsf-*", settings/*.blade.php ".phset-*", the devbox's ".phdb-*").
+ * docs/features/server-settings.md
+ * ============================================================================= */
+
+/* The jump bar (".phsf-nav"): sticky on the modal surface, text items, Danger Zone red at the end.
+   Below 64rem it sticks under the sidebar's menu button (top 1rem, 2.75rem high). */
+.theme-jump {
+  position: sticky;
+  inset-block-start: 4.25rem;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem;
+  border-radius: 1rem;
+  background-color: var(--theme-modal);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.theme-jump::-webkit-scrollbar {
+  display: none;
+}
+
+@media (min-width: 64rem) {
+  .theme-jump {
+    inset-block-start: 0.5rem;
+  }
+}
+
+.theme-jump-item {
+  flex: none;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.75rem;
+  color: var(--theme-text-nav);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.25rem;
+  white-space: nowrap;
+  text-decoration: none;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
+}
+
+.theme-jump-item:hover,
+.theme-jump-item:focus-visible,
+.theme-jump-item.active {
+  background-color: var(--theme-raise-2);
+  color: var(--theme-text);
+}
+
+.theme-jump-item-danger {
+  margin-inline-start: auto;
+}
+
+.theme-jump-item-danger,
+.theme-jump-item-danger:hover,
+.theme-jump-item-danger:focus-visible,
+.theme-jump-item-danger.active {
+  color: var(--mantine-color-red-4);
+}
+
+/* Filament's section description and footer (TitleCard's `description` and `footer`). */
+.theme-section-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-block-start: 1px solid var(--theme-hairline);
+}
+
+@media (min-width: 48rem) {
+  .theme-section-footer {
+    padding: 1rem 1.5rem;
+  }
+}
+
+/* Theme v2: "#form section#danger { border: 1px solid rgba(239,68,68,.25); background-color:
+   rgba(239,68,68,.03) }", the heading's divider rgba(239,68,68,.15). The one section with a border
+   and a tint, as on the Pelican panel. */
+:root[data-mantine-color-scheme="dark"] .theme-section-danger.mantine-Card-root {
+  --paper-border-color: rgb(239 68 68 / 0.25);
+  background-color: rgb(239 68 68 / 0.03);
+}
+
+:root[data-mantine-color-scheme="dark"] .theme-section-danger #title-card-header {
+  border-block-end-color: rgb(239 68 68 / 0.15) !important;
+}
+
+/* Label/value rows split by hairlines (".phset-row", ".phdb-row"). */
+.theme-setting-rows {
+  display: flex;
+  flex-direction: column;
+}
+
+.theme-setting-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-height: 2.75rem;
+  padding-block: 0.5rem;
+}
+
+.theme-setting-row + .theme-setting-row {
+  border-block-start: 1px solid var(--theme-hairline);
+}
+
+.theme-setting-label {
+  flex: none;
+  width: 5.5rem;
+  color: var(--theme-text-muted);
+  font-size: 0.8125rem;
+}
+
+@media (min-width: 40rem) {
+  .theme-setting-label {
+    width: 7rem;
+  }
+}
+
+.theme-setting-value {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--theme-text);
+  font-size: 0.875rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.theme-setting-value-wrap {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.theme-setting-value-muted {
+  color: var(--theme-text-muted);
+}
+
+.theme-setting-hint {
+  display: block;
+  margin-block-start: 0.125rem;
+  color: var(--theme-text-muted);
+  font-size: 0.75rem;
+  line-height: 1.125rem;
+}
+
+.theme-setting-actions {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.theme-setting-actions:has(.mantine-Button-root) {
+  gap: 0.5rem;
+}
+
+.theme-setting-copied {
+  color: var(--mantine-color-green-4);
+}
+
+.theme-setting-error {
+  color: var(--mantine-color-red-4);
+}
+
+.theme-setting-open {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  padding-block-start: 0.75rem;
+}
+
+.theme-setting-caption {
+  display: block;
+  margin-block: 1.5rem 0.75rem;
+  color: var(--theme-text-muted);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.theme-setting-limits {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+@media (min-width: 40rem) {
+  .theme-setting-limits {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 64rem) {
+  .theme-setting-limits {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+
+.theme-setting-limit small {
+  display: block;
+  color: var(--theme-text-muted);
+  font-size: 0.75rem;
+}
+
+.theme-setting-limit strong {
+  display: block;
+  margin-block-start: 0.125rem;
+  color: var(--theme-text);
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The startup command well (".phset-cmd"). */
+.theme-setting-cmd {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding-block: 0.5rem;
+  padding-inline: 1rem 0.5rem;
+  border-radius: 0.75rem;
+  background-color: var(--theme-sunken);
+}
+
+.theme-setting-cmd-text {
+  flex: 1;
+  min-width: 0;
+  padding-block: 0.375rem;
+  color: var(--theme-text-nav);
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+  word-break: break-all;
+  user-select: all;
+}
+
+.theme-setting-note {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+}
+
+.theme-setting-danger-rows {
+  display: flex;
+  flex-direction: column;
+  margin-block-start: 0.75rem;
+}
+
+.theme-setting-danger-row {
+  padding-block: 0.75rem;
+}
+
+.theme-setting-danger-row + .theme-setting-danger-row {
+  border-block-start: 1px solid var(--theme-hairline);
+}
+
+.theme-setting-danger-row strong {
+  display: block;
+  color: var(--theme-text);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.theme-setting-danger-row p {
+  margin: 0.125rem 0 0;
+  color: var(--theme-text-muted);
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+}
+
+/* Filament's field hint: on the label's line, at its end; red when a value goes over. */
+.theme-field-label-row {
+  display: block;
+  width: 100%;
+}
+
+.theme-field-label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.theme-field-hint {
+  color: var(--theme-text-muted);
+  font-size: 0.875rem;
+  font-weight: 400;
+}
+
+.theme-field-hint[data-over] {
+  color: var(--mantine-color-red-4);
+}
+
+.theme-boolean {
+  color: var(--mantine-color-red-text);
+  font-size: 1.2rem;
+}
+
+.theme-boolean[data-on] {
+  color: var(--mantine-color-green-text);
+}
+
+.theme-placeholder {
+  color: var(--theme-text-faint);
+  font-size: 0.875rem;
+}
+
+/* A field with its label above it ("fi-fo-field-wrp", gap-y-2): a toggle that is not inline,
+   its helper text "text-sm text-gray-400" underneath. */
+.theme-stack-field {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.theme-stack-field-label {
+  color: var(--theme-text);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.5rem;
+}
+
+.theme-stack-field-hint {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+/* =============================================================================
+ * plugged.host: the Minecraft Worlds page (pages/server/minecraft/worlds), the Pelican panel's
+ * server-worlds view (".phw-*"): one card per world, the loaded one with its generation tiles
+ * and the upload drop zone, three help columns underneath. Below 900px everything stacks.
+ * ============================================================================= */
+.theme-world-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.theme-world-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "head" "stats" "actions";
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: 1rem;
+  background-color: var(--theme-raise);
+}
+
+.theme-world-card[data-upload] {
+  grid-template-areas: "head" "stats" "actions" "upload";
+}
+
+.theme-world-card[data-other] {
+  grid-template-areas: "head" "actions";
+}
+
+.theme-world-head {
+  display: flex;
+  min-inline-size: 0;
+  flex-direction: column;
+  gap: 0.375rem;
+  grid-area: head;
+}
+
+.theme-world-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.theme-world-name {
+  color: var(--theme-text);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.5rem;
+  word-break: break-all;
+}
+
+.theme-world-stats {
+  display: grid;
+  grid-area: stats;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem 1.5rem;
+}
+
+.theme-world-stat {
+  display: flex;
+  min-inline-size: 0;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.theme-world-stat-label {
+  color: var(--theme-text-muted);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  line-height: 1rem;
+  text-transform: uppercase;
+}
+
+.theme-world-stat-value {
+  overflow: hidden;
+  color: var(--theme-text);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.theme-world-stat-value[data-mono] {
+  font-family: var(--mantine-font-family-monospace);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.theme-world-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  grid-area: actions;
+}
+
+.theme-world-upload {
+  min-inline-size: 0;
+  grid-area: upload;
+}
+
+/* The drop zone: a dashed hairline, the accent once a file is dragged over it. Not `disabled`
+   while the server runs, so a dropped file is still caught instead of opened by the browser. */
+.theme-world-drop {
+  display: flex;
+  inline-size: 100%;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  border: 1px dashed var(--theme-raise-3);
+  border-radius: 0.75rem;
+  background-color: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition:
+    border-color 150ms ease,
+    background-color 150ms ease;
+}
+
+.theme-world-drop:hover:not([data-locked]) {
+  background-color: var(--theme-raise);
+}
+
+.theme-world-drop[data-over] {
+  border-style: solid;
+  border-color: var(--theme-accent-bright);
+  background-color: var(--theme-accent-soft);
+}
+
+.theme-world-drop[data-locked] {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.theme-world-drop-text {
+  display: flex;
+  min-inline-size: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.125rem;
+  color: var(--theme-text-muted);
+  font-size: 0.8125rem;
+}
+
+.theme-world-drop-text strong {
+  overflow: hidden;
+  color: var(--theme-text);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The upload's progress: Theme v2's thin bar, the bright accent on a white/5 track. */
+.theme-world-bar {
+  block-size: 0.375rem;
+  overflow: hidden;
+  margin-block-start: 0.75rem;
+  border-radius: 9999px;
+  background-color: var(--theme-raise);
+}
+
+.theme-world-bar > span {
+  display: block;
+  block-size: 100%;
+  border-radius: inherit;
+  background-color: var(--theme-accent-bright);
+  transition: inline-size 200ms ease;
+}
+
+.theme-world-error {
+  margin: 0;
+  margin-block-start: 0.75rem;
+  color: var(--mantine-color-red-text);
+  font-size: 0.8125rem;
+}
+
+.theme-world-upload-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-block-start: 0.75rem;
+  color: var(--theme-text-nav);
+  font-size: 0.8125rem;
+}
+
+.theme-world-upload-foot .mantine-Checkbox-label {
+  color: inherit;
+  font-size: inherit;
+}
+
+.theme-world-help {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 1rem 1.5rem;
+  padding-block: 0.5rem 0;
+  padding-inline: 0.25rem;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.theme-world-help strong {
+  display: block;
+  margin-block-end: 0.25rem;
+  color: var(--theme-text);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.theme-world-help p {
+  margin: 0;
+  color: var(--theme-text-muted);
+}
+
+@media (min-width: 56.25rem) {
+  .theme-world-card {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "head actions" "stats stats";
+    align-items: start;
+    gap: 1.5rem;
+    padding: 1.5rem;
+  }
+
+  .theme-world-card[data-upload] {
+    grid-template-areas: "head actions" "stats stats" "upload upload";
+  }
+
+  .theme-world-card[data-other] {
+    grid-template-areas: "head actions";
+    align-items: center;
+    padding-block: 1rem;
+  }
+
+  .theme-world-actions {
+    justify-content: flex-end;
+  }
+
+  .theme-world-stats {
+    grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+  }
+}
+
+/* =============================================================================
+ * plugged.host: the start flow's pages (pages/server/{queue,waiting,limbo}): the Pelican panel's
+ * waiting pages (".ph-queue-*", ".ph-gate-*"), limbo's restore card (core's ".ph-caption",
+ * ".ph-figure") and the Transfer page's location rows (".pht-row"). Cards are ".theme-eco-card"
+ * (x-filament::section, ".ph-card"): a fill, no border. ".theme-row" and ".theme-row-body" are the
+ * "Rows in a section" block's.
+ * ============================================================================= */
+.theme-row-error {
+  color: var(--mantine-color-red-4);
+}
+
+.theme-row-faint {
+  margin: 0;
+  color: var(--theme-text-faint);
+  font-size: 0.75rem;
+  line-height: 1.125rem;
+}
+
+.theme-caption {
+  color: var(--theme-text-muted);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.theme-figure {
+  margin: 0;
+  color: var(--theme-text);
+  font-size: 1.5rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  line-height: 2rem;
+}
+
+.theme-figure-accent {
+  color: var(--theme-accent-bright);
+}
+
+/* limbo's card: "flex flex-col gap-6" */
+.theme-card-loose {
+  gap: 1.5rem;
+}
+
+/* label over figure, side by side (limbo's cost and balance) */
+.theme-figures {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  margin: 0;
+}
+
+.theme-figures > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.theme-figures dd {
+  margin: 0;
+}
+
+/* a ".theme-row"'s one action as a fixed column (Pelican's ".ph-queue-action"): full width under
+   the text on a phone, 15rem at the row's end from 640px */
+.theme-row-action {
+  display: flex;
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .theme-row-action {
+    flex-shrink: 0;
+    width: 15rem;
+  }
+}
+
+/* the waiting pages' column ("flex flex-col gap-6"), as margins so that an ad stack part with
+   nothing in it takes no room */
+.theme-wait-page {
+  display: flex;
+  flex-direction: column;
+}
+
+.theme-wait-page > * + * {
+  margin-block-start: 1.5rem;
+}
+
+.theme-wait-page > .theme-ad-stack:not(:has(.theme-ad-frame:not(.theme-ad-folded), .theme-ad-sponsored)) {
+  margin-block-start: 0;
+}
+
+/* the status card: spinner and heading, the figure at the end, a track under them */
+.theme-wait-head {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.theme-wait-title {
+  --loader-color: var(--theme-accent-bright);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.theme-wait-figure {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  gap: 0.125rem;
+}
+
+.theme-wait-priority {
+  color: var(--theme-accent-bright);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.theme-wait-track {
+  height: 0.375rem;
+  overflow: hidden;
+  border-radius: 9999px;
+  background-color: var(--theme-raise);
+}
+
+/* 1s, the clock's tick: the fill moves a second at a time */
+.theme-wait-fill {
+  height: 100%;
+  border-radius: 9999px;
+  background-color: var(--theme-accent-bright);
+  transition: width 1s linear;
+}
+
+.theme-wait-times {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+@media (min-width: 640px) {
+  .theme-wait-head {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .theme-wait-figure {
+    align-items: flex-end;
+    text-align: end;
+  }
+
+  .theme-wait-times {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-wait-fill {
+    transition: none;
+  }
+}
+
+/* the queue's node readings */
+.theme-wait-meters {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .theme-wait-meters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.theme-wait-meter {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.theme-wait-meter-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.theme-wait-meter-value {
+  color: var(--theme-text);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.theme-wait-meter-value[data-over] {
+  color: var(--mantine-color-red-4);
+}
+
+.theme-wait-bar {
+  height: 0.25rem;
+  overflow: hidden;
+  border-radius: 9999px;
+  background-color: var(--theme-raise);
+}
+
+.theme-wait-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 9999px;
+  background-color: var(--theme-accent-bright);
+}
+
+.theme-wait-bar > span[data-over] {
+  background-color: var(--mantine-color-red-4);
+}
+
+/* locations as full-width rows: flag, name and badges, latency, a radio (elements/LocationList) */
+.theme-location-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.theme-location-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid transparent;
+  border-radius: 0.75rem;
+  background-color: var(--theme-raise);
+  color: var(--theme-text);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition:
+    border-color 150ms ease,
+    background-color 150ms ease;
+}
+
+.theme-location-row:hover:not(:disabled) {
+  background-color: var(--theme-raise-2);
+}
+
+.theme-location-row:focus-visible {
+  outline: 2px solid var(--theme-accent-bright);
+  outline-offset: 2px;
+}
+
+.theme-location-row[data-selected],
+.theme-location-row[data-selected]:hover:not(:disabled) {
+  border-color: var(--theme-accent-bright);
+  background-color: var(--theme-accent-soft);
+}
+
+.theme-location-row:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.theme-flag {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.3125rem;
+  overflow: hidden;
+  border-radius: 0.25rem;
+  background-color: var(--theme-raise-2);
+  outline: 1px solid var(--theme-hairline);
+  outline-offset: -1px;
+}
+
+.theme-flag img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.theme-location-main {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.theme-location-ms {
+  flex: none;
+  color: var(--theme-text-muted);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.theme-radio {
+  flex: none;
+  width: 1.125rem;
+  height: 1.125rem;
+  border: 1px solid var(--theme-raise-3);
+  border-radius: 9999px;
+}
+
+.theme-location-row[data-selected] .theme-radio {
+  border: 0.3125rem solid var(--theme-accent-bright);
+}
+
+/* =============================================================================
+ * plugged.host: the Transfer page (pages/server/transfer/) and the strip on every server page
+ * during a move (elements/TransferStrip.tsx): the Pelican panel's ".pht-*" and ".phts"
+ * (server-transfer.blade.php, transfer-strip.blade.php). Cards are ".theme-eco-card", headings
+ * ".theme-eco-heading", captions ".theme-eco-small".
+ * ============================================================================= */
+.theme-transfer-flag {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.3125rem;
+  overflow: hidden;
+  border-radius: 0.25rem;
+  background-color: var(--theme-raise-2);
+  outline: 1px solid var(--theme-hairline);
+  outline-offset: -1px;
+}
+
+.theme-transfer-flag > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.theme-transfer-flag[data-size="lg"] {
+  width: 2.5rem;
+  height: 1.875rem;
+  border-radius: 0.375rem;
+}
+
+.theme-transfer-flag[data-size="sm"] {
+  width: 1.5rem;
+  height: 1.125rem;
+}
+
+.theme-transfer-route {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.theme-transfer-place {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  min-width: 0;
+}
+
+.theme-transfer-place > div {
+  min-width: 0;
+}
+
+.theme-transfer-place-to {
+  justify-content: flex-end;
+  text-align: end;
+}
+
+.theme-transfer-place strong {
+  display: block;
+  overflow: hidden;
+  font-size: 1rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.theme-transfer-arrow {
+  color: var(--theme-text-faint);
+  font-size: 1.125rem;
+}
+
+.theme-transfer-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-block-end: 0.625rem;
+}
+
+.theme-transfer-headline {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.theme-transfer-pct {
+  font-size: 1.25rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.theme-transfer-bar {
+  height: 6px;
+  overflow: hidden;
+  border-radius: 9999px;
+  background-color: var(--theme-raise);
+}
+
+.theme-transfer-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 9999px;
+  background-color: var(--theme-accent-bright);
+  transition: width 0.6s ease;
+}
+
+.theme-transfer-steps {
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  gap: 0.5rem;
+}
+
+.theme-transfer-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.375rem;
+  color: var(--theme-text-faint);
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+.theme-transfer-step > span {
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 9999px;
+  background-color: var(--theme-raise-2);
+  color: var(--theme-text-muted);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.theme-transfer-step[data-status="done"] {
+  color: var(--theme-text-muted);
+}
+
+.theme-transfer-step[data-status="done"] > span {
+  background-color: color-mix(in oklab, var(--mantine-color-green-5) 15%, transparent);
+  color: var(--mantine-color-green-4);
+}
+
+.theme-transfer-step[data-status="current"] {
+  color: var(--theme-text);
+  font-weight: 600;
+}
+
+.theme-transfer-step[data-status="current"] > span {
+  background-color: var(--theme-accent);
+  color: var(--theme-text);
+}
+
+.theme-transfer-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  gap: 1rem;
+}
+
+.theme-transfer-fact {
+  min-width: 0;
+}
+
+.theme-transfer-fact strong {
+  display: block;
+  margin-block-start: 0.125rem;
+  overflow: hidden;
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.theme-transfer-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+}
+
+.theme-transfer-foot > p {
+  flex: 1 1 18rem;
+}
+
+.theme-transfer-log {
+  display: flex;
+  flex-direction: column;
+  max-height: 18rem;
+  margin-block-start: -0.5rem;
+  overflow-y: auto;
+}
+
+.theme-transfer-log-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-block: 0.5rem;
+  color: var(--theme-text-nav);
+  font-size: 0.8125rem;
+}
+
+.theme-transfer-log-row + .theme-transfer-log-row {
+  border-block-start: 1px solid var(--theme-hairline);
+}
+
+.theme-transfer-log-row > span {
+  flex: 1;
+  min-width: 0;
+}
+
+.theme-transfer-log-row > time {
+  flex: none;
+  color: var(--theme-text-faint);
+  font-size: 0.75rem;
+}
+
+.theme-transfer-dot {
+  flex: none;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background-color: var(--theme-text-faint);
+}
+
+.theme-transfer-dot[data-level="success"] {
+  background-color: var(--mantine-color-green-5);
+}
+
+.theme-transfer-dot[data-level="warning"] {
+  background-color: var(--mantine-color-yellow-5);
+}
+
+.theme-transfer-dot[data-level="danger"] {
+  background-color: var(--mantine-color-red-5);
+}
+
+.theme-transfer-now {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+}
+
+.theme-transfer-now strong {
+  display: block;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.theme-transfer-blocked {
+  margin: 0;
+  color: var(--mantine-color-yellow-4);
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+}
+
+.theme-transfer-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.theme-transfer-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid transparent;
+  border-radius: 0.75rem;
+  background-color: var(--theme-raise);
+  color: var(--theme-text);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition:
+    border-color 150ms ease,
+    background-color 150ms ease;
+}
+
+.theme-transfer-row:hover:not(:disabled) {
+  background-color: var(--theme-raise-2);
+}
+
+.theme-transfer-row:focus-visible {
+  outline: 2px solid var(--theme-accent-bright);
+  outline-offset: 2px;
+}
+
+.theme-transfer-row[data-selected],
+.theme-transfer-row[data-selected]:hover:not(:disabled) {
+  border-color: var(--theme-accent-bright);
+  background-color: var(--theme-accent-soft);
+}
+
+.theme-transfer-row:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.theme-transfer-row-main {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.theme-transfer-row-main strong {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.theme-transfer-ms {
+  flex: none;
+  color: var(--theme-text-muted);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.theme-transfer-radio {
+  flex: none;
+  width: 1.125rem;
+  height: 1.125rem;
+  border: 1px solid var(--theme-raise-3);
+  border-radius: 9999px;
+}
+
+.theme-transfer-row[data-selected] .theme-transfer-radio {
+  border: 0.3125rem solid var(--theme-accent-bright);
+}
+
+.theme-transfer-cta {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.theme-transfer-help {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 1rem 1.5rem;
+}
+
+.theme-transfer-help strong {
+  display: block;
+  color: var(--theme-text-nav);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.theme-transfer-help p {
+  margin: 0.125rem 0 0;
+  color: var(--theme-text-muted);
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+}
+
+.theme-transfer-addr {
+  color: var(--theme-text);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.theme-transfer-hist {
+  display: flex;
+  flex-direction: column;
+  margin-block-start: -0.5rem;
+}
+
+.theme-transfer-hist-row {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding-block: 0.625rem;
+  font-size: 0.8125rem;
+}
+
+.theme-transfer-hist-row + .theme-transfer-hist-row {
+  border-block-start: 1px solid var(--theme-hairline);
+}
+
+.theme-transfer-hist-row .theme-transfer-arrow {
+  font-size: 0.875rem;
+}
+
+.theme-transfer-hist-row strong {
+  min-width: 0;
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.theme-transfer-hist-row time {
+  margin-inline-start: auto;
+  color: var(--theme-text-muted);
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .theme-transfer-place small,
+  .theme-transfer-step small {
+    display: none;
+  }
+
+  .theme-transfer-place strong {
+    font-size: 0.875rem;
+  }
+
+  .theme-transfer-cta {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+/* The strip: a flat row linking to the Transfer page, a status dot (accent while it runs, green
+   when it moved, yellow when it did not), the state and where to, a thin bar, the percent. */
+.theme-transfer-strip {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  background-color: var(--theme-raise);
+  color: var(--theme-text);
+  font-size: 0.8125rem;
+  text-decoration: none;
+  transition: background-color 150ms ease;
+}
+
+.theme-transfer-strip:hover {
+  background-color: var(--theme-raise-2);
+}
+
+.theme-transfer-strip .theme-transfer-dot {
+  background-color: var(--theme-accent-bright);
+}
+
+.theme-transfer-strip[data-tone="ok"] .theme-transfer-dot {
+  background-color: var(--mantine-color-green-5);
+}
+
+.theme-transfer-strip[data-tone="bad"] .theme-transfer-dot {
+  background-color: var(--mantine-color-yellow-5);
+}
+
+.theme-transfer-strip-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.theme-transfer-strip-text strong {
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.theme-transfer-strip-text small {
+  overflow: hidden;
+  color: var(--theme-text-muted);
+  font-size: 0.75rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.theme-transfer-strip-bar {
+  flex: 1;
+  min-width: 3rem;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 9999px;
+  background-color: var(--theme-raise);
+}
+
+.theme-transfer-strip-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 9999px;
+  background-color: var(--theme-accent-bright);
+  transition: width 0.6s ease;
+}
+
+.theme-transfer-strip[data-tone="ok"] .theme-transfer-strip-bar > span {
+  background-color: var(--mantine-color-green-5);
+}
+
+.theme-transfer-strip[data-tone="bad"] .theme-transfer-strip-bar {
+  display: none;
+}
+
+.theme-transfer-strip[data-tone="bad"] .theme-transfer-strip-text {
+  flex: 1;
+}
+
+.theme-transfer-strip-pct {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.theme-transfer-strip-open {
+  flex: none;
+  color: var(--theme-accent-bright);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.theme-transfer-strip:hover .theme-transfer-strip-open {
+  color: var(--theme-accent-glow);
+}
+
+@media (max-width: 640px) {
+  .theme-transfer-strip-text small,
+  .theme-transfer-strip-bar {
+    display: none;
+  }
+
+  .theme-transfer-strip-text {
+    flex: 1;
+  }
+}
+
+/* =============================================================================
+ * plugged.host: the Plugins / Mods & Modpacks page (pages/server/minecraft/content), the Pelican
+ * panel's installed list (plugged-host-minecraft installed.blade.php, ".phm-*") and its content
+ * table under it (a Filament table: toolbar with search, filters and columns, record actions as
+ * links).
+ * ============================================================================= */
+.theme-jar-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-block-end: 0.75rem;
+}
+
+.theme-jar-count {
+  margin-inline-start: 0.25rem;
+  color: var(--theme-text-muted);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.theme-jar-progress {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: var(--theme-text-muted);
+  font-size: 0.75rem;
+}
+
+.theme-jar-list {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 1rem;
+  background-color: var(--theme-raise);
+}
+
+.theme-jar-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+}
+
+.theme-jar-row + .theme-jar-row {
+  border-block-start: 1px solid var(--theme-hairline);
+}
+
+.theme-jar-icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  overflow: hidden;
+  border-radius: 0.5rem;
+  background-color: var(--theme-raise);
+  color: var(--theme-text-faint);
+}
+
+.theme-jar-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.theme-jar-main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.theme-jar-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.5rem;
+}
+
+.theme-jar-name {
+  color: var(--theme-text);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.theme-jar-name a:hover {
+  color: var(--theme-accent-glow);
+}
+
+.theme-jar-version {
+  color: var(--theme-text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+.theme-jar-meta {
+  overflow: hidden;
+  color: var(--theme-text-muted);
+  font-size: 0.75rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.theme-jar-actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.theme-jar-empty {
+  padding: 1.5rem;
+  border-radius: 1rem;
+  background-color: var(--theme-raise);
+  color: var(--theme-text-muted);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+@media (max-width: 40rem) {
+  .theme-jar-row {
+    align-items: flex-start;
+    gap: 0.625rem;
+    padding: 0.75rem;
+  }
+
+  .theme-jar-icon {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+}
+
+/* The table's toolbar (".fi-ta-header-toolbar"): search, filters and columns at the end of the
+   row, over a hairline. */
+/* The filters and columns dropdowns: a heading with its reset link, the fields, the apply button. */
+.theme-catalog-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 0.5rem;
+}
+
+.theme-catalog-filters-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+/* Filament's active filter indicators ("fi-ta-filter-indicators"). */
+.theme-catalog-indicators {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding-block: 0.5rem;
+  color: var(--theme-text-nav);
+  font-size: 0.875rem;
+}
+
+.theme-catalog-indicator-remove {
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.theme-catalog-indicator-remove:hover,
+.theme-catalog-indicator-remove:focus-visible {
+  opacity: 1;
+}
+
+/* ImageColumn::rounded(): a 44px circle. */
+.theme-catalog-icon {
+  display: block;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 9999px;
+  object-fit: cover;
+}
+
+/* A wrapping column with a description under its value. */
+.theme-catalog-project {
+  min-width: 16rem;
+  text-wrap: wrap;
+}
+
+.theme-catalog-title {
+  display: block;
+  color: var(--theme-text);
+  font-size: 0.875rem;
+}
+
+.theme-catalog-description {
+  display: block;
+  color: var(--theme-text-muted);
+  font-size: 0.875rem;
+}
+
+.theme-catalog-categories {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.theme-catalog-more {
+  color: var(--theme-text-muted);
+  font-size: 0.875rem;
+}
+
+.theme-catalog-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.25rem;
+}
+
+/* Filament's record actions are links ("fi-link"): font-medium, gray-200, primary or danger,
+   underlined on hover. */
+/* =============================================================================
+ * plugged.host: Filament's wizard (".fi-sc-wizard", elements/Wizard.tsx) on Theme v2's section
+ * card: a numbered cell per step over a hairline (only the open one on phones), the step's
+ * fields, Back / Next. Filament draws a chevron between the cells; a hairline does it here.
+ * ============================================================================= */
+.theme-wizard-steps {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  border-block-end: 1px solid var(--theme-hairline);
+  list-style: none;
+}
+
+.theme-wizard-cell {
+  display: none;
+}
+
+.theme-wizard-cell[data-active] {
+  display: block;
+}
+
+.theme-wizard-step {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  height: 100%;
+  padding: 1rem 1.5rem;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+}
+
+.theme-wizard-step:not(:disabled) {
+  cursor: pointer;
+}
+
+.theme-wizard-step:focus-visible {
+  outline: 2px solid var(--theme-accent-bright);
+  outline-offset: -2px;
+}
+
+.theme-wizard-step-number {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 2px solid var(--theme-raise-3);
+  border-radius: 9999px;
+  color: var(--theme-text-muted);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.theme-wizard-step[data-active] .theme-wizard-step-number {
+  border-color: var(--theme-accent-bright);
+  color: var(--theme-accent-bright);
+}
+
+.theme-wizard-step[data-completed] .theme-wizard-step-number {
+  border-color: transparent;
+  background-color: var(--theme-accent);
+  color: var(--theme-text);
+}
+
+.theme-wizard-step-text {
+  display: grid;
+  justify-items: start;
+}
+
+.theme-wizard-step-label {
+  color: var(--theme-text-muted);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.theme-wizard-step[data-active] .theme-wizard-step-label {
+  color: var(--theme-accent-bright);
+}
+
+.theme-wizard-step[data-completed] .theme-wizard-step-label {
+  color: var(--theme-text);
+}
+
+.theme-wizard-step-description {
+  color: var(--theme-text-muted);
+  font-size: 0.875rem;
+}
+
+.theme-wizard-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.5rem;
+}
+
+.theme-wizard-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0 1.5rem 1.5rem;
+}
+
+@media (min-width: 48rem) {
+  .theme-wizard-steps {
+    grid-auto-flow: column;
+    overflow-x: auto;
+  }
+
+  .theme-wizard-cell {
+    display: block;
+  }
+
+  .theme-wizard-step-text {
+    width: max-content;
+    max-width: 15rem;
+  }
+
+  .theme-wizard-cell + .theme-wizard-cell {
+    border-inline-start: 1px solid var(--theme-hairline);
+  }
+}
+
+/* The Minecraft setup's card fields (CardSelect with cardColumns(2)): the label, then the cards
+   in one column, two from sm. */
+.theme-setup-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.theme-setup-label {
+  color: var(--theme-text);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.theme-setup-cards {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 40em) {
+  .theme-setup-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }

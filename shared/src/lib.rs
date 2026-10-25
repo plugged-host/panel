@@ -22,6 +22,7 @@ pub mod abuse; // plugged.host
 pub mod ads; // plugged.host
 pub mod allowance; // plugged.host
 pub mod allowance_cuts; // plugged.host
+pub mod backup_notifications; // plugged.host
 pub mod cache;
 pub mod cap;
 pub mod captcha;

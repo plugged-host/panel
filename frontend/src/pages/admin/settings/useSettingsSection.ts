@@ -38,7 +38,8 @@ type SettingsStoreKey =
   | 'subdomains' // plugged.host
   | 'discord' // plugged.host
   | 'rux' // plugged.host
-  | 'devboxes'; // plugged.host
+  | 'devboxes' // plugged.host
+  | 'neoDiscord'; // plugged.host
 
 /** Admin store keys whose public projection lives under the same-named global settings key. */
 type GlobalSyncKey = 'app' | 'webauthn' | 'server' | 'user';

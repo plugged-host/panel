@@ -58,6 +58,14 @@ impl Provider {
         Self::ALL.into_iter().find(|provider| provider.key() == key)
     }
 
+    /// The provider's name as players see it.
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::Linkvertise => "Linkvertise",
+            Self::Vylo => "Vylo",
+        }
+    }
+
     /// The parameters the provider's proof may come back in.
     fn token_params(self) -> &'static [&'static str] {
         match self {
@@ -133,6 +141,23 @@ impl Config {
             Provider::Vylo => true,
         }
     }
+}
+
+/// The providers the Tokens page offers, with the tokens a link pays and the daily cap (0: none).
+/// Nothing while tokens are off.
+pub fn offered(
+    settings: &crate::settings::economy::AppSettingsEconomy,
+) -> Vec<(Provider, i64, i64)> {
+    if !settings.tokens_enabled {
+        return Vec::new();
+    }
+
+    Provider::ALL
+        .into_iter()
+        .map(|provider| Config::of(settings, provider))
+        .filter(Config::configured)
+        .map(|config| (config.provider, config.reward, config.daily_cap))
+        .collect()
 }
 
 /// The Full Script's whitelist: the patterns given, else the return parameter. Never empty: an
@@ -775,6 +800,23 @@ async fn grant(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn only_set_up_providers_are_offered() {
+        let mut settings = crate::settings::economy::AppSettingsEconomy::default();
+        assert!(offered(&settings).is_empty());
+
+        settings.vylo_enabled = true;
+        settings.vylo_api_key = Some("<secret>".into());
+        settings.vylo_reward = 2;
+        settings.linkvertise_enabled = true;
+        settings.linkvertise_token = Some("<secret>".into());
+        settings.linkvertise_link = Some("http://link.example.com".into());
+        assert_eq!(offered(&settings), vec![(Provider::Vylo, 2, 5)]);
+
+        settings.tokens_enabled = false;
+        assert!(offered(&settings).is_empty());
+    }
 
     #[test]
     fn the_whitelist_is_never_empty() {

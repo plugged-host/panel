@@ -26,6 +26,7 @@ const queueEmptyFormValues: QueueValues = {
   passMinutes: 10,
   moveOffer: true,
   moveRequiresMembership: true,
+  moveMaxDisk: 3072,
 };
 
 export default function QueueContainer() {
@@ -111,6 +112,14 @@ export default function QueueContainer() {
       name: 'moveRequiresMembership',
       label: t(`${page}.moveRequiresMembership`, {}),
       description: t(`${page}.moveRequiresMembershipDescription`, {}),
+    },
+    {
+      type: 'number',
+      name: 'moveMaxDisk',
+      label: t(`${page}.moveMaxDisk`, {}),
+      description: t(`${page}.moveMaxDiskDescription`, {}),
+      required: true,
+      props: { min: 0, max: 1048576 },
     },
   ];
 

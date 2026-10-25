@@ -6,6 +6,14 @@
 //! and its approval. Tools always act for the chat's user, with that user's own permissions on the
 //! server, never more. How risky a call is ([`ToolRisk`]) decides whether the user is asked first.
 
+mod account;
+mod backups;
+pub mod console;
+mod files;
+mod mclogs;
+mod minecraft;
+mod servers;
+mod startup;
 pub mod support;
 
 use crate::models::{
@@ -251,7 +259,51 @@ pub trait Tool: Send + Sync {
 
 /// Every tool neo knows, in the order the model is offered them.
 static TOOLS: LazyLock<Vec<Box<dyn Tool>>> = LazyLock::new(|| {
-    let tools: Vec<Box<dyn Tool>> = vec![];
+    let tools: Vec<Box<dyn Tool>> = vec![
+        // the chat's server
+        Box::new(console::ServerStatusTool),
+        Box::new(console::ConsoleReadTool),
+        Box::new(files::ListFilesTool),
+        Box::new(files::ReadFileTool),
+        Box::new(files::SearchFilesTool),
+        Box::new(console::SendCommandTool),
+        Box::new(console::PowerTool),
+        Box::new(files::EditFileTool),
+        Box::new(files::WriteFileTool),
+        Box::new(files::CreateDirectoryTool),
+        Box::new(files::RenameFileTool),
+        Box::new(files::CompressFilesTool),
+        Box::new(files::DecompressFileTool),
+        Box::new(files::DeleteFilesTool),
+        Box::new(startup::GetStartupTool),
+        Box::new(startup::SetStartupVariableTool),
+        Box::new(startup::SetDockerImageTool),
+        Box::new(startup::ReinstallServerTool),
+        Box::new(backups::ListBackupsTool),
+        Box::new(backups::CreateBackupTool),
+        Box::new(backups::RestoreBackupTool),
+        Box::new(backups::DeleteBackupTool),
+        // the account chat, and everywhere
+        Box::new(servers::ListServersTool),
+        Box::new(mclogs::ReadMclogsTool),
+        Box::new(account::AccountOverviewTool),
+        Box::new(account::ListCreateOptionsTool),
+        Box::new(account::CreateServerTool),
+        Box::new(account::RenameServerTool),
+        Box::new(account::ResizeServerTool),
+        Box::new(account::DeleteServerTool),
+        // Minecraft servers only
+        Box::new(minecraft::MinecraftInfoTool),
+        Box::new(minecraft::SearchContentTool),
+        Box::new(minecraft::ContentVersionsTool),
+        Box::new(minecraft::InstallContentTool),
+        Box::new(minecraft::ListInstalledContentTool),
+        Box::new(minecraft::RemoveContentTool),
+        Box::new(minecraft::ToggleContentTool),
+        Box::new(minecraft::InstallGeyserTool),
+        Box::new(minecraft::InstallModpackTool),
+        Box::new(minecraft::SwitchSoftwareTool),
+    ];
 
     tools
 });
@@ -362,5 +414,84 @@ mod tests {
             assert!(names.insert(name), "duplicate tool {name}");
             assert!(tool.parameters().is_object(), "{name} parameters");
         }
+    }
+
+    #[test]
+    fn every_tool_in_its_place() {
+        let names: Vec<&str> = all().iter().map(|tool| tool.name()).collect();
+        assert_eq!(
+            names,
+            [
+                "server_status",
+                "console_read",
+                "list_files",
+                "read_file",
+                "search_files",
+                "send_command",
+                "power",
+                "edit_file",
+                "write_file",
+                "create_directory",
+                "rename_file",
+                "compress_files",
+                "decompress_file",
+                "delete_files",
+                "get_startup",
+                "set_startup_variable",
+                "set_docker_image",
+                "reinstall_server",
+                "list_backups",
+                "create_backup",
+                "restore_backup",
+                "delete_backup",
+                "list_servers",
+                "read_mclogs",
+                "account_overview",
+                "list_create_options",
+                "create_server",
+                "rename_server",
+                "resize_server",
+                "delete_server",
+                "minecraft_info",
+                "search_content",
+                "content_versions",
+                "install_content",
+                "list_installed_content",
+                "remove_content",
+                "toggle_content",
+                "install_geyser",
+                "install_modpack",
+                "switch_server_software",
+            ]
+        );
+
+        // a server tool without a permission would be open to every subuser neo may act for
+        for tool in all() {
+            if tool.scope() == ToolScope::Server
+                && !matches!(tool.name(), "server_status" | "minecraft_info")
+            {
+                assert!(
+                    !tool.requires(&Value::Null).is_empty(),
+                    "{} needs a permission",
+                    tool.name()
+                );
+            }
+        }
+        assert_eq!(
+            find("list_servers").map(|tool| tool.scope()),
+            Some(ToolScope::App)
+        );
+        assert_eq!(
+            find("read_mclogs").map(|tool| tool.scope()),
+            Some(ToolScope::Any)
+        );
+        assert_eq!(
+            find("create_server").map(|tool| tool.scope()),
+            Some(ToolScope::Any)
+        );
+        assert_eq!(
+            find("delete_server").map(|tool| tool.risk(&Value::Null)),
+            Some(ToolRisk::Critical)
+        );
     }
 }

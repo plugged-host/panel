@@ -35,7 +35,7 @@ size are shuffled by the page's path, so they take turns from page to page.
 | 1 | Server pages strip | under the header of a server's pages, not the console, not the waiting rooms | 468×60, 320×50 |
 | 2 | Page rectangle | Create Server, the store, the server list | 300×250 |
 | 3 | Page foot | at the foot of every page: a leaderboard, a rectangle and the native unit | leaderboard sizes, 300×250, native |
-| 4 | Waiting rooms | the start queue, the waiting room, a restore from limbo | any zone left, 160×600 and 160×300 too, and the native unit |
+| 4 | Waiting rooms | the start queue, the waiting room | any zone left, 160×600 and 160×300 too, and the native unit |
 
 The top and foot slots are not on the waiting pages or on a parked server's page. A slot that gets
 nothing takes no room.
@@ -118,8 +118,18 @@ goes to `/server/<id>/waiting`. The page polls `GET .../waiting-room` and lets t
 the server runs and `room_min_seconds` (15) have passed, or after `room_max_seconds` (30) whatever
 the server does: it sends `POST .../waiting-room` (`{blocked}`: whether an ad blocker was found),
 which logs `server:waiting-room.release` with the time waited and starts the pass. A start that did
-not reach Wings on the click is sent again then. The page offers the membership without ads, and
-shows the room's ads ("What the Rooms Show" on the tab).
+not reach Wings on the click is sent again then.
+
+The page is laid out like the Pelican panel's ad gate, without the sidebar: a status card ("These
+ads are paying for your server", counting down to `room_max_seconds` every second, re-seeded from
+the poll), then the room's ads ("What the Rooms Show" on the tab) in two parts, and no buttons:
+there is no way to buy past the room. While the countdown runs, the back button and the panel's
+own links stay on the page and the browser asks before a reload or close (`useHoldPage`); a page
+with no room to wait in goes to the console.
+
+On both waiting pages (this one and the start queue) the ads come in two parts, each with one
+"Sponsored" caption (hidden while no unit shows) and two columns from 1024 px: the first two room
+slots under the status card, the other slots and then the native unit further down.
 
 ## Ad blockers
 

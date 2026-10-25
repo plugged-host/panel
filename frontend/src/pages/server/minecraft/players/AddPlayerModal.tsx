@@ -1,8 +1,9 @@
-// plugged.host: whitelist a player, make them an operator, or both (docs/features/minecraft.md)
+// plugged.host: "Add player": whitelist a player, make them an operator, or both
+// (docs/features/minecraft.md)
 import { ModalProps } from '@mantine/core';
 import { useState } from 'react';
 import Button from '@/elements/buttons/Button.tsx';
-import Checkbox from '@/elements/input/Checkbox.tsx';
+import Select from '@/elements/input/Select.tsx';
 import TextInput from '@/elements/input/TextInput.tsx';
 import Stack from '@/elements/layout/Stack.tsx';
 import { Modal, ModalFooter } from '@/elements/modals/Modal.tsx';
@@ -10,6 +11,8 @@ import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { usePlayerChange } from './usePlayerChange.ts';
 
 const NAME = /^[A-Za-z0-9_]{1,16}$/;
+
+type Access = 'whitelist' | 'operator' | 'both';
 
 type Props = ModalProps & {
   onlineMode: boolean;
@@ -21,28 +24,27 @@ export default function AddPlayerModal({ onlineMode, ...props }: Props) {
   const base = 'pages.server.minecraft.players';
 
   const [name, setName] = useState('');
-  const [whitelist, setWhitelist] = useState(true);
-  const [operator, setOperator] = useState(false);
+  const [access, setAccess] = useState<Access>('whitelist');
   const [loading, setLoading] = useState(false);
 
   const close = () => {
     setName('');
-    setWhitelist(true);
-    setOperator(false);
+    setAccess('whitelist');
     props.onClose();
   };
 
   const submit = async () => {
+    const player = name.trim();
     setLoading(true);
 
-    const whitelisted = !whitelist || (await change('whitelist', true, name.trim()));
-    const opped = !operator || !whitelisted || (await change('operators', true, name.trim()));
+    const whitelisted = access === 'operator' || (await change('whitelist', true, player));
+    const opped = access === 'whitelist' || !whitelisted || (await change('operators', true, player));
 
     setLoading(false);
     if (whitelisted && opped) close();
   };
 
-  const valid = NAME.test(name.trim()) && (whitelist || operator);
+  const valid = NAME.test(name.trim());
 
   return (
     <Modal title={t(`${base}.modal.add.title`, {})} {...props} onClose={close}>
@@ -54,18 +56,17 @@ export default function AddPlayerModal({ onlineMode, ...props }: Props) {
           maxLength={16}
           value={name}
           onChange={(e) => setName(e.currentTarget.value)}
-          error={name.trim() && !NAME.test(name.trim()) ? t(`${base}.form.nameInvalid`, {}) : undefined}
+          error={name.trim() && !valid ? t(`${base}.form.nameInvalid`, {}) : undefined}
         />
-        <Checkbox
-          label={t(`${base}.form.whitelist`, {})}
-          checked={whitelist}
-          onChange={(e) => setWhitelist(e.currentTarget.checked)}
-        />
-        <Checkbox
-          label={t(`${base}.form.operator`, {})}
-          description={t(`${base}.modal.op.content`, {})}
-          checked={operator}
-          onChange={(e) => setOperator(e.currentTarget.checked)}
+        <Select
+          label={t(`${base}.form.access`, {})}
+          data={[
+            { value: 'whitelist', label: t(`${base}.form.accessWhitelist`, {}) },
+            { value: 'operator', label: t(`${base}.form.accessOperator`, {}) },
+            { value: 'both', label: t(`${base}.form.accessBoth`, {}) },
+          ]}
+          value={access}
+          onChange={(value) => value && setAccess(value as Access)}
         />
 
         <ModalFooter>

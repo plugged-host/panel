@@ -40,8 +40,8 @@ mod post {
         permissions.has_server_permission("settings.transfer")?;
 
         let admin = permissions.has_admin_permission("servers.transfer").is_ok();
-        match shared::server_transfers::cancel(&state, &server, admin).await {
-            Ok(()) => {}
+        let cancelled = match shared::server_transfers::cancel(&state, &server, admin).await {
+            Ok(cancelled) => cancelled,
             Err(TransferError::Other(err)) => return Err(err.into()),
             Err(err) => {
                 return ApiResponse::error(&err.message())
@@ -50,10 +50,17 @@ mod post {
                     )
                     .ok();
             }
-        }
+        };
 
+        // the request names the move whose timeline shows this line (server_transfers.rs)
         activity_logger
-            .log("server:transfer.cancel", serde_json::json!({}))
+            .log(
+                "server:transfer.cancel",
+                serde_json::json!({
+                    "request": cancelled.request,
+                    "ended": cancelled.ended,
+                }),
+            )
             .await;
 
         ApiResponse::new_serialized(Response {}).ok()

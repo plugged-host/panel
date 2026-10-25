@@ -81,11 +81,15 @@ async fn step_response(
     result: shared::neo::agent::StepResult,
     conversation: &Conversation,
 ) -> Result<ApiResponse, ApiResponse> {
-    let conversation = conversation
-        .refresh(&state.database)
-        .await?
-        .into_api(&state.database)
-        .await?;
+    let conversation = match conversation.refresh(&state.database).await {
+        Ok(conversation) => conversation,
+        // neo deleted the chat's own server (`delete_server`) and the chat went with it: answer
+        // with the last copy, so the person still gets the redirect.
+        Err(sqlx::Error::RowNotFound) => conversation.clone(),
+        Err(err) => Err(err)?,
+    }
+    .into_api(&state.database)
+    .await?;
 
     Ok(ApiResponse::new_serialized(StepResponse {
         result,

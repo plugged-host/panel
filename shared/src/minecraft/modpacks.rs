@@ -245,6 +245,8 @@ pub async fn options(state: &crate::State, server: &Server) -> Result<Modpacks, 
     })
 }
 
+/// One page of the modpacks the server's game can run, for any Minecraft version (a pack brings
+/// its own).
 pub async fn search(
     state: &crate::State,
     server: &Server,
@@ -252,10 +254,35 @@ pub async fn search(
     query: &str,
     page: u64,
 ) -> Result<SearchPage, ModpackError> {
-    let loaders = loaders(state, server).await?;
+    search_filtered(state, server, source, query, SearchFilter::default(), page).await
+}
+
+/// Narrows [`search_filtered`]; the default is every pack the server's game can run.
+#[derive(Debug, Default, Clone, Copy)]
+pub struct SearchFilter<'a> {
+    /// Only packs for this Minecraft version (the Plugins & Mods page's version filter).
+    pub game_version: Option<&'a str>,
+    /// Only packs for this one of [`loaders`] (the setup's chosen software).
+    pub loader: Option<Loader>,
+}
+
+/// [`search`], narrowed by `filter`.
+pub async fn search_filtered(
+    state: &crate::State,
+    server: &Server,
+    source: Source,
+    query: &str,
+    filter: SearchFilter<'_>,
+    page: u64,
+) -> Result<SearchPage, ModpackError> {
+    let mut loaders = loaders(state, server).await?;
+    if let Some(loader) = filter.loader {
+        loaders.retain(|candidate| *candidate == loader);
+    }
     if loaders.is_empty() {
         return Err(ModpackError::NoLoaders);
     }
+    let game_version = filter.game_version;
 
     match source {
         Source::Modrinth => modrinth::search(
@@ -263,7 +290,7 @@ pub async fn search(
             Kind::Modpack,
             &modrinth_names(&loaders),
             query,
-            None,
+            game_version,
             page,
         )
         .await
@@ -275,9 +302,17 @@ pub async fn search(
             // CurseForge filters by one loader at most
             let loader = (loaders.len() == 1).then(|| loaders[0]);
 
-            curseforge::search(state, &key, Kind::Modpack, loader, query, None, page)
-                .await
-                .map_err(ModpackError::Source)
+            curseforge::search(
+                state,
+                &key,
+                Kind::Modpack,
+                loader,
+                query,
+                game_version,
+                page,
+            )
+            .await
+            .map_err(ModpackError::Source)
         }
         Source::SpigotMc => Err(ModpackError::SourceNotOffered),
     }

@@ -7,7 +7,7 @@ mod get {
     use serde::Deserialize;
     use shared::{
         ApiError, GetState,
-        minecraft::{SearchPage, Source},
+        minecraft::{Loader, SearchPage, Source},
         models::{server::GetServer, user::GetPermissionManager},
         response::{ApiResponse, ApiResponseResult},
     };
@@ -19,6 +19,10 @@ mod get {
         source: Source,
         #[serde(default)]
         query: compact_str::CompactString,
+        /// Left out or empty: any version.
+        game_version: Option<compact_str::CompactString>,
+        /// Left out: any loader the server's game can run.
+        loader: Option<Loader>,
         #[serde(default = "first")]
         page: u64,
     }
@@ -45,6 +49,8 @@ mod get {
         ),
         ("source" = Source, Query, description = "Where to search"),
         ("query" = Option<String>, Query, description = "The search text"),
+        ("game_version" = Option<String>, Query, description = "The Minecraft version; left out or empty for any"),
+        ("loader" = Option<Loader>, Query, description = "One of the server's loaders; left out for any"),
         ("page" = Option<u64>, Query, description = "The page, from 1"),
     ))]
     pub async fn route(
@@ -62,11 +68,20 @@ mod get {
                 .ok();
         }
 
-        match shared::minecraft::modpacks::search(
+        let filter = shared::minecraft::modpacks::SearchFilter {
+            game_version: params
+                .game_version
+                .as_deref()
+                .filter(|version| !version.is_empty()),
+            loader: params.loader,
+        };
+
+        match shared::minecraft::modpacks::search_filtered(
             &state,
             &server,
             params.source,
             &params.query,
+            filter,
             params.page.clamp(1, 500),
         )
         .await

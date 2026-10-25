@@ -3,6 +3,7 @@
 use super::State;
 use utoipa_axum::{router::OpenApiRouter, routes};
 
+mod identify;
 mod toggle;
 mod update;
 
@@ -164,6 +165,7 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
     OpenApiRouter::new()
         .routes(routes!(get::route))
         .routes(routes!(delete::route))
+        .nest("/identify", identify::router(state))
         .nest("/toggle", toggle::router(state))
         .nest("/update", update::router(state))
         .with_state(state.clone())

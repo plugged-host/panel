@@ -40,6 +40,16 @@ const serverResizeResourcesSchema = z.object({
   disk: z.number(),
 });
 
+export const serverSettingsResizePlanSchema = z.object({
+  uuid: z.string(),
+  name: z.string(),
+  cpu: z.number(),
+  memory: z.number(),
+  disk: z.number(),
+  fits: z.boolean(),
+  current: z.boolean(),
+});
+
 export const serverSettingsResizeOptionsSchema = z.object({
   enabled: z.boolean(),
   current: serverResizeResourcesSchema,
@@ -48,6 +58,7 @@ export const serverSettingsResizeOptionsSchema = z.object({
     memory: z.number().nullable(),
     disk: z.number().nullable(),
   }),
+  plans: z.array(serverSettingsResizePlanSchema),
 });
 
 export const serverSettingsResizeSchema = z.object({
@@ -57,7 +68,7 @@ export const serverSettingsResizeSchema = z.object({
 });
 
 export const serverSettingsSoftwareOptionsSchema = z.object({
-  variants: z.array(z.object({ value: z.string(), label: z.string() })),
+  variants: z.array(z.object({ value: z.string(), label: z.string(), description: z.string().nullable() })),
   current: z.string().nullable(),
   version: z.string().nullable(),
 });
@@ -65,4 +76,17 @@ export const serverSettingsSoftwareOptionsSchema = z.object({
 export const serverSettingsSoftwareSchema = z.object({
   variant: z.string().min(1).max(64).nullable(),
   version: z.string().min(1).max(32).nullable(),
+});
+
+// plugged.host: what the server uses of its feature limits; null where the person may not see that list
+export const serverSettingsUsageSchema = z.object({
+  backups: z.number().nullable(),
+  databases: z.number().nullable(),
+  allocations: z.number().nullable(),
+});
+
+// plugged.host: the person's backup mails for the server (shared/src/backup_notifications.rs)
+export const serverSettingsNotificationsSchema = z.object({
+  manualBackups: z.boolean(),
+  scheduledBackups: z.boolean(),
 });

@@ -1,43 +1,35 @@
-// plugged.host: resize within the owner's allowance (docs/features/server-settings.md)
-import { useEffect, useState } from 'react';
+// plugged.host: the Pelican panel's "Resources" section (ServerSettings::resourcesSections): a plan,
+// or CPU, memory and disk set by hand under "Advanced", within the owner's allowance
+// (docs/features/server-settings.md)
+import { ReactNode, useEffect, useState } from 'react';
 import { z } from 'zod';
 import { httpErrorToHuman } from '@/api/axios.ts';
-import getServerResize from '@/api/server/settings/getServerResize.ts';
 import resizeServer from '@/api/server/settings/resizeServer.ts';
 import Button from '@/elements/buttons/Button.tsx';
 import TitleCard from '@/elements/data-display/TitleCard.tsx';
+import Spinner from '@/elements/feedback/Spinner.tsx';
+import Choice from '@/elements/input/Choice.tsx';
 import NumberInput from '@/elements/input/NumberInput.tsx';
-import SizeInput from '@/elements/input/SizeInput.tsx';
-import Group from '@/elements/layout/Group.tsx';
+import Switch from '@/elements/input/Switch.tsx';
 import Stack from '@/elements/layout/Stack.tsx';
-import Text from '@/elements/typography/Text.tsx';
-import { bytesToString, mbToBytes } from '@/lib/format/size.ts';
-import { queryKeys } from '@/lib/queryKeys.ts';
 import { serverSettingsResizeSchema } from '@/lib/schemas/server/settings.ts';
-import { useResource } from '@/plugins/resource/useResource.ts';
-import { useAuth } from '@/providers/AuthProvider.tsx';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
-import { useGlobalStore } from '@/stores/global.ts';
 import { useServerStore } from '@/stores/server.ts';
+import { useResizeOptions } from './useSettingsSections.ts';
 
 type Values = z.infer<typeof serverSettingsResizeSchema>;
 type Field = keyof Values;
 
+const base = 'pages.server.settings.resize';
+const FIELDS: Field[] = ['cpu', 'memory', 'disk'];
+
 export default function ResizeContainer() {
   const { t } = useTranslations();
   const { addToast } = useToast();
-  const { user } = useAuth();
   const server = useServerStore((state) => state.server);
   const updateServer = useServerStore((state) => state.updateServer);
-  const allowResizing = useGlobalStore((state) => state.settings.games.allowResizing);
-
-  const resource = useResource({
-    queryKey: queryKeys.server(server.uuid).settings.resize(),
-    queryFn: () => getServerResize(server.uuid),
-    enabled: allowResizing || !!user?.admin,
-    silent: true,
-  });
+  const { resource, usable } = useResizeOptions();
   const options = resource.data;
 
   const [values, setValues] = useState<Values>({
@@ -45,46 +37,91 @@ export default function ResizeContainer() {
     memory: server.limits.memory,
     disk: server.limits.disk,
   });
+  const [plan, setPlan] = useState<string | null>(null);
+  const [advanced, setAdvanced] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  // as Pelican: the plan the server has now is picked, a size of its own opens "Advanced"
   useEffect(() => {
-    if (options) setValues(options.current);
+    if (!options) return;
+
+    const current = options.plans.find((choice) => choice.current);
+    setValues(options.current);
+    setPlan(current?.uuid ?? null);
+    setAdvanced(!current);
   }, [options]);
 
-  if (!options || (!options.enabled && !user?.admin)) {
-    return null;
+  if (!options || !usable) {
+    return resource.loading ? <Spinner.Centered /> : null;
   }
+
+  const hasPlans = options.plans.length > 0;
+  const showInputs = advanced || !hasPlans;
 
   const error = (field: Field): string | undefined => {
     const value = values[field];
     const max = options.max[field];
 
     if (value < 1 && !(value === 0 && options.current[field] === 0)) {
-      return t('pages.server.settings.resize.atLeastOne', {});
+      return t(`${base}.atLeastOne`, {});
     }
     if (max !== null && value > max && value > options.current[field]) {
-      return t('pages.server.settings.resize.overMax', {});
+      return t(`${base}.overMax`, {});
     }
 
     return undefined;
   };
 
-  const upTo = (field: Field, format: (value: number) => string) => {
-    const max = options.max[field];
+  const changed = FIELDS.some((field) => values[field] !== options.current[field]);
+  const valid = FIELDS.every((field) => !error(field));
 
-    return max === null
-      ? t('pages.server.settings.resize.noLimit', {})
-      : t('pages.server.settings.resize.upTo', { max: format(max) });
+  const pickPlan = (uuid: string) => {
+    const choice = options.plans.find((option) => option.uuid === uuid);
+    if (!choice) return;
+
+    setPlan(uuid);
+    setValues({ cpu: choice.cpu, memory: choice.memory, disk: choice.disk });
   };
 
-  const changed = (['cpu', 'memory', 'disk'] as Field[]).some((field) => values[field] !== options.current[field]);
-  const valid = (['cpu', 'memory', 'disk'] as Field[]).every((field) => !error(field));
+  // Filament's field hint at the end of the label line: what is left, red once it goes below zero
+  const label = (field: Field, text: string, unit: string): ReactNode => {
+    const max = options.max[field];
+    const left = max === null ? null : max - values[field];
+
+    return (
+      <span className='theme-field-label'>
+        <span>{text}</span>
+        <span className='theme-field-hint' data-over={left !== null && left < 0 ? true : undefined}>
+          {left === null
+            ? t('pages.server.settings.general.unlimited', {})
+            : t(`${base}.left`, { amount: `${left}${unit}` })}
+        </span>
+      </span>
+    );
+  };
+
+  const input = (field: Field, text: string, unit: string) => (
+    <NumberInput
+      key={field}
+      classNames={{ label: 'theme-field-label-row' }}
+      label={label(field, text, unit)}
+      min={0}
+      allowDecimal={false}
+      value={values[field]}
+      error={error(field)}
+      rightSection={<span className='theme-eco-small'>{unit}</span>}
+      rightSectionWidth={44}
+      rightSectionPointerEvents='none'
+      hideControls
+      onChange={(value) => setValues((current) => ({ ...current, [field]: Number(value) || 0 }))}
+    />
+  );
 
   const doResize = () => {
     setLoading(true);
     resizeServer(server.uuid, values)
       .then(() => {
-        addToast(t('pages.server.settings.resize.toast.resized', {}), 'success');
+        addToast(t(`${base}.toast.resized`, {}), 'success');
         updateServer({ limits: { ...server.limits, ...values } });
         resource.invalidate();
       })
@@ -95,52 +132,60 @@ export default function ResizeContainer() {
   };
 
   return (
-    <TitleCard title={t('pages.server.settings.resize.title', {})} className='h-full order-15'>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          doResize();
-        }}
-        className='h-full'
-      >
-        <Stack h='100%'>
-          <NumberInput
-            label={t('pages.server.settings.resize.cpu', {})}
-            description={upTo('cpu', (value) => `${value}%`)}
-            min={0}
-            value={values.cpu}
-            error={error('cpu')}
-            onChange={(value) => setValues((current) => ({ ...current, cpu: Number(value) || 0 }))}
-          />
-          <SizeInput
-            label={t('common.form.memory', {})}
-            description={upTo('memory', (value) => bytesToString(mbToBytes(value)))}
-            mode='mb'
-            min={0}
-            value={values.memory}
-            onChange={(value) => setValues((current) => ({ ...current, memory: value }))}
-          />
-          <SizeInput
-            label={t('common.form.disk', {})}
-            description={upTo('disk', (value) => bytesToString(mbToBytes(value)))}
-            mode='mb'
-            min={0}
-            value={values.disk}
-            onChange={(value) => setValues((current) => ({ ...current, disk: value }))}
-          />
-          {(error('memory') || error('disk')) && (
-            <Text c='red' size='sm'>
-              {error('memory') ?? error('disk')}
-            </Text>
-          )}
+    <TitleCard
+      title={t(`${base}.title`, {})}
+      description={t(`${base}.description`, {})}
+      footer={
+        <Button loading={loading} disabled={!changed || !valid} onClick={doResize}>
+          {t(`${base}.save`, {})}
+        </Button>
+      }
+    >
+      <Stack gap='lg'>
+        {hasPlans && !advanced && (
+          <div className='theme-choice-grid'>
+            {options.plans.map((choice) => (
+              <Choice
+                key={choice.uuid}
+                selected={choice.uuid === plan}
+                disabled={!choice.fits && !choice.current}
+                onSelect={() => pickPlan(choice.uuid)}
+              >
+                <span className='theme-choice-title'>{choice.name}</span>
+                {(choice.current || !choice.fits) && (
+                  <span className='theme-choice-text'>
+                    {choice.current ? t(`${base}.planCurrent`, {}) : t(`${base}.planUnavailable`, {})}
+                  </span>
+                )}
+                <span className='theme-choice-text'>
+                  {t(`${base}.planMeta`, { cpu: choice.cpu, memory: choice.memory, disk: choice.disk })}
+                </span>
+              </Choice>
+            ))}
+          </div>
+        )}
 
-          <Group mt='auto'>
-            <Button type='submit' loading={loading} disabled={!changed || !valid}>
-              {t('common.button.save', {})}
-            </Button>
-          </Group>
-        </Stack>
-      </form>
+        {hasPlans && (
+          <Switch
+            label={t(`${base}.advanced`, {})}
+            description={t(`${base}.advancedHint`, {})}
+            checked={advanced}
+            onChange={(event) => {
+              const next = event.currentTarget.checked;
+              setAdvanced(next);
+              if (next) setPlan(null);
+            }}
+          />
+        )}
+
+        {showInputs && (
+          <div className='grid grid-cols-1 lg:grid-cols-3 gap-4'>
+            {input('cpu', t(`${base}.cpu`, {}), '%')}
+            {input('memory', t(`${base}.memory`, {}), 'MB')}
+            {input('disk', t(`${base}.disk`, {}), 'MB')}
+          </div>
+        )}
+      </Stack>
     </TitleCard>
   );
 }

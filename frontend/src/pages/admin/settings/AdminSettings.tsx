@@ -9,6 +9,7 @@ import {
   faClockRotateLeft, // plugged.host
   faCode, // plugged.host
   faCoins, // plugged.host
+  faComments, // plugged.host
   faCube, // plugged.host
   faCubes, // plugged.host
   faDatabase,
@@ -68,6 +69,7 @@ import LimboContainer from './limbo/LimboContainer.tsx'; // plugged.host
 import MetadataContainer from './metadata/MetadataContainer.tsx';
 import MinecraftContainer from './minecraft/MinecraftContainer.tsx'; // plugged.host
 import NeoContainer from './neo/NeoContainer.tsx'; // plugged.host
+import NeoDiscordContainer from './neoDiscord/NeoDiscordContainer.tsx'; // plugged.host
 import NoprofitContainer from './noprofit/NoprofitContainer.tsx';
 import PlacementContainer from './placement/PlacementContainer.tsx'; // plugged.host
 import QueueContainer from './queue/QueueContainer.tsx'; // plugged.host
@@ -382,6 +384,13 @@ export const settingsGroups: SettingsGroup[] = [
         icon: faRobot,
         path: '/',
         element: <NeoContainer />,
+      },
+      // neo on Discord, account support (docs/features/neo-discord.md)
+      {
+        name: t('pages.admin.settings.tabs.neoDiscord.title', {}),
+        icon: faComments,
+        path: '/neo-discord',
+        element: <NeoDiscordContainer />,
       },
     ],
   },

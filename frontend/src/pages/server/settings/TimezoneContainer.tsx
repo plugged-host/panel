@@ -82,7 +82,8 @@ export default function TimezoneContainer() {
           </Stack>
 
           <Group mt='auto'>
-            <Button type='submit' loading={loading} disabled={!form.isValid()}>
+            {/* plugged.host: gray, one primary per screen on the Behaviour page */}
+            <Button type='submit' variant='default' loading={loading} disabled={!form.isValid()}>
               {t('common.button.save', {})}
             </Button>
           </Group>

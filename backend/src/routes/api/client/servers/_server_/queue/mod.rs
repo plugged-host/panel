@@ -3,6 +3,8 @@
 use super::State;
 use utoipa_axum::{router::OpenApiRouter, routes};
 
+mod transfer;
+
 /// Whoever may start or restart the server sees its place and may leave.
 fn may_queue(
     permissions: &shared::models::user::PermissionManager,
@@ -111,5 +113,6 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
     OpenApiRouter::new()
         .routes(routes!(get::route))
         .routes(routes!(delete::route))
+        .nest("/transfer", transfer::router(state))
         .with_state(state.clone())
 }

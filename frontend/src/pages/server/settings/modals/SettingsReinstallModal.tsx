@@ -7,6 +7,7 @@ import Switch from '@/elements/input/Switch.tsx';
 import Stack from '@/elements/layout/Stack.tsx';
 import FormModal from '@/elements/modals/FormModal.tsx';
 import { ModalFooter } from '@/elements/modals/Modal.tsx';
+import Text from '@/elements/typography/Text.tsx'; // plugged.host
 import { serverSettingsReinstallSchema } from '@/lib/schemas/server/settings.ts';
 import { useModalForm } from '@/plugins/form/useModalForm.ts';
 import { useServerCan } from '@/plugins/usePermissions.ts';
@@ -36,7 +37,7 @@ export default function SettingsReinstallModal({ ...props }: ModalProps) {
     onClose: props.onClose,
     onSubmit: async (values) => {
       await installServer(server.uuid, values);
-      addToast(t('pages.server.settings.reinstall.modal.toast.reinstalling', {}), 'success');
+      addToast(t('pages.server.settings.danger.reinstallStarted', {}), 'success'); // plugged.host: Pelican's toast
       navigate(`/server/${server.uuidShort}`);
       updateServer({ status: 'installing' });
     },
@@ -44,7 +45,7 @@ export default function SettingsReinstallModal({ ...props }: ModalProps) {
 
   return (
     <FormModal
-      title={t('pages.server.settings.reinstall.modal.title', {})}
+      title={t('pages.server.settings.danger.reinstallModalTitle', {})} // plugged.host: Pelican's wording
       isDirty={isDirty}
       loading={loading}
       {...props}
@@ -52,6 +53,10 @@ export default function SettingsReinstallModal({ ...props }: ModalProps) {
       onSubmit={handleSubmit}
     >
       <Stack>
+        {/* plugged.host: Pelican's warning above the switches */}
+        <Text size='sm' c='dimmed'>
+          {t('pages.server.settings.danger.reinstallModalBody', {})}
+        </Text>
         <Switch
           label={t('common.form.truncateDirectory', {})}
           name='truncate'
@@ -68,10 +73,12 @@ export default function SettingsReinstallModal({ ...props }: ModalProps) {
 
       <ModalFooter>
         <Button color='red' type='submit' loading={loading} disabled={!form.isValid()}>
-          {t('pages.server.settings.reinstall.modal.button', {})}
+          {/* plugged.host: Pelican's wording */}
+          {t('pages.server.settings.danger.reinstallConfirm', {})}
         </Button>
         <Button variant='default' onClick={handleClose}>
-          {t('common.button.close', {})}
+          {/* plugged.host */}
+          {t('common.button.cancel', {})}
         </Button>
       </ModalFooter>
     </FormModal>

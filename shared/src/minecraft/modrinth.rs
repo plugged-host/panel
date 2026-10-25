@@ -337,6 +337,7 @@ fn project(hit: &serde_json::Value, kind: Kind) -> Project {
         url: compact_str::format_compact!("https://modrinth.com/project/{slug}"),
         kind,
         installable: true,
+        client_only: hit["server_side"].as_str() == Some("unsupported"),
         id,
         slug,
     }

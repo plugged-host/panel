@@ -68,6 +68,46 @@ pub async fn holding(state: &crate::State) -> Result<bool, anyhow::Error> {
     Ok(state.settings.get().await?.recovery.deleted_hold_days > 0)
 }
 
+/// Why [`delete_server`] did not delete a server.
+#[derive(Debug)]
+pub enum DeleteServerError {
+    /// Its backups could not be listed; nothing was deleted.
+    Lookup(anyhow::Error),
+    /// The server could not be deleted (its node refused, a delete handler failed).
+    Delete(anyhow::Error),
+}
+
+/// Deletes a server the way its owner does (the client delete route, neo's `delete_server`): the
+/// server, then its backups, but for its system backups while deleted servers are held (the owner
+/// downloads those from the Backups page). A backup that fails to delete is logged; the server is
+/// gone either way.
+pub async fn delete_server(state: &crate::State, server: &Server) -> Result<(), DeleteServerError> {
+    let holding = holding(state).await.map_err(DeleteServerError::Lookup)?;
+    let backups = ServerBackup::all_by_server_uuid(&state.database, server.uuid)
+        .await
+        .map_err(|err| DeleteServerError::Lookup(err.into()))?
+        .into_iter()
+        .filter(|backup| !holding || backup.system_backup_policy_uuid.is_none())
+        .collect::<Vec<_>>();
+
+    server
+        .delete(
+            state,
+            crate::models::server::DeleteServerOptions { force: false },
+        )
+        .await
+        .map_err(DeleteServerError::Delete)?;
+
+    for backup in backups {
+        let backup_uuid = backup.uuid;
+        if let Err(err) = backup.delete(state, Default::default()).await {
+            tracing::error!(server = %server.uuid, backup = %backup_uuid, "failed to delete backup: {:?}", err);
+        }
+    }
+
+    Ok(())
+}
+
 /// The held backups to remove now: all but the newest. `present` is newest first.
 fn older_copies(present: &[uuid::Uuid]) -> &[uuid::Uuid] {
     present.get(1..).unwrap_or_default()

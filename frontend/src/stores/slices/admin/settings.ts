@@ -251,6 +251,7 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
     passMinutes: 10,
     moveOffer: true,
     moveRequiresMembership: true,
+    moveMaxDisk: 3072,
   },
   ads: {
     enabled: false,
@@ -484,6 +485,14 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
     vyloDailyCap: 5,
     vyloMinSeconds: 10,
   },
+  // plugged.host: neo on Discord
+  neoDiscord: {
+    nameCalls: false,
+    messagesPerMinute: 6,
+    maxSteps: 6,
+    historyMinutes: 60,
+    historyTurns: 6,
+  },
   updates: {
     wingsReleaseToken: null,
     dbAgentReleaseToken: null,
@@ -520,6 +529,7 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
       rux: value.rux, // plugged.host
       devboxes: value.devboxes, // plugged.host
       neo: value.neo, // plugged.host
+      neoDiscord: value.neoDiscord, // plugged.host
       updates: value.updates,
     })),
   updateSettings: (value) =>
@@ -550,6 +560,7 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
       ...(value.rux ? { rux: { ...state.rux, ...value.rux } } : {}), // plugged.host
       ...(value.devboxes ? { devboxes: { ...state.devboxes, ...value.devboxes } } : {}), // plugged.host
       ...(value.neo ? { neo: { ...state.neo, ...value.neo } } : {}), // plugged.host
+      ...(value.neoDiscord ? { neoDiscord: { ...state.neoDiscord, ...value.neoDiscord } } : {}), // plugged.host
       ...(value.updates ? { updates: { ...state.updates, ...value.updates } } : {}),
     })),
   setUpdateInformation: (value) => set((state) => ({ ...state, updateInformation: value })),

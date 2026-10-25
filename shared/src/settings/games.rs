@@ -20,6 +20,11 @@ pub struct GameVariant {
     #[garde(length(chars, min = 1, max = 64))]
     #[schema(min_length = 1, max_length = 64)]
     pub label: compact_str::CompactString,
+    /// What players read under the software choice on the server's Settings › Version
+    /// (docs/features/server-settings.md).
+    #[garde(inner(length(chars, max = 255)))]
+    #[serde(default)]
+    pub description: Option<compact_str::CompactString>,
     /// A startup command instead of the egg's.
     #[garde(inner(length(chars, max = 8192)))]
     #[serde(default)]
@@ -267,6 +272,7 @@ impl PayloadGames {
                     game.icon = trimmed(game.icon);
                     game.variable = trimmed(game.variable);
                     for variant in &mut game.variants {
+                        variant.description = trimmed(variant.description.take());
                         variant.startup = trimmed(variant.startup.take());
                         variant.image = trimmed(variant.image.take());
                     }
@@ -480,6 +486,7 @@ mod tests {
                 .map(|value| GameVariant {
                     value: (*value).into(),
                     label: (*value).into(),
+                    description: Some("  ".into()),
                     startup: Some(" ".into()),
                     image: None,
                 })
@@ -529,6 +536,7 @@ mod tests {
             Some("https://cdn.example.com/minecraft.png")
         );
         assert_eq!(stored.variants[0].startup, None);
+        assert_eq!(stored.variants[0].description, None);
         assert_eq!(settings.max_servers, 3);
         assert!(!settings.create_enabled);
         assert_eq!(stored.variant(None).unwrap().value, "purpur");

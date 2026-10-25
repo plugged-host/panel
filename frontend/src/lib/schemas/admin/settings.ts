@@ -382,6 +382,7 @@ export const adminSettingsAbuseSchema = z.object({
 export const adminSettingsGameVariantSchema = z.object({
   value: z.string().min(1).max(64),
   label: z.string().min(1).max(64),
+  description: z.preprocess(nullableString, z.string().max(255).nullable()),
   startup: z.preprocess(nullableString, z.string().max(8192).nullable()),
   image: z.preprocess(nullableString, z.string().max(255).nullable()),
 });
@@ -777,6 +778,7 @@ export const adminSettingsQueueSchema = z.object({
   passMinutes: z.number().int().min(0).max(1440),
   moveOffer: z.boolean(),
   moveRequiresMembership: z.boolean(),
+  moveMaxDisk: z.number().int().min(0).max(1048576),
 });
 
 // plugged.host: idle servers stopped and parked (shared/src/settings/limbo.rs, docs/features/limbo.md)
@@ -915,6 +917,15 @@ export const adminSettingsTourSchema = z.object({
   version: z.number().int().min(1).max(1000),
 });
 
+// plugged.host: neo on Discord (shared/src/settings/neo_discord.rs, docs/features/neo-discord.md)
+export const adminSettingsNeoDiscordSchema = z.object({
+  nameCalls: z.boolean(),
+  messagesPerMinute: z.number().int().min(1).max(60),
+  maxSteps: z.number().int().min(2).max(20),
+  historyMinutes: z.number().int().min(1).max(1440),
+  historyTurns: z.number().int().min(0).max(20),
+});
+
 export const adminSettingsUpdatesSchema = z.object({
   wingsReleaseToken: z.preprocess(nullableString, z.string().min(1).max(1024).nullable()),
   dbAgentReleaseToken: z.preprocess(nullableString, z.string().min(1).max(1024).nullable()),
@@ -952,5 +963,6 @@ export const adminSettingsSchema = z.object({
   rux: adminSettingsRuxStoreSchema, // plugged.host
   devboxes: adminSettingsDevboxesStoreSchema, // plugged.host
   neo: adminSettingsNeoStoreSchema, // plugged.host
+  neoDiscord: adminSettingsNeoDiscordSchema, // plugged.host
   updates: adminSettingsUpdatesSchema,
 });

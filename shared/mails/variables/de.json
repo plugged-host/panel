@@ -75,5 +75,15 @@
     "intro": "Du erhältst diese E-Mail, weil dein Server <strong>{{ server.name }}</strong> aus einem Backup wiederhergestellt wurde.",
     "instruction": "Klicke auf die Schaltfläche unten, um auf den Server zuzugreifen:",
     "button": "Server öffnen"
+  },
+  "backup_completed": {
+    "subject": "Backup abgeschlossen",
+    "subject_failed": "Backup fehlgeschlagen",
+    "greeting": "Hallo <strong>{{ user.username }}</strong>,",
+    "intro": "Das Backup wurde erfolgreich erstellt.",
+    "intro_failed": "Das Backup konnte nicht erstellt werden.",
+    "backup_name": "Backup-Name: <strong>{{ backup_name }}</strong>",
+    "server_name": "Server-Name: <strong>{{ server.name }}</strong>",
+    "button": "Backups anzeigen"
   }
 }

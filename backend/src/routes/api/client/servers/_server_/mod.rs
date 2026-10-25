@@ -81,6 +81,7 @@ pub async fn auth(
         // plugged.host: a move's state and its cancel stay reachable while it runs
         "/api/client/servers/{server}/transfer",
         "/api/client/servers/{server}/transfer/cancel",
+        "/api/client/servers/{server}/transfer/status",
     ];
 
     // anyone allowed to update servers stays able to act on a suspended one, which is what suspension is for

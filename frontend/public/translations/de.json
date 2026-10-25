@@ -2664,6 +2664,32 @@
             "heading": "Du hast {app} {name}",
             "body": "{name}-Standorte, Vorrang in der Start-Warteschlange und keine Werbung im Spiel gehören dir dauerhaft. {plusplus} legt noch etwas drauf."
           },
+          "plus": {
+            "pitch": "Alles, was die meisten Server brauchen, einmalig und ohne Verlängerung.",
+            "term": "Einmalig, dauerhaft",
+            "get": "{name} holen",
+            "owned": "Gekauft"
+          },
+          "plusplus": {
+            "pitch": "Das Add-on für Server, die am meisten brauchen: Premium-Hardware, nirgends Werbung und mehr CPU.",
+            "term": "für {tokens}, oder Credits für {credits}",
+            "termTokens": "für {tokens}",
+            "needsPlus": "{name} braucht zuerst {app} {plus}.",
+            "extendHint": "Ein erneuter Kauf vor dem Ende verlängert die Restzeit.",
+            "notSold": "Gerade nicht im Angebot."
+          },
+          "days": "{days} Tage",
+          "duration": {
+            "day": "einen Tag",
+            "days": "{count} Tage",
+            "week": "eine Woche",
+            "twoWeeks": "zwei Wochen",
+            "weeks": "{count} Wochen"
+          },
+          "cost": {
+            "tokens": "{cost} Tokens",
+            "credits": "{cost} Credits"
+          },
           "balance": "Du hast {balance} Tokens.",
           "earnLink": "Mehr Tokens holen",
           "perks": {
@@ -2728,32 +2754,6 @@
               "question": "Kann ich mit Credits bezahlen?",
               "answer": "{plusplus} ja: Credits kaufen jeweils {duration}. {plus} selbst bezahlst du mit Tokens."
             }
-          },
-          "plus": {
-            "pitch": "Alles, was die meisten Server brauchen, einmalig und ohne Verlängerung.",
-            "term": "Einmalig, dauerhaft",
-            "get": "{name} holen",
-            "owned": "Gekauft"
-          },
-          "plusplus": {
-            "pitch": "Das Add-on für Server, die am meisten brauchen: Premium-Hardware, nirgends Werbung und mehr CPU.",
-            "term": "für {tokens}, oder Credits für {credits}",
-            "termTokens": "für {tokens}",
-            "needsPlus": "{name} braucht zuerst {app} {plus}.",
-            "extendHint": "Ein erneuter Kauf vor dem Ende verlängert die Restzeit.",
-            "notSold": "Gerade nicht im Angebot."
-          },
-          "days": "{days} Tage",
-          "duration": {
-            "day": "einen Tag",
-            "days": "{count} Tage",
-            "week": "eine Woche",
-            "twoWeeks": "zwei Wochen",
-            "weeks": "{count} Wochen"
-          },
-          "cost": {
-            "tokens": "{cost} Tokens",
-            "credits": "{cost} Credits"
           },
           "modal": {
             "title": "Mitgliedschaft kaufen",
@@ -3625,6 +3625,8 @@
                   "noVariants": "Keine Auswahl: Das Egg entscheidet.",
                   "variantValue": "Wert",
                   "variantLabel": "Bezeichnung",
+                  "variantDescription": "Beschreibung",
+                  "variantDescriptionHelp": "Steht unter der Softwareauswahl in den Einstellungen › Version eines Servers.",
                   "variantStartup": "Startbefehl",
                   "variantImage": "Image",
                   "eggDefault": "Standard des Eggs",
@@ -3744,7 +3746,7 @@
                   "rewardsBotEnabled": "Einladungs- und Boost-Bot",
                   "rewardsBotEnabledDescription": "Mit dem Bot-Token: hält fest, wer über wessen Einladung beigetreten ist, und beantwortet /invites, /topinvites und /setboost (nur Administratoren). Aus: Nichts verbindet sich mit Discord.",
                   "assistantBotEnabled": "Assistenz-Bot",
-                  "assistantBotEnabledDescription": "Mit eigenem Token. Er verbindet sich, sobald der Assistent Teil des Panels ist.",
+                  "assistantBotEnabledDescription": "Mit eigenem Token. neo auf Discord läuft darauf (Einstellungen › KI › neo auf Discord).",
                   "assistantBotToken": "Token des Assistenz-Bots",
                   "moderationBotEnabled": "Moderations-Bot",
                   "moderationBotEnabledDescription": "Mit eigenem Token. rux läuft darauf (Einstellungen › Konten › rux).",
@@ -3890,6 +3892,28 @@
                 }
               }
             },
+            "neoDiscord": {
+              "title": "neo auf Discord",
+              "page": {
+                "title": "neo auf Discord",
+                "intro": "neo beantwortet auf dem Discord-Server Fragen zum Konto, für alle, verknüpft oder nicht: in DMs, wenn er @erwähnt wird, wenn ihm jemand antwortet oder, mit Antworten auf seinen Namen, bei „hey neo“. Bei Problemen mit einem Server schickt er die Leute zu neo im Panel. Er läuft als Assistenz-Bot: Im Tab Discord wird er eingeschaltet, bekommt sein Token und zeigt seinen Zustand. Er nutzt neos Modelle, Limits und Aufbewahrungstage.",
+                "form": {
+                  "nameCalls": "Antworten, wenn sein Name fällt",
+                  "nameCallsDescription": "Auch Nachrichten auf dem Server beantworten, die mit dem Namen des Bots beginnen („hey neo, …“). Braucht den Message Content Intent im Developer Portal von Discord, sonst kann sich der Bot nicht verbinden. Gilt nach einem Neustart des Panels oder nachdem der Assistenz-Bot im Tab Discord aus- und wieder eingeschaltet wurde.",
+                  "messagesPerMinute": "Nachrichten pro Minute",
+                  "messagesPerMinuteDescription": "Wie viele Nachrichten ein Discord-Konto dem Bot pro Minute schicken darf. Die darüber werden ignoriert.",
+                  "maxSteps": "Schritte pro Antwort",
+                  "maxStepsDescription": "Modellaufrufe, die eine Antwort brauchen darf, Kontoabfragen eingeschlossen.",
+                  "historyMinutes": "Antworten merken für (Minuten)",
+                  "historyMinutesDescription": "Wie alt eine frühere Antwort im selben Kanal sein darf, damit der Bot sie sich merkt.",
+                  "historyTurns": "Gemerkte Antworten",
+                  "historyTurnsDescription": "Wie viele frühere Antworten im selben Kanal sich der Bot merkt. 0 merkt sich keine."
+                },
+                "toast": {
+                  "updated": "Einstellungen für neo auf Discord gespeichert."
+                }
+              }
+            },
             "devboxes": {
               "title": "Devboxes",
               "page": {
@@ -3987,9 +4011,11 @@
                   "passMinutesDescription": "Nachdem ein Start durchgelassen wurde, wartet der nächste Start des Servers innerhalb dieser Zeit nicht.",
                   "move": "Weg von einer ausgelasteten Node",
                   "moveOffer": "Umzug anbieten",
-                  "moveOfferDescription": "Die Warteschlangenseite verlinkt auf „Server umziehen“, wenn Umzüge an sind und der Benutzer diesen Server umziehen darf.",
+                  "moveOfferDescription": "Die Warteschlangen-Seite bietet an, den Server auf den ruhigsten anderen Node seines Standorts umzuziehen, wenn Umzüge an sind und der Nutzer diesen Server umziehen darf.",
                   "moveRequiresMembership": "Nur für Mitglieder",
-                  "moveRequiresMembershipDescription": "Nur Konten mit einer Mitgliedschaft sehen das Angebot."
+                  "moveRequiresMembershipDescription": "Nur Konten mit einer Mitgliedschaft sehen das Angebot.",
+                  "moveMaxDisk": "Größter Server (MiB)",
+                  "moveMaxDiskDescription": "Ein Umzug kopiert den ganzen Server, deshalb wird er nur Servern mit einem Speicherlimit darunter angeboten; Servern mit unbegrenztem Speicher nie. 0 bietet ihn bei jeder Größe an."
                 },
                 "toast": {
                   "updated": "Einstellungen der Startwarteschlange aktualisiert."
@@ -10366,236 +10392,458 @@
               }
             }
           },
+          "nav": {
+            "label": "Springe zu",
+            "general": "Server-Information",
+            "sftp": "SFTP-Informationen",
+            "vscode": "VS Code",
+            "resources": "Ressourcen",
+            "startup": "Startvorgang",
+            "version": "Version",
+            "behaviour": "Verhalten",
+            "notifications": "Benachrichtigungen",
+            "danger": "Gefahrenzone"
+          },
+          "general": {
+            "title": "Server-Information",
+            "name": "Server-Name",
+            "description": "Server-Beschreibung",
+            "nameUpdated": "Server-Name aktualisiert",
+            "descriptionUpdated": "Server-Beschreibung aktualisiert",
+            "uuid": "UUID",
+            "identifier": "Kennung",
+            "node": "Host-Node",
+            "copyUuid": "UUID kopieren",
+            "copyIdentifier": "Kennung kopieren",
+            "limits": "Limits",
+            "limit": {
+              "cpu": "CPU",
+              "memory": "Arbeitsspeicher",
+              "disk": "Speicherplatz",
+              "backups": "Backups",
+              "databases": "Datenbanken",
+              "allocations": "Allocations"
+            },
+            "unlimited": "Unbegrenzt"
+          },
           "sftp": {
-            "title": "SFTP",
-            "noprofitPassword": "Dein noprofit.space-Passwort",
-            "sshKeyOnly": "Ein SSH-Schlüssel aus deinem Konto (Konto › SSH-Schlüssel)"
+            "title": "SFTP-Informationen",
+            "description": "Verbinde dich mit einem beliebigen SFTP-Client (z. B. FileZilla, Cyberduck, WinSCP), um die Dateien deines Servers direkt zu verwalten.",
+            "connection": "Verbindung",
+            "username": "Benutzername",
+            "password": "Passwort",
+            "accountPassword": "Dein Kontopasswort",
+            "passwordHint": "Dein SFTP-Passwort ist dasselbe wie das Passwort, mit dem du dich in diesem Panel anmeldest.",
+            "sshKey": "Ein SSH-Schlüssel aus deinem Konto",
+            "sshKeyHint": "Füge einen unter Konto › SSH-Schlüssel hinzu.",
+            "copyHost": "Host kopieren",
+            "copyUsername": "Benutzernamen kopieren",
+            "launch": "Im SFTP-Client öffnen",
+            "noprofitPassword": "Dein noprofit.space-Passwort"
           },
           "resize": {
             "title": "Ressourcen",
-            "cpu": "CPU (%)",
-            "upTo": "Bis zu {max}",
-            "noLimit": "Keine Grenze durch dein Konto",
+            "description": "Wähle ein Paket oder wechsle zu Erweitert für eigene Werte.",
+            "planCurrent": "Aktuelles Paket",
+            "planUnavailable": "Übersteigt dein verbleibendes Limit",
+            "planMeta": "{cpu}% CPU · {memory} MB RAM · {disk} MB Speicherplatz",
+            "advanced": "Erweitert",
+            "advancedHint": "CPU, RAM und Speicherplatz manuell festlegen statt ein Paket zu nutzen.",
+            "cpu": "CPU",
+            "memory": "RAM",
+            "disk": "Speicherplatz",
+            "left": "{amount} übrig",
+            "save": "Ressourcen speichern",
             "atLeastOne": "Jeder Wert muss mindestens 1 sein.",
             "overMax": "Mehr, als dein Konto noch übrig hat.",
             "toast": {
-              "resized": "Servergröße geändert."
+              "resized": "Ressourcenlimits des Servers aktualisiert. Um die neuen Limits voll zu nutzen, ist möglicherweise ein Neustart des Servers nötig."
             }
           },
+          "startup": {
+            "title": "Startbefehl",
+            "command": "Startbefehl",
+            "custom": "Eigener Startbefehl",
+            "image": "Docker-Image",
+            "variables": "Server-Variablen",
+            "copyCommand": "Befehl kopieren",
+            "commandUpdated": "Startbefehl aktualisiert. Starte den Server neu, um den neuen Startbefehl zu nutzen.",
+            "imageUpdated": "Docker-Image aktualisiert. Starte den Server neu, um das neue Image zu nutzen.",
+            "variableUpdated": "Aktualisiert: {variable}"
+          },
           "software": {
-            "title": "Software",
-            "label": "Software",
-            "description": "Ein Wechsel installiert den Server mit der neuen Software neu. Deine Welten und Dateien bleiben.",
+            "title": "Version und Software",
+            "label": "Server-Software",
+            "description": "Wähle Software und Version zur Installation. Beim Anwenden wird der Server neu installiert.",
             "versionLabel": "Minecraft-Version",
-            "versionDescription": "Eine Änderung installiert den Server mit dieser Version neu. Welten öffnen sich in neueren Versionen, nicht in älteren.",
+            "versionDescription": "Es werden nur Versionen angezeigt, die für die gewählte Software verfügbar sind.",
             "versionLatest": "Neueste Version",
             "versionsFailed": "Die Versionsliste wurde nicht geladen. Neueste Version und die aktuelle Version sind trotzdem wählbar.",
-            "button": "Wechseln und neu installieren",
+            "button": "Ändern und neu installieren",
             "modal": {
-              "title": "Software wechseln",
-              "content": "Der Server wird gestoppt und mit **{software}** neu installiert. Plugins oder Mods für die alte Software laufen eventuell nicht mit der neuen.",
-              "contentVersion": "Der Server wird gestoppt und mit Minecraft **{version}** neu installiert. Eine Welt, die in einer neueren Version geöffnet wurde, öffnet sich nicht in einer älteren; mach vorher ein Backup.",
-              "contentBoth": "Der Server wird gestoppt und mit **{software}** für Minecraft **{version}** neu installiert. Plugins oder Mods für die alte Software laufen eventuell nicht mit der neuen.",
-              "button": "Wechseln und neu installieren"
+              "title": "Version ändern und neu installieren?",
+              "content": "Der Server wird gestoppt und mit der gewählten Software und Version neu installiert. Welt- und Konfigurationsdateien bleiben erhalten, Jar-Dateien und Mod-Bibliotheken werden ersetzt. Mods und Plugins für die alte Version funktionieren möglicherweise nicht mehr.",
+              "button": "Ändern und neu installieren"
             },
             "toast": {
-              "switching": "Software wird gewechselt. Der Server wird neu installiert."
+              "switching": "Server wird neu installiert: Die gewählte Software und Version werden installiert. Das kann einige Minuten dauern."
             }
+          },
+          "notifications": {
+            "title": "Benachrichtigungen",
+            "manual": "Benachrichtigungen für manuelle Backups",
+            "manualHint": "Erhalte eine E-Mail, wenn ein manuell erstelltes Backup dieses Servers fertig ist oder fehlschlägt.",
+            "scheduled": "Benachrichtigungen für geplante Backups",
+            "scheduledHint": "Erhalte eine E-Mail, wenn ein geplantes Backup dieses Servers fertig ist oder fehlschlägt.",
+            "saved": "Benachrichtigungseinstellungen aktualisiert"
+          },
+          "danger": {
+            "title": "Gefahrenzone",
+            "note": "Aktionen in diesem Bereich sind destruktiv und wirken sich direkt auf deinen laufenden Server aus. Sichere wichtige Daten und Weltdateien, bevor du fortfährst.",
+            "reinstallTitle": "Server neu installieren",
+            "reinstallBody": "Die Neuinstallation stoppt deinen Server und führt dann das Installationsskript erneut aus, mit dem er ursprünglich eingerichtet wurde. Während dieses Vorgangs können einige Dateien gelöscht oder geändert werden. Bitte sichere deine Daten, bevor du fortfährst.",
+            "reinstallButton": "Neu installieren",
+            "reinstallModalTitle": "Bist du sicher, dass du den Server neu installieren willst?",
+            "reinstallModalBody": "Während dieses Vorgangs können einige Dateien gelöscht oder geändert werden. Bitte sichere deine Daten, bevor du fortfährst.",
+            "reinstallConfirm": "Ja, neu installieren",
+            "reinstallStarted": "Neuinstallation gestartet",
+            "deleteBody": "Dieser Vorgang kann nicht rückgängig gemacht werden und alle Daten gehen unwiderruflich verloren."
           },
           "delete": {
             "title": "Server löschen",
-            "content": "Löscht den Server, seine Dateien, Datenbanken und Backups. **Das lässt sich nicht rückgängig machen.**",
             "button": "Server löschen",
             "modal": {
-              "title": "Server löschen",
-              "content": "**{name}** mit allen Dateien, Datenbanken und Backups löschen?",
-              "typeName": "Gib zur Bestätigung den Namen des Servers ein"
+              "title": "Bist du sicher, dass du diesen Server löschen willst?",
+              "content": "Dieser Vorgang kann nicht rückgängig gemacht werden und alle Daten gehen unwiderruflich verloren.",
+              "typeName": "Gib zur Bestätigung den Namen des Servers ein",
+              "button": "Server löschen"
             },
             "toast": {
-              "deleted": "Server gelöscht."
+              "deleted": "Der Server wurde erfolgreich gelöscht."
             }
           }
         },
         "queue": {
-          "title": "Startwarteschlange",
-          "description": "Die Node, auf der dieser Server läuft, ist gerade ausgelastet, deshalb starten Server nacheinander. Deiner startet von selbst, sobald die Node Platz hat; du kannst diese Seite verlassen.",
-          "position": "Platz {position} in der Warteschlange",
-          "waited": "Wartet seit {waited}.",
-          "remaining": "Er startet spätestens in {remaining}.",
-          "membership": "Mit {name} kommen deine Starts vor alle, die es nicht haben.",
-          "move": "Oder zieh den Server auf eine Node mit Platz um. Er bekommt eine neue Adresse und startet dort, sobald der Umzug fertig ist.",
-          "notWaiting": "Dieser Server wartet nicht in der Startwarteschlange.",
-          "button": {
-            "membership": "Hol dir {name}",
-            "move": "Server umziehen",
-            "leave": "Warteschlange verlassen",
-            "console": "Zurück zur Konsole"
+          "title": "Warten auf den Start",
+          "subtitle": "Deine Startanfrage für {server} ist in der Warteschlange.",
+          "heading": "Dein Server wird vorbereitet",
+          "body": {
+            "start": "Dieser Node ist gerade ausgelastet. Dein Server startet automatisch, sobald Platz frei ist — du musst nichts drücken.",
+            "restart": "Dieser Node ist gerade ausgelastet. Dein Neustart läuft automatisch, sobald Platz frei ist — bis dahin bleibt dein Server online."
+          },
+          "position": {
+            "label": "Dein Platz",
+            "value": "Platz {position}",
+            "next": "Du bist als Nächstes dran",
+            "priority": "Priorität"
+          },
+          "waited": "Wartet seit {time}",
+          "capNote": "Startet spätestens in {seconds} Sekunden",
+          "capReached": "Startet jetzt",
+          "reason": {
+            "memory": "Der Arbeitsspeicher dieses Nodes liegt über {limit} %. Ein weiterer Server jetzt würde alle Server darauf ausbremsen, auch deinen.",
+            "cpu": "Die CPU dieses Nodes liegt über {limit} %. Ein weiterer Server jetzt würde alle Server darauf ausbremsen, auch deinen.",
+            "cleared": "Der Node hat wieder Platz. Dein Server startet."
+          },
+          "usage": {
+            "memory": "Arbeitsspeicher",
+            "cpu": "CPU"
+          },
+          "priority": {
+            "plus": {
+              "heading": "Du hast {app} {name}",
+              "body": "Mit {name} stehen deine Server in dieser Schlange vor allen ohne {name}."
+            },
+            "plusplus": {
+              "heading": "Du hast {app} {name}",
+              "body": "Mit {name} stehen deine Server ganz vorne in dieser Schlange, noch vor {plus}."
+            }
+          },
+          "plusOffer": {
+            "heading": "Mit {app} {name} nach vorne",
+            "body": "{name} kostet einmalig {cost} Tokens und gehört dir dauerhaft: Vorrang in dieser Schlange für alle deine Server, die {name}-Standorte und keine Werbung im Spiel.",
+            "button": "{name} holen"
+          },
+          "move": {
+            "heading": "Auf einen ruhigeren Node umziehen",
+            "body": "Wir können diesen Server auf {node} umziehen, der nicht ausgelastet ist. Deine Dateien kommen mit.",
+            "note": "Während des Kopierens ist der Server offline, und seine Adresse ändert sich. Nach dem Umzug startet er von selbst.",
+            "button": "Server umziehen",
+            "tooBig": "Dieser Server ist zu groß für einen schnellen Umzug — hier zu warten geht schneller.",
+            "modal": {
+              "title": "Diesen Server auf {node} umziehen?",
+              "content": "Der Server bleibt offline, bis das Kopieren fertig ist, und seine IP-Adresse und sein Port ändern sich. Alles, was auf die alte Adresse zeigt — eine Domain, ein Lesezeichen, die Serverliste eines Spielers — muss angepasst werden."
+            }
           },
           "toast": {
-            "left": "Der Server hat die Startwarteschlange verlassen.",
-            "released": "Dein Server startet."
-          }
+            "moveStarted": "Der Umzug läuft. Dein Server ist wieder da, sobald die Dateien kopiert sind."
+          },
+          "leave": "Abbrechen und zurück",
+          "passNote": "Nach dem Start überspringen die nächsten {minutes} Minuten an Starts diese Seite."
         },
         "waitingRoom": {
-          "title": "Dein Server startet",
-          "description": "Dein Server startet. Die Werbung auf dieser Seite bezahlt sein Hosting; sobald er läuft, geht es weiter zur Konsole.",
-          "starting": "Der Server startet. Spätestens in {remaining} geht es weiter.",
-          "running": "Der Server läuft. In {remaining} geht es weiter.",
-          "ready": "Der Server läuft.",
-          "notWaiting": "Dieser Server ist nicht im Warteraum.",
-          "button": {
-            "continue": "Weiter zur Konsole",
-            "membership": "Ohne Werbung mit {name}",
-            "console": "Zur Konsole"
-          }
+          "title": "Werbefinanzierter Start",
+          "subtitle": "{server} wird vorbereitet",
+          "heading": "Diese Werbung bezahlt deinen Server",
+          "body": "Kostenlose Server werden von Werbung wie der auf dieser Seite bezahlt. Lass sie bis zu {seconds} Sekunden sichtbar — die Konsole öffnet sich von selbst, und der Server startet währenddessen schon.",
+          "waitLabel": "Konsole öffnet",
+          "seconds": "in {seconds} s",
+          "ready": "jeden Moment"
         },
         "limbo": {
-          "title": "Geparkter Server",
-          "parked": "Diesen Server hat eine Weile niemand benutzt, deshalb wurde er gesichert und von seinem Node entfernt, um Platz zu schaffen. Stell ihn wieder her, um weiterzuspielen; seine Dateien kommen unverändert zurück.",
-          "lastActivity": "Zuletzt benutzt:",
+          "title": "Server im Ruhezustand",
+          "body": "Dieser Server war längere Zeit inaktiv und wurde in den Ruhezustand versetzt, um Kapazität freizugeben. Stelle ihn wieder her, um ihn wieder online zu bringen.",
+          "entered": "{time} in den Ruhezustand versetzt",
           "failed": "Die letzte Wiederherstellung ist fehlgeschlagen: {error}",
-          "location": "Standort",
-          "homeFull": "Sein Node hat gerade keinen Platz. Wähle, wo er zurückkommt; dort bekommt er eine neue Adresse.",
-          "home": "Er kommt auf seinem Node mit seiner alten Adresse zurück.",
-          "cost": "Die Wiederherstellung kostet {cost} Tokens. Du hast {tokens}.",
-          "parking": "Dieser Server wird gerade geparkt: Er wird gesichert und dann von seinem Node entfernt. Behalte ihn, um das zu stoppen.",
-          "restoring": "Der Server wird auf seinem Node eingerichtet.",
-          "unpacking": "Die Dateien des Servers kommen zurück. Bei einem großen Server dauert das ein paar Minuten.",
-          "notParked": "Dieser Server ist nicht geparkt.",
+          "costLabel": "Wiederherstellungskosten",
+          "balanceLabel": "Dein Kontostand",
+          "tokens": "{count} Tokens",
+          "pick": {
+            "title": "Standort wählen",
+            "body": "Der Standort, von dem dieser Server kam, ist gerade voll. Wähle einen deiner Standorte, um ihn dort wiederherzustellen. Seine Adresse ändert sich dabei.",
+            "none": "Keiner deiner Standorte hat gerade Platz für diesen Server. Versuche es später noch einmal."
+          },
+          "parking": "Dieser Server wird gerade in den Ruhezustand versetzt: Er wird gesichert und dann von seinem Node entfernt. Behalte ihn, um das zu stoppen.",
+          "restoring": "Dein Server ist auf dem Weg zurück auf einen aktiven Node. Das dauert ein paar Minuten; die Konsole öffnet sich wieder, sobald er angekommen ist.",
           "button": {
             "restore": "Server wiederherstellen",
-            "restoreFor": "Für {cost} Tokens wiederherstellen",
-            "tokens": "Tokens verdienen",
             "keep": "Server behalten"
           },
+          "modal": {
+            "content": "Die Wiederherstellung kostet {cost} Tokens und verschiebt deinen Server zurück auf einen aktiven Node.",
+            "contentFree": "Die Wiederherstellung verschiebt deinen Server zurück auf einen aktiven Node.",
+            "confirm": "Bestätigen"
+          },
           "toast": {
-            "restoring": "Die Wiederherstellung hat begonnen.",
-            "restored": "Dein Server ist zurück."
+            "restoring": "Dein Server wird wiederhergestellt.",
+            "insufficient": "Du benötigst {cost} Tokens, um diesen Server wiederherzustellen.",
+            "failed": "Wiederherstellung konnte nicht gestartet werden. Es wurden keine Tokens abgebucht.",
+            "locationFull": "Dort ist gerade kein Platz für diesen Server. Wähle unten einen Standort. Es wurden keine Tokens abgebucht."
           }
         },
         "transfer": {
-          "title": "Server umziehen",
-          "description": "Zieht den Server auf einen Node an einem anderen Standort oder auf einen anderen Node desselben Standorts um. Der Server ist aus, während seine Dateien und Backups kopiert werden, bekommt eine neue Adresse und startet danach wieder, wenn er lief.",
-          "disabled": "Server umziehen ist ausgeschaltet.",
-          "location": "Standort",
+          "title": "Umzug",
+          "subtitle": "Diesen Server an einen anderen Standort umziehen. Dateien, Welten und Backups kommen mit.",
+          "unknownLocation": "Unbekannter Standort",
+          "current": "Aktuell",
           "currentLocation": "Aktueller Standort",
-          "cooldown": "Dieser Server wurde vor Kurzem umgezogen.",
-          "cooldownUntil": "Nächster Umzug möglich:",
-          "lastMove": "Letzter Umzug",
-          "currentMove": "Laufender Umzug",
-          "status": {
-            "queued": "Wartet, bis er an der Reihe ist. Der Umzug beginnt, sobald der Node frei ist.",
-            "running": "Der Server wird umgezogen (Node {attempt}). Er ist aus, bis die Kopie fertig ist.",
-            "cancelling": "Der Umzug wird abgebrochen.",
-            "completed": "Der Server wurde umgezogen.",
-            "failed": "Der Umzug ist fehlgeschlagen: {error}",
-            "cancelled": "Der Umzug wurde abgebrochen.",
-            "byAdmin": "Ein Admin zieht diesen Server um."
+          "anotherNode": "Anderer Node hier",
+          "address": "Adresse",
+          "data": "Daten",
+          "backups": "Backups",
+          "backupsValue": "{count} · {size}",
+          "none": "Keine",
+          "downtime": "Offline für etwa",
+          "choose": "Standort wählen",
+          "full": "Voll",
+          "locked": "Gesperrt",
+          "ms": "{ms} ms",
+          "moveTo": "Nach {location} umziehen",
+          "speed": "Tempo",
+          "eta": "Noch",
+          "attempt": "Versuch",
+          "attemptValue": "{attempt} von {max}",
+          "newAddress": "Neue Adresse",
+          "from": "Von",
+          "to": "Nach",
+          "safe": "Dein Server bleibt auf seinem aktuellen Node, bis die Kopie auf dem neuen geprüft ist. Fällt ein Node aus, übernimmt ein anderer am selben Standort; geht das nicht, bleibt der Server einfach, wo er war.",
+          "timeline": "Verlauf",
+          "history": "Frühere Umzüge",
+          "historyState": {
+            "completed": "Umgezogen",
+            "failed": "Fehlgeschlagen",
+            "cancelled": "Abgebrochen"
+          },
+          "steps": {
+            "prepare": "Vorbereiten",
+            "stop": "Stoppen",
+            "copy": "Kopieren",
+            "verify": "Prüfen",
+            "start": "Starten"
+          },
+          "state": {
+            "queued": "Wartet, bis er dran ist",
+            "preparing": "Wird vorbereitet",
+            "stopping": "Server wird gestoppt",
+            "copying": "Dateien werden kopiert",
+            "finalizing": "Prüfung auf dem neuen Node",
+            "starting": "Start auf dem neuen Node",
+            "retrying": "Anderer Node wird versucht",
+            "checking": "Kopie wird geprüft",
+            "cancelling": "Wird abgebrochen",
+            "completed": "Umgezogen",
+            "failed": "Umzug fehlgeschlagen",
+            "cancelled": "Umzug abgebrochen"
+          },
+          "stateHint": {
+            "completed": "Alles ist angekommen und wurde geprüft.",
+            "failed": "Nichts ging verloren: Der Server ist mit allen Dateien noch auf seinem ursprünglichen Node.",
+            "cancelled": "Der Server ist geblieben, wo er war."
+          },
+          "help": {
+            "safeTitle": "Nichts geht verloren",
+            "safeBody": "Die alte Kopie wird erst entfernt, nachdem die neue Byte für Byte geprüft wurde.",
+            "retryTitle": "Automatische Wiederholung",
+            "retryBody": "Fällt ein Node mitten im Umzug aus, übernimmt ein anderer Node am selben Standort.",
+            "addressTitle": "Neue Adresse",
+            "addressBody": "Der Hostname hängt am Node. Subdomains aktualisieren sich selbst; direkte Verbindungen brauchen die neue Adresse."
+          },
+          "blocked": {
+            "disabled": "Server-Umzüge sind gerade ausgeschaltet.",
+            "busy": "Dieser Server wird bereits umgezogen.",
+            "suspended": "Gesperrte Server können nicht umgezogen werden.",
+            "installing": "Der Server wird noch installiert.",
+            "restoring": "Ein Backup wird gerade wiederhergestellt.",
+            "backupRunning": "Ein Backup läuft. Versuche es erneut, sobald es fertig ist.",
+            "cooldown": "Dieser Server wurde kürzlich umgezogen. In {time} geht es wieder."
+          },
+          "reasons": {
+            "noNode": "kein Node mit genug Platz war frei",
+            "copyFailed": "die Kopie wurde unterbrochen",
+            "skippedMoved": "er wurde inzwischen verschoben"
+          },
+          "events": {
+            "requested": "Umzug nach {location} angefordert",
+            "adopted": "Umzug von einem Administrator gestartet",
+            "destination": "Node in {location} reserviert",
+            "retrying": "Versuch {attempt} von {max}",
+            "attemptFailed": "Versuch {attempt} fehlgeschlagen: {reason}",
+            "copied": "Auf dem neuen Node geprüft",
+            "portVariable": "{name} auf {port} gesetzt",
+            "completed": "Umgezogen, neue Adresse {address}",
+            "endedFailed": "Umzug fehlgeschlagen, der Server ist geblieben, wo er war",
+            "cancelling": "Wird abgebrochen",
+            "endedCancelled": "Umzug abgebrochen",
+            "started": "Server auf dem neuen Node gestartet",
+            "startFailed": "Der Server konnte nicht automatisch gestartet werden, starte ihn in der Konsole",
+            "restarted": "Der Server läuft wieder",
+            "restartFailed": "Der Server konnte nicht automatisch wieder gestartet werden"
           },
           "button": {
-            "move": "Server umziehen",
+            "move": "Umziehen",
             "cancel": "Umzug abbrechen"
           },
           "modal": {
-            "title": "Server umziehen",
-            "content": "Den Server nach **{location}** umziehen? Er ist aus, während er kopiert wird, und bekommt eine neue Adresse. Spieler verbinden sich danach mit der neuen Adresse."
+            "title": "Nach {location} umziehen?",
+            "content": "Der Server wird gestoppt, nach {location} kopiert und dort wieder gestartet. Er ist etwa {time} offline. Seine Adresse ändert sich, passe also alles an, was sich direkt mit ihm verbindet; Subdomains aktualisieren sich von selbst."
+          },
+          "cancelModal": {
+            "title": "Umzug abbrechen?",
+            "content": "Der Server bleibt, wo er ist, und startet wieder, falls er lief."
           },
           "toast": {
-            "requested": "Der Umzug hat begonnen.",
-            "cancelled": "Der Umzug wird abgebrochen."
+            "requested": "Umzug gestartet",
+            "cancelled": "Umzug wird abgebrochen…",
+            "cancelFailed": "Der Umzug kann nicht mehr abgebrochen werden."
           }
         },
         "minecraft": {
           "content": {
             "title": "Plugins & Mods",
-            "subtitle": "{software} · Minecraft {version}",
+            "titlePlugins": "Plugins",
+            "titleMods": "Mods & Modpacks",
+            "subtitlePlugins": "Durchsuche Modrinth und installiere Plugins direkt auf diesem Server. Es werden nur Plugins für deine Server Software und Minecraft Version angezeigt.",
+            "subtitleMods": "Durchsuche Modrinth und installiere Mods und Modpacks direkt auf diesem Server. Es werden nur Inhalte für deinen Loader und deine Minecraft Version angezeigt.",
             "noLoader": "Die Server-Software ließ sich aus dem Egg dieses Servers nicht ablesen, darum gibt es nichts, wohin Plugins oder Mods installiert werden könnten.",
             "button": {
-              "open": "Auf {source} öffnen"
+              "view": "Auf {source} ansehen",
+              "rescan": "Neu scannen",
+              "confirm": "Bestätigen"
             },
             "installed": {
-              "title": "Installiert",
-              "identifying": "Erkenne {count} weitere…",
-              "empty": "In /{directory} ist noch nichts installiert. Unter Durchsuchen findest du etwas.",
-              "noMatch": "Kein installiertes Plugin und kein Mod passt zu dieser Suche.",
+              "heading": "Auf diesem Server installiert",
+              "identifying": "Erkenne {count}…",
+              "empty": "Es sind noch keine Plugins oder Mods installiert.",
               "unknown": "Unbekannt",
-              "missingHint": "Ohne {name} lädt das nicht. Installiere es unter Durchsuchen.",
+              "identifyUnknown": "Diese Jar wurde weder auf Modrinth, CurseForge noch SpigotMC gefunden und nennt kein Plugin oder Mod.",
+              "missingHint": "Dieses Plugin lädt nicht ohne {name}. Installiere es aus der Liste unten.",
               "confidence": {
-                "hash": "Genauer Treffer (Datei-Hash)",
-                "fingerprint": "Genauer Treffer (CurseForge-Fingerprint)",
-                "name": "Über den Namen gefunden",
+                "hash": "Exakter Treffer (Datei-Hash)",
+                "fingerprint": "Exakter Treffer (CurseForge-Fingerprint)",
+                "name": "Über den Namen erkannt",
                 "metadata": "Aus der Jar gelesen",
                 "unknown": "Nicht erkannt"
               },
               "badge": {
                 "disabled": "Deaktiviert",
-                "update": "Update: {version}",
-                "missing": "Braucht {name}"
+                "missing": "braucht {name}"
               },
               "button": {
-                "enable": "Aktivieren",
-                "disable": "Deaktivieren",
-                "update": "Aktualisieren",
-                "updateTo": "Auf {version} aktualisieren"
+                "updateTo": "Auf {version} aktualisieren",
+                "identify": "Identifizieren"
               },
               "modal": {
                 "delete": {
                   "title": "{name} löschen?",
-                  "content": "Entfernt `{file}` aus `/{directory}`. Der Server führt es bis zum nächsten Neustart weiter aus.",
-                  "withData": "Auch den Ordner /{folder} löschen",
-                  "withDataDescription": "Seine Konfiguration und Daten. Lass das aus, um sie für eine spätere Installation zu behalten."
+                  "content": "Entfernt {file} aus /{directory}. Der Server nutzt es bis zum nächsten Neustart weiter.",
+                  "withData": "Auch den Ordner /{folder} löschen (Konfiguration und Daten)",
+                  "withDataDescription": "Lass das aus, um die Einstellungen für eine spätere Neuinstallation zu behalten."
                 },
                 "update": {
                   "title": "{name} auf {version} aktualisieren?",
-                  "content": "Der neue Build wird heruntergeladen und die alte Jar entfernt. Die Konfiguration bleibt, wie sie ist. Starte den Server neu, um ihn zu laden."
+                  "content": "Die neue Version wird heruntergeladen und die alte Jar entfernt. Deine Konfiguration bleibt erhalten."
                 }
               },
               "toast": {
-                "enabled": "{name} aktiviert. Starte den Server neu, um es zu laden.",
-                "disabled": "{name} deaktiviert. Starte den Server neu, um es zu entladen.",
-                "deleted": "{name} gelöscht. Starte den Server neu, um es zu entladen.",
-                "updating": "Das Update von {name} wird heruntergeladen. Starte den Server neu, um es zu laden."
+                "enabled": "{name} aktiviert. Starte den Server neu, damit die Änderung wirkt.",
+                "disabled": "{name} deaktiviert. Starte den Server neu, damit die Änderung wirkt.",
+                "deleted": "{name} gelöscht. Starte den Server neu, damit die Änderung wirkt.",
+                "updating": "Lade {file} herunter. Starte den Server neu, damit die Änderung wirkt.",
+                "identified": "Erkannt als {name}"
               }
             },
             "browse": {
-              "title": "Durchsuchen",
+              "search": "Modrinth durchsuchen...",
+              "searchCurseforge": "CurseForge durchsuchen...",
+              "searchSpigotmc": "SpigotMC durchsuchen...",
+              "filters": {
+                "trigger": "Filtern",
+                "heading": "Filter",
+                "apply": "Filter anwenden",
+                "reset": "Filter zurücksetzen",
+                "indicator": "Aktive Filter",
+                "remove": "Filter löschen"
+              },
+              "columns": {
+                "trigger": "Spalten auswählen",
+                "heading": "Spalten"
+              },
               "filter": {
                 "source": "Quelle",
-                "kind": "Art",
-                "version": "Minecraft-Version"
+                "kind": "Typ",
+                "version": "Minecraft Version"
               },
               "kind": {
                 "plugin": "Plugins",
                 "mod": "Mods",
                 "modpack": "Modpacks"
               },
-              "version": {
-                "server": "Die des Servers ({version})",
-                "serverUnknown": "Die des Servers",
-                "any": "Jede Version"
-              },
               "table": {
                 "project": "Projekt",
-                "downloads": "Downloads"
+                "downloads": "Downloads",
+                "categories": "Kategorien",
+                "more": "und {count} weitere"
               },
-              "empty": "Nichts gefunden. Versuch eine andere Suche oder jede Minecraft-Version: Nicht jeder Autor listet jede Version, die er unterstützt.",
-              "externalHint": "Dieses Plugin ist kostenpflichtig oder liegt außerhalb von SpigotMC, darum kann es nicht von hier installiert werden. Öffne es auf SpigotMC oder such es auf Modrinth.",
+              "emptyHeading": "Nichts gefunden",
+              "empty": "Versuche einen anderen Suchbegriff oder entferne den Minecraft Version Filter - nicht jeder Autor listet alle unterstützten Versionen.",
+              "externalHint": "Dieses Plugin ist kostenpflichtig oder wird außerhalb von SpigotMC gehostet und kann deshalb nicht von hier installiert werden. Öffne es auf SpigotMC oder suche es auf Modrinth.",
               "badge": {
-                "installed": "Installiert"
+                "installed": "Installiert",
+                "external": "Externer Download"
               },
               "button": {
-                "install": "Installieren",
-                "external": "Extern",
-                "chooseVersion": "Version wählen"
+                "quickInstall": "1-Klick-Installation",
+                "versions": "Versionen"
               },
               "modal": {
                 "title": "{name} installieren",
                 "noVersions": "Keine Version davon passt zu diesem Server.",
-                "loose": "Kein Build nennt Minecraft {version}, darum werden alle Builds gezeigt. Nimm den neuesten und teste ihn: Die meisten funktionieren trotzdem.",
-                "spigotLatestOnly": "SpigotMC bietet nur den neuesten Build zum Download an."
+                "loose": "Kein Build nennt Minecraft {version}, daher werden alle Builds angezeigt. Nimm den neuesten und teste ihn - meist funktioniert er trotzdem.",
+                "spigotLatestOnly": "SpigotMC bietet nur die neueste Version zum Download an.",
+                "clientOnly": "Der Autor markiert dieses Projekt als rein clientseitig, auf einem Server tut es daher möglicherweise nichts."
               },
               "toast": {
-                "installed": "{file} wird nach /{directory} heruntergeladen. Starte den Server neu, um es zu laden."
+                "installed": "Installation gestartet: {file} wird nach {directory}/ heruntergeladen. Starte den Server neu, um es zu laden."
               }
             }
           },
@@ -10614,46 +10862,65 @@
           },
           "players": {
             "title": "Spieler",
-            "enforced": "Nur Spieler auf der Whitelist",
-            "enforcedDescription": "Solange das an ist, können nur Spieler auf der Whitelist beitreten, und wer entfernt wird, fliegt vom Server.",
-            "offlineMode": "Dieser Server prüft Accounts nicht bei Mojang, darum kann jeder unter jedem Namen beitreten. Die Whitelist vergleicht nur den Namen.",
-            "stopped": "Der Server ist gestoppt: Änderungen gehen in seine Dateien und gelten, sobald er startet.",
-            "empty": "Noch niemand ist auf der Whitelist, Operator oder gebannt.",
+            "subtitle": "Lege fest, wer diesen Server betreten darf und wer Operator-Rechte hat.",
+            "unreachableHeading": "Spielerlisten nicht verfügbar",
+            "unreachable": "Der Server war nicht erreichbar, daher konnten Whitelist und Operatorliste nicht gelesen werden. Bitte versuche es in einem Moment erneut.",
+            "section": {
+              "title": "Whitelist",
+              "description": "Solange die Whitelist aktiv ist, können nur die unten aufgeführten Spieler beitreten."
+            },
+            "enforced": "Nur Spieler auf der Whitelist zulassen",
+            "offlineMode": "Dieser Server prüft keine Konten bei Mojang, daher kann jeder unter jedem Namen spielen. Die Whitelist gilt nur für den Namen selbst.",
+            "search": "Spieler suchen",
+            "emptyHeading": "Noch keine Spieler",
+            "emptyBody": "Auf diesem Server steht niemand auf der Whitelist und niemand ist Operator. Füge einen Spieler hinzu, um zu beginnen.",
             "noMatch": "Kein Spieler passt zu dieser Suche.",
             "table": {
               "player": "Spieler",
-              "access": "Zugang"
+              "whitelisted": "Auf Whitelist",
+              "operator": "Operator",
+              "banned": "Gebannt"
             },
             "badge": {
-              "whitelisted": "Auf der Whitelist",
-              "operator": "Operator (Level {level})",
+              "operator": "Stufe {level}",
               "banned": "Gebannt"
             },
             "button": {
+              "refresh": "Neu laden",
               "add": "Spieler hinzufügen",
-              "whitelist": "Zur Whitelist hinzufügen",
-              "unwhitelist": "Von der Whitelist entfernen",
+              "whitelist": "Auf Whitelist setzen",
+              "unwhitelist": "Von Whitelist entfernen",
               "op": "Zum Operator machen",
-              "deop": "Operator entziehen",
+              "deop": "Operator entfernen",
               "ban": "Bannen",
               "pardon": "Entbannen"
             },
             "form": {
-              "name": "Minecraft-Name",
-              "nameOnline": "Der Name eines bestehenden Minecraft-Accounts.",
-              "nameOffline": "Dieser Server prüft keine Accounts, darum wird der Name so übernommen, wie du ihn eingibst.",
+              "name": "Minecraft-Benutzername",
+              "nameOnline": "Der Name muss zu einem bestehenden Minecraft-Konto gehören.",
+              "nameOffline": "Dieser Server prüft keine Konten, der Name wird genau so übernommen, wie du ihn eingibst.",
               "nameInvalid": "Ein Minecraft-Name hat 1 bis 16 Buchstaben, Ziffern und Unterstriche.",
-              "whitelist": "Zur Whitelist hinzufügen",
-              "operator": "Zum Operator machen",
+              "access": "Vergeben wird",
+              "accessWhitelist": "Zugang zum Server",
+              "accessOperator": "Operator-Rechte",
+              "accessBoth": "Zugang und Operator-Rechte",
               "reason": "Grund"
             },
             "modal": {
               "add": {
                 "title": "Spieler hinzufügen"
               },
+              "unwhitelist": {
+                "title": "{name} von der Whitelist entfernen?",
+                "content": "Die Person kann den Server nicht mehr betreten und wird sofort getrennt, falls sie gerade spielt."
+              },
               "op": {
                 "title": "{name} zum Operator machen?",
-                "content": "Operatoren können jeden Befehl ausführen, das Spiel ändern und die Welt bearbeiten. Gib das nur Leuten, denen du vertraust."
+                "content": "Operatoren können Befehle ausführen, das Spiel ändern und die Welt bearbeiten. Gib das nur Personen, denen du vertraust."
+              },
+              "deop": {
+                "title": "Operator-Rechte von {name} entfernen?",
+                "content": "Der Zugang zum Server bleibt bestehen, alle Operator-Befehle gehen verloren."
               },
               "ban": {
                 "title": "{name} bannen?",
@@ -10661,95 +10928,111 @@
               }
             },
             "toast": {
-              "whitelisted": "{name} ist auf der Whitelist.",
-              "unwhitelisted": "{name} wurde von der Whitelist genommen.",
+              "whitelisted": "{name} steht auf der Whitelist.",
+              "unwhitelisted": "{name} wurde von der Whitelist entfernt.",
               "opped": "{name} ist jetzt Operator.",
-              "deopped": "{name} ist kein Operator mehr.",
+              "deopped": "{name} ist nicht mehr Operator.",
               "banned": "{name} ist gebannt.",
               "pardoned": "{name} ist entbannt.",
-              "enforcedOn": "Whitelist eingeschaltet.",
-              "enforcedOff": "Whitelist ausgeschaltet.",
-              "atNextStart": "Das gilt, sobald der Server startet."
+              "enforcedOn": "Whitelist aktiviert.",
+              "enforcedOff": "Whitelist deaktiviert.",
+              "atNextStart": "In den Serverdateien gespeichert - wirksam beim nächsten Start des Servers."
             }
           },
           "worlds": {
             "title": "Welten",
-            "running": "Stoppe den Server, um eine Welt zu erstellen oder hochzuladen. Eine andere Welt laden und herunterladen geht auch, während er läuft.",
-            "importing": "{file} wird entpackt. Die Liste der Welten aktualisiert sich, sobald das fertig ist.",
-            "importFailed": "Der Import von {file} ist fehlgeschlagen: {error}",
-            "noMatch": "Keine Welt passt zu dieser Suche.",
-            "table": {
-              "world": "Welt",
-              "modified": "Zuletzt geändert"
-            },
+            "subtitle": "Welten herunterladen, hochladen, neu generieren oder wechseln. Wer die Generierung ändert, startet eine neue Welt.",
+            "running": "Stoppe den Server, um die aktive Welt hochzuladen, neu zu generieren oder ihre Optionen zu ändern.",
+            "stopFirst": "Stoppe zuerst den Server",
+            "deletesCurrent": "Deine aktuelle Welt wird gelöscht!",
+            "importing": "Hochgeladene Welt wird importiert…",
+            "importFailed": "Die Welt konnte nicht importiert werden: {error}",
+            "modifiedAt": "Zuletzt gespeichert {date}",
             "badge": {
-              "active": "Geladen",
-              "notGenerated": "Noch nicht erzeugt"
+              "active": "Aktiv",
+              "notGenerated": "Noch nicht generiert",
+              "notGeneratedHint": "Der Server erstellt diese Welt beim nächsten Start.",
+              "nether": "Nether",
+              "theEnd": "Das Ende"
+            },
+            "stats": {
+              "difficulty": "Schwierigkeit",
+              "gamemode": "Spielmodus",
+              "hardcore": "Hardcore",
+              "on": "An",
+              "off": "Aus",
+              "modified": "Zuletzt gespeichert",
+              "never": "Noch nicht"
             },
             "button": {
-              "new": "Neue Welt",
-              "upload": "Welt hochladen",
-              "uploadSubmit": "Hochladen und laden",
-              "create": "Welt erstellen",
+              "stop": "Server stoppen",
+              "refresh": "Neu scannen",
+              "options": "Optionen",
+              "generate": "Generieren",
+              "uploadSubmit": "Hochladen und ersetzen",
+              "create": "Neue Welt erstellen",
               "download": "Herunterladen",
-              "activate": "Diese Welt laden",
-              "files": "In Dateien öffnen",
+              "activate": "Diese Welt verwenden",
+              "files": "Dateien",
               "delete": "Löschen"
             },
+            "upload": {
+              "title": "Welt hochladen",
+              "hint": ".zip oder .tar.gz hier ablegen oder zum Auswählen klicken.",
+              "failed": "Der Upload ist fehlgeschlagen. Prüfe die Datei und versuche es erneut."
+            },
+            "help": {
+              "uploadTitle": "Bring deine Einzelspielerwelt mit",
+              "uploadBody": "Öffne in Minecraft .minecraft/saves, packe den Ordner deiner Welt als Zip und lege ihn oben ab. Der Ordner mit level.dat wird überall im Archiv gefunden.",
+              "safeTitle": "Nichts geht aus Versehen verloren",
+              "safeBody": "Optionen, Generieren und Hochladen ersetzen die aktive Welt. Mit „Eine Kopie behalten“ bleibt die alte Welt in dieser Liste.",
+              "switchTitle": "Mehr als eine Welt",
+              "switchBody": "Hochgeladene oder behaltene Welten liegen nebeneinander. „Diese Welt verwenden“ legt fest, welche der Server beim nächsten Start lädt."
+            },
             "modal": {
-              "new": {
-                "title": "Neue Welt",
-                "content": "Der Server erzeugt die neue Welt beim nächsten Start mit diesen Einstellungen."
+              "options": {
+                "title": "Weltoptionen"
               },
-              "upload": {
-                "title": "Welt hochladen",
-                "content": "Die Welt im Archiv wird die geladene Welt. Lass diesen Tab offen, bis der Upload fertig ist; das Entpacken läuft danach von selbst."
+              "generate": {
+                "title": "Eine neue {world} generieren?"
               },
               "activate": {
-                "title": "{world} laden?",
-                "content": "Der Server lädt sie ab dem nächsten Start. Die jetzt geladene Welt bleibt, wie sie ist."
+                "title": "{world} verwenden?",
+                "content": "Der Server lädt diese Welt ab dem nächsten Start. Deine aktuelle Welt bleibt erhalten."
               },
               "delete": {
                 "title": "{world} löschen?",
-                "content": "Das löscht die Ordner {folders}.",
-                "trash": "Sie landen im Papierkorb und lassen sich eine Zeit lang von dort wiederherstellen.",
-                "permanent": "Das lässt sich nicht rückgängig machen."
+                "content": "Löscht {folders} endgültig.",
+                "trash": "Verschiebt {folders} in den Papierkorb, aus dem sie sich eine Zeit lang wiederherstellen lassen."
               }
             },
             "form": {
-              "name": "Name",
+              "name": "Weltname",
               "nameInvalid": "1 bis 64 Buchstaben, Ziffern, Leerzeichen, Punkte, Bindestriche und Unterstriche, beginnend mit einem Buchstaben oder einer Ziffer.",
-              "nameTaken": "Es gibt schon einen Ordner mit diesem Namen.",
+              "nameTaken": "Eine andere Welt hat bereits diesen Namen. Nutze dort „Diese Welt verwenden“.",
               "seed": "Seed",
               "seedRandom": "Zufällig",
               "type": "Welttyp",
               "generator": "Generator-Einstellungen",
               "datapacks": "Datenpakete",
-              "datapacksDescription": "Durch Kommas getrennt, zum Beispiel vanilla, bundle, trade_rebalance (initial-enabled-packs).",
-              "structures": "Strukturen erzeugen (Dörfer, Tempel, Festungen …)",
-              "keep": "Aktuelle Welt behalten",
-              "keepRenamed": "Sie bleibt unter einem neuen Namen in der Liste, damit du sie später wieder laden kannst.",
-              "keepAsIs": "Sie bleibt, wie sie ist, in der Liste, damit du sie später wieder laden kannst.",
-              "archive": "Archiv",
-              "archiveDescription": "Eine .zip- oder .tar(.gz, .xz, .zst)-Datei mit dem Weltordner, dem mit der level.dat darin.",
+              "datapacksPlaceholder": "Neue Kennzeichnung",
+              "newSeed": "Neuen zufälligen Seed verwenden",
+              "structures": "Strukturen generieren",
+              "keep": "Eine Kopie der aktuellen Welt behalten",
+              "keepRenamed": "Bleibt unter einem neuen Namen in dieser Liste (zählt zu deinem Speicherplatz).",
+              "keepAsIs": "Bleibt, wie sie ist, in dieser Liste (zählt zu deinem Speicherplatz).",
               "archiveInvalid": "Wähle eine .zip-, .tar-, .tar.gz-, .tgz-, .tar.xz- oder .tar.zst-Datei."
             },
-            "types": {
-              "normal": "Normal",
-              "flat": "Flachland",
-              "largeBiomes": "Große Biome",
-              "amplified": "Zerklüftet",
-              "singleBiome": "Einzelnes Biom"
-            },
             "toast": {
-              "created": "Die neue Welt ist eingerichtet. Starte den Server, um sie zu erzeugen.",
-              "kept": "Die alte Welt bleibt als {name} erhalten.",
-              "activated": "{world} wird ab dem nächsten Start geladen.",
-              "deleted": "{world} wurde gelöscht.",
+              "stopping": "Server wird gestoppt…",
+              "recreated": "Die Welt {world} wurde zurückgesetzt.",
+              "startToPlay": "Starte den Server, um sie zu spielen.",
+              "kept": "Die alte Welt wurde als {name} gespeichert. Starte den Server, um die neue zu spielen.",
+              "activated": "Der Server lädt {world}. Starte den Server neu, damit die Änderung wirkt.",
+              "deleted": "{world} gelöscht",
               "saving": "Die Welt wird zuerst gespeichert …",
-              "uploading": "{file} wird hochgeladen. Lass diesen Tab offen, bis der Upload fertig ist.",
-              "importStarted": "Hochgeladen. {file} wird entpackt …",
-              "imported": "Die hochgeladene Welt ist geladen. Starte den Server, um darauf zu spielen."
+              "importStarted": "Hochgeladene Welt wird importiert…",
+              "imported": "Die hochgeladene Welt ist jetzt {world}."
             }
           },
           "logCheck": {
@@ -10767,16 +11050,11 @@
             "view": "Log ansehen"
           },
           "bedrock": {
-            "title": "Bedrock-Spieler",
-            "content": "Lässt Spieler auf Handys, Tablets, Konsolen und Windows (Bedrock Edition) auf diesen Java-Server. Geyser übersetzt für sie, Floodgate lässt sie ohne Java-Konto herein, und der Server bekommt einen weiteren Port für sie.",
-            "loading": "Server wird geprüft…",
-            "unavailable": "Geyser hat keinen Build für die Software dieses Servers. Es läuft auf Paper und seinen Forks, Fabric und NeoForge.",
-            "installed": "Installiert: {file}",
+            "content": "Installiert Geyser und Floodgate, damit Bedrock-Spieler (mobil und Konsole) beitreten können. Java-Spieler sind nicht betroffen.",
             "join": "Bedrock-Spieler verbinden sich mit (zum Kopieren tippen):",
             "restart": "Der Server läuft und startet neu, sobald Geyser installiert ist.",
             "button": {
-              "open": "Bedrock",
-              "install": "Geyser installieren",
+              "add": "Bedrock-Unterstützung hinzufügen",
               "update": "Geyser aktualisieren"
             },
             "toast": {
@@ -10786,20 +11064,14 @@
             }
           },
           "modpacks": {
-            "title": "Modpacks",
             "noLoaders": "Das Spiel dieses Servers kann weder Fabric, Quilt, Forge noch NeoForge ausführen, daher kann er kein Modpack installieren.",
-            "loaders": "Gezeigt werden Packs für {loaders}. Die Installation stellt den Server auf den Loader und die Minecraft-Version um, die das Pack braucht.",
             "running": "Stoppe den Server, um ein Modpack zu installieren.",
-            "button": {
-              "install": "Installieren"
-            },
             "modal": {
               "title": "{name} installieren",
+              "warning": "Der Server wird auf den Loader und die Minecraft Version umgestellt, die dieses Pack benötigt, neu installiert, und danach werden die Pack Dateien abgelegt. Deine Welt bleibt erhalten. Der exakte Loader Build des Packs kann nicht festgelegt werden, daher kann ein Pack, das genau einen Build verlangt, weiterhin Nacharbeit brauchen.",
               "noVersions": "Dieses Modpack hat keine Version für einen Loader, den dieser Server ausführen kann.",
-              "versionFor": "Für Minecraft {minecraft} mit {loaders}",
               "clean": "Die jetzt installierten Mods entfernen",
-              "cleanDescription": "Mods aus einem anderen Pack vertragen sich meist nicht mit diesem. Sie kommen in den Papierkorb, wenn der Server einen hat.",
-              "content": "Der Server wird mit dem Loader und der Minecraft-Version des Packs neu installiert, dann werden seine Mods und Konfigurationen heruntergeladen. Welten und andere Dateien bleiben. Das dauert ein paar Minuten."
+              "cleanDescription": "Mods aus einem anderen Pack vertragen sich meist nicht mit diesem. Sie kommen in den Papierkorb, wenn der Server einen hat."
             },
             "step": {
               "download": "Pack wird heruntergeladen…",
@@ -10810,82 +11082,124 @@
               "failed": "Fehlgeschlagen."
             },
             "state": {
-              "installing": "{name} wird installiert:",
+              "queuedHeading": "Modpack Installation gestartet",
+              "queued": "{name} wird installiert. Der Server wird zuerst neu installiert, danach werden die Pack Dateien abgelegt - das dauert einige Minuten.",
               "software": "({loader}, Minecraft {version})",
-              "done": "{name} ist installiert. Starte den Server, um es zu spielen.",
+              "doneHeading": "Modpack installiert",
+              "done": "{name} ist installiert und {count} Dateien wurden auf den Server heruntergeladen. Starte ihn und beobachte die Konsole.",
               "skipped": "Nicht heruntergeladen, füge diese selbst hinzu: {files}",
-              "overridesSkipped": "Die Konfigurationen des Packs waren zu groß, um sie über das Panel zu entpacken. Lade seinen overrides-Ordner unter Dateien hoch.",
-              "failed": "Die Installation von {name} ist fehlgeschlagen: {error}"
-            },
-            "toast": {
-              "started": "{name} wird installiert. Diese Seite zeigt den Fortschritt."
+              "overridesSkipped": "Die im Pack enthaltenen Konfigurationsdateien waren zu groß, um sie automatisch anzuwenden - lade das Pack von Modrinth herunter und lade den Ordner overrides über den Dateimanager hoch.",
+              "failedHeading": "Modpack Installation fehlgeschlagen",
+              "failed": "{name} konnte nicht installiert werden. Prüfe die Konsole und die Dateiliste, bevor du den Server startest. {error}"
             }
           },
           "setup": {
             "title": "Server einrichten",
-            "intro": "Ein paar Fragen dazu, wie du spielen willst. Die Antworten werden übernommen, dann startet der Server.",
-            "introInstalling": "Dein Server wird gerade installiert. Beantworte die Fragen in der Zwischenzeit: Sie werden nach der Installation übernommen, dann startet der Server.",
-            "submit": "Einrichten und starten",
-            "what": {
-              "title": "Was laufen soll",
-              "software": "Ein Server",
-              "softwareText": "Wähle die Software und die Minecraft-Version.",
-              "modpack": "Ein Modpack",
-              "modpackText": "Ein Pack von Modrinth oder CurseForge mit eigenen Mods, Loader und Version."
+            "subtitle": "Ein paar Fragen, und dein Server ist so eingerichtet, wie du ihn haben willst. Alles davon lässt sich später ändern.",
+            "gate": "Richte deinen Server zuerst fertig ein. Dieser Server wurde gerade erstellt und braucht noch seine Server-Software. Der Rest des Panels steht dir offen, sobald du hier fertig bist.",
+            "finish": "Einrichtung abschließen",
+            "callout": {
+              "heading": "Dein Server ist noch nicht eingerichtet",
+              "body": "Wähle deine Server-Software, ein Modpack und wer beitreten darf - die Dateien schreiben wir für dich.",
+              "action": "Einrichtung starten"
+            },
+            "steps": {
+              "software": {
+                "title": "Server-Software",
+                "description": "Welcher Server das ist und welche Minecraft-Version er ausführt."
+              },
+              "modpack": {
+                "title": "Modpack",
+                "description": "Optional. Installiere ein fertiges Modpack, statt alles selbst zusammenzustellen."
+              },
+              "bedrock": {
+                "title": "Bedrock-Unterstützung",
+                "description": "Lass Spieler auf Handys, Tablets und Konsolen deinem Java-Server beitreten."
+              },
+              "accounts": {
+                "title": "Spieler-Konten",
+                "description": "Ob Spieler ein gekauftes Minecraft-Konto brauchen, um beitreten zu können."
+              },
+              "access": {
+                "title": "Für wen ist er",
+                "description": "Ein privater Server für Freunde, oder offen für alle."
+              },
+              "players": {
+                "title": "Spieler",
+                "description": "Wer beitreten darf und wer den Server verwalten darf."
+              }
             },
             "software": {
-              "title": "Software",
-              "version": "Die neueste Version ist ein guter Anfang. Wähle eine ältere, wenn deine Freunde sie spielen."
+              "label": "Server-Software",
+              "descriptions": {
+                "plugins": "Der Standard Server. Unterstützt Bukkit-, Spigot- und Paper-Plugins.",
+                "fabric": "Schlanker Mod Loader. Für Fabric Mods.",
+                "neoforge": "Moderner Forge Fork. Für NeoForge Mods.",
+                "forge": "Der klassische Mod Loader. Für Forge Mods und ältere Modpacks."
+              },
+              "version": "Minecraft Version",
+              "latest": "Neueste (empfohlen)",
+              "versionHint": "Bleibt das auf Neueste, folgt dein Server bei der nächsten Neuinstallation automatisch neuen Minecraft-Versionen."
             },
             "modpack": {
-              "title": "Modpack",
-              "search": "Suche",
-              "searchPlaceholder": "Name eines Modpacks",
-              "by": "Von {author}, {downloads} Downloads",
-              "version": "Version von {name}"
+              "label": "Modpack",
+              "none": "Kein Modpack - nur der reine Server",
+              "search": "Modrinth nach einem Modpack durchsuchen",
+              "nothing": "Nichts gefunden",
+              "hint": "Ein Modpack bringt seinen eigenen Loader und seine eigene Minecraft-Version mit und überschreibt damit die beiden Antworten aus dem vorherigen Schritt. Packs, die genau einen bestimmten Forge- oder NeoForge-Build verlangen, können danach noch Handarbeit nötig machen.",
+              "version": "Modpack-Version",
+              "versionHint": "Die neueste Veröffentlichung ist vorausgewählt. Ältere Versionen gibt es für Packs, die noch aktualisiert werden."
             },
             "bedrock": {
-              "title": "Bedrock-Spieler",
-              "java": "Nur Java Edition",
-              "javaText": "Spieler am Computer mit Minecraft: Java Edition.",
-              "both": "Java und Bedrock",
-              "bothText": "Auch Spieler auf Handys, Tablets, Konsolen und Windows (Bedrock Edition), über Geyser."
+              "yes": "Ja, Bedrock unterstützen",
+              "yesDescription": "Installiert Geyser und Floodgate, damit Bedrock-Spieler (mobil und Konsole) beitreten können. Java-Spieler sind nicht betroffen.",
+              "no": "Nur Java",
+              "noDescription": "Nur die Java-Edition von Minecraft kann sich verbinden. Bedrock-Unterstützung kannst du später über die Mods-Seite ergänzen.",
+              "note": "Bedrock-Spieler verbinden sich über einen eigenen Port, der nach dem Neustart in den Verbindungsdetails des Servers steht. Du kannst das jederzeit über die Mods-Seite ändern oder entfernen."
             },
             "accounts": {
-              "title": "Accounts",
-              "premium": "Gekaufte Accounts",
-              "premiumText": "Spieler brauchen einen gekauften Minecraft-Account. Namen und Skins werden geprüft.",
-              "cracked": "Beliebiger Name",
-              "crackedText": "Jeder kommt mit einem beliebigen Namen rein, auch ohne gekauften Account. Jeder könnte sich auch als du ausgeben, mach den Server also privat."
+              "premium": "Nur Premium-Konten",
+              "premiumDescription": "Jeder Spieler wird bei Mojang überprüft. Skins, Capes und Namen sind garantiert echt. Das ist die sichere Standardeinstellung.",
+              "cracked": "Cracked-Clients erlauben",
+              "crackedDescription": "Jeder kann mit jedem Namen beitreten, ohne Minecraft zu besitzen. Wähle das nur, wenn du es wirklich brauchst.",
+              "crackedWarning": "Achtung: Mit erlaubten Cracked-Clients kann sich jeder mit deinem Namen verbinden - auch mit dem eines Operators. Lass die Whitelist an, sonst wird dein Server übernommen."
             },
             "access": {
-              "title": "Wer beitreten darf",
-              "public": "Jeder mit der Adresse",
-              "publicText": "Alle, die die Serveradresse haben, können beitreten.",
-              "private": "Nur Spieler, die ich hinzufüge",
-              "privateText": "Eine Whitelist: Nur die Namen, die du hinzufügst, können beitreten."
+              "private": "Privat - nur Freunde",
+              "privateDescription": "Nur die Spieler auf deiner Liste können beitreten. Schaltet die Whitelist ein und erzwingt sie, sodass Entfernte auch getrennt werden.",
+              "public": "Öffentlich - alle dürfen rein",
+              "publicDescription": "Keine Whitelist. Jeder, der die Adresse kennt, kann sich verbinden.",
+              "publicWarning": "Ein öffentlicher Server wird innerhalb von Stunden von Scannern gefunden. Rechne mit ungebetenen Gästen und halte Backups bereit."
             },
             "players": {
-              "title": "Spieler",
-              "whitelist": "Spieler, die beitreten dürfen",
-              "whitelistDescription": "Minecraft-Namen, bis zu {max}. Weitere kannst du auf der Spieler-Seite hinzufügen.",
+              "whitelist": "Erlaubte Spieler",
+              "whitelistHint": "Minecraft-Namen, keine E-Mail-Adressen. Weitere kannst du jederzeit über die Seite Spieler hinzufügen.",
               "operators": "Operatoren",
-              "operatorsDescription": "Spieler, die wie du jeden Befehl nutzen können. Bis zu {max}.",
-              "placeholder": "Minecraft-Name",
-              "invalid": "Kein Minecraft-Name: {names}"
+              "operatorsHint": "Fang mit deinem eigenen Minecraft-Namen an, damit du im Spiel Befehle ausführen kannst.",
+              "operatorsWarning": "Operatoren können alles am Server ändern, sich selbst Gegenstände geben und andere Spieler bannen. Füge nur Leute hinzu, denen du vertraust.",
+              "placeholder": "Namen eingeben und Enter drücken",
+              "invalid": "Kein Minecraft-Name: {names}",
+              "tooMany": "Bis zu {max} Namen."
+            },
+            "toast": {
+              "done": "Dein Server ist eingerichtet. Die Einstellungen wurden in die Server-Dateien geschrieben.",
+              "doneRestart": "Dein Server ist eingerichtet. Die Einstellungen wurden in die Server-Dateien geschrieben. Starte den Server neu, damit er sie übernimmt.",
+              "doneInstalling": "Dein Server ist eingerichtet. Der Server wird gerade installiert. Deine Whitelist und die Einstellungen werden automatisch übernommen, sobald er fertig ist - das kann einige Minuten dauern."
             },
             "progress": {
+              "title": "Server wird eingerichtet",
               "waiting": "Warte, bis die Installation des Servers fertig ist…",
               "software": "Der Server wird mit der gewählten Software neu installiert…",
               "modpack": "Das Modpack wird installiert…",
               "settings": "Einstellungen und Spielerlisten werden geschrieben…",
               "bedrock": "Bedrock-Spieler werden eingerichtet…",
               "starting": "Der Server wird gestartet…",
-              "done": "Dein Server ist eingerichtet und startet.",
+              "doneHeading": "Dein Server ist eingerichtet",
+              "done": "Die Einstellungen wurden in die Server-Dateien geschrieben.",
+              "failedHeading": "Einrichtung fehlgeschlagen",
               "failed": "Die Einrichtung wurde abgebrochen: {error}",
               "problems": "Nicht alles hat geklappt: {problems}",
-              "skipped": "Nicht hinzugefügt (kein Minecraft-Account hat den Namen, oder Mojang hat nicht geantwortet), füge sie auf der Spieler-Seite hinzu: {names}",
-              "console": "Zur Konsole"
+              "skipped": "Nicht hinzugefügt (kein Minecraft-Account hat den Namen, oder Mojang hat nicht geantwortet), füge sie auf der Spieler-Seite hinzu: {names}"
             }
           }
         },
@@ -11285,35 +11599,56 @@
         },
         "devbox": {
           "title": "VS Code",
+          "description": "Öffne diesen Server in VS Code: eine private Linux-Box daneben mit seinen Dateien, einem Terminal und jeder Erweiterung.",
           "hidden": "VS Code gibt es auf diesem Server nicht.",
-          "locked": "VS Code auf deinen Servern gibt es mit einer Mitgliedschaft.",
+          "label": "Devbox",
+          "locked": "VS Code auf dem Server gehört zu {plan}.",
           "lockedShared": "Die geteilte Devbox dieses Servers braucht eine Mitgliedschaft auf dem Konto des Besitzers.",
-          "about": "Arbeite in VS Code an den Dateien dieses Servers. Eine Devbox ist eine kleine Linux-Box mit den Serverdateien unter /server, einem Terminal und dem Tool ph für Konsole und Power des Servers.",
-          "aboutPersonal": "Diese Devbox gehört nur dir: Alle anderen auf dem Server bekommen ihre eigene.",
-          "aboutShared": "Die Devbox dieses Servers ist geteilt: Der Besitzer und alle Subuser mit Zugriff arbeiten in derselben.",
-          "idle": "Sie stoppt nach {minutes} Minuten ohne Verbindung.",
-          "starting": "Devbox startet…",
-          "stopping": "Devbox stoppt…",
-          "failed": "Die Devbox ist nicht hochgekommen. Stoppe sie und starte sie neu.",
-          "mountMissing": "Die Devbox läuft, aber die Serverdateien fehlen darin: Die Node dieses Servers erlaubt das noch nicht. Sag den Admins des Panels Bescheid.",
-          "ready": "Die Devbox läuft.",
-          "connections": "Offene Verbindungen: {count}",
-          "port": "Port",
+          "lockedHint": "Eine private Linux-Box neben diesem Server: seine Dateien, ein Terminal, Python, Node, Java und jede VS-Code-Erweiterung.",
+          "getPlan": "{plan} holen",
+          "state": {
+            "none": "Noch nicht erstellt",
+            "stopped": "Gestoppt",
+            "creating": "Wird erstellt …",
+            "starting": "Startet …",
+            "stopping": "Stoppt …",
+            "failed": "Nicht gestartet",
+            "mount_missing": "Kommt nicht an die Serverdateien",
+            "ready": "Läuft"
+          },
+          "hint": {
+            "what": "Eine Linux-Box mit den Dateien dieses Servers unter /server. Sie stoppt nach {minutes} Minuten ohne VS Code.",
+            "ready": "{address} · stoppt nach {minutes} Minuten ohne VS Code",
+            "creating": "Die erste Devbox auf einem Node lädt ihr Image herunter, das kann ein paar Minuten dauern.",
+            "starting": "Gleich geschafft.",
+            "stopping": "Wartet auf die Bestätigung des Nodes.",
+            "failed": "Stoppe sie und versuche es erneut. Wenn es wieder passiert, melde dich beim Support.",
+            "mount_missing": "Dieser Node ist noch nicht für Devboxen eingerichtet. Der Support sieht das in der Systemprüfung des Panels."
+          },
           "code": "Verbindungscode",
-          "codeHelp": "Gib den Verbindungscode ein, wenn SSH nach einem Passwort fragt. Er gilt für diesen Start: Ein Stopp oder ein neuer Start erzeugt einen neuen.",
-          "sshCommand": "SSH-Befehl",
-          "hostKey": "Host-Key",
+          "codeHint": "VS Code fragt danach als Passwort. Bei jedem Start ein neuer Code.",
+          "copyCode": "Code kopieren",
+          "ssh": "SSH",
+          "sshHint": "Host-Schlüssel {key} (VS Code fragt einmal, ob du ihm vertraust)",
+          "copySsh": "SSH-Befehl kopieren",
+          "needsExtension": "Braucht die Erweiterung Remote - SSH.",
           "button": {
-            "start": "Starten",
+            "start": "Devbox starten",
             "stop": "Stoppen",
             "vscode": "In VS Code öffnen",
             "browser": "Im Browser öffnen",
-            "membership": "Mitgliedschaften ansehen"
+            "install": "Installieren"
           },
           "shared": {
-            "title": "Geteilte Devbox",
-            "enabled": "Eine Devbox für alle",
-            "enabledDescription": "Der Besitzer und die Subuser arbeiten in einer Devbox, bezahlt über die Mitgliedschaft des Besitzers, statt jeder in einer eigenen. Die eigenen Devboxen aller auf diesem Server werden gelöscht.",
+            "label": "Geteilt",
+            "on": "Eine Devbox für dich und deine Subuser",
+            "off": "Jeder hat seine eigene Devbox",
+            "hint": "Geteilt: Subuser mit VS-Code-Zugriff nutzen deine Devbox und dein {plan}. Alle darin sehen dieselben Dateien und Logins.",
+            "share": "Teilen",
+            "unshare": "Nicht mehr teilen",
+            "confirmShare": "Eine Devbox mit deinen Subusern teilen? Persönliche Devboxen auf diesem Server werden gelöscht, und alle in der geteilten sehen gegenseitig ihre Dateien und Logins.",
+            "confirmUnshare": "Nicht mehr teilen? Die geteilte Devbox und alles in ihrem Home-Ordner werden gelöscht.",
+            "rightsLabel": "Rechte",
             "rights": "Was ph in der geteilten Devbox auf dem Server darf:",
             "right": {
               "status": "Zustand und Ressourcen sehen",
@@ -11323,8 +11658,6 @@
             }
           },
           "toast": {
-            "starting": "Devbox startet.",
-            "stopping": "Devbox stoppt.",
             "saved": "Gespeichert."
           }
         },

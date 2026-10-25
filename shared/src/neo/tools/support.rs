@@ -126,6 +126,110 @@ pub fn redact(text: &str) -> String {
     crate::redact::redact(text)
 }
 
+/// The text's last [`OUTPUT_CHARS`] characters, for output whose newest part matters (the
+/// console).
+pub fn limit_tail(text: &str) -> String {
+    let count = text.chars().count();
+    if count <= OUTPUT_CHARS {
+        return text.to_string();
+    }
+
+    let tail: String = text.chars().skip(count - OUTPUT_CHARS).collect();
+    format!("…[earlier lines truncated]\n{tail}")
+}
+
+/// At most `max` characters, with `…` when cut (summaries and listings).
+pub fn short(text: &str, max: usize) -> String {
+    let text = text.trim();
+    if text.chars().count() <= max {
+        return text.to_string();
+    }
+
+    let mut short: String = text.chars().take(max.saturating_sub(1)).collect();
+    short.push('…');
+    short
+}
+
+/// A lower-case message (the shared code's errors) as a sentence: capitalised, with a full stop.
+pub fn sentence(text: &str) -> String {
+    let text = text.trim();
+    let mut chars = text.chars();
+    let mut sentence: String = match chars.next() {
+        Some(first) => first.to_uppercase().chain(chars).collect(),
+        None => return String::new(),
+    };
+    if !sentence.ends_with(['.', '!', '?']) {
+        sentence.push('.');
+    }
+
+    sentence
+}
+
+/// A string argument for a summary, never failing.
+pub fn shown<'a>(arguments: &'a Value, key: &str) -> &'a str {
+    arguments.get(key).and_then(Value::as_str).unwrap_or("?")
+}
+
+/// A path argument for a summary, never failing.
+pub fn shown_path(arguments: &Value, key: &str) -> String {
+    path(arguments.get(key).unwrap_or(&Value::Null), "/").unwrap_or_else(|_| "?".into())
+}
+
+/// Whether the text carries the secret mask: a value neo never saw, so it must not be written
+/// back.
+pub fn masked(text: &str) -> bool {
+    text.contains(crate::redact::MASK)
+}
+
+/// A normalised path as its folder and its name: `/a/b/c` → (`/a/b`, `c`). The root has no name.
+pub fn split(path: &str) -> (String, String) {
+    match path.rsplit_once('/') {
+        Some(("", name)) => ("/".into(), name.into()),
+        Some((parent, name)) => (parent.into(), name.into()),
+        None => ("/".into(), path.into()),
+    }
+}
+
+/// Joins a folder and a name or relative path as `/a/b`.
+pub fn join(directory: &str, name: &str) -> String {
+    let name = name.trim_start_matches('/');
+    if directory == "/" || directory.is_empty() {
+        format!("/{name}")
+    } else {
+        format!("{}/{name}", directory.trim_end_matches('/'))
+    }
+}
+
+/// The chat server's Wings client, refusing the paths a subuser may not see.
+pub async fn wings(
+    context: &super::ToolContext<'_>,
+) -> Result<wings_api::client::WingsClient, ToolError> {
+    let server = context.server()?;
+
+    Ok(crate::minecraft::files::client(context.state, server).await?)
+}
+
+/// A Wings answer as the model hears it: a refusal (a missing file, a busy server) is something it
+/// can act on; anything else is a failure.
+pub fn wings_error(err: wings_api::client::ApiHttpError) -> ToolError {
+    match err {
+        wings_api::client::ApiHttpError::Http(status, error) if status.is_client_error() => {
+            ToolError::invalid(format!("The node refused this: {}.", error.error))
+        }
+        err => ToolError::Failed(err.into()),
+    }
+}
+
+/// The server's state on Wings as a word.
+pub fn state_name(state: wings_api::ServerState) -> &'static str {
+    match state {
+        wings_api::ServerState::Offline => "offline",
+        wings_api::ServerState::Starting => "starting",
+        wings_api::ServerState::Stopping => "stopping",
+        wings_api::ServerState::Running => "running",
+    }
+}
+
 /// `1.5 KB`-style sizes.
 pub fn human(bytes: u64) -> String {
     const UNITS: [&str; 4] = ["B", "KB", "MB", "GB"];
@@ -186,5 +290,29 @@ mod tests {
         assert_eq!(human(512), "512 B");
         assert_eq!(human(1536), "1.5 KB");
         assert_eq!(human(5 * 1024 * 1024 * 1024), "5 GB");
+
+        let console = format!("old\n{}", "y".repeat(OUTPUT_CHARS));
+        assert!(limit_tail(&console).starts_with("…[earlier lines truncated]\ny"));
+        assert!(limit_tail(&console).ends_with('y'));
+        assert_eq!(limit_tail("short"), "short");
+        assert_eq!(short("  abcdef ", 4), "abc…");
+        assert_eq!(short("abc", 4), "abc");
+        assert_eq!(sentence("not enough cpu left"), "Not enough cpu left.");
+        assert_eq!(sentence("done."), "Done.");
+        assert_eq!(sentence(" "), "");
+    }
+
+    #[test]
+    fn splits_and_joins_paths() {
+        assert_eq!(split("/a/b/c"), ("/a/b".into(), "c".into()));
+        assert_eq!(split("/c"), ("/".into(), "c".into()));
+        assert_eq!(split("/"), ("/".into(), "".into()));
+        assert_eq!(join("/", "a.txt"), "/a.txt");
+        assert_eq!(join("/plugins/", "/x.jar"), "/plugins/x.jar");
+        assert_eq!(shown_path(&json!({"path": "a//b"}), "path"), "/a/b");
+        assert_eq!(shown_path(&json!({"path": "../x"}), "path"), "?");
+        assert_eq!(shown(&json!({}), "name"), "?");
+        assert!(masked("password=••••"));
+        assert!(!masked("password=hunter2"));
     }
 }

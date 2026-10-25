@@ -75,5 +75,15 @@
     "intro": "You are receiving this email because your server, <strong>{{ server.name }}</strong>, has finished its restoration from a backup.",
     "instruction": "Click the button below to access the server:",
     "button": "Access Server"
+  },
+  "backup_completed": {
+    "subject": "Backup Completed",
+    "subject_failed": "Backup Failed",
+    "greeting": "Hello <strong>{{ user.username }}</strong>,",
+    "intro": "The backup was created successfully.",
+    "intro_failed": "The backup creation failed.",
+    "backup_name": "Backup Name: <strong>{{ backup_name }}</strong>",
+    "server_name": "Server Name: <strong>{{ server.name }}</strong>",
+    "button": "View Backups"
   }
 }

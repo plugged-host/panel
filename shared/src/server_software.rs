@@ -136,6 +136,7 @@ pub async fn options(
                     .map(|variant| ApiGameVariant {
                         value: variant.value.clone(),
                         label: variant.label.clone(),
+                        description: variant.description.clone(),
                     })
                     .collect()
             })
@@ -339,6 +340,7 @@ mod tests {
                 .map(|value| GameVariant {
                     value: value.into(),
                     label: value.into(),
+                    description: None,
                     startup: None,
                     image: None,
                 })

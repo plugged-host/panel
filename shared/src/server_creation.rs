@@ -48,6 +48,7 @@ pub const NAME_MAX: usize = 191;
 pub struct ApiGameVariant {
     pub value: compact_str::CompactString,
     pub label: compact_str::CompactString,
+    pub description: Option<compact_str::CompactString>,
 }
 
 #[derive(ToSchema, Serialize)]
@@ -238,6 +239,7 @@ pub async fn options(
                 .map(|variant| ApiGameVariant {
                     value: variant.value.clone(),
                     label: variant.label.clone(),
+                    description: variant.description.clone(),
                 })
                 .collect(),
         });

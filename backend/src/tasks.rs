@@ -1018,6 +1018,22 @@ pub async fn define_background_tasks(
             async |state| shared::rux::tick(&state).await,
         )
         .await;
+    // plugged.host: neo on Discord (shared::neo::discord): messages whose answer was lost, and
+    // its old messages after neo's retention days
+    background_task_builder
+        .add_cron_task(
+            "recover_neo_discord_messages",
+            croner::Cron::from_str("20 * * * * *").unwrap(),
+            async |state| shared::neo::discord::recover(&state).await,
+        )
+        .await;
+    background_task_builder
+        .add_cron_task(
+            "prune_neo_discord_messages",
+            croner::Cron::from_str("0 50 4 * * *").unwrap(),
+            async |state| shared::neo::discord::prune(&state).await,
+        )
+        .await;
     background_task_builder
         .add_cron_task(
             "sync_discord_members",

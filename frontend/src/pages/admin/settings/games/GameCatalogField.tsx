@@ -14,7 +14,7 @@ import { useTranslations } from '@/providers/TranslationProvider.tsx';
 
 type GamesValues = z.infer<typeof adminSettingsGamesSchema>;
 
-const emptyVariant = { value: '', label: '', startup: null, image: null };
+const emptyVariant = { value: '', label: '', description: null, startup: null, image: null };
 
 export default function GameCatalogField({ form }: { form: UseFormReturnType<GamesValues> }) {
   const { t } = useTranslations();
@@ -92,39 +92,50 @@ export default function GameCatalogField({ form }: { form: UseFormReturnType<Gam
             </Text>
           )}
           {game.variants.map((_, variantIndex) => (
-            <Group key={form.key(`catalog.${index}.variants.${variantIndex}`)} align='flex-end' wrap='nowrap'>
+            <Stack key={form.key(`catalog.${index}.variants.${variantIndex}`)} gap='xs'>
+              <Group align='flex-end' wrap='nowrap'>
+                <TextInput
+                  className='flex-1'
+                  label={t('pages.admin.settings.tabs.games.page.catalog.variantValue', {})}
+                  placeholder='purpur'
+                  key={form.key(`catalog.${index}.variants.${variantIndex}.value`)}
+                  {...form.getInputProps(`catalog.${index}.variants.${variantIndex}.value`)}
+                />
+                <TextInput
+                  className='flex-1'
+                  label={t('pages.admin.settings.tabs.games.page.catalog.variantLabel', {})}
+                  placeholder='Purpur'
+                  key={form.key(`catalog.${index}.variants.${variantIndex}.label`)}
+                  {...form.getInputProps(`catalog.${index}.variants.${variantIndex}.label`)}
+                />
+                <TextInput
+                  className='flex-1'
+                  label={t('pages.admin.settings.tabs.games.page.catalog.variantStartup', {})}
+                  placeholder={t('pages.admin.settings.tabs.games.page.catalog.eggDefault', {})}
+                  key={form.key(`catalog.${index}.variants.${variantIndex}.startup`)}
+                  {...form.getInputProps(`catalog.${index}.variants.${variantIndex}.startup`)}
+                />
+                <TextInput
+                  className='flex-1'
+                  label={t('pages.admin.settings.tabs.games.page.catalog.variantImage', {})}
+                  placeholder={t('pages.admin.settings.tabs.games.page.catalog.eggDefault', {})}
+                  key={form.key(`catalog.${index}.variants.${variantIndex}.image`)}
+                  {...form.getInputProps(`catalog.${index}.variants.${variantIndex}.image`)}
+                />
+                <Button
+                  variant='default'
+                  onClick={() => form.removeListItem(`catalog.${index}.variants`, variantIndex)}
+                >
+                  {t('common.button.remove', {})}
+                </Button>
+              </Group>
               <TextInput
-                className='flex-1'
-                label={t('pages.admin.settings.tabs.games.page.catalog.variantValue', {})}
-                placeholder='purpur'
-                key={form.key(`catalog.${index}.variants.${variantIndex}.value`)}
-                {...form.getInputProps(`catalog.${index}.variants.${variantIndex}.value`)}
+                label={t('pages.admin.settings.tabs.games.page.catalog.variantDescription', {})}
+                description={t('pages.admin.settings.tabs.games.page.catalog.variantDescriptionHelp', {})}
+                key={form.key(`catalog.${index}.variants.${variantIndex}.description`)}
+                {...form.getInputProps(`catalog.${index}.variants.${variantIndex}.description`)}
               />
-              <TextInput
-                className='flex-1'
-                label={t('pages.admin.settings.tabs.games.page.catalog.variantLabel', {})}
-                placeholder='Purpur'
-                key={form.key(`catalog.${index}.variants.${variantIndex}.label`)}
-                {...form.getInputProps(`catalog.${index}.variants.${variantIndex}.label`)}
-              />
-              <TextInput
-                className='flex-1'
-                label={t('pages.admin.settings.tabs.games.page.catalog.variantStartup', {})}
-                placeholder={t('pages.admin.settings.tabs.games.page.catalog.eggDefault', {})}
-                key={form.key(`catalog.${index}.variants.${variantIndex}.startup`)}
-                {...form.getInputProps(`catalog.${index}.variants.${variantIndex}.startup`)}
-              />
-              <TextInput
-                className='flex-1'
-                label={t('pages.admin.settings.tabs.games.page.catalog.variantImage', {})}
-                placeholder={t('pages.admin.settings.tabs.games.page.catalog.eggDefault', {})}
-                key={form.key(`catalog.${index}.variants.${variantIndex}.image`)}
-                {...form.getInputProps(`catalog.${index}.variants.${variantIndex}.image`)}
-              />
-              <Button variant='default' onClick={() => form.removeListItem(`catalog.${index}.variants`, variantIndex)}>
-                {t('common.button.remove', {})}
-              </Button>
-            </Group>
+            </Stack>
           ))}
           <Group>
             <Button

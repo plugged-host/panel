@@ -316,6 +316,7 @@ fn project(data: &serde_json::Value, kind: Kind) -> Project {
         url: super::text(&data["links"], "websiteUrl"),
         kind,
         installable: true,
+        client_only: false,
         id,
     }
 }

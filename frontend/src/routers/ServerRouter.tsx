@@ -1,6 +1,6 @@
 import { faArrowUpRightFromSquare, faGraduationCap, faServer } from '@fortawesome/free-solid-svg-icons';
 import { Suspense, useEffect, useMemo, useState } from 'react';
-import { Route, Routes, useParams } from 'react-router';
+import { Route, Routes, useLocation, useParams } from 'react-router'; // plugged.host: useLocation
 import { useShallow } from 'zustand/react/shallow';
 import { httpErrorToHuman } from '@/api/axios.ts';
 import getEggCommandSnippets from '@/api/me/servers/eggs/getEggCommandSnippets.ts';
@@ -19,6 +19,7 @@ import SidebarBalance from '@/elements/navigation/SidebarBalance.tsx'; // plugge
 import QuickActionsTrigger from '@/elements/quickActions/QuickActionsTrigger.tsx';
 import ServerQuickActions from '@/elements/quickActions/ServerQuickActions.tsx';
 import ServerStatusIndicator from '@/elements/ServerStatusIndicator.tsx';
+import { serverPageKind } from '@/lib/ads.ts'; // plugged.host
 import { isAdmin } from '@/lib/auth/permissions.ts';
 import { isOtherGameRoute } from '@/lib/domain/games.ts'; // plugged.host
 import { isInLimbo } from '@/lib/domain/limbo.ts'; // plugged.host
@@ -49,6 +50,10 @@ export default function ServerRouter({ isNormal }: { isNormal: boolean }) {
 
   const params = useParams<'id' | '*'>();
   const [loading, setLoading] = useState(true);
+  // plugged.host: the waiting pages (start queue, waiting room) are one screen with one purpose,
+  // without the sidebar, like the Pelican panel's (docs/features/start-queue.md)
+  const { pathname } = useLocation();
+  const withSidebar = isNormal && serverPageKind(pathname) !== 'room';
 
   const { server, setSocketInstance, resetState, setServer, setCommandSnippets, setServerAnnouncements } =
     useServerStore(
@@ -177,7 +182,7 @@ export default function ServerRouter({ isNormal }: { isNormal: boolean }) {
   return (
     <div className='lg:flex h-full'>
       <ServerQuickActions />
-      {isNormal && (
+      {withSidebar && ( // plugged.host: withSidebar
         <Sidebar
           header={
             <>

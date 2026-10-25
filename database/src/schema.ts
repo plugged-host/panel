@@ -1891,6 +1891,28 @@ export const serverSubusersTable = pgTable(
   ],
 );
 
+// plugged.host: the backup mails a person asked for on a server's Settings › Notifications
+// (shared/src/backup_notifications.rs, docs/features/server-settings.md): one switch for backups made
+// by hand, one for a schedule's. Owner or subuser; a person with both off has no row.
+export const serverNotificationSettingsTable = pgTable(
+  'server_notification_settings',
+  {
+    server_uuid: uuid()
+      .references(() => serversTable.uuid, { onDelete: 'cascade' })
+      .notNull(),
+    user_uuid: uuid()
+      .references(() => usersTable.uuid, { onDelete: 'cascade' })
+      .notNull(),
+    manual_backups: boolean().default(false).notNull(),
+    scheduled_backups: boolean().default(false).notNull(),
+    created: timestamp().defaultNow().notNull(),
+  },
+  (cols) => [
+    primaryKey({ name: 'server_notification_settings_pk', columns: [cols.server_uuid, cols.user_uuid] }),
+    index('server_notification_settings_user_uuid_idx').on(cols.user_uuid),
+  ],
+);
+
 export const serverActivitiesTable = pgTable(
   'server_activities',
   {
@@ -2317,6 +2339,44 @@ export const neoUsageEventsTable = pgTable(
     index('neo_usage_events_user_uuid_created_idx').on(cols.user_uuid, cols.created),
     index('neo_usage_events_discord_id_idx').on(cols.discord_id),
     index('neo_usage_events_created_idx').on(cols.created),
+  ],
+);
+
+// plugged.host: neo on Discord's short memory (shared/src/neo/discord, docs/features/neo-discord.md).
+// One conversation is one person in one channel or DM (`{channel_id}:{author_id}`). A `user` row is a
+// message someone sent the assistant bot (`pending` until it is answered); the rows of one answer
+// (the messages it answers, the bot's turns and its lookups) share `turn_uuid`, the uuid of the
+// first message it answers, in `position` order. Deleted after neo's retention days.
+export const neoDiscordMessagesTable = pgTable(
+  'neo_discord_messages',
+  {
+    uuid: uuid().default(sql`gen_random_uuid()`).primaryKey().notNull(),
+    conversation: varchar({ length: 48 }).notNull(),
+    turn_uuid: uuid(),
+    position: smallint().default(0).notNull(),
+    // the Discord message a user row is, to reply to
+    discord_message_id: varchar({ length: 20 }),
+    channel_id: varchar({ length: 20 }).notNull(),
+    // null in a DM
+    guild_id: varchar({ length: 20 }),
+    author_id: varchar({ length: 20 }).notNull(),
+    author_name: varchar({ length: 100 * UTF8_MAX_SCALAR_SIZE }),
+    // user, assistant, tool
+    role: varchar({ length: 12 }).notNull(),
+    content: text(),
+    tool_calls: jsonb(),
+    tool_call_id: varchar({ length: 64 }),
+    tool_name: varchar({ length: 64 }),
+    // pending, running, done, failed
+    status: varchar({ length: 12 }).notNull(),
+    // user rows: mentions, images, reply_to, and who answered (linked, account_id, user_uuid, error)
+    meta: jsonb(),
+    created: timestamp().defaultNow().notNull(),
+  },
+  (cols) => [
+    index('neo_discord_messages_conversation_created_idx').on(cols.conversation, cols.created),
+    index('neo_discord_messages_turn_uuid_idx').on(cols.turn_uuid),
+    index('neo_discord_messages_created_idx').on(cols.created),
   ],
 );
 

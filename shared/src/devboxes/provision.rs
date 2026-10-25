@@ -360,7 +360,7 @@ async fn create_server(
     sqlx::query(
         "UPDATE devboxes SET server_uuid = $2, node_uuid = $3, mount_source = $4, token_hash = NULL,
             code_secret = NULL, stopping = NULL, boot_status = NULL, boot_detail = NULL,
-            connections = 0
+            connections = 0, version = NULL, host_key = NULL
         WHERE uuid = $1",
     )
     .bind(devbox.uuid)

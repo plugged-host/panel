@@ -1,6 +1,8 @@
-// plugged.host: the server's VS Code page: a devbox with the server's files (docs/features/devboxes.md)
+// plugged.host: the server's VS Code page: a devbox with the server's files, as the Pelican panel's
+// "VS Code" settings section (plugged-host-devbox's open-in-vscode.blade.php): label/value rows,
+// one filled button (docs/features/devboxes.md)
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router';
+import { Link } from 'react-router';
 import { z } from 'zod';
 import { httpErrorToHuman } from '@/api/axios.ts';
 import getDevbox from '@/api/server/devbox/getDevbox.ts';
@@ -9,20 +11,17 @@ import startDevbox from '@/api/server/devbox/startDevbox.ts';
 import stopDevbox from '@/api/server/devbox/stopDevbox.ts';
 import updateSharedDevbox from '@/api/server/devbox/updateSharedDevbox.ts';
 import Button from '@/elements/buttons/Button.tsx';
-import CopyOnClick from '@/elements/CopyOnClick.tsx';
-import ServerContentContainer from '@/elements/containers/ServerContentContainer.tsx';
-import Spinner from '@/elements/feedback/Spinner.tsx';
+import TitleCard from '@/elements/data-display/TitleCard.tsx';
 import Checkbox from '@/elements/input/Checkbox.tsx';
-import Switch from '@/elements/input/Switch.tsx';
-import TextInput from '@/elements/input/TextInput.tsx';
 import Group from '@/elements/layout/Group.tsx';
-import Stack from '@/elements/layout/Stack.tsx';
+import ConfirmationModal from '@/elements/modals/ConfirmationModal.tsx';
 import ResourceView from '@/elements/ResourceView.tsx';
-import Anchor from '@/elements/typography/Anchor.tsx';
+import { CopyActionIcon, SettingRow, SettingRows } from '@/elements/SettingRows.tsx';
 import Text from '@/elements/typography/Text.tsx';
-import Title from '@/elements/typography/Title.tsx';
+import { tierName } from '@/lib/economy.ts';
 import { queryKeys } from '@/lib/queryKeys.ts';
 import { serverDevboxSchema, serverDevboxSharedRightsSchema } from '@/lib/schemas/server/devbox.ts';
+import ServerSettingsShell from '@/pages/server/settings/ServerSettingsShell.tsx';
 import { useResource } from '@/plugins/resource/useResource.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
@@ -33,28 +32,108 @@ type Devbox = z.infer<typeof serverDevboxSchema>;
 type Rights = z.infer<typeof serverDevboxSharedRightsSchema>;
 
 const page = 'pages.server.devbox';
+const REMOTE_SSH_URL = 'vscode:extension/ms-vscode-remote.remote-ssh';
 
-function Field({ label, value, copy = true }: { label: string; value: string; copy?: boolean }) {
-  const input = <TextInput label={label} value={value} className='pointer-events-none' readOnly />;
-
-  return copy ? (
-    <CopyOnClick content={value} className='text-start'>
-      {input}
-    </CopyOnClick>
-  ) : (
-    input
-  );
-}
-
-function Connection({ devbox, busy, onStop }: { devbox: Devbox; busy: boolean; onStop: () => void }) {
+function Sharing({ devbox, refresh }: { devbox: Devbox; refresh: () => void }) {
   const { t } = useTranslations();
   const { addToast } = useToast();
   const server = useServerStore((state) => state.server);
+  const [saving, setSaving] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+
+  const save = (update: { enabled?: boolean; rights?: Rights }) => {
+    setSaving(true);
+    return updateSharedDevbox(server.uuid, update)
+      .then(() => {
+        addToast(t(`${page}.toast.saved`, {}), 'success');
+      })
+      .catch((err) => {
+        addToast(httpErrorToHuman(err), 'error');
+      })
+      .finally(() => {
+        setSaving(false);
+        setConfirming(false);
+        refresh();
+      });
+  };
+  const rights = devbox.sharedRights;
+  const plan = tierName('plus');
+
+  return (
+    <>
+      <ConfirmationModal
+        opened={confirming}
+        onClose={() => setConfirming(false)}
+        title={devbox.shared ? t(`${page}.shared.unshare`, {}) : t(`${page}.shared.share`, {})}
+        confirm={devbox.shared ? t(`${page}.shared.unshare`, {}) : t(`${page}.shared.share`, {})}
+        onConfirmed={() => save({ enabled: !devbox.shared })}
+      >
+        <Text size='sm' c='dimmed'>
+          {devbox.shared ? t(`${page}.shared.confirmUnshare`, {}) : t(`${page}.shared.confirmShare`, {})}
+        </Text>
+      </ConfirmationModal>
+
+      <SettingRow
+        label={t(`${page}.shared.label`, {})}
+        hint={t(`${page}.shared.hint`, { plan })}
+        actions={
+          <Button
+            size='sm'
+            variant='default'
+            disabled={saving || (!devbox.shared && !devbox.ownerAllowed)}
+            onClick={() => setConfirming(true)}
+          >
+            {devbox.shared ? t(`${page}.shared.unshare`, {}) : t(`${page}.shared.share`, {})}
+          </Button>
+        }
+      >
+        {devbox.shared ? t(`${page}.shared.on`, {}) : t(`${page}.shared.off`, {})}
+      </SettingRow>
+
+      {/* v3 only: what ph in the shared devbox may do on the server */}
+      {devbox.shared && rights && (
+        <SettingRow label={t(`${page}.shared.rightsLabel`, {})} hint={t(`${page}.shared.rights`, {})} wrap>
+          <Group gap='md'>
+            {(['status', 'logs', 'console', 'power'] as const).map((right) => (
+              <Checkbox
+                key={right}
+                label={t(`${page}.shared.right.${right}`, {})}
+                checked={rights[right]}
+                disabled={saving}
+                onChange={(event) => save({ rights: { ...rights, [right]: event.currentTarget.checked } })}
+              />
+            ))}
+          </Group>
+        </SettingRow>
+      )}
+    </>
+  );
+}
+
+function DevboxRows({ devbox, refresh }: { devbox: Devbox; refresh: () => void }) {
+  const { t } = useTranslations();
+  const server = useServerStore((state) => state.server);
+  const membershipEnabled = useGlobalStore((state) => !!state.settings.economy?.membershipEnabled);
+  const [busy, setBusy] = useState(false);
   const [opening, setOpening] = useState(false);
-  const connection = devbox.connection!;
+  const [error, setError] = useState<string | null>(null);
+  const plan = tierName('plus');
+  const connection = devbox.connection;
+
+  const act = (action: (uuid: string) => Promise<Devbox>) => {
+    setBusy(true);
+    setError(null);
+    action(server.uuid)
+      .catch((err) => setError(httpErrorToHuman(err)))
+      .finally(() => {
+        setBusy(false);
+        refresh();
+      });
+  };
 
   const openInBrowser = () => {
     setOpening(true);
+    setError(null);
     // a window opened before the request, so no popup blocker stops it
     const opened = window.open('', '_blank');
     openDevboxInBrowser(server.uuid)
@@ -68,122 +147,133 @@ function Connection({ devbox, busy, onStop }: { devbox: Devbox; busy: boolean; o
       })
       .catch((err) => {
         opened?.close();
-        addToast(httpErrorToHuman(err), 'error');
+        setError(httpErrorToHuman(err));
       })
       .finally(() => setOpening(false));
   };
 
+  if (devbox.state === 'hidden') {
+    return <p className='theme-setting-note'>{t(`${page}.hidden`, {})}</p>;
+  }
+
+  if (devbox.state === 'locked') {
+    return (
+      <SettingRows>
+        <SettingRow
+          label={t(`${page}.label`, {})}
+          hint={t(`${page}.lockedHint`, {})}
+          actions={
+            membershipEnabled ? (
+              <Link to='/account/membership' className='theme-eco-link text-sm'>
+                {t(`${page}.getPlan`, { plan })}
+              </Link>
+            ) : undefined
+          }
+        >
+          {devbox.shared ? t(`${page}.lockedShared`, {}) : t(`${page}.locked`, { plan })}
+        </SettingRow>
+      </SettingRows>
+    );
+  }
+
+  const state = devbox.state;
+  const hint =
+    state === 'ready'
+      ? connection
+        ? t(`${page}.hint.ready`, { address: `${connection.host}:${connection.port}`, minutes: devbox.idleMinutes })
+        : undefined
+      : state === 'none' || state === 'stopped'
+        ? t(`${page}.hint.what`, { minutes: devbox.idleMinutes })
+        : t(`${page}.hint.${state}`, {});
+  const stoppable = devbox.canStop && ['ready', 'starting', 'failed', 'mount_missing'].includes(state);
+
   return (
-    <Stack gap='lg'>
-      <Stack gap={4}>
-        <Text>{t(`${page}.ready`, {})}</Text>
-        <Text size='sm' c='dimmed'>
-          {connection.connections > 0
-            ? t(`${page}.connections`, { count: connection.connections })
-            : t(`${page}.idle`, { minutes: devbox.idleMinutes })}
-        </Text>
-      </Stack>
+    <SettingRows>
+      <SettingRow
+        label={t(`${page}.label`, {})}
+        hint={hint}
+        actions={
+          stoppable ? (
+            <Button size='sm' variant='default' loading={busy} onClick={() => act(stopDevbox)}>
+              {t(`${page}.button.stop`, {})}
+            </Button>
+          ) : undefined
+        }
+      >
+        {t(`${page}.state.${state}`, {})}
+      </SettingRow>
 
-      <Group>
-        <Anchor href={connection.vscodeUrl}>
-          <Button>{t(`${page}.button.vscode`, {})}</Button>
-        </Anchor>
-        {connection.web && (
-          <Button variant='default' loading={opening} onClick={openInBrowser}>
-            {t(`${page}.button.browser`, {})}
+      {state === 'ready' && connection && (
+        <>
+          <SettingRow
+            label={t(`${page}.code`, {})}
+            mono
+            hint={t(`${page}.codeHint`, {})}
+            actions={<CopyActionIcon content={connection.code ?? ''} label={t(`${page}.copyCode`, {})} />}
+          >
+            {connection.code}
+          </SettingRow>
+          <SettingRow
+            label={t(`${page}.ssh`, {})}
+            mono
+            hint={connection.hostKey ? t(`${page}.sshHint`, { key: connection.hostKey }) : undefined}
+            actions={<CopyActionIcon content={connection.sshCommand} label={t(`${page}.copySsh`, {})} />}
+          >
+            {connection.sshCommand}
+          </SettingRow>
+        </>
+      )}
+
+      {devbox.isOwner && (devbox.shared || devbox.ownerAllowed) && <Sharing devbox={devbox} refresh={refresh} />}
+
+      {error && (
+        <SettingRow label='' wrap>
+          <span className='theme-setting-error'>{error}</span>
+        </SettingRow>
+      )}
+
+      <div className='theme-setting-open'>
+        {state === 'ready' && connection ? (
+          <>
+            <Button
+              onClick={() => {
+                window.location.href = connection.vscodeUrl;
+              }}
+            >
+              {t(`${page}.button.vscode`, {})}
+            </Button>
+            {connection.web && (
+              <Button variant='default' loading={opening} onClick={openInBrowser}>
+                {t(`${page}.button.browser`, {})}
+              </Button>
+            )}
+          </>
+        ) : state === 'none' || state === 'stopped' || state === 'failed' ? (
+          <Button loading={busy} onClick={() => act(startDevbox)}>
+            {t(`${page}.button.start`, {})}
           </Button>
-        )}
-      </Group>
-
-      <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-        <Field label={t('common.form.host', {})} value={connection.host} />
-        <Field label={t(`${page}.port`, {})} value={String(connection.port)} />
-        <Field label={t('common.form.username', {})} value={connection.username} />
-        <Field label={t(`${page}.code`, {})} value={connection.code ?? ''} />
+        ) : null}
+        <span className='theme-setting-hint'>
+          {t(`${page}.needsExtension`, {})}{' '}
+          <a href={REMOTE_SSH_URL} className='theme-eco-link'>
+            {t(`${page}.button.install`, {})}
+          </a>
+        </span>
       </div>
-      <Stack gap={4}>
-        <Field label={t(`${page}.sshCommand`, {})} value={connection.sshCommand} />
-        <Text size='xs' c='dimmed'>
-          {t(`${page}.codeHelp`, {})}
-        </Text>
-      </Stack>
-      {connection.hostKey && <Field label={t(`${page}.hostKey`, {})} value={connection.hostKey} />}
-
-      {devbox.canStop && (
-        <Group>
-          <Button variant='default' loading={busy} onClick={onStop}>
-            {t(`${page}.button.stop`, {})}
-          </Button>
-        </Group>
-      )}
-    </Stack>
-  );
-}
-
-function Sharing({ devbox, refresh }: { devbox: Devbox; refresh: (devbox: Devbox) => void }) {
-  const { t } = useTranslations();
-  const { addToast } = useToast();
-  const server = useServerStore((state) => state.server);
-  const [saving, setSaving] = useState(false);
-
-  const save = (update: { enabled?: boolean; rights?: Rights }) => {
-    setSaving(true);
-    updateSharedDevbox(server.uuid, update)
-      .then((next) => {
-        addToast(t(`${page}.toast.saved`, {}), 'success');
-        refresh(next);
-      })
-      .catch((err) => addToast(httpErrorToHuman(err), 'error'))
-      .finally(() => setSaving(false));
-  };
-  const rights = devbox.sharedRights;
-
-  return (
-    <Stack gap='sm'>
-      <Title order={3} fz='md' fw={600}>
-        {t(`${page}.shared.title`, {})}
-      </Title>
-      <Switch
-        label={t(`${page}.shared.enabled`, {})}
-        description={t(`${page}.shared.enabledDescription`, {})}
-        checked={devbox.shared}
-        disabled={saving || (!devbox.shared && !devbox.ownerAllowed)}
-        onChange={(event) => save({ enabled: event.currentTarget.checked })}
-      />
-      {devbox.shared && rights && (
-        <Stack gap='xs'>
-          <Text size='sm' c='dimmed'>
-            {t(`${page}.shared.rights`, {})}
-          </Text>
-          {(['status', 'logs', 'console', 'power'] as const).map((right) => (
-            <Checkbox
-              key={right}
-              label={t(`${page}.shared.right.${right}`, {})}
-              checked={rights[right]}
-              disabled={saving}
-              onChange={(event) => save({ rights: { ...rights, [right]: event.currentTarget.checked } })}
-            />
-          ))}
-        </Stack>
-      )}
-    </Stack>
+    </SettingRows>
   );
 }
 
 export default function ServerDevbox() {
   const { t } = useTranslations();
-  const { addToast } = useToast();
-  const navigate = useNavigate();
   const server = useServerStore((state) => state.server);
-  const membershipEnabled = useGlobalStore((state) => !!state.settings.economy?.membershipEnabled);
-  const [busy, setBusy] = useState(false);
 
   const resource = useResource({
     queryKey: queryKeys.server(server.uuid).devbox(),
     queryFn: () => getDevbox(server.uuid),
   });
 
-  // starts and stops take a while: follow them
+  // creating, starting and stopping take a while: follow them
   useEffect(() => {
     if (!resource.data?.polling) return;
 
@@ -191,70 +281,13 @@ export default function ServerDevbox() {
     return () => clearInterval(interval);
   }, [resource.data?.polling]);
 
-  const act = (action: (uuid: string) => Promise<Devbox>, toast: 'starting' | 'stopping') => {
-    setBusy(true);
-    action(server.uuid)
-      .then(() => addToast(t(`${page}.toast.${toast}`, {}), 'success'))
-      .catch((err) => addToast(httpErrorToHuman(err), 'error'))
-      .finally(() => {
-        setBusy(false);
-        resource.invalidate();
-      });
-  };
-  const start = () => act(startDevbox, 'starting');
-  const stop = () => act(stopDevbox, 'stopping');
-
   return (
-    <ServerContentContainer title={t(`${page}.title`, {})}>
-      <ResourceView resource={resource}>
-        {(devbox) => (
-          <Stack gap='xl'>
-            {devbox.state === 'hidden' ? (
-              <Text c='dimmed'>{t(`${page}.hidden`, {})}</Text>
-            ) : devbox.state === 'locked' ? (
-              <Stack gap='xs' align='flex-start'>
-                <Text>{devbox.shared ? t(`${page}.lockedShared`, {}) : t(`${page}.locked`, {})}</Text>
-                {membershipEnabled && (
-                  <Button onClick={() => navigate('/account/membership')}>{t(`${page}.button.membership`, {})}</Button>
-                )}
-              </Stack>
-            ) : devbox.state === 'none' || devbox.state === 'stopped' ? (
-              <Stack gap='xs' align='flex-start'>
-                <Text>{t(`${page}.about`, {})}</Text>
-                <Text size='sm' c='dimmed'>
-                  {devbox.kind === 'shared' ? t(`${page}.aboutShared`, {}) : t(`${page}.aboutPersonal`, {})}{' '}
-                  {t(`${page}.idle`, { minutes: devbox.idleMinutes })}
-                </Text>
-                <Button mt='xs' loading={busy} onClick={start}>
-                  {t(`${page}.button.start`, {})}
-                </Button>
-              </Stack>
-            ) : devbox.state === 'starting' || devbox.state === 'stopping' ? (
-              <Group gap='sm'>
-                <Spinner size={20} />
-                <Text>{devbox.state === 'starting' ? t(`${page}.starting`, {}) : t(`${page}.stopping`, {})}</Text>
-              </Group>
-            ) : devbox.state === 'failed' || devbox.state === 'mount_missing' ? (
-              <Stack gap='xs' align='flex-start'>
-                <Text c='red'>
-                  {devbox.state === 'failed' ? t(`${page}.failed`, {}) : t(`${page}.mountMissing`, {})}
-                </Text>
-                {devbox.canStop && (
-                  <Button variant='default' loading={busy} onClick={stop}>
-                    {t(`${page}.button.stop`, {})}
-                  </Button>
-                )}
-              </Stack>
-            ) : (
-              <Connection devbox={devbox} busy={busy} onStop={stop} />
-            )}
-
-            {devbox.isOwner && devbox.state !== 'hidden' && (devbox.shared || devbox.ownerAllowed) && (
-              <Sharing devbox={devbox} refresh={() => resource.invalidate()} />
-            )}
-          </Stack>
-        )}
-      </ResourceView>
-    </ServerContentContainer>
+    <ServerSettingsShell>
+      <TitleCard title={t(`${page}.title`, {})} description={t(`${page}.description`, {})}>
+        <ResourceView resource={resource}>
+          {(devbox) => <DevboxRows devbox={devbox} refresh={() => resource.invalidate()} />}
+        </ResourceView>
+      </TitleCard>
+    </ServerSettingsShell>
   );
 }

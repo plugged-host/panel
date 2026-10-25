@@ -14,6 +14,7 @@ import DismissibleAnnouncementAlert from '@/elements/DismissibleAnnouncementAler
 import Notification from '@/elements/feedback/Notification.tsx';
 import Progress from '@/elements/feedback/Progress.tsx';
 import Tooltip from '@/elements/overlays/Tooltip.tsx';
+import TransferStrip, { useTransferStrip } from '@/elements/TransferStrip.tsx'; // plugged.host
 import { bytesProgressString } from '@/lib/format/size.ts';
 import { useAdminCan, useServerCan } from '@/plugins/usePermissions.ts'; // plugged.host
 import { useAuth } from '@/providers/AuthProvider.tsx';
@@ -98,6 +99,7 @@ function ServerContentContainer(props: Props) {
   // plugged.host: players may cancel their own move (docs/features/transfers.md)
   const canAdminTransfer = useAdminCan('servers.transfer');
   const canPlayerTransfer = useServerCan('settings.transfer');
+  const transferStrip = useTransferStrip(); // plugged.host: the Pelican panel's strip (elements/TransferStrip.tsx)
   const { id } = useCurrentWindow();
   const { addToast } = useToast();
 
@@ -147,7 +149,10 @@ function ServerContentContainer(props: Props) {
           <DismissibleAnnouncementAlert key={announcement.uuid} announcement={announcement} />
         ))}
 
-      {fullscreen || id ? null : server.isTransferring ? (
+      {/* plugged.host: the Pelican panel's transfer strip; upstream's banner only for a move it does not cover */}
+      {!fullscreen && !id && transferStrip.status && <TransferStrip status={transferStrip.status} />}
+
+      {fullscreen || id ? null : server.isTransferring && !transferStrip.covered ? (
         <div className='theme-main theme-main-banner'>
           <Notification className='theme-callout'>
             <div className='flex flex-col md:flex-row items-center gap-2'>

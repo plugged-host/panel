@@ -13,12 +13,11 @@ import {
   faNetworkWired,
   faPlay,
   faPuzzlePiece, // plugged.host
-  faRightLeft,
   faRocket, // plugged.host
   faSliders, // plugged.host
   faStopwatch,
   faTerminal,
-  faUserGroup, // plugged.host
+  faTruck, // plugged.host: the Pelican panel's Transfer icon
   faUsers,
 } from '@fortawesome/free-solid-svg-icons';
 import { lazy } from 'react';
@@ -38,9 +37,8 @@ import ServerFivemEnhanced from '@/pages/server/fivem/enhanced/ServerFivemEnhanc
 import ServerFivemFrameworks from '@/pages/server/fivem/frameworks/ServerFivemFrameworks.tsx'; // plugged.host
 import ServerFivemPlayers from '@/pages/server/fivem/players/ServerFivemPlayers.tsx'; // plugged.host
 import ServerLimbo from '@/pages/server/limbo/ServerLimbo.tsx'; // plugged.host
-import ServerMinecraftBrowse from '@/pages/server/minecraft/content/ServerMinecraftBrowse.tsx'; // plugged.host
 import ServerMinecraftContent from '@/pages/server/minecraft/content/ServerMinecraftContent.tsx'; // plugged.host
-import ServerMinecraftModpacks from '@/pages/server/minecraft/content/ServerMinecraftModpacks.tsx'; // plugged.host
+import ServerMinecraftContentRedirect from '@/pages/server/minecraft/content/ServerMinecraftContentRedirect.tsx'; // plugged.host
 import ServerMinecraftPlayers from '@/pages/server/minecraft/players/ServerMinecraftPlayers.tsx'; // plugged.host
 import ServerMinecraftSettings from '@/pages/server/minecraft/settings/ServerMinecraftSettings.tsx'; // plugged.host
 import ServerMinecraftSetup from '@/pages/server/minecraft/setup/ServerMinecraftSetup.tsx'; // plugged.host
@@ -50,7 +48,16 @@ import ServerQueue from '@/pages/server/queue/ServerQueue.tsx'; // plugged.host
 import ScheduleView from '@/pages/server/schedules/ScheduleView.tsx';
 import ServerSchedules from '@/pages/server/schedules/ServerSchedules.tsx';
 import ServerSettings from '@/pages/server/settings/ServerSettings.tsx';
-import ServerStartup from '@/pages/server/startup/ServerStartup.tsx';
+// plugged.host: one page per item of the settings jump bar (docs/features/server-settings.md)
+import {
+  ServerSettingsBehaviour,
+  ServerSettingsDanger,
+  ServerSettingsNotifications,
+  ServerSettingsResources,
+  ServerSettingsSftp,
+  ServerSettingsVersion,
+} from '@/pages/server/settings/ServerSettingsPages.tsx';
+import ServerSettingsStartup from '@/pages/server/settings/ServerSettingsStartup.tsx'; // plugged.host: replaces ServerStartup
 import ServerSubdomains from '@/pages/server/subdomains/ServerSubdomains.tsx'; // plugged.host
 import ServerSubusers from '@/pages/server/subusers/ServerSubusers.tsx';
 import ServerTransfer from '@/pages/server/transfer/ServerTransfer.tsx'; // plugged.host
@@ -119,16 +126,17 @@ const routes: ServerRouteDefinition[] = [
     element: ServerMinecraftContent,
     permission: 'minecraft.content',
   },
+  // plugged.host: the old Browse and Modpacks tabs, now sections of the page above
   {
     name: undefined,
     path: '/minecraft/content/browse',
-    element: ServerMinecraftBrowse,
+    element: ServerMinecraftContentRedirect,
     permission: 'minecraft.content',
   },
   {
     name: undefined,
     path: '/minecraft/content/modpacks',
-    element: ServerMinecraftModpacks,
+    element: ServerMinecraftContentRedirect,
     permission: 'minecraft.content',
   },
   {
@@ -144,19 +152,20 @@ const routes: ServerRouteDefinition[] = [
     element: ServerMinecraftSettings,
     permission: 'minecraft.settings',
   },
-  {
-    name: () => getTranslations().t('pages.server.minecraft.players.title', {}),
-    icon: faUserGroup,
-    path: '/minecraft/players',
-    element: ServerMinecraftPlayers,
-    permission: 'minecraft.players',
-  },
+  // plugged.host: Worlds before Players with Pelican's icons (its navigationSort 13 / 14, tabler world / users)
   {
     name: () => getTranslations().t('pages.server.minecraft.worlds.title', {}),
     icon: faEarthAmericas,
     path: '/minecraft/worlds',
     element: ServerMinecraftWorlds,
     permission: 'minecraft.worlds',
+  },
+  {
+    name: () => getTranslations().t('pages.server.minecraft.players.title', {}),
+    icon: faUsers,
+    path: '/minecraft/players',
+    element: ServerMinecraftPlayers,
+    permission: 'minecraft.players',
   },
   // plugged.host: FiveM and RedM servers only (lib/domain/games.ts, docs/features/fivem.md), in the Pelican panel's
   // order: the everyday pages, then Artifacts and GTAV Enhanced
@@ -257,9 +266,10 @@ const routes: ServerRouteDefinition[] = [
     permission: 'subdomains.read',
     filter: () => !!useGlobalStore.getState().settings.games?.subdomainsEnabled,
   },
-  // plugged.host: a devbox with the server's files (docs/features/devboxes.md)
+  // plugged.host: a devbox with the server's files (docs/features/devboxes.md); a settings page,
+  // reached through the jump bar like on the Pelican panel
   {
-    name: () => getTranslations().t('pages.server.devbox.title', {}),
+    name: undefined,
     icon: faCode,
     path: '/devbox',
     element: ServerDevbox,
@@ -267,23 +277,63 @@ const routes: ServerRouteDefinition[] = [
     filter: () => !!useGlobalStore.getState().settings.games?.devboxesEnabled,
   },
   {
-    name: () => getTranslations().t('pages.server.startup.title', {}),
+    name: undefined, // plugged.host: a settings page, reached through the jump bar like on the Pelican panel
     icon: faPlay,
     path: '/startup',
-    element: ServerStartup,
+    element: ServerSettingsStartup, // plugged.host: the Pelican panel's "Startup command" section
     permission: 'startup.read',
   },
   {
     name: () => getTranslations().t('pages.server.settings.title', {}),
     icon: faCog,
     path: '/settings',
+    // plugged.host: the jump bar's pages outside /settings keep the Settings row active
+    activeMatches: ['/server/:id/startup', '/server/:id/devbox'],
     element: ServerSettings,
-    permission: ['settings.*'],
+    // plugged.host: everyone with one of its pages sees Settings, as on the Pelican panel
+    permission: ['settings.*', 'files.sftp', 'startup.read', 'devbox.connect', 'backups.read'],
+  },
+  // plugged.host: the settings pages behind the jump bar (docs/features/server-settings.md)
+  {
+    name: undefined,
+    path: '/settings/sftp',
+    element: ServerSettingsSftp,
+    permission: 'files.sftp',
+  },
+  {
+    name: undefined,
+    path: '/settings/resources',
+    element: ServerSettingsResources,
+    permission: 'settings.resize',
+  },
+  {
+    name: undefined,
+    path: '/settings/version',
+    element: ServerSettingsVersion,
+    permission: 'settings.software',
+  },
+  {
+    name: undefined,
+    path: '/settings/behaviour',
+    element: ServerSettingsBehaviour,
+    permission: ['settings.auto-kill', 'settings.auto-start', 'settings.timezone', 'settings.trash'],
+  },
+  {
+    name: undefined,
+    path: '/settings/notifications',
+    element: ServerSettingsNotifications,
+    permission: 'backups.read',
+  },
+  {
+    name: undefined,
+    path: '/settings/danger',
+    element: ServerSettingsDanger,
+    permission: ['settings.install', 'settings.delete'],
   },
   // plugged.host: players moving their server (docs/features/transfers.md)
   {
     name: () => getTranslations().t('pages.server.transfer.title', {}),
-    icon: faRightLeft,
+    icon: faTruck,
     path: '/transfer',
     element: ServerTransfer,
     permission: 'settings.transfer',

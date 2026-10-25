@@ -148,6 +148,7 @@ import {
   IconMedal, // plugged.host
   IconMenu2,
   IconMessagePlus, // plugged.host
+  IconMessages, // plugged.host
   IconMinus,
   IconNetwork,
   IconPackage, // plugged.host
@@ -201,6 +202,7 @@ import {
   IconTool,
   IconTools,
   IconTrash,
+  IconTruckDelivery, // plugged.host
   IconTypography,
   IconUpload,
   IconUser,
@@ -282,6 +284,7 @@ export const tablerIcons: Record<string, TablerIcon> = {
   'code-compare': IconGitCompare,
   coins: IconCoins, // plugged.host
   'comment-medical': IconMessagePlus, // plugged.host: neo's new chat
+  comments: IconMessages, // plugged.host: neo on Discord's settings tab
   compass: IconCompass,
   compress: IconArrowsMinimize,
   computer: IconBrandDocker,
@@ -427,6 +430,7 @@ export const tablerIcons: Record<string, TablerIcon> = {
   'tower-broadcast': IconBroadcast,
   trash: IconTrash,
   'triangle-exclamation': IconAlertTriangle,
+  truck: IconTruckDelivery, // plugged.host: Transfer, as on the Pelican panel
   unlock: IconLockOpen, // plugged.host
   'unlock-keyhole': IconLockOpen2,
   upload: IconUpload,

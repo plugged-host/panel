@@ -18,6 +18,7 @@ export const minecraftContentOptionsSchema = z.object({
   kinds: z.array(minecraftKindSchema),
   directory: z.string().nullable(),
   modpacks: z.boolean(),
+  gameVersions: z.array(z.string()),
 });
 
 export const minecraftProjectSchema = z.object({
@@ -33,6 +34,7 @@ export const minecraftProjectSchema = z.object({
   url: z.string(),
   kind: minecraftKindSchema,
   installable: z.boolean(),
+  clientOnly: z.boolean(),
 });
 
 export const minecraftSearchSchema = z.object({
@@ -177,6 +179,12 @@ export const minecraftGenerationSchema = z.object({
   datapacks: z.array(z.string()),
 });
 
+export const minecraftGameplaySchema = z.object({
+  difficulty: z.string(),
+  gamemode: z.string(),
+  hardcore: z.boolean(),
+});
+
 export const minecraftWorldImportSchema = z.object({
   archive: z.string(),
   state: z.enum(['running', 'done', 'failed']),
@@ -188,6 +196,7 @@ export const minecraftWorldImportSchema = z.object({
 export const minecraftWorldsSchema = z.object({
   worlds: z.array(minecraftWorldSchema),
   generation: minecraftGenerationSchema,
+  gameplay: minecraftGameplaySchema,
   levelTypes: z.array(z.string()),
   running: z.boolean(),
   trash: z.boolean(),
@@ -280,4 +289,5 @@ export const minecraftOnboardingSchema = z.object({
   bedrockVariants: z.array(z.string()),
   bedrockLoaders: z.array(minecraftLoaderSchema),
   bedrockNow: z.boolean(),
+  modpackLoaders: z.record(z.string(), minecraftLoaderSchema),
 });

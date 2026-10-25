@@ -4,6 +4,7 @@
 //! noprofit.space settings carry its secret ([`gateway`]), else on the panel itself ([`local`]):
 //! the providers of Admin › Settings › neo ([`chain`]) and the 5-hour and weekly windows in
 //! `neo_usage_*` ([`usage`]). Both answer in the same shapes, so the agent never asks which.
+//! What neo is told about itself and the host comes from the settings ([`prompt`]).
 //!
 //! Every slot is a model people pick by name in the chat; a turn runs on the picked one (the
 //! default model when none was picked), never on another as a fallback. A membership raises the
@@ -15,6 +16,8 @@ pub mod chain;
 pub mod chat;
 pub mod context;
 pub mod conversations;
+/// neo on Discord, account support (docs/features/neo-discord.md).
+pub mod discord;
 pub mod drivers;
 mod gateway;
 pub mod images;

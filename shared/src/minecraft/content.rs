@@ -19,6 +19,9 @@ pub struct ContentOptions {
     pub directory: Option<&'static str>,
     /// The server can take a modpack (its game can run a mod loader).
     pub modpacks: bool,
+    /// The Minecraft versions to filter by, newest first: the loader's (Mojang's releases without
+    /// one); empty when its API did not answer.
+    pub game_versions: Vec<compact_str::CompactString>,
 }
 
 /// The sources this server can browse, Modrinth first.
@@ -40,6 +43,9 @@ pub async fn options(
 ) -> Result<ContentOptions, anyhow::Error> {
     let software = super::software(state, server).await?;
     let game_version = software.game_version(state).await;
+    let game_versions = super::versions::for_software(state, software.loader)
+        .await
+        .unwrap_or_default();
 
     let (sources, kinds, directory) = match software.loader {
         Some(loader) => (
@@ -57,6 +63,7 @@ pub async fn options(
         kinds,
         directory,
         modpacks: !super::modpacks::loaders(state, server).await?.is_empty(),
+        game_versions,
     })
 }
 

@@ -1,18 +1,15 @@
-// plugged.host: one search result, installed with one click or a chosen version (docs/features/minecraft.md)
-import { faArrowUpRightFromSquare, faListUl } from '@fortawesome/free-solid-svg-icons';
+// plugged.host: one catalog row, installed with one click or a chosen version (docs/features/minecraft.md)
+import { faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useState } from 'react';
 import { z } from 'zod';
 import { httpErrorToHuman } from '@/api/axios.ts';
 import installContent from '@/api/server/minecraft/installContent.ts';
-import Button from '@/elements/buttons/Button.tsx';
-import { ServerCan } from '@/elements/Can.tsx';
+import ActionIcon from '@/elements/buttons/ActionIcon.tsx';
 import Badge from '@/elements/data-display/Badge.tsx';
 import { TableData, TableRow } from '@/elements/data-display/Table.tsx';
-import Group from '@/elements/layout/Group.tsx';
-import Stack from '@/elements/layout/Stack.tsx';
 import ConditionalTooltip from '@/elements/overlays/ConditionalTooltip.tsx';
-import ContextMenu, { ContextMenuToggle } from '@/elements/overlays/ContextMenu.tsx';
-import Text from '@/elements/typography/Text.tsx';
+import Tooltip from '@/elements/overlays/Tooltip.tsx';
 import { minecraftProjectSchema } from '@/lib/schemas/server/minecraft.ts';
 import { useServerCan } from '@/plugins/usePermissions.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
@@ -20,27 +17,47 @@ import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useServerStore } from '@/stores/server.ts';
 import InstallVersionModal from './InstallVersionModal.tsx';
 import { minecraftSourceLabels } from './labels.ts';
+import ModpackModal from './ModpackModal.tsx';
 import { useInstalledToast } from './useInstalledToast.ts';
+
+export interface ProjectColumns {
+  author: boolean;
+  categories: boolean;
+}
 
 interface Props {
   project: z.infer<typeof minecraftProjectSchema>;
+  columns: ProjectColumns;
   gameVersion: string | null;
   installed: boolean;
+  // a modpack cannot be installed now (the server runs, or a pack is being installed)
+  modpackBlocked: 'running' | 'busy' | null;
   onInstalled: () => void;
+  onModpackStarted: () => void;
 }
 
-export default function ProjectRow({ project, gameVersion, installed, onInstalled }: Props) {
+export default function ProjectRow({
+  project,
+  columns,
+  gameVersion,
+  installed,
+  modpackBlocked,
+  onInstalled,
+  onModpackStarted,
+}: Props) {
   const { t, language } = useTranslations();
   const { addToast } = useToast();
   const server = useServerStore((state) => state.server);
   const canManage = useServerCan('minecraft.content');
+  const canModpack = useServerCan(['minecraft.content', 'settings.software'], false);
   const installedToast = useInstalledToast();
 
   const [installing, setInstalling] = useState(false);
-  const [versionsOpen, setVersionsOpen] = useState(false);
+  const [open, setOpen] = useState(false);
   const base = 'pages.server.minecraft.content.browse';
+  const modpack = project.kind === 'modpack';
 
-  const install = () => {
+  const quickInstall = () => {
     setInstalling(true);
 
     installContent(server.uuid, { source: project.source, project: project.id })
@@ -53,85 +70,131 @@ export default function ProjectRow({ project, gameVersion, installed, onInstalle
   };
 
   return (
-    <>
-      {canManage && project.installable && (
-        <InstallVersionModal
-          project={project}
-          gameVersion={gameVersion}
-          opened={versionsOpen}
-          onClose={() => setVersionsOpen(false)}
-          onInstalled={onInstalled}
-        />
+    <TableRow>
+      <TableData>
+        {project.icon ? (
+          <img src={project.icon} alt='' loading='lazy' className='theme-catalog-icon' />
+        ) : (
+          <span className='theme-catalog-icon' />
+        )}
+      </TableData>
+
+      <TableData className='theme-catalog-project'>
+        <span className='theme-catalog-title'>{project.title}</span>
+        {project.description && <span className='theme-catalog-description'>{project.description}</span>}
+      </TableData>
+
+      {columns.author && <TableData>{project.author}</TableData>}
+
+      <TableData>{project.downloads.toLocaleString(language)}</TableData>
+
+      {columns.categories && (
+        <TableData>
+          <div className='theme-catalog-categories'>
+            {project.categories.slice(0, 3).map((category) => (
+              <Badge key={category} color='gray' size='sm'>
+                {category}
+              </Badge>
+            ))}
+            {project.categories.length > 3 && (
+              <span className='theme-catalog-more'>
+                {t(`${base}.table.more`, { count: project.categories.length - 3 })}
+              </span>
+            )}
+          </div>
+        </TableData>
       )}
 
-      <ContextMenu
-        items={[
-          {
-            type: 'action',
-            icon: faListUl,
-            label: t(`${base}.button.chooseVersion`, {}),
-            hidden: !project.installable,
-            onClick: () => setVersionsOpen(true),
-            color: 'gray',
-            canAccess: canManage,
-          },
-          {
-            type: 'action',
-            icon: faArrowUpRightFromSquare,
-            label: t('pages.server.minecraft.content.button.open', { source: minecraftSourceLabels[project.source] }),
-            onClick: () => window.open(project.url, '_blank', 'noopener,noreferrer'),
-            color: 'gray',
-          },
-        ]}
-      >
-        {({ items, openMenu }) => (
-          <TableRow
-            onContextMenu={(e) => {
-              e.preventDefault();
-              openMenu(e.clientX, e.clientY);
-            }}
+      <TableData>
+        {installed ? (
+          <Badge color='green' size='sm'>
+            {t(`${base}.badge.installed`, {})}
+          </Badge>
+        ) : !project.installable ? (
+          <Tooltip label={t(`${base}.externalHint`, {})}>
+            <Badge color='gray' size='sm'>
+              {t(`${base}.badge.external`, {})}
+            </Badge>
+          </Tooltip>
+        ) : null}
+      </TableData>
+
+      <TableData>
+        <div className='theme-catalog-actions'>
+          {modpack
+            ? canModpack && (
+                <>
+                  {project.installable && (
+                    <ModpackModal
+                      project={project}
+                      opened={open}
+                      onClose={() => setOpen(false)}
+                      onStarted={onModpackStarted}
+                    />
+                  )}
+                  <ConditionalTooltip
+                    enabled={modpackBlocked === 'running'}
+                    label={t('pages.server.minecraft.modpacks.running', {})}
+                  >
+                    <button
+                      type='button'
+                      className='theme-link-action'
+                      data-accent
+                      disabled={!project.installable || modpackBlocked !== null}
+                      onClick={() => setOpen(true)}
+                    >
+                      {t('common.button.install', {})}
+                    </button>
+                  </ConditionalTooltip>
+                </>
+              )
+            : canManage && (
+                <>
+                  {project.installable && (
+                    <InstallVersionModal
+                      project={project}
+                      gameVersion={gameVersion}
+                      opened={open}
+                      onClose={() => setOpen(false)}
+                      onInstalled={onInstalled}
+                    />
+                  )}
+                  <button
+                    type='button'
+                    className='theme-link-action'
+                    data-accent
+                    disabled={!project.installable || installing}
+                    onClick={quickInstall}
+                  >
+                    {t(`${base}.button.quickInstall`, {})}
+                  </button>
+                  <button
+                    type='button'
+                    className='theme-link-action'
+                    disabled={!project.installable}
+                    onClick={() => setOpen(true)}
+                  >
+                    {t(`${base}.button.versions`, {})}
+                  </button>
+                </>
+              )}
+          <Tooltip
+            label={t('pages.server.minecraft.content.button.view', { source: minecraftSourceLabels[project.source] })}
           >
-            <TableData>
-              <Group gap='sm' wrap='nowrap'>
-                {project.icon && (
-                  <img src={project.icon} alt='' loading='lazy' className='w-10 h-10 rounded-md shrink-0' />
-                )}
-                <Stack gap={0}>
-                  <Group gap='xs'>
-                    <Text size='sm' fw={500}>
-                      {project.title}
-                    </Text>
-                    {installed && (
-                      <Badge color='green' size='xs'>
-                        {t(`${base}.badge.installed`, {})}
-                      </Badge>
-                    )}
-                  </Group>
-                  <Text size='xs' c='dimmed' lineClamp={2}>
-                    {project.description}
-                  </Text>
-                </Stack>
-              </Group>
-            </TableData>
-
-            <TableData>{project.author}</TableData>
-
-            <TableData>{new Intl.NumberFormat(language, { notation: 'compact' }).format(project.downloads)}</TableData>
-
-            <TableData>
-              <ServerCan action='minecraft.content'>
-                <ConditionalTooltip enabled={!project.installable} label={t(`${base}.externalHint`, {})}>
-                  <Button color='gray' size='xs' loading={installing} disabled={!project.installable} onClick={install}>
-                    {project.installable ? t(`${base}.button.install`, {}) : t(`${base}.button.external`, {})}
-                  </Button>
-                </ConditionalTooltip>
-              </ServerCan>
-            </TableData>
-
-            <ContextMenuToggle items={items} openMenu={openMenu} />
-          </TableRow>
-        )}
-      </ContextMenu>
-    </>
+            <ActionIcon
+              size='input-sm'
+              variant='subtle'
+              color='gray'
+              aria-label={t('pages.server.minecraft.content.button.view', {
+                source: minecraftSourceLabels[project.source],
+              })}
+              onClick={() => window.open(project.url, '_blank', 'noopener,noreferrer')}
+            >
+              <FontAwesomeIcon icon={faArrowUpRightFromSquare} />
+            </ActionIcon>
+          </Tooltip>
+        </div>
+      </TableData>
+    </TableRow>
   );
 }

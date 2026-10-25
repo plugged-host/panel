@@ -5,6 +5,7 @@ use crate::{
     allowance::{Allowance, Refusal, Resources},
     models::{
         ByUuid, UpdatableModel,
+        plan::Plan,
         server::{AdminApiServerLimits, Server, UpdateServerOptions},
     },
 };
@@ -20,12 +21,28 @@ pub struct Bounds {
     pub disk: Option<i64>,
 }
 
+/// One of the plans players create servers with (Admin › Plans), as a size to resize to.
+#[derive(ToSchema, Serialize)]
+pub struct ApiResizePlan {
+    pub uuid: uuid::Uuid,
+    pub name: compact_str::CompactString,
+    pub cpu: i64,
+    pub memory: i64,
+    pub disk: i64,
+    /// The server may be resized to it: it fits in the server's size plus what its owner has left.
+    pub fits: bool,
+    /// The server has exactly this size now.
+    pub current: bool,
+}
+
 #[derive(ToSchema, Serialize)]
 pub struct ApiResize {
     /// Resizing is on (Admin › Settings › Hosting › Games).
     pub enabled: bool,
     pub current: Resources,
     pub max: Bounds,
+    /// The public plans, in their order; values of their own stay possible ("Advanced").
+    pub plans: Vec<ApiResizePlan>,
 }
 
 #[derive(Debug)]
@@ -113,6 +130,12 @@ pub fn valid(from: Resources, to: Resources) -> bool {
     ok(from.cpu, to.cpu) && ok(from.memory, to.memory) && ok(from.disk, to.disk)
 }
 
+/// Whether a server of size `current` may become `plan`: what [`resize`] checks against the
+/// owner's allowance, without the node (a full node answers when the resize is sent).
+pub fn plan_fits(allowance: &Allowance, current: Resources, plan: Resources) -> bool {
+    valid(current, plan) && allowance.check_change(current, plan).is_ok()
+}
+
 /// Whether the server's node has room for it to grow: allocated memory (with overhead) and disk
 /// against the node's, like a deploy. Shrinking always fits.
 pub fn node_fits(
@@ -141,10 +164,29 @@ pub async fn options(state: &crate::State, server: &Server) -> Result<ApiResize,
     let current = current(server);
     let allowance = crate::allowance::for_user(state, server.owner.uuid).await?;
 
+    let plans = Plan::all_public(&state.database)
+        .await?
+        .into_iter()
+        .map(|plan| {
+            let size = Resources::new(plan.cpu as i64, plan.memory, plan.disk);
+
+            ApiResizePlan {
+                uuid: plan.uuid,
+                name: plan.name,
+                cpu: size.cpu,
+                memory: size.memory,
+                disk: size.disk,
+                fits: plan_fits(&allowance, current, size),
+                current: size == current,
+            }
+        })
+        .collect();
+
     Ok(ApiResize {
         enabled,
         current,
         max: bounds(&allowance, current),
+        plans,
     })
 }
 
@@ -286,6 +328,34 @@ mod tests {
         assert!(valid(from, Resources::new(100, 1024, 4096)));
         assert!(!valid(from, Resources::new(0, 0, 4096)));
         assert!(!valid(from, Resources::new(-5, 1024, 4096)));
+    }
+
+    #[test]
+    fn plans_fit_within_the_own_size_plus_what_is_left() {
+        let current = Resources::new(100, 2048, 4096);
+        let roomy = allowance(
+            true,
+            Resources::new(400, 8192, 0),
+            Resources::new(300, 6144, 10240),
+        );
+
+        // 100 + 100 CPU and 2048 + 2048 MiB left; disk has no limit
+        assert!(plan_fits(
+            &roomy,
+            current,
+            Resources::new(200, 4096, 99_999)
+        ));
+        assert!(!plan_fits(&roomy, current, Resources::new(201, 4096, 4096)));
+        assert!(!plan_fits(&roomy, current, Resources::new(100, 4097, 4096)));
+        assert!(plan_fits(&roomy, current, current));
+
+        // without a plan the server can only shrink
+        let none = allowance(false, Resources::default(), current);
+        assert!(plan_fits(&none, current, Resources::new(50, 1024, 2048)));
+        assert!(!plan_fits(&none, current, Resources::new(100, 3072, 4096)));
+
+        // 0 (no limit) is never a plan's value to take
+        assert!(!plan_fits(&roomy, current, Resources::new(0, 2048, 4096)));
     }
 
     #[test]

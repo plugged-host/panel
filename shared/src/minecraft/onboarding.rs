@@ -123,6 +123,9 @@ pub struct Onboarding {
     pub bedrock_loaders: Vec<Loader>,
     /// Whether the software the server runs now lets Bedrock players join.
     pub bedrock_now: bool,
+    /// The software choices that take modpacks, by value, with the loader their packs are for
+    /// (the setup's modpack step; Paper-family software takes plugins instead).
+    pub modpack_loaders: std::collections::BTreeMap<compact_str::CompactString, Loader>,
 }
 
 #[derive(Debug)]
@@ -187,9 +190,8 @@ pub async fn get(
     };
 
     let settings = state.settings.get().await.map_err(anyhow::Error::from)?;
-    let bedrock_variants = settings
-        .games
-        .game(server.egg.uuid)
+    let game = settings.games.game(server.egg.uuid);
+    let bedrock_variants = game
         .map(|game| {
             game.variants
                 .iter()
@@ -198,6 +200,11 @@ pub async fn get(
                 .collect()
         })
         .unwrap_or_default();
+    let modpack_loaders = modpack_loaders(
+        game.iter()
+            .flat_map(|game| game.variants.iter())
+            .map(|variant| variant.value.as_str()),
+    );
     drop(settings);
 
     Ok(Some(Onboarding {
@@ -212,6 +219,7 @@ pub async fn get(
         bedrock_variants,
         bedrock_loaders: bedrock_loaders(),
         bedrock_now: bedrock::platform(super::software(state, server).await?.loader).is_some(),
+        modpack_loaders,
     }))
 }
 
@@ -498,9 +506,39 @@ pub fn bedrock_loaders() -> Vec<Loader> {
     .collect()
 }
 
+/// The software choices (by value) whose loader takes modpacks, with that loader: every mod
+/// loader, not the Paper family (the same rule as [`modpacks::loaders`]).
+fn modpack_loaders<'a>(
+    values: impl IntoIterator<Item = &'a str>,
+) -> std::collections::BTreeMap<compact_str::CompactString, Loader> {
+    values
+        .into_iter()
+        .filter_map(|value| {
+            Loader::from_value(value)
+                .filter(|loader| *loader != Loader::Paper)
+                .map(|loader| (value.into(), loader))
+        })
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn modpacks_are_for_mod_loaders_only() {
+        let loaders =
+            modpack_loaders(["purpur", "fabric", "NeoForge", "forge", "vanilla", "paper"]);
+
+        assert_eq!(
+            loaders.into_iter().collect::<Vec<_>>(),
+            vec![
+                ("NeoForge".into(), Loader::NeoForge),
+                ("fabric".into(), Loader::Fabric),
+                ("forge".into(), Loader::Forge),
+            ]
+        );
+    }
 
     fn answers() -> Answers {
         Answers {

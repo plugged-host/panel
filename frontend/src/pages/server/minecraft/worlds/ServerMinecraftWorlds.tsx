@@ -1,94 +1,100 @@
-// plugged.host: a Minecraft server's worlds (docs/features/minecraft.md)
-import { useEffect, useMemo, useRef, useState } from 'react';
+// plugged.host: a Minecraft server's worlds, laid out like the Pelican panel's Worlds page: one card
+// per world, the loaded one first, and three notes on how it works underneath
+// (docs/features/minecraft.md)
+import { faArrowsRotate, faStop } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { useEffect, useRef, useState } from 'react';
 import { z } from 'zod';
+import { useShallow } from 'zustand/react/shallow';
 import getWorlds from '@/api/server/minecraft/getWorlds.ts';
-import Button from '@/elements/buttons/Button.tsx';
+import ActionIcon from '@/elements/buttons/ActionIcon.tsx';
+import { ServerCan } from '@/elements/Can.tsx';
 import ServerContentContainer from '@/elements/containers/ServerContentContainer.tsx';
-import Table from '@/elements/data-display/Table.tsx';
-import Alert from '@/elements/feedback/Alert.tsx';
-import Group from '@/elements/layout/Group.tsx';
-import Stack from '@/elements/layout/Stack.tsx';
+import Notification from '@/elements/feedback/Notification.tsx';
+import Tooltip from '@/elements/overlays/Tooltip.tsx';
 import ResourceView from '@/elements/ResourceView.tsx';
-import Text from '@/elements/typography/Text.tsx';
 import { queryKeys } from '@/lib/queryKeys.ts';
 import { minecraftWorldsSchema } from '@/lib/schemas/server/minecraft.ts';
 import { useResource } from '@/plugins/resource/useResource.ts';
-import { useServerCan } from '@/plugins/usePermissions.ts';
+import { usePowerAction } from '@/plugins/server/usePowerAction.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useServerStore } from '@/stores/server.ts';
-import NewWorldModal from './NewWorldModal.tsx';
-import UploadWorldModal from './UploadWorldModal.tsx';
-import WorldRow from './WorldRow.tsx';
+import { useReplacedToast } from './useReplacedToast.ts';
+import WorldCard from './WorldCard.tsx';
 
-function Worlds({ worlds, search }: { worlds: z.infer<typeof minecraftWorldsSchema>; search: string }) {
+const base = 'pages.server.minecraft.worlds';
+const HELP = ['upload', 'safe', 'switch'] as const;
+
+function Worlds({ worlds, offline }: { worlds: z.infer<typeof minecraftWorldsSchema>; offline: boolean }) {
   const { t } = useTranslations();
-  const base = 'pages.server.minecraft.worlds';
-
-  const rows = useMemo(() => {
-    const query = search.trim().toLowerCase();
-    return query ? worlds.worlds.filter((world) => world.name.toLowerCase().includes(query)) : worlds.worlds;
-  }, [worlds, search]);
+  const importing = worlds.import?.state === 'running';
+  // Why the loaded world cannot be replaced now, if it cannot.
+  const locked = !offline ? t(`${base}.stopFirst`, {}) : importing ? t(`${base}.importing`, {}) : null;
 
   return (
-    <Stack gap='md'>
-      {worlds.import?.state === 'running' && (
-        <Alert color='blue'>{t(`${base}.importing`, { file: worlds.import.archive })}</Alert>
+    <div className='flex flex-col gap-8'>
+      {!offline && (
+        <Notification className='theme-callout' color='yellow'>
+          {t(`${base}.running`, {})}
+        </Notification>
+      )}
+      {importing && (
+        <Notification className='theme-callout' loading>
+          {t(`${base}.importing`, {})}
+        </Notification>
       )}
       {worlds.import?.state === 'failed' && (
-        <Alert color='red'>
-          {t(`${base}.importFailed`, { file: worlds.import.archive, error: worlds.import.error ?? '' })}
-        </Alert>
-      )}
-      {worlds.running && (
-        <Text size='sm' c='dimmed'>
-          {t(`${base}.running`, {})}
-        </Text>
+        <Notification className='theme-callout' color='red'>
+          {t(`${base}.importFailed`, { error: worlds.import.error ?? '' })}
+        </Notification>
       )}
 
-      <Table
-        columns={[t(`${base}.table.world`, {}), t(`${base}.table.modified`, {}), '']}
-        pagination={{ total: rows.length, perPage: Math.max(rows.length, 1), page: 1, data: rows }}
-        empty={
-          <Text size='sm' c='dimmed'>
-            {t(`${base}.noMatch`, {})}
-          </Text>
-        }
-      >
-        {rows.map((world) => (
-          <WorldRow key={world.name} world={world} running={worlds.running} trash={worlds.trash} />
+      <div className='theme-world-list'>
+        {worlds.worlds.map((world) => (
+          <WorldCard key={world.name} world={world} worlds={worlds} locked={locked} offline={offline} />
         ))}
-      </Table>
-    </Stack>
+      </div>
+
+      <div className='theme-world-help'>
+        {HELP.map((help) => (
+          <div key={help}>
+            <strong>{t(`${base}.help.${help}Title`, {})}</strong>
+            <p>{t(`${base}.help.${help}Body`, {})}</p>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
 export default function ServerMinecraftWorlds() {
   const { t } = useTranslations();
   const { addToast } = useToast();
-  const server = useServerStore((state) => state.server);
-  const canManage = useServerCan('minecraft.worlds');
-  const canUpload = useServerCan(['minecraft.worlds', 'files.create'], false);
-  const [search, setSearch] = useState('');
-  const [modal, setModal] = useState<'new' | 'upload' | null>(null);
-  const base = 'pages.server.minecraft.worlds';
+  const replacedToast = useReplacedToast();
+  const powerAction = usePowerAction();
+  const { server, state, socketConnected } = useServerStore(
+    useShallow((store) => ({ server: store.server, state: store.state, socketConnected: store.socketConnected })),
+  );
+  const [rescanning, setRescanning] = useState(false);
 
   const worlds = useResource({
     queryKey: queryKeys.server(server.uuid).minecraft.worlds(),
     queryFn: () => getWorlds(server.uuid),
   });
 
+  // The console's live state once its socket is up (it says "offline" until then), else the
+  // panel's answer with the list.
+  const offline = socketConnected ? state === 'offline' : !(worlds.data?.running ?? true);
+
   // An import runs after its request: poll until it is done, then say how it ended.
   const importState = worlds.data?.import?.state;
   const previousState = useRef(importState);
   useEffect(() => {
-    if (previousState.current === 'running' && importState === 'done') {
-      const kept = worlds.data?.import?.kept;
-      addToast(
-        kept
-          ? `${t(`${base}.toast.imported`, {})} ${t(`${base}.toast.kept`, { name: kept })}`
-          : t(`${base}.toast.imported`, {}),
-        'success',
+    if (previousState.current === 'running' && importState === 'done' && worlds.data) {
+      replacedToast(
+        t(`${base}.toast.imported`, { world: worlds.data.generation.name }),
+        worlds.data.import?.kept ?? null,
       );
     }
     previousState.current = importState;
@@ -98,32 +104,40 @@ export default function ServerMinecraftWorlds() {
     return () => clearInterval(timer);
   }, [importState]);
 
-  const busy = !worlds.data || worlds.data.running || importState === 'running';
+  const rescan = () => {
+    setRescanning(true);
+    worlds.refetch().finally(() => setRescanning(false));
+  };
+
+  const stop = () => {
+    powerAction('stop');
+    addToast(t(`${base}.toast.stopping`, {}), 'info');
+  };
 
   return (
     <ServerContentContainer
       title={t(`${base}.title`, {})}
-      search={search}
-      setSearch={setSearch}
+      subtitle={t(`${base}.subtitle`, {})}
       contentRight={
-        <Group gap='xs'>
-          {canUpload && (
-            <Button variant='default' disabled={busy} onClick={() => setModal('upload')}>
-              {t(`${base}.button.upload`, {})}
-            </Button>
+        <>
+          {!offline && (
+            <ServerCan action='control.stop'>
+              <Tooltip label={t(`${base}.button.stop`, {})}>
+                <ActionIcon size='input-sm' variant='subtle' color='red' onClick={stop}>
+                  <FontAwesomeIcon icon={faStop} />
+                </ActionIcon>
+              </Tooltip>
+            </ServerCan>
           )}
-          {canManage && (
-            <Button disabled={busy} onClick={() => setModal('new')}>
-              {t(`${base}.button.new`, {})}
-            </Button>
-          )}
-        </Group>
+          <Tooltip label={t(`${base}.button.refresh`, {})}>
+            <ActionIcon size='input-sm' variant='subtle' color='gray' loading={rescanning} onClick={rescan}>
+              <FontAwesomeIcon icon={faArrowsRotate} />
+            </ActionIcon>
+          </Tooltip>
+        </>
       }
     >
-      {worlds.data && <NewWorldModal opened={modal === 'new'} onClose={() => setModal(null)} worlds={worlds.data} />}
-      <UploadWorldModal opened={modal === 'upload'} onClose={() => setModal(null)} />
-
-      <ResourceView resource={worlds}>{(worlds) => <Worlds worlds={worlds} search={search} />}</ResourceView>
+      <ResourceView resource={worlds}>{(data) => <Worlds worlds={data} offline={offline} />}</ResourceView>
     </ServerContentContainer>
   );
 }

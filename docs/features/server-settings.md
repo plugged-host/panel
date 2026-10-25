@@ -1,28 +1,55 @@
 # Server settings for players
 
-Four cards on a server's Settings page, next to upstream's Rename and Reinstall: SFTP access,
-resources, software and delete. Each one has its own permission, so an owner (who has every
-permission) sees them all and a subuser only what they were given.
+A server's settings look like the Pelican panel's settings page: the title "Settings" with a gray
+**Delete Server** in the header, a sticky jump bar, then full-width sections in one column. Pelican
+has one long page; here each jump-bar item is a page of its own, and the bar (`ServerSettingsNav`)
+links them. Startup and VS Code left the sidebar for the bar, as on the Pelican panel; the
+sidebar's Settings row stays active on them (`activeMatches`). Settings shows for anyone holding one
+of its pages' permissions.
 
-| Card | Permission | Shown when |
-|---|---|---|
-| SFTP | `files.sftp` | always |
-| Resources | `settings.resize` | Admin › Settings › Hosting › Games › "Players Resize Servers" is on, or the viewer is an admin |
-| Software | `settings.software` | the server's egg is a game in the catalog with at least two software choices, or a Minecraft egg with a version variable |
-| Delete Server | `settings.delete` | Admin › Settings › Hosting › Games › "Players Delete Servers" is on, or the viewer is an admin |
+| Bar item | Page | Permission | Shown when |
+|---|---|---|---|
+| Server Information | `/settings` | any of Settings' | always: name and description (saved on leaving the field, `settings.rename`), UUID, identifier, node, and the limits when the viewer cannot resize |
+| SFTP Information | `/settings/sftp` | `files.sftp` | always |
+| VS Code | `/devbox` | `devbox.connect` | devboxes are on ([devboxes.md](devboxes.md)) |
+| Resources | `/settings/resources` | `settings.resize` | Admin › Settings › Hosting › Games › "Players Resize Servers" is on, or the viewer is an admin |
+| Startup | `/startup` | `startup.read` | always (Pelican's "Startup command" section) |
+| Version | `/settings/version` | `settings.software` | the server's egg is a game in the catalog with at least two software choices, or a Minecraft egg with a version variable |
+| Behaviour | `/settings/behaviour` | `settings.auto-kill`, `.auto-start`, `.timezone` or `.trash` | Calagopus' own Auto-Kill, Auto-Start, Timezone and Trash cards (Pelican has no such section), gray Saves |
+| Notifications | `/settings/notifications` | `backups.read` | always |
+| Danger Zone | `/settings/danger` | `settings.install` or `settings.delete` | Reinstall, and Delete Server when deleting is allowed (below) |
+
+Each section is a `TitleCard` with Filament's description and footer (`description`, `footer`,
+`danger` props); the label/value rows are `elements/SettingRows.tsx`; the styles are the
+`.theme-jump*`, `.theme-section-*`, `.theme-setting-*` and `.theme-field-*` block of `app.css`.
+
+## Server Information
+
+Name and description save when they lose focus ("Updated Server Name"), like Pelican's live fields.
+The rows show the UUID and the identifier with copy buttons and the hosting node with the start of
+its UUID (nodes have no number here). When the viewer cannot resize, the **Limits** grid shows CPU,
+memory, disk, and backups, databases and allocations as "used / limit" (∞ for none) from
+`GET …/settings/usage`; a count the viewer may not see (no `backups.read`, …) shows the limit only.
 
 ## SFTP
 
-Host and port, the username (`<user>.<server>`), and which password SFTP takes: the noprofit.space
-password when noprofit.space checks SFTP passwords (its account API is set up), else the panel
-password, else an SSH key from the account. A click copies host or username; "Launch SFTP" opens
-the `sftp://` link in an SFTP client. The same password line is used by upstream's SFTP details on
+Rows for the connection (`host:port`), the username (`<user>.<server>`) and the password: "Your
+Account Password" when noprofit.space checks SFTP passwords (its account API is set up) or the panel
+password works, else an SSH key from the account. Copy buttons for host and username; "Launch in
+SFTP Client" opens the `sftp://` link. The same password line is used by upstream's SFTP details on
 the Files page (`frontend/src/plugins/useSftpPassword.ts`). The public settings carry
 `noprofit.sftp_passwords` for it.
 
 ## Resources
 
-`shared/src/server_resize.rs`. CPU (percent of one thread), memory and disk, each up to the server's
+`shared/src/server_resize.rs`. The public plans (Admin › Plans) as cards, the current one picked and
+marked "Current plan"; a plan larger than the server plus what the owner has left is "Exceeds your
+remaining allowance" and cannot be picked (`plan_fits`). **Advanced** sets the values by hand
+instead; it starts on when the server's size is no plan. Each field shows what is left on its label
+line, red below zero, and **Save resources** sends the values. Without public plans the fields show
+directly.
+
+CPU (percent of one thread), memory and disk, each up to the server's
 own size plus what its owner's allowance has left ([create-server.md](create-server.md#allowance));
 the owner's allowance counts, also when a subuser resizes.
 
@@ -40,7 +67,7 @@ The server's activity log gets `server:settings.resize` with the old and new siz
 ## Software
 
 `shared/src/server_software.rs`. The game's software choices from Admin › Settings › Hosting ›
-Games. The current one is read back from the game's variable (an unknown value counts as the first
+Games; a choice's optional description (same place) shows under the field. The current one is read back from the game's variable (an unknown value counts as the first
 choice). Switching:
 
 1. writes the choice to the variable,
@@ -49,7 +76,7 @@ choice). Switching:
    through the start gates).
 
 On a Minecraft server whose egg has a version variable (`MINECRAFT_VERSION`, `MC_VERSION`,
-`VANILLA_VERSION`) the card also has **Minecraft Version**: Newest release (`latest`) or one of the
+`VANILLA_VERSION`) the section also has **Minecraft version**: Newest release (`latest`) or one of the
 versions the chosen software offers (the loader's list from [minecraft.md](minecraft.md#which-servers),
 Mojang's releases for Vanilla; `GET …/software/versions?variant=`). The version is checked against
 that list when it loads, written to the variable together with `BUILD_NUMBER` back to `latest` (a
@@ -59,6 +86,33 @@ same way. Software and version can change in one go. A modpack install uses the 
 
 The activity log gets `server:settings.software` with the variant and the version.
 
+## Startup
+
+`/startup` is upstream's route with a page of ours (`ServerSettingsStartup.tsx`; upstream's
+`ServerStartup.tsx` stays unused): the command in a well with a copy button, the startup command
+(the egg's list, "Custom" where the egg allows commands of its own, which opens the command for
+editing) and the Docker image side by side, then **Server Variables**. Each field saves on its own
+when it loses focus, switches and lists when they change ("Updated: <variable>"), like Pelican's
+live startup variables; there is no Save button.
+
+## Notifications
+
+`shared/src/backup_notifications.rs`. Two switches per person and server: **Manual Backup
+Notifications** (backups made on the Backups page) and **Scheduled Backup Notifications** (a
+schedule's: its `server:backup.create` activity has a `schedule_uuid`). When a backup finishes, the
+owner and the subusers with `backups.read` who switched that kind on get the `backup_completed`
+mail (Admin › Email Templates), successful or failed, with a link to the Backups page. System
+backups send none. Switches save at once ("Notification Settings Updated"); both off deletes the
+row. The activity log gets `server:settings.notifications`.
+
+The switches are rows of `server_notification_settings` (migration `backup_notifications`).
+
+## Danger Zone
+
+The red-edged section: a note, then Reinstall Server (the reinstall dialog keeps upstream's "delete
+all files" switch, and admins' start afterwards) and Delete Server. Both buttons are gray; the red
+one is in the confirmation.
+
 ## Delete
 
 `DELETE /api/client/servers/{server}`. The player types the server's name to confirm. The server is
@@ -67,18 +121,22 @@ backups, except its system backups while deleted servers are held: the newest on
 downloadable from the owner's Backups page ([backups-page.md](backups-page.md)). A suspended or
 installing server cannot be
 deleted from here. The account's activity log gets `server:delete` (the server's own log goes with
-it).
+it). The route and neo's `delete_server` ([neo.md](neo.md#tools)) share
+`shared::deleted_servers::delete_server`.
 
 ## Routes
 
 | Route | Permission | Does |
 |---|---|---|
-| `GET /api/client/servers/{server}/settings/resize` | `settings.resize` | `{resize: {enabled, current, max}}`; `max` is `null` per resource without a limit |
+| `GET /api/client/servers/{server}/settings/resize` | `settings.resize` | `{resize: {enabled, current, max, plans}}`; `max` is `null` per resource without a limit; `plans` are the public plans with `fits` and `current` |
 | `POST /api/client/servers/{server}/settings/resize` | `settings.resize` | Body `{cpu, memory, disk}`; 403 when off, 409 when the allowance or the node has no room, 429 while another change of the owner runs |
 | `GET /api/client/servers/{server}/settings/software` | `settings.software` | `{software: {variants, current, version}}`, `null` without choices or version |
 | `GET /api/client/servers/{server}/settings/software/versions?variant` | `settings.software` | The Minecraft versions of that choice (the server's own without one), newest first |
 | `POST /api/client/servers/{server}/settings/software` | `settings.software` | Body `{variant?, version?}` (one at least); 202, the reinstall runs |
 | `DELETE /api/client/servers/{server}` | `settings.delete` | 403 when off |
+| `GET /api/client/servers/{server}/settings/usage` | any | `{usage: {backups, databases, allocations}}`, each `null` without its list's read permission |
+| `GET /api/client/servers/{server}/settings/notifications` | `backups.read` | `{notifications: {manual_backups, scheduled_backups}}` of the signed-in person |
+| `PUT /api/client/servers/{server}/settings/notifications` | `backups.read` | Body `{manual_backups, scheduled_backups}` |
 
 ## Without noprofit.space
 
@@ -88,16 +146,21 @@ changes.
 ## Check
 
 - Admin › Settings › Hosting › Games: turn "Players Resize Servers" and "Players Delete Servers" on.
-- As the owner of a server: Settings shows SFTP, Resources, Software (for a game with two or more
-  choices) and Delete Server.
-- SFTP: copy host and username, log in with the password the card names.
-- Resources: raise memory past "Up to": Save stays off. Lower it and save: the console's memory limit
-  follows without a restart. With noprofit.space, an account without a plan can only lower values.
-- Software: pick another choice, "Switch and Reinstall", confirm: the console shows the reinstall;
+- As the owner of a server: Settings shows the jump bar with every item; it sticks while scrolling,
+  marks the current page, and Danger Zone sits red at its end. The sidebar keeps Settings active on
+  Startup and VS Code.
+- Server Information: change the name, click elsewhere: "Updated Server Name". The copy icons turn
+  green for 2 s.
+- SFTP Information: copy host and username, log in with the password the row names.
+- Resources: the current plan is picked; a plan over the allowance is dimmed. Advanced: raise memory
+  past what is left: its hint turns red and Save resources stays off. Lower it and save: the
+  console's memory limit follows without a restart.
+- Startup: change a variable and leave the field: "Updated: <name>".
+- Version: pick another choice, "Change and reinstall", confirm: the console shows the reinstall;
   the files are still there afterwards and the new software runs after a start.
-- Minecraft Version on a Paper server: pick an older version, confirm; the egg variable shows it,
-  `BUILD_NUMBER` is `latest`, and the server starts on that version. Switching software and version
-  together lists the new software's versions.
-- Delete: the button in the dialog stays off until the name is typed; the server disappears from the
-  list.
-- As a subuser without the new permissions: none of the three cards (Resources, Software, Delete) show.
+- Minecraft version on a Paper server: pick an older version, confirm; the egg variable shows it,
+  `BUILD_NUMBER` is `latest`, and the server starts on that version.
+- Notifications (after the migration): switch manual backups on, make a backup: the mail arrives.
+- Danger Zone / Delete Server: the button in the dialog stays off until the name is typed; the server
+  disappears from the list.
+- As a subuser with only `startup.read`: Settings shows Server Information (read-only) and Startup.

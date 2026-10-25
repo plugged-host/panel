@@ -6,17 +6,20 @@
 //! Around it this adds the choice of node and ports, a cooldown, retries on another node of the
 //! location, a cancel, queued moves for "Lighten load", and starting the server again when it was
 //! running. Each move is a row in `server_transfer_requests`; [`settle`] (the `settle_transfers`
-//! task) moves it along once the native transfer is over.
+//! task) moves it along once the native transfer is over. What happens to a move is also written to
+//! the server's activity log (`server:transfer.*`, with the request's uuid), which the Transfer page
+//! shows as the move's timeline.
 
 use crate::{
     models::{
-        ByUuid,
+        ByUuid, CreatableModel,
         egg_configuration::{EggConfiguration, EggConfigurationTarget},
         location::Location,
         nest_egg_variable::NestEggVariable,
         node::Node,
         node_allocation::NodeAllocation,
-        server::{AdminApiServerLimits, Server, ServerTransferOptions},
+        server::{AdminApiServerLimits, Server, ServerStatus, ServerTransferOptions},
+        server_activity::{CreateServerActivityOptions, ServerActivity},
         server_allocation::ServerAllocation,
         server_backup::ServerBackup,
         server_variable::ServerVariable,
@@ -26,7 +29,7 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 use sqlx::Row;
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use utoipa::ToSchema;
 
 /// Waits for its turn ("Lighten load" moves a few at a time).
@@ -40,6 +43,25 @@ pub const CANCELLED: &str = "cancelled";
 
 pub const ORIGIN_USER: &str = "user";
 pub const ORIGIN_ADMIN: &str = "admin";
+
+/// How long the Transfer page shows how the last move ended (and its timeline), in minutes.
+pub const OUTCOME_MINUTES: i64 = 10;
+/// How long the strip on every server page shows it, in minutes.
+pub const STRIP_MINUTES: i64 = 2;
+/// Finished moves the Transfer page lists under "Earlier moves".
+const HISTORY: i64 = 6;
+/// Timeline lines kept per move.
+const TIMELINE: i64 = 40;
+
+/// The errors this module writes into a request's `error`, which [`reason_key`] names.
+const NO_NODE: &str = "no node can take the server right now";
+const COPY_FAILED: &str = "the copy to the new node failed on every node tried";
+const MOVED_MEANWHILE: &str = "the server moved or changed meanwhile";
+
+/// The copy speed the offline estimate assumes (the Pelican panel's figure before it measured a
+/// move), and the seconds it adds for the stop, the check on the new node and the start.
+const ESTIMATE_RATE: u64 = 40 * 1024 * 1024;
+const ESTIMATE_OVERHEAD: u64 = 45;
 
 const COLUMNS: &str = "server_transfer_requests.uuid, server_transfer_requests.server_uuid, \
     server_transfer_requests.user_uuid, server_transfer_requests.origin, \
@@ -106,7 +128,10 @@ impl TransferRequest {
             status: self.status.into(),
             location_uuid: self.location_uuid,
             attempts: self.attempts,
+            reason: self.error.as_deref().and_then(reason_key).map(Into::into),
             error: self.error,
+            from_location: None,
+            to_location: None,
             created: self.created.and_utc(),
             finished: self.finished.map(|finished| finished.and_utc()),
         }
@@ -128,6 +153,27 @@ impl TransferRequest {
         .await?;
 
         row.as_ref().map(Self::map).transpose()
+    }
+
+    /// The server's last finished moves, newest first.
+    async fn history(
+        database: &crate::database::Database,
+        server_uuid: uuid::Uuid,
+    ) -> Result<Vec<Self>, sqlx::Error> {
+        let rows = sqlx::query(sqlx::AssertSqlSafe(format!(
+            "SELECT {COLUMNS} FROM server_transfer_requests
+            WHERE server_transfer_requests.server_uuid = $1
+                AND server_transfer_requests.status = ANY($2)
+            ORDER BY server_transfer_requests.created DESC
+            LIMIT $3"
+        )))
+        .bind(server_uuid)
+        .bind(&[COMPLETED, FAILED, CANCELLED][..])
+        .bind(HISTORY)
+        .fetch_all(database.read())
+        .await?;
+
+        rows.iter().map(Self::map).collect()
     }
 
     async fn all_with_status(
@@ -177,6 +223,14 @@ impl TransferRequest {
     }
 }
 
+/// A location as the Transfer page shows it, also one players cannot pick (an admin's move).
+#[derive(ToSchema, Serialize, Clone, Debug)]
+pub struct ApiTransferPlace {
+    pub uuid: uuid::Uuid,
+    pub name: compact_str::CompactString,
+    pub flag: Option<compact_str::CompactString>,
+}
+
 #[derive(ToSchema, Serialize, Clone)]
 pub struct ApiTransferRequest {
     pub uuid: uuid::Uuid,
@@ -188,8 +242,48 @@ pub struct ApiTransferRequest {
     /// Nodes tried so far.
     pub attempts: i32,
     pub error: Option<String>,
+    /// Why it ended, a key of `pages.server.transfer.reasons`; `null` when `error` is something else.
+    pub reason: Option<compact_str::CompactString>,
+    /// The location of the node it left and the one it goes to (the Transfer page fills these in).
+    pub from_location: Option<ApiTransferPlace>,
+    pub to_location: Option<ApiTransferPlace>,
     pub created: chrono::DateTime<chrono::Utc>,
     pub finished: Option<chrono::DateTime<chrono::Utc>>,
+}
+
+/// Where a move under way is: the Transfer page's progress card and the strip on every server page.
+#[derive(ToSchema, Serialize, Clone, Debug, PartialEq)]
+pub struct ApiTransferProgress {
+    /// A key of `pages.server.transfer.state`.
+    pub state: compact_str::CompactString,
+    /// The step of the stepper it is on: `prepare`, `stop`, `copy`, `verify` or `start`.
+    pub step: compact_str::CompactString,
+    pub percent: u8,
+    /// Bytes of the server (and its backups) copied and in all, as the old node counts them; 0
+    /// before it measured them.
+    pub bytes_done: u64,
+    pub bytes_total: u64,
+    /// Bytes per second since this attempt began, while copying.
+    pub rate: Option<u64>,
+    /// Seconds left in the copy at that rate.
+    pub eta_seconds: Option<u64>,
+}
+
+/// One line of a move's timeline: a key of `pages.server.transfer.events`, the values it names and
+/// its tone (`info`, `success`, `warning` or `danger`).
+#[derive(ToSchema, Serialize, Clone, Debug, PartialEq)]
+pub struct ApiTransferEvent {
+    pub at: chrono::DateTime<chrono::Utc>,
+    pub key: compact_str::CompactString,
+    pub params: BTreeMap<String, String>,
+    pub level: compact_str::CompactString,
+}
+
+/// The server's backups: what the Transfer page lists (successful, not deleted).
+#[derive(ToSchema, Serialize, Clone, Copy, Debug, Default)]
+pub struct ApiTransferBackups {
+    pub count: i64,
+    pub bytes: i64,
 }
 
 #[derive(ToSchema, Serialize)]
@@ -197,11 +291,37 @@ pub struct ApiTransferOptions {
     /// Players may move their servers (an admin always may).
     pub enabled: bool,
     pub current_location_uuid: uuid::Uuid,
+    pub current_location: ApiTransferPlace,
+    /// The current location's entry is available when another of its nodes takes servers.
     pub locations: Vec<ApiCreateLocation>,
     /// When the server may move again; `null` when it may now.
     pub cooldown_until: Option<chrono::DateTime<chrono::Utc>>,
+    /// Why a move cannot start now, a key of `pages.server.transfer.blocked`; `null` when it can.
+    pub blocked: Option<compact_str::CompactString>,
+    /// Nodes tried per move ("Nodes Tried per Move").
+    pub max_attempts: i32,
+    /// The server's files on its node, as Wings counts them; `null` while a move runs or when the
+    /// node does not answer.
+    pub data_bytes: Option<u64>,
+    pub backups: ApiTransferBackups,
+    /// About how long a move keeps the server offline, in seconds.
+    pub estimate_seconds: u64,
     /// The move under way, else the last one.
     pub request: Option<ApiTransferRequest>,
+    /// Where the move under way is.
+    pub progress: Option<ApiTransferProgress>,
+    /// The timeline of `request`, newest first, while it runs and for [`OUTCOME_MINUTES`] after.
+    pub events: Vec<ApiTransferEvent>,
+    /// The last finished moves, newest first.
+    pub history: Vec<ApiTransferRequest>,
+}
+
+/// The move the strip on every server page shows: one under way, or one that ended in the last
+/// [`STRIP_MINUTES`].
+#[derive(ToSchema, Serialize)]
+pub struct ApiTransferStatus {
+    pub request: ApiTransferRequest,
+    pub progress: Option<ApiTransferProgress>,
 }
 
 #[derive(Debug)]
@@ -212,6 +332,8 @@ pub enum TransferError {
     Busy,
     /// Suspended, installing or restoring: the server cannot move now.
     Unavailable,
+    /// A backup of the server is being made; Wings would copy it half done.
+    BackupRunning,
     NotMoving,
     /// An admin moves the server: only an admin cancels it.
     AdminMove,
@@ -231,11 +353,12 @@ impl TransferError {
             ),
             Self::Busy => "this server is already being moved".into(),
             Self::Unavailable => "this server cannot be moved right now".into(),
+            Self::BackupRunning => "a backup is running, try again once it is done".into(),
             Self::NotMoving => "this server is not being moved".into(),
             Self::AdminMove => "an admin is moving this server, only an admin can cancel it".into(),
             Self::UnknownLocation => "this location is not offered".into(),
             Self::LocationLocked => "your plan does not include this location".into(),
-            Self::NoNode(reason) => format!("no node can take the server right now: {reason}"),
+            Self::NoNode(reason) => format!("{NO_NODE}: {reason}"),
             Self::Other(err) => format!("{err:#}"),
         }
     }
@@ -244,7 +367,11 @@ impl TransferError {
         match self {
             Self::Disabled | Self::LocationLocked | Self::AdminMove => 403,
             Self::Cooldown(_) => 429,
-            Self::Busy | Self::Unavailable | Self::NotMoving | Self::NoNode(_) => 409,
+            Self::Busy
+            | Self::Unavailable
+            | Self::BackupRunning
+            | Self::NotMoving
+            | Self::NoNode(_) => 409,
             Self::UnknownLocation => 400,
             Self::Other(_) => 500,
         }
@@ -280,13 +407,288 @@ pub fn cooldown_until(
     (until > now).then_some(until)
 }
 
+/// `items` with the one whose key is `prefer` moved to the front; the rest keep their order.
+pub fn preferred_first<T>(
+    mut items: Vec<T>,
+    prefer: Option<uuid::Uuid>,
+    key: impl Fn(&T) -> uuid::Uuid,
+) -> Vec<T> {
+    if let Some(prefer) = prefer {
+        items.sort_by_key(|item| key(item) != prefer);
+    }
+
+    items
+}
+
 /// Whether a failed attempt is followed by one on another node.
 pub fn retries(attempts: i32, max_attempts: i32) -> bool {
     attempts < max_attempts.max(1)
 }
 
+/// Which `pages.server.transfer.reasons` line says why a move ended, for the errors this module
+/// writes; `None` for anything else (shown as written).
+pub fn reason_key(error: &str) -> Option<&'static str> {
+    if error.starts_with(NO_NODE) {
+        Some("noNode")
+    } else if error == COPY_FAILED {
+        Some("copyFailed")
+    } else if error == MOVED_MEANWHILE {
+        Some("skippedMoved")
+    } else {
+        None
+    }
+}
+
+/// About how long a move of `bytes` (files and backups) keeps the server offline, in seconds.
+pub fn estimate_seconds(bytes: u64) -> u64 {
+    bytes.div_ceil(ESTIMATE_RATE) + ESTIMATE_OVERHEAD
+}
+
+/// What keeps the Transfer page from starting a move, see [`blocked`].
+#[derive(Clone, Copy, Debug, Default)]
+pub struct Blockers {
+    pub enabled: bool,
+    pub admin: bool,
+    pub busy: bool,
+    pub suspended: bool,
+    pub installing: bool,
+    pub restoring: bool,
+    pub backup_running: bool,
+    pub cooling_down: bool,
+}
+
+/// Why a move cannot start now, a key of `pages.server.transfer.blocked`, in the order the Pelican
+/// panel asks: an admin is not held by the switch, a suspension or the cooldown.
+pub fn blocked(blockers: Blockers) -> Option<&'static str> {
+    if !blockers.enabled && !blockers.admin {
+        Some("disabled")
+    } else if blockers.busy {
+        Some("busy")
+    } else if blockers.suspended && !blockers.admin {
+        Some("suspended")
+    } else if blockers.installing {
+        Some("installing")
+    } else if blockers.restoring {
+        Some("restoring")
+    } else if blockers.backup_running {
+        Some("backupRunning")
+    } else if blockers.cooling_down && !blockers.admin {
+        Some("cooldown")
+    } else {
+        None
+    }
+}
+
+/// Whether a backup of the server is being made (one started in the last day that has not
+/// finished; older ones only end when their node resets).
+async fn backup_running(
+    database: &crate::database::Database,
+    server_uuid: uuid::Uuid,
+) -> Result<bool, sqlx::Error> {
+    sqlx::query_scalar(
+        r#"
+        SELECT EXISTS (
+            SELECT 1 FROM server_backups
+            WHERE server_backups.server_uuid = $1 AND server_backups.completed IS NULL
+                AND server_backups.deleted IS NULL
+                AND server_backups.created >= NOW() - INTERVAL '1 day'
+        )
+        "#,
+    )
+    .bind(server_uuid)
+    .fetch_one(database.read())
+    .await
+}
+
+/// Whether a move that finished at `finished` ended less than `minutes` ago.
+pub fn ended_within(
+    finished: Option<chrono::NaiveDateTime>,
+    now: chrono::NaiveDateTime,
+    minutes: i64,
+) -> bool {
+    finished.is_some_and(|finished| now - finished < chrono::Duration::minutes(minutes))
+}
+
+/// What the native transfer of a move under way is doing.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Copying {
+    /// No native transfer runs: it ended, and [`settle`] has not looked at it yet. `arrived` when
+    /// the server is on the new node.
+    Ended { arrived: bool },
+    /// Wings moves the server: `None` until the old node reports it, then the bytes copied and in
+    /// all (0 in all while Wings stops the server).
+    Running(Option<(u64, u64)>),
+}
+
+/// Where a move under way is, from its status, the attempts so far, its native transfer and the
+/// seconds since this attempt began. The bar gives stopping the first 6%, the copy up to 90,
+/// verifying on the new node up to 96 and starting the rest, like the Pelican panel's.
+pub fn progress_of(
+    status: &str,
+    attempts: i32,
+    copying: Copying,
+    elapsed_seconds: i64,
+) -> ApiTransferProgress {
+    let (mut state, step, percent, done, total) = match (status, copying) {
+        (QUEUED, _) => ("queued", "prepare", 0, 0, 0),
+        (_, Copying::Ended { arrived: true }) => ("starting", "start", 97, 0, 0),
+        (_, Copying::Ended { arrived: false }) => ("checking", "copy", 6, 0, 0),
+        (_, Copying::Running(None)) => (
+            if attempts > 1 {
+                "retrying"
+            } else {
+                "preparing"
+            },
+            "prepare",
+            2,
+            0,
+            0,
+        ),
+        (_, Copying::Running(Some((done, 0)))) => ("stopping", "stop", 4, done, 0),
+        (_, Copying::Running(Some((done, total)))) if done < total => (
+            "copying",
+            "copy",
+            (6 + 84 * done / total) as u8,
+            done,
+            total,
+        ),
+        (_, Copying::Running(Some((done, total)))) => ("finalizing", "verify", 92, done, total),
+    };
+    if status == CANCELLING {
+        state = "cancelling";
+    }
+
+    let rate = (state == "copying" && elapsed_seconds > 0 && done > 0)
+        .then(|| done / elapsed_seconds as u64)
+        .filter(|rate| *rate > 0);
+
+    ApiTransferProgress {
+        state: state.into(),
+        step: step.into(),
+        percent,
+        bytes_done: done.min(total),
+        bytes_total: total,
+        rate,
+        eta_seconds: rate.map(|rate| total.saturating_sub(done).div_ceil(rate)),
+    }
+}
+
+/// The timeline line a `server:transfer.*` activity of a move stands for: a key of
+/// `pages.server.transfer.events`, its tone, and the values it names.
+pub fn timeline_line(
+    event: &str,
+    data: &serde_json::Value,
+) -> Option<(&'static str, &'static str, BTreeMap<String, String>)> {
+    const NONE: &[&str] = &[];
+
+    let (key, level, names): (&'static str, &'static str, &[&str]) = match event {
+        "server:transfer.cancel"
+            if data
+                .get("ended")
+                .and_then(serde_json::Value::as_bool)
+                .unwrap_or(false) =>
+        {
+            ("endedCancelled", "warning", NONE)
+        }
+        "server:transfer.cancel" => ("cancelling", "info", NONE),
+        "server:transfer.attempt"
+            if data
+                .get("attempt")
+                .and_then(serde_json::Value::as_i64)
+                .unwrap_or(1)
+                > 1 =>
+        {
+            ("retrying", "info", &["attempt", "max"])
+        }
+        "server:transfer.attempt" => ("destination", "info", &["location"]),
+        "server:transfer.attempt-failed" => ("attemptFailed", "warning", &["attempt", "reason"]),
+        "server:transfer.verified" => ("copied", "success", NONE),
+        "server:transfer.port-variable" => ("portVariable", "info", &["name", "port"]),
+        "server:transfer.complete" => ("completed", "success", &["address"]),
+        "server:transfer.fail" => ("endedFailed", "danger", NONE),
+        "server:transfer.cancelled" => ("endedCancelled", "warning", NONE),
+        "server:transfer.restart" | "server:transfer.restart-failed" => {
+            let moved = data
+                .get("moved")
+                .and_then(serde_json::Value::as_bool)
+                .unwrap_or(false);
+
+            match (moved, event.ends_with("-failed")) {
+                (true, false) => ("started", "success", NONE),
+                (true, true) => ("startFailed", "warning", NONE),
+                (false, false) => ("restarted", "success", NONE),
+                (false, true) => ("restartFailed", "warning", NONE),
+            }
+        }
+        _ => return None,
+    };
+
+    let params = names
+        .iter()
+        .map(|name| {
+            let value = match data.get(*name) {
+                Some(serde_json::Value::String(value)) => value.clone(),
+                None | Some(serde_json::Value::Null) => String::new(),
+                Some(value) => value.to_string(),
+            };
+
+            (name.to_string(), value)
+        })
+        .collect();
+
+    Some((key, level, params))
+}
+
+/// The address players connect to: the allocation's alias, else its IP, and the port.
+fn address(server: &Server) -> Option<String> {
+    server.allocation.as_ref().map(|primary| {
+        let allocation = &primary.allocation;
+
+        format!(
+            "{}:{}",
+            allocation
+                .ip_alias
+                .as_deref()
+                .map_or_else(|| allocation.ip.ip().to_string(), str::to_string),
+            allocation.port
+        )
+    })
+}
+
+/// Writes a step of a move into the server's activity log, where its timeline comes from.
+async fn log(
+    state: &crate::State,
+    request: &TransferRequest,
+    event: &str,
+    extra: serde_json::Value,
+) {
+    let mut data = serde_json::json!({ "request": request.uuid });
+    if let (Some(data), serde_json::Value::Object(extra)) = (data.as_object_mut(), extra) {
+        data.extend(extra);
+    }
+
+    if let Err(err) = ServerActivity::create(
+        state,
+        CreateServerActivityOptions {
+            server_uuid: request.server_uuid,
+            user_uuid: None,
+            impersonator_uuid: None,
+            api_key_uuid: None,
+            schedule_uuid: None,
+            event: event.into(),
+            ip: None,
+            data,
+            created: None,
+        },
+    )
+    .await
+    {
+        tracing::warn!(server = %request.server_uuid, "failed to log {event}: {err:#?}");
+    }
+}
+
 /// The end of the last player move that completed.
-async fn last_finished(
+pub(crate) async fn last_finished(
     database: &crate::database::Database,
     server_uuid: uuid::Uuid,
 ) -> Result<Option<chrono::NaiveDateTime>, sqlx::Error> {
@@ -301,21 +703,32 @@ async fn last_finished(
     .await
 }
 
-/// What the server's Transfer page shows.
+/// What the server's Transfer page shows to a player, or to an admin (`admin`).
 pub async fn options(
     state: &crate::State,
     server: &Server,
+    admin: bool,
 ) -> Result<ApiTransferOptions, anyhow::Error> {
-    let (enabled, cooldown_hours) = {
+    let (enabled, cooldown_hours, max_attempts) = {
         let settings = state.settings.get().await?;
         (
             settings.games.transfer_enabled,
             settings.games.transfer_cooldown_hours,
+            settings.games.transfer_attempts,
         )
     };
 
     let node = server.node.fetch_cached(&state.database).await?;
-    let locations = crate::server_creation::locations(state, &server.owner).await?;
+    let mut locations = crate::server_creation::locations(state, &server.owner).await?;
+    // picking the current location moves the server to another of its nodes
+    let another_node = another_node(&state.database, &node).await?;
+    for location in locations
+        .iter_mut()
+        .filter(|location| location.uuid == node.location.uuid)
+    {
+        location.available = another_node;
+    }
+
     let now = chrono::Utc::now().naive_utc();
     let cooldown = cooldown_until(
         last_finished(&state.database, server.uuid).await?,
@@ -323,19 +736,332 @@ pub async fn options(
         now,
     );
 
+    let latest = TransferRequest::latest(&state.database, server.uuid).await?;
+    let active = latest.as_ref().is_some_and(TransferRequest::active);
+    let progress = match latest.as_ref().filter(|request| request.active()) {
+        Some(request) => Some(progress(state, server, request).await),
+        None => None,
+    };
+    let shown = latest.as_ref().is_some_and(|request| {
+        request.active() || ended_within(request.finished, now, OUTCOME_MINUTES)
+    });
+
+    let history = TransferRequest::history(&state.database, server.uuid).await?;
+    let mut requests = into_api_objects(
+        &state.database,
+        latest.iter().chain(history.iter()).cloned().collect(),
+    )
+    .await?
+    .into_iter();
+    let request = if latest.is_some() {
+        requests.next()
+    } else {
+        None
+    };
+    let history = requests.collect();
+
+    let events = match (latest.as_ref(), request.as_ref()) {
+        (Some(latest), Some(request)) if shown => {
+            timeline(&state.database, latest, request.to_location.as_ref()).await?
+        }
+        _ => Vec::new(),
+    };
+
+    let blocked = blocked(Blockers {
+        enabled,
+        admin,
+        busy: active || server.destination_node.is_some(),
+        suspended: server.suspended,
+        installing: matches!(
+            server.status,
+            Some(ServerStatus::Installing | ServerStatus::InstallFailed)
+        ),
+        restoring: matches!(
+            server.status,
+            Some(ServerStatus::RestoringBackup | ServerStatus::BackupRestoreFailed)
+        ),
+        backup_running: backup_running(&state.database, server.uuid).await?,
+        cooling_down: cooldown.is_some(),
+    });
+
+    let (backups, moved_bytes) = backups(&state.database, server.uuid).await?;
+    // Wings is busy with the copy during a move, and the page shows its progress instead
+    let data_bytes = if active {
+        None
+    } else {
+        usage(state, server).await.map(|usage| usage.disk_bytes)
+    };
+
     Ok(ApiTransferOptions {
         enabled,
         current_location_uuid: node.location.uuid,
+        current_location: ApiTransferPlace {
+            uuid: node.location.uuid,
+            name: node.location.name.clone(),
+            flag: node.location.flag.clone(),
+        },
         locations,
         cooldown_until: cooldown.map(|until| until.and_utc()),
-        request: TransferRequest::latest(&state.database, server.uuid)
-            .await?
-            .map(TransferRequest::into_api_object),
+        blocked: blocked.map(Into::into),
+        max_attempts: max_attempts.max(1),
+        data_bytes,
+        backups,
+        estimate_seconds: estimate_seconds(data_bytes.unwrap_or(0) + moved_bytes),
+        request,
+        progress,
+        events,
+        history,
     })
 }
 
-/// Whether Wings says the server is running (or starting); `false` when it cannot tell.
-async fn running(state: &crate::State, server: &Server) -> bool {
+/// The move the strip on every server page shows, with where it is.
+pub async fn status(
+    state: &crate::State,
+    server: &Server,
+) -> Result<Option<ApiTransferStatus>, anyhow::Error> {
+    let Some(latest) = TransferRequest::latest(&state.database, server.uuid).await? else {
+        return Ok(None);
+    };
+    if !latest.active()
+        && !ended_within(
+            latest.finished,
+            chrono::Utc::now().naive_utc(),
+            STRIP_MINUTES,
+        )
+    {
+        return Ok(None);
+    }
+
+    let progress = if latest.active() {
+        Some(progress(state, server, &latest).await)
+    } else {
+        None
+    };
+
+    Ok(into_api_objects(&state.database, vec![latest])
+        .await?
+        .pop()
+        .map(|request| ApiTransferStatus { request, progress }))
+}
+
+/// Where a move under way is; asks the old node how far its copy got.
+async fn progress(
+    state: &crate::State,
+    server: &Server,
+    request: &TransferRequest,
+) -> ApiTransferProgress {
+    let copying = if server.destination_node.is_some() {
+        let transfers = async {
+            server
+                .node
+                .fetch_cached(&state.database)
+                .await?
+                .api_client(&state.database)
+                .await?
+                .get_transfers()
+                .await
+                .map_err(anyhow::Error::from)
+        }
+        .await;
+
+        Copying::Running(
+            transfers
+                .ok()
+                .and_then(|transfers| transfers.get(&server.uuid).cloned())
+                .map(|progress| (progress.archive_bytes_processed, progress.bytes_total)),
+        )
+    } else {
+        Copying::Ended {
+            arrived: request.destination_node_uuid == Some(server.node.uuid),
+        }
+    };
+    let elapsed = request.started.map_or(0, |started| {
+        (chrono::Utc::now().naive_utc() - started).num_seconds()
+    });
+
+    progress_of(&request.status, request.attempts, copying, elapsed)
+}
+
+/// Whether another node of `node`'s location than `node` takes players' servers now.
+async fn another_node(
+    database: &crate::database::Database,
+    node: &Node,
+) -> Result<bool, sqlx::Error> {
+    sqlx::query_scalar(
+        r#"
+        SELECT EXISTS (
+            SELECT 1 FROM nodes
+            WHERE nodes.location_uuid = $1 AND nodes.uuid <> $2 AND nodes.role = $3
+                AND nodes.deployment_enabled AND NOT nodes.maintenance_enabled
+                AND NOT nodes.deployment_paused
+        )
+        "#,
+    )
+    .bind(node.location.uuid)
+    .bind(node.uuid)
+    .bind(GAME_ROLE)
+    .fetch_one(database.read())
+    .await
+}
+
+/// The moves as the Transfer page shows them, with the locations they left and go to.
+async fn into_api_objects(
+    database: &crate::database::Database,
+    requests: Vec<TransferRequest>,
+) -> Result<Vec<ApiTransferRequest>, sqlx::Error> {
+    let location_uuids = requests
+        .iter()
+        .filter_map(|request| request.location_uuid)
+        .collect::<Vec<_>>();
+    let node_uuids = requests
+        .iter()
+        .flat_map(|request| [request.source_node_uuid, request.destination_node_uuid])
+        .flatten()
+        .collect::<Vec<_>>();
+
+    let rows = sqlx::query(
+        r#"
+        SELECT NULL::UUID AS node_uuid, locations.uuid, locations.name, locations.flag
+        FROM locations
+        WHERE locations.uuid = ANY($1)
+        UNION ALL
+        SELECT nodes.uuid AS node_uuid, locations.uuid, locations.name, locations.flag
+        FROM nodes
+        JOIN locations ON locations.uuid = nodes.location_uuid
+        WHERE nodes.uuid = ANY($2)
+        "#,
+    )
+    .bind(&location_uuids)
+    .bind(&node_uuids)
+    .fetch_all(database.read())
+    .await?;
+
+    let mut by_location = HashMap::new();
+    let mut by_node = HashMap::new();
+    for row in rows {
+        let place = ApiTransferPlace {
+            uuid: row.try_get("uuid")?,
+            name: row.try_get::<String, _>("name")?.into(),
+            flag: row.try_get::<Option<String>, _>("flag")?.map(Into::into),
+        };
+        match row.try_get::<Option<uuid::Uuid>, _>("node_uuid")? {
+            Some(node_uuid) => by_node.insert(node_uuid, place),
+            None => by_location.insert(place.uuid, place),
+        };
+    }
+
+    Ok(requests
+        .into_iter()
+        .map(|request| {
+            let from = request
+                .source_node_uuid
+                .and_then(|uuid| by_node.get(&uuid).cloned());
+            let to = request
+                .location_uuid
+                .and_then(|uuid| by_location.get(&uuid).cloned())
+                .or_else(|| {
+                    request
+                        .destination_node_uuid
+                        .and_then(|uuid| by_node.get(&uuid).cloned())
+                });
+
+            ApiTransferRequest {
+                from_location: from,
+                to_location: to,
+                ..request.into_api_object()
+            }
+        })
+        .collect())
+}
+
+/// A move's timeline, newest first: the steps written to the activity log, then how it began.
+async fn timeline(
+    database: &crate::database::Database,
+    request: &TransferRequest,
+    to: Option<&ApiTransferPlace>,
+) -> Result<Vec<ApiTransferEvent>, sqlx::Error> {
+    let rows = sqlx::query(
+        r#"
+        SELECT server_activities.event, server_activities.data, server_activities.created
+        FROM server_activities
+        WHERE server_activities.server_uuid = $1 AND server_activities.created >= $2
+            AND server_activities.event LIKE 'server:transfer.%'
+            AND server_activities.data->>'request' = $3
+        ORDER BY server_activities.created DESC
+        LIMIT $4
+        "#,
+    )
+    .bind(request.server_uuid)
+    .bind(request.created - chrono::Duration::minutes(1))
+    .bind(request.uuid.to_string())
+    .bind(TIMELINE)
+    .fetch_all(database.read())
+    .await?;
+
+    let mut events = Vec::with_capacity(rows.len() + 1);
+    for row in rows {
+        let event: String = row.try_get("event")?;
+        let data: serde_json::Value = row.try_get("data")?;
+        let created: chrono::NaiveDateTime = row.try_get("created")?;
+
+        if let Some((key, level, params)) = timeline_line(&event, &data) {
+            events.push(ApiTransferEvent {
+                at: created.and_utc(),
+                key: key.into(),
+                params,
+                level: level.into(),
+            });
+        }
+    }
+
+    events.push(ApiTransferEvent {
+        at: request.created.and_utc(),
+        key: if request.origin == ORIGIN_ADMIN {
+            "adopted"
+        } else {
+            "requested"
+        }
+        .into(),
+        params: BTreeMap::from([(
+            "location".to_string(),
+            to.map(|place| place.name.to_string()).unwrap_or_default(),
+        )]),
+        level: "info".into(),
+    });
+
+    Ok(events)
+}
+
+/// The server's successful backups, and the bytes of those a move copies (shared ones stay).
+async fn backups(
+    database: &crate::database::Database,
+    server_uuid: uuid::Uuid,
+) -> Result<(ApiTransferBackups, u64), sqlx::Error> {
+    let row = sqlx::query(
+        r#"
+        SELECT COUNT(*) AS count, COALESCE(SUM(server_backups.bytes), 0)::BIGINT AS bytes,
+            COALESCE(SUM(server_backups.bytes) FILTER (WHERE NOT server_backups.shared), 0)::BIGINT
+                AS moved
+        FROM server_backups
+        WHERE server_backups.server_uuid = $1 AND server_backups.deleted IS NULL
+            AND server_backups.successful
+        "#,
+    )
+    .bind(server_uuid)
+    .fetch_one(database.read())
+    .await?;
+
+    Ok((
+        ApiTransferBackups {
+            count: row.try_get("count")?,
+            bytes: row.try_get("bytes")?,
+        },
+        row.try_get::<i64, _>("moved")?.max(0) as u64,
+    ))
+}
+
+/// What Wings says the server uses; `None` when it does not answer.
+async fn usage(state: &crate::State, server: &Server) -> Option<wings_api::ResourceUsage> {
     let usage = async {
         server
             .node
@@ -352,12 +1078,16 @@ async fn running(state: &crate::State, server: &Server) -> bool {
     usage
         .ok()
         .and_then(|usage| usage.get(&server.uuid).cloned())
-        .is_some_and(|usage| {
-            matches!(
-                usage.state,
-                wings_api::ServerState::Running | wings_api::ServerState::Starting
-            )
-        })
+}
+
+/// Whether Wings says the server is running (or starting); `false` when it cannot tell.
+async fn running(state: &crate::State, server: &Server) -> bool {
+    usage(state, server).await.is_some_and(|usage| {
+        matches!(
+            usage.state,
+            wings_api::ServerState::Running | wings_api::ServerState::Starting
+        )
+    })
 }
 
 /// A player (or an admin, `admin`) moves the server to a node of `location_uuid`; the same
@@ -367,6 +1097,19 @@ pub async fn request(
     server: &Server,
     user: &User,
     location_uuid: uuid::Uuid,
+    admin: bool,
+) -> Result<ApiTransferRequest, TransferError> {
+    request_preferring(state, server, user, location_uuid, None, admin).await
+}
+
+/// [`request`], trying `prefer` (a node of the location) first: the start queue's move names the
+/// node it goes to.
+pub async fn request_preferring(
+    state: &crate::State,
+    server: &Server,
+    user: &User,
+    location_uuid: uuid::Uuid,
+    prefer: Option<uuid::Uuid>,
     admin: bool,
 ) -> Result<ApiTransferRequest, TransferError> {
     let (enabled, cooldown_hours) = {
@@ -394,6 +1137,10 @@ pub async fn request(
             .is_some_and(|request| request.active())
     {
         return Err(TransferError::Busy);
+    }
+
+    if backup_running(&state.database, server.uuid).await? {
+        return Err(TransferError::BackupRunning);
     }
 
     if !admin
@@ -435,9 +1182,10 @@ pub async fn request(
         tracing::warn!(server = %server.uuid, "failed to take a moved server out of the start queue: {err:#}");
     }
 
-    if let Err(err) = start_attempt(state, &mut request).await {
+    if let Err(err) = start_attempt(state, &mut request, prefer).await {
         request.finish(FAILED, Some(err.message()));
         request.save(&state.database).await?;
+        fail(state, &request).await;
 
         return Err(err);
     }
@@ -603,10 +1351,12 @@ pub(crate) fn limits(server: &Server) -> AdminApiServerLimits {
     }
 }
 
-/// Starts the native transfer to the best node of the location the request has not tried yet.
+/// Starts the native transfer to the best node of the location the request has not tried yet
+/// (`prefer` first when it can take the server).
 async fn start_attempt(
     state: &crate::State,
     request: &mut TransferRequest,
+    prefer: Option<uuid::Uuid>,
 ) -> Result<(), TransferError> {
     let server = Server::by_uuid_optional(&state.database, request.server_uuid)
         .await?
@@ -636,6 +1386,8 @@ async fn start_attempt(
             && !request.tried_node_uuids.contains(&node.uuid)
     })
     .collect::<Vec<_>>();
+    // the rest keep their order
+    let nodes = preferred_first(nodes, prefer, |node| node.uuid);
 
     let mut reason = None;
     for node in nodes {
@@ -647,6 +1399,7 @@ async fn start_attempt(
         let backups =
             ServerBackup::all_uuids_by_server_uuid_not_shared(&state.database, server.uuid).await?;
         let node_uuid = node.uuid;
+        let location = node.location.name.clone();
 
         server
             .clone()
@@ -675,6 +1428,18 @@ async fn start_attempt(
         request.save(&state.database).await?;
 
         tracing::info!(server = %server.uuid, node = %node_uuid, attempt = request.attempts, "moving a server");
+        let max_attempts = state.settings.get().await?.games.transfer_attempts;
+        log(
+            state,
+            request,
+            "server:transfer.attempt",
+            serde_json::json!({
+                "attempt": request.attempts,
+                "max": max_attempts.max(request.attempts),
+                "location": location,
+            }),
+        )
+        .await;
 
         return Ok(());
     }
@@ -695,13 +1460,21 @@ async fn start_attempt(
     Err(TransferError::NoNode(reason))
 }
 
+/// A cancelled move: its request, and whether it ended at once (a queued one) or settles once Wings
+/// has stopped copying.
+#[derive(Clone, Copy, Debug)]
+pub struct Cancelled {
+    pub request: uuid::Uuid,
+    pub ended: bool,
+}
+
 /// Cancels the server's move: a queued one at once, a running one through Wings (it settles once
 /// Wings has stopped copying). A move an admin started (`admin` false) is refused.
 pub async fn cancel(
     state: &crate::State,
     server: &Server,
     admin: bool,
-) -> Result<(), TransferError> {
+) -> Result<Cancelled, TransferError> {
     let Some(mut request) = TransferRequest::latest(&state.database, server.uuid)
         .await?
         .filter(TransferRequest::active)
@@ -741,7 +1514,10 @@ pub async fn cancel(
         _ => {}
     }
 
-    Ok(())
+    Ok(Cancelled {
+        request: request.uuid,
+        ended: !request.active(),
+    })
 }
 
 /// An admin cancelled the server's native transfer (Admin › Servers): the move must not be
@@ -761,8 +1537,13 @@ pub async fn mark_cancelling(state: &crate::State, server_uuid: uuid::Uuid) {
     }
 }
 
-/// Starts a server again after its move; a suspended one stays off.
-async fn start_again(state: &crate::State, server: &Server) {
+/// Starts a server again after its move (`moved`: on its new node); a suspended one stays off.
+async fn start_again(
+    state: &crate::State,
+    request: &TransferRequest,
+    server: &Server,
+    moved: bool,
+) {
     if server.suspended {
         return;
     }
@@ -787,28 +1568,57 @@ async fn start_again(state: &crate::State, server: &Server) {
     }
     .await;
 
-    if let Err(err) = started {
+    if let Err(err) = &started {
         tracing::warn!(server = %server.uuid, "failed to start a server after its move: {err:#}");
     }
+    log(
+        state,
+        request,
+        if started.is_ok() {
+            "server:transfer.restart"
+        } else {
+            "server:transfer.restart-failed"
+        },
+        serde_json::json!({ "moved": moved }),
+    )
+    .await;
+}
+
+/// A move that gave up: written to the timeline with why.
+async fn fail(state: &crate::State, request: &TransferRequest) {
+    log(
+        state,
+        request,
+        "server:transfer.fail",
+        serde_json::json!({ "reason": request.error.as_deref().and_then(reason_key) }),
+    )
+    .await;
 }
 
 /// Writes the new ports into the egg variables the egg configuration named.
 async fn write_variables(
     state: &crate::State,
+    request: &TransferRequest,
     server: &Server,
-    variables: &HashMap<String, String>,
 ) -> Result<(), anyhow::Error> {
-    if variables.is_empty() {
+    if request.variables.is_empty() {
         return Ok(());
     }
 
     let egg_variables = NestEggVariable::all_by_egg_uuid(&state.database, server.egg.uuid).await?;
-    for (name, value) in variables {
+    for (name, value) in &request.variables {
         if let Some(variable) = egg_variables
             .iter()
             .find(|v| v.env_variable == name.as_str())
         {
             ServerVariable::create(&state.database, server.uuid, variable.uuid, value).await?;
+            log(
+                state,
+                request,
+                "server:transfer.port-variable",
+                serde_json::json!({ "name": name, "port": value }),
+            )
+            .await;
         }
     }
 
@@ -839,36 +1649,65 @@ pub async fn settle(state: &crate::State) -> Result<(), anyhow::Error> {
         }
 
         if Some(server.node.uuid) == request.destination_node_uuid {
-            if let Err(err) = write_variables(state, &server, &request.variables).await {
+            log(
+                state,
+                &request,
+                "server:transfer.verified",
+                serde_json::json!({}),
+            )
+            .await;
+            if let Err(err) = write_variables(state, &request, &server).await {
                 tracing::warn!(server = %server.uuid, "failed to write a moved server's ports: {err:#}");
             }
             request.finish(COMPLETED, None);
             request.save(&state.database).await?;
             tracing::info!(server = %server.uuid, "moved a server");
+            log(
+                state,
+                &request,
+                "server:transfer.complete",
+                serde_json::json!({ "address": address(&server) }),
+            )
+            .await;
 
             if request.restart {
-                start_again(state, &server).await;
+                start_again(state, &request, &server, true).await;
             }
             continue;
         }
 
         if request.status == CANCELLING {
             request.finish(CANCELLED, None);
-        } else if retries(request.attempts, max_attempts) {
-            match start_attempt(state, &mut request).await {
-                Ok(()) => continue,
-                Err(err) => request.finish(FAILED, Some(err.message())),
-            }
+            log(
+                state,
+                &request,
+                "server:transfer.cancelled",
+                serde_json::json!({}),
+            )
+            .await;
         } else {
-            request.finish(
-                FAILED,
-                Some("the copy to the new node failed on every node tried".into()),
-            );
+            log(
+                state,
+                &request,
+                "server:transfer.attempt-failed",
+                serde_json::json!({ "attempt": request.attempts, "reason": "copyFailed" }),
+            )
+            .await;
+
+            if retries(request.attempts, max_attempts) {
+                match start_attempt(state, &mut request, None).await {
+                    Ok(()) => continue,
+                    Err(err) => request.finish(FAILED, Some(err.message())),
+                }
+            } else {
+                request.finish(FAILED, Some(COPY_FAILED.into()));
+            }
+            fail(state, &request).await;
         }
         request.save(&state.database).await?;
 
         if request.restart {
-            start_again(state, &server).await;
+            start_again(state, &request, &server, false).await;
         }
     }
 
@@ -891,18 +1730,23 @@ pub async fn settle(state: &crate::State) -> Result<(), anyhow::Error> {
         match Server::by_uuid_optional(&state.database, request.server_uuid).await? {
             Some(server) if server.destination_node.is_none() && server.node.uuid == source => {}
             _ => {
-                request.finish(
-                    CANCELLED,
-                    Some("the server moved or changed meanwhile".into()),
-                );
+                request.finish(CANCELLED, Some(MOVED_MEANWHILE.into()));
                 request.save(&state.database).await?;
+                log(
+                    state,
+                    &request,
+                    "server:transfer.cancelled",
+                    serde_json::json!({}),
+                )
+                .await;
                 continue;
             }
         }
 
-        if let Err(err) = start_attempt(state, &mut request).await {
+        if let Err(err) = start_attempt(state, &mut request, None).await {
             request.finish(FAILED, Some(err.message()));
             request.save(&state.database).await?;
+            fail(state, &request).await;
             continue;
         }
 
@@ -1165,10 +2009,305 @@ mod tests {
     }
 
     #[test]
+    fn a_preferred_node_goes_first_and_the_rest_keep_their_order() {
+        let uuids = |items: &[u128]| {
+            items
+                .iter()
+                .map(|n| uuid::Uuid::from_u128(*n))
+                .collect::<Vec<_>>()
+        };
+        let order = |items: Vec<uuid::Uuid>| items.iter().map(|u| u.as_u128()).collect::<Vec<_>>();
+
+        let first = |prefer| order(preferred_first(uuids(&[1, 2, 3, 4]), prefer, |u| *u));
+        assert_eq!(first(Some(uuid::Uuid::from_u128(3))), vec![3, 1, 2, 4]);
+        assert_eq!(first(Some(uuid::Uuid::from_u128(9))), vec![1, 2, 3, 4]);
+        assert_eq!(first(None), vec![1, 2, 3, 4]);
+    }
+
+    #[test]
     fn attempts_stop_at_the_limit() {
         assert!(retries(1, 2));
         assert!(!retries(2, 2));
         assert!(!retries(1, 0));
+    }
+
+    #[test]
+    fn reasons_name_the_errors_this_module_writes() {
+        assert_eq!(
+            reason_key(&TransferError::NoNode("every node is full".into()).message()),
+            Some("noNode")
+        );
+        assert_eq!(reason_key(COPY_FAILED), Some("copyFailed"));
+        assert_eq!(reason_key(MOVED_MEANWHILE), Some("skippedMoved"));
+        assert_eq!(reason_key("connection refused"), None);
+    }
+
+    #[test]
+    fn the_estimate_adds_the_stop_and_start_to_the_copy() {
+        assert_eq!(estimate_seconds(0), 45);
+        assert_eq!(estimate_seconds(1), 46);
+        assert_eq!(estimate_seconds(40 * 1024 * 1024), 46);
+        assert_eq!(estimate_seconds(4 * 1024 * 1024 * 1024), 45 + 103);
+    }
+
+    #[test]
+    fn an_outcome_shows_for_a_while() {
+        assert!(!ended_within(None, at(12), 10));
+        assert!(ended_within(
+            Some(at(12) - chrono::Duration::minutes(9)),
+            at(12),
+            10
+        ));
+        assert!(!ended_within(
+            Some(at(12) - chrono::Duration::minutes(10)),
+            at(12),
+            10
+        ));
+        assert!(!ended_within(Some(at(11)), at(12), 2));
+    }
+
+    #[test]
+    fn progress_follows_the_copy() {
+        let progress = |status, attempts, copying| {
+            let progress = progress_of(status, attempts, copying, 100);
+            (
+                progress.state.to_string(),
+                progress.step.to_string(),
+                progress.percent,
+            )
+        };
+        let expect =
+            |state: &str, step: &str, percent: u8| (state.to_string(), step.to_string(), percent);
+
+        assert_eq!(
+            progress(QUEUED, 0, Copying::Ended { arrived: false }),
+            expect("queued", "prepare", 0)
+        );
+        assert_eq!(
+            progress(RUNNING, 1, Copying::Running(None)),
+            expect("preparing", "prepare", 2)
+        );
+        assert_eq!(
+            progress(RUNNING, 2, Copying::Running(None)),
+            expect("retrying", "prepare", 2)
+        );
+        assert_eq!(
+            progress(RUNNING, 1, Copying::Running(Some((0, 0)))),
+            expect("stopping", "stop", 4)
+        );
+        assert_eq!(
+            progress(RUNNING, 1, Copying::Running(Some((0, 1000)))),
+            expect("copying", "copy", 6)
+        );
+        assert_eq!(
+            progress(RUNNING, 1, Copying::Running(Some((500, 1000)))),
+            expect("copying", "copy", 48)
+        );
+        assert_eq!(
+            progress(RUNNING, 1, Copying::Running(Some((1000, 1000)))),
+            expect("finalizing", "verify", 92)
+        );
+        assert_eq!(
+            progress(RUNNING, 1, Copying::Ended { arrived: true }),
+            expect("starting", "start", 97)
+        );
+        assert_eq!(
+            progress(RUNNING, 1, Copying::Ended { arrived: false }),
+            expect("checking", "copy", 6)
+        );
+        assert_eq!(
+            progress(CANCELLING, 1, Copying::Running(Some((500, 1000)))),
+            expect("cancelling", "copy", 48)
+        );
+    }
+
+    #[test]
+    fn the_speed_counts_from_the_start_of_the_attempt() {
+        let copying = progress_of(RUNNING, 1, Copying::Running(Some((500, 1000))), 10);
+        assert_eq!(copying.rate, Some(50));
+        assert_eq!(copying.eta_seconds, Some(10));
+        assert_eq!((copying.bytes_done, copying.bytes_total), (500, 1000));
+
+        let started = progress_of(RUNNING, 1, Copying::Running(Some((0, 1000))), 10);
+        assert_eq!((started.rate, started.eta_seconds), (None, None));
+
+        let stopping = progress_of(RUNNING, 1, Copying::Running(Some((0, 0))), 10);
+        assert_eq!((stopping.rate, stopping.eta_seconds), (None, None));
+    }
+
+    #[test]
+    fn activities_become_timeline_lines() {
+        let line = |event: &str, data: serde_json::Value| {
+            timeline_line(event, &data).map(|(key, level, params)| {
+                (
+                    key,
+                    level,
+                    params
+                        .into_iter()
+                        .map(|(name, value)| format!("{name}={value}"))
+                        .collect::<Vec<_>>(),
+                )
+            })
+        };
+
+        assert_eq!(
+            line(
+                "server:transfer.attempt",
+                serde_json::json!({ "attempt": 1, "max": 2, "location": "Paris" })
+            ),
+            Some(("destination", "info", vec!["location=Paris".to_string()]))
+        );
+        assert_eq!(
+            line(
+                "server:transfer.attempt",
+                serde_json::json!({ "attempt": 2, "max": 3, "location": "Paris" })
+            ),
+            Some((
+                "retrying",
+                "info",
+                vec!["attempt=2".to_string(), "max=3".to_string()]
+            ))
+        );
+        assert_eq!(
+            line(
+                "server:transfer.attempt-failed",
+                serde_json::json!({ "attempt": 1, "reason": "copyFailed" })
+            ),
+            Some((
+                "attemptFailed",
+                "warning",
+                vec!["attempt=1".to_string(), "reason=copyFailed".to_string()]
+            ))
+        );
+        assert_eq!(
+            line(
+                "server:transfer.complete",
+                serde_json::json!({ "address": "node.example.com:25565" })
+            ),
+            Some((
+                "completed",
+                "success",
+                vec!["address=node.example.com:25565".to_string()]
+            ))
+        );
+        assert_eq!(
+            line(
+                "server:transfer.fail",
+                serde_json::json!({ "reason": null })
+            ),
+            Some(("endedFailed", "danger", vec![]))
+        );
+        assert_eq!(
+            line("server:transfer.cancel", serde_json::json!({})),
+            Some(("cancelling", "info", vec![]))
+        );
+        assert_eq!(
+            line(
+                "server:transfer.cancel",
+                serde_json::json!({ "ended": true })
+            ),
+            Some(("endedCancelled", "warning", vec![]))
+        );
+        assert_eq!(
+            line(
+                "server:transfer.restart",
+                serde_json::json!({ "moved": true })
+            ),
+            Some(("started", "success", vec![]))
+        );
+        assert_eq!(
+            line(
+                "server:transfer.restart-failed",
+                serde_json::json!({ "moved": false })
+            ),
+            Some(("restartFailed", "warning", vec![]))
+        );
+        assert_eq!(line("server:transfer.request", serde_json::json!({})), None);
+    }
+
+    #[test]
+    fn blocked_asks_in_the_pelican_panels_order() {
+        let open = Blockers {
+            enabled: true,
+            ..Blockers::default()
+        };
+
+        assert_eq!(blocked(open), None);
+        assert_eq!(
+            blocked(Blockers {
+                enabled: false,
+                ..open
+            }),
+            Some("disabled")
+        );
+        assert_eq!(
+            blocked(Blockers {
+                enabled: false,
+                admin: true,
+                ..open
+            }),
+            None
+        );
+        assert_eq!(
+            blocked(Blockers {
+                busy: true,
+                cooling_down: true,
+                ..open
+            }),
+            Some("busy")
+        );
+        assert_eq!(
+            blocked(Blockers {
+                suspended: true,
+                ..open
+            }),
+            Some("suspended")
+        );
+        assert_eq!(
+            blocked(Blockers {
+                suspended: true,
+                admin: true,
+                ..open
+            }),
+            None
+        );
+        assert_eq!(
+            blocked(Blockers {
+                installing: true,
+                ..open
+            }),
+            Some("installing")
+        );
+        assert_eq!(
+            blocked(Blockers {
+                restoring: true,
+                ..open
+            }),
+            Some("restoring")
+        );
+        assert_eq!(
+            blocked(Blockers {
+                backup_running: true,
+                admin: true,
+                ..open
+            }),
+            Some("backupRunning")
+        );
+        assert_eq!(
+            blocked(Blockers {
+                cooling_down: true,
+                ..open
+            }),
+            Some("cooldown")
+        );
+        assert_eq!(
+            blocked(Blockers {
+                cooling_down: true,
+                admin: true,
+                ..open
+            }),
+            None
+        );
     }
 
     #[test]

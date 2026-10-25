@@ -24,13 +24,14 @@ function useAdUnits(): Map<number, AdUnit> {
   );
 }
 
-function SponsoredBanner({ unit }: { unit: Extract<AdUnit, { type: 'banner' }> }) {
+/** A sponsored banner; in a waiting page's stack the stack's own caption labels it. */
+function SponsoredBanner({ unit, labelled = true }: { unit: Extract<AdUnit, { type: 'banner' }>; labelled?: boolean }) {
   const { t } = useTranslations();
   const { banner } = unit;
 
   return (
     <div className='theme-ad-sponsored' style={{ maxWidth: unit.width }}>
-      <span className='theme-ad-label'>{t('elements.ads.sponsored', {})}</span>
+      {labelled && <span className='theme-ad-label'>{t('elements.ads.sponsored', {})}</span>}
       <a href={`/api/ads/banners/${banner.uuid}/click`} target='_blank' rel='sponsored noopener'>
         <img src={banner.imageUrl} alt={banner.advertiser} width={unit.width} height={unit.height} decoding='async' />
       </a>
@@ -39,7 +40,7 @@ function SponsoredBanner({ unit }: { unit: Extract<AdUnit, { type: 'banner' }> }
 }
 
 /** A slot: measures the width it has and shows the unit it was given, or nothing. */
-export function AdSlot({ kind }: { kind: AdSlotKind }) {
+export function AdSlot({ kind, labelled = true }: { kind: AdSlotKind; labelled?: boolean }) {
   const { pathname } = useLocation();
   const { settings, refreshSeconds } = useAds(adAreaOf(pathname));
   const register = useAdSlotsStore((state) => state.register);
@@ -69,7 +70,7 @@ export function AdSlot({ kind }: { kind: AdSlotKind }) {
   return (
     <div ref={box} className='theme-ad-slot' data-empty={unit ? undefined : ''}>
       {unit?.type === 'banner' ? (
-        <SponsoredBanner unit={unit} />
+        <SponsoredBanner unit={unit} labelled={labelled} />
       ) : unit ? (
         <AdFrame
           src={unitFrameUrl(settings.frameOrigin, unit)}
@@ -83,8 +84,16 @@ export function AdSlot({ kind }: { kind: AdSlotKind }) {
   );
 }
 
-/** What a waiting room carries: the native unit and the zones the page has left. */
-export function AdStack() {
+/** The room slots the first part of a waiting page's stack takes, under its status card. */
+const ROOM_SLOTS_ABOVE = 2;
+
+/**
+ * What a waiting page carries, in two parts like the Pelican panel's: `above` the status card's
+ * first two units (the widest go first), `below` the rest and then the native unit. Each part has
+ * one "Sponsored" caption over a grid of two columns on a wide screen.
+ */
+export function AdStack({ part }: { part: 'above' | 'below' }) {
+  const { t } = useTranslations();
   const { pathname } = useLocation();
   const { settings, account, shown } = useAds(adAreaOf(pathname));
   if (!shown) return null;
@@ -95,13 +104,19 @@ export function AdStack() {
         settings.zones.length + (account?.banners.filter((banner) => banner.placement === 'slot').length ?? 0),
       )
     : 0;
+  const room = part === 'above' ? Math.min(slots, ROOM_SLOTS_ABOVE) : Math.max(0, slots - ROOM_SLOTS_ABOVE);
+  const native = part === 'below' && settings.roomNative;
+  if (room === 0 && !native) return null;
 
   return (
     <div className='theme-ad-stack'>
-      {settings.roomNative && <AdSlot kind='native' />}
-      {Array.from({ length: slots }, (_, index) => (
-        <AdSlot key={index} kind='room' />
-      ))}
+      <span className='theme-ad-stack-label'>{t('elements.ads.sponsored', {})}</span>
+      <div className='theme-ad-stack-grid'>
+        {Array.from({ length: room }, (_, index) => (
+          <AdSlot key={index} kind='room' labelled={false} />
+        ))}
+        {native && <AdSlot kind='native' labelled={false} />}
+      </div>
     </div>
   );
 }

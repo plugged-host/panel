@@ -1,203 +1,209 @@
-// plugged.host: the setup a player's new Minecraft server starts with (docs/features/minecraft.md)
-import { useDebouncedValue } from '@mantine/hooks';
+// plugged.host: the setup a player's new Minecraft server starts with, the Pelican panel's setup
+// wizard (ServerOnboardingPage, docs/features/minecraft.md)
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
-import { Navigate, NavLink } from 'react-router';
+import { ReactNode, useEffect, useState } from 'react';
+import { Navigate, useNavigate } from 'react-router';
 import { z } from 'zod';
 import { httpErrorToHuman } from '@/api/axios.ts';
 import completeMinecraftOnboarding from '@/api/server/minecraft/completeMinecraftOnboarding.ts';
-import getModpacks from '@/api/server/minecraft/getModpacks.ts';
 import getModpackVersions from '@/api/server/minecraft/getModpackVersions.ts';
 import searchModpacks from '@/api/server/minecraft/searchModpacks.ts';
 import getServerSoftware from '@/api/server/settings/getServerSoftware.ts';
 import getSoftwareVersions from '@/api/server/settings/getSoftwareVersions.ts';
-import Button from '@/elements/buttons/Button.tsx';
 import ServerContentContainer from '@/elements/containers/ServerContentContainer.tsx';
-import Progress from '@/elements/feedback/Progress.tsx';
 import Spinner from '@/elements/feedback/Spinner.tsx';
-import Choice, { ChoiceSection } from '@/elements/input/Choice.tsx';
+import Choice from '@/elements/input/Choice.tsx';
 import Select from '@/elements/input/Select.tsx';
 import TagsInput from '@/elements/input/TagsInput.tsx';
-import TextInput from '@/elements/input/TextInput.tsx';
-import Group from '@/elements/layout/Group.tsx';
-import Stack from '@/elements/layout/Stack.tsx';
 import Text from '@/elements/typography/Text.tsx';
+import Wizard, { WizardStep } from '@/elements/Wizard.tsx';
 import { queryKeys } from '@/lib/queryKeys.ts';
 import {
   minecraftLoaderSchema,
-  minecraftOnboardingProgressSchema,
   minecraftOnboardingSchema,
   minecraftProjectSchema,
-  minecraftSourceSchema,
 } from '@/lib/schemas/server/minecraft.ts';
+import { useSearchableResource } from '@/plugins/resource/useSearchableResource.ts';
 import { useServerCan } from '@/plugins/usePermissions.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useServerStore } from '@/stores/server.ts';
-import { minecraftSourceLabels } from '../content/labels.ts';
-import { setupRunning, useMinecraftSetup } from './useMinecraftSetup.ts';
+import { useModpacks } from '../content/useModpacks.ts';
+import { useMinecraftSetup } from './useMinecraftSetup.ts';
 
 type Onboarding = z.infer<typeof minecraftOnboardingSchema>;
 type Loader = z.infer<typeof minecraftLoaderSchema>;
 type Project = z.infer<typeof minecraftProjectSchema>;
-type Source = z.infer<typeof minecraftSourceSchema>;
 
 const base = 'pages.server.minecraft.setup';
 const LATEST = 'latest';
 const MAX_NAMES = 20;
 const NAME = /^[A-Za-z0-9_]{1,16}$/;
+// Filament's helper text sits under its field
+const HELPER_BELOW: ('label' | 'input' | 'description' | 'error')[] = ['label', 'input', 'description', 'error'];
+
+// the Pelican panel's catalog descriptions, by the software's family
+const SOFTWARE_DESCRIPTIONS = {
+  plugins: `${base}.software.descriptions.plugins`,
+  fabric: `${base}.software.descriptions.fabric`,
+  neoforge: `${base}.software.descriptions.neoforge`,
+  forge: `${base}.software.descriptions.forge`,
+} as const;
+const PLUGIN_SOFTWARE = ['paper', 'purpur', 'folia', 'spigot', 'bukkit', 'pufferfish', 'leaf', 'vanilla'];
+
+function softwareDescription(value: string): keyof typeof SOFTWARE_DESCRIPTIONS | null {
+  const name = value.trim().toLowerCase();
+  if (PLUGIN_SOFTWARE.includes(name)) return 'plugins';
+  if (name === 'fabric' || name === 'neoforge' || name === 'forge') return name;
+  return null;
+}
 
 function invalidNames(names: string[]) {
   return names.filter((name) => !NAME.test(name.trim()));
 }
 
-function ModpackPicker({
-  project,
-  setProject,
-  versionId,
-  setVersionId,
-  onLoaders,
+/** One pick-one card, the Pelican panel's CardSelect option (label over description). */
+function SetupCard({
+  selected,
+  label,
+  description,
+  onSelect,
 }: {
-  project: Project | null;
-  setProject: (project: Project | null) => void;
-  versionId: string | null;
-  setVersionId: (version: string | null) => void;
-  onLoaders: (loaders: string[]) => void;
+  selected: boolean;
+  label: string;
+  description?: string;
+  onSelect: () => void;
 }) {
-  const { t, language } = useTranslations();
+  return (
+    <Choice radio selected={selected} onSelect={onSelect}>
+      <span className='theme-choice-title'>{label}</span>
+      {description && <span className='theme-choice-text'>{description}</span>}
+    </Choice>
+  );
+}
+
+function SetupCards({ label, children }: { label?: string; children: ReactNode }) {
+  return (
+    <div className='theme-setup-field'>
+      {label && <span className='theme-setup-label'>{label}</span>}
+      <div className='theme-setup-cards' role='group' aria-label={label}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function SetupNote({ children }: { children: ReactNode }) {
+  return (
+    <Text size='sm' c='dimmed'>
+      {children}
+    </Text>
+  );
+}
+
+/** A modpack from the first source, searched as it is typed, for the chosen loader. */
+function ModpackSelect({
+  loader,
+  project,
+  onChange,
+}: {
+  loader: Loader | null;
+  project: Project | null;
+  onChange: (project: Project | null) => void;
+}) {
+  const { t } = useTranslations();
   const server = useServerStore((state) => state.server);
+  const modpacks = useModpacks();
+  const source = modpacks.data?.sources[0] ?? 'modrinth';
 
-  const [search, setSearch] = useState('');
-  const [query] = useDebouncedValue(search.trim(), 400);
-  const [source, setSource] = useState<Source>('modrinth');
-
-  const modpacks = useQuery({
-    queryKey: queryKeys.server(server.uuid).minecraft.modpacks(),
-    queryFn: () => getModpacks(server.uuid),
-  });
-  const sources = modpacks.data?.sources ?? ['modrinth'];
-
-  const params = { source, query, page: 1 };
-  const results = useQuery({
-    queryKey: queryKeys.server(server.uuid).minecraft.modpackSearch(params),
-    queryFn: () => searchModpacks(server.uuid, params),
-    enabled: !!modpacks.data?.loaders.length,
-    placeholderData: (previous) => previous,
+  const packs = useSearchableResource<Project>({
+    queryKey: queryKeys.server(server.uuid).minecraft.modpackSearch({ source, loader, setup: true }),
+    fetcher: (query) =>
+      searchModpacks(server.uuid, { source, query, loader, page: 1 }).then((found) => ({
+        ...found,
+        data: found.hits,
+      })),
+    debounceMs: 400,
   });
 
-  const versions = useQuery({
-    queryKey: queryKeys.server(server.uuid).minecraft.modpackVersions(project?.source ?? source, project?.id ?? ''),
-    queryFn: () => getModpackVersions(server.uuid, project!.source, project!.id),
-    enabled: !!project,
-  });
-  const list = versions.data ?? [];
-  const selected = list.find((version) => version.id === versionId) ?? null;
-
-  useEffect(() => {
-    if (project && list.length > 0 && !selected) {
-      setVersionId(list[0].id);
-    }
-  }, [project, list, selected]);
-
-  useEffect(() => {
-    onLoaders(selected?.loaders ?? []);
-  }, [selected]);
+  const data = packs.items.map((pack) => ({ value: pack.id, label: pack.title }));
+  if (project && !packs.items.some((pack) => pack.id === project.id)) {
+    data.unshift({ value: project.id, label: project.title });
+  }
 
   return (
-    <Stack gap='sm'>
-      <Group gap='sm' align='flex-end'>
-        <TextInput
-          label={t(`${base}.modpack.search`, {})}
-          placeholder={t(`${base}.modpack.searchPlaceholder`, {})}
-          value={search}
-          onChange={(e) => setSearch(e.currentTarget.value)}
-          className='max-w-md flex-1'
-        />
-        {sources.length > 1 && (
-          <Select
-            label={t('pages.server.minecraft.content.browse.filter.source', {})}
-            data={sources.map((value) => ({ value, label: minecraftSourceLabels[value] }))}
-            value={source}
-            onChange={(value) => value && setSource(value as Source)}
-          />
-        )}
-      </Group>
+    <Select
+      label={t(`${base}.modpack.label`, {})}
+      placeholder={t(`${base}.modpack.none`, {})}
+      description={t(`${base}.modpack.hint`, {})}
+      inputWrapperOrder={HELPER_BELOW}
+      nothingFoundMessage={packs.search ? t(`${base}.modpack.nothing`, {}) : t(`${base}.modpack.search`, {})}
+      data={data}
+      value={project?.id ?? null}
+      onChange={(value) => onChange(packs.items.find((pack) => pack.id === value) ?? (value ? project : null))}
+      filter={({ options }) => options}
+      searchable
+      clearable
+      allowDeselect
+      searchValue={packs.search}
+      onSearchChange={packs.setSearch}
+      loading={packs.loading}
+    />
+  );
+}
 
-      {results.isLoading ? (
-        <Spinner.Centered />
-      ) : results.error ? (
-        <Text size='sm' c='red'>
-          {httpErrorToHuman(results.error)}
-        </Text>
-      ) : (results.data?.hits ?? []).length === 0 ? (
-        <Text size='sm' c='dimmed'>
-          {t('pages.server.minecraft.content.browse.empty', {})}
-        </Text>
-      ) : (
-        <div className='theme-choice-grid'>
-          {results.data?.hits.map((hit) => (
-            <Choice
-              key={`${hit.source}:${hit.id}`}
-              selected={project?.source === hit.source && project.id === hit.id}
-              disabled={!hit.installable}
-              onSelect={() => {
-                setProject(hit);
-                setVersionId(null);
-              }}
-            >
-              <span className='theme-choice-title'>
-                {hit.icon && <img src={hit.icon} alt='' loading='lazy' className='w-5 h-5 rounded-md shrink-0' />}
-                {hit.title}
-              </span>
-              <span className='theme-choice-text'>
-                {t(`${base}.modpack.by`, {
-                  author: hit.author,
-                  downloads: new Intl.NumberFormat(language, { notation: 'compact' }).format(hit.downloads),
-                })}
-              </span>
-            </Choice>
-          ))}
-        </div>
-      )}
+function ModpackVersionSelect({
+  project,
+  value,
+  onChange,
+}: {
+  project: Project;
+  value: string | null;
+  onChange: (version: string | null) => void;
+}) {
+  const { t } = useTranslations();
+  const server = useServerStore((state) => state.server);
 
-      {project &&
-        (versions.isLoading ? (
-          <Spinner.Centered />
-        ) : list.length === 0 ? (
-          <Text size='sm' c='dimmed'>
-            {t('pages.server.minecraft.modpacks.modal.noVersions', {})}
-          </Text>
-        ) : (
-          <Select
-            label={t(`${base}.modpack.version`, { name: project.title })}
-            description={
-              selected?.gameVersions.length
-                ? t('pages.server.minecraft.modpacks.modal.versionFor', {
-                    minecraft: selected.gameVersions.join(', '),
-                    loaders: selected.loaders.join(', '),
-                  })
-                : undefined
-            }
-            data={list.map((version) => ({
-              value: version.id,
-              label: version.channel === 'release' ? version.number : `${version.number} (${version.channel})`,
-            }))}
-            value={selected?.id ?? null}
-            onChange={setVersionId}
-            allowDeselect={false}
-            searchable
-            className='max-w-md'
-          />
-        ))}
-    </Stack>
+  const versions = useQuery({
+    queryKey: queryKeys.server(server.uuid).minecraft.modpackVersions(project.source, project.id),
+    queryFn: () => getModpackVersions(server.uuid, project.source, project.id),
+  });
+  const list = versions.data ?? [];
+
+  // the newest build is chosen for the player, so a pack is one click
+  useEffect(() => {
+    if (list.length > 0 && !list.some((version) => version.id === value)) {
+      onChange(list[0].id);
+    }
+  }, [list, value]);
+
+  if (versions.isLoading) return <Spinner.Centered />;
+  if (list.length === 0) {
+    return <SetupNote>{t('pages.server.minecraft.modpacks.modal.noVersions', {})}</SetupNote>;
+  }
+
+  return (
+    <Select
+      label={t(`${base}.modpack.version`, {})}
+      description={t(`${base}.modpack.versionHint`, {})}
+      inputWrapperOrder={HELPER_BELOW}
+      data={list.map((version) => ({
+        value: version.id,
+        label: `${version.name || version.number}${version.gameVersions[0] ? ` — ${version.gameVersions[0]}` : ''}`,
+      }))}
+      value={value}
+      onChange={onChange}
+    />
   );
 }
 
 function SetupForm({ onboarding }: { onboarding: Onboarding }) {
   const { t } = useTranslations();
   const { addToast } = useToast();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const server = useServerStore((state) => state.server);
+  const powerState = useServerStore((state) => state.state);
 
   const canSoftware = useServerCan('settings.software');
   const canModpack = useServerCan(['settings.software', 'minecraft.content'], false);
@@ -208,31 +214,26 @@ function SetupForm({ onboarding }: { onboarding: Onboarding }) {
     queryFn: () => getServerSoftware(server.uuid),
     enabled: canSoftware,
   });
-  const modpacks = useQuery({
-    queryKey: queryKeys.server(server.uuid).minecraft.modpacks(),
-    queryFn: () => getModpacks(server.uuid),
-    enabled: canModpack,
-  });
+  const modpacks = useModpacks(canModpack);
   const choosesSoftware = !!software.data && software.data.variants.length >= 2;
   const choosesVersion = !!software.data && software.data.version !== null;
-  const offersModpacks = canModpack && !!modpacks.data?.loaders.length;
 
-  const [mode, setMode] = useState<'software' | 'modpack'>('software');
+  const [active, setActive] = useState(0);
   const [variant, setVariant] = useState<string | null>(null);
   const [version, setVersion] = useState<string | null>(null);
   const [project, setProject] = useState<Project | null>(null);
   const [modpackVersion, setModpackVersion] = useState<string | null>(null);
-  const [modpackLoaders, setModpackLoaders] = useState<string[]>([]);
   const [bedrock, setBedrock] = useState(false);
   const [onlineMode, setOnlineMode] = useState(true);
-  const [privateServer, setPrivateServer] = useState(false);
+  // private first, as the Pelican panel: a public server is found by scanners within hours
+  const [privateServer, setPrivateServer] = useState(true);
   const [players, setPlayers] = useState<string[]>([]);
   const [operators, setOperators] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!software.data) return;
-    setVariant(software.data.current);
+    setVariant(software.data.current ?? software.data.variants[0]?.value ?? null);
     setVersion(software.data.version);
   }, [software.data]);
 
@@ -240,44 +241,65 @@ function SetupForm({ onboarding }: { onboarding: Onboarding }) {
   const versions = useQuery({
     queryKey: queryKeys.server(server.uuid).settings.softwareVersions(versionVariant),
     queryFn: () => getSoftwareVersions(server.uuid, versionVariant),
-    enabled: choosesVersion && mode === 'software',
+    enabled: choosesVersion,
     retry: false,
   });
   const versionData = [
-    { value: LATEST, label: t('pages.server.settings.software.versionLatest', {}) },
-    ...(versions.data ?? []).map((value) => ({ value, label: value })),
+    { value: LATEST, label: t(`${base}.software.latest`, {}) },
+    ...(versions.data ?? []).filter((value) => value !== LATEST).map((value) => ({ value, label: value })),
   ];
-  if (software.data?.version && !versionData.some((choice) => choice.value === software.data?.version)) {
-    versionData.push({ value: software.data.version, label: software.data.version });
+  if (version && !versionData.some((choice) => choice.value === version)) {
+    versionData.push({ value: version, label: version });
   }
+
+  // a pack is published for the loaders it runs on; Paper-family software takes plugins instead
+  const modpackLoader: Loader | null = choosesSoftware ? (onboarding.modpackLoaders[variant ?? ''] ?? null) : null;
+  const offersModpacks =
+    canModpack && !!modpacks.data?.loaders.length && (choosesSoftware ? modpackLoader !== null : true);
+  const pack = offersModpacks ? project : null;
 
   const bedrockPossible =
     canBedrock &&
-    (mode === 'modpack'
-      ? modpackLoaders.some((loader) => onboarding.bedrockLoaders.includes(loader as Loader))
+    (pack
+      ? modpackLoader
+        ? onboarding.bedrockLoaders.includes(modpackLoader)
+        : (modpacks.data?.loaders ?? []).some((loader) => onboarding.bedrockLoaders.includes(loader))
       : choosesSoftware
         ? onboarding.bedrockVariants.includes(variant ?? '')
         : onboarding.bedrockNow);
 
-  const badNames = [...invalidNames(players), ...invalidNames(operators)];
-  const ready =
-    (mode === 'software' || (!!project && !!modpackVersion)) &&
-    badNames.length === 0 &&
-    players.length <= MAX_NAMES &&
-    operators.length <= MAX_NAMES;
+  const nameError = (names: string[]) => {
+    const invalid = invalidNames(names);
+    if (invalid.length > 0) return t(`${base}.players.invalid`, { names: invalid.join(', ') });
+    if (names.length > MAX_NAMES) return t(`${base}.players.tooMany`, { max: MAX_NAMES });
+    return undefined;
+  };
+  const playersError = privateServer ? nameError(players) : undefined;
+  const operatorsError = nameError(operators);
+
+  const chooseVariant = (value: string) => {
+    if (value === variant) return;
+    // each loader lists other versions, and a pack is made for one loader
+    setVariant(value);
+    if (choosesVersion) setVersion(LATEST);
+    setProject(null);
+    setModpackVersion(null);
+  };
 
   const submit = () => {
-    if (!ready) return;
+    if (playersError || operatorsError) return;
     setLoading(true);
 
-    const software_ = software.data;
+    const current = software.data;
+    const changesSoftware =
+      !!pack ||
+      (choosesSoftware && !!variant && variant !== current?.current) ||
+      (choosesVersion && !!version && version !== current?.version);
+
     completeMinecraftOnboarding(server.uuid, {
-      variant: mode === 'software' && choosesSoftware && variant && variant !== software_?.current ? variant : null,
-      version: mode === 'software' && choosesVersion && version && version !== software_?.version ? version : null,
-      modpack:
-        mode === 'modpack' && project && modpackVersion
-          ? { source: project.source, project: project.id, version: modpackVersion }
-          : null,
+      variant: !pack && choosesSoftware && variant && variant !== current?.current ? variant : null,
+      version: !pack && choosesVersion && version && version !== current?.version ? version : null,
+      modpack: pack && modpackVersion ? { source: pack.source, project: pack.id, version: modpackVersion } : null,
       bedrock: bedrock && bedrockPossible,
       onlineMode,
       private: privateServer,
@@ -286,6 +308,17 @@ function SetupForm({ onboarding }: { onboarding: Onboarding }) {
     })
       .then(() => {
         queryClient.invalidateQueries({ queryKey: queryKeys.server(server.uuid).minecraft.onboarding() });
+        addToast(
+          // the Pelican panel's closing notification: a reinstall applies everything by itself,
+          // a server that is up reads the files again only when it restarts
+          server.status === 'installing' || changesSoftware
+            ? t(`${base}.toast.doneInstalling`, {})
+            : powerState !== 'offline'
+              ? t(`${base}.toast.doneRestart`, {})
+              : t(`${base}.toast.done`, {}),
+          'success',
+        );
+        navigate(`/server/${server.uuidShort}`);
       })
       .catch((error) => {
         addToast(httpErrorToHuman(error), 'error');
@@ -297,189 +330,194 @@ function SetupForm({ onboarding }: { onboarding: Onboarding }) {
     return <Spinner.Centered />;
   }
 
-  return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        submit();
-      }}
-    >
-      <Stack gap='xl'>
-        <Text c='dimmed' size='sm'>
-          {t(server.status === 'installing' ? `${base}.introInstalling` : `${base}.intro`, {})}
-        </Text>
+  const steps: WizardStep[] = [];
 
-        {offersModpacks && (
-          <ChoiceSection title={t(`${base}.what.title`, {})}>
-            <div className='theme-choice-grid'>
-              <Choice selected={mode === 'software'} onSelect={() => setMode('software')}>
-                <span className='theme-choice-title'>{t(`${base}.what.software`, {})}</span>
-                <span className='theme-choice-text'>{t(`${base}.what.softwareText`, {})}</span>
-              </Choice>
-              <Choice selected={mode === 'modpack'} onSelect={() => setMode('modpack')}>
-                <span className='theme-choice-title'>{t(`${base}.what.modpack`, {})}</span>
-                <span className='theme-choice-text'>{t(`${base}.what.modpackText`, {})}</span>
-              </Choice>
-            </div>
-          </ChoiceSection>
-        )}
+  if (canSoftware && software.data && (choosesSoftware || choosesVersion)) {
+    steps.push({
+      key: 'software',
+      title: t(`${base}.steps.software.title`, {}),
+      description: t(`${base}.steps.software.description`, {}),
+      content: (
+        <>
+          {choosesSoftware && (
+            <SetupCards label={t(`${base}.software.label`, {})}>
+              {software.data.variants.map((choice) => {
+                const description = softwareDescription(choice.value);
 
-        {mode === 'software' && software.data && (choosesSoftware || choosesVersion) && (
-          <ChoiceSection title={t(`${base}.software.title`, {})}>
-            {choosesSoftware && (
-              <div className='theme-choice-grid'>
-                {software.data.variants.map((choice) => (
-                  <Choice
+                return (
+                  <SetupCard
                     key={choice.value}
                     selected={choice.value === variant}
-                    onSelect={() => setVariant(choice.value)}
-                  >
-                    <span className='theme-choice-title'>{choice.label}</span>
-                  </Choice>
-                ))}
-              </div>
-            )}
-            {choosesVersion && (
-              <Select
-                label={t('pages.server.settings.software.versionLabel', {})}
-                description={
-                  versions.isError
-                    ? t('pages.server.settings.software.versionsFailed', {})
-                    : t(`${base}.software.version`, {})
-                }
-                data={versionData}
-                value={version}
-                onChange={setVersion}
-                allowDeselect={false}
-                searchable
-                className='max-w-md'
-              />
-            )}
-          </ChoiceSection>
-        )}
-
-        {mode === 'modpack' && (
-          <ChoiceSection title={t(`${base}.modpack.title`, {})}>
-            <ModpackPicker
-              project={project}
-              setProject={setProject}
-              versionId={modpackVersion}
-              setVersionId={setModpackVersion}
-              onLoaders={setModpackLoaders}
+                    label={choice.label}
+                    description={description ? t(SOFTWARE_DESCRIPTIONS[description], {}) : undefined}
+                    onSelect={() => chooseVariant(choice.value)}
+                  />
+                );
+              })}
+            </SetupCards>
+          )}
+          {choosesVersion && (
+            <Select
+              label={t(`${base}.software.version`, {})}
+              description={
+                versions.isError
+                  ? t('pages.server.settings.software.versionsFailed', {})
+                  : t(`${base}.software.versionHint`, {})
+              }
+              inputWrapperOrder={HELPER_BELOW}
+              data={versionData}
+              value={version}
+              onChange={setVersion}
+              searchable
             />
-          </ChoiceSection>
-        )}
+          )}
+        </>
+      ),
+    });
+  }
 
-        {bedrockPossible && (
-          <ChoiceSection title={t(`${base}.bedrock.title`, {})}>
-            <div className='theme-choice-grid'>
-              <Choice selected={!bedrock} onSelect={() => setBedrock(false)}>
-                <span className='theme-choice-title'>{t(`${base}.bedrock.java`, {})}</span>
-                <span className='theme-choice-text'>{t(`${base}.bedrock.javaText`, {})}</span>
-              </Choice>
-              <Choice selected={bedrock} onSelect={() => setBedrock(true)}>
-                <span className='theme-choice-title'>{t(`${base}.bedrock.both`, {})}</span>
-                <span className='theme-choice-text'>{t(`${base}.bedrock.bothText`, {})}</span>
-              </Choice>
-            </div>
-          </ChoiceSection>
-        )}
+  if (offersModpacks) {
+    steps.push({
+      key: 'modpack',
+      title: t(`${base}.steps.modpack.title`, {}),
+      description: t(`${base}.steps.modpack.description`, {}),
+      validate: () => !project || !!modpackVersion,
+      content: (
+        <>
+          <ModpackSelect
+            loader={modpackLoader}
+            project={project}
+            onChange={(chosen) => {
+              setProject(chosen);
+              setModpackVersion(null);
+            }}
+          />
+          {project && <ModpackVersionSelect project={project} value={modpackVersion} onChange={setModpackVersion} />}
+        </>
+      ),
+    });
+  }
 
-        <ChoiceSection title={t(`${base}.accounts.title`, {})}>
-          <div className='theme-choice-grid'>
-            <Choice selected={onlineMode} onSelect={() => setOnlineMode(true)}>
-              <span className='theme-choice-title'>{t(`${base}.accounts.premium`, {})}</span>
-              <span className='theme-choice-text'>{t(`${base}.accounts.premiumText`, {})}</span>
-            </Choice>
-            <Choice selected={!onlineMode} onSelect={() => setOnlineMode(false)}>
-              <span className='theme-choice-title'>{t(`${base}.accounts.cracked`, {})}</span>
-              <span className='theme-choice-text'>{t(`${base}.accounts.crackedText`, {})}</span>
-            </Choice>
-          </div>
-        </ChoiceSection>
+  if (bedrockPossible) {
+    steps.push({
+      key: 'bedrock',
+      title: t(`${base}.steps.bedrock.title`, {}),
+      description: t(`${base}.steps.bedrock.description`, {}),
+      content: (
+        <>
+          <SetupCards>
+            <SetupCard
+              selected={bedrock}
+              label={t(`${base}.bedrock.yes`, {})}
+              description={t(`${base}.bedrock.yesDescription`, {})}
+              onSelect={() => setBedrock(true)}
+            />
+            <SetupCard
+              selected={!bedrock}
+              label={t(`${base}.bedrock.no`, {})}
+              description={t(`${base}.bedrock.noDescription`, {})}
+              onSelect={() => setBedrock(false)}
+            />
+          </SetupCards>
+          {bedrock && <SetupNote>{t(`${base}.bedrock.note`, {})}</SetupNote>}
+        </>
+      ),
+    });
+  }
 
-        <ChoiceSection title={t(`${base}.access.title`, {})}>
-          <div className='theme-choice-grid'>
-            <Choice selected={!privateServer} onSelect={() => setPrivateServer(false)}>
-              <span className='theme-choice-title'>{t(`${base}.access.public`, {})}</span>
-              <span className='theme-choice-text'>{t(`${base}.access.publicText`, {})}</span>
-            </Choice>
-            <Choice selected={privateServer} onSelect={() => setPrivateServer(true)}>
-              <span className='theme-choice-title'>{t(`${base}.access.private`, {})}</span>
-              <span className='theme-choice-text'>{t(`${base}.access.privateText`, {})}</span>
-            </Choice>
-          </div>
-        </ChoiceSection>
-
-        <ChoiceSection title={t(`${base}.players.title`, {})}>
+  steps.push(
+    {
+      key: 'accounts',
+      title: t(`${base}.steps.accounts.title`, {}),
+      description: t(`${base}.steps.accounts.description`, {}),
+      content: (
+        <>
+          <SetupCards>
+            <SetupCard
+              selected={onlineMode}
+              label={t(`${base}.accounts.premium`, {})}
+              description={t(`${base}.accounts.premiumDescription`, {})}
+              onSelect={() => setOnlineMode(true)}
+            />
+            <SetupCard
+              selected={!onlineMode}
+              label={t(`${base}.accounts.cracked`, {})}
+              description={t(`${base}.accounts.crackedDescription`, {})}
+              onSelect={() => setOnlineMode(false)}
+            />
+          </SetupCards>
+          {!onlineMode && <SetupNote>{t(`${base}.accounts.crackedWarning`, {})}</SetupNote>}
+        </>
+      ),
+    },
+    {
+      key: 'access',
+      title: t(`${base}.steps.access.title`, {}),
+      description: t(`${base}.steps.access.description`, {}),
+      content: (
+        <>
+          <SetupCards>
+            <SetupCard
+              selected={privateServer}
+              label={t(`${base}.access.private`, {})}
+              description={t(`${base}.access.privateDescription`, {})}
+              onSelect={() => setPrivateServer(true)}
+            />
+            <SetupCard
+              selected={!privateServer}
+              label={t(`${base}.access.public`, {})}
+              description={t(`${base}.access.publicDescription`, {})}
+              onSelect={() => setPrivateServer(false)}
+            />
+          </SetupCards>
+          {!privateServer && <SetupNote>{t(`${base}.access.publicWarning`, {})}</SetupNote>}
+        </>
+      ),
+    },
+    {
+      key: 'players',
+      title: t(`${base}.steps.players.title`, {}),
+      description: t(`${base}.steps.players.description`, {}),
+      validate: () => !playersError && !operatorsError,
+      content: (
+        <>
           {privateServer && (
             <TagsInput
               label={t(`${base}.players.whitelist`, {})}
-              description={t(`${base}.players.whitelistDescription`, { max: MAX_NAMES })}
+              description={t(`${base}.players.whitelistHint`, {})}
               placeholder={t(`${base}.players.placeholder`, {})}
               value={players}
               onChange={setPlayers}
               invalidTags={invalidNames(players)}
+              error={playersError}
               allowReordering={false}
             />
           )}
           <TagsInput
             label={t(`${base}.players.operators`, {})}
-            description={t(`${base}.players.operatorsDescription`, { max: MAX_NAMES })}
+            description={t(`${base}.players.operatorsHint`, {})}
             placeholder={t(`${base}.players.placeholder`, {})}
             value={operators}
             onChange={setOperators}
             invalidTags={invalidNames(operators)}
+            error={operatorsError}
             allowReordering={false}
           />
-          {badNames.length > 0 && (
-            <Text size='sm' c='red'>
-              {t(`${base}.players.invalid`, { names: badNames.join(', ') })}
-            </Text>
-          )}
-        </ChoiceSection>
-
-        <Group>
-          <Button type='submit' disabled={!ready} loading={loading}>
-            {t(`${base}.submit`, {})}
-          </Button>
-        </Group>
-      </Stack>
-    </form>
+          <SetupNote>{t(`${base}.players.operatorsWarning`, {})}</SetupNote>
+        </>
+      ),
+    },
   );
-}
-
-function SetupProgress({ progress }: { progress: z.infer<typeof minecraftOnboardingProgressSchema> }) {
-  const { t } = useTranslations();
-  const server = useServerStore((state) => state.server);
-  const running = setupRunning(progress);
 
   return (
-    <Stack>
-      {progress.step === 'failed' ? (
-        <Text c='red'>{t(`${base}.progress.failed`, { error: progress.error ?? '' })}</Text>
-      ) : (
-        <Text>{t(`${base}.progress.${progress.step}`, {})}</Text>
-      )}
-      {running && <Progress value={NaN} indeterminate />}
-
-      {progress.step === 'done' && progress.error && (
-        <Text size='sm'>{t(`${base}.progress.problems`, { problems: progress.error })}</Text>
-      )}
-      {progress.skipped.length > 0 && (
-        <Text size='sm' c='dimmed'>
-          {t(`${base}.progress.skipped`, { names: progress.skipped.join(', ') })}
-        </Text>
-      )}
-
-      {!running && (
-        <Group>
-          <NavLink to={`/server/${server.uuidShort}`}>
-            <Button>{t(`${base}.progress.console`, {})}</Button>
-          </NavLink>
-        </Group>
-      )}
-    </Stack>
+    <Wizard
+      steps={steps}
+      active={active}
+      onActiveChange={setActive}
+      submitLabel={t(`${base}.finish`, {})}
+      submitting={loading}
+      onSubmit={submit}
+    />
   );
 }
 
@@ -488,16 +526,14 @@ export default function ServerMinecraftSetup() {
   const server = useServerStore((state) => state.server);
   const setup = useMinecraftSetup();
 
-  let content;
-  if (setup.isLoading) {
-    content = <Spinner.Centered />;
-  } else if (setup.data?.pending) {
-    content = <SetupForm onboarding={setup.data} />;
-  } else if (setup.data?.progress) {
-    content = <SetupProgress progress={setup.data.progress} />;
-  } else {
+  // once answered, how applying it goes is shown on the console (SetupCallout)
+  if (!setup.isLoading && !setup.data?.pending) {
     return <Navigate to={`/server/${server.uuidShort}`} replace />;
   }
 
-  return <ServerContentContainer title={t(`${base}.title`, {})}>{content}</ServerContentContainer>;
+  return (
+    <ServerContentContainer title={t(`${base}.title`, {})} subtitle={t(`${base}.subtitle`, {})}>
+      {setup.data ? <SetupForm onboarding={setup.data} /> : <Spinner.Centered />}
+    </ServerContentContainer>
+  );
 }

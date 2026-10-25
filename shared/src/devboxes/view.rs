@@ -15,6 +15,9 @@ pub enum CardState {
     Locked,
     None,
     Stopped,
+    /// The first start of its box on the node: Wings pulls the devbox image, which can take a
+    /// few minutes.
+    Creating,
     Starting,
     Stopping,
     /// Started but never reported back.
@@ -126,6 +129,32 @@ fn ssh_command(host: &str, username: &str, port: i32) -> String {
     format!("ssh -p {port} {username}@{host}")
 }
 
+/// Where a devbox with a server stands. A start that never reported back is `Creating` while its box
+/// never came up on this server (no version or host key yet: Wings is still pulling the image),
+/// and failed after [`super::BOOT_MINUTES`] either way.
+fn state_of(devbox: &Devbox, now: chrono::NaiveDateTime) -> CardState {
+    if devbox.is_stopping() {
+        CardState::Stopping
+    } else if devbox.token_hash.is_none() {
+        CardState::Stopped
+    } else if devbox.booted.is_none() {
+        if devbox
+            .started
+            .is_some_and(|started| started < now - chrono::Duration::minutes(super::BOOT_MINUTES))
+        {
+            CardState::Failed
+        } else if devbox.version.is_none() && devbox.host_key.is_none() {
+            CardState::Creating
+        } else {
+            CardState::Starting
+        }
+    } else if devbox.boot_status.as_deref() == Some("mount_missing") {
+        CardState::MountMissing
+    } else {
+        CardState::Ready
+    }
+}
+
 /// The card for `user_uuid` (signed in as `username`) on `game`.
 pub async fn card(
     state: &crate::State,
@@ -174,26 +203,11 @@ pub async fn card(
         return Ok(card);
     };
 
-    let now = chrono::Utc::now().naive_utc();
-    card.state = if devbox.is_stopping() {
-        CardState::Stopping
-    } else if devbox.token_hash.is_none() {
-        CardState::Stopped
-    } else if devbox.booted.is_none() {
-        if devbox
-            .started
-            .is_some_and(|started| started < now - chrono::Duration::minutes(super::BOOT_MINUTES))
-        {
-            CardState::Failed
-        } else {
-            CardState::Starting
-        }
-    } else if devbox.boot_status.as_deref() == Some("mount_missing") {
-        CardState::MountMissing
-    } else {
-        CardState::Ready
-    };
-    card.polling = matches!(card.state, CardState::Starting | CardState::Stopping);
+    card.state = state_of(&devbox, chrono::Utc::now().naive_utc());
+    card.polling = matches!(
+        card.state,
+        CardState::Creating | CardState::Starting | CardState::Stopping
+    );
     if card.state != CardState::Ready {
         return Ok(card);
     }
@@ -234,6 +248,69 @@ mod tests {
         assert_eq!(
             authority,
             serde_json::json!({"hostName": "node.example.com", "user": "alice", "port": 25570})
+        );
+    }
+
+    fn devbox() -> Devbox {
+        let now = chrono::Utc::now().naive_utc();
+
+        Devbox {
+            uuid: uuid::Uuid::nil(),
+            game_server_uuid: uuid::Uuid::nil(),
+            user_uuid: None,
+            server_uuid: Some(uuid::Uuid::nil()),
+            node_uuid: None,
+            mount_source: None,
+            slug: "box".into(),
+            token_hash: Some("hash".into()),
+            code_secret: None,
+            stopping: None,
+            boot_status: None,
+            boot_detail: None,
+            host_key: None,
+            version: None,
+            connections: 0,
+            shared_rights: SharedRights::default(),
+            people: Vec::new(),
+            started: Some(now),
+            booted: None,
+            last_seen: None,
+            last_used: None,
+            created: now,
+        }
+    }
+
+    #[test]
+    fn a_first_start_is_creating_until_the_box_reports_in() {
+        let now = chrono::Utc::now().naive_utc();
+        let first = devbox();
+        assert_eq!(state_of(&first, now), CardState::Creating);
+
+        let again = Devbox {
+            version: Some("1.0.0".into()),
+            host_key: Some("SHA256:key".into()),
+            ..devbox()
+        };
+        assert_eq!(state_of(&again, now), CardState::Starting);
+
+        let late = now + chrono::Duration::minutes(super::super::BOOT_MINUTES + 1);
+        assert_eq!(state_of(&first, late), CardState::Failed);
+        assert_eq!(state_of(&again, late), CardState::Failed);
+
+        let booted = Devbox {
+            booted: Some(now),
+            ..again
+        };
+        assert_eq!(state_of(&booted, now), CardState::Ready);
+        assert_eq!(
+            state_of(
+                &Devbox {
+                    token_hash: None,
+                    ..devbox()
+                },
+                now
+            ),
+            CardState::Stopped
         );
     }
 

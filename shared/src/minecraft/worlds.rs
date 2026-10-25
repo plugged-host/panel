@@ -79,6 +79,17 @@ pub struct Generation {
     pub datapacks: Vec<String>,
 }
 
+/// How the loaded world is played (`server.properties`), shown beside how it is generated.
+#[derive(ToSchema, Serialize, Debug, Clone, PartialEq, Eq)]
+pub struct Gameplay {
+    /// `difficulty`: peaceful, easy, normal or hard
+    pub difficulty: String,
+    /// `gamemode`: survival, creative, adventure or spectator
+    pub gamemode: String,
+    /// `hardcore`
+    pub hardcore: bool,
+}
+
 #[derive(ToSchema, Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub enum ImportState {
@@ -102,6 +113,7 @@ pub struct Worlds {
     /// The loaded world first, then the others by name.
     pub worlds: Vec<World>,
     pub generation: Generation,
+    pub gameplay: Gameplay,
     pub level_types: Vec<&'static str>,
     pub running: bool,
     /// Deleting moves the folders to the server's trash.
@@ -234,6 +246,32 @@ fn generation(raw: &str) -> Generation {
             .unwrap_or_else(|| "{}".into()),
         datapacks: datapacks(&config::property(raw, "initial-enabled-packs").unwrap_or_default()),
     }
+}
+
+fn gameplay(raw: &str) -> Gameplay {
+    Gameplay {
+        difficulty: choice(raw, "difficulty", "easy"),
+        gamemode: choice(raw, "gamemode", "survival"),
+        hardcore: config::property(raw, "hardcore")
+            .is_some_and(|value| value.trim().eq_ignore_ascii_case("true")),
+    }
+}
+
+/// A `difficulty` or `gamemode` value by its name, the game's default when it is not set. Old
+/// versions wrote the number (`difficulty=1` is easy), which the game still reads.
+fn choice(raw: &str, key: &str, default: &str) -> String {
+    let Some(value) = config::property(raw, key)
+        .map(|value| value.trim().to_ascii_lowercase())
+        .filter(|value| !value.is_empty())
+    else {
+        return default.into();
+    };
+
+    value
+        .parse::<usize>()
+        .ok()
+        .and_then(|index| config::choices(key).get(index))
+        .map_or(value, |name| name.to_string())
 }
 
 fn datapacks(value: &str) -> Vec<String> {
@@ -584,6 +622,7 @@ pub async fn load(state: &crate::State, server: &Server) -> Result<Worlds, World
     Ok(Worlds {
         worlds,
         generation: generation(&raw),
+        gameplay: gameplay(&raw),
         level_types: config::choices("level-type").to_vec(),
         running: !stopped(&client, server).await,
         trash: files::trash_enabled(state, server).await?,
@@ -1011,5 +1050,26 @@ mod tests {
             generation_values(&bad),
             Err(WorldError::InvalidName)
         ));
+    }
+
+    #[test]
+    fn gameplay_is_read_by_name() {
+        let read = gameplay("difficulty=hard\ngamemode=Creative\nhardcore=true\n");
+        assert_eq!(read.difficulty, "hard");
+        assert_eq!(read.gamemode, "creative");
+        assert!(read.hardcore);
+
+        let defaults = gameplay("difficulty=\nhardcore=false\n");
+        assert_eq!(defaults.difficulty, "easy");
+        assert_eq!(defaults.gamemode, "survival");
+        assert!(!defaults.hardcore);
+
+        let numbers = gameplay("difficulty=0\ngamemode=3\n");
+        assert_eq!(numbers.difficulty, "peaceful");
+        assert_eq!(numbers.gamemode, "spectator");
+
+        let unknown = gameplay("difficulty=9\ngamemode=custom\n");
+        assert_eq!(unknown.difficulty, "9");
+        assert_eq!(unknown.gamemode, "custom");
     }
 }

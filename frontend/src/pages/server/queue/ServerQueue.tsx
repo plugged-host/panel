@@ -1,22 +1,25 @@
-// plugged.host: a start waiting for room on a busy node (docs/features/start-queue.md)
+// plugged.host: a start waiting for room on a busy node, laid out like the Pelican panel's queue
+// page: the place in line, why, the ways out and the ads (docs/features/start-queue.md)
+import { AxiosError } from 'axios';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router';
+import { Navigate } from 'react-router';
 import { z } from 'zod';
 import { httpErrorToHuman } from '@/api/axios.ts';
 import getStartQueue from '@/api/server/queue/getStartQueue.ts';
 import leaveStartQueue from '@/api/server/queue/leaveStartQueue.ts';
+import takeQueueMove from '@/api/server/queue/takeQueueMove.ts';
 import { AdStack } from '@/elements/ads/AdSlot.tsx';
 import Button from '@/elements/buttons/Button.tsx';
+import UnstyledButton from '@/elements/buttons/UnstyledButton.tsx';
 import ServerContentContainer from '@/elements/containers/ServerContentContainer.tsx';
-import Group from '@/elements/layout/Group.tsx';
-import Stack from '@/elements/layout/Stack.tsx';
+import Notification from '@/elements/feedback/Notification.tsx';
+import Spinner from '@/elements/feedback/Spinner.tsx';
+import ConfirmationModal from '@/elements/modals/ConfirmationModal.tsx';
 import ResourceView from '@/elements/ResourceView.tsx';
-import Text from '@/elements/typography/Text.tsx';
-import Title from '@/elements/typography/Title.tsx';
-import { formatSeconds } from '@/lib/format/time.ts';
 import { queryKeys } from '@/lib/queryKeys.ts';
 import { serverStartQueueSchema } from '@/lib/schemas/server/queue.ts';
 import { useResource } from '@/plugins/resource/useResource.ts';
+import { formatWaited, useLeaveWaitingPage, useWaitClock } from '@/plugins/server/useWaitingPage.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useGlobalStore } from '@/stores/global.ts';
@@ -24,83 +27,208 @@ import { useServerStore } from '@/stores/server.ts';
 
 type Queue = z.infer<typeof serverStartQueueSchema>;
 
-function Waiting({ queue, refresh }: { queue: Queue; refresh: () => void }) {
+const page = 'pages.server.queue';
+
+/** One node reading: its label, the figure (red over the line) and a thin bar. */
+function Meter({ label, value, line }: { label: string; value: number | null; line: number }) {
+  const shown = value === null ? null : Math.min(100, Math.max(0, value));
+  const over = shown !== null && shown > line;
+
+  return (
+    <div className='theme-wait-meter'>
+      <div className='theme-wait-meter-head'>
+        <span className='theme-eco-small'>{label}</span>
+        <span className='theme-wait-meter-value' data-over={over || undefined}>
+          {shown === null ? '—' : `${shown.toFixed(1)}%`}
+        </span>
+      </div>
+      <div className='theme-wait-bar'>
+        <span data-over={over || undefined} style={{ width: `${Math.round(shown ?? 0)}%` }} />
+      </div>
+    </div>
+  );
+}
+
+function Waiting({ queue, refetch }: { queue: Queue; refetch: () => void }) {
   const { t } = useTranslations();
   const { addToast } = useToast();
-  const navigate = useNavigate();
+  const leavePage = useLeaveWaitingPage();
   const server = useServerStore((state) => state.server);
+  const appName = useGlobalStore((state) => state.settings.app.name);
   const economy = useGlobalStore((state) => state.settings.economy);
 
+  const [confirmingMove, setConfirmingMove] = useState(false);
   const [leaving, setLeaving] = useState(false);
 
+  // reaching the longest wait asks the panel at once: the release lands when the page says it does
+  const clock = useWaitClock(queue.waited, queue.maxWait, refetch);
+  const consolePath = `/server/${server.uuidShort}`;
+  const plusName = economy?.plusName ?? '';
+  const plusplusName = economy?.plusplusName ?? '';
+
+  // giving the place up: back to the console without starting anything
   const doLeave = () => {
     setLeaving(true);
 
     leaveStartQueue(server.uuid)
-      .then(() => {
-        addToast(t('pages.server.queue.toast.left', {}), 'success');
-        navigate(`/server/${server.uuidShort}`);
-      })
+      .then(() => leavePage(consolePath))
       .catch((err) => {
+        // already out of the line (let go, or left): there is nothing to give up
+        if (err instanceof AxiosError && err.response?.status === 409) {
+          leavePage(consolePath);
+          return;
+        }
         addToast(httpErrorToHuman(err), 'error');
-        refresh();
-      })
-      .finally(() => setLeaving(false));
+        setLeaving(false);
+      });
+  };
+
+  const doMove = async () => {
+    try {
+      await takeQueueMove(server.uuid);
+    } catch (err) {
+      setConfirmingMove(false);
+      refetch(); // the node named on the offer may have changed
+      throw err;
+    }
+
+    addToast(t(`${page}.toast.moveStarted`, {}), 'success');
+    leavePage(`${consolePath}/transfer`);
   };
 
   return (
-    <Stack gap='lg'>
-      <Text size='sm' c='dimmed'>
-        {t('pages.server.queue.description', {})}
-      </Text>
+    <div className='theme-wait-page'>
+      {/* where the start is in the line, how long it waited, and the longest it waits */}
+      <section className='theme-eco-card'>
+        <div className='theme-wait-head'>
+          <div className='flex min-w-0 flex-col gap-1'>
+            <div className='theme-wait-title'>
+              <Spinner size={20} />
+              <h3 className='theme-eco-heading truncate'>{t(`${page}.heading`, {})}</h3>
+            </div>
+            <p className='theme-row-body'>{t(`${page}.body.${queue.action}`, {})}</p>
+          </div>
 
-      <Stack gap={4}>
-        <Title order={2}>{t('pages.server.queue.position', { position: queue.position })}</Title>
-        <Text size='sm' c='dimmed'>
-          {t('pages.server.queue.waited', { waited: formatSeconds(queue.waited) })}{' '}
-          {t('pages.server.queue.remaining', { remaining: formatSeconds(queue.remaining) })}
-        </Text>
-      </Stack>
+          <div className='theme-wait-figure'>
+            <span className='theme-caption'>{t(`${page}.position.label`, {})}</span>
+            <span className='theme-figure theme-figure-accent'>
+              {queue.position > 1
+                ? t(`${page}.position.value`, { position: queue.position })
+                : t(`${page}.position.next`, {})}
+            </span>
+            {queue.priority > 0 && <span className='theme-wait-priority'>{t(`${page}.position.priority`, {})}</span>}
+          </div>
+        </div>
 
-      {queue.membershipOffer && (
-        <Stack gap='xs' align='flex-start'>
-          <Text size='sm'>
-            {t('pages.server.queue.membership', {
-              name: (queue.priority > 0 ? economy?.plusplusName : economy?.plusName) ?? '',
-            })}
-          </Text>
-          <Button onClick={() => navigate('/account/membership')}>
-            {t('pages.server.queue.button.membership', {
-              name: (queue.priority > 0 ? economy?.plusplusName : economy?.plusName) ?? '',
-            })}
-          </Button>
-        </Stack>
+        <div className='theme-wait-track'>
+          <div className='theme-wait-fill' style={{ width: `${clock.percent}%` }} />
+        </div>
+
+        <div className='theme-wait-times theme-eco-small'>
+          <span>{t(`${page}.waited`, { time: formatWaited(clock.elapsed) })}</span>
+          <span>
+            {clock.remaining > 0 ? t(`${page}.capNote`, { seconds: clock.remaining }) : t(`${page}.capReached`, {})}
+          </span>
+        </div>
+      </section>
+
+      {/* why: the node's own reading, the one the release goes by */}
+      {(queue.memoryPercent !== null || queue.cpuPercent !== null) && (
+        <section className='theme-eco-card'>
+          <p className='theme-row-body'>
+            {queue.reason
+              ? t(`${page}.reason.${queue.reason}`, { limit: Math.round(queue.line) })
+              : t(`${page}.reason.cleared`, {})}
+          </p>
+
+          <div className='theme-wait-meters'>
+            <Meter label={t(`${page}.usage.memory`, {})} value={queue.memoryPercent} line={queue.line} />
+            <Meter label={t(`${page}.usage.cpu`, {})} value={queue.cpuPercent} line={queue.line} />
+          </div>
+        </section>
       )}
 
-      {queue.moveOffer && (
-        <Stack gap='xs' align='flex-start'>
-          <Text size='sm'>{t('pages.server.queue.move', {})}</Text>
-          <Button color='gray' onClick={() => navigate(`/server/${server.uuidShort}/transfer`)}>
-            {t('pages.server.queue.button.move', {})}
-          </Button>
-        </Stack>
-      )}
+      <AdStack part='above' />
 
-      <Group>
-        <Button color='gray' loading={leaving} onClick={doLeave}>
-          {t('pages.server.queue.button.leave', {})}
-        </Button>
-      </Group>
+      {queue.priority > 0 ? (
+        <Notification
+          className='theme-callout'
+          color='green'
+          title={
+            queue.priority >= 2
+              ? t(`${page}.priority.plusplus.heading`, { app: appName, name: plusplusName })
+              : t(`${page}.priority.plus.heading`, { app: appName, name: plusName })
+          }
+        >
+          {queue.priority >= 2
+            ? t(`${page}.priority.plusplus.body`, { name: plusplusName, plus: plusName })
+            : t(`${page}.priority.plus.body`, { name: plusName })}
+        </Notification>
+      ) : queue.membershipOffer ? (
+        <section className='theme-eco-card'>
+          <div className='theme-row'>
+            <div className='flex min-w-0 flex-col gap-1'>
+              <h3 className='theme-eco-heading'>{t(`${page}.plusOffer.heading`, { app: appName, name: plusName })}</h3>
+              <p className='theme-row-body'>{t(`${page}.plusOffer.body`, { name: plusName, cost: queue.plusCost })}</p>
+            </div>
+            <div className='theme-row-action'>
+              <Button className='w-full' onClick={() => leavePage('/account/membership')}>
+                {t(`${page}.plusOffer.button`, { name: plusName })}
+              </Button>
+            </div>
+          </div>
+        </section>
+      ) : null}
 
-      <AdStack />
-    </Stack>
+      {queue.moveNode ? (
+        <section className='theme-eco-card'>
+          <ConfirmationModal
+            opened={confirmingMove}
+            onClose={() => setConfirmingMove(false)}
+            title={t(`${page}.move.modal.title`, { node: queue.moveNode })}
+            confirm={t(`${page}.move.button`, {})}
+            confirmColor='blue'
+            onConfirmed={doMove}
+          >
+            {t(`${page}.move.modal.content`, {})}
+          </ConfirmationModal>
+
+          <div className='theme-row'>
+            <div className='flex min-w-0 flex-col gap-1'>
+              <h3 className='theme-eco-heading'>{t(`${page}.move.heading`, {})}</h3>
+              <p className='theme-row-body'>{t(`${page}.move.body`, { node: queue.moveNode })}</p>
+              <p className='theme-eco-small'>{t(`${page}.move.note`, {})}</p>
+            </div>
+            <div className='theme-row-action'>
+              <Button color='gray' className='w-full' onClick={() => setConfirmingMove(true)}>
+                {t(`${page}.move.button`, {})}
+              </Button>
+            </div>
+          </div>
+        </section>
+      ) : queue.moveTooBig ? (
+        <p className='theme-eco-small'>{t(`${page}.move.tooBig`, {})}</p>
+      ) : null}
+
+      <AdStack part='below' />
+
+      {/* leaving properly: quiet, at the bottom, and a link rather than a button (Filament's gray
+          link: ".theme-link-action" of the table header and record actions block) */}
+      <div className='flex flex-col items-center gap-1 pb-2 text-center'>
+        <UnstyledButton className='theme-link-action' disabled={leaving} onClick={doLeave}>
+          {t(`${page}.leave`, {})}
+        </UnstyledButton>
+        {queue.passMinutes > 0 && (
+          <span className='theme-row-faint'>{t(`${page}.passNote`, { minutes: queue.passMinutes })}</span>
+        )}
+      </div>
+    </div>
   );
 }
 
 export default function ServerQueue() {
   const { t } = useTranslations();
-  const { addToast } = useToast();
-  const navigate = useNavigate();
+  const leavePage = useLeaveWaitingPage();
   const server = useServerStore((state) => state.server);
 
   const resource = useResource({
@@ -118,25 +246,18 @@ export default function ServerQueue() {
   }, [status]);
 
   useEffect(() => {
-    if (status !== 'released') return;
-
-    addToast(t('pages.server.queue.toast.released', {}), 'success');
-    navigate(`/server/${server.uuidShort}`, { replace: true });
+    if (status === 'released') leavePage(`/server/${server.uuidShort}`);
   }, [status]);
 
   return (
-    <ServerContentContainer title={t('pages.server.queue.title', {})}>
+    <ServerContentContainer title={t(`${page}.title`, {})} subtitle={t(`${page}.subtitle`, { server: server.name })}>
       <ResourceView resource={resource}>
         {(queue) =>
           queue.status === 'waiting' ? (
-            <Waiting queue={queue} refresh={resource.invalidate} />
-          ) : (
-            <Stack gap='xs' align='flex-start'>
-              <Text c='dimmed'>{t('pages.server.queue.notWaiting', {})}</Text>
-              <Button color='gray' onClick={() => navigate(`/server/${server.uuidShort}`)}>
-                {t('pages.server.queue.button.console', {})}
-              </Button>
-            </Stack>
+            <Waiting queue={queue} refetch={resource.refetch} />
+          ) : queue.status === 'released' ? null : (
+            // nothing to wait for: it left the line, or never joined it
+            <Navigate to={`/server/${server.uuidShort}`} replace />
           )
         }
       </ResourceView>

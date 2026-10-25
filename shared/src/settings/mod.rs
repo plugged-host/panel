@@ -34,6 +34,7 @@ pub mod games; // plugged.host
 pub mod limbo; // plugged.host
 pub mod metadata;
 pub mod neo; // plugged.host
+pub mod neo_discord; // plugged.host
 pub mod noprofit; // plugged.host
 pub mod placement; // plugged.host
 pub mod queue; // plugged.host
@@ -468,6 +469,9 @@ pub struct AppSettings {
     // plugged.host: rux, the moderation bot
     #[schema(inline)]
     pub rux: rux::AppSettingsRux,
+    // plugged.host: neo on Discord (docs/features/neo-discord.md)
+    #[schema(inline)]
+    pub neo_discord: neo_discord::AppSettingsNeoDiscord,
     #[schema(inline)]
     pub updates: updates::AppSettingsUpdates,
 
@@ -786,6 +790,8 @@ impl SettingsSerializeExt for AppSettings {
             .nest("neo", &self.neo) // plugged.host
             .await?
             .nest("rux", &self.rux) // plugged.host
+            .await?
+            .nest("neo_discord", &self.neo_discord) // plugged.host
             .await?
             .nest("updates", &self.updates)
             .await?;
@@ -1113,6 +1119,9 @@ impl SettingsDeserializeExt for AppSettingsDeserializer {
                 .await?,
             rux: deserializer // plugged.host
                 .nest("rux", &rux::AppSettingsRuxDeserializer)
+                .await?,
+            neo_discord: deserializer // plugged.host
+                .nest("neo_discord", &neo_discord::AppSettingsNeoDiscordDeserializer)
                 .await?,
             updates: deserializer
                 .nest("updates", &updates::AppSettingsUpdatesDeserializer)

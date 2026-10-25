@@ -61,7 +61,18 @@ the power API answers `202 {"gate": "limbo", "url": "/server/<id>/limbo"}`. Ever
 server shows the limbo page instead, the websocket is not opened, and the server's API answers 409
 "server is parked" except for the server itself, its limbo, power and activity routes.
 
-On the limbo page, Restore Server:
+The limbo page is laid out like the Pelican panel's restore page: "Server hibernated", one card
+with what happened, when it was parked and (with tokens on) the restore cost and the user's balance
+side by side, and Restore server in the page header behind a confirmation. When the server's own
+node cannot take it, "Choose a location" lists the user's locations with room as rows (flag, name,
+tier, latency) and Restore waits for one to be picked. A failed click says why in a notification
+(too few tokens, no room there, or not started; no tokens are spent), and the last restore that
+failed later stays on the card. While the server is being parked the card says so and the header
+offers Keep server (a start, which stops the park); while it comes back the card says it is on its
+way, and the page goes to the console once it is back. `/limbo` on a server that is not in limbo
+goes to the console.
+
+Restore server:
 
 1. Costs tokens: `cost_early` (5) within `cost_window_hours` (72) of parking, `cost_late` (10)
    after. Admins and a panel with tokens off pay nothing. The tokens are spent in the same
@@ -128,11 +139,14 @@ Admin › Settings › Hosting › Limbo (`shared/src/settings/limbo.rs`):
   and untouched (it needs an off-node backup configuration): after an hour it is stopped and its
   activity shows `server:limbo.stop`; after two it is parked. The server list says Parked, every
   page of the server shows the limbo page, the node's free memory went up.
-- Restore Server with enough tokens: the tokens go down, the page shows the progress, then goes to
-  the console; the files are as they were, the address is the old one.
+- Restore server (header, confirm) with enough tokens: the tokens go down, the card says the
+  server is on its way, then the page goes to the console; the files are as they were, the
+  address is the old one.
 - Fill the server's node (or turn its location's nodes off for deployment): the limbo page asks for
-  a location; restoring there gives the server a new address.
-- With too few tokens the Restore button is disabled and Earn Tokens links to the tokens page.
+  a location, Restore stays disabled until one is picked; restoring there gives the server a new
+  address.
+- With too few tokens, Restore and confirm: "You need N tokens to restore this server.", nothing
+  spent.
 - Start a server while it is being parked: it starts, and its backup list keeps the final backup,
   unlocked.
 - As an admin, restoring costs nothing; admins' own servers are never stopped.

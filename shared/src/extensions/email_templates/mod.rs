@@ -213,6 +213,20 @@ impl Default for ExtensionEmailTemplateBuilder {
                     default_content: include_str!("../../../mails/server_restored.html"),
                     default_enabled: false,
                 },
+                // plugged.host: a finished backup, for those who asked (shared/src/backup_notifications.rs)
+                EmailTemplate {
+                    identifier: "backup_completed",
+                    available_variables: vec![
+                        "user",
+                        "server",
+                        "backup_name",
+                        "successful",
+                        "backups_link",
+                    ],
+                    default_subject: "{{ settings.app.name }} - {% if successful %}{{ vars.subject }}{% else %}{{ vars.subject_failed }}{% endif %}",
+                    default_content: include_str!("../../../mails/backup_completed.html"),
+                    default_enabled: true,
+                },
             ],
             variables: core_variables(),
         }
@@ -389,6 +403,10 @@ mod tests {
             code => "123456",
             ip => "127.0.0.1",
             user_agent => "test-agent",
+            // plugged.host: backup_completed's variables (shared/src/backup_notifications.rs)
+            backup_name => "Nightly",
+            successful => true,
+            backups_link => "https://panel.example.com/server/00000001/backups",
         }
     }
 

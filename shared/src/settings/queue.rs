@@ -24,10 +24,13 @@ pub struct AppSettingsQueue {
     pub release_interval: i32,
     /// Minutes after a release in which the server's next start skips the queue.
     pub pass_minutes: i32,
-    /// The queue page offers the Move Server page.
+    /// The queue page offers to move the server to a quieter node of its location.
     pub move_offer: bool,
     /// Only to accounts with a membership.
     pub move_requires_membership: bool,
+    /// Only to servers whose disk limit is under this, in MiB (0: any size); never to a server with
+    /// unlimited disk.
+    pub move_max_disk: i32,
 }
 
 impl Default for AppSettingsQueue {
@@ -41,6 +44,7 @@ impl Default for AppSettingsQueue {
             pass_minutes: 10,
             move_offer: true,
             move_requires_membership: true,
+            move_max_disk: 3072,
         }
     }
 }
@@ -64,6 +68,8 @@ pub struct PayloadQueue {
     move_offer: Option<bool>,
     #[garde(skip)]
     move_requires_membership: Option<bool>,
+    #[garde(inner(range(min = 0, max = 1048576)))]
+    move_max_disk: Option<i32>,
 }
 
 impl PayloadQueue {
@@ -84,7 +90,8 @@ impl PayloadQueue {
             release_interval,
             pass_minutes,
             move_offer,
-            move_requires_membership
+            move_requires_membership,
+            move_max_disk
         );
     }
 }
@@ -109,7 +116,8 @@ impl SettingsSerializeExt for AppSettingsQueue {
             .write_raw_setting(
                 "move_requires_membership",
                 self.move_requires_membership.to_compact_string(),
-            ))
+            )
+            .write_raw_setting("move_max_disk", self.move_max_disk.to_compact_string()))
     }
 }
 
@@ -141,6 +149,7 @@ impl SettingsDeserializeExt for AppSettingsQueueDeserializer {
             pass_minutes: read!(pass_minutes),
             move_offer: read!(move_offer),
             move_requires_membership: read!(move_requires_membership),
+            move_max_disk: read!(move_max_disk),
         }))
     }
 }

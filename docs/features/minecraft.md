@@ -1,7 +1,7 @@
 # Minecraft
 
 Minecraft servers get their own pages in the server sidebar: **Plugins & Mods** (with **Modpacks**
-and **Bedrock**), **Game Settings**, **Players** and **Worlds**, plus the **log check** above the
+and **Bedrock**), **Game Settings**, **Worlds** and **Players**, plus the **log check** above the
 console and the Minecraft version in Settings › Software
 ([server-settings.md](server-settings.md#software)). A player's new Minecraft server starts with
 the [setup](#setup).
@@ -44,11 +44,16 @@ Admin › Settings › Hosting › Minecraft (`shared/src/settings/games.rs`, th
 ## Plugins & Mods
 
 `/server/<id>/minecraft/content`, permission `minecraft.content` (browse, install, update, turn
-off, delete). Three tabs, Installed, Browse and [Modpacks](#modpacks) (only on a server that can run a
-mod loader), and the [Bedrock](#bedrock-players) button in the header:
+off, delete). One page laid out like the Pelican panel's: titled **Plugins** on a Paper server and
+**Mods & Modpacks** on a mod loader (the sidebar keeps "Plugins & Mods", as a route's name cannot
+know the server's loader), with **Add Bedrock support** / **Update Geyser** ([Bedrock
+players](#bedrock-players)) and **Rescan** (reads the list again) in the header. Under it: the
+[modpack install](#modpacks) while one runs or has just ended, **Installed on this server**, then
+the catalog table. The old `/minecraft/content/browse` and `/minecraft/content/modpacks` links lead
+to the page.
 
-**Installed** lists the jars in `/plugins` or `/mods` (a `.jar.disabled` is a turned-off one) with
-what each one is:
+**Installed on this server** lists the jars in `/plugins` or `/mods` (a `.jar.disabled` is a
+turned-off one) with what each one is:
 
 1. Wings' SHA-1 of the file, looked up on Modrinth (`Exact match`);
 2. Wings' CurseForge fingerprint, looked up on CurseForge when a key is set (`Exact match`);
@@ -61,24 +66,35 @@ Wings computes the hashes and reads inside the jar, so the panel never downloads
 inside a `.jar` needs the [Wings fork](../wings.md); on stock wings-rs the descriptor step is
 skipped. Up to 8 unknown jars are identified per request and the result is kept for 30 days per
 file name and size (`minecraft::jar::<server>::<hash>`), so the page asks again until
-"Identifying N more…" is gone.
+"Identifying N…" is gone.
 
-A row shows the name, the file, where it was found, the version and the size; badges for
-**Disabled**, **Update: x** (Modrinth's newest build of that file for the server's loader and
-version) and **Needs y** (a plugin's `depend` or a mod's required dependency that no installed jar
-provides). Its menu: Update to x (downloads the new build, keeps `.disabled`, deletes the old one),
-Enable/Disable (renames to or from `.jar.disabled`), Open on the source, Delete (with "Also delete
-its folder" for a plugin's data folder). A change applies on the next restart.
+A row shows the icon (a spinner while it is identified, a box or puzzle piece without one), the
+name (linked to its project page), the version, badges for **Disabled**, an update (an arrow and
+Modrinth's newest build of that file for the server's loader and version) and **needs y** (a
+plugin's `depend` or a mod's required dependency that no installed jar provides), and the source
+(" ~" for a name match), authors, file and size. Its buttons: Update (downloads the new build, keeps
+`.disabled`, deletes the old one, after a confirmation), Enable/Disable (renames to or from
+`.jar.disabled`), Delete (with "Also delete its folder" for a plugin's data folder) and **Identify**
+(forgets what was remembered for that jar and identifies it again now, `POST
+installed/identify`; no activity, only the panel's cache changes). A change applies on the next
+restart.
 
-**Browse** searches Modrinth (always), CurseForge (with a key) and SpigotMC (Paper only, when on):
-plugins for Paper, mods for the others, for the server's Minecraft version or any version, 20 per
-page. **Install** takes the newest release that fits the loader and version (the newest build when
-there is no release); **Choose Version** lists every build, or every build at all when none lists
-the server's version ("loose"). SpigotMC only downloads the latest build, and premium or externally
-hosted resources cannot be installed (**External**). The file is pulled by Wings
-(`files/pull`, the upstream pull rate limit) into `/plugins` or `/mods`, retried for a few seconds
-while Wings already runs as many pulls of the server as it allows (`limits.server_concurrent_pulls`,
-3 by default; Wings answers 417 "too many concurrent pulls"). Modpacks have their own tab.
+**The catalog** is a table with its own toolbar: the search (600 ms after typing), **Filters**
+(Source, Type, Minecraft version, applied with "Apply filters", shown as removable "Active filters")
+and the column manager (Author, Categories). Sources: Modrinth (always), CurseForge (with a key) and
+SpigotMC (Paper only, when on). Types: plugins for Paper, mods for the others, and **Modpacks**
+whenever the server can take [one](#modpacks) (also on a Paper server whose game offers a mod
+loader, since a pack switches the software). The version list is the loader's (Mojang's releases
+without one, `gameVersions` in `GET /content`), preset to the server's version and clearable for
+any. 20 rows per page. **1-Click Install** takes the newest release that fits the loader and
+version (the newest build when there is no release); **Versions** lists every build ("2.21.1 —
+1.21.4, 1.21.3, 1.21.1… (beta)"), or every build at all when none lists the server's version
+("loose"), with Modrinth's client-only warning (`client_only`, `server_side: unsupported`).
+SpigotMC only downloads the latest build, and premium or externally hosted resources cannot be
+installed (**External download**). The file is pulled by Wings (`files/pull`, the upstream pull
+rate limit) into `/plugins` or `/mods`, retried for a few seconds while Wings already runs as many
+pulls of the server as it allows (`limits.server_concurrent_pulls`, 3 by default; Wings answers 417
+"too many concurrent pulls").
 
 Every search, project and version answer is cached (searches 5 minutes, the rest an hour,
 `minecraft::<source>::…`); a source that fails answers "the content source did not answer, try
@@ -86,16 +102,17 @@ again later" (the cause is logged).
 
 ## Modpacks
 
-`/server/<id>/minecraft/content/modpacks`, shown when the server can run a mod loader: its game's
-software choices include Fabric, Quilt, Forge or NeoForge (a Paper server whose game also offers
-Fabric qualifies), or, without choices, it runs one of them. Searching needs `minecraft.content`;
-installing also needs `settings.software`, since a pack brings its own loader and version and the
-server is reinstalled for it.
+Type **Modpacks** in the [catalog](#plugins--mods), offered when the server can run a mod loader:
+its game's software choices include Fabric, Quilt, Forge or NeoForge (a Paper server whose game also
+offers Fabric qualifies), or, without choices, it runs one of them. Searching needs
+`minecraft.content`; installing also needs `settings.software`, since a pack brings its own loader
+and version and the server is reinstalled for it.
 
-The tab searches Modrinth's and (with a key) CurseForge's modpacks for those loaders, any Minecraft
-version. **Install** asks for the pack's version (it shows the Minecraft version and loader it is
-for) and whether to **remove the mods installed now** (on by default: the `mods` folder goes to the
-trash when the server has one, else it is deleted). The server has to be stopped. The request
+It searches Modrinth's and (with a key) CurseForge's modpacks for those loaders, for the version
+filter's Minecraft version (cleared: any). **Install** warns that the server is switched and
+reinstalled, asks for the pack's version and whether to **remove the mods installed now** (on by
+default: the `mods` folder goes to the trash when the server has one, else it is deleted). The
+server has to be stopped (the link says so while it runs). The request
 checks the pack, stores the install as started and answers 202; a background task then:
 
 1. downloads the pack into the panel (Modrinth: the `.mrpack` from `cdn.modrinth.com`; CurseForge:
@@ -120,15 +137,17 @@ checks the pack, stores the install as started and answers 202; a background tas
 
 Paths in a pack never leave the server's folder (absolute paths, `..` and drive letters are
 dropped). The state (step, files done of total, skipped files, error) is kept in the cache, for 2
-hours while running and an hour after; the tab polls it every 3 seconds, shows the step with a
-progress bar and toasts when it ends. Activity: `server:minecraft.modpack.install` when it ends.
+hours while running and an hour after; the page polls it every 3 seconds and shows it above the
+installed list ("Modpack installation started" with the step and a progress bar, then "Modpack
+installed" or "Modpack installation failed" until closed), and toasts when it ends. Activity:
+`server:minecraft.modpack.install` when it ends.
 
 ## Bedrock players
 
-The **Bedrock** button on Plugins & Mods (permission `minecraft.bedrock`), on Paper and its forks,
-Fabric and NeoForge (Geyser has no build for Quilt or Forge). The dialog shows the installed Geyser
-jar and the address Bedrock players join, and **Install Geyser** / **Update Geyser**
-(`shared/src/minecraft/bedrock.rs`):
+**Add Bedrock support** (or **Update Geyser** once it is there) on Plugins & Mods (permission
+`minecraft.bedrock`), on Paper and its forks, Fabric and NeoForge (Geyser has no build for Quilt or
+Forge; the button is hidden there). It asks for a confirmation that says what it installs, with the
+address Bedrock players join once there is one (`shared/src/minecraft/bedrock.rs`):
 
 1. **The port.** The server's allocation noted `Bedrock (Geyser)`, else (a Geyser set up by hand) a
    non-primary allocation on the port its config listens on; else the panel takes the node's lowest
@@ -154,28 +173,38 @@ Activity: `server:minecraft.bedrock.install`.
 ## Setup
 
 A Minecraft server a player creates ([create-server.md](create-server.md)) is not started after its
-install. It gets a `server_onboardings` row instead, and its owner is sent to **Set Up Your
-Server** (`/minecraft/setup`) from every page of the server, also while it installs (the page is
-the one a server that installs may show besides the console). Servers an admin creates have no row
-and never see it. The page asks, as choice tiles like the create page:
+install. It gets a `server_onboardings` row instead, and its owner is sent to **Set up your server**
+(`/minecraft/setup`) from every page of the server, with a warning toast that says why, also while
+it installs (the page is the one a server that installs may show besides the console). Servers an
+admin creates have no row and never see it. Subusers who may answer it (`minecraft.settings` and
+`minecraft.players`) and admins are not sent there; the console shows them **Your server is not
+set up yet** with **Start setup** instead.
 
-- **What to run** (when the server can take a modpack): a server, with its software (the game's
-  choices) and Minecraft version, or a modpack from the [Modpacks](#modpacks) sources and its
-  version;
-- **Bedrock players** (when the chosen software, or the pack's loader, runs Geyser): Java only, or
-  Java and Bedrock;
-- **Accounts**: bought accounts (`online-mode=true`) or any name;
-- **Who can join**: anyone, or only the players added (the whitelist);
-- **Players**: the whitelist (when private) and operators, up to 20 names each.
+The page is the Pelican panel's setup wizard (`elements/Wizard.tsx`): numbered steps across the
+top, Back / Next (Enter goes on), **Finish setup** on the last one. The steps:
 
-**Set Up and Start** stores the answers on the row (`completed`, once: a second submit is 409), and
+- **Server software** (with `settings.software`, when the game has software choices or a version):
+  the game's choices as cards with what each takes, and the Minecraft version (Latest by default);
+- **Modpack** (with `settings.software` + `minecraft.content`, when the chosen software takes
+  modpacks: `modpackLoaders` in `GET /onboarding`, every mod loader and not the Paper family):
+  optional, a pack from the first source searched for that loader, then its version (the newest
+  preselected); a pack brings its own software and version;
+- **Bedrock support** (with `minecraft.bedrock`, when the chosen software, or the pack's loader,
+  runs Geyser): yes, or Java only (the default);
+- **Player accounts**: premium accounts only (`online-mode=true`, the default) or cracked clients,
+  with the warning;
+- **Who is it for**: private (the whitelist, the default) or public, with the warning;
+- **Players**: the whitelist (when private) and operators, up to 20 valid names each.
+
+**Finish setup** stores the answers on the row (`completed`, once: a second submit is 409), goes to
+the console and says what happens next (installing, restart to apply, or written).
 `minecraft::onboarding::apply` runs after the request: it waits for the install to end (30 minutes
 at most), installs the modpack or switches the software and version (a reinstall it waits for
 too), writes `online-mode`, turns the whitelist on or off and adds the names (looked up at Mojang in
 online mode; names without an account are listed as skipped), installs Geyser when asked, and
 starts the server. A part that fails is listed and the rest still applied; an install that failed
-stops it ("reinstall it from Settings"). The page then shows each step (polled every 3 seconds,
-kept in the cache 2 hours while running and an hour after) and **Go to the Console** when it ends.
+stops it ("reinstall it from Settings"). The console shows each step (polled every 3 seconds, kept
+in the cache 2 hours while running and an hour after), then whether it worked, until closed.
 Activity: `server:minecraft.onboarding.complete` when it ends.
 
 ### The egg
@@ -226,18 +255,22 @@ file and the count. The change applies when the server restarts.
 
 ## Players
 
-`/server/<id>/minecraft/players`, permission `minecraft.players`. One list of everyone on the
-whitelist (`whitelist.json`), an operator (`ops.json`, with the level) or banned
-(`banned-players.json`, with the reason), sorted by name, plus:
+`/server/<id>/minecraft/players`, permission `minecraft.players`, laid out like the Pelican panel's
+Players page. The **Whitelist** section holds **Only allow whitelisted players**: `white-list` and
+`enforce-whitelist` in `server.properties` (both set together), and `whitelist on`/`off` on the
+console while the server runs. Under the switch, a server in offline mode says that anyone can join
+under any name.
 
-- **Only Whitelisted Players**: `white-list` and `enforce-whitelist` in `server.properties` (both
-  set together), and `whitelist on`/`off` on the console while the server runs;
-- a note when the server is in offline mode (anyone can join under any name) and when it is
-  stopped (changes apply at the next start).
-
-**Add Player** takes a name (1 to 16 letters, digits and `_`) and adds it to the whitelist and,
-when ticked, as an operator. A row's menu adds to or removes from the whitelist, makes or removes
-an operator (making one asks first), bans with an optional reason (up to 200 characters) or pardons.
+Below it, one table of everyone on the whitelist (`whitelist.json`), an operator (`ops.json`, with
+the level) or banned (`banned-players.json`, with the reason), sorted by name, with a search: the
+name (copied on a click) over the UUID, Whitelisted (a check or a cross), Operator ("Level 4") and
+Banned (the reason on hover), "—" when not. The Banned column and the ban links are v3's own; Pelican
+has no bans. **Add player** (the table's action) takes a Minecraft username (1 to 16 letters, digits
+and `_`) and **Give them**: access to the server (the whitelist), operator powers, or both. A row's
+text links whitelist or remove from the whitelist, make or remove an operator, ban with an optional
+reason (up to 200 characters) or pardon. Taking something away, making an operator and banning ask
+first. **Reload** in the header reads the files again. When the lists cannot be read (Wings does not
+answer), the page shows only "Player lists unavailable".
 
 How a change is made, like the game itself does it:
 
@@ -257,40 +290,54 @@ the name, the reason and whether it went through the console; the switch as
 
 ## Worlds
 
-`/server/<id>/minecraft/worlds`, permission `minecraft.worlds`. A world is a folder in the server
-root with a `level.dat`; the `<world>_nether` and `<world>_the_end` folders Paper-family servers
-keep beside it belong to it. The list shows the loaded world (`level-name` in `server.properties`)
-first, also before its first start has generated it, then the other worlds by name, with the
-folders and when they last changed. Folders that are never worlds (`plugins`, `mods`, `config`,
-`logs` …) and hidden ones are not looked into, and at most 12 folders are.
+`/server/<id>/minecraft/worlds`, permission `minecraft.worlds`, laid out like the Pelican panel's
+Worlds page. A world is a folder in the server root with a `level.dat`; the `<world>_nether` and
+`<world>_the_end` folders Paper-family servers keep beside it belong to it. Folders that are never
+worlds (`plugins`, `mods`, `config`, `logs` …) and hidden ones are not looked into, and at most 12
+folders are.
 
-A row's menu:
+One card per world, the loaded one (`level-name` in `server.properties`) first, also before its
+first start has generated it ("Not generated yet"), then the others by name with when they were last
+saved. The badges say Active, Nether and The End (from the folders beside it). The loaded world's
+card shows six tiles: the seed, the world type, the difficulty, the game mode (with "Hardcore"), the
+structures and when it was last saved (`difficulty`, `gamemode` and `hardcore` are read from
+`server.properties`, a number like `difficulty=0` by its name). Its actions:
 
+- **Options**: name, seed (empty is random), generator settings (for superflat and single biome),
+  world type, structures and data packs, written to `server.properties`; the server generates the
+  world at its next start.
+- **Generate**: the same world started over, with a new random seed (on by default) or the same one.
+- The **upload** drop zone: drop or choose an archive, then **Upload and replace**. It empties
+  `.world-upload`, uploads the archive there with the file manager's uploader (in parts, resumable,
+  also in the uploads card; the button counts the percent) and, when the upload is done, starts the
+  import. The panel unpacks it (Wings, in the foreground of a background task), finds the folder with
+  `level.dat` (the top or up to two folders down, `__MACOSX` skipped), keeps or deletes the loaded
+  world as below, moves the new one into its place (with `_nether`/`_the_end` siblings) and empties
+  `.world-upload`. The page says "Importing the uploaded world…" and polls until it ends; a failure
+  stays on the page for an hour. Archives: `.zip`, `.tar`, `.tar.gz`, `.tgz`, `.tar.xz`, `.tar.zst`.
+  The import is started by the browser, so the tab has to stay open until the upload is done (also
+  `files.create`).
+
+These three need the server stopped (a yellow callout says so while it runs, and **Stop server** is
+in the header with `control.stop`) and no import running. **Keep a copy of the current world** (on
+by default) renames the loaded world's folders to `<world>-<date>` when the new one takes its name,
+or leaves it as it is under another name; off, it is deleted (trash first when there is one). Either
+way the kept world is a card of its own and can be loaded again, which is what Pelican's "keep a zip
+copy" became.
+
+Every card also has:
+
+- **Use this world** (the other worlds): sets `level-name`; the server loads it from its next start
+  (works while it runs).
 - **Download**: one archive (zip) of the world and its dimension folders, streamed by Wings through
   the file manager's download (`files.read-content`). A running server is told `save-all flush`
   first when the caller also has `control.console`, so the archive has the last minutes of play.
-- **Load This World**: sets `level-name`; the server loads it from its next start (works while it
-  runs).
-- **Open in Files**: the world's folder in the file manager.
-- **Delete** (not the loaded world): its folders go to the server's trash when it has one, else
-  they are deleted.
+- **Files**: the world's folder in the file manager (`files.read`).
+- **Delete** (the other worlds): their folders go to the server's trash when it has one, else they
+  are deleted.
 
-Two page actions need the server stopped:
-
-- **New World**: name, seed (empty is random), world type, structures, generator settings (for
-  superflat and single biome) and data packs, written to `server.properties`; the server generates
-  the world at its next start. **Keep the current world** (on by default) renames the loaded world's
-  folders to `<world>-<date>` when the new one takes its name, or leaves it as it is under another
-  name; off, it is deleted (trash first when there is one). Either way it stays loadable from the
-  list, which is what Pelican's "keep a zip copy" became.
-- **Upload World** (also `files.create`): empties `.world-upload`, uploads the archive there with the
-  file manager's uploader (in parts, resumable, in the uploads card) and, when the upload is done,
-  starts the import. The panel unpacks it (Wings, in the foreground of a background task), finds the
-  folder with `level.dat` (the top or up to two folders down, `__MACOSX` skipped), keeps or deletes
-  the loaded world as above, moves the new one into its place (with `_nether`/`_the_end` siblings)
-  and empties `.world-upload`. The page shows "Unpacking …" and polls until it ends; a failure stays
-  on the page for an hour. Archives: `.zip`, `.tar`, `.tar.gz`, `.tgz`, `.tar.xz`, `.tar.zst`. The
-  import is started by the browser, so the tab has to stay open until the upload is done.
+Under the cards, three notes on bringing a singleplayer world, keeping a copy and switching worlds.
+**Rescan** in the header reads the worlds again.
 
 Activity: `server:minecraft.worlds.{create,activate,delete,import}`.
 
@@ -313,7 +360,8 @@ line with a link; problems show as a card with up to three problems and their fi
 "Ask neo to fix it" and the link to the whole log on mclo.gs; error lines without a known problem say
 so. "Ask neo to fix it" shows when neo is offered (`settings.neo.enabled`) and the user has the
 server's `neo.access`; it sends the window event `neo:ask` with `{ log: <mclo.gs id> }`, which the
-neo chat answers by starting a chat on that log ([neo](neo.md)). Without neo the card only links the
+neo chat answers by starting a chat on that log ([neo](neo.md)); neo's `read_mclogs` reads the
+paste back through the same module (`log_check::paste`, `entries`). Without neo the card only links the
 log. Admin › Settings › Hosting › Minecraft › Log Check turns it off (the console then shows nothing).
 
 ## Routes
@@ -322,7 +370,7 @@ Under `/api/client/servers/{server}/minecraft/content`, all with `minecraft.cont
 
 | Route | Does |
 |---|---|
-| `GET /` | The loader, its software value, the Minecraft version (as set and as resolved), the sources and kinds offered, the directory |
+| `GET /` | The loader, its software value, the Minecraft version (as set and as resolved), the sources and kinds offered, the directory, whether modpacks are offered, the Minecraft versions to filter by (`game_versions`, the loader's) |
 | `GET /search?source&kind&query&game_version&page` | One page of projects (`game_version` empty = any version, absent = the server's) |
 | `GET /versions?source&project&kind` | The builds that fit, newest first, and whether the list is loose |
 | `POST /install` `{source, project, version?}` | Pulls the file; 202 with the file and directory; activity `server:minecraft.content.install` |
@@ -330,6 +378,7 @@ Under `/api/client/servers/{server}/minecraft/content`, all with `minecraft.cont
 | `DELETE /installed` `{file, with_data}` | Deletes the jar (and the plugin's folder); activity `server:minecraft.content.delete` |
 | `POST /installed/toggle` `{file, enabled}` | Renames to or from `.disabled` |
 | `POST /installed/update` `{file}` | Replaces the jar with Modrinth's newest build; 202 |
+| `POST /installed/identify` `{file}` | Forgets what was remembered for the jar and identifies it again; answers its row (404 when it is gone; 10 per server a minute) |
 
 Under `/api/client/servers/{server}/minecraft/settings`, with `minecraft.settings`:
 
@@ -353,7 +402,7 @@ Under `/api/client/servers/{server}/minecraft/worlds`, with `minecraft.worlds`:
 
 | Route | Does |
 |---|---|
-| `GET /` | The worlds, the generation settings, the world types, whether the server runs, whether deleting uses the trash, the last import's state |
+| `GET /` | The worlds, the generation settings, the difficulty, game mode and hardcore, the world types, whether the server runs, whether deleting uses the trash, the last import's state |
 | `POST /` `{name, seed, level_type, structures, generator, datapacks, keep}` | A new world in place of the loaded one (server stopped); answers what was kept or deleted |
 | `DELETE /` `{world}` | Deletes a world that is not the loaded one |
 | `PUT /active` `{world}` | Loads that world from the next start |
@@ -366,7 +415,7 @@ Under `/api/client/servers/{server}/minecraft/modpacks` (`minecraft.content`):
 | Route | Does |
 |---|---|
 | `GET /` | The loaders a pack may be for, the sources, whether the server runs, the current install |
-| `GET /search?source&query&page` | One page of modpacks for those loaders |
+| `GET /search?source&query&game_version&loader&page` | One page of modpacks for those loaders (`loader`: only that one of them), for any Minecraft version unless `game_version` is given |
 | `GET /versions?source&project` | The pack's versions, newest first |
 | `POST /install` `{source, project, version, clean}` | Starts the install (also `settings.software`, server stopped); 202 with the install |
 
@@ -375,8 +424,8 @@ the software, the jar, the port and address; `POST` installs or updates (`{updat
 address, restarted}`).
 
 `/api/client/servers/{server}/minecraft/onboarding`: `GET` (`minecraft.settings`) whether the setup
-waits, when it was answered, the progress, and which software choices and loaders run Geyser (404
-for a server without one); `POST` the answers `{variant, version, modpack: {source, project,
+waits, when it was answered, the progress, which software choices and loaders run Geyser, and which
+software choices take modpacks with their loader (`modpack_loaders`) (404 for a server without one); `POST` the answers `{variant, version, modpack: {source, project,
 version}, bedrock, online_mode, private, players, operators}` (`minecraft.settings` +
 `minecraft.players`, plus `settings.software` to change the software, `minecraft.content` for a
 modpack, `minecraft.bedrock` for Bedrock); 202, 409 when already answered.
@@ -391,36 +440,48 @@ Nothing here uses noprofit.space.
 
 ## What to check
 
-- A Paper server: Plugins & Mods appears after Files; a FiveM or other server does not show it.
-- Installed: plugins identified (hash, name), a turned-off jar shows Disabled, an old plugin offers
-  Update, a plugin without its dependency shows Needs.
-- Browse: search, switch source and version, Install and Choose Version; the file appears under
-  Installed and in `/plugins`.
+- A Paper server: Plugins & Mods appears after Files, titled "Plugins"; a Fabric server's is titled
+  "Mods & Modpacks"; a FiveM or other server does not show it.
+- Installed on this server: plugins identified (hash, name, " ~" for a name match), a turned-off jar
+  shows Disabled, an old plugin shows the arrow badge and the Update button, a plugin without its
+  dependency shows "needs y"; Identify on a row re-identifies it; Rescan reloads the list.
+- The catalog: search, Filters › Source, Type and Minecraft version, Apply filters, remove an active
+  filter; 1-Click Install and Versions; the file appears under Installed and in `/plugins`; the
+  column manager hides Author and Categories.
 - Admin › Settings › Hosting › Minecraft: store a CurseForge key, CurseForge appears as a source.
 - Game Settings on a stopped Paper server: tabs for server.properties and the YAML files that
   exist; change a switch, a number and a choice, Save, and the file in the editor keeps its
   comments; a wrong number is refused; Edit as Text opens the file.
-- Players on a running server: add a player (whitelist + operator), ban with a reason, pardon,
-  remove from the whitelist; the console shows the commands and the lists update. The same on a
-  stopped server writes the JSON files ("applies when the server starts").
-- The whitelist switch on and off; `server.properties` shows `white-list` and `enforce-whitelist`.
+- Players on a running server: Add player with "Access and operator powers", ban with a reason
+  (hover the Banned badge), pardon, Remove from whitelist (asks first); the console shows the
+  commands and the table updates. The same on a stopped server writes the JSON files ("it applies
+  the next time the server starts").
+- The "Only allow whitelisted players" switch on and off; `server.properties` shows `white-list` and
+  `enforce-whitelist`. Search finds a player by part of the name.
 - An unknown name on an online-mode server is refused; any name works in offline mode.
 - A subuser without `minecraft.settings` or `minecraft.players` does not see those pages.
 - Game Settings: `level-type` shows as a choice (Normal etc.) on a server the game wrote
   `minecraft\:normal` into; a MOTD with `§` colours saves and the server shows the colours.
-- Worlds on a stopped server: New World with a seed and Keep on, the old world is listed as
-  `world-<date>`; Load This World on it and start, the old world is back.
-- Upload World: a zipped world (with and without a wrapping folder) becomes the loaded world; the
-  uploads card shows the progress, then "Unpacking …", then the list updates.
+- Worlds on a running server: the yellow callout, Options, Generate and the drop zone are locked
+  ("Stop the server first"), Stop server in the header stops it and they unlock.
+- The loaded world's tiles match `server.properties` (seed, type, difficulty, game mode, Hardcore,
+  structures); the Nether and The End badges show on a Paper server.
+- Options on a stopped server with a seed and Keep on: the old world gets its own card as
+  `world-<date>`; Use this world on it and start, the old world is back. Generate with a new seed
+  starts the same name over.
+- Upload: drop a zipped world (with and without a wrapping folder) on the drop zone, Upload and
+  replace counts up, then "Importing the uploaded world…", then the card updates. A `.txt` is
+  refused under the drop zone.
 - Download on a running server: the zip has the world, `world_nether` and `world_the_end`.
 - Delete a world that is not loaded: it shows up in the file manager's trash.
-- Modpacks on a stopped Fabric server: install a Modrinth pack for another Minecraft version; the
-  page shows "Reinstalling the server…", then the mods count up, then "is installed"; the server
-  starts with the pack's mods and configs; Settings › Software shows the pack's version.
+- Modpacks on a stopped Fabric server: Filters › Type Modpacks, clear the version, install a
+  Modrinth pack for another Minecraft version; the callout above the list shows "Reinstalling the
+  server…", then the mods count up, then "Modpack installed"; the server starts with the pack's
+  mods and configs; Settings › Software shows the pack's version.
 - The same with a CurseForge pack (with a key) on a Forge server; a pack whose author blocks
   downloads lists the skipped mods.
-- Modpacks on a running server: Install is disabled and the page says to stop it.
-- Bedrock on a Paper server: Install Geyser; Network shows a new port noted "Bedrock (Geyser)";
+- Modpacks on a running server: Install is disabled and its tooltip says to stop it.
+- Bedrock on a Paper server: Add Bedrock support, Confirm; Network shows a new port noted "Bedrock (Geyser)";
   `plugins/` has Geyser and Floodgate; a Bedrock client joins on the shown address. Update Geyser
   keeps the same port.
 - Bedrock on a Fabric server: Geyser-Fabric and Floodgate from Modrinth in `mods/`.
@@ -428,11 +489,15 @@ Nothing here uses noprofit.space.
   problem and its fix, with "Ask neo to fix it" (with neo on and `neo.access`) and View log, a link
   to mclo.gs where passwords in the log show as `••••`. A clean start shows the one quiet line.
   Turning Log Check off in Admin › Settings hides it.
-- Create a Minecraft server as a player: the server page goes to Set Up Your Server while it
-  installs; the console and other pages lead back to it. Pick Fabric and an older version, Java and
-  Bedrock, any name, private with two names and an operator: after Set Up and Start the page shows
-  waiting, reinstalling, settings, Bedrock, starting, then done; `server.properties` has
+- Create a Minecraft server as a player: the server page goes to Set up your server while it
+  installs, with the warning toast; the console and other pages lead back to it. Walk the wizard:
+  Fabric and an older version, no modpack, Bedrock yes, cracked clients, private with two names and
+  an operator; Finish setup goes to the console, which shows waiting, reinstalling, settings,
+  Bedrock, starting, then "Your server is set up"; `server.properties` has
   `online-mode=false`, `white-list=true`, the lists hold the names, Geyser is in `mods/` and the
   server runs. A made-up name in online mode is listed as not added.
 - The same with a modpack: the pack installs, then the settings are written and the server starts.
+  With Purpur chosen the Modpack step is not there.
+- A subuser with Game Settings opens the console of a server still waiting for its setup: "Your
+  server is not set up yet" with Start setup.
 - A server an admin creates starts after its install as before and has no setup.

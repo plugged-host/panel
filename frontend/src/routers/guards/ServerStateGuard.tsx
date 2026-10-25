@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react'; // plugged.host: useEffect
 import { Navigate, NavLink, Outlet, useLocation } from 'react-router'; // plugged.host: Navigate
 import { httpErrorToHuman } from '@/api/axios.ts';
 import unlockBackupRestore from '@/api/server/backups/unlockBackupRestore.ts';
@@ -37,6 +37,18 @@ export default function ServerStateGuard() {
   const serverPaths = [`/server/${server.uuid}`, `/server/${server.uuidShort}`];
   const onSetup = serverPaths.some((path) => location.pathname.startsWith(`${path}${SETUP_PATH}`));
   const onPopout = serverPaths.some((path) => location.pathname === `${path}/console/popout`);
+  // plugged.host: sent to the setup, says why (the Pelican panel's RequireServerOnboarding notice)
+  const toSetup =
+    !!setup.data?.pending &&
+    !onSetup &&
+    !onPopout &&
+    !server.isSuspended &&
+    !server.isTransferring &&
+    !server.nodeMaintenanceEnabled &&
+    !isInLimbo(server.limboState);
+  useEffect(() => {
+    if (toSetup) addToast(t('pages.server.minecraft.setup.gate', {}), 'warning');
+  }, [toSetup]);
 
   const acknowledge = useMemo(() => {
     if (server.status === 'install_failed') {
@@ -85,12 +97,21 @@ export default function ServerStateGuard() {
 
   // plugged.host: the setup is answered while the server installs, and shows how applying it goes
   if (!server.isSuspended && !server.isTransferring && !server.nodeMaintenanceEnabled) {
-    if (setup.data?.pending && !onSetup && !onPopout) {
+    if (toSetup) {
       return <Navigate to={`/server/${server.uuidShort}${SETUP_PATH}`} replace />;
     }
     if (onSetup && (server.status === null || server.status === 'installing')) {
       return <Outlet />;
     }
+  }
+
+  // plugged.host: the Transfer page follows a move while it runs (docs/features/transfers.md)
+  if (
+    server.isTransferring &&
+    !server.nodeMaintenanceEnabled &&
+    serverPaths.some((path) => location.pathname.startsWith(`${path}/transfer`))
+  ) {
+    return <Outlet />;
   }
 
   if (

@@ -3,8 +3,9 @@
 A devbox is a small Linux box next to a game server, with the game server's files at `/server`.
 People open it in VS Code over SSH (Remote - SSH) or, when the browser edge is set up, as VS Code
 in the browser. Inside, `ph` shows the game server's state and console and sends power actions.
-Players find it on the server's **VS Code** page. In `shared/src/devboxes/`, the image in
-`docker/devbox/`.
+Players find it on the server's **VS Code** page, a settings page reached through the jump bar like
+the Pelican panel's VS Code section ([server-settings.md](server-settings.md)). In
+`shared/src/devboxes/`, the image in `docker/devbox/`.
 
 ## What a devbox is
 
@@ -22,7 +23,7 @@ starts, stops and deletes itself:
   code secret, what its boot reported, and `people`: who could sign in at its last start.
 
 **Kinds.** A personal devbox belongs to one person on one game server. The owner may switch on a
-shared devbox instead (Shared Devbox on the page): one for the owner and every subuser who may
+shared devbox instead (Shared › Share on the page): one for the owner and every subuser who may
 have one, paid by the owner's membership. Switching it on deletes everyone's personal devbox on
 that server; switching it off deletes the shared one.
 
@@ -62,8 +63,9 @@ disk (node telemetry), or unreachable.
 
 ## Signing in
 
-**SSH.** The page shows the host (the allocation's alias, its address when routable, else the
-node's public host), the port, the person's username and a connect code `xxxx-xxxx-xxxx-xxxx`.
+**SSH.** The page shows the SSH command (`ssh -p <port> <user>@<host>`; the host is the
+allocation's alias, its address when routable, else the node's public host) and a connect code
+`xxxx-xxxx-xxxx-xxxx`, each with a copy button.
 The code is the SSH password: derived from the start's code secret for that person
 (`codes::derive`, HMAC-SHA256), shown only behind the panel's sign-in, the same for the whole
 start, gone at the next stop. `ph` asks the panel (`/api/devbox/auth`) and the panel answers for
@@ -72,7 +74,16 @@ and let every bot's guess reach the account. People's SSH keys (Account › SSH 
 `ph` gets them with the boot and heartbeat answers.
 
 **Open in VS Code** is a `vscode://vscode-remote/ssh-remote+<host>/server` link for the Remote -
-SSH extension. The host key is on the page to compare on the first connection.
+SSH extension. The host key is under the SSH command, to compare on the first connection.
+
+**The page** is the Pelican panel's VS Code section: label/value rows (Devbox with its state and a
+hint, Connect code, SSH, Shared, and the v3-only Rights of a shared devbox), then one filled button
+(Open in VS Code when running, else Start devbox) and "Needs the Remote - SSH extension. Install".
+A failed start or stop shows its reason in a row of its own. The state comes from
+`shared/src/devboxes/view.rs`: `none`, `stopped`, `creating` (a box's first boot: no version and no
+host key reported yet, within the boot window; usually the node downloading the image), `starting`,
+`stopping`, `failed`, `mount_missing`, `ready`; the page polls every 3 s while creating, starting or
+stopping.
 
 ## What `ph` may do with the game server
 
@@ -106,7 +117,7 @@ node and port over TLS with a client certificate:
 
 The browser flow:
 
-1. **Open in Browser** on the page asks for a one-time ticket (one minute) and opens
+1. **Open in browser** on the page asks for a one-time ticket (one minute) and opens
    `https://<slug>.<domain>/_devbox/login?ticket=…`.
 2. The edge passes that to `GET /api/devbox/web/login`, which redeems the ticket and sets
    `__Host-devbox` (encrypted: devbox, person, host, expiry; 12 hours, `Secure; HttpOnly;
@@ -360,13 +371,14 @@ panel.example.com`).
 
 ## Checking a node
 
-1. As someone who may have a devbox, open a server on that node › **VS Code** › **Start**. The
-   page goes from "Starting the devbox…" to "The devbox is running."
+1. As someone who may have a devbox, open a server on that node › Settings › **VS Code** › **Start
+   devbox**. The Devbox row goes from "Creating…" (first start on the node) or "Starting…" to
+   "Running".
 2. Connect with the SSH command and the connect code. `ls /server` lists the game server's files;
    a file changed there shows in the game server's file manager. `ph status` shows the game server.
 3. From the devbox: `curl -sm5 https://example.com` works, `curl -sm5 http://169.254.169.254/`
    times out, the node's SSH port at the bridge gateway fails, `ph logs -n 5` prints console lines.
-4. **Stop** shows "Stopping the devbox…" until Wings confirms it.
+4. **Stop** shows "Stopping…" until Wings confirms it.
 
 ## Code
 

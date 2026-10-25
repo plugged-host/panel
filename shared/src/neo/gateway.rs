@@ -355,6 +355,97 @@ pub async fn usage(
     Some(usage)
 }
 
+// plugged.host: neo on Discord (docs/features/neo-discord.md, `super::discord`) names a Discord
+// account instead of a panel user: noprofit.space meters a linked one as its account and an
+// unlinked one in windows of its own, at a share of the limits. Its turns are not streamed.
+
+/// The service neo on Discord's turns are recorded under: the sign-in client's, marked.
+fn discord_service(client: &str) -> String {
+    format!("{}-discord", client.chars().take(24).collect::<String>())
+}
+
+/// What noprofit.space says about a Discord account (`/usage` with `discord_id`): `linked`,
+/// `account_id`, `name` (the account's, when linked), `unlinked_percent`, `limits` and `blocked`
+/// (the window that refuses new turns, or null). `plan` and `usage_percent` are those of the panel
+/// account the Discord account belongs to (noprofit.space ignores them for an unlinked one).
+pub async fn discord_usage(
+    state: &crate::State,
+    config: &Config,
+    discord_id: &str,
+    plan: NeoPlan,
+    usage_percent: i64,
+) -> Result<Value, TurnError> {
+    let body = json!({
+        "discord_id": discord_id,
+        "service": discord_service(&config.client),
+        "usage_percent": usage_percent.clamp(100, 1000),
+        "plan": plan.as_str(),
+    });
+
+    // once more when the connection itself failed: the way there is long
+    let timeout = Duration::from_secs(8);
+    let response = match post(state, config, "/usage", &body, "application/json", timeout).await {
+        Ok(response) => response,
+        Err(_) => post(state, config, "/usage", &body, "application/json", timeout).await?,
+    };
+    let status = response.status().as_u16();
+    let data: Value = response.json().await.unwrap_or_default();
+
+    if (200..300).contains(&status) && data.is_object() {
+        Ok(data)
+    } else {
+        Err(TurnError::Unavailable {
+            reason: format!("usage_http_{status}"),
+        })
+    }
+}
+
+/// One model turn for a Discord account, metered by noprofit.space (not streamed).
+pub async fn discord_turn(
+    state: &crate::State,
+    config: &Config,
+    discord_id: &str,
+    plan: NeoPlan,
+    usage_percent: i64,
+    ask: Ask<'_>,
+) -> Result<TurnAnswer, TurnError> {
+    let body = json!({
+        "discord_id": discord_id,
+        "service": discord_service(&config.client),
+        "usage_percent": usage_percent.clamp(100, 1000),
+        "plan": plan.as_str(),
+        "conversation": ask.conversation,
+        "request_id": uuid::Uuid::new_v4().to_string(),
+        "messages": ask.messages,
+        "tools": ask.tools,
+        "tool_choice": ask.tool_choice,
+    });
+
+    let response = post(
+        state,
+        config,
+        "/turn",
+        &body,
+        "application/json",
+        Duration::from_secs(120),
+    )
+    .await?;
+    let status = response.status().as_u16();
+    let retry_after = response
+        .headers()
+        .get("Retry-After")
+        .and_then(|value| value.to_str().ok())
+        .and_then(|value| value.parse().ok())
+        .unwrap_or(0);
+    let data: Value = response.json().await.unwrap_or_default();
+
+    if (200..300).contains(&status) && data["message"].is_object() {
+        return Ok(answer_from(&data));
+    }
+
+    Err(error_for(status, &data, retry_after))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -408,5 +499,13 @@ mod tests {
         assert_eq!(answer.tool_calls.len(), 1);
         assert_eq!(answer.charged_tokens, 1200);
         assert_eq!(answer.provider_label.as_deref(), Some("Fast"));
+    }
+
+    // plugged.host: neo on Discord
+    #[test]
+    fn discord_turns_are_recorded_under_the_client() {
+        assert_eq!(discord_service("panel"), "panel-discord");
+        let long = discord_service("a-very-long-sign-in-client-name-indeed");
+        assert!(long.ends_with("-discord") && long.chars().count() <= 32);
     }
 }

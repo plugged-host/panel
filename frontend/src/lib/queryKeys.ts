@@ -276,8 +276,11 @@ const server = (serverUuid: string) => ({
     software: () => ['server', serverUuid, 'settings', 'software'] as const,
     softwareVersions: (variant: string | null) =>
       ['server', serverUuid, 'settings', 'software', 'versions', { variant }] as const,
+    usage: () => ['server', serverUuid, 'settings', 'usage'] as const,
+    notifications: () => ['server', serverUuid, 'settings', 'notifications'] as const,
   },
   transfer: () => ['server', serverUuid, 'transfer'] as const, // plugged.host
+  transferStatus: () => ['server', serverUuid, 'transfer', 'status'] as const, // plugged.host
   queue: () => ['server', serverUuid, 'queue'] as const, // plugged.host
   limbo: () => ['server', serverUuid, 'limbo'] as const, // plugged.host
   waitingRoom: () => ['server', serverUuid, 'waiting-room'] as const, // plugged.host

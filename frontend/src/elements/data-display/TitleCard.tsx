@@ -6,20 +6,24 @@ import Card from '@/elements/data-display/Card.tsx';
 
 export interface TitleCardProps {
   title: string;
-  description?: string; // plugged.host: Filament's section description, under the heading
+  description?: ReactNode; // plugged.host: Filament's section description, under the heading
   icon?: React.ReactNode;
-  children: React.ReactNode;
+  children?: React.ReactNode; // plugged.host: optional, a section may be only its heading
   className?: string;
   titleClassName?: string;
   wrapperClassName?: string;
   iconClassName?: string;
   leftSection?: ReactNode;
   rightSection?: ReactNode;
+  description?: ReactNode; // plugged.host: Filament's section description, under the title
+  footer?: ReactNode; // plugged.host: Filament's section footer, its actions end-aligned over a hairline
+  danger?: boolean; // plugged.host: Theme v2's red-edged Danger Zone section
+  id?: string; // plugged.host
 }
 
 function TitleCard({
   title,
-  description, // plugged.host
+  description,
   icon,
   children,
   className,
@@ -28,15 +32,21 @@ function TitleCard({
   wrapperClassName,
   leftSection,
   rightSection,
+  description, // plugged.host
+  footer, // plugged.host
+  danger, // plugged.host
+  id, // plugged.host
 }: TitleCardProps) {
+  const hasBody = children !== undefined; // plugged.host: a section may be only its heading
+
   return (
     // plugged.host: Filament's section, "bg-white/5 rounded-2xl": the heading "px-6 py-4 text-base
-    // font-semibold" over a hairline, the content "p-6".
-    <Card withBorder p={0} className={className}>
+    // font-semibold" over a hairline, the content "p-6". plugged.host: `id` and the danger section's class.
+    <Card withBorder p={0} id={id} className={classNames(className, danger && 'theme-section-danger')}>
       <Group
         id='title-card-header'
         className={classNames('px-4 py-3 md:px-6 md:py-4', titleClassName)}
-        style={{ borderBottom: '1px solid var(--theme-hairline)' }}
+        style={hasBody ? { borderBottom: '1px solid var(--theme-hairline)' } : undefined} // plugged.host
         gap='sm'
       >
         {leftSection}
@@ -59,9 +69,9 @@ function TitleCard({
             {icon}
           </Box>
         )}
-        {/* plugged.host: a description sits under the heading, "text-sm text-gray-400" */}
+        {/* plugged.host: the description sits under the title, as in Filament's section heading */}
         {description ? (
-          <div className='min-w-0'>
+          <div className='min-w-0 flex-1'>
             <Title order={5} fw={600}>
               {title}
             </Title>
@@ -74,7 +84,11 @@ function TitleCard({
         )}
         {rightSection}
       </Group>
-      <div className={classNames('p-4 md:p-6 h-full', wrapperClassName)}>{children}</div>
+      {hasBody && ( // plugged.host
+        <div className={classNames('p-4 md:p-6 h-full', wrapperClassName)}>{children}</div>
+      )}
+      {/* plugged.host */}
+      {footer && <div className='theme-section-footer'>{footer}</div>}
     </Card>
   );
 }

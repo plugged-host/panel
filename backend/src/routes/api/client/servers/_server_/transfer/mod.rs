@@ -4,6 +4,7 @@ use super::State;
 use utoipa_axum::{router::OpenApiRouter, routes};
 
 mod cancel;
+mod status;
 
 mod get {
     use serde::Serialize;
@@ -37,7 +38,8 @@ mod get {
         permissions.has_server_permission("settings.transfer")?;
 
         ApiResponse::new_serialized(Response {
-            transfer: shared::server_transfers::options(&state, &server).await?,
+            transfer: shared::server_transfers::options(&state, &server, permissions.is_admin())
+                .await?,
         })
         .ok()
     }
@@ -133,5 +135,6 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         .routes(routes!(get::route))
         .routes(routes!(post::route))
         .nest("/cancel", cancel::router(state))
+        .nest("/status", status::router(state))
         .with_state(state.clone())
 }

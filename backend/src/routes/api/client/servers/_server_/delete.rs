@@ -6,10 +6,9 @@ pub mod delete {
     use serde::Serialize;
     use shared::{
         ApiError, GetState,
+        deleted_servers::DeleteServerError,
         models::{
-            DeletableModel,
             server::GetServer,
-            server_backup::ServerBackup,
             user::{GetPermissionManager, GetUser},
             user_activity::GetUserActivityLogger,
         },
@@ -47,37 +46,20 @@ pub mod delete {
                 .ok();
         }
 
-        // the backups go with the server, but for its system backups while deleted servers are held:
-        // the owner downloads those from the Backups page (docs/features/backups-page.md)
-        let holding = shared::deleted_servers::holding(&state).await?;
-        let backups = ServerBackup::all_by_server_uuid(&state.database, server.uuid)
-            .await?
-            .into_iter()
-            .filter(|backup| !holding || backup.system_backup_policy_uuid.is_none())
-            .collect::<Vec<_>>();
+        // the backups go with it, but for its system backups while deleted servers are held (the
+        // owner downloads those from the Backups page, docs/features/backups-page.md)
+        match shared::deleted_servers::delete_server(&state, &server).await {
+            Ok(()) => {}
+            Err(DeleteServerError::Lookup(err)) => return Err(err.into()),
+            Err(DeleteServerError::Delete(err)) => {
+                tracing::error!(server = %server.uuid, "failed to delete server: {:?}", err);
 
-        if let Err(err) = server
-            .delete(
-                &state,
-                shared::models::server::DeleteServerOptions { force: false },
-            )
-            .await
-        {
-            tracing::error!(server = %server.uuid, "failed to delete server: {:?}", err);
+                let (err, status) = shared::response::extract_readable_message(&err)
+                    .unwrap_or_else(|| (err.to_string(), StatusCode::EXPECTATION_FAILED));
 
-            let (err, status) = shared::response::extract_readable_message(&err)
-                .unwrap_or_else(|| (err.to_string(), StatusCode::EXPECTATION_FAILED));
-
-            return ApiResponse::error(format!("failed to delete server: {err}"))
-                .with_status(status)
-                .ok();
-        }
-
-        for backup in backups {
-            let backup_uuid = backup.uuid;
-
-            if let Err(err) = backup.delete(&state, Default::default()).await {
-                tracing::error!(server = %server.uuid, backup = %backup_uuid, "failed to delete backup: {:?}", err);
+                return ApiResponse::error(format!("failed to delete server: {err}"))
+                    .with_status(status)
+                    .ok();
             }
         }
 

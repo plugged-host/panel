@@ -1,23 +1,25 @@
-// plugged.host: switch the server's software and Minecraft version, which reinstalls it (docs/features/server-settings.md)
+// plugged.host: the Pelican panel's "Version and software" section (ServerSettings::versionSections):
+// the server's software and Minecraft version, applied by a reinstall (docs/features/server-settings.md)
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
-import getServerSoftware from '@/api/server/settings/getServerSoftware.ts';
 import getSoftwareVersions from '@/api/server/settings/getSoftwareVersions.ts';
 import switchServerSoftware from '@/api/server/settings/switchServerSoftware.ts';
 import Button from '@/elements/buttons/Button.tsx';
 import TitleCard from '@/elements/data-display/TitleCard.tsx';
+import Spinner from '@/elements/feedback/Spinner.tsx';
 import Select from '@/elements/input/Select.tsx';
-import Group from '@/elements/layout/Group.tsx';
-import Stack from '@/elements/layout/Stack.tsx';
 import ConfirmationModal from '@/elements/modals/ConfirmationModal.tsx';
+import Text from '@/elements/typography/Text.tsx';
 import { queryKeys } from '@/lib/queryKeys.ts';
-import { useResource } from '@/plugins/resource/useResource.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useServerStore } from '@/stores/server.ts';
+import { useSoftwareOptions } from './useSettingsSections.ts';
 
 const LATEST = 'latest';
+// Filament's helper text sits under the field
+const HELPER_UNDER: ('label' | 'input' | 'description' | 'error')[] = ['label', 'input', 'description', 'error'];
 
 export default function SoftwareContainer() {
   const { t } = useTranslations();
@@ -27,11 +29,7 @@ export default function SoftwareContainer() {
   const updateServer = useServerStore((state) => state.updateServer);
   const base = 'pages.server.settings.software';
 
-  const resource = useResource({
-    queryKey: queryKeys.server(server.uuid).settings.software(),
-    queryFn: () => getServerSoftware(server.uuid),
-    silent: true,
-  });
+  const { resource, usable } = useSoftwareOptions();
   const software = resource.data;
   const choosesSoftware = !!software && software.variants.length >= 2;
   const choosesVersion = !!software && software.version !== null;
@@ -54,14 +52,13 @@ export default function SoftwareContainer() {
     retry: false,
   });
 
-  if (!software || (!choosesSoftware && !choosesVersion)) {
-    return null;
+  if (!software || !usable) {
+    return resource.loading ? <Spinner.Centered /> : null;
   }
 
   const variantChanged = choosesSoftware && !!variant && variant !== software.current;
   const versionChanged = choosesVersion && !!version && version !== software.version;
-  const label = software.variants.find((choice) => choice.value === variant)?.label ?? '';
-  const versionLabel = version === LATEST ? t(`${base}.versionLatest`, {}) : (version ?? '');
+  const variantDescription = software.variants.find((choice) => choice.value === variant)?.description;
 
   const versionData = [
     { value: LATEST, label: t(`${base}.versionLatest`, {}) },
@@ -85,7 +82,15 @@ export default function SoftwareContainer() {
   };
 
   return (
-    <TitleCard title={t(`${base}.title`, {})} className='h-full order-55'>
+    <TitleCard
+      title={t(`${base}.title`, {})}
+      description={t(`${base}.description`, {})}
+      footer={
+        <Button variant='default' disabled={!variantChanged && !versionChanged} onClick={() => setConfirming(true)}>
+          {t(`${base}.button`, {})}
+        </Button>
+      }
+    >
       <ConfirmationModal
         opened={confirming}
         onClose={() => setConfirming(false)}
@@ -93,19 +98,17 @@ export default function SoftwareContainer() {
         confirm={t(`${base}.modal.button`, {})}
         onConfirmed={doSwitch}
       >
-        {(variantChanged && versionChanged
-          ? t(`${base}.modal.contentBoth`, { software: label, version: versionLabel })
-          : versionChanged
-            ? t(`${base}.modal.contentVersion`, { version: versionLabel })
-            : t(`${base}.modal.content`, { software: label })
-        ).md()}
+        <Text size='sm' c='dimmed'>
+          {t(`${base}.modal.content`, {})}
+        </Text>
       </ConfirmationModal>
 
-      <Stack h='100%'>
+      <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
         {choosesSoftware && (
           <Select
             label={t(`${base}.label`, {})}
-            description={t(`${base}.description`, {})}
+            description={variantDescription ?? undefined}
+            inputWrapperOrder={HELPER_UNDER}
             data={software.variants.map((choice) => ({ value: choice.value, label: choice.label }))}
             value={variant}
             onChange={setVariant}
@@ -116,6 +119,7 @@ export default function SoftwareContainer() {
           <Select
             label={t(`${base}.versionLabel`, {})}
             description={versions.isError ? t(`${base}.versionsFailed`, {}) : t(`${base}.versionDescription`, {})}
+            inputWrapperOrder={HELPER_UNDER}
             data={versionData}
             value={version}
             onChange={setVersion}
@@ -123,13 +127,7 @@ export default function SoftwareContainer() {
             searchable
           />
         )}
-
-        <Group mt='auto'>
-          <Button variant='default' disabled={!variantChanged && !versionChanged} onClick={() => setConfirming(true)}>
-            {t(`${base}.button`, {})}
-          </Button>
-        </Group>
-      </Stack>
+      </div>
     </TitleCard>
   );
 }

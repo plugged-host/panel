@@ -1,18 +1,15 @@
-// plugged.host: SFTP access on the settings page (docs/features/server-settings.md)
-
-import Button from '@/elements/buttons/Button.tsx';
-import CopyOnClick from '@/elements/CopyOnClick.tsx';
+// plugged.host: the Pelican panel's "SFTP Information" section (ServerSettings::sftpSection,
+// settings/sftp-card.blade.php): connection, username and password rows (docs/features/server-settings.md)
 import TitleCard from '@/elements/data-display/TitleCard.tsx';
-import TextInput from '@/elements/input/TextInput.tsx';
-import Group from '@/elements/layout/Group.tsx';
-import Stack from '@/elements/layout/Stack.tsx';
-import Anchor from '@/elements/typography/Anchor.tsx';
+import { CopyActionIcon, LinkActionIcon, SettingRow, SettingRows } from '@/elements/SettingRows.tsx';
 import { useRedactedAddress } from '@/plugins/privacy/useRedactAddresses.ts';
 import { useSftpPassword } from '@/plugins/useSftpPassword.ts';
 import { useAuth } from '@/providers/AuthProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useGlobalStore } from '@/stores/global.ts';
 import { useServerStore } from '@/stores/server.ts';
+
+const base = 'pages.server.settings.sftp';
 
 export default function SftpContainer() {
   const { t } = useTranslations();
@@ -24,40 +21,38 @@ export default function SftpContainer() {
 
   const address = `${server.sftpHost}:${server.sftpPort}`;
   const username = `${user!.username}.${server.uuidShort}`;
+  // noprofit.space checks the account's password; else the panel's, while password sign-in is on
+  const accountPassword = password === 'noprofit' || (password === 'panel' && passwordLoginEnabled);
 
   return (
-    <TitleCard title={t('pages.server.settings.sftp.title', {})} className='h-full order-12'>
-      <Stack h='100%'>
-        <CopyOnClick content={address} className='text-left'>
-          <TextInput
-            label={t('common.form.host', {})}
-            value={`${displayHost}:${server.sftpPort}`}
-            className='pointer-events-none'
-            readOnly
-          />
-        </CopyOnClick>
-        <CopyOnClick content={username} className='text-left'>
-          <TextInput label={t('common.form.username', {})} value={username} className='pointer-events-none' readOnly />
-        </CopyOnClick>
-        <TextInput
-          label={t('common.form.password', {})}
-          value={
-            password === 'noprofit'
-              ? t('pages.server.settings.sftp.noprofitPassword', {})
-              : password === 'panel' && passwordLoginEnabled
-                ? t('common.form.yourControlPanelPassword', {})
-                : t('pages.server.settings.sftp.sshKeyOnly', {})
+    <TitleCard title={t(`${base}.title`, {})} description={t(`${base}.description`, {})}>
+      <SettingRows>
+        <SettingRow
+          label={t(`${base}.connection`, {})}
+          mono
+          actions={
+            <>
+              <CopyActionIcon content={address} label={t(`${base}.copyHost`, {})} />
+              <LinkActionIcon href={`sftp://${username}@${address}`} label={t(`${base}.launch`, {})} />
+            </>
           }
-          className='pointer-events-none'
-          readOnly
-        />
-
-        <Group mt='auto'>
-          <Anchor href={`sftp://${username}@${address}`}>
-            <Button variant='default'>{t('pages.server.files.modal.sftpDetails.launch', {})}</Button>
-          </Anchor>
-        </Group>
-      </Stack>
+        >
+          {`${displayHost}:${server.sftpPort}`}
+        </SettingRow>
+        <SettingRow
+          label={t(`${base}.username`, {})}
+          mono
+          actions={<CopyActionIcon content={username} label={t(`${base}.copyUsername`, {})} />}
+        >
+          {username}
+        </SettingRow>
+        <SettingRow
+          label={t(`${base}.password`, {})}
+          hint={accountPassword ? t(`${base}.passwordHint`, {}) : t(`${base}.sshKeyHint`, {})}
+        >
+          {accountPassword ? t(`${base}.accountPassword`, {}) : t(`${base}.sshKey`, {})}
+        </SettingRow>
+      </SettingRows>
     </TitleCard>
   );
 }

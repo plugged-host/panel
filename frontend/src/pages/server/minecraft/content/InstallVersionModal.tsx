@@ -17,6 +17,7 @@ import { useResource } from '@/plugins/resource/useResource.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useServerStore } from '@/stores/server.ts';
+import { minecraftVersionLabel } from './labels.ts';
 import { useInstalledToast } from './useInstalledToast.ts';
 
 type Props = ModalProps & {
@@ -43,6 +44,12 @@ export default function InstallVersionModal({ project, gameVersion, onInstalled,
 
   const list = versions.data?.versions ?? [];
   const selected = versionId ?? list[0]?.id ?? null;
+  const hint = [
+    project.source === 'spigotmc' ? t(`${base}.spigotLatestOnly`, {}) : null,
+    versions.data?.loose && gameVersion ? t(`${base}.loose`, { version: gameVersion }) : null,
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   const install = () => {
     if (!selected) return;
@@ -61,6 +68,12 @@ export default function InstallVersionModal({ project, gameVersion, onInstalled,
   return (
     <Modal title={t(`${base}.title`, { name: project.title })} {...props}>
       <Stack>
+        {project.clientOnly && (
+          <Text size='sm' c='dimmed'>
+            {t(`${base}.clientOnly`, {})}
+          </Text>
+        )}
+
         {versions.loading && !versions.data ? (
           <Spinner.Centered />
         ) : list.length === 0 ? (
@@ -70,33 +83,21 @@ export default function InstallVersionModal({ project, gameVersion, onInstalled,
         ) : (
           <Select
             label={t('common.table.columns.version', {})}
-            data={list.map((version) => ({
-              value: version.id,
-              label: version.channel === 'release' ? version.number : `${version.number} (${version.channel})`,
-            }))}
+            description={hint || undefined}
+            inputWrapperOrder={['label', 'input', 'description', 'error']}
+            data={list.map((version) => ({ value: version.id, label: minecraftVersionLabel(version) }))}
             value={selected}
             onChange={setVersionId}
             searchable
           />
         )}
 
-        {versions.data?.loose && gameVersion && (
-          <Text size='sm' c='dimmed'>
-            {t(`${base}.loose`, { version: gameVersion })}
-          </Text>
-        )}
-        {project.source === 'spigotmc' && (
-          <Text size='sm' c='dimmed'>
-            {t(`${base}.spigotLatestOnly`, {})}
-          </Text>
-        )}
-
         <ModalFooter>
           <Button onClick={install} loading={loading} disabled={!selected}>
-            {t('pages.server.minecraft.content.browse.button.install', {})}
+            {t('common.button.install', {})}
           </Button>
           <Button variant='default' onClick={props.onClose}>
-            {t('common.button.close', {})}
+            {t('common.button.cancel', {})}
           </Button>
         </ModalFooter>
       </Stack>

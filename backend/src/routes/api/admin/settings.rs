@@ -460,6 +460,10 @@ mod put {
         #[schema(inline)]
         #[garde(dive)]
         rux: Option<shared::settings::rux::PayloadRux>,
+        // plugged.host: docs/features/neo-discord.md
+        #[schema(inline)]
+        #[garde(dive)]
+        neo_discord: Option<shared::settings::neo_discord::PayloadNeoDiscord>,
         #[schema(inline)]
         #[garde(dive)]
         updates: Option<PayloadUpdates>,
@@ -1043,6 +1047,10 @@ mod put {
             return ApiResponse::error(&error.message())
                 .with_status(StatusCode::BAD_REQUEST)
                 .ok();
+        }
+        // plugged.host: neo on Discord
+        if let Some(neo_discord) = data.neo_discord {
+            neo_discord.apply(&mut settings.neo_discord);
         }
 
         if !settings.app.password_login_enabled {

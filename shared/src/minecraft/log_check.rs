@@ -6,6 +6,9 @@
 //! result per server, shared by everyone watching its console. A log is uploaded only when it
 //! changed, a running server's at most every two minutes and a stopped server's right away
 //! (that is the log with the crash in it).
+//!
+//! It also reads any paste back ([`paste`], [`entries`]) for neo's `read_mclogs`
+//! (docs/features/neo.md › Tools).
 
 use super::files;
 use crate::models::server::Server;
@@ -156,6 +159,174 @@ fn valid_id(id: &str) -> bool {
     (3..=32).contains(&id.len()) && id.bytes().all(|b| b.is_ascii_alphanumeric())
 }
 
+/// The paste id in an id or a mclo.gs link (`https://mclo.gs/AbC12x`, `mclo.gs/AbC12x`,
+/// `https://api.mclo.gs/1/raw/AbC12x`). The host is fixed and the id strictly checked, so a value
+/// from a model or a log can never point a request anywhere else.
+pub fn id_from(value: &str) -> Option<String> {
+    let value = value.trim();
+    if valid_id(value) {
+        return Some(value.to_string());
+    }
+
+    let rest = value
+        .strip_prefix("https://")
+        .or_else(|| value.strip_prefix("http://"))
+        .unwrap_or(value);
+    let rest = rest.strip_prefix("api.").unwrap_or(rest);
+    let rest = rest.strip_prefix("mclo.gs/")?;
+    let rest = ["1/raw/", "1/log/", "1/insights/"]
+        .iter()
+        .find_map(|prefix| rest.strip_prefix(prefix))
+        .unwrap_or(rest);
+    let rest = rest.split(['?', '#']).next().unwrap_or_default();
+    let id = rest.strip_suffix('/').unwrap_or(rest);
+
+    valid_id(id).then(|| id.to_string())
+}
+
+/// Codex log levels: 0-3 are emergency..error, 4 is warning.
+pub const LEVEL_ERROR: u64 = 3;
+pub const LEVEL_WARNING: u64 = 4;
+/// Parsed entries are only fetched for logs up to this size (the console's own upload is a few
+/// hundred lines; a shared link can be a 10 MB log).
+const MAX_PARSED_BYTES: u64 = 1024 * 1024;
+
+/// A paste's info and mclo.gs's analysis of it, as mclo.gs sends them.
+#[derive(Debug, Clone)]
+pub struct Paste {
+    pub id: String,
+    pub url: String,
+    pub title: Option<String>,
+    pub size: u64,
+    pub lines: u64,
+    pub errors: u64,
+    pub problems: Vec<serde_json::Value>,
+    pub information: Vec<serde_json::Value>,
+}
+
+/// One entry of a paste's log (a line, or a stack trace's lines), oldest first.
+#[derive(Debug, Clone, PartialEq)]
+pub struct Entry {
+    pub level: u64,
+    /// Line numbers and contents.
+    pub lines: Vec<(u64, String)>,
+}
+
+#[derive(Debug)]
+pub enum PasteError {
+    /// The paste does not exist (or expired).
+    NotFound,
+    /// mclo.gs could not be reached or answered something else.
+    Failed(anyhow::Error),
+}
+
+async fn get(state: &crate::State, path: &str) -> Result<serde_json::Value, PasteError> {
+    let response = state
+        .client
+        .get(format!("{API}{path}"))
+        .timeout(TIMEOUT)
+        .header("User-Agent", super::user_agent(state).await)
+        .header("Accept", "application/json")
+        .send()
+        .await
+        .map_err(|err| PasteError::Failed(err.into()))?;
+    if response.status() == reqwest::StatusCode::NOT_FOUND {
+        return Err(PasteError::NotFound);
+    }
+
+    let status = response.status();
+    let body: serde_json::Value = response.json().await.unwrap_or_default();
+    if !status.is_success() || body["success"] != true {
+        return Err(PasteError::Failed(anyhow::anyhow!(
+            "mclo.gs answered HTTP {status}"
+        )));
+    }
+
+    Ok(body)
+}
+
+fn objects(value: &serde_json::Value) -> Vec<serde_json::Value> {
+    value
+        .as_array()
+        .map(|items| {
+            items
+                .iter()
+                .filter(|item| item.is_object())
+                .cloned()
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
+/// A paste's info (title, size, lines, error count) and its analysis.
+pub async fn paste(state: &crate::State, id: &str) -> Result<Paste, PasteError> {
+    if !valid_id(id) {
+        return Err(PasteError::NotFound);
+    }
+
+    let body = get(state, &format!("/log/{id}?insights=1")).await?;
+    let insights = &body["content"]["insights"];
+
+    Ok(Paste {
+        id: id.to_string(),
+        url: format!("{SITE}{id}"),
+        title: insights["title"].as_str().map(str::to_string),
+        size: body["size"].as_u64().unwrap_or(0),
+        lines: body["lines"].as_u64().unwrap_or(0),
+        errors: body["errors"].as_u64().unwrap_or(0),
+        problems: objects(&insights["analysis"]["problems"]),
+        information: objects(&insights["analysis"]["information"]),
+    })
+}
+
+/// The paste's entries at or above a severity ([`LEVEL_ERROR`], [`LEVEL_WARNING`]), oldest
+/// first. Empty for pastes too large to fetch whole.
+pub async fn entries(
+    state: &crate::State,
+    id: &str,
+    size: u64,
+    level: u64,
+) -> Result<Vec<Entry>, PasteError> {
+    if size > MAX_PARSED_BYTES || !valid_id(id) {
+        return Ok(Vec::new());
+    }
+
+    let body = get(state, &format!("/log/{id}?parsed=1")).await?;
+
+    Ok(parsed_entries(&body["content"]["parsed"], level))
+}
+
+fn parsed_entries(value: &serde_json::Value, level: u64) -> Vec<Entry> {
+    value
+        .as_array()
+        .map(Vec::as_slice)
+        .unwrap_or_default()
+        .iter()
+        .filter_map(|entry| {
+            let entry_level = entry["level"].as_u64().unwrap_or(99);
+            if entry_level > level {
+                return None;
+            }
+
+            Some(Entry {
+                level: entry_level,
+                lines: entry["lines"]
+                    .as_array()
+                    .map(Vec::as_slice)
+                    .unwrap_or_default()
+                    .iter()
+                    .filter_map(|line| {
+                        Some((
+                            line["number"].as_u64().unwrap_or(0),
+                            line["content"].as_str()?.to_string(),
+                        ))
+                    })
+                    .collect(),
+            })
+        })
+        .collect()
+}
+
 async fn upload(state: &crate::State, log: &str) -> Result<(String, u64), anyhow::Error> {
     let response = state
         .client
@@ -277,5 +448,44 @@ mod tests {
         assert!(valid_id("8FlTowW"));
         assert!(!valid_id("../x"));
         assert!(!valid_id("ab"));
+
+        for link in [
+            "8FlTowW",
+            " https://mclo.gs/8FlTowW ",
+            "http://mclo.gs/8FlTowW/",
+            "mclo.gs/8FlTowW?x=1",
+            "https://api.mclo.gs/1/raw/8FlTowW",
+            "https://api.mclo.gs/1/insights/8FlTowW#top",
+        ] {
+            assert_eq!(id_from(link).as_deref(), Some("8FlTowW"), "{link}");
+        }
+        for bad in [
+            "https://example.com/8FlTowW",
+            "https://mclo.gs/../etc",
+            "https://mclo.gs.example.com/8FlTowW",
+            "https://mclo.gs/8FlTowW/extra",
+            "",
+        ] {
+            assert_eq!(id_from(bad), None, "{bad}");
+        }
+    }
+
+    #[test]
+    fn entries_by_level() {
+        let value = serde_json::json!([
+            { "level": 6, "lines": [{ "number": 1, "content": "info" }] },
+            { "level": 3, "lines": [{ "number": 2, "content": "error" }, { "number": 3 }] },
+            { "level": 4, "lines": [{ "number": 4, "content": "warning" }] },
+        ]);
+
+        assert_eq!(
+            parsed_entries(&value, LEVEL_ERROR),
+            vec![Entry {
+                level: 3,
+                lines: vec![(2, "error".into())],
+            }]
+        );
+        assert_eq!(parsed_entries(&value, LEVEL_WARNING).len(), 2);
+        assert!(parsed_entries(&serde_json::Value::Null, LEVEL_ERROR).is_empty());
     }
 }

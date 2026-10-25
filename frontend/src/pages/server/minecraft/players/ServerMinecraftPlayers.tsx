@@ -1,18 +1,24 @@
-// plugged.host: the whitelist, operators and bans of a Minecraft server (docs/features/minecraft.md)
+// plugged.host: the whitelist, operators and bans of a Minecraft server, laid out like the Pelican
+// panel's Players page: the Whitelist section, then one table of everyone on a list
+// (docs/features/minecraft.md)
+import { faArrowsRotate, faSearch, faUserSlash } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useQueryClient } from '@tanstack/react-query';
-import { useMemo, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 import { z } from 'zod';
-import { httpErrorToHuman } from '@/api/axios.ts';
+import { getHttpStatus, httpErrorToHuman } from '@/api/axios.ts';
 import getPlayers from '@/api/server/minecraft/getPlayers.ts';
 import setWhitelistEnforced from '@/api/server/minecraft/setWhitelistEnforced.ts';
+import ActionIcon from '@/elements/buttons/ActionIcon.tsx';
 import Button from '@/elements/buttons/Button.tsx';
-import { ServerCan } from '@/elements/Can.tsx';
 import ServerContentContainer from '@/elements/containers/ServerContentContainer.tsx';
 import Table from '@/elements/data-display/Table.tsx';
+import TitleCard from '@/elements/data-display/TitleCard.tsx';
+import EmptyState from '@/elements/feedback/EmptyState.tsx';
 import Switch from '@/elements/input/Switch.tsx';
-import Stack from '@/elements/layout/Stack.tsx';
+import TextInput from '@/elements/input/TextInput.tsx';
+import Tooltip from '@/elements/overlays/Tooltip.tsx';
 import ResourceView from '@/elements/ResourceView.tsx';
-import Text from '@/elements/typography/Text.tsx';
 import { queryKeys } from '@/lib/queryKeys.ts';
 import { minecraftRosterSchema } from '@/lib/schemas/server/minecraft.ts';
 import { useResource } from '@/plugins/resource/useResource.ts';
@@ -23,14 +29,18 @@ import { useServerStore } from '@/stores/server.ts';
 import AddPlayerModal from './AddPlayerModal.tsx';
 import PlayerRow from './PlayerRow.tsx';
 
-function Players({ roster, search }: { roster: z.infer<typeof minecraftRosterSchema>; search: string }) {
+const base = 'pages.server.minecraft.players';
+
+function Players({ roster }: { roster: z.infer<typeof minecraftRosterSchema> }) {
   const { t } = useTranslations();
   const { addToast } = useToast();
   const queryClient = useQueryClient();
   const server = useServerStore((state) => state.server);
   const canManage = useServerCan('minecraft.players');
+  const switchId = useId();
   const [saving, setSaving] = useState(false);
-  const base = 'pages.server.minecraft.players';
+  const [adding, setAdding] = useState(false);
+  const [search, setSearch] = useState('');
 
   const rows = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -53,68 +63,111 @@ function Players({ roster, search }: { roster: z.infer<typeof minecraftRosterSch
   };
 
   return (
-    <Stack gap='md'>
-      <Switch
-        label={t(`${base}.enforced`, {})}
-        description={t(`${base}.enforcedDescription`, {})}
-        checked={roster.enforced}
-        disabled={!canManage || saving}
-        onChange={(e) => enforce(e.currentTarget.checked)}
-      />
+    <div className='flex flex-col gap-6'>
+      <AddPlayerModal opened={adding} onClose={() => setAdding(false)} onlineMode={roster.onlineMode} />
 
-      {!roster.onlineMode && (
-        <Text size='sm' c='dimmed'>
-          {t(`${base}.offlineMode`, {})}
-        </Text>
-      )}
-      {!roster.running && (
-        <Text size='sm' c='dimmed'>
-          {t(`${base}.stopped`, {})}
-        </Text>
-      )}
+      <TitleCard title={t(`${base}.section.title`, {})} description={t(`${base}.section.description`, {})}>
+        <div className='theme-stack-field'>
+          <label htmlFor={switchId} className='theme-stack-field-label'>
+            {t(`${base}.enforced`, {})}
+          </label>
+          <Switch
+            id={switchId}
+            checked={roster.enforced}
+            disabled={!canManage || saving}
+            onChange={(e) => enforce(e.currentTarget.checked)}
+          />
+          {!roster.onlineMode && <p className='theme-stack-field-hint'>{t(`${base}.offlineMode`, {})}</p>}
+        </div>
+      </TitleCard>
 
-      <Table
-        columns={[t(`${base}.table.player`, {}), t(`${base}.table.access`, {}), '']}
-        pagination={{ total: rows.length, perPage: Math.max(rows.length, 1), page: 1, data: rows }}
-        empty={
-          <Text size='sm' c='dimmed'>
-            {search.trim() ? t(`${base}.noMatch`, {}) : t(`${base}.empty`, {})}
-          </Text>
-        }
-      >
-        {rows.map((player) => (
-          <PlayerRow key={player.name} player={player} />
-        ))}
-      </Table>
-    </Stack>
+      {/* Filament's table: the header with its action, the toolbar with the search, the rows. */}
+      <div>
+        {canManage && (
+          <div className='theme-table-header'>
+            <Button onClick={() => setAdding(true)}>{t(`${base}.button.add`, {})}</Button>
+          </div>
+        )}
+        <div className='theme-table-toolbar'>
+          <TextInput
+            className='theme-header-search'
+            placeholder={t(`${base}.search`, {})}
+            aria-label={t(`${base}.search`, {})}
+            leftSection={<FontAwesomeIcon icon={faSearch} />}
+            value={search}
+            onChange={(e) => setSearch(e.currentTarget.value)}
+          />
+        </div>
+
+        <Table
+          columns={[
+            t(`${base}.table.player`, {}),
+            t(`${base}.table.whitelisted`, {}),
+            t(`${base}.table.operator`, {}),
+            t(`${base}.table.banned`, {}),
+            ...(canManage ? [''] : []),
+          ]}
+          pagination={{ total: rows.length, perPage: Math.max(rows.length, 1), page: 1, data: rows }}
+          empty={
+            <EmptyState
+              flush
+              icon={faUserSlash}
+              title={search.trim() ? t(`${base}.noMatch`, {}) : t(`${base}.emptyHeading`, {})}
+              description={search.trim() ? null : t(`${base}.emptyBody`, {})}
+            />
+          }
+        >
+          {rows.map((player) => (
+            <PlayerRow key={player.name} player={player} canManage={canManage} />
+          ))}
+        </Table>
+      </div>
+    </div>
   );
 }
 
 export default function ServerMinecraftPlayers() {
   const { t } = useTranslations();
+  const { addToast } = useToast();
   const server = useServerStore((state) => state.server);
-  const [search, setSearch] = useState('');
-  const [adding, setAdding] = useState(false);
+  const [reloading, setReloading] = useState(false);
 
+  // Silent: when the lists cannot be read the page says so itself, like the Pelican panel does.
   const roster = useResource({
     queryKey: queryKeys.server(server.uuid).minecraft.players(),
     queryFn: () => getPlayers(server.uuid),
+    silent: true,
   });
+
+  const reload = () => {
+    setReloading(true);
+    roster
+      .refetch()
+      .then(({ error }) => {
+        if (error && roster.data) addToast(httpErrorToHuman(error), 'error');
+      })
+      .finally(() => setReloading(false));
+  };
+
+  const unreachable = !roster.data && !!roster.error && getHttpStatus(roster.error) !== 404;
 
   return (
     <ServerContentContainer
-      title={t('pages.server.minecraft.players.title', {})}
-      search={search}
-      setSearch={setSearch}
+      title={t(`${base}.title`, {})}
+      subtitle={t(`${base}.subtitle`, {})}
       contentRight={
-        <ServerCan action='minecraft.players'>
-          <Button onClick={() => setAdding(true)}>{t('pages.server.minecraft.players.button.add', {})}</Button>
-        </ServerCan>
+        <Tooltip label={t(`${base}.button.refresh`, {})}>
+          <ActionIcon size='input-sm' variant='subtle' color='gray' loading={reloading} onClick={reload}>
+            <FontAwesomeIcon icon={faArrowsRotate} />
+          </ActionIcon>
+        </Tooltip>
       }
     >
-      <AddPlayerModal opened={adding} onClose={() => setAdding(false)} onlineMode={roster.data?.onlineMode ?? true} />
-
-      <ResourceView resource={roster}>{(roster) => <Players roster={roster} search={search} />}</ResourceView>
+      {unreachable && !roster.loading ? (
+        <TitleCard title={t(`${base}.unreachableHeading`, {})} description={t(`${base}.unreachable`, {})} />
+      ) : (
+        <ResourceView resource={roster}>{(data) => <Players roster={data} />}</ResourceView>
+      )}
     </ServerContentContainer>
   );
 }

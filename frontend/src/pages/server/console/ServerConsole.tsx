@@ -5,6 +5,7 @@ import ServerContentContainer from '@/elements/containers/ServerContentContainer
 import { useNavbarPageHeader } from '@/elements/containers/useNavbarPageHeader.ts';
 import Group from '@/elements/layout/Group.tsx';
 import LogCheckBanner from '@/pages/server/minecraft/LogCheckBanner.tsx'; // plugged.host
+import SetupCallout from '@/pages/server/minecraft/setup/SetupCallout.tsx'; // plugged.host
 import { useVisualViewportBottomInset } from '@/plugins/viewport/useVisualViewport.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import ServerOverview from './stats/ServerOverview.tsx'; // plugged.host: instead of ServerDetails
@@ -39,6 +40,8 @@ export default function ServerConsole() {
       hideTitleComponent
       registry={window.extensionContext.extensionRegistry.pages.server.console.container}
     >
+      {/* plugged.host: "Your server is not set up yet", above everything */}
+      <SetupCallout />
       {/* plugged.host: what Pelican renders at the page's start (PAGE_START), above the title row */}
       <LogCheckBanner />
       <div ref={infobarSentinelRef} />

@@ -12,7 +12,8 @@
 //! A released start goes straight to Wings, past the other gates, and the server's next start
 //! within `pass_minutes` skips the queue. One row per server in `server_start_queue`, reused:
 //! `waiting`, then `released` or `left`. Moving the server (`server_transfers::request`) leaves
-//! the line.
+//! the line; the queue page offers a move to the quietest other node of the location
+//! ([`take_move`]).
 
 use crate::{
     models::{
@@ -22,7 +23,9 @@ use crate::{
         server_activity::{CreateServerActivityOptions, ServerActivity},
         user::User,
     },
+    node_telemetry::AdminApiNodeTelemetry,
     prelude::ByUuid,
+    server_transfers::{ApiTransferRequest, TransferError},
     settings::{placement::AppSettingsPlacement, queue::AppSettingsQueue},
     start_gates::{Decision, StartGate},
 };
@@ -56,6 +59,30 @@ pub fn line(
     )
 }
 
+/// Memory use in percent, when it is known.
+pub fn memory_percent(memory_used: Option<i64>, memory_total: Option<i64>) -> Option<f32> {
+    match (memory_used, memory_total) {
+        (Some(used), Some(total)) if total > 0 => Some(used as f32 * 100.0 / total as f32),
+        _ => None,
+    }
+}
+
+/// What is over the line, memory before CPU: `memory`, `cpu`, or `None` when neither is (unknown
+/// figures are not).
+pub fn pressure(
+    line: f32,
+    memory_percent: Option<f32>,
+    cpu_percent: Option<f32>,
+) -> Option<&'static str> {
+    if memory_percent.is_some_and(|memory| memory > line) {
+        Some("memory")
+    } else if cpu_percent.is_some_and(|cpu| cpu > line) {
+        Some("cpu")
+    } else {
+        None
+    }
+}
+
 /// Whether memory or CPU use is over the line. Unknown figures are not.
 pub fn over_line(
     line: f32,
@@ -63,12 +90,46 @@ pub fn over_line(
     memory_used: Option<i64>,
     memory_total: Option<i64>,
 ) -> bool {
-    let memory = match (memory_used, memory_total) {
-        (Some(used), Some(total)) if total > 0 => Some(used as f32 * 100.0 / total as f32),
-        _ => None,
-    };
+    pressure(line, memory_percent(memory_used, memory_total), cpu_percent).is_some()
+}
 
-    memory.is_some_and(|memory| memory > line) || cpu_percent.is_some_and(|cpu| cpu > line)
+/// A node's newest sample, when the node answered it within the last 5 minutes: the reading the
+/// queue judges a node by.
+pub fn fresh(
+    telemetry: Option<AdminApiNodeTelemetry>,
+    now: chrono::DateTime<chrono::Utc>,
+) -> Option<AdminApiNodeTelemetry> {
+    telemetry.filter(|telemetry| {
+        telemetry.reachable && telemetry.sampled >= now - chrono::Duration::minutes(5)
+    })
+}
+
+/// The least busy of `candidates` (each with its memory and CPU use in percent and its line) that
+/// is under its line, judged by the higher of the two; `None` when every one is over its line or
+/// unmeasured. Equals keep their order.
+pub fn quietest<T>(candidates: Vec<(T, Option<f32>, Option<f32>, f32)>) -> Option<T> {
+    candidates
+        .into_iter()
+        .filter(|(_, memory, cpu, line)| {
+            (memory.is_some() || cpu.is_some()) && pressure(*line, *memory, *cpu).is_none()
+        })
+        .map(|(candidate, memory, cpu, _)| {
+            (candidate, memory.unwrap_or(0.0).max(cpu.unwrap_or(0.0)))
+        })
+        .fold(
+            None,
+            |best: Option<(T, f32)>, (candidate, busy)| match best {
+                Some((_, best_busy)) if best_busy <= busy => best,
+                _ => Some((candidate, busy)),
+            },
+        )
+        .map(|(candidate, _)| candidate)
+}
+
+/// Whether a server is small enough for the queue page's move, which copies all of it: a disk limit
+/// under `max_disk` MiB (0: any size). A server with unlimited disk never is.
+pub fn small_enough(disk: i64, max_disk: i32) -> bool {
+    disk > 0 && (max_disk <= 0 || disk < max_disk as i64)
 }
 
 /// One server's place.
@@ -318,12 +379,12 @@ async fn busy(
         return Ok(true);
     }
 
-    let Some(latest) = crate::node_telemetry::latest(&state.database, node_uuid).await? else {
+    let Some(latest) = fresh(
+        crate::node_telemetry::latest(&state.database, node_uuid).await?,
+        chrono::Utc::now(),
+    ) else {
         return Ok(false);
     };
-    if !latest.reachable || latest.sampled < chrono::Utc::now() - chrono::Duration::minutes(5) {
-        return Ok(false);
-    }
 
     Ok(over_line(
         line(queue, placement, latest.memory_total, latest.cpu_threads),
@@ -511,17 +572,200 @@ async fn settle_node(
 pub struct ApiStartQueue {
     /// `waiting`, `released`, `left`, or `none` when the server never queued.
     pub status: String,
+    /// `start` or `restart`: what goes out when the server's turn comes.
+    pub action: &'static str,
     /// 1 for the front; 0 when not waiting.
     pub position: i64,
     pub waited: i64,
     /// Seconds until the start goes out however busy the node is.
     pub remaining: i64,
+    /// The longest wait in seconds (`max_wait`).
+    pub max_wait: i32,
     /// 2 with the second membership, 1 with the first, 0 without.
     pub priority: i16,
-    /// The account can get ahead with a (better) membership.
+    /// The node's memory and CPU use in percent, from its newest sample; both `null` without one
+    /// from the last 5 minutes (or while the node does not answer).
+    pub memory_percent: Option<f32>,
+    pub cpu_percent: Option<f32>,
+    /// The node's line in percent.
+    pub line: f32,
+    /// What is over the line now (`memory` or `cpu`), `null` once the node has room.
+    pub reason: Option<&'static str>,
+    /// The account can get ahead with the first membership.
     pub membership_offer: bool,
-    /// The Move Server page is offered.
-    pub move_offer: bool,
+    /// What the first membership costs, in tokens.
+    pub plus_cost: i64,
+    /// Minutes after a release in which the server's next starts skip the queue.
+    pub pass_minutes: i32,
+    /// The quieter node of the server's location the page offers to move it to; `null` when no
+    /// move is offered.
+    pub move_node: Option<String>,
+    /// No move is offered because the server is too big to copy quickly.
+    pub move_too_big: bool,
+}
+
+/// What the queue page offers instead of waiting.
+struct MoveOffer {
+    node: Option<Node>,
+    too_big: bool,
+}
+
+/// The node a move off the busy node goes to: another game node of the server's location that
+/// takes new servers, has room for this one and is under its line now, the least busy first.
+pub async fn move_target(
+    state: &crate::State,
+    server: &Server,
+    queue: &AppSettingsQueue,
+    placement: &AppSettingsPlacement,
+) -> Result<Option<Node>, anyhow::Error> {
+    let source = server.node.fetch_cached(&state.database).await?;
+    let nodes = Node::by_location_uuids_most_eligible(
+        &state.database,
+        &[source.location.uuid],
+        crate::server_transfers::limits(server),
+        false,
+        crate::server_creation::SUSPENSION_PENALTY,
+        0.0,
+    )
+    .await?;
+    let telemetry = crate::node_telemetry::latest_all(&state.database).await?;
+    let now = chrono::Utc::now();
+
+    Ok(quietest(
+        nodes
+            .into_iter()
+            .filter(|node| {
+                node.role == crate::server_creation::GAME_ROLE && node.uuid != source.uuid
+            })
+            .filter_map(|node| {
+                let reading = fresh(telemetry.get(&node.uuid).cloned(), now)?;
+                let line = line(queue, placement, reading.memory_total, reading.cpu_threads);
+                let memory = memory_percent(reading.memory_used, reading.memory_total);
+
+                Some((node, memory, reading.cpu_percent, line))
+            })
+            .collect(),
+    ))
+}
+
+/// The queue page's move for a waiting server: offered with the queue's "Offer a Move" and
+/// players' moves on, to whoever may move the server, to members only by default, for a server
+/// small enough and not moved too recently, when a quieter node can take it.
+async fn move_offer(
+    state: &crate::State,
+    server: &Server,
+    entry: &Entry,
+    can_move: bool,
+) -> Result<MoveOffer, anyhow::Error> {
+    let settings = state.settings.get().await?;
+    let queue = settings.queue.clone();
+    let placement = settings.placement.clone();
+    let (transfer_enabled, cooldown_hours) = (
+        settings.games.transfer_enabled,
+        settings.games.transfer_cooldown_hours,
+    );
+    drop(settings);
+
+    if !entry.waiting() || !can_move || !transfer_enabled || !queue.move_offer {
+        return Ok(MoveOffer {
+            node: None,
+            too_big: false,
+        });
+    }
+    if !small_enough(server.disk, queue.move_max_disk) {
+        return Ok(MoveOffer {
+            node: None,
+            too_big: true,
+        });
+    }
+
+    let cooling_down = crate::server_transfers::cooldown_until(
+        crate::server_transfers::last_finished(&state.database, server.uuid).await?,
+        cooldown_hours,
+        chrono::Utc::now().naive_utc(),
+    )
+    .is_some();
+    if (queue.move_requires_membership && entry.priority < 1) || cooling_down {
+        return Ok(MoveOffer {
+            node: None,
+            too_big: false,
+        });
+    }
+
+    Ok(MoveOffer {
+        node: move_target(state, server, &queue, &placement).await?,
+        too_big: false,
+    })
+}
+
+/// Why the queue page's move was not taken.
+#[derive(Debug)]
+pub enum MoveError {
+    NotWaiting,
+    /// The move is not offered (any more), or no quieter node can take the server now.
+    NoNode,
+    Transfer(TransferError),
+}
+
+impl From<anyhow::Error> for MoveError {
+    fn from(err: anyhow::Error) -> Self {
+        Self::Transfer(TransferError::Other(err))
+    }
+}
+
+impl From<sqlx::Error> for MoveError {
+    fn from(err: sqlx::Error) -> Self {
+        Self::Transfer(TransferError::Other(err.into()))
+    }
+}
+
+impl MoveError {
+    pub fn message(&self) -> String {
+        match self {
+            Self::NotWaiting => "the server is not waiting in the start queue".into(),
+            Self::NoNode => "there is no quieter node to move the server to right now".into(),
+            Self::Transfer(err) => err.message(),
+        }
+    }
+
+    pub fn status(&self) -> u16 {
+        match self {
+            Self::NotWaiting | Self::NoNode => 409,
+            Self::Transfer(err) => err.status(),
+        }
+    }
+}
+
+/// Takes the queue page's move: the offer is checked and its node searched again now (the name on
+/// the page is a label), and the move tries that node first. Moving takes the server out of the
+/// line; it starts on its new node.
+pub async fn take_move(
+    state: &crate::State,
+    server: &Server,
+    user: &User,
+    can_move: bool,
+) -> Result<(Node, ApiTransferRequest), MoveError> {
+    let entry = entry(&state.database, server.uuid)
+        .await?
+        .filter(Entry::waiting)
+        .ok_or(MoveError::NotWaiting)?;
+    let node = move_offer(state, server, &entry, can_move)
+        .await?
+        .node
+        .ok_or(MoveError::NoNode)?;
+
+    let request = crate::server_transfers::request_preferring(
+        state,
+        server,
+        user,
+        node.location.uuid,
+        Some(node.uuid),
+        false,
+    )
+    .await
+    .map_err(MoveError::Transfer)?;
+
+    Ok((node, request))
 }
 
 /// The server's place for its queue page; a poll also counts a membership bought while waiting.
@@ -533,8 +777,9 @@ pub async fn view(
 ) -> Result<ApiStartQueue, anyhow::Error> {
     let settings = state.settings.get().await?;
     let queue = settings.queue.clone();
+    let placement = settings.placement.clone();
     let membership_enabled = settings.economy.membership_enabled;
-    let transfer_enabled = settings.games.transfer_enabled;
+    let plus_cost = settings.economy.plus_tokens.max(0) as i64;
     drop(settings);
 
     let now = chrono::Utc::now().naive_utc();
@@ -558,12 +803,21 @@ pub async fn view(
     let Some(entry) = entry else {
         return Ok(ApiStartQueue {
             status: "none".into(),
+            action: "start",
             position: 0,
             waited: 0,
             remaining: 0,
+            max_wait: queue.max_wait,
             priority: 0,
+            memory_percent: None,
+            cpu_percent: None,
+            line: queue.line_percent as f32,
+            reason: None,
             membership_offer: false,
-            move_offer: false,
+            plus_cost,
+            pass_minutes: queue.pass_minutes,
+            move_node: None,
+            move_too_big: false,
         });
     };
 
@@ -586,8 +840,41 @@ pub async fn view(
         entry.status.clone()
     };
 
+    // why it waits: the node's newest reading, the one the release goes by
+    let reading = if waiting {
+        fresh(
+            crate::node_telemetry::latest(&state.database, entry.node_uuid).await?,
+            chrono::Utc::now(),
+        )
+    } else {
+        None
+    };
+    let line = line(
+        &queue,
+        &placement,
+        reading.as_ref().and_then(|reading| reading.memory_total),
+        reading.as_ref().and_then(|reading| reading.cpu_threads),
+    );
+    let memory = reading
+        .as_ref()
+        .and_then(|reading| memory_percent(reading.memory_used, reading.memory_total));
+    let cpu = reading.as_ref().and_then(|reading| reading.cpu_percent);
+
+    // the offer is decoration: a lookup that fails leaves it out rather than the page
+    let offer = match move_offer(state, server, &entry, can_move).await {
+        Ok(offer) => offer,
+        Err(err) => {
+            tracing::warn!(server = %server.uuid, "failed to find the start queue's move: {err:#}");
+            MoveOffer {
+                node: None,
+                too_big: false,
+            }
+        }
+    };
+
     Ok(ApiStartQueue {
         status,
+        action: action_name(entry.action),
         position,
         waited,
         remaining: if waiting {
@@ -595,13 +882,17 @@ pub async fn view(
         } else {
             0
         },
+        max_wait: queue.max_wait,
         priority: entry.priority,
-        membership_offer: waiting && membership_enabled && entry.priority < 2,
-        move_offer: waiting
-            && can_move
-            && transfer_enabled
-            && queue.move_offer
-            && (!queue.move_requires_membership || entry.priority > 0),
+        memory_percent: memory,
+        cpu_percent: cpu,
+        line,
+        reason: pressure(line, memory, cpu),
+        membership_offer: waiting && membership_enabled && entry.priority < 1,
+        plus_cost,
+        pass_minutes: queue.pass_minutes,
+        move_node: offer.node.map(|node| node.name.to_string()),
+        move_too_big: offer.too_big,
     })
 }
 
@@ -644,6 +935,85 @@ mod tests {
         ));
         assert!(!over_line(85.0, None, None, None));
         assert!(!over_line(85.0, None, Some(90 * gib), Some(0)));
+    }
+
+    #[test]
+    fn the_reason_is_memory_before_cpu_and_none_under_the_line() {
+        assert_eq!(pressure(85.0, Some(90.0), Some(95.0)), Some("memory"));
+        assert_eq!(pressure(85.0, Some(40.0), Some(95.0)), Some("cpu"));
+        assert_eq!(pressure(85.0, None, Some(95.0)), Some("cpu"));
+        assert_eq!(pressure(85.0, Some(85.0), Some(85.0)), None);
+        assert_eq!(pressure(85.0, None, None), None);
+
+        let gib = 1024 * 1024 * 1024;
+        assert_eq!(memory_percent(Some(25 * gib), Some(100 * gib)), Some(25.0));
+        assert_eq!(memory_percent(Some(25 * gib), Some(0)), None);
+        assert_eq!(memory_percent(None, Some(100 * gib)), None);
+    }
+
+    fn telemetry(reachable: bool, sampled: chrono::DateTime<chrono::Utc>) -> AdminApiNodeTelemetry {
+        AdminApiNodeTelemetry {
+            reachable,
+            refused: false,
+            response_time_ms: None,
+            cpu_percent: Some(50.0),
+            cpu_threads: None,
+            memory_used: None,
+            memory_total: None,
+            disk_used: None,
+            disk_total: None,
+            load1: None,
+            servers_running: None,
+            pressure: None,
+            consecutive_failures: 0,
+            consecutive_outages: 0,
+            error: None,
+            last_reachable: None,
+            sampled,
+        }
+    }
+
+    #[test]
+    fn only_an_answered_sample_from_the_last_five_minutes_counts() {
+        let now = at(10, 0).and_utc();
+
+        assert!(fresh(Some(telemetry(true, at(5, 0).and_utc())), now).is_some());
+        assert!(fresh(Some(telemetry(true, at(4, 59).and_utc())), now).is_none());
+        assert!(fresh(Some(telemetry(false, at(9, 0).and_utc())), now).is_none());
+        assert!(fresh(None, now).is_none());
+    }
+
+    #[test]
+    fn the_move_goes_to_the_least_busy_node_under_its_line() {
+        assert_eq!(
+            quietest(vec![
+                ("busy", Some(90.0), Some(10.0), 85.0),
+                ("half", Some(50.0), Some(20.0), 85.0),
+                ("quiet", Some(20.0), Some(30.0), 85.0),
+                ("unmeasured", None, None, 85.0),
+            ]),
+            Some("quiet")
+        );
+        // the first of two equally busy nodes; a small node's lower line counts
+        assert_eq!(
+            quietest(vec![
+                ("small", Some(65.0), None, 60.0),
+                ("first", Some(40.0), None, 85.0),
+                ("second", None, Some(40.0), 85.0),
+            ]),
+            Some("first")
+        );
+        assert_eq!(quietest(vec![("busy", Some(95.0), None, 85.0)]), None);
+        assert_eq!(quietest::<&str>(vec![]), None);
+    }
+
+    #[test]
+    fn only_a_server_with_a_disk_limit_under_the_cap_is_offered_a_move() {
+        assert!(small_enough(2048, 3072));
+        assert!(!small_enough(3072, 3072));
+        assert!(!small_enough(0, 3072));
+        assert!(small_enough(100_000, 0));
+        assert!(!small_enough(0, 0));
     }
 
     #[test]

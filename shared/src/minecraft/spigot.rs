@@ -411,6 +411,7 @@ fn project(
         url: compact_str::format_compact!("{SITE}resources/{id}/"),
         kind: Kind::Plugin,
         installable: download_url(resource).is_some(),
+        client_only: false,
         title: name,
     }
 }

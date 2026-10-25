@@ -7,8 +7,8 @@ import getModpackVersions from '@/api/server/minecraft/getModpackVersions.ts';
 import installModpack from '@/api/server/minecraft/installModpack.ts';
 import Button from '@/elements/buttons/Button.tsx';
 import Spinner from '@/elements/feedback/Spinner.tsx';
-import Checkbox from '@/elements/input/Checkbox.tsx';
 import Select from '@/elements/input/Select.tsx';
+import Switch from '@/elements/input/Switch.tsx';
 import Stack from '@/elements/layout/Stack.tsx';
 import { Modal, ModalFooter } from '@/elements/modals/Modal.tsx';
 import Text from '@/elements/typography/Text.tsx';
@@ -18,6 +18,7 @@ import { useResource } from '@/plugins/resource/useResource.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useServerStore } from '@/stores/server.ts';
+import { minecraftVersionLabel } from './labels.ts';
 
 type Props = ModalProps & {
   project: z.infer<typeof minecraftProjectSchema>;
@@ -48,8 +49,8 @@ export default function ModpackModal({ project, onStarted, ...props }: Props) {
     setLoading(true);
 
     installModpack(server.uuid, { source: project.source, project: project.id, version: selected.id, clean })
-      .then((started) => {
-        addToast(t(`${base}.toast.started`, { name: started.name }), 'success');
+      .then(() => {
+        addToast(t(`${base}.state.queuedHeading`, {}), 'success');
         onStarted();
         props.onClose();
       })
@@ -62,6 +63,10 @@ export default function ModpackModal({ project, onStarted, ...props }: Props) {
   return (
     <Modal title={t(`${base}.modal.title`, { name: project.title })} {...props}>
       <Stack>
+        <Text size='sm' c='dimmed'>
+          {t(`${base}.modal.warning`, {})}
+        </Text>
+
         {versions.loading && !versions.data ? (
           <Spinner.Centered />
         ) : list.length === 0 ? (
@@ -71,41 +76,26 @@ export default function ModpackModal({ project, onStarted, ...props }: Props) {
         ) : (
           <Select
             label={t('common.table.columns.version', {})}
-            description={
-              selected?.gameVersions.length
-                ? t(`${base}.modal.versionFor`, {
-                    minecraft: selected.gameVersions.join(', '),
-                    loaders: selected.loaders.join(', '),
-                  })
-                : undefined
-            }
-            data={list.map((version) => ({
-              value: version.id,
-              label: version.channel === 'release' ? version.number : `${version.number} (${version.channel})`,
-            }))}
+            data={list.map((version) => ({ value: version.id, label: minecraftVersionLabel(version) }))}
             value={selected?.id ?? null}
             onChange={setVersionId}
             searchable
           />
         )}
 
-        <Checkbox
+        <Switch
           label={t(`${base}.modal.clean`, {})}
           description={t(`${base}.modal.cleanDescription`, {})}
           checked={clean}
           onChange={(e) => setClean(e.currentTarget.checked)}
         />
 
-        <Text size='sm' c='dimmed'>
-          {t(`${base}.modal.content`, {})}
-        </Text>
-
         <ModalFooter>
           <Button onClick={install} loading={loading} disabled={!selected}>
-            {t(`${base}.button.install`, {})}
+            {t('common.button.install', {})}
           </Button>
           <Button variant='default' onClick={props.onClose}>
-            {t('common.button.close', {})}
+            {t('common.button.cancel', {})}
           </Button>
         </ModalFooter>
       </Stack>

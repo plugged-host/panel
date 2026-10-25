@@ -55,12 +55,12 @@ pub struct AppSettingsDiscord {
     /// The invite and boost bot (`/invites`, `/topinvites`, `/setboost`, joins and leaves), on
     /// the bot token above.
     pub rewards_bot_enabled: bool,
-    /// The assistant bot, on its own token (its handler is not part of this section yet).
+    /// The assistant bot, on its own token: neo on Discord (`crate::neo::discord`).
     pub assistant_bot_enabled: bool,
     #[serde(serialize_with = "super::noprofit::serialize_secret")]
     #[schema(value_type = Option<String>)]
     pub assistant_bot_token: Option<compact_str::CompactString>,
-    /// The moderation bot, on its own token (its handler is not part of this section yet).
+    /// The moderation bot, on its own token: rux (`crate::rux`).
     pub moderation_bot_enabled: bool,
     #[serde(serialize_with = "super::noprofit::serialize_secret")]
     #[schema(value_type = Option<String>)]
