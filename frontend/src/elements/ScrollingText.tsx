@@ -1,3 +1,4 @@
+import { useDirection } from '@mantine/core';
 import classNames from 'classnames';
 import { CSSProperties, ReactNode, useEffect, useRef, useState } from 'react';
 
@@ -11,6 +12,7 @@ export default function ScrollingText({ children, className }: { children: React
   const contentRef = useRef<HTMLSpanElement>(null);
   const [distance, setDistance] = useState(0);
   const [reducedMotion, setReducedMotion] = useState(false);
+  const { dir } = useDirection(); // plugged.host: right to left the overflow is on the left
 
   useEffect(() => {
     const mql = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -52,7 +54,7 @@ export default function ScrollingText({ children, className }: { children: React
           animate
             ? ({
                 animationDuration: `${duration}s`,
-                '--scrolling-text-distance': `-${distance}px`,
+                '--scrolling-text-distance': `${dir === 'rtl' ? '' : '-'}${distance}px`, // plugged.host
               } as CSSProperties)
             : undefined
         }

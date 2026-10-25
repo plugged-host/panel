@@ -75,5 +75,15 @@
     "intro": "Bạn nhận được email này vì máy chủ <strong>{{ server.name }}</strong> của bạn đã hoàn tất quá trình cài đặt.",
     "instruction": "Nhấn vào nút bên dưới để truy cập máy chủ:",
     "button": "Truy cập máy chủ"
+  },
+  "backup_completed": {
+    "subject": "Sao lưu hoàn tất",
+    "subject_failed": "Sao lưu thất bại",
+    "greeting": "Xin chào <strong>{{ user.username }}</strong>,",
+    "intro": "Bản sao lưu đã được tạo thành công.",
+    "intro_failed": "Tạo bản sao lưu thất bại.",
+    "backup_name": "Tên bản sao lưu: <strong>{{ backup_name }}</strong>",
+    "server_name": "Tên máy chủ: <strong>{{ server.name }}</strong>",
+    "button": "Xem Bản Sao Lưu"
   }
 }

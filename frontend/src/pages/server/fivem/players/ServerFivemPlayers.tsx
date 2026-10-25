@@ -39,13 +39,15 @@ function Empty({ title, description }: { title: string; description: string }) {
 }
 
 function Players({ live }: { live: Live }) {
-  const { t } = useTranslations();
+  const { t, tItem } = useTranslations();
   const [search, setSearch] = useState('');
 
   const rows = useMemo(() => live.players.filter((player) => matchesPlayer(player, search)), [live, search]);
   const count = live.slots
     ? t(`${base}.countSlots`, { count: live.clients, slots: live.slots })
-    : t(`${base}.count.${live.clients === 0 ? 'none' : live.clients === 1 ? 'one' : 'other'}`, { count: live.clients });
+    : live.clients === 0
+      ? t(`${base}.count.none`, {})
+      : tItem('player', live.clients);
 
   return (
     <div className='flex flex-col gap-4'>

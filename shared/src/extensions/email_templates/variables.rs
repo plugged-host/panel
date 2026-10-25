@@ -165,6 +165,15 @@ type VariablesFile =
     IndexMap<compact_str::CompactString, IndexMap<compact_str::CompactString, String>>;
 
 pub(super) fn load_variables(directory: &include_dir::Dir<'_>, variables: &mut Vec<EmailVariable>) {
+    // plugged.host: only the languages the panel offers (docs/features/languages.md)
+    load_offered_variables(directory, variables, crate::utils::language_offered);
+}
+
+fn load_offered_variables(
+    directory: &include_dir::Dir<'_>,
+    variables: &mut Vec<EmailVariable>,
+    offered: impl Fn(&str) -> bool,
+) {
     let mut files: Vec<_> = directory.files().collect();
     files.sort_by_key(|file| file.path().file_stem() != Some(std::ffi::OsStr::new("en")));
 
@@ -172,6 +181,9 @@ pub(super) fn load_variables(directory: &include_dir::Dir<'_>, variables: &mut V
         let Some(language) = file.path().file_stem().and_then(|s| s.to_str()) else {
             continue;
         };
+        if language != "en" && !offered(language) {
+            continue; // plugged.host
+        }
 
         let entries: VariablesFile = match serde_json::from_slice(file.contents()) {
             Ok(entries) => entries,
@@ -581,6 +593,51 @@ mod tests {
                 .map(String::as_str),
             Some("Passwort neu")
         );
+    }
+
+    // plugged.host
+    #[test]
+    fn languages_the_panel_does_not_offer_are_left_out() {
+        const EN: &str = r#"{ "password_reset": { "subject": "Reset" } }"#;
+        const DE: &str = r#"{ "password_reset": { "subject": "Neu" } }"#;
+        const PL: &str = r#"{ "password_reset": { "subject": "Nowe" } }"#;
+        const DIR: include_dir::Dir<'_> = include_dir::Dir::new(
+            "mails/variables",
+            &[
+                include_dir::DirEntry::File(include_dir::File::new(
+                    "mails/variables/pl.json",
+                    PL.as_bytes(),
+                )),
+                include_dir::DirEntry::File(include_dir::File::new(
+                    "mails/variables/en.json",
+                    EN.as_bytes(),
+                )),
+                include_dir::DirEntry::File(include_dir::File::new(
+                    "mails/variables/de.json",
+                    DE.as_bytes(),
+                )),
+            ],
+        );
+
+        let mut variables = Vec::new();
+        load_offered_variables(&DIR, &mut variables, |language| language == "de");
+
+        let subject = variables
+            .iter()
+            .find(|v| v.matches(Some("password_reset"), "subject"))
+            .expect("English defines the variable");
+        assert_eq!(subject.default_value, "Reset");
+        assert_eq!(
+            subject.default_translations.get("de").map(String::as_str),
+            Some("Neu")
+        );
+        assert!(!subject.default_translations.contains_key("pl"));
+
+        // English is the source, even when a predicate would leave it out
+        let mut only_english = Vec::new();
+        load_offered_variables(&DIR, &mut only_english, |_| false);
+        assert_eq!(only_english.len(), 1);
+        assert!(only_english[0].default_translations.is_empty());
     }
 
     #[test]

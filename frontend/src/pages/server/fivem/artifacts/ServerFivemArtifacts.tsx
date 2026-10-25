@@ -18,6 +18,7 @@ import TextInput from '@/elements/input/TextInput.tsx';
 import ConfirmationModal from '@/elements/modals/ConfirmationModal.tsx';
 import ResourceView from '@/elements/ResourceView.tsx';
 import { formatDateTime } from '@/lib/format/time.ts';
+import { intlLocale } from '@/lib/languages.ts';
 import { queryKeys } from '@/lib/queryKeys.ts';
 import { FivemVersionChoice, fivemArtifactsSchema, fivemOutcomeSchema } from '@/lib/schemas/server/fivem.ts';
 import { useResource } from '@/plugins/resource/useResource.ts';
@@ -42,7 +43,7 @@ export function outcomeText(
 }
 
 function Overview({ artifacts }: { artifacts: Artifacts }) {
-  const { t, language } = useTranslations();
+  const { t, tItem, language } = useTranslations();
   const { addToast } = useToast();
   const queryClient = useQueryClient();
   const server = useServerStore((state) => state.server);
@@ -87,7 +88,11 @@ function Overview({ artifacts }: { artifacts: Artifacts }) {
   };
 
   const supportDate = (date: string) =>
-    new Date(`${date}T00:00:00`).toLocaleDateString(language, { year: 'numeric', month: 'short', day: 'numeric' });
+    new Date(`${date}T00:00:00`).toLocaleDateString(intlLocale(language), {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
   const editionLabel = (edition: Artifacts['edition']) => t(`pages.server.fivem.enhanced.edition.${edition}`, {});
 
   return (
@@ -178,9 +183,7 @@ function Overview({ artifacts }: { artifacts: Artifacts }) {
               className='w-full sm:max-w-80'
             />
             <span className='theme-eco-muted'>
-              {t(`${base}.count.${rows.length === 0 ? 'none' : rows.length === 1 ? 'one' : 'other'}`, {
-                count: rows.length,
-              })}
+              {rows.length === 0 ? t(`${base}.count.none`, {}) : tItem('build', rows.length)}
             </span>
           </div>
 

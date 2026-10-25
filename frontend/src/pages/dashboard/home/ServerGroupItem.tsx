@@ -338,7 +338,7 @@ export default function ServerGroupItem({
               <FontAwesomeIcon
                 icon={faChevronRight}
                 className={classNames(
-                  isExpanded ? 'rotate-90' : 'rotate-0',
+                  isExpanded ? 'rotate-90 rtl:-rotate-90' : 'rotate-0', // plugged.host: mirrored right to left (app.css)
                   'transition duration-200 w-3 h-3 text-(--mantine-color-dimmed) shrink-0',
                 )}
               />

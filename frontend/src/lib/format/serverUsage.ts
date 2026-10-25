@@ -1,5 +1,6 @@
 // plugged.host: the numbers on the server cards and the console's stat blocks, as the Pelican panel formats them (ThemeV2ServerEntry, console.js)
 import { mapUnitToLocale } from '@/lib/format/size.ts';
+import { intlLocale } from '@/lib/languages.ts';
 import { getTranslations } from '@/providers/TranslationProvider.tsx';
 
 /** How full a resource is: Pelican's ListServers::WARNING_THRESHOLD and DANGER_THRESHOLD. */
@@ -24,7 +25,9 @@ export function usageBarPercent(used: number, limit: number): number {
 /** A number in the user's language with at most `decimals` decimals ("12.5", German "12,5"). */
 export function formatNumber(value: number, decimals = 2): string {
   try {
-    return new Intl.NumberFormat(getTranslations().language, { maximumFractionDigits: decimals }).format(value);
+    return new Intl.NumberFormat(intlLocale(getTranslations().language), { maximumFractionDigits: decimals }).format(
+      value,
+    );
   } catch {
     return new Intl.NumberFormat('en', { maximumFractionDigits: decimals }).format(value);
   }
@@ -74,7 +77,7 @@ export function formatUptimeShort(milliseconds: number, parts = 2): string {
   const language = getTranslations().language;
   const format = (value: number, unit: Intl.NumberFormatOptions['unit']) => {
     try {
-      return new Intl.NumberFormat(language, { style: 'unit', unit, unitDisplay: 'narrow' }).format(value);
+      return new Intl.NumberFormat(intlLocale(language), { style: 'unit', unit, unitDisplay: 'narrow' }).format(value);
     } catch {
       return new Intl.NumberFormat('en', { style: 'unit', unit, unitDisplay: 'narrow' }).format(value);
     }

@@ -1,5 +1,6 @@
 // plugged.host: a server's move as the Transfer page and the strip word it (docs/features/transfers.md)
 import { z } from 'zod';
+import { intlLocale } from '@/lib/languages.ts';
 import {
   activeTransferStatuses,
   serverTransferEventSchema,
@@ -76,7 +77,7 @@ export function shortDuration(seconds: number): string {
   const first = units.findIndex((unit) => parts[unit] > 0);
   const kept = Object.fromEntries(units.slice(first, first + 2).map((unit) => [unit, parts[unit]]));
 
-  return new Intl.DurationFormat(getTranslations().language, { style: 'narrow' }).format(kept);
+  return new Intl.DurationFormat(intlLocale(getTranslations().language), { style: 'narrow' }).format(kept);
 }
 
 /** The headline of a move's state ("Copying files", "Moved"). */

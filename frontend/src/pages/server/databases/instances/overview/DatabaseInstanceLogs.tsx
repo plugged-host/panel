@@ -103,7 +103,8 @@ export default function DatabaseInstanceLogs({ connected }: { connected: boolean
       {!connected && <Spinner.Centered />}
 
       <div className='flex-1 min-h-0 relative overflow-hidden'>
-        <div ref={terminalRef} className='absolute inset-0' />
+        {/* plugged.host: dir — logs stay left to right in Arabic */}
+        <div ref={terminalRef} dir='ltr' className='absolute inset-0' />
       </div>
 
       {imagePulls.size > 0 && (

@@ -141,21 +141,30 @@ export default function WelcomeTour({
       const jump = placedMode.current !== mode;
       if (jump) card.classList.add('theme-tour-jump');
 
-      // beside the element: right, below, left, above, the first side the card fits on whole,
-      // else inside the element's top end corner (a console's output starts top left)
+      // beside the element: after it in the line (right, or left when the page runs right to
+      // left), below, before it, above, the first side the card fits on whole, else inside the
+      // element's top end corner (a console's output starts at the top start corner)
       if (mode === 'anchored' && hole) {
         const width = window.innerWidth;
         const height = window.innerHeight;
         const w = card.offsetWidth;
         const h = card.offsetHeight;
+        const rtl = document.documentElement.dir === 'rtl';
+        const right: [number, number, boolean] = [
+          hole.x + hole.w + GAP,
+          hole.y,
+          hole.x + hole.w + GAP + w <= width - MARGIN,
+        ];
+        const left: [number, number, boolean] = [hole.x - GAP - w, hole.y, hole.x - GAP - w >= MARGIN];
+        const start = rtl ? hole.x + hole.w - w : hole.x;
         const sides: [number, number, boolean][] = [
-          [hole.x + hole.w + GAP, hole.y, hole.x + hole.w + GAP + w <= width - MARGIN],
-          [hole.x, hole.y + hole.h + GAP, hole.y + hole.h + GAP + h <= height - MARGIN],
-          [hole.x - GAP - w, hole.y, hole.x - GAP - w >= MARGIN],
-          [hole.x, hole.y - GAP - h, hole.y - GAP - h >= MARGIN],
+          rtl ? left : right,
+          [start, hole.y + hole.h + GAP, hole.y + hole.h + GAP + h <= height - MARGIN],
+          rtl ? right : left,
+          [start, hole.y - GAP - h, hole.y - GAP - h >= MARGIN],
         ];
         const side = sides.find((candidate) => candidate[2]);
-        const x = side ? side[0] : hole.x + hole.w - w - GAP;
+        const x = side ? side[0] : rtl ? hole.x + GAP : hole.x + hole.w - w - GAP;
         const y = side ? side[1] : hole.y + GAP;
 
         card.style.setProperty(

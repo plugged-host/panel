@@ -22,7 +22,8 @@ Then, before committing the merge:
    hand.
 3. Regenerate the migration chain if it forked ([below](#the-migration-chain)).
 4. Run every check ([development.md](development.md#checks)), including
-   `pnpm coverage:translations de`: fill in German for upstream's new strings.
+   `pnpm coverage:translations`: fill in upstream's new strings in German and in the other offered
+   languages (admin-only strings in German only; [languages](features/languages.md#coverage)).
 5. Look at the security alerts afterwards (`gh api 'repos/<owner>/panel/dependabot/alerts?state=open'`)
    and bump what upstream has not.
 6. Update the change list at the end of this page when a merge moved one of our changes.
@@ -74,14 +75,21 @@ Upstream's next migration then follows that id, so the chain stays linear. Done 
 ## Translations
 
 `.gitattributes` sends `frontend/public/translations/*.json` and `shared/mails/variables/*.json` to
-the `translations` merge driver (`frontend/merge-translations.mjs`, configured per clone as above).
-It merges by key: upstream's new and changed strings come in, ours stay, a key changed on both sides
-keeps ours and is printed. Without the driver configured, git falls back to a line merge, which
-conflicts on almost every upstream translation update.
+the `translations` merge driver (`frontend/merge-translations.mjs`, configured per clone as above:
+the two `git config` lines, once in every clone that merges). It merges by key: a key only one side
+changed takes that side's value (upstream's new and changed strings come in, a removal included),
+ours stay, a key changed differently on both sides keeps ours and is printed, and the keys keep
+upstream's order with ours after the key they follow. Without the driver configured, git falls back
+to a line merge, which conflicts on almost every upstream translation update.
 
-Upstream's languages are maintained on its Crowdin project. This fork edits the files directly
-(German, and from the languages phase on the other offered languages), so Crowdin updates and ours
-meet only through this driver.
+```bash
+git config --get merge.translations.driver   # empty: the driver is not configured in this clone
+cd frontend && pnpm test:translations         # its tests (node --test, no dependencies)
+```
+
+Upstream's languages are maintained on its Crowdin project. This fork edits the files of the offered
+languages directly ([languages](features/languages.md)), so Crowdin updates and ours meet only through
+this driver. The files of languages the panel does not offer merge the same way and are never built.
 
 ## Removed features
 
@@ -155,7 +163,8 @@ every file. By area:
 | neo on Discord | `shared/src/{neo/discord/,settings/neo_discord.rs} (new)`, `shared/src/{neo/mod.rs (mod discord),neo/gateway.rs (discord_usage, discord_turn),settings/mod.rs}`, `backend/src/routes/api/admin/settings.rs` (payload), `backend/src/{lib.rs (register),tasks.rs (recover_neo_discord_messages, prune_neo_discord_messages)}`, `database/src/schema.ts` (`neo_discord_messages`), migration `neo_discord`, `frontend/src/{api/admin/settings/updateNeoDiscordSettings.ts,pages/admin/settings/neoDiscord/} (new)`, `frontend/src/{lib/schemas/admin/settings.ts,stores/slices/admin/settings.ts,pages/admin/settings/AdminSettings.tsx,pages/admin/settings/useSettingsSection.ts,translations.ts}`, `frontend/public/translations/de.json` |
 | rux | `shared/src/{rux/,settings/rux.rs} (new)`, `shared/src/{lib.rs,settings/mod.rs}`, `backend/src/lib.rs` (`rux::register`), `backend/src/tasks.rs` (`rux`), `backend/src/routes/api/admin/{mod.rs,settings.rs (payload),rux.rs (new)}`, `database/src/schema.ts` (`rux_messages`, `rux_cases`, `rux_giveaways`, `rux_giveaway_entries`, `rux_moderator_roles`, `rux_rules`, `rux_watches`, `rux_watch_items`), migration `rux`, `frontend/src/{api/admin/rux/,api/admin/settings/updateRuxSettings.ts,lib/schemas/admin/rux.ts,pages/admin/settings/rux/} (new)`, `frontend/src/{elements/form-engine/types.ts,lib/icons/tablerIcons.ts (gavel),lib/schemas/admin/settings.ts,stores/slices/admin/settings.ts,pages/admin/settings/AdminSettings.tsx,pages/admin/settings/useSettingsSection.ts,translations.ts}`, `frontend/public/translations/de.json` |
 | Wings fork client | `api-clients/wings-api/src/fork.rs` (new), `api-clients/wings-api/src/lib.rs` and `generator-src/index.ts` (`mod fork`) |
-| Strings | `frontend/src/translations.ts`, `frontend/public/translations/{en,de}.json`, `frontend/coverage-translations.mts` (new), `frontend/merge-translations.mjs` (new), `frontend/package.json` (`coverage:translations`), `.gitattributes` (new) |
+| Strings | `frontend/src/translations.ts`, `frontend/public/translations/{en,de}.json`, `frontend/coverage-translations.mts` (new), `frontend/merge-translations.mjs` (new), `frontend/merge-translations.test.mjs` (new), `frontend/package.json` (`coverage:translations`, `test:translations`), `.gitattributes` (new) |
+| Languages | The allow-list: `frontend/vite-plugins/translations.ts` (`LANGUAGES`, only those built, the others dropped from `dist/`, `virtual:languages`), `frontend/vite-plugins/{languages.ts,languages.test.ts} (new)`, `frontend/src/virtual.d.ts`, `frontend/src/providers/TranslationProvider.tsx` (offered languages only, Latin digits (`intlLocale`), the locale loaders from `virtual:languages`, cronstrue's `pt` and `uz`, `<html lang dir>`, `DirectionProvider`, English for a missing plural form), `frontend/src/lib/languages.ts (new)`, `frontend/src/lib/format/time.ts` (Latin digits), the pickers in `frontend/src/pages/{auth/AuthWrapper.tsx,dashboard/account/AccountContainer.tsx,admin/users/userFormValues.tsx,admin/settings/application/applicationFormValues.tsx,oobe/OobeConfiguration.tsx}`, mails: `shared/src/utils.rs` (`language_offered`), `shared/src/extensions/email_templates/variables.rs`, migration `languages`; right to left: `frontend/src/app.css` (the right-to-left section, the tabs' fade, `.theme-server`), `frontend/src/elements/{ScrollingText.tsx,data-display/Breadcrumbs.tsx (paths left to right),editors/MonacoBaseEditor.tsx,editors/PierreEditor.tsx}`, `frontend/src/pages/server/console/terminal/{Console,ConsoleCommandInput}.tsx`, `frontend/src/pages/server/databases/instances/overview/DatabaseInstanceLogs.tsx`, `frontend/src/pages/{dashboard/home/ServerGroupItem.tsx,server/backups/BackupGroupCard.tsx}` (`rtl:-rotate-90`), and logical classes in `frontend/src/elements/{charts/ChartBlock.tsx,data-display/StatCard.tsx,navigation/Sidebar.tsx,WelcomeTour.tsx}`, `frontend/src/pages/{dashboard/home/ServerItem.tsx,server/console/ServerConsole.tsx,server/settings/SftpContainer.tsx}`; coverage of every offered language: `plugged-host/{translations.sh,build.sh}`, `plugged-host/check.sh` (`js`) |
 | Build | `Cargo.toml` (profile `release-fast`), `shared/Cargo.toml` (gix 0.90 for a security advisory, until upstream bumps it), `Cargo.lock`, `frontend/pnpm-workspace.yaml` (security override), `frontend/pnpm-lock.yaml` |
 | Documentation | `README.md` (one line), `docs/`, `AGENTS.md`, `CLAUDE.md`, `.claude/rules/` (all new) |
 | plugged.host's own files | `plugged-host/` (new) |

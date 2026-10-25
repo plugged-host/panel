@@ -17,6 +17,7 @@ import Switch from '@/elements/input/Switch.tsx';
 import TextInput from '@/elements/input/TextInput.tsx';
 import Stack from '@/elements/layout/Stack.tsx';
 import Title from '@/elements/typography/Title.tsx';
+import { languageOptions } from '@/lib/languages.ts'; // plugged.host
 import { isIP } from '@/lib/network/ip.ts';
 import { oobeConfigurationSchema } from '@/lib/schemas/oobe.ts';
 import { liveValidation } from '@/plugins/form/liveValidation.ts';
@@ -157,10 +158,7 @@ export default function OobeConfiguration({ onNext }: OobeComponentProps) {
                 withAsterisk
                 label={t('common.form.language', {})}
                 placeholder={t('common.form.language', {})}
-                data={languages.map((language) => ({
-                  label: new Intl.DisplayNames([language], { type: 'language' }).of(language) ?? language,
-                  value: language,
-                }))}
+                data={languageOptions(languages)} // plugged.host: each language in its own words, the list's order
                 className='flex-1'
                 {...form.getInputProps('applicationLanguage')}
               />

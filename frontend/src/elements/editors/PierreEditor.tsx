@@ -22,17 +22,23 @@ const LazyPierreDiffEditor = lazy(() =>
 
 export function PierreEditor(props: PierreEditorProps) {
   return (
-    <Spinner.Suspense className='w-full h-full'>
-      <LazyPierreEditor {...props} />
-    </Spinner.Suspense>
+    // plugged.host: the editor stays left to right in Arabic; `contents` leaves the layout alone
+    <div dir='ltr' className='contents'>
+      <Spinner.Suspense className='w-full h-full'>
+        <LazyPierreEditor {...props} />
+      </Spinner.Suspense>
+    </div>
   );
 }
 
 export function PierreDiffEditor(props: PierreDiffEditorProps) {
   return (
-    <Spinner.Suspense className='w-full h-full'>
-      <LazyPierreDiffEditor {...props} />
-    </Spinner.Suspense>
+    // plugged.host: the editor stays left to right in Arabic; `contents` leaves the layout alone
+    <div dir='ltr' className='contents'>
+      <Spinner.Suspense className='w-full h-full'>
+        <LazyPierreDiffEditor {...props} />
+      </Spinner.Suspense>
+    </div>
   );
 }
 

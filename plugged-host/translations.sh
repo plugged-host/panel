@@ -1,17 +1,19 @@
 #!/usr/bin/env bash
 # Builds frontend/public/translations/en.json from frontend/src/translations.ts on the build host,
 # copies it back, and checks that the offered languages have every English string, the panel's
-# and the mails' (`pnpm coverage:translations`). Fails below 100%; build.sh runs it before every build.
+# and the mails' (`pnpm coverage:translations`): German every one, the others every one but the
+# admin-only strings (docs/features/languages.md). Fails below 100%; build.sh checks the same.
 #
-#   plugged-host/translations.sh            # LANGUAGES (default: every language that must be complete)
-#   plugged-host/translations.sh --missing  # also lists the missing keys
+#   plugged-host/translations.sh                       # every offered language (frontend/vite-plugins/translations.ts)
+#   LANGUAGES='de ru' plugged-host/translations.sh     # only these
+#   plugged-host/translations.sh --missing             # also lists the missing keys
 set -euo pipefail
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 BUILD_HOST=${BUILD_HOST:-plugged-build}
 BUILD_DIR=${BUILD_DIR:-/root/panel}
-# English is the source; German is complete since v3 Phase 1, the others join in Phase 6.
-LANGUAGES=${LANGUAGES:-de}
+# Empty: every offered language but English (the allow-list in frontend/vite-plugins/translations.ts).
+LANGUAGES=${LANGUAGES:-}
 
 rsync -a --delete --exclude node_modules --exclude dist "$ROOT/frontend/" "$BUILD_HOST:$BUILD_DIR/frontend/"
 rsync -a --delete "$ROOT/shared/mails/" "$BUILD_HOST:$BUILD_DIR/shared/mails/"

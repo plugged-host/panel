@@ -16,6 +16,7 @@ import TransactionRows from '@/elements/economy/TransactionRows.tsx';
 import ConfirmationModal from '@/elements/modals/ConfirmationModal.tsx';
 import ResourceView from '@/elements/ResourceView.tsx';
 import { bytesToString, mbToBytes } from '@/lib/format/size.ts';
+import { intlLocale } from '@/lib/languages.ts';
 import { queryKeys } from '@/lib/queryKeys.ts';
 import { storeCatalogEntrySchema, storeResourceSchema, userStoreSchema } from '@/lib/schemas/user/economy.ts';
 import { useResource } from '@/plugins/resource/useResource.ts';
@@ -73,7 +74,7 @@ function ResourceRow({
   onBuy: (entry: Entry, offer: Offer) => void;
 }) {
   const { t, language } = useTranslations();
-  const number = new Intl.NumberFormat(language);
+  const number = new Intl.NumberFormat(intlLocale(language));
 
   const offers = entry?.offers ?? [];
   const bar = meter(usage.used, usage.limit, entry?.softLimit ?? 0);
@@ -154,7 +155,7 @@ export default function DashboardStore() {
   const { t, language } = useTranslations();
   const { addToast } = useToast();
   const queryClient = useQueryClient();
-  const number = new Intl.NumberFormat(language);
+  const number = new Intl.NumberFormat(intlLocale(language));
 
   const store = useResource({
     queryKey: queryKeys.user.store(),

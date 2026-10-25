@@ -247,6 +247,22 @@
       "few": "{count} Credits",
       "many": "{count} Credits",
       "other": "{count} Credits"
+    },
+    "player": {
+      "zero": "{count} Spieler",
+      "one": "{count} Spieler",
+      "two": "{count} Spieler",
+      "few": "{count} Spieler",
+      "many": "{count} Spieler",
+      "other": "{count} Spieler"
+    },
+    "build": {
+      "zero": "{count} Builds",
+      "one": "{count} Build",
+      "two": "{count} Builds",
+      "few": "{count} Builds",
+      "many": "{count} Builds",
+      "other": "{count} Builds"
     }
   },
   "translations": {
@@ -1523,7 +1539,7 @@
           "hours": "{hours} Std.",
           "days": "{days} T.",
           "week": "Woche",
-          "title": "{window}: {percent}% genutzt · zurückgesetzt {time}",
+          "title": "{window}: {percent}% genutzt · {time}",
           "noLimit": "Kein Nutzungslimit"
         },
         "models": {
@@ -11374,9 +11390,7 @@
             "unreachableDescription": "Der Server ist vielleicht offline oder startet noch.",
             "countSlots": "{count} / {slots} Spieler",
             "count": {
-              "none": "Keine Spieler",
-              "one": "{count} Spieler",
-              "other": "{count} Spieler"
+              "none": "Keine Spieler"
             },
             "search": "Nach Name, ID oder Kennung suchen",
             "noMatch": "Kein Spieler passt",
@@ -11415,9 +11429,7 @@
             },
             "search": "Nach Build-Nummer suchen",
             "count": {
-              "none": "Keine Builds",
-              "one": "{count} Build",
-              "other": "{count} Builds"
+              "none": "Keine Builds"
             },
             "noMatch": "Kein Build passt zu dieser Nummer.",
             "cfxUnreachable": "Die Build-Liste von Cfx konnte nicht geladen werden. Versuch es in einer Minute noch einmal.",
@@ -11572,10 +11584,6 @@
             "deposit": "Kaution",
             "status": "Status"
           },
-          "tokens": {
-            "one": "{count} Token",
-            "other": "{count} Token"
-          },
           "depositTooltip": "Erstattbare Kaution. Wird beim Löschen automatisch deinem Konto gutgeschrieben.",
           "copied": "Subdomain in die Zwischenablage kopiert",
           "connectionCopied": "Verbindungsbefehl kopiert!",
@@ -11595,10 +11603,7 @@
           "create": {
             "title": "Subdomain erstellen",
             "depositCaption": "Token-Kaution • Subdomain #{number}",
-            "refundable": {
-              "one": "Token (bei Löschung erstattet)",
-              "other": "Token (bei Löschung erstattet)"
-            },
+            "refundNote": "(bei Löschung erstattet)",
             "name": "Name",
             "placeholder": "z. B. play",
             "domain": "Domain",
@@ -11622,20 +11627,14 @@
           "delete": {
             "title": "Subdomain löschen",
             "body": "{name} löschen? Ihre DNS-Einträge werden entfernt, und Spieler können nicht mehr darüber beitreten.",
-            "refund": {
-              "one": "{count} Token geht an den Serverbesitzer zurück.",
-              "other": "{count} Token gehen an den Serverbesitzer zurück."
-            }
+            "tokensBack": "Der Serverbesitzer bekommt {tokens} zurück."
           },
           "toast": {
             "created": "{name} ist eingerichtet. Es kann ein paar Minuten dauern, bis alle Spieler sie erreichen.",
             "saved": "Gespeichert",
             "repaired": "Die Einträge von {name} sind neu geschrieben.",
             "deleted": "Subdomain gelöscht.",
-            "deletedRefund": {
-              "one": "Subdomain gelöscht. {count} Token wurde deinem Konto gutgeschrieben.",
-              "other": "Subdomain gelöscht. {count} Token wurden deinem Konto gutgeschrieben."
-            }
+            "deletedWithRefund": "Subdomain gelöscht. Du bekommst {tokens} zurück."
           }
         },
         "devbox": {

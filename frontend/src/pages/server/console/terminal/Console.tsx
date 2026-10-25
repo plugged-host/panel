@@ -415,8 +415,9 @@ export default function Terminal({ popout = false }: { popout?: boolean }) {
         {!socketConnected && <Spinner.Centered />}
 
         <div className='flex-1 min-h-0 relative overflow-hidden'>
-          {/* plugged.host: inset as Theme v2 pads ".xterm" ("0.25rem 0.625rem"), which FitAddon measures */}
-          <div ref={terminalRef} className='absolute inset-x-2.5 inset-y-1' />
+          {/* plugged.host: inset as Theme v2 pads ".xterm" ("0.25rem 0.625rem"), which FitAddon measures;
+              dir: the console stays left to right in Arabic */}
+          <div ref={terminalRef} dir='ltr' className='absolute inset-x-2.5 inset-y-1' />
           {selectionMenuTop !== null && <TerminalSelectionMenu top={selectionMenuTop} onCopy={copySelection} />}
         </div>
 

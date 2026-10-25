@@ -66,8 +66,9 @@ export default function ConsoleCommandInput({
   }, [commandPrefix]);
 
   return (
-    // plugged.host: the Pelican console's command line along the terminal's bottom (app.css)
-    <div className='theme-console-input'>
+    // plugged.host: the Pelican console's command line along the terminal's bottom (app.css); dir:
+    // commands are typed left to right in Arabic too
+    <div className='theme-console-input' dir='ltr'>
       <ServerCan action='control.console'>
         <Autocomplete
           value={inputValue}

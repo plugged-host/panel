@@ -399,7 +399,7 @@ export default function ServerItem({
                     <span className='theme-server-stat-name'>{t('common.stat.network', {})}</span>
                     {server.allocation ? (
                       <CopyOnClick content={formatAllocation(server.allocation)} className='min-w-0'>
-                        <span className='theme-server-address-value'>
+                        <span className='theme-server-address-value' dir='ltr'>
                           <RedactedText value={formatAllocation(server.allocation)} />
                         </span>
                       </CopyOnClick>

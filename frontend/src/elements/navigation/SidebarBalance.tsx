@@ -7,6 +7,7 @@ import { z } from 'zod';
 import getBalance from '@/api/me/economy/getBalance.ts';
 import { useCloseMobileMenu } from '@/elements/navigation/Sidebar.tsx';
 import { bytesToString, mbToBytes } from '@/lib/format/size.ts';
+import { intlLocale } from '@/lib/languages.ts';
 import { queryKeys } from '@/lib/queryKeys.ts';
 import { userBalanceSchema } from '@/lib/schemas/user/economy.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
@@ -119,7 +120,7 @@ export default function SidebarBalance() {
     { key: 'credit' as const, value: balance.credits, to: storeUrl },
   ].filter((pill) => pill.value !== null);
 
-  const number = new Intl.NumberFormat(language);
+  const number = new Intl.NumberFormat(intlLocale(language));
 
   return (
     <div className='theme-balance'>

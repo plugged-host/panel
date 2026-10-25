@@ -27,6 +27,7 @@ import Tooltip from '@/elements/overlays/Tooltip.tsx';
 import ResourceView from '@/elements/ResourceView.tsx';
 import Text from '@/elements/typography/Text.tsx';
 import { copyToClipboard } from '@/lib/clipboard/copy.ts';
+import { intlLocale } from '@/lib/languages.ts';
 import { queryKeys } from '@/lib/queryKeys.ts';
 import { serverSubdomainSchema, serverSubdomainsSchema } from '@/lib/schemas/server/subdomains.ts';
 import { useServerCan } from '@/plugins/usePermissions.ts';
@@ -45,12 +46,6 @@ const NAME = /^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$/;
 const PROPAGATION_MS = 3 * 60 * 1000;
 /** The Pelican table polls every 15 s; the processing minutes count down at the same pace. */
 const POLL_MS = 15000;
-
-/** English and German both use the singular for exactly one. */
-const plural = (count: number) => (count === 1 ? 'one' : 'other');
-
-/** Pelican's ":count token|:count tokens". */
-const tokens = (t: Translate, count: number) => t(`${base}.tokens.${plural(count)}`, { count });
 
 /** Minutes until a new subdomain counts as propagated, `null` once it does (Pelican's `status_label`). */
 function processingMinutes(subdomain: Subdomain, now: number) {
@@ -129,6 +124,29 @@ function TypeBadge({ subdomain, service }: { subdomain: Subdomain; service: stri
   }
 }
 
+/** The deposit as Pelican shows it: the number large, its word beside it ("3 tokens", "3 токена"). */
+function DepositAmount({ cost }: { cost: number }) {
+  const { t, tItem, language } = useTranslations();
+  const text = tItem('token', cost);
+  const value = new Intl.NumberFormat(intlLocale(language)).format(cost);
+  const at = text.indexOf(value);
+
+  return (
+    <div className='theme-sub-deposit-amount'>
+      {at < 0 ? (
+        <span>{text}</span>
+      ) : (
+        <>
+          {text.slice(0, at).trim() && <span>{text.slice(0, at).trim()}</span>}
+          <strong>{value}</strong>
+          {text.slice(at + value.length).trim() && <span>{text.slice(at + value.length).trim()}</span>}
+        </>
+      )}
+      <span>{t(`${base}.create.refundNote`, {})}</span>
+    </div>
+  );
+}
+
 /** The create form; without the deposit and with the domain fixed, the edit form. */
 function SubdomainModal({
   opened,
@@ -141,7 +159,7 @@ function SubdomainModal({
   editing: Subdomain | null;
   onClose: () => void;
 }) {
-  const { t } = useTranslations();
+  const { t, tItem } = useTranslations();
   const { addToast } = useToast();
   const queryClient = useQueryClient();
   const server = useServerStore((state) => state.server);
@@ -173,7 +191,9 @@ function SubdomainModal({
       return;
     }
     if (!editing && overview.nextCost > 0 && overview.balance !== null && overview.balance < overview.nextCost) {
-      setError(t(`${base}.create.insufficient`, { cost: tokens(t, overview.nextCost), balance: overview.balance }));
+      setError(
+        t(`${base}.create.insufficient`, { cost: tItem('token', overview.nextCost), balance: overview.balance }),
+      );
       return;
     }
 
@@ -216,16 +236,13 @@ function SubdomainModal({
                   <span className='theme-sub-deposit-caption'>
                     {t(`${base}.create.depositCaption`, { number: overview.subdomains.length + 1 })}
                   </span>
-                  <div className='theme-sub-deposit-amount'>
-                    <strong>{overview.nextCost}</strong>
-                    <span>{t(`${base}.create.refundable.${plural(overview.nextCost)}`, {})}</span>
-                  </div>
+                  <DepositAmount cost={overview.nextCost} />
                 </div>
                 {/* Only the owner sees their balance; a subuser sees the price alone. */}
                 {overview.balance !== null && (
                   <div className='theme-sub-deposit-balance'>
                     <span className='theme-sub-deposit-caption'>{t(`${base}.create.balance`, {})}</span>
-                    <strong>{tokens(t, overview.balance)}</strong>
+                    <strong>{tItem('token', overview.balance)}</strong>
                   </div>
                 )}
               </div>
@@ -304,7 +321,7 @@ function SubdomainRow({
   onEdit: () => void;
   onDelete: () => void;
 }) {
-  const { t } = useTranslations();
+  const { t, tItem } = useTranslations();
   const { addToast } = useToast();
   const queryClient = useQueryClient();
   const server = useServerStore((state) => state.server);
@@ -348,7 +365,7 @@ function SubdomainRow({
       {showDeposit && (
         <TableData>
           <Tooltip label={t(`${base}.depositTooltip`, {})}>
-            <Badge color={subdomain.tokenCost > 0 ? 'yellow' : 'gray'}>{tokens(t, subdomain.tokenCost)}</Badge>
+            <Badge color={subdomain.tokenCost > 0 ? 'yellow' : 'gray'}>{tItem('token', subdomain.tokenCost)}</Badge>
           </Tooltip>
         </TableData>
       )}
@@ -384,7 +401,7 @@ function SubdomainRow({
 }
 
 function Subdomains({ overview }: { overview: Overview }) {
-  const { t } = useTranslations();
+  const { t, tItem } = useTranslations();
   const { addToast } = useToast();
   const queryClient = useQueryClient();
   const server = useServerStore((state) => state.server);
@@ -415,7 +432,7 @@ function Subdomains({ overview }: { overview: Overview }) {
     const refunded = await deleteSubdomain(server.uuid, deleting.uuid);
     addToast(
       refunded > 0
-        ? t(`${base}.toast.deletedRefund.${plural(refunded)}`, { count: refunded })
+        ? t(`${base}.toast.deletedWithRefund`, { tokens: tItem('token', refunded) })
         : t(`${base}.toast.deleted`, {}),
       'success',
     );
@@ -459,7 +476,7 @@ function Subdomains({ overview }: { overview: Overview }) {
           <Text size='sm'>{t(`${base}.delete.body`, { name: deleting?.fqdn ?? '' })}</Text>
           {deleting && deleting.tokenCost > 0 && (
             <Text size='sm' c='dimmed'>
-              {t(`${base}.delete.refund.${plural(deleting.tokenCost)}`, { count: deleting.tokenCost })}
+              {t(`${base}.delete.tokensBack`, { tokens: tItem('token', deleting.tokenCost) })}
             </Text>
           )}
         </Stack>

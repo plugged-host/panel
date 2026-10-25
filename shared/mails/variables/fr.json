@@ -1,0 +1,89 @@
+{
+  "account_created": {
+    "subject": "Compte créé",
+    "greeting": "Bonjour,",
+    "intro": "Vous recevez cet e-mail car un compte a été créé pour vous sur <strong>{{ settings.app.name }}</strong>.",
+    "instruction": "Veuillez cliquer sur le bouton ci-dessous pour définir votre mot de passe en toute sécurité et accéder à votre compte :",
+    "button": "Définir votre mot de passe",
+    "note": "<strong>Remarque :</strong> pour des raisons de sécurité, ce lien expirera dans <strong>20 minutes</strong>.",
+    "footer": "Si vous n'avez pas demandé ce compte, vous pouvez ignorer cet e-mail sans risque."
+  },
+  "password_reset": {
+    "subject": "Réinitialisation du mot de passe",
+    "greeting": "Bonjour <strong>{{ user.username }}</strong>,",
+    "intro": "Nous avons reçu une demande de réinitialisation du mot de passe de votre compte sur <strong>{{ settings.app.name }}</strong>.",
+    "instruction": "Si vous êtes à l'origine de cette demande, veuillez cliquer sur le bouton ci-dessous pour choisir un nouveau mot de passe :",
+    "button": "Réinitialiser le mot de passe",
+    "note": "<strong>Remarque :</strong> ce lien expirera dans <strong>20 minutes</strong>.",
+    "footer": "Si vous n'avez pas demandé de réinitialisation du mot de passe, veuillez ignorer cet e-mail. Votre mot de passe restera inchangé et votre compte est en sécurité."
+  },
+  "email_verification": {
+    "subject": "Vérifiez votre e-mail",
+    "greeting": "Bonjour <strong>{{ user.username }}</strong>,",
+    "intro": "Veuillez confirmer que <strong>{{ email }}</strong> vous appartient pour terminer la configuration de votre compte sur <strong>{{ settings.app.name }}</strong>.",
+    "button": "Vérifier l'e-mail",
+    "note": "<strong>Remarque :</strong> ce lien expirera dans <strong>24 heures</strong>.",
+    "footer": "Si vous n'avez pas créé ce compte ni demandé ce changement, veuillez ignorer cet e-mail. Rien ne sera modifié."
+  },
+  "two_factor_code": {
+    "subject": "Votre code de connexion",
+    "greeting": "Bonjour <strong>{{ user.username }}</strong>,",
+    "intro": "Utilisez le code ci-dessous pour terminer votre connexion à <strong>{{ settings.app.name }}</strong>.",
+    "note": "<strong>Remarque :</strong> ce code expirera dans <strong>10 minutes</strong> et ne peut être utilisé qu'une seule fois.",
+    "footer": "Si vous n'avez pas essayé de vous connecter, quelqu'un d'autre connaît peut-être votre mot de passe. Nous vous recommandons de le changer dès que possible."
+  },
+  "session_created": {
+    "subject": "Nouvelle session créée",
+    "greeting": "Bonjour <strong>{{ user.username }}</strong>,",
+    "intro": "Une connexion à votre compte vient d'avoir lieu sur <strong>{{ settings.app.name }}</strong>.",
+    "ip_label": "Adresse IP",
+    "device_label": "Appareil",
+    "button": "Vérifier les sessions",
+    "note": "<strong>Remarque :</strong> si c'était vous, aucune action n'est nécessaire. Vous pouvez révoquer toute session que vous ne reconnaissez pas depuis les paramètres de votre compte.",
+    "footer": "Si vous n'êtes pas à l'origine de cette connexion, quelqu'un d'autre connaît peut-être votre mot de passe. Nous vous recommandons de le changer dès que possible."
+  },
+  "connection_test": {
+    "subject": "Test de connexion",
+    "greeting": "Bonjour,",
+    "intro": "Vous recevez cet e-mail car un administrateur de <strong>{{ settings.app.name }}</strong> a demandé un message de test pour vérifier les paramètres d'envoi d'e-mails du système.",
+    "success": "🎉 Succès ! La connexion e-mail fonctionne.",
+    "footer": "Ceci est un message de test automatique envoyé par votre application. Aucune autre action n'est requise."
+  },
+  "added_to_server": {
+    "subject": "Ajouté au serveur",
+    "greeting": "Bonjour,",
+    "intro": "Vous recevez cet e-mail car vous avez été ajouté en tant que sous-utilisateur sur le serveur <strong>{{ server.name }}</strong>.",
+    "instruction": "Cliquez sur le bouton ci-dessous pour accéder au serveur :",
+    "button": "Accéder au serveur"
+  },
+  "removed_from_server": {
+    "subject": "Retiré du serveur",
+    "greeting": "Bonjour,",
+    "intro": "Vous recevez cet e-mail car vous avez été retiré des sous-utilisateurs du serveur <strong>{{ server.name }}</strong>.",
+    "footer": "Aucune action n'est requise de votre part. Si vous pensez qu'il s'agit d'une erreur, veuillez contacter l'administrateur du serveur pour plus d'informations."
+  },
+  "server_installed": {
+    "subject": "Serveur installé",
+    "greeting": "Bonjour,",
+    "intro": "Vous recevez cet e-mail car votre serveur <strong>{{ server.name }}</strong> a terminé son installation.",
+    "instruction": "Cliquez sur le bouton ci-dessous pour accéder au serveur :",
+    "button": "Accéder au serveur"
+  },
+  "server_restored": {
+    "subject": "Serveur restauré",
+    "greeting": "Bonjour,",
+    "intro": "Vous recevez cet e-mail car votre serveur <strong>{{ server.name }}</strong> a terminé sa restauration à partir d'une sauvegarde.",
+    "instruction": "Cliquez sur le bouton ci-dessous pour accéder au serveur :",
+    "button": "Accéder au serveur"
+  },
+  "backup_completed": {
+    "subject": "Sauvegarde terminée",
+    "subject_failed": "Échec de la sauvegarde",
+    "greeting": "Bonjour <strong>{{ user.username }}</strong>,",
+    "intro": "La sauvegarde a été créée avec succès.",
+    "intro_failed": "La création de la sauvegarde a échoué.",
+    "backup_name": "Nom de la sauvegarde : <strong>{{ backup_name }}</strong>",
+    "server_name": "Nom du serveur : <strong>{{ server.name }}</strong>",
+    "button": "Voir les sauvegardes"
+  }
+}

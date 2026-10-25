@@ -11,6 +11,7 @@ import Button from '@/elements/buttons/Button.tsx';
 import Card from '@/elements/data-display/Card.tsx';
 import Collapse from '@/elements/layout/Collapse.tsx';
 import { bytesToString, mbToBytes } from '@/lib/format/size.ts';
+import { intlLocale } from '@/lib/languages.ts';
 import { storePerkSchema } from '@/lib/schemas/user/economy.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 
@@ -45,7 +46,7 @@ export default function StorePerks({
     return null;
   }
 
-  const number = new Intl.NumberFormat(language);
+  const number = new Intl.NumberFormat(intlLocale(language));
   const size = (mb: number) => bytesToString(mbToBytes(mb), 1);
 
   // "+3 GiB RAM", "+50% CPU and +3 GiB RAM", "+50% CPU, +3 GiB RAM and +10 GiB disk space"

@@ -79,7 +79,8 @@ SQLX_OFFLINE=true cargo test -p shared -p backend
 cd frontend
 pnpm typecheck
 pnpm biome:validate                # pnpm biome:fix applies the safe fixes
-pnpm build:translations && pnpm coverage:translations de
+pnpm build:translations && pnpm coverage:translations   # every offered language
+pnpm test:translations             # the merge driver's and the language rules' tests
 ```
 
 `git config core.hooksPath .hooks` runs biome on every commit. plugged.host runs the same checks on a
@@ -129,9 +130,15 @@ Rules:
   `public/translations/de.json` in the same commit, keeping the file's order (a new key after its
   English neighbour). Mails: `shared/mails/variables/de.json`. German uses the informal "du", like
   upstream's.
-- `pnpm coverage:translations de` lists what is missing (`--missing` prints the keys) and fails
-  below 100%; plugged.host's build refuses to ship while it fails.
-- Upstream's other languages come from its Crowdin project and stay as they are.
+- **The other offered languages** (ar, ru, tr, id, pt, vi, fr, uk, uz) get every string that is not
+  admin-only (a key with an `admin` segment), at the same key in `public/translations/<code>.json`
+  and in the mails, before the next deploy; use the language's glossary.
+- `pnpm coverage:translations` checks every offered language (`pnpm coverage:translations de --missing`
+  one, with the missing keys) and fails below 100%; plugged.host's build refuses to ship while it
+  fails. Details: [features/languages.md](features/languages.md).
+- Upstream's languages the panel does not offer stay as Crowdin has them and are never built.
+- Layout CSS is logical (`ms-*`, `padding-inline-start`, `text-align: start`), so Arabic mirrors it;
+  technical values (paths, addresses, code) get `dir='ltr'`.
 
 ## Tests
 

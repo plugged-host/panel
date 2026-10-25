@@ -129,7 +129,8 @@ function MonacoContainer({
   containerRef,
 }: ContainerProps & { ready: boolean; containerRef: RefObject<HTMLDivElement | null> }) {
   return (
-    <section style={{ ...wrapperStyle, width, height }} {...wrapperProps}>
+    // plugged.host: dir — the editor stays left to right in Arabic
+    <section style={{ ...wrapperStyle, width, height }} dir='ltr' {...wrapperProps}>
       {!ready && <div style={loadingStyle}>{loading}</div>}
       <div ref={containerRef} style={{ width: '100%', ...(!ready && { display: 'none' }) }} className={className} />
     </section>

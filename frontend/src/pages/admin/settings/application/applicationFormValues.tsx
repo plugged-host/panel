@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { FieldDef } from '@/elements/form-engine/index.ts';
+import { languageOptions } from '@/lib/languages.ts'; // plugged.host
 import { adminSettingsApplicationSchema } from '@/lib/schemas/admin/settings.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 
@@ -56,10 +57,7 @@ export function useApplicationFormFields({
       name: 'language',
       label: t('common.form.language', {}),
       required: true,
-      options: languages.map((l) => ({
-        label: new Intl.DisplayNames([l], { type: 'language' }).of(l) ?? l,
-        value: l,
-      })),
+      options: languageOptions(languages), // plugged.host: each language in its own words, the list's order
       props: { searchable: true },
     },
     { type: 'text', name: 'url', label: t('common.form.url', {}), required: true },

@@ -9,7 +9,8 @@
 # v{VERSION}.{commit}). Commit before building anything that gets deployed: the release names the
 # commit, not the working tree.
 #
-# It stops when a language that must be complete misses an English string (LANGUAGES).
+# It stops when an offered language misses an English string (LANGUAGES, default every offered
+# language: German every string, the others all but the admin-only ones; docs/features/languages.md).
 # The frontend is only rebuilt when its sources (and its workspace's backend-extensions/*/frontend)
 # changed since the last build, uncommitted changes included; FRONTEND=1 forces it.
 set -euo pipefail
@@ -24,8 +25,8 @@ ROOT=$(cd "$(dirname "$0")/.." && pwd)
 BUILD_HOST=${BUILD_HOST:-plugged-build}
 BUILD_DIR=${BUILD_DIR:-/root/panel}
 PROFILE=${PROFILE:-release-fast}
-# The languages that must have every English string (plugged-host/translations.sh).
-LANGUAGES=${LANGUAGES:-de}
+# The languages to check (plugged-host/translations.sh); empty = every offered language.
+LANGUAGES=${LANGUAGES:-}
 OUT="$ROOT/target/plugged-host"
 
 if [ -n "$(git -C "$ROOT" status --porcelain --untracked-files=no)" ]; then

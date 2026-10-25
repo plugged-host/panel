@@ -17,7 +17,9 @@ directly into the source. Read [`docs/README.md`](docs/README.md) first; the det
    starts with a one-line `plugged.host:` header. Keep upstream edits small; move bulk into new files.
 4. **Strings in English and German, together.** English in `frontend/src/translations.ts`, German at
    the same key in `frontend/public/translations/de.json` (keep its order), mails in
-   `shared/mails/variables/`. `pnpm build:translations && pnpm coverage:translations de` must pass.
+   `shared/mails/variables/`. The nine other offered languages need every non-admin string before
+   the next deploy ([languages](docs/features/languages.md)). `pnpm build:translations && pnpm
+   coverage:translations` must pass.
 5. **Database.** Change `database/src/schema.ts` and generate the migration (`kit:generate --name
    <feature>`); never hand-write schema SQL or edit a migration that is on `main`. Runtime `sqlx`
    only (`sqlx::query*`, never `query!`), `sqlx::AssertSqlSafe` around formatted SQL, values always bound.
@@ -43,7 +45,7 @@ cargo fmt --all --check
 SQLX_OFFLINE=true cargo clippy
 SQLX_OFFLINE=true cargo test -p shared -p backend
 cd frontend && pnpm typecheck && pnpm biome:validate
-pnpm build:translations && pnpm coverage:translations de
+pnpm build:translations && pnpm coverage:translations && pnpm test:translations
 ```
 
 The Rust build needs about 8 GB of memory. On a small machine, run the checks on a bigger one

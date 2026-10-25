@@ -2,6 +2,29 @@ import fs from 'node:fs';
 import path from 'node:path';
 import type { LanguageData } from 'shared';
 import type { Plugin } from 'vite';
+import { type Language, languagesModule, offeredLanguages } from './languages.ts'; // plugged.host
+
+// plugged.host: the languages the panel offers, in the pickers' order (docs/features/languages.md). Only
+// these are built, from every source below (public/translations, extensions, PANEL_EXTRA_TRANSLATIONS_DIR):
+// another language's file stays in the tree, so upstream merges stay clean, but never reaches
+// dist/translations, so the API refuses it (FRONTEND_LANGUAGES), the pickers and browser detection never
+// see it and mails leave its strings out.
+export const LANGUAGES: Record<string, Language> = {
+  en: { name: 'English' },
+  de: { name: 'Deutsch', admin: true },
+  ar: { name: 'العربية', rtl: true },
+  ru: { name: 'Русский' },
+  tr: { name: 'Türkçe' },
+  id: { name: 'Bahasa Indonesia' },
+  pt: { name: 'Português (Brasil)', locale: 'pt-BR' },
+  vi: { name: 'Tiếng Việt' },
+  fr: { name: 'Français' },
+  uk: { name: 'Українська' },
+  uz: { name: 'Oʻzbekcha' },
+};
+
+const VIRTUAL_ID = 'virtual:languages';
+const RESOLVED_ID = `\0${VIRTUAL_ID}`;
 
 function mergeLanguageTranslations(translationsDir: string, language: string): Record<string, LanguageData> | null {
   const namespaces: Record<string, LanguageData> = {};
@@ -76,7 +99,7 @@ function discoverAllLanguages(translationDirs: string[]): string[] {
       languages.add(lang);
     }
   }
-  return [...languages];
+  return offeredLanguages(LANGUAGES, languages); // plugged.host: the allow-list
 }
 
 function mergeAllTranslations(translationDirs: string[], language: string): Record<string, LanguageData> | null {
@@ -110,6 +133,11 @@ export function translationsPlugin(): Plugin {
         if (!match) return next();
 
         const language = match[1];
+        // plugged.host: not even the public copy of a language off the list
+        if (!Object.hasOwn(LANGUAGES, language)) {
+          res.statusCode = 404;
+          return res.end();
+        }
 
         try {
           const dirs = discoverTranslationDirs();
@@ -125,10 +153,40 @@ export function translationsPlugin(): Plugin {
       });
     },
 
+    // plugged.host: `virtual:languages`, the built languages and their locale loaders (languages.ts)
+    resolveId(id) {
+      if (id === VIRTUAL_ID) return RESOLVED_ID;
+    },
+
+    load(id) {
+      if (id === RESOLVED_ID) {
+        return languagesModule(
+          LANGUAGES,
+          discoverAllLanguages(discoverTranslationDirs()),
+          path.resolve(import.meta.dirname, '..', 'node_modules'),
+        );
+      }
+    },
+
     closeBundle() {
       const outDir = path.resolve(import.meta.dirname, '..', 'dist/translations');
       const dirs = discoverTranslationDirs();
       const languages = discoverAllLanguages(dirs);
+
+      // plugged.host: the public directory copy brought every language's file along; drop those off the list
+      if (fs.existsSync(outDir)) {
+        const dropped: string[] = [];
+        for (const entry of fs.readdirSync(outDir)) {
+          const language = entry.replace(/\.json$/, '');
+          if (languages.includes(language)) continue;
+
+          fs.rmSync(path.join(outDir, entry), { recursive: true, force: true });
+          dropped.push(language);
+        }
+        if (dropped.length > 0) {
+          console.log(`[translations] Not offered, left out: ${dropped.sort().join(', ')}`);
+        }
+      }
 
       if (languages.length === 0) return;
 

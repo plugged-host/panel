@@ -86,8 +86,9 @@ export default function StatCard({
           </span>
         ) : copyOnClick ? (
           <ScrollingText>
-            <CopyOnClick content={value} className='text-left block'>
-              {valueContent}
+            <CopyOnClick content={value} className='text-start block'>
+              {/* a copyable value is technical (an address, a port): it reads left to right */}
+              <span dir='ltr'>{valueContent}</span>
             </CopyOnClick>
           </ScrollingText>
         ) : (

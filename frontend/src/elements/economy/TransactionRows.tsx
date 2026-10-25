@@ -5,6 +5,7 @@ import classNames from 'classnames';
 import { z } from 'zod';
 import { typeKey } from '@/elements/economy/TransactionsTable.tsx';
 import FormattedTimestamp from '@/elements/time/FormattedTimestamp.tsx';
+import { intlLocale } from '@/lib/languages.ts';
 import { economyTransactionSchema } from '@/lib/schemas/user/economy.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 
@@ -53,7 +54,7 @@ export default function TransactionRows({
 }) {
   const { t, language } = useTranslations();
   const describe = useDescribe();
-  const number = new Intl.NumberFormat(language);
+  const number = new Intl.NumberFormat(intlLocale(language));
   const ledger = variant === 'ledger';
 
   return (

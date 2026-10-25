@@ -12,11 +12,11 @@ tree to the build host (`BUILD_HOST`, default the ssh alias `plugged-build`; `BU
 
 | Script | What it does |
 |---|---|
-| `check.sh [ts biome fmt rust test]` | The checks (all by default): `pnpm typecheck`, biome, `cargo fmt --check`, `cargo check`, `cargo test -p shared -p backend` |
+| `check.sh [ts biome fmt rust test js]` | The checks (all by default): `pnpm typecheck`, biome, `cargo fmt --check`, `cargo check`, `cargo test -p shared -p backend`, `pnpm test:translations` |
 | `format.sh` | rustfmt + biome's safe fixes, copies the rewritten files back |
-| `translations.sh [--missing]` | Regenerates `en.json`, copies it back, checks `LANGUAGES` (default `de`) for 100% |
+| `translations.sh [--missing]` | Regenerates `en.json`, copies it back, checks `LANGUAGES` (default every offered language: German every string, the others all but admin-only ones) for 100% |
 | `generate-migration.sh <name> [snapshot-id]` | `kit:generate` for `database/src/schema.ts`, copies the migration back (`CUSTOM=1` for a data migration; a snapshot id re-chains a migration after an upstream merge) |
-| `build.sh` | Checks the translations, builds the frontend when its sources changed, then `cargo build --profile release-fast -p panel-rs`, and fetches `target/plugged-host/panel-rs` |
+| `build.sh` | Checks the translations (every offered language, `LANGUAGES`), builds the frontend when its sources changed, then `cargo build --profile release-fast -p panel-rs`, and fetches `target/plugged-host/panel-rs` |
 | `deploy.sh [binary]` | Installs it as `/opt/calagopus/releases/<release>`, points `current` at it, restarts `calagopus`, checks `/api/settings` and rolls back if it does not answer; keeps the last 3 releases |
 
 ```bash

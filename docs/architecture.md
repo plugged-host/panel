@@ -186,5 +186,7 @@ English lives in `frontend/src/translations.ts`; `pnpm build:translations` write
 `public/translations/en.json`. Every other language is a JSON file next to it, loaded at runtime
 (`TranslationProvider`). Keys follow the native tree (`pages.server.backups.toast.locked`); a
 feature's strings sit under its page's key, without a namespace of their own. Mails take their
-strings from `shared/mails/variables/<lang>.json`. German is kept complete: see
-[development.md](development.md#strings).
+strings from `shared/mails/variables/<lang>.json`. Only the languages in the allow-list
+(`frontend/vite-plugins/translations.ts`) are built and accepted; German is kept complete, the other
+offered languages complete but for admin-only strings: see [features/languages.md](features/languages.md)
+and [development.md](development.md#strings).

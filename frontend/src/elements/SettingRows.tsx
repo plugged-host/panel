@@ -41,7 +41,14 @@ export function SettingRow({
           muted && 'theme-setting-value-muted',
         )}
       >
-        {mono ? <span className='font-mono'>{children}</span> : children}
+        {/* a technical value (address, user name) reads left to right in a right-to-left language too */}
+        {mono ? (
+          <span className='font-mono' dir='ltr'>
+            {children}
+          </span>
+        ) : (
+          children
+        )}
         {hint ? <span className='theme-setting-hint'>{hint}</span> : null}
       </div>
       {actions && <div className='theme-setting-actions'>{actions}</div>}

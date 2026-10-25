@@ -10,6 +10,7 @@ import Badge from '@/elements/data-display/Badge.tsx';
 import { TableData, TableRow } from '@/elements/data-display/Table.tsx';
 import ConditionalTooltip from '@/elements/overlays/ConditionalTooltip.tsx';
 import Tooltip from '@/elements/overlays/Tooltip.tsx';
+import { intlLocale } from '@/lib/languages.ts';
 import { minecraftProjectSchema } from '@/lib/schemas/server/minecraft.ts';
 import { useServerCan } from '@/plugins/usePermissions.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
@@ -86,7 +87,7 @@ export default function ProjectRow({
 
       {columns.author && <TableData>{project.author}</TableData>}
 
-      <TableData>{project.downloads.toLocaleString(language)}</TableData>
+      <TableData>{project.downloads.toLocaleString(intlLocale(language))}</TableData>
 
       {columns.categories && (
         <TableData>

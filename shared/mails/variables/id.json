@@ -1,0 +1,89 @@
+{
+  "account_created": {
+    "subject": "Akun Dibuat",
+    "greeting": "Halo,",
+    "intro": "Anda menerima email ini karena sebuah akun telah dibuat untuk Anda di <strong>{{ settings.app.name }}</strong>.",
+    "instruction": "Silakan klik tombol di bawah untuk mengatur kata sandi Anda dengan aman dan mengakses akun Anda:",
+    "button": "Atur Kata Sandi Anda",
+    "note": "<strong>Catatan:</strong> Demi keamanan, tautan ini akan kedaluwarsa dalam <strong>20 menit</strong>.",
+    "footer": "Jika Anda tidak meminta akun ini, Anda dapat mengabaikan email ini dengan aman."
+  },
+  "password_reset": {
+    "subject": "Atur Ulang Kata Sandi",
+    "greeting": "Halo <strong>{{ user.username }}</strong>,",
+    "intro": "Kami menerima permintaan untuk mengatur ulang kata sandi akun Anda di <strong>{{ settings.app.name }}</strong>.",
+    "instruction": "Jika Anda yang membuat permintaan ini, silakan klik tombol di bawah untuk memilih kata sandi baru:",
+    "button": "Atur Ulang Kata Sandi",
+    "note": "<strong>Catatan:</strong> Tautan ini akan kedaluwarsa dalam <strong>20 menit</strong>.",
+    "footer": "Jika Anda tidak meminta pengaturan ulang kata sandi, silakan abaikan email ini. Kata sandi Anda tidak akan berubah dan akun Anda tetap aman."
+  },
+  "email_verification": {
+    "subject": "Verifikasi Email Anda",
+    "greeting": "Halo <strong>{{ user.username }}</strong>,",
+    "intro": "Silakan konfirmasi bahwa <strong>{{ email }}</strong> adalah milik Anda untuk menyelesaikan penyiapan akun Anda di <strong>{{ settings.app.name }}</strong>.",
+    "button": "Verifikasi Email",
+    "note": "<strong>Catatan:</strong> Tautan ini akan kedaluwarsa dalam <strong>24 jam</strong>.",
+    "footer": "Jika Anda tidak membuat akun ini atau tidak meminta perubahan ini, silakan abaikan email ini. Tidak ada yang akan diubah."
+  },
+  "two_factor_code": {
+    "subject": "Kode Masuk Anda",
+    "greeting": "Halo <strong>{{ user.username }}</strong>,",
+    "intro": "Gunakan kode di bawah untuk menyelesaikan proses masuk ke <strong>{{ settings.app.name }}</strong>.",
+    "note": "<strong>Catatan:</strong> Kode ini akan kedaluwarsa dalam <strong>10 menit</strong> dan hanya dapat digunakan sekali.",
+    "footer": "Jika Anda tidak mencoba masuk, mungkin ada orang lain yang mengetahui kata sandi Anda. Kami sarankan untuk segera menggantinya."
+  },
+  "session_created": {
+    "subject": "Sesi Baru Dibuat",
+    "greeting": "Halo <strong>{{ user.username }}</strong>,",
+    "intro": "Baru saja ada proses masuk ke akun Anda di <strong>{{ settings.app.name }}</strong>.",
+    "ip_label": "Alamat IP",
+    "device_label": "Perangkat",
+    "button": "Tinjau Sesi",
+    "note": "<strong>Catatan:</strong> Jika ini Anda, tidak ada tindakan yang perlu dilakukan. Anda dapat mencabut sesi apa pun yang tidak Anda kenali dari pengaturan akun Anda.",
+    "footer": "Jika Anda tidak masuk, mungkin ada orang lain yang mengetahui kata sandi Anda. Kami sarankan untuk segera menggantinya."
+  },
+  "connection_test": {
+    "subject": "Tes Koneksi",
+    "greeting": "Halo,",
+    "intro": "Anda menerima email ini karena administrator di <strong>{{ settings.app.name }}</strong> meminta pesan uji untuk memverifikasi pengaturan email keluar sistem.",
+    "success": "🎉 Berhasil! Koneksi email berfungsi.",
+    "footer": "Ini adalah pesan uji otomatis dari aplikasi Anda. Tidak ada tindakan lebih lanjut yang diperlukan."
+  },
+  "added_to_server": {
+    "subject": "Ditambahkan ke Server",
+    "greeting": "Halo,",
+    "intro": "Anda menerima email ini karena Anda telah ditambahkan sebagai subpengguna di <strong>{{ server.name }}</strong>.",
+    "instruction": "Klik tombol di bawah untuk mengakses server:",
+    "button": "Akses Server"
+  },
+  "removed_from_server": {
+    "subject": "Dihapus dari Server",
+    "greeting": "Halo,",
+    "intro": "Anda menerima email ini karena Anda telah dihapus sebagai subpengguna dari <strong>{{ server.name }}</strong>.",
+    "footer": "Tidak ada tindakan yang perlu Anda lakukan. Jika Anda merasa ini adalah kesalahan, silakan hubungi administrator server untuk informasi lebih lanjut."
+  },
+  "server_installed": {
+    "subject": "Server Terinstal",
+    "greeting": "Halo,",
+    "intro": "Anda menerima email ini karena server Anda, <strong>{{ server.name }}</strong>, telah selesai diinstal.",
+    "instruction": "Klik tombol di bawah untuk mengakses server:",
+    "button": "Akses Server"
+  },
+  "server_restored": {
+    "subject": "Server Dipulihkan",
+    "greeting": "Halo,",
+    "intro": "Anda menerima email ini karena server Anda, <strong>{{ server.name }}</strong>, telah selesai dipulihkan dari cadangan.",
+    "instruction": "Klik tombol di bawah untuk mengakses server:",
+    "button": "Akses Server"
+  },
+  "backup_completed": {
+    "subject": "Pencadangan Selesai",
+    "subject_failed": "Pencadangan Gagal",
+    "greeting": "Halo <strong>{{ user.username }}</strong>,",
+    "intro": "Cadangan berhasil dibuat.",
+    "intro_failed": "Pembuatan cadangan gagal.",
+    "backup_name": "Nama Cadangan: <strong>{{ backup_name }}</strong>",
+    "server_name": "Nama Server: <strong>{{ server.name }}</strong>",
+    "button": "Lihat Cadangan"
+  }
+}

@@ -3,7 +3,8 @@
 #
 #   plugged-host/check.sh                 # everything below
 #   plugged-host/check.sh ts rust         # only some: ts (pnpm typecheck), biome, fmt (cargo fmt --check),
-#                                         # rust (cargo check), test (cargo test -p shared -p backend)
+#                                         # rust (cargo check), test (cargo test -p shared -p backend),
+#                                         # js (pnpm test:translations: the merge driver, the language rules)
 #
 # The translations have their own check, plugged-host/translations.sh.
 # Like build.sh it copies the working tree (uncommitted changes included) to the build host and
@@ -14,7 +15,7 @@ set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 BUILD_HOST=${BUILD_HOST:-plugged-build}
 BUILD_DIR=${BUILD_DIR:-/root/panel}
-CHECKS=${*:-ts biome fmt rust test}
+CHECKS=${*:-ts biome fmt rust test js}
 
 echo "==> copying the tree to $BUILD_HOST:$BUILD_DIR"
 rsync -a --delete --exclude target --exclude node_modules --exclude frontend/dist "$ROOT/" "$BUILD_HOST:$BUILD_DIR/"
@@ -33,6 +34,7 @@ ssh "$BUILD_HOST" "set -uo pipefail
       fmt) run fmt cargo fmt --all --check ;;
       rust) run rust flock /root/.panel-cargo.lock env SQLX_OFFLINE=true RUSTFLAGS='-C link-arg=-fuse-ld=mold' cargo check --profile release-fast -p panel-rs ;;
       test) run test flock /root/.panel-cargo.lock env SQLX_OFFLINE=true RUSTFLAGS='-C link-arg=-fuse-ld=mold' cargo test --profile release-fast -p shared -p backend ;;
+      js) run js sh -c 'cd frontend && pnpm -s test:translations' ;;
       *) echo \"unknown check \$check\"; failed=\"\$failed \$check\" ;;
     esac
   done

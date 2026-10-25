@@ -38,9 +38,11 @@ const baseTranslations = defineTranslations({
     apiKey: defineEnglishItem('API Key', 'API Keys'),
     oauthLink: defineEnglishItem('Linked Account', 'Linked Accounts'),
     commandSnippet: defineEnglishItem('Command Snippet', 'Command Snippets'),
-    // plugged.host: the sidebar balance
+    // plugged.host: counts on plugged.host's pages (sidebar balance, subdomains, FiveM)
     token: defineEnglishItem('token', 'tokens'),
     credit: defineEnglishItem('credit', 'credits'),
+    player: defineEnglishItem('player', 'players'),
+    build: defineEnglishItem('build', 'builds'),
   },
   translations: {
     common: {
@@ -1359,7 +1361,7 @@ const baseTranslations = defineTranslations({
           hours: '{hours}h',
           days: '{days}d',
           week: 'Week',
-          title: '{window}: {percent}% used · resets {time}',
+          title: '{window}: {percent}% used · {time}',
           noLimit: 'No usage limit',
         },
         models: {
@@ -11758,8 +11760,6 @@ const baseTranslations = defineTranslations({
             countSlots: '{count} / {slots} players',
             count: {
               none: 'No players',
-              one: '{count} player',
-              other: '{count} players',
             },
             search: 'Search by name, ID or identifier',
             unreachable: 'Server unreachable',
@@ -11802,8 +11802,6 @@ const baseTranslations = defineTranslations({
             search: 'Search by build number',
             count: {
               none: 'No builds',
-              one: '{count} build',
-              other: '{count} builds',
             },
             noMatch: 'No build matches that number.',
             cfxUnreachable: "Cfx's build list could not be loaded. Try again in a minute.",
@@ -11978,10 +11976,6 @@ const baseTranslations = defineTranslations({
             deposit: 'Deposit',
             connect: 'Connect With',
           },
-          tokens: {
-            one: '{count} token',
-            other: '{count} tokens',
-          },
           depositTooltip: 'Refundable deposit. Automatically returned to your account if deleted.',
           copied: 'Subdomain copied to clipboard',
           connectionCopied: 'Connection command copied!',
@@ -12002,10 +11996,7 @@ const baseTranslations = defineTranslations({
           create: {
             title: 'Create Subdomain',
             depositCaption: 'Token Deposit • Subdomain #{number}',
-            refundable: {
-              one: 'token (refundable on deletion)',
-              other: 'tokens (refundable on deletion)',
-            },
+            refundNote: '(refundable on deletion)',
             balance: 'Your Balance',
             name: 'Name',
             placeholder: 'e.g. play',
@@ -12033,20 +12024,14 @@ const baseTranslations = defineTranslations({
           delete: {
             title: 'Delete Subdomain',
             body: 'Delete {name}? Its DNS records are removed, and players can no longer join with it.',
-            refund: {
-              one: '{count} token goes back to the server owner.',
-              other: '{count} tokens go back to the server owner.',
-            },
+            tokensBack: '{tokens} will go back to the server owner.',
           },
           toast: {
             created: '{name} is set up. It can take a few minutes to reach every player.',
             saved: 'Saved',
             repaired: 'The records of {name} are written again.',
             deleted: 'Subdomain deleted.',
-            deletedRefund: {
-              one: 'Subdomain deleted. {count} token refunded to your balance.',
-              other: 'Subdomain deleted. {count} tokens refunded to your balance.',
-            },
+            deletedWithRefund: 'Subdomain deleted. {tokens} refunded to your balance.',
           },
         },
         devbox: {

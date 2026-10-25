@@ -18,6 +18,7 @@ import { adminNodeSchema, adminNodeTelemetrySchema } from '@/lib/schemas/admin/n
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 
 import '@mantine/charts/styles.css';
+import { intlLocale } from '@/lib/languages.ts';
 
 const RANGES = [
   { hours: 1, key: 'hour' },
@@ -84,7 +85,7 @@ export default function NodeTelemetryHistory({ node }: { node: z.infer<typeof ad
 
   const rows = useMemo(() => {
     const format = new Intl.DateTimeFormat(
-      language,
+      intlLocale(language),
       hours > 24 ? { weekday: 'short', hour: '2-digit', minute: '2-digit' } : { hour: '2-digit', minute: '2-digit' },
     );
 

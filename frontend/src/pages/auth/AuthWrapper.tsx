@@ -7,6 +7,7 @@ import Copyright from '@/elements/Copyright.tsx';
 import ContentContainer from '@/elements/containers/ContentContainer.tsx';
 import ExtensionSlot from '@/elements/ExtensionSlot.tsx';
 import Select from '@/elements/input/Select.tsx';
+import { languageOptions } from '@/lib/languages.ts'; // plugged.host
 import { useContainerAutoHeight } from '@/plugins/viewport/useContainerAutoHeight.ts';
 import { useCurrentWindow } from '@/providers/CurrentWindowProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
@@ -80,10 +81,7 @@ function AuthWrapper(props: Props) {
               size='xs'
               aria-label={t('common.form.language', {})}
               leftSection={<FontAwesomeIcon icon={faGlobe} size='sm' />}
-              data={languages.map((language) => ({
-                label: new Intl.DisplayNames([language], { type: 'language' }).of(language) ?? language,
-                value: language,
-              }))}
+              data={languageOptions(languages)} // plugged.host: each language in its own words, the list's order
               value={language}
               onChange={(value) => value && setLanguage(value)}
             />

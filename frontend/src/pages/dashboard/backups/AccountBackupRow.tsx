@@ -12,6 +12,7 @@ import FormattedTimestamp from '@/elements/time/FormattedTimestamp.tsx';
 import { copyToClipboard } from '@/lib/clipboard/copy.ts';
 import { bytesToString } from '@/lib/format/size.ts';
 import { formatTimestamp } from '@/lib/format/time.ts';
+import { intlLocale } from '@/lib/languages.ts';
 import { downloadUrl } from '@/lib/network/url.ts';
 import { userAccountBackupSchema } from '@/lib/schemas/user/backups.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
@@ -130,7 +131,7 @@ export default function AccountBackupRow({
                   <Sep />
                   <span>
                     {t(`${page}.keptUntil`, {
-                      date: row.keptUntil.toLocaleDateString(language, { day: 'numeric', month: 'short' }),
+                      date: row.keptUntil.toLocaleDateString(intlLocale(language), { day: 'numeric', month: 'short' }),
                     })}
                   </span>
                 </>

@@ -48,9 +48,9 @@ export default function ServerConsole() {
       <div
         id='console-infobar'
         className={classNames(
-          'sticky z-20 bg-(--theme-bg-top) mb-6 py-2 -mx-4 md:-mx-6 lg:-mx-8 pr-4 md:pr-6 lg:px-8 transition-[padding] duration-150',
+          'sticky z-20 bg-(--theme-bg-top) mb-6 py-2 -mx-4 md:-mx-6 lg:-mx-8 pe-4 md:pe-6 lg:px-8 transition-[padding] duration-150',
           titleHoisted ? 'top-3 lg:top-0 shadow-[0_-0.75rem_0_var(--theme-bg-top)] lg:shadow-none' : 'top-0',
-          titleHoisted && infobarStuck ? 'pl-20' : 'pl-4 md:pl-6',
+          titleHoisted && infobarStuck ? 'ps-20' : 'ps-4 md:ps-6',
         )}
       >
         <Group justify='space-between' className={classNames({ 'min-h-12 lg:min-h-0': titleHoisted })}>

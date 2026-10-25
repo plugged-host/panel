@@ -80,7 +80,7 @@ function Sidebar({ children, header, footer }: SidebarProps) {
       {/* plugged.host: Filament's sidebar toggle without a topbar, a square button in the top
           corner ("p-4"), on the sidebar's colour */}
       <Card
-        className='lg:hidden! sticky! top-4 z-50 flex-row! items-center justify-center ml-4 mt-4 h-11 w-11 rounded-xl! bg-(--theme-sidebar)!'
+        className='lg:hidden! sticky! top-4 z-50 flex-row! items-center justify-center ms-4 mt-4 h-11 w-11 rounded-xl! bg-(--theme-sidebar)!'
         p={0}
       >
         <ActionIcon
@@ -94,7 +94,7 @@ function Sidebar({ children, header, footer }: SidebarProps) {
         </ActionIcon>
       </Card>
 
-      <div className='lg:hidden -mt-11 mb-2 ml-20 mr-4 h-11 flex flex-col justify-center min-w-0'>
+      <div className='lg:hidden -mt-11 mb-2 ms-20 me-4 h-11 flex flex-col justify-center min-w-0'>
         {pageHeader && (
           <>
             <Title order={3} lineClamp={1}>

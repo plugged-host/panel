@@ -1,0 +1,89 @@
+{
+  "account_created": {
+    "subject": "Hisob yaratildi",
+    "greeting": "Assalomu alaykum,",
+    "intro": "Bu xat sizga <strong>{{ settings.app.name }}</strong> saytida siz uchun hisob yaratilgani sababli yuborildi.",
+    "instruction": "Parolingizni xavfsiz tarzda oʻrnatish va hisobingizga kirish uchun, iltimos, quyidagi tugmani bosing:",
+    "button": "Parolingizni oʻrnatish",
+    "note": "<strong>Eslatma:</strong> Xavfsizlik maqsadida bu havola <strong>20 daqiqa</strong> davomida amal qiladi.",
+    "footer": "Agar bu hisobni soʻramagan boʻlsangiz, bu xatni bemalol eʼtiborsiz qoldirishingiz mumkin."
+  },
+  "password_reset": {
+    "subject": "Parolni tiklash",
+    "greeting": "Hurmatli <strong>{{ user.username }}</strong>,",
+    "intro": "<strong>{{ settings.app.name }}</strong> saytidagi hisobingiz parolini tiklash uchun soʻrov oldik.",
+    "instruction": "Agar bu soʻrovni siz yuborgan boʻlsangiz, yangi parol tanlash uchun, iltimos, quyidagi tugmani bosing:",
+    "button": "Parolni tiklash",
+    "note": "<strong>Eslatma:</strong> Bu havola <strong>20 daqiqa</strong> davomida amal qiladi.",
+    "footer": "Agar parolni tiklashni soʻramagan boʻlsangiz, iltimos, bu xatni eʼtiborsiz qoldiring. Parolingiz oʻzgarmaydi, hisobingiz xavfsiz."
+  },
+  "email_verification": {
+    "subject": "E-pochtangizni tasdiqlang",
+    "greeting": "Hurmatli <strong>{{ user.username }}</strong>,",
+    "intro": "<strong>{{ settings.app.name }}</strong> saytidagi hisobingizni sozlashni yakunlash uchun, iltimos, <strong>{{ email }}</strong> manzili sizga tegishli ekanini tasdiqlang.",
+    "button": "E-pochtani tasdiqlash",
+    "note": "<strong>Eslatma:</strong> Bu havola <strong>24 soat</strong> davomida amal qiladi.",
+    "footer": "Agar bu hisobni yaratmagan yoki bu oʻzgarishni soʻramagan boʻlsangiz, iltimos, bu xatni eʼtiborsiz qoldiring. Hech narsa oʻzgartirilmaydi."
+  },
+  "two_factor_code": {
+    "subject": "Kirish kodingiz",
+    "greeting": "Hurmatli <strong>{{ user.username }}</strong>,",
+    "intro": "<strong>{{ settings.app.name }}</strong> saytiga kirishni yakunlash uchun quyidagi koddan foydalaning.",
+    "note": "<strong>Eslatma:</strong> Bu kod <strong>10 daqiqa</strong> davomida amal qiladi va uni faqat bir marta ishlatish mumkin.",
+    "footer": "Agar siz kirishga urinmagan boʻlsangiz, parolingizni boshqa birov bilishi mumkin. Uni imkon qadar tezroq oʻzgartirishingizni tavsiya qilamiz."
+  },
+  "session_created": {
+    "subject": "Yangi seans yaratildi",
+    "greeting": "Hurmatli <strong>{{ user.username }}</strong>,",
+    "intro": "<strong>{{ settings.app.name }}</strong> saytida hisobingizga hozirgina kirildi.",
+    "ip_label": "IP manzil",
+    "device_label": "Qurilma",
+    "button": "Seanslarni koʻrib chiqish",
+    "note": "<strong>Eslatma:</strong> Agar bu siz boʻlsangiz, hech narsa qilishingiz shart emas. Oʻzingiz tanimagan istalgan seansni hisob sozlamalaringizda yakunlashingiz mumkin.",
+    "footer": "Agar siz kirmagan boʻlsangiz, parolingizni boshqa birov bilishi mumkin. Uni imkon qadar tezroq oʻzgartirishingizni tavsiya qilamiz."
+  },
+  "connection_test": {
+    "subject": "Ulanish sinovi",
+    "greeting": "Assalomu alaykum,",
+    "intro": "Bu xat sizga <strong>{{ settings.app.name }}</strong> saytidagi administrator tizimning chiquvchi pochta sozlamalarini tekshirish uchun sinov xatini soʻragani sababli yuborildi.",
+    "success": "🎉 Muvaffaqiyatli! E-pochta ulanishi ishlayapti.",
+    "footer": "Bu ilovangizdan yuborilgan avtomatik sinov xati. Boshqa hech qanday amal talab qilinmaydi."
+  },
+  "added_to_server": {
+    "subject": "Serverga qoʻshildingiz",
+    "greeting": "Assalomu alaykum,",
+    "intro": "Bu xat sizga <strong>{{ server.name }}</strong> serveriga qoʻshimcha foydalanuvchi sifatida qoʻshilganingiz sababli yuborildi.",
+    "instruction": "Serverga kirish uchun quyidagi tugmani bosing:",
+    "button": "Serverga kirish"
+  },
+  "removed_from_server": {
+    "subject": "Serverdan olib tashlandingiz",
+    "greeting": "Assalomu alaykum,",
+    "intro": "Bu xat sizga <strong>{{ server.name }}</strong> serveridan qoʻshimcha foydalanuvchi sifatida olib tashlanganingiz sababli yuborildi.",
+    "footer": "Siz tomondan hech qanday amal talab qilinmaydi. Agar buni xato deb hisoblasangiz, batafsil maʼlumot olish uchun, iltimos, server administratoriga murojaat qiling."
+  },
+  "server_installed": {
+    "subject": "Server oʻrnatildi",
+    "greeting": "Assalomu alaykum,",
+    "intro": "Bu xat sizga <strong>{{ server.name }}</strong> serveringizni oʻrnatish yakunlangani sababli yuborildi.",
+    "instruction": "Serverga kirish uchun quyidagi tugmani bosing:",
+    "button": "Serverga kirish"
+  },
+  "server_restored": {
+    "subject": "Server tiklandi",
+    "greeting": "Assalomu alaykum,",
+    "intro": "Bu xat sizga <strong>{{ server.name }}</strong> serveringizni zaxira nusxadan tiklash yakunlangani sababli yuborildi.",
+    "instruction": "Serverga kirish uchun quyidagi tugmani bosing:",
+    "button": "Serverga kirish"
+  },
+  "backup_completed": {
+    "subject": "Zaxiralash yakunlandi",
+    "subject_failed": "Zaxiralash amalga oshmadi",
+    "greeting": "Hurmatli <strong>{{ user.username }}</strong>,",
+    "intro": "Zaxira nusxa muvaffaqiyatli yaratildi.",
+    "intro_failed": "Zaxira nusxani yaratib boʻlmadi.",
+    "backup_name": "Zaxira nusxa nomi: <strong>{{ backup_name }}</strong>",
+    "server_name": "Server nomi: <strong>{{ server.name }}</strong>",
+    "button": "Zaxira nusxalarni koʻrish"
+  }
+}

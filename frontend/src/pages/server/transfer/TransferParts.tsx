@@ -4,6 +4,7 @@ import { z } from 'zod';
 import Badge from '@/elements/data-display/Badge.tsx';
 import { transferEventText } from '@/lib/domain/transfer.ts';
 import { formatDateTime } from '@/lib/format/time.ts';
+import { intlLocale } from '@/lib/languages.ts';
 import {
   serverTransferEventSchema,
   serverTransferPlaceSchema,
@@ -41,7 +42,11 @@ export function TransferTimeline({ events }: { events: Event[] }) {
             <i className='theme-transfer-dot' data-level={event.level} aria-hidden />
             <span>{text}</span>
             <time className='font-mono' dateTime={event.at.toISOString()}>
-              {event.at.toLocaleTimeString(language, { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+              {event.at.toLocaleTimeString(intlLocale(language), {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+              })}
             </time>
           </div>
         ))}

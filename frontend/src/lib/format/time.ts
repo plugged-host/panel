@@ -1,3 +1,4 @@
+import { intlLocale } from '@/lib/languages.ts'; // plugged.host: Latin digits
 import { getTranslations } from '@/providers/TranslationProvider.tsx';
 
 let relativeTimeLanguage = '';
@@ -7,7 +8,7 @@ function getRelativeTimeFormatter(): Intl.RelativeTimeFormat {
   const language = getTranslations().language;
   if (!relativeTimeFormatter || relativeTimeLanguage !== language) {
     relativeTimeLanguage = language;
-    relativeTimeFormatter = new Intl.RelativeTimeFormat(language, { numeric: 'auto' });
+    relativeTimeFormatter = new Intl.RelativeTimeFormat(intlLocale(language), { numeric: 'auto' });
   }
 
   return relativeTimeFormatter;
@@ -25,7 +26,7 @@ export function formatNanoseconds(nanoseconds: number, decimals = 2): string {
 
   const fractionDigits = unit === 'nanosecond' ? 0 : decimals;
 
-  return new Intl.NumberFormat(getTranslations().language, {
+  return new Intl.NumberFormat(intlLocale(getTranslations().language), {
     style: 'unit',
     unit,
     unitDisplay: 'short',
@@ -45,12 +46,12 @@ export function formatMilliseconds(uptime: number, short = true, withSeconds = t
   const style = short ? 'narrow' : 'long';
 
   if (withSeconds && uptimeSeconds === 0 && uptime >= 1) {
-    return new Intl.DurationFormat(getTranslations().language, { style }).format({
+    return new Intl.DurationFormat(intlLocale(getTranslations().language), { style }).format({
       milliseconds: Math.floor(uptime),
     });
   }
 
-  const formatter = new Intl.DurationFormat(getTranslations().language, {
+  const formatter = new Intl.DurationFormat(intlLocale(getTranslations().language), {
     style,
     secondsDisplay: withSeconds ? 'always' : 'auto',
     minutesDisplay: withSeconds ? 'auto' : 'always',
@@ -64,7 +65,7 @@ export function formatSeconds(seconds: number) {
   const hours = Math.floor((seconds % 86400) / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
 
-  return new Intl.DurationFormat(getTranslations().language, { style: 'long' }).format({
+  return new Intl.DurationFormat(intlLocale(getTranslations().language), { style: 'long' }).format({
     days,
     hours,
     minutes,
@@ -73,7 +74,7 @@ export function formatSeconds(seconds: number) {
 }
 
 export function formatDateTime(timestamp: string | number | Date, precise?: boolean, short = true) {
-  return new Date(timestamp).toLocaleString(getTranslations().language, {
+  return new Date(timestamp).toLocaleString(intlLocale(getTranslations().language), {
     year: 'numeric',
     month: short ? 'short' : 'long',
     day: 'numeric',
@@ -90,7 +91,7 @@ export function formatDateTimeAsTimezone(
   precise?: boolean,
   short = true,
 ) {
-  return new Date(timestamp).toLocaleString(getTranslations().language, {
+  return new Date(timestamp).toLocaleString(intlLocale(getTranslations().language), {
     year: 'numeric',
     month: short ? 'short' : 'long',
     day: 'numeric',

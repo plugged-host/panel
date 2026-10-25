@@ -54,7 +54,9 @@ a new file and call it from one marked line.
 A change is complete when it has, in the same commit:
 
 - **Strings**: English in `translations.ts` and German in `de.json` (and mail variables when it
-  sends mail). `pnpm coverage:translations de` passes.
+  sends mail). `pnpm coverage:translations de` passes; the other offered languages follow before the
+  next deploy, when `pnpm coverage:translations` passes ([languages](features/languages.md)).
+- **Right to left**: logical CSS, `dir='ltr'` on paths, addresses and code.
 - **Permissions**: a new action has a permission in `shared/src/permissions.rs`, checked in the
   handler and in the frontend route or button.
 - **Settings**: anything an admin may want to change is a setting with an Admin › Settings field,

@@ -13,6 +13,7 @@ import Select from '@/elements/input/Select.tsx';
 import TextInput from '@/elements/input/TextInput.tsx';
 import Group from '@/elements/layout/Group.tsx';
 import Stack from '@/elements/layout/Stack.tsx';
+import { languageOptions } from '@/lib/languages.ts'; // plugged.host
 import { dashboardAccountSchema } from '@/lib/schemas/dashboard.ts';
 import { liveValidation } from '@/plugins/form/liveValidation.ts';
 import { useAuth } from '@/providers/AuthProvider.tsx';
@@ -103,10 +104,7 @@ export default function AccountContainer({ requireTwoFactorActivation }: Account
               <Select
                 withAsterisk
                 label={t('common.form.language', {})}
-                data={languages.map((language) => ({
-                  label: new Intl.DisplayNames([language], { type: 'language' }).of(language) ?? language,
-                  value: language,
-                }))}
+                data={languageOptions(languages)} // plugged.host: each language in its own words, the list's order
                 {...form.getInputProps('language')}
               />
             )}

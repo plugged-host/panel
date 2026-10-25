@@ -28,9 +28,13 @@ checkout). Cargo's own version stays upstream's, so `panel-rs version` shows bot
 
 ## Languages
 
-English is the source; German is kept complete and builds check it
-(`pnpm coverage:translations de`). If your fork offers other languages, add them to that check in
-your build. Upstream's other languages are maintained on Calagopus's Crowdin and may be incomplete.
+The panel offers the languages in `LANGUAGES` (`frontend/vite-plugins/translations.ts`): English,
+German and nine others. Every other language is not built and the API refuses it. To offer a
+different set, change that list (each entry with its own name, `rtl` for a right-to-left script,
+`admin` when admin strings must be translated too) and give the languages you add a translation;
+`pnpm coverage:translations` then checks exactly your list. Upstream's languages you turn on come
+from Calagopus's Crowdin and may be incomplete. Taking a language off the list needs a migration
+that moves its accounts to the default language. Details: [features/languages.md](features/languages.md).
 
 ## Optional services
 

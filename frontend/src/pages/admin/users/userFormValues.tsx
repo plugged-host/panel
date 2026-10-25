@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { type FieldDef } from '@/elements/form-engine/index.ts';
+import { languageOptions } from '@/lib/languages.ts'; // plugged.host
 import { ignorePasswordManagerProps } from '@/lib/passwordManager.ts';
 import { adminFullUserSchema, adminUserUpdateSchema } from '@/lib/schemas/admin/users.ts';
 import { roleSchema } from '@/lib/schemas/user.ts';
@@ -79,10 +80,7 @@ export function useUserFormFields({
       name: 'language',
       label: t('common.form.language', {}),
       required: true,
-      options: languages.map((language) => ({
-        label: new Intl.DisplayNames([language], { type: 'language' }).of(language) ?? language,
-        value: language,
-      })),
+      options: languageOptions(languages), // plugged.host: each language in its own words, the list's order
       props: { searchable: true },
     },
     {

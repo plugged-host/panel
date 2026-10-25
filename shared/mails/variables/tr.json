@@ -1,0 +1,89 @@
+{
+  "account_created": {
+    "subject": "Hesap Oluşturuldu",
+    "greeting": "Merhaba,",
+    "intro": "<strong>{{ settings.app.name }}</strong> üzerinde sizin için bir hesap oluşturulduğu için bu e-postayı alıyorsunuz.",
+    "instruction": "Şifrenizi güvenli bir şekilde belirlemek ve hesabınıza erişmek için lütfen aşağıdaki butona tıklayın:",
+    "button": "Şifre Belirle",
+    "note": "<strong>Not:</strong> Güvenlik nedeniyle bu bağlantının süresi <strong>20 dakika</strong> içinde dolacaktır.",
+    "footer": "Bu hesabı siz talep etmediyseniz bu e-postayı güvenle yok sayabilirsiniz."
+  },
+  "password_reset": {
+    "subject": "Şifre Sıfırlama",
+    "greeting": "Merhaba <strong>{{ user.username }}</strong>,",
+    "intro": "<strong>{{ settings.app.name }}</strong> üzerindeki hesabınızın şifresini sıfırlamak için bir talep aldık.",
+    "instruction": "Bu talebi siz yaptıysanız, yeni bir şifre seçmek için lütfen aşağıdaki butona tıklayın:",
+    "button": "Şifreyi Sıfırla",
+    "note": "<strong>Not:</strong> Bu bağlantının süresi <strong>20 dakika</strong> içinde dolacaktır.",
+    "footer": "Şifre sıfırlama talebinde bulunmadıysanız lütfen bu e-postayı yok sayın. Şifreniz değişmeden kalacak ve hesabınız güvende."
+  },
+  "email_verification": {
+    "subject": "E-posta Adresinizi Doğrulayın",
+    "greeting": "Merhaba <strong>{{ user.username }}</strong>,",
+    "intro": "<strong>{{ settings.app.name }}</strong> üzerindeki hesabınızın kurulumunu tamamlamak için lütfen <strong>{{ email }}</strong> adresinin size ait olduğunu onaylayın.",
+    "button": "E-postayı Doğrula",
+    "note": "<strong>Not:</strong> Bu bağlantının süresi <strong>24 saat</strong> içinde dolacaktır.",
+    "footer": "Bu hesabı siz oluşturmadıysanız veya bu değişikliği talep etmediyseniz lütfen bu e-postayı yok sayın. Hiçbir şey değiştirilmeyecek."
+  },
+  "two_factor_code": {
+    "subject": "Giriş Kodunuz",
+    "greeting": "Merhaba <strong>{{ user.username }}</strong>,",
+    "intro": "<strong>{{ settings.app.name }}</strong> üzerinde girişinizi tamamlamak için aşağıdaki kodu kullanın.",
+    "note": "<strong>Not:</strong> Bu kodun süresi <strong>10 dakika</strong> içinde dolacaktır ve kod yalnızca bir kez kullanılabilir.",
+    "footer": "Giriş yapmayı siz denemediyseniz başka biri şifrenizi biliyor olabilir. Şifrenizi en kısa sürede değiştirmenizi öneririz."
+  },
+  "session_created": {
+    "subject": "Yeni Oturum Oluşturuldu",
+    "greeting": "Merhaba <strong>{{ user.username }}</strong>,",
+    "intro": "<strong>{{ settings.app.name }}</strong> üzerinde hesabınıza az önce giriş yapıldı.",
+    "ip_label": "IP Adresi",
+    "device_label": "Cihaz",
+    "button": "Oturumları İncele",
+    "note": "<strong>Not:</strong> Giriş yapan sizseniz herhangi bir işlem yapmanıza gerek yok. Tanımadığınız oturumları hesap ayarlarınızdan iptal edebilirsiniz.",
+    "footer": "Giriş yapan siz değilseniz başka biri şifrenizi biliyor olabilir. Şifrenizi en kısa sürede değiştirmenizi öneririz."
+  },
+  "connection_test": {
+    "subject": "Bağlantı Testi",
+    "greeting": "Merhaba,",
+    "intro": "<strong>{{ settings.app.name }}</strong> üzerindeki bir yönetici, sistemin giden e-posta ayarlarını doğrulamak için bir test mesajı istediği için bu e-postayı alıyorsunuz.",
+    "success": "🎉 Başarılı! E-posta bağlantısı çalışıyor.",
+    "footer": "Bu, uygulamanızdan gönderilen otomatik bir test mesajıdır. Başka bir işlem yapmanıza gerek yok."
+  },
+  "added_to_server": {
+    "subject": "Sunucuya Eklendiniz",
+    "greeting": "Merhaba,",
+    "intro": "<strong>{{ server.name }}</strong> sunucusuna alt kullanıcı olarak eklendiğiniz için bu e-postayı alıyorsunuz.",
+    "instruction": "Sunucuya erişmek için aşağıdaki butona tıklayın:",
+    "button": "Sunucuya Eriş"
+  },
+  "removed_from_server": {
+    "subject": "Sunucudan Kaldırıldınız",
+    "greeting": "Merhaba,",
+    "intro": "<strong>{{ server.name }}</strong> sunucusundan alt kullanıcı olarak kaldırıldığınız için bu e-postayı alıyorsunuz.",
+    "footer": "Sizin tarafınızda herhangi bir işlem yapmanıza gerek yok. Bunun bir hata olduğunu düşünüyorsanız, daha fazla bilgi için lütfen sunucunun yöneticisiyle iletişime geçin."
+  },
+  "server_installed": {
+    "subject": "Sunucu Kuruldu",
+    "greeting": "Merhaba,",
+    "intro": "<strong>{{ server.name }}</strong> sunucunuzun kurulumu tamamlandığı için bu e-postayı alıyorsunuz.",
+    "instruction": "Sunucuya erişmek için aşağıdaki butona tıklayın:",
+    "button": "Sunucuya Eriş"
+  },
+  "server_restored": {
+    "subject": "Sunucu Geri Yüklendi",
+    "greeting": "Merhaba,",
+    "intro": "<strong>{{ server.name }}</strong> sunucunuzun yedekten geri yüklenmesi tamamlandığı için bu e-postayı alıyorsunuz.",
+    "instruction": "Sunucuya erişmek için aşağıdaki butona tıklayın:",
+    "button": "Sunucuya Eriş"
+  },
+  "backup_completed": {
+    "subject": "Yedek Tamamlandı",
+    "subject_failed": "Yedekleme Başarısız Oldu",
+    "greeting": "Merhaba <strong>{{ user.username }}</strong>,",
+    "intro": "Yedek başarıyla oluşturuldu.",
+    "intro_failed": "Yedek oluşturma işlemi başarısız oldu.",
+    "backup_name": "Yedek Adı: <strong>{{ backup_name }}</strong>",
+    "server_name": "Sunucu Adı: <strong>{{ server.name }}</strong>",
+    "button": "Yedekleri Görüntüle"
+  }
+}

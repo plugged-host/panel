@@ -16,6 +16,10 @@ paths:
   per section; destructive actions are secondary until their confirmation.
 - Import icons by their FontAwesome names; they are drawn as Tabler icons (`src/lib/icons/`). Add
   the Tabler equivalent to `tablerIcons.ts` when one is missing.
-- CSS uses logical properties (`margin-inline-start`, `padding-inline-end`, `text-align: start`) so
-  right-to-left languages need no rework.
+- CSS uses logical properties (`margin-inline-start`, `padding-inline-end`, `text-align: start`;
+  Tailwind `ms-*`, `pe-*`, `start-*`, `text-start`) so Arabic, right to left, needs no rework. Paths,
+  addresses, ports and code get `dir='ltr'`; a new directional icon goes into the mirror rule at the
+  end of `app.css` (docs/features/languages.md#right-to-left).
+- Language names and the list come from `virtual:languages` / `src/lib/languages.ts`, never from a
+  list of codes of your own.
 - Run `pnpm typecheck` and `pnpm biome:validate`; don't start a browser to check.

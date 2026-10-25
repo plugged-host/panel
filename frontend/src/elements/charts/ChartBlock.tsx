@@ -28,7 +28,7 @@ function ChartBlock({
         <div className='flex flex-col items-start gap-1 @lg:flex-row @lg:items-center @lg:justify-between @lg:gap-2'>
           <h3 className='flex min-w-0 max-w-full items-center transition-colors duration-100'>
             {/* plugged.host: the icon's gap only when there is one */}
-            {icon && <span className='mr-2 shrink-0'>{icon}</span>}
+            {icon && <span className='me-2 shrink-0'>{icon}</span>}
             <ScrollingText>{title}</ScrollingText>
           </h3>
           {!overlayLabel && value !== undefined && value !== null && (

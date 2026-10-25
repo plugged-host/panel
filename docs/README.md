@@ -61,7 +61,7 @@ For AI agents: [`AGENTS.md`](../AGENTS.md) at the root has the hard rules in sho
 | **rux**: the moderation bot on Discord: admins (the panel's, or noprofit.space's) have it act in plain words by DM, @mention or "hey rux", members of its moderator roles have it moderate their server; on up to ten servers, on neo's AI providers (premium models first for orders, never for its message checks), read-only while noprofit.space keeps its settings; the Discord section's moderation bot, off by default; Admin › Settings › Accounts › rux | [features/rux.md](features/rux.md) |
 | **neo on Discord**: account support on the Discord server for anyone, linked or not (DMs, mentions, replies, optionally its name), with the linked account's neo limits or a share of them, read-only account lookups in DMs, screenshots, replies split for Discord that never ping; Admin › Settings › AI › neo on Discord | [features/neo-discord.md](features/neo-discord.md) |
 | **Removed features**: devices, mounts, the extension manager, the update checker, Tundra's private network, the server firewall, managed database instances, backup groups; telemetry is opt-in | [upstream.md](upstream.md#removed-features) |
-| **German stays complete**: a build fails while a German string is missing | [development.md](development.md#strings) |
+| **Languages**: English, German (complete, admin pages included) and Arabic (right to left), Russian, Turkish, Indonesian, Brazilian Portuguese, Vietnamese, French, Ukrainian and Uzbek; every other language switched off; a build fails while an offered language misses a string | [features/languages.md](features/languages.md) |
 
 More features arrive in phases (an AI assistant). Each one gets its page in
 [features/](features/) in the same commit as its code.

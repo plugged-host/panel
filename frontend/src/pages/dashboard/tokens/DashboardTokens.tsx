@@ -16,6 +16,7 @@ import Badge from '@/elements/data-display/Badge.tsx';
 import TitleCard from '@/elements/data-display/TitleCard.tsx';
 import TransactionRows from '@/elements/economy/TransactionRows.tsx';
 import ResourceView from '@/elements/ResourceView.tsx';
+import { intlLocale } from '@/lib/languages.ts';
 import { armFullScript } from '@/lib/linkvertise.ts';
 import { queryKeys } from '@/lib/queryKeys.ts';
 import { userTokensSchema } from '@/lib/schemas/user/economy.ts';
@@ -217,7 +218,7 @@ export default function DashboardTokens() {
             <section className='theme-eco-card'>
               <div className='flex flex-col gap-1'>
                 <span className='theme-eco-value'>
-                  {t(`${page}.balance`, { count: new Intl.NumberFormat(language).format(tokens.tokens) })}
+                  {t(`${page}.balance`, { count: new Intl.NumberFormat(intlLocale(language)).format(tokens.tokens) })}
                 </span>
                 <p className='theme-eco-muted'>{t(`${page}.explainer`, { app: appName, plus: plusName })}</p>
               </div>

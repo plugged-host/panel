@@ -114,6 +114,14 @@ pub fn validate_language(
     Ok(())
 }
 
+/// plugged.host: whether the panel offers a language (docs/features/languages.md). The frontend
+/// builds only its allow-list (`frontend/vite-plugins/translations.ts`), so the built translations
+/// are the list. Without an embedded frontend (tests, tools) every language counts as offered.
+pub fn language_offered(language: &str) -> bool {
+    crate::frontend_index_html().is_none()
+        || crate::frontend_asset(&format!("translations/{language}.json")).is_some()
+}
+
 pub fn validate_host(host: &compact_str::CompactString, _context: &()) -> Result<(), garde::Error> {
     if host.parse::<std::net::IpAddr>().is_ok() {
         return Ok(());

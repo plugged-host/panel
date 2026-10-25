@@ -80,7 +80,7 @@ function LimitForm({
 }
 
 export default function AdminServerSubdomains({ server }: { server: AdminServer }) {
-  const { t } = useTranslations();
+  const { t, tItem } = useTranslations();
   const { addToast } = useToast();
   const queryClient = useQueryClient();
   const [deleting, setDeleting] = useState<Subdomain | null>(null);
@@ -121,9 +121,7 @@ export default function AdminServerSubdomains({ server }: { server: AdminServer 
           <Text size='sm'>{t('pages.server.subdomains.delete.body', { name: deleting?.fqdn ?? '' })}</Text>
           {deleting && deleting.tokenCost > 0 && (
             <Text size='sm' c='dimmed'>
-              {t(`pages.server.subdomains.delete.refund.${deleting.tokenCost === 1 ? 'one' : 'other'}`, {
-                count: deleting.tokenCost,
-              })}
+              {t('pages.server.subdomains.delete.tokensBack', { tokens: tItem('token', deleting.tokenCost) })}
             </Text>
           )}
         </Stack>
@@ -168,11 +166,7 @@ export default function AdminServerSubdomains({ server }: { server: AdminServer 
                   </TableData>
                   <TableData>
                     <Text size='sm'>
-                      {subdomain.tokenCost > 0
-                        ? t(`pages.server.subdomains.tokens.${subdomain.tokenCost === 1 ? 'one' : 'other'}`, {
-                            count: subdomain.tokenCost,
-                          })
-                        : t(`${base}.free`, {})}
+                      {subdomain.tokenCost > 0 ? tItem('token', subdomain.tokenCost) : t(`${base}.free`, {})}
                     </Text>
                   </TableData>
                   <TableData>

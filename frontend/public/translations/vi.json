@@ -1,7 +1,12 @@
 {
   "items": {
     "byte": {
-      "other": "{count} Egg"
+      "zero": "{count} Byte",
+      "one": "{count} Byte",
+      "two": "{count} Byte",
+      "few": "{count} Byte",
+      "many": "{count} Byte",
+      "other": "{count} Byte"
     },
     "user": {
       "zero": "{count} Người Dùng",
@@ -53,6 +58,7 @@
     },
     "node": {
       "zero": "{count} Node",
+      "one": "{count} Node",
       "two": "{count} Node",
       "few": "{count} Node",
       "many": "{count} Node",
@@ -76,12 +82,14 @@
     },
     "egg": {
       "zero": "{count} Egg",
+      "one": "{count} Egg",
       "two": "{count} Egg",
       "few": "{count} Egg",
       "many": "{count} Egg",
       "other": "{count} Egg"
     },
     "instance": {
+      "zero": "{count} Instance",
       "one": "{count} phiên bản",
       "two": "{count} phiên bản",
       "few": "{count} phiên bản",
@@ -152,6 +160,14 @@
       "many": "{count} Phân Bổ",
       "other": "{count} Phân Bổ"
     },
+    "database": {
+      "zero": "{count} Cơ Sở Dữ Liệu",
+      "one": "{count} Cơ Sở Dữ Liệu",
+      "two": "{count} Cơ Sở Dữ Liệu",
+      "few": "{count} Cơ Sở Dữ Liệu",
+      "many": "{count} Cơ Sở Dữ Liệu",
+      "other": "{count} Cơ Sở Dữ Liệu"
+    },
     "databaseInstance": {
       "zero": "{count} Cơ Sở Dữ Liệu Được Quản Lý",
       "one": "{count} Cơ Sở Dữ Liệu Được Quản Lý",
@@ -177,7 +193,12 @@
       "other": "{count} Người Dùng"
     },
     "mount": {
-      "one": "{count} Mounts"
+      "zero": "{count} Điểm Gắn",
+      "one": "{count} Mounts",
+      "two": "{count} Điểm Gắn",
+      "few": "{count} Điểm Gắn",
+      "many": "{count} Điểm Gắn",
+      "other": "{count} Điểm Gắn"
     },
     "device": {
       "zero": "{count} Thiết bị",
@@ -210,6 +231,38 @@
       "few": "{count} Đoạn lệnh",
       "many": "{count} Đoạn lệnh",
       "other": "{count} Đoạn lệnh"
+    },
+    "token": {
+      "zero": "{count} token",
+      "one": "{count} token",
+      "two": "{count} token",
+      "few": "{count} token",
+      "many": "{count} token",
+      "other": "{count} token"
+    },
+    "credit": {
+      "zero": "{count} credit",
+      "one": "{count} credit",
+      "two": "{count} credit",
+      "few": "{count} credit",
+      "many": "{count} credit",
+      "other": "{count} credit"
+    },
+    "player": {
+      "zero": "{count} người chơi",
+      "one": "{count} người chơi",
+      "two": "{count} người chơi",
+      "few": "{count} người chơi",
+      "many": "{count} người chơi",
+      "other": "{count} người chơi"
+    },
+    "build": {
+      "zero": "{count} bản build",
+      "one": "{count} bản build",
+      "two": "{count} bản build",
+      "few": "{count} bản build",
+      "many": "{count} bản build",
+      "other": "{count} bản build"
     }
   },
   "translations": {
@@ -217,6 +270,7 @@
       "button": {
         "create": "Tạo",
         "add": "Thêm",
+        "retry": "Thử Lại",
         "addDefaultPort": "Thêm :{port}",
         "save": "Lưu",
         "saveAndStay": "Lưu &Ở lại",
@@ -229,7 +283,9 @@
         "disableTwoFactor": "Tắt Xác thực Hai Lớp",
         "verify": "Xác minh",
         "update": "Cập nhật",
+        "upgrade": "Nâng Cấp",
         "close": "Đóng",
+        "copy": "Sao Chép",
         "cancel": "Hủy",
         "continue": "Tiếp tục",
         "skip": "Bỏ qua",
@@ -258,6 +314,7 @@
         "details": "Chi Tiết",
         "loadLogs": "Tải Nhật Ký",
         "sendTestEmail": "Gửi Email Thử",
+        "test": "Kiểm Tra",
         "setPrimary": "Đặt làm Chính",
         "unsetPrimary": "Bỏ Chính",
         "leavePage": "Rời Khỏi Trang",
@@ -285,11 +342,14 @@
             "type": {
               "string": "Chuỗi",
               "number": "Số",
+              "boolean": "Boolean",
               "object": "Đối tượng",
-              "array": "Mảng"
+              "array": "Mảng",
+              "null": "Null"
             }
           },
           "textMode": "Văn bản",
+          "jsonMode": "JSON",
           "invalidJson": "JSON không hợp lệ"
         },
         "tagsInput": {
@@ -311,7 +371,10 @@
           "matches": "{count} khớp",
           "noMatches": "Không có kết quả khớp",
           "exception": "Ngoại lệ",
-          "tooManyPatterns": "Không tự động đếm số khớp khi có hơn {max} pattern."
+          "invalid": "Pattern không hợp lệ",
+          "unavailable": "Không đếm được",
+          "tooManyPatterns": "Không tự động đếm số khớp khi có hơn {max} pattern.",
+          "unanchoredException": "`{pattern}` khớp ở mọi cấp thư mục, dùng `{anchored}` để chỉ khớp ở thư mục gốc."
         },
         "cronInput": {
           "segments": {
@@ -323,6 +386,30 @@
             "weekday": "Ngày trong tuần"
           },
           "nextRun": "Lần chạy tiếp theo là {timestamp}."
+        },
+        "iconInput": {
+          "defaultIcon": "Biểu tượng mặc định",
+          "searchPlaceholder": "Tìm biểu tượng…",
+          "noResults": "Không có biểu tượng nào khớp với tìm kiếm của bạn.",
+          "moreResults": "Đang hiển thị {count} kết quả đầu tiên, hãy tìm cụ thể hơn để xem thêm.",
+          "button": {
+            "reset": "Dùng Biểu Tượng Mặc Định"
+          }
+        },
+        "trashRetention": {
+          "days": "ngày"
+        },
+        "trashSettings": {
+          "custom": "Dùng cài đặt thùng rác riêng cho máy chủ này",
+          "default": "Mặc định của panel: {summary}",
+          "summary": {
+            "disabled": "Đã tắt",
+            "withThreshold": "{retention}, dọn khi ổ đĩa dùng đến {threshold}%"
+          },
+          "retention": "Lưu Giữ",
+          "retentionDescription": "Thời gian tệp đã xóa được giữ trong thùng rác. Đặt 0 để tắt thùng rác.",
+          "usageThreshold": "Dọn Khi Ổ Đĩa Đạt Mức",
+          "usageThresholdDescription": "Xóa các mục cũ nhất trong thùng rác khi dung lượng ổ đĩa đã dùng đạt tỷ lệ phần trăm này của giới hạn. Đặt 0 để chỉ dọn thùng rác khi một lần ghi sẽ vượt quá giới hạn."
         },
         "backupRetention": {
           "title": "Duy trì",
@@ -358,6 +445,10 @@
         "duplicate": {
           "title": "Nhân bản {resource}"
         },
+        "unsavedChanges": {
+          "title": "Thay Đổi Chưa Lưu",
+          "content": "Bạn có thay đổi chưa lưu. Bạn có chắc muốn rời khỏi trang này không? Nếu rời đi, thay đổi của bạn sẽ bị mất."
+        },
         "delete": {
           "content": "Bạn có chắc chắn muốn xóa **{name}** không?"
         },
@@ -371,7 +462,8 @@
       },
       "toast": {
         "duplicated": "Đã nhân bản {resource}.",
-        "failedBackupDeletionStarted": "Đang xóa {count} bản sao lưu bị lỗi trong nền."
+        "failedBackupDeletionStarted": "Đang xóa {count} bản sao lưu bị lỗi trong nền.",
+        "requestBlockedByExtension": "Yêu cầu này đã bị một tiện ích mở rộng chặn."
       },
       "settingScope": {
         "account": "Đồng bộ với tài khoản",
@@ -400,6 +492,7 @@
       "form": {
         "force": "Bạn có muốn buộc thực hiện việc xóa này không?",
         "name": "Tên",
+        "icon": "Biểu Tượng",
         "newName": "Tên mới",
         "description": "Mô tả",
         "author": "Tác giả",
@@ -410,6 +503,8 @@
         "usernameOrEmail": "Tên người dùng/Email",
         "server": "Máy chủ",
         "servers": "Máy chủ",
+        "url": "URL",
+        "email": "Email",
         "path": "Đường dẫn",
         "port": "Cổng",
         "provider": "Nhà cung cấp",
@@ -420,6 +515,7 @@
         "secretKey": "Khóa Bí Mật",
         "apiKey": "Khóa API",
         "accessKey": "Khóa Truy Cập",
+        "bucket": "Bucket",
         "region": "Khu Vực",
         "endpoint": "Điểm Cuối",
         "publicUrl": "URL Công Khai",
@@ -447,12 +543,15 @@
         "multiplexChannelsDescription": "Thêm các kết nối HTTP bổ sung (và do đó cũng có thêm luồng) để truyền các kho lưu trữ được chia nhỏ, tổng số luồng là 1 + kênh đa kênh.",
         "deleteSourceBackups": "Xóa bản sao lưu nguồn",
         "deleteSourceBackupsDescription": "Xóa các bản sao lưu đã chuyển trên node nguồn sau khi quá trình chuyển hoàn tất.",
+        "node": "Node",
         "location": "Vị trí",
         "primaryAllocation": "Phân Bổ Chính",
         "additionalAllocations": "Phân Bổ Bổ Sung",
         "externalId": "ID Bên Ngoài",
         "mount": "Điểm Gắn",
         "device": "Thiết bị",
+        "nest": "Nest",
+        "nestCreateHint": "Không tìm thấy? Tạo nest mới",
         "lines": "Số Dòng",
         "databaseHost": "Máy Chủ Cơ Sở Dữ Liệu",
         "databaseAgentHost": "Máy Chủ Agent Cơ Sở Dữ Liệu",
@@ -478,6 +577,7 @@
         "filePath": "Đường Dẫn Tệp",
         "envVariable": "Biến Môi Trường",
         "value": "Giá trị",
+        "eggs": "Egg",
         "ignoredFiles": "Tệp Bị Bỏ Qua",
         "previewIgnoredFiles": "Xem trước các file bị bỏ qua",
         "yourControlPanelPassword": "Mật Khẩu Bảng Điều Khiển Của Bạn",
@@ -487,14 +587,31 @@
         "target": "Đích",
         "replaceWith": "Thay thế bằng",
         "caseInsensitive": "Không phân biệt chữ hoa/thường",
-        "truncateDirectory": "Bạn có chắc muốn xóa tất cả các tệp trong thư mục này không? Hành động này không thể hoàn tác."
+        "truncateDirectory": "Bạn có chắc muốn xóa tất cả các tệp trong thư mục này không? Hành động này không thể hoàn tác.",
+        "rule": {
+          "invalidCharacters": "Có ký tự không được phép dùng ở đây.",
+          "username": "Từ 3 đến 15 ký tự, chỉ gồm chữ cái, chữ số và dấu gạch dưới.",
+          "databaseName": "Tối đa 31 ký tự, chỉ gồm chữ cái, chữ số và dấu gạch dưới.",
+          "databaseInstanceIdentifier": "Từ 2 đến 23 ký tự, chỉ gồm chữ cái và chữ số.",
+          "captchaSiteKey": "Chỉ gồm chữ cái, chữ số, dấu gạch ngang và dấu gạch dưới.",
+          "variableName": "Bắt đầu bằng một chữ cái thường, sau đó tối đa 63 chữ cái thường, chữ số hoặc dấu gạch dưới.",
+          "hexColor": "Một mã màu hex, ví dụ #1c7ed6.",
+          "devicePermissions": "Tổ hợp bất kỳ của r (đọc), w (ghi) và m (mknod)."
+        }
       },
       "table": {
         "selectRow": "Chọn hàng",
         "pagination": {
-          "results": "Hiển thị {start} đến {end} của {total} kết quả."
+          "results": "Hiển thị {start} đến {end} của {total} kết quả.",
+          "perPage": "{count} / trang",
+          "perPageLabel": "Số kết quả mỗi trang"
+        },
+        "empty": {
+          "title": "Không tìm thấy mục nào",
+          "description": "Thử tìm kiếm khác, hoặc quay lại sau khi đã có mục được thêm vào."
         },
         "columns": {
+          "id": "ID",
           "name": "Tên",
           "author": "Tác giả",
           "type": "Loại",
@@ -508,9 +625,11 @@
           "updated": "Đã cập nhật",
           "actor": "Người Thực Hiện",
           "event": "Sự Kiện",
+          "ip": "IP",
           "when": "Khi",
           "command": "Lệnh",
           "location": "Vị trí",
+          "node": "Node",
           "owner": "Chủ sở hữu",
           "added": "Đã thêm",
           "backupConfiguration": "Cấu Hình Sao Lưu",
@@ -537,6 +656,7 @@
         "verb": {
           "deleted": "đã bị xóa",
           "removed": "đã loại bỏ",
+          "triggered": "đã kích hoạt",
           "locked": "đã khóa",
           "unlocked": "đã mở khóa",
           "moved": "đã di chuyển",
@@ -554,6 +674,8 @@
         "general": "Tổng Quan"
       },
       "stat": {
+        "cpu": "CPU",
+        "cpuWithBurst": "{base} + {burst} burst",
         "cpuLoad": "Tải CPU",
         "memoryUsage": "Sử Dụng Bộ Nhớ",
         "memoryLoad": "Tải Bộ Nhớ",
@@ -562,7 +684,8 @@
         "inbound": "Băng thông vào",
         "outbound": "Băng thông ra",
         "uptime": "Thời gian hoạt động",
-        "resources": "Tài nguyên"
+        "resources": "Tài nguyên",
+        "limit": "Giới hạn {limit}"
       },
       "badge": {
         "active": "Đang hoạt động",
@@ -572,7 +695,9 @@
         "successful": "Thành công",
         "failed": "Thất bại",
         "installed": "Đã cài đặt",
-        "systemBackup": "Hệ thống"
+        "updateAvailable": "Có Bản Cập Nhật",
+        "systemBackup": "Hệ thống",
+        "restarting": "Đang Khởi Động Lại"
       },
       "label": {
         "noSubdirectories": "Không có thư mục con",
@@ -607,6 +732,12 @@
           "memoryUsageUnlimited": "Bộ nhớ: {used} đã dùng, node không giới hạn",
           "diskUsage": "Ổ đĩa: {used} / {limit}",
           "diskUsageUnlimited": "Bộ nhớ: {used} đã dùng, node không giới hạn"
+        },
+        "allowedSources": {
+          "checking": "Đang Kiểm Tra Node",
+          "notAllowed": "Không Được Phép Trên Node",
+          "mountNotAllowed": "`allowed_mounts` của node không bao gồm nguồn của điểm gắn này, nên wings bỏ qua nó khi khởi động máy chủ.",
+          "deviceNotAllowed": "`allowed_devices` của node không bao gồm nguồn của thiết bị này (hoặc quyền của nó không hợp lệ), nên wings bỏ qua nó khi khởi động máy chủ."
         }
       },
       "server": {
@@ -618,7 +749,11 @@
           "restoringBackup": "Khôi phục Backup",
           "installing": "Đang cài đặt",
           "installFailed": "Lỗi cài đặt máy chủ",
-          "backupRestoreFailed": "Khôi phục sao lưu thất bại"
+          "backupRestoreFailed": "Khôi phục sao lưu thất bại",
+          "resourcesUnavailable": "Không Có Dữ Liệu Sử Dụng Tài Nguyên",
+          "parking": "Đang Chuyển Sang Ngủ Đông",
+          "parked": "Đang Ngủ Đông",
+          "restoring": "Đang Khôi Phục"
         }
       },
       "enum": {
@@ -648,6 +783,14 @@
           "finished": "Đã hoàn thành",
           "failed": "Thất bại"
         },
+        "backupRetentionRule": {
+          "count": "Mới Nhất",
+          "days": "Gần Đây",
+          "daily": "Hằng Ngày",
+          "weekly": "Hằng Tuần",
+          "monthly": "Hằng Tháng",
+          "yearly": "Hằng Năm"
+        },
         "serverBackupKind": {
           "server": "Máy Chủ",
           "databaseInstance": "Cơ sở dữ liệu"
@@ -658,6 +801,7 @@
         },
         "connectionStatus": {
           "connected": "Đã kết nối",
+          "connecting": "Đang kết nối...",
           "offline": "Ngoại tuyến"
         },
         "serverAutoStartBehavior": {
@@ -682,13 +826,31 @@
           "bestCompression": "Nén tốt nhất"
         }
       },
+      "unit": {
+        "bytes": {
+          "bytes": "B",
+          "kibibytes": "KiB",
+          "mebibytes": "MiB",
+          "gibibytes": "GiB",
+          "tebibytes": "TiB",
+          "pebibytes": "PiB"
+        },
+        "rate": {
+          "kilobits": "Kbps",
+          "megabits": "Mbps",
+          "gigabits": "Gbps"
+        }
+      },
       "unlimited": "Không giới hạn",
       "readOnly": "Chỉ Đọc",
+      "na": "N/A",
       "never": "Không bao giờ",
       "none": "Không có",
       "unknown": "Không xác định",
       "yes": "Có",
       "no": "Không",
+      "web": "Web",
+      "api": "API",
       "default": "Mặc định",
       "custom": "Tùy chỉnh",
       "system": "Hệ thống",
@@ -700,6 +862,34 @@
         "notice": "Các cài đặt này chỉ có thể được thay đổi trong tệp cấu hình trên chính máy đó. Bảng điều khiển sẽ bỏ qua mọi chỉnh sửa đối với chúng:",
         "toast": {
           "ignored": "Cấu hình đã được áp dụng, ngoại trừ các cài đặt sau – vốn chỉ có thể thay đổi trong tệp cấu hình trên chính máy đó: {paths}"
+        }
+      },
+      "economyTransactions": {
+        "empty": "Chưa có gì.",
+        "balanceAfter": "Số dư sau: {balance}",
+        "earnedWith": "Kiếm được qua {provider}",
+        "detail": "{type}: {detail}",
+        "columns": {
+          "what": "Nội Dung",
+          "amount": "Số Lượng",
+          "balance": "Số Dư",
+          "when": "Thời Gian"
+        },
+        "type": {
+          "starting": "Số dư ban đầu",
+          "daily": "Token hằng ngày",
+          "store": "Cửa Hàng Tài Nguyên",
+          "plus": "Hội viên",
+          "plusplus": "Hội viên",
+          "earn": "Liên kết tài trợ",
+          "limbo": "Đã khôi phục máy chủ",
+          "limboRefund": "Hoàn lại phí khôi phục",
+          "subdomain": "Tên miền phụ",
+          "subdomainRefund": "Hoàn lại phí tên miền phụ",
+          "discordInvite": "Lời mời Discord",
+          "discordInviteClawback": "Thu hồi thưởng lời mời",
+          "discordInviteDebt": "Credit lời mời còn nợ",
+          "discordBoost": "Boost Discord"
         }
       },
       "chartLegend": {
@@ -728,6 +918,7 @@
           "redirect": "Chuyển Hướng"
         },
         "empty": "Chưa có tuyến đường nào được cấu hình. Thêm tuyến đường, đường phân cách hoặc chuyển hướng bên dưới.",
+        "missingRoutes": "Các trang sau không có trong cấu hình tuyến đường này và người dùng sẽ không truy cập được: {routes}.",
         "unnamed": "(chưa đặt tên)",
         "dividerPlaceholder": "Nhãn đường phân cách (tùy chọn)",
         "redirectNamePlaceholder": "Tên chuyển hướng",
@@ -738,8 +929,18 @@
           "addRedirect": "Thêm Chuyển Hướng"
         }
       },
+      "assetReloadNotice": {
+        "title": "Đang cập nhật lên phiên bản mới nhất",
+        "reloading": "Đã có phiên bản mới của panel. Đang tải lại...",
+        "offline": "Đã có phiên bản mới của panel. Sẽ tải lại khi có kết nối trở lại...",
+        "stalled": "Đã có phiên bản mới của panel. Tải lại trang để tiếp tục.",
+        "button": {
+          "reloadNow": "Tải Lại Ngay"
+        }
+      },
       "errorBoundary": {
         "message": "Đã có lỗi xảy ra ở trang này hãy thử tải lại trang",
+        "refresh": "Tải Lại Trang",
         "hideDetails": "Ẩn",
         "showDetails": "Chi tiết",
         "errorMessage": "Lỗi:",
@@ -786,12 +987,119 @@
           "themeDark": "Tối",
           "themeLight": "Sáng",
           "redactAddresses": "Ẩn các địa chỉ",
-          "resetDeviceOverrides": "Đặt lại các tùy chọn ghi đè thiết bị ({count})"
+          "resetDeviceOverrides": "Đặt lại các tùy chọn ghi đè thiết bị ({count})",
+          "openMenu": "Mở Menu"
         },
+        "profileSettings": "Cài Đặt Hồ Sơ",
         "modal": {
           "logout": {
             "title": "Đăng xuất",
             "content": "Bạn có chắc bạn muốn đăng xuất không?"
+          }
+        },
+        "balance": {
+          "cpu": "CPU",
+          "memory": "RAM",
+          "disk": "Ổ đĩa",
+          "openStore": "Mua thêm tại Cửa Hàng Tài Nguyên",
+          "openTokens": "Mở trang Token"
+        }
+      },
+      "welcomeTour": {
+        "progress": "Bước {step} trên {total}",
+        "acknowledge": "Dẫn tôi đi xem",
+        "next": "Tiếp Theo",
+        "back": "Quay Lại",
+        "skip": "Bỏ qua hướng dẫn",
+        "notNow": "Để sau",
+        "finish": "Hoàn Tất",
+        "openServer": "Cho tôi xem {name}",
+        "createServer": "Tạo máy chủ đầu tiên",
+        "replay": "Xem Lại Hướng Dẫn Chào Mừng",
+        "panel": {
+          "welcome": {
+            "heading": "Chào Mừng Đến Với {app}",
+            "body": "Đây là panel máy chủ game của bạn: mọi thứ bạn thuê từ chúng tôi đều nằm ở đây. Chúng tôi sẽ làm nổi bật từng phần và cho bạn biết phần đó dùng để làm gì. Chỉ mất khoảng một phút."
+          },
+          "navigation": {
+            "heading": "Thanh bên",
+            "body": "Mọi trang trong tài khoản của bạn đều chỉ cách một cú nhấp ở đây.",
+            "bullets": {
+              "home": "{label} — các máy chủ của bạn. Bạn đang ở trang này.",
+              "store": "{label} — thêm CPU, bộ nhớ và ổ đĩa bằng credit của bạn.",
+              "plus": "{label} — vị trí tốt hơn, ưu tiên trong hàng chờ khởi động và không có quảng cáo trong game.",
+              "tokens": "{label} — kiếm token và xem token đã được dùng vào đâu.",
+              "backups": "{label} — tải xuống bản sao lưu của bất kỳ máy chủ nào của bạn.",
+              "account": "{label} — cài đặt hồ sơ, khóa, phiên và hoạt động của bạn."
+            }
+          },
+          "balance": {
+            "heading": "Mức sử dụng và số dư của bạn",
+            "body": "Các thanh cho biết các máy chủ của bạn đang dùng tổng cộng bao nhiêu trong gói của bạn. Bên dưới là token và credit của bạn.",
+            "bullets": {
+              "credits": "Credit dùng để mua thêm tài nguyên trong Cửa Hàng Tài Nguyên.",
+              "tokens": "Token dùng để trả cho {plus}; kiếm token trong trang Token.",
+              "click": "Nhấp vào các thanh hoặc credit để mở Cửa Hàng Tài Nguyên, nhấp vào token để mở trang Token."
+            }
+          },
+          "account": {
+            "heading": "Tài khoản của bạn",
+            "body": "Tên của bạn mở menu tài khoản: hồ sơ của bạn, đăng xuất, và hướng dẫn này nếu bạn muốn xem lại."
+          },
+          "create": {
+            "heading": "Tạo máy chủ",
+            "body": "Nút này tạo một máy chủ mới. Chọn game, vị trí và kích thước, khoảng một phút sau máy chủ đã sẵn sàng."
+          },
+          "servers": {
+            "heading": "Máy chủ của bạn",
+            "body": "Mỗi máy chủ của bạn là một thẻ như thế này. Thanh bên trái cho biết máy chủ có đang chạy không, còn các con số cho biết máy chủ đang dùng bao nhiêu tài nguyên. Nhấp vào thẻ để mở máy chủ đó — hãy cùng mở {name} nhé."
+          },
+          "empty": {
+            "heading": "Máy chủ của bạn",
+            "body": "Các máy chủ của bạn sẽ hiện ở đây, mỗi máy chủ một thẻ, cho biết có đang chạy không và đang dùng bao nhiêu tài nguyên. Bạn chưa có máy chủ nào."
+          },
+          "createFirst": {
+            "heading": "Tạo máy chủ đầu tiên của bạn",
+            "body": "Bắt đầu từ đây: chọn game, vị trí và kích thước. Lần đầu bạn mở máy chủ mới, hướng dẫn sẽ dẫn bạn đi xem bên trong."
+          }
+        },
+        "server": {
+          "console": {
+            "heading": "Bảng điều khiển",
+            "body": "Đầu ra trực tiếp của máy chủ: mọi thứ máy chủ in ra đều hiện ở đây ngay khi xảy ra. Gõ lệnh vào dòng bên dưới và nhấn Enter để chạy."
+          },
+          "power": {
+            "heading": "Khởi Động, Khởi Động Lại, Dừng",
+            "body": "Các nút nguồn của máy chủ này. Dừng cho phép game lưu và tắt đúng cách; nếu máy chủ bị treo khi đang dừng, nút Dừng sẽ chuyển thành Buộc Dừng."
+          },
+          "details": {
+            "heading": "Tên, trạng thái và địa chỉ",
+            "body": "Địa Chỉ là thứ người chơi nhập để vào máy chủ. Nhấp vào để sao chép, rồi gửi cho bạn bè. CPU, bộ nhớ và ổ đĩa được cập nhật trực tiếp."
+          },
+          "setup": {
+            "heading": "Hoàn tất thiết lập",
+            "body": "Máy chủ này vẫn còn hướng dẫn thiết lập đang chờ: hướng dẫn sẽ chọn phiên bản Minecraft và phần mềm, rồi chuẩn bị để máy chủ sẵn sàng cho bạn chơi."
+          },
+          "sidebar": {
+            "heading": "Mọi thứ về máy chủ này",
+            "body": "Khi một máy chủ đang mở, thanh bên dành riêng cho máy chủ đó.",
+            "bullets": {
+              "files": "Tệp — tải lên, chỉnh sửa và xóa mọi thứ trên máy chủ.",
+              "content": "Plugin & Mod — cài đặt và cập nhật chúng từ Modrinth, CurseForge và SpigotMC.",
+              "worlds": "Thế Giới và Người Chơi — đổi thế giới, quản lý whitelist, OP và danh sách cấm.",
+              "gameSettings": "Cài Đặt Game — tệp server.properties dưới dạng biểu mẫu.",
+              "backups": "Sao Lưu — tạo một bản trước khi thay đổi gì đó, khôi phục nếu có gì hỏng.",
+              "more": "Phần còn lại — những trang bạn ít cần đến hơn: tên miền phụ, cổng mạng, cơ sở dữ liệu, lịch trình, người dùng và nhật ký hoạt động.",
+              "moreMinecraft": "Phần còn lại — những trang bạn ít cần đến hơn: tên miền phụ, cổng mạng, cơ sở dữ liệu và nhiều hơn nữa."
+            }
+          },
+          "settings": {
+            "heading": "Cài Đặt",
+            "body": "Một trang cho mọi thứ về máy chủ này: đổi tên, thêm bộ nhớ, đổi phiên bản đang chạy, hoặc cài đặt lại."
+          },
+          "home": {
+            "heading": "Quay lại máy chủ của bạn",
+            "body": "Logo đưa bạn về danh sách máy chủ. Hướng dẫn đến đây là hết — bạn có thể xem lại bất cứ lúc nào từ menu dưới tên của bạn."
           }
         }
       },
@@ -814,6 +1122,7 @@
           "copyResult": "Sao chép kết quả"
         },
         "hint": {
+          "navigate": "điều hướng",
           "select": "chọn",
           "close": "đóng",
           "calculate": "tính toán",
@@ -835,6 +1144,21 @@
       },
       "serverSelect": {
         "showOtherUsersServers": "Hiển thị máy chủ của người dùng khác"
+      },
+      "allocationBar": {
+        "tooltip": {
+          "total": "Đổi Tổng"
+        },
+        "form": {
+          "total": "Đo So Với",
+          "customTotal": "Tổng Tùy Chỉnh"
+        },
+        "total": {
+          "limit": "Giới Hạn Đã Cấu Hình",
+          "live": "Dung Lượng Thực Tế",
+          "aggregate": "Tổng Đã Phân Bổ",
+          "custom": "Tùy Chỉnh"
+        }
       },
       "can": {
         "tooltip": {
@@ -875,6 +1199,16 @@
         "serverConflict": {
           "title": "Trạng thái máy chủ xung đột",
           "contentSuspended": "Máy chủ đã bị khóa và không thể truy cập.",
+          "suspension": {
+            "by": {
+              "manual": "Máy chủ này đã bị quản trị viên đình chỉ vào {date}.",
+              "abuse": "Máy chủ này đã bị hệ thống kiểm tra lạm dụng tự động đình chỉ vào {date}.",
+              "noprofit": "Máy chủ này đã bị đình chỉ vào {date} vì tài khoản noprofit.space của chủ sở hữu đã bị xóa."
+            },
+            "reason": "Lý do: {reason}",
+            "deleteAt": "Máy chủ cùng các tệp của nó sẽ bị xóa vào {date}, trừ khi lệnh đình chỉ được gỡ trước thời điểm đó.",
+            "help": "Nếu bạn cho rằng đây là nhầm lẫn, hãy liên hệ quản trị viên của panel và gửi kèm tên máy chủ."
+          },
           "contentNodeMaintenance": "Máy chủ này đang trên một node đang bảo trì và không thể truy cập cho đến khi bảo trì hoàn tất.",
           "contentTransferring": "Máy chủ này đang được di chuyển đến một node khác và không thể truy cập cho đến khi quá trình di chuyển hoàn tất.",
           "contentInstallFailed": "Máy chủ này không thể cài đặt và không thể truy cập cho đến khi được xác nhận.",
@@ -1030,6 +1364,194 @@
           "progressAssets": "Đang tải {files} lên tài nguyên quản trị...",
           "showFiles": "Hiển thị tệp"
         }
+      },
+      "ads": {
+        "frameTitle": "Quảng cáo",
+        "sponsored": "Được Tài Trợ",
+        "adblock": {
+          "title": "Phát Hiện Trình Chặn Quảng Cáo",
+          "message": "Quảng cáo trên panel này chi trả cho các máy chủ miễn phí. Vui lòng cho phép quảng cáo trên trang web này, rồi tải lại trang.",
+          "button": {
+            "reload": "Tải Lại",
+            "closeIn": "Đóng ({seconds})"
+          }
+        }
+      },
+      "neo": {
+        "name": "neo",
+        "launcher": {
+          "open": "Hỏi {name}",
+          "working": "Đang làm việc…",
+          "approve": "Cần bạn duyệt",
+          "done": "Xong",
+          "off": "{name} đang tắt"
+        },
+        "header": {
+          "account": "trợ lý {app} của bạn",
+          "history": "Các cuộc trò chuyện trước",
+          "settings": "Cài đặt {name}"
+        },
+        "button": {
+          "history": "Các cuộc trò chuyện trước",
+          "newChat": "Cuộc trò chuyện mới",
+          "settings": "Cài đặt {name}",
+          "minimize": "Thu nhỏ ({name} vẫn tiếp tục làm việc)",
+          "back": "Quay lại cuộc trò chuyện",
+          "resize": "Kéo để đổi kích thước, nhấp đúp để đặt lại",
+          "send": "Gửi",
+          "stop": "Dừng",
+          "attach": "Thêm hình ảnh (hoặc dán hay thả vào)",
+          "removeImage": "Gỡ hình ảnh",
+          "approve": "Duyệt",
+          "deny": "Từ chối",
+          "approveAll": "Duyệt tất cả ({count})",
+          "retry": "Thử lại",
+          "turnOn": "Bật {name}",
+          "agree": "Đã hiểu, bắt đầu",
+          "model": "Mô hình",
+          "deleteChat": "Xóa cuộc trò chuyện này",
+          "confirmDelete": "Nhấn lần nữa để xóa",
+          "deleteHistory": "Xóa lịch sử {name} của tôi"
+        },
+        "composer": {
+          "placeholder": "Nhắn cho {name}…",
+          "imageType": "Chỉ nhận hình ảnh PNG, JPEG, WebP hoặc GIF tối đa 20 MB.",
+          "imageLimit": "Tối đa {count} hình ảnh mỗi tin nhắn.",
+          "imageUnreadable": "{name} không đọc được hình ảnh đó. Hãy thử ảnh chụp màn hình PNG hoặc JPEG."
+        },
+        "empty": {
+          "serverTitle": "Tôi nên làm gì trên {server}?",
+          "serverBody": "Tôi đọc bảng điều khiển và tệp, thực hiện thay đổi và kiểm tra xem chúng có hoạt động không.",
+          "accountTitle": "Tôi có thể giúp gì cho bạn?",
+          "accountBody": "Tôi có thể tạo và đổi kích thước máy chủ, kiểm tra tài khoản của bạn và trả lời câu hỏi. Với công việc bên trong một máy chủ, hãy mở tôi trên trang của máy chủ đó."
+        },
+        "suggestions": {
+          "crash": {
+            "label": "Sửa sự cố",
+            "prompt": "Máy chủ của tôi gặp sự cố hoặc không khởi động được. Hãy tìm nguyên nhân và sửa nó."
+          },
+          "lag": {
+            "label": "Sửa lag",
+            "prompt": "Máy chủ của tôi đang bị lag. Hãy tìm nguyên nhân và giúp nó chạy mượt hơn."
+          },
+          "plugin": {
+            "label": "Thêm plugin",
+            "prompt": "Hãy gợi ý và cài đặt một plugin hoặc mod hay cho máy chủ của tôi."
+          },
+          "backup": {
+            "label": "Sao lưu",
+            "prompt": "Hãy tạo một bản sao lưu cho máy chủ của tôi."
+          },
+          "create": {
+            "label": "Máy chủ mới",
+            "prompt": "Hãy tạo một máy chủ mới cho tôi."
+          },
+          "allowance": {
+            "label": "Hạn mức của tôi",
+            "prompt": "Tôi còn lại bao nhiêu CPU, bộ nhớ và ổ đĩa?"
+          },
+          "tokens": {
+            "label": "Kiếm token",
+            "prompt": "Làm sao để tôi kiếm token và credit?"
+          }
+        },
+        "message": {
+          "image": "Hình ảnh",
+          "thought": "Suy nghĩ",
+          "working": "{name} đang làm việc…",
+          "showChange": "Xem thay đổi",
+          "showOutput": "Xem đầu ra",
+          "auto": "đã chạy mà không hỏi"
+        },
+        "status": {
+          "queued": "đang chờ",
+          "pendingApproval": "chờ bạn duyệt",
+          "approved": "đã duyệt",
+          "executing": "đang chạy…",
+          "done": "xong",
+          "failed": "thất bại",
+          "denied": "đã từ chối",
+          "skipped": "không chạy"
+        },
+        "risk": {
+          "destructive": "Khó hoàn tác",
+          "critical": "Không thể hoàn tác, hoặc khiến bạn tốn phí"
+        },
+        "notice": {
+          "limitedShort": "Bạn đã đạt giới hạn {name} ngắn hạn. Giới hạn sẽ được đặt lại {time}.",
+          "limitedLong": "Bạn đã đạt giới hạn {name} dài hạn. Giới hạn sẽ được đặt lại {time}.",
+          "limitedModel": "Bạn đã dùng hết lượt của mô hình này. Lượt dùng sẽ được đặt lại {time}. Chọn mô hình khác bên dưới để tiếp tục.",
+          "limitedImages": "Bạn đã gửi hết số hình ảnh mà giới hạn cho phép. Giới hạn sẽ được đặt lại {time}.",
+          "modelNotAllowed": "{model} cần có {plan}. Chọn mô hình khác bên dưới.",
+          "modelUnavailable": "Mô hình bạn chọn hiện không khả dụng. Chọn mô hình khác bên dưới.",
+          "unavailable": "{name} hiện không khả dụng. Vui lòng thử lại sau giây lát.",
+          "unlinked": "{name} cần tài khoản noprofit.space của bạn được kết nối.",
+          "refused": "{name} không thể giúp với yêu cầu đó.",
+          "rateLimited": "Bạn đang gửi tin nhắn quá nhanh. Chờ một chút rồi thử lại.",
+          "connection": "Mất kết nối với {name}. Vui lòng thử lại.",
+          "disabled": "{name} đang bị tắt.",
+          "consent": "Vui lòng đọc và chấp nhận thông báo trước.",
+          "noAccess": "Bạn không còn quyền truy cập máy chủ này.",
+          "notYours": "Cuộc trò chuyện này thuộc về người khác.",
+          "soon": "sớm",
+          "model": "Mô hình này",
+          "plan": "hội viên"
+        },
+        "blocked": {
+          "disabled": "{name} hiện không khả dụng trên panel này.",
+          "noAccess": "Bạn không thể dùng {name} trên máy chủ này.",
+          "offBody": "Bật lại để trò chuyện và để nó làm việc trên máy chủ của bạn.",
+          "failed": "Không thể tải {name}."
+        },
+        "consent": {
+          "title": "Trước khi bắt đầu",
+          "bodyNamed": "{name} là trợ lý AI dạng agent: không chỉ trả lời mà còn thay bạn thực hiện các tác vụ trên máy chủ và tài khoản của bạn. Để làm được điều đó, những gì bạn nhập và những gì {name} đọc từ máy chủ của bạn (đầu ra bảng điều khiển, nội dung tệp) sẽ được gửi đến các nhà cung cấp AI của chúng tôi: {providers}. Mật khẩu và token được che đi trước khi gửi bất cứ thứ gì.",
+          "bodyGeneric": "{name} là trợ lý AI dạng agent: không chỉ trả lời mà còn thay bạn thực hiện các tác vụ trên máy chủ và tài khoản của bạn. Để làm được điều đó, những gì bạn nhập và những gì {name} đọc từ máy chủ của bạn (đầu ra bảng điều khiển, nội dung tệp) sẽ được gửi đến các nhà cung cấp AI mà panel này sử dụng. Mật khẩu và token được che đi trước khi gửi bất cứ thứ gì.",
+          "approvals": "{name} sẽ hỏi trước khi thay đổi bất cứ thứ gì trên máy chủ của bạn. Bạn có thể tắt {name}, hoặc cho phép nó hành động mà không cần hỏi, trong biểu tượng bánh răng.",
+          "legal": "Câu hỏi pháp lý: {email}",
+          "privacy": "Yêu cầu về quyền riêng tư: {email}"
+        },
+        "settings": {
+          "enabled": "Bật {name}",
+          "enabledHint": "Tắt mục này sẽ dừng {name} ở mọi nơi: nó sẽ không trò chuyện hay hành động trên máy chủ của bạn nữa.",
+          "autoApprove": "Cho phép {name} thay đổi mà không cần hỏi",
+          "autoApproveHint": "Khi tắt (khuyến nghị), {name} sẽ hỏi trước khi chỉnh sửa hoặc xóa tệp, chạy lệnh bảng điều khiển, hoặc khởi động và dừng máy chủ. Việc đọc thì không bao giờ cần hỏi.",
+          "usage": "Mức sử dụng",
+          "usageHintNoprofit": "Giới hạn được lấy từ tài khoản noprofit.space của bạn.",
+          "usageHint": "Mỗi thanh đầy dần khi bạn dùng {name} và trống lại khi chu kỳ của nó được đặt lại.",
+          "hours": "Chu kỳ {hours} giờ",
+          "days": "Chu kỳ {days} ngày",
+          "weekly": "Hằng tuần",
+          "resets": "đặt lại {time}",
+          "notStarted": "chưa bắt đầu",
+          "unlinked": "{name} chưa được kết nối với tài khoản noprofit.space của bạn.",
+          "unavailable": "Hiện không xem được mức sử dụng.",
+          "unlimitedModels": "Các mô hình không có thanh ở đây không bị giới hạn mức sử dụng.",
+          "history": "Lịch sử trò chuyện",
+          "historyHint": "Các cuộc trò chuyện được lưu trong {days} ngày.",
+          "deleted": "Lịch sử {name} của bạn đã được xóa.",
+          "privacyNamed": "Những gì bạn nhập và những gì {name} đọc từ máy chủ của bạn sẽ được gửi đến các nhà cung cấp AI ({providers}). Thông tin bí mật được che đi trước.",
+          "privacyGeneric": "Những gì bạn nhập và những gì {name} đọc từ máy chủ của bạn sẽ được gửi đến các nhà cung cấp AI mà panel này sử dụng. Thông tin bí mật được che đi trước.",
+          "support": "Nói chuyện với người thật"
+        },
+        "meter": {
+          "hours": "{hours} giờ",
+          "days": "{days} ngày",
+          "week": "Tuần",
+          "title": "{window}: đã dùng {percent}% · {time}",
+          "noLimit": "Không giới hạn mức sử dụng"
+        },
+        "models": {
+          "multiplier": "{multiplier}x mức sử dụng",
+          "ownLimit": "Giới hạn sử dụng riêng"
+        },
+        "history": {
+          "empty": "Chưa có cuộc trò chuyện nào trước đây. Khi bạn bắt đầu cuộc trò chuyện mới, cuộc trò chuyện cũ sẽ được lưu ở đây.",
+          "untitled": "Cuộc trò chuyện chưa đặt tên",
+          "oneMessage": "1 tin nhắn",
+          "messages": "{count} tin nhắn"
+        },
+        "askLog": "mclo.gs phát hiện vấn đề trong nhật ký máy chủ của tôi ({url}). Vui lòng tìm nguyên nhân và sửa nó."
       }
     },
     "pages": {
@@ -1101,7 +1623,8 @@
           "form": {
             "namePlaceholder": "Máy chủ của tôi",
             "urlDescription": "Được sử dụng để liên lạc nội bộ với node.",
-            "publicUrlDescription": "Được sử dụng cho websocket/downloads"
+            "publicUrlDescription": "Được sử dụng cho websocket/downloads",
+            "ip": "IP"
           },
           "error": {
             "noLocations": "Đã xảy ra lỗi. Không tìm thấy vị trí nào."
@@ -1127,6 +1650,7 @@
           "title": "Cấu hình Ứng dụng",
           "form": {
             "applicationName": "Tên Ứng dụng",
+            "applicationNamePlaceholder": "Calagopus",
             "applicationUrl": "URL Ứng dụng",
             "registration": "Kích hoạt Đăng ký",
             "registrationDescription": "Cho phép người dùng mới đăng ký tài khoản của họ.",
@@ -1142,13 +1666,19 @@
           "description": "Các kho Egg của bạn.",
           "repositories": {
             "pterodactylGame": {
-              "description": "Eggs cho game như Minecraft, Terraria, và còn nhiều hơn nữa."
+              "title": "Egg Game Pterodactyl",
+              "description": "Eggs cho game như Minecraft, Terraria, và còn nhiều hơn nữa.",
+              "nest": "Game"
             },
             "pterodactylApplication": {
-              "description": "Eggs cho ứng dụng như Grafana, Meilisearch, và various databases."
+              "title": "Egg Ứng Dụng Pterodactyl",
+              "description": "Eggs cho ứng dụng như Grafana, Meilisearch, và various databases.",
+              "nest": "Ứng Dụng"
             },
             "pterodactylGeneral": {
-              "description": "Eggs cho các runtime ứng dụng chung như Node JS, Java, và Rust."
+              "title": "Egg Chung Pterodactyl",
+              "description": "Eggs cho các runtime ứng dụng chung như Node JS, Java, và Rust.",
+              "nest": "Chung"
             }
           }
         },
@@ -1156,6 +1686,7 @@
           "title": "Máy chủ",
           "existingServer": "Một máy chủ đã được tạo. Bạn có thể thay đổi cài đặt sau trong menu quản trị.",
           "egg": {
+            "title": "Egg",
             "description": "Eggs là các mẫu cấu hình cho các loại máy chủ khác nhau. Chọn một egg để bắt đầu, bạn có thể thay đổi egg sau này nếu muốn.",
             "nestDescription": "Để bắt đầu sử dụng egg này, bạn sẽ cần tạo một nest. Nest là tập hợp các egg. Hãy đặt tên cho nó:"
           },
@@ -1185,6 +1716,7 @@
               "subtitle": "{count} kho egg đã được nhập"
             },
             "location": "Vị trí",
+            "node": "Node",
             "server": "Máy chủ"
           },
           "badge": {
@@ -1207,7 +1739,18 @@
             "registrationDisabled": "Không tìm thấy tài khoản phù hợp và đăng ký hiện đang bị tắt.",
             "userAlreadyExists": "Một tài khoản với tên người dùng hoặc email này đã tồn tại.",
             "securityKeyRequired": "Tài khoản này yêu cầu xác thực hai yếu tố; hãy đăng nhập bằng khóa bảo mật thay thế.",
-            "passwordLoginDisabled": "Tính năng đăng nhập bằng mật khẩu đã bị tắt trên bảng này; thay vào đó, hãy sử dụng một trong các tùy chọn dưới đây."
+            "passwordLoginDisabled": "Tính năng đăng nhập bằng mật khẩu đã bị tắt trên bảng này; thay vào đó, hãy sử dụng một trong các tùy chọn dưới đây.",
+            "noprofitFailed": "Đăng nhập bằng noprofit.space không thành công. Vui lòng thử lại.",
+            "noprofitExpired": "Lượt đăng nhập đó mất quá nhiều thời gian hoặc đã được sử dụng. Vui lòng thử lại.",
+            "noprofitAdminsOnly": "Panel này chưa mở: hiện chỉ quản trị viên noprofit.space mới có thể đăng nhập.",
+            "noprofitEmailTaken": "Đã có một tài khoản panel dùng email noprofit.space của bạn. Hãy nhờ quản trị viên liên kết tài khoản đó."
+          },
+          "noprofit": {
+            "title": "Đăng nhập",
+            "redirecting": "Đang chuyển bạn đến noprofit.space…",
+            "retry": "Thử lại",
+            "localLink": "Đăng nhập dành cho quản trị viên",
+            "backLink": "Quay lại đăng nhập bằng noprofit.space"
           },
           "passkey": {
             "error": {
@@ -1342,11 +1885,78 @@
         }
       },
       "account": {
+        "createServer": {
+          "title": "Tạo máy chủ",
+          "subtitle": "Chọn cấu hình của bạn, rồi triển khai.",
+          "button": "Tạo máy chủ",
+          "disabled": "Tính năng tạo máy chủ đang bị tắt.",
+          "noPlan": "Tài khoản của bạn không có gói nào để tạo máy chủ.",
+          "nothingOffered": "Hiện không có game nào bạn có thể triển khai. Vui lòng liên hệ quản trị viên panel.",
+          "details": "Chi Tiết",
+          "name": "Tên Máy Chủ",
+          "randomName": "Tạo tên ngẫu nhiên",
+          "game": "Game",
+          "software": "Phần mềm máy chủ",
+          "softwareDescription": "Bạn muốn chạy loại máy chủ game nào?",
+          "location": "Vị Trí",
+          "noLocations": "Chưa có vị trí nào được cấu hình. Vui lòng liên hệ quản trị viên panel.",
+          "locationLocked": "Cần {tier}",
+          "locationFull": "Hiện đã đầy",
+          "latency": "{ms} ms",
+          "full": "Đã Đầy",
+          "noCapacity": "Không đủ chỗ cho tài nguyên đã chọn",
+          "tiers": {
+            "free": "Miễn Phí",
+            "premium": "Premium"
+          },
+          "uptime": {
+            "free": "Không đảm bảo thời gian hoạt động",
+            "plus": "Hiệu Năng Tốt Nhất",
+            "premium": "99,99% thời gian hoạt động"
+          },
+          "freeTier": "Có trong mọi gói",
+          "getTier": "Nhận {name}",
+          "resources": "Tài Nguyên",
+          "resourcesDescription": "Chọn một gói, hoặc tự cấu hình giá trị.",
+          "planSize": "{cpu}% CPU · {memory} MB Bộ Nhớ · {disk} MB Ổ Đĩa",
+          "planUnavailable": "Vượt quá hạn mức còn lại của bạn",
+          "cpu": "CPU",
+          "memory": "Bộ Nhớ",
+          "disk": "Dung Lượng Ổ Đĩa",
+          "eula": "Tôi đồng ý với Thỏa Thuận Cấp Phép Người Dùng Cuối Minecraft (EULA)",
+          "eulaDescription": "Khi tạo máy chủ này, bạn đồng ý với EULA Minecraft (https://aka.ms/MinecraftEULA). EULA sẽ được tự động chấp nhận trên máy chủ của bạn để máy chủ khởi động ngay mà không bị dừng lại.",
+          "deploy": "Triển khai máy chủ",
+          "deploying": "Đang triển khai máy chủ...",
+          "reason": {
+            "limit": "Việc này sẽ vượt quá giới hạn tài nguyên hoặc số máy chủ của bạn.",
+            "game": "Vui lòng chọn một game.",
+            "location": "Vui lòng chọn một vị trí hợp lệ.",
+            "name": "{name} là bắt buộc (tối đa {max} ký tự)."
+          },
+          "toast": {
+            "failed": "Không thể tạo máy chủ"
+          }
+        },
         "home": {
+          "empty": {
+            "title": "Không Có Máy Chủ",
+            "description": "Tài khoản này chưa có máy chủ nào. Máy chủ được tạo cho tài khoản này, hoặc được chia sẻ với tài khoản này dưới dạng người dùng phụ, sẽ hiện ở đây."
+          },
+          "emptyGroup": "Nhóm này đang trống. Kéo một máy chủ vào đây để thêm.",
+          "emptyAccess": "Bạn không có quyền truy cập máy chủ nào!",
+          "card": {
+            "cpu": "CPU",
+            "memory": "RAM",
+            "disk": "Ổ Đĩa",
+            "loading": "Đang tải...",
+            "stateUptime": "{state} · {uptime}",
+            "powerActions": "Thao Tác Nguồn"
+          },
           "title": "Máy Chủ",
           "tooltip": {
             "removeFromGroup": "Xóa khỏi nhóm",
             "addToGroup": "Thêm vào Nhóm",
+            "addServerToGroup": "Thêm Máy Chủ Vào Nhóm",
             "groupActions": "Hành động Nhóm",
             "noGroups": "Không có nhóm nào khả dụng để thêm máy chủ vào",
             "noGroup": "Máy chủ này không thuộc bất kỳ nhóm nào",
@@ -1356,6 +1966,11 @@
             "groupedServers": {
               "title": "Nhóm Máy Chủ",
               "page": {
+                "empty": {
+                  "title": "Không Có Nhóm Máy Chủ",
+                  "description": "Mỗi máy chủ đang được liệt kê riêng. Tạo nhóm để xếp máy chủ thành từng mục và sắp xếp lại bằng cách kéo thả.",
+                  "descriptionReadOnly": "Mỗi máy chủ đang được liệt kê riêng."
+                },
                 "button": {
                   "createGroup": "Tạo nhóm mới"
                 },
@@ -1380,7 +1995,11 @@
                     }
                   },
                   "addServerToGroup": {
-                    "noServers": "Không có máy chủ nào khả dụng để thêm vào nhóm này."
+                    "title": "Thêm Máy Chủ Vào {group}",
+                    "noServers": "Không có máy chủ nào khả dụng để thêm vào nhóm này.",
+                    "toast": {
+                      "added": "{servers} đã được thêm vào nhóm."
+                    }
                   },
                   "removeServerFromGroup": {
                     "title": "Xác Nhận Xóa Máy Chủ",
@@ -1430,6 +2049,7 @@
             "deselect": "Bỏ chọn máy chủ",
             "success": "Đã thành công {action} {servers}.",
             "partial": "Đã thành công {action} {successfulServers}. {failedServers} failed.",
+            "held": "{servers} phải chờ trước khi khởi động: hãy mở từng máy chủ để tiếp tục.",
             "groupActions": "Hành động Nhóm"
           }
         },
@@ -1457,6 +2077,18 @@
             }
           },
           "containers": {
+            "noprofit": {
+              "title": "noprofit.space",
+              "description": "Bạn đăng nhập bằng tài khoản noprofit.space **{email}**. Email, mật khẩu và xác thực hai lớp của bạn được quản lý tại đó.",
+              "credits": "Credit",
+              "plan": "Gói",
+              "planValue": "{cpu}% CPU, {memory} bộ nhớ, {disk} ổ đĩa",
+              "discord": "Discord",
+              "discordNotLinked": "Chưa liên kết",
+              "button": {
+                "manage": "Quản Lý Trên noprofit.space"
+              }
+            },
             "password": {
               "title": "Mật khẩu",
               "button": {
@@ -1480,6 +2112,7 @@
               }
             },
             "email": {
+              "title": "Email",
               "toast": {
                 "updated": "Email đã được cập nhật thành công.",
                 "pending": "Liên kết xác nhận đã được gửi đến {email}. Địa chỉ của bạn sẽ thay đổi sau khi bạn mở liên kết đó."
@@ -1518,7 +2151,14 @@
               "twoFactorLastUsed": "Lần sử dụng cuối: {timestamp}",
               "none": "Tài khoản của bạn chưa được thiết lập xác thực hai yếu tố.",
               "requirementMet": "Tài khoản của bạn đáp ứng yêu cầu về xác thực hai yếu tố.",
-              "requirementUnmet": "Tài khoản của bạn chưa đáp ứng yêu cầu xác thực hai yếu tố."
+              "requirementUnmet": "Tài khoản của bạn chưa đáp ứng yêu cầu xác thực hai yếu tố.",
+              "enum": {
+                "twoFactorMethod": {
+                  "totp": "Ứng Dụng Xác Thực",
+                  "securityKey": "Khóa Bảo Mật",
+                  "email": "Email"
+                }
+              }
             },
             "emailTwoFactor": {
               "toast": {
@@ -1634,7 +2274,8 @@
           },
           "table": {
             "columns": {
-              "thisDevice": "Thiết bị Này?"
+              "thisDevice": "Thiết bị Này?",
+              "userAgent": "User Agent"
             }
           },
           "modal": {
@@ -1820,7 +2461,10 @@
           "modal": {
             "deleteOAuthLinks": {
               "title": "Xác Nhận Xóa Liên Kết OAuth",
-              "content": "Bạn có chắc muốn xóa **{oauthLinks}** khỏi tài khoản của bạn không?"
+              "content": "Bạn có chắc muốn xóa **{oauthLinks}** khỏi tài khoản của bạn không?",
+              "alert": {
+                "skipped": "{oauthLinks} sẽ bị bỏ qua. Không thể xóa liên kết đến các nhà cung cấp không cho phép hủy liên kết."
+              }
             },
             "deleteOAuthLink": {
               "title": "Xác Nhận Xóa Liên Kết OAuth",
@@ -1839,7 +2483,8 @@
             "copyUuid": "Sao chép UUID"
           },
           "tooltip": {
-            "limitReached": "Bạn được giới hạn ở {max} khóa API."
+            "limitReached": "Bạn được giới hạn ở {max} khóa API.",
+            "keyStartOnly": "Chỉ hiển thị phần đầu của khóa, toàn bộ khóa chỉ hiện một lần sau khi tạo (hoặc tạo lại)."
           },
           "table": {
             "columns": {
@@ -1863,6 +2508,12 @@
               "title": "Cập Nhật Khóa API",
               "toast": {
                 "updated": "Khóa API đã được cập nhật."
+              }
+            },
+            "duplicateApiKey": {
+              "title": "Nhân Bản Khóa API",
+              "toast": {
+                "duplicated": "Khóa API đã được nhân bản."
               }
             },
             "recreateApiKey": {
@@ -1923,6 +2574,330 @@
             },
             "noChanges": "Yêu cầu này không thay đổi quyền hạn của API key này.",
             "keyUpdated": "Quyền hạn của API key của bạn đã được cập nhật."
+          }
+        },
+        "backups": {
+          "title": "Sao Lưu",
+          "heading": "Bản sao lưu máy chủ",
+          "subtitle": "Tải xuống bản sao đầy đủ các tệp máy chủ của bạn: bản sao lưu mới nhất của từng máy chủ.",
+          "yourServers": "Máy chủ của bạn",
+          "copyId": "Sao chép ID máy chủ",
+          "idCopied": "Đã sao chép ID máy chủ #{id}!",
+          "backupReady": "Bản sao lưu đã sẵn sàng",
+          "waiting": "Đang chờ bản sao đầu tiên từ node",
+          "starting": "Đang bắt đầu…",
+          "downloading": "Đang tải xuống, xem trình duyệt của bạn",
+          "manage": "Quản Lý",
+          "manageHint": "Quản Lý Máy Chủ Trong Panel",
+          "backups": "Sao Lưu",
+          "backupsHint": "Xem Trong Tab Sao Lưu Của Máy Chủ",
+          "noServers": "Không tìm thấy máy chủ đang hoạt động nào trên tài khoản này.",
+          "deletedTitle": "Máy chủ đã xóa",
+          "deletedText": "Các máy chủ này đã bị xóa. Bản sao cuối cùng của chúng được giữ đến ngày hiển thị, phòng khi việc xóa là nhầm lẫn, rồi sẽ bị gỡ bỏ.",
+          "deletedAgo": "Đã xóa {ago}",
+          "keptUntil": "Giữ đến {date}"
+        },
+        "store": {
+          "title": "Cửa Hàng Tài Nguyên",
+          "subheading": "Dùng credit để mua thêm CPU, bộ nhớ và ổ đĩa. Những gì bạn mua là của bạn mãi mãi.",
+          "credits": "Credit",
+          "whatCreditsBuy": "Credit dùng để mua CPU, bộ nhớ và ổ đĩa, giữ mãi mãi.",
+          "balanceHint": "Kiếm credit bằng cách mời mọi người vào máy chủ Discord của chúng tôi hoặc boost máy chủ đó.",
+          "earnDiscordRewards": "Nhận Phần Thưởng Discord",
+          "resourcesHeading": "Tài nguyên của bạn",
+          "resourcesHint": "Phần sáng là những gì máy chủ của bạn đang dùng, phần tô màu nhạt là phần còn lại trong giới hạn của bạn, và thanh kéo dài đến mức giá bắt đầu tăng mạnh. Những bước đầu tiên có giá rẻ; mỗi bước sau đắt hơn bước trước một chút.",
+          "resource": {
+            "cpu": "CPU",
+            "memory": "Bộ nhớ",
+            "disk": "Dung lượng ổ đĩa"
+          },
+          "ofLimit": "trên {limit}",
+          "meterLabel": "Đang dùng {used} trên {limit}",
+          "inUse": "Đang dùng {used}",
+          "over": "Vượt giới hạn {amount}. Hãy thu nhỏ hoặc xóa một máy chủ để giải phóng chỗ.",
+          "price": {
+            "rising": "Mỗi bước đắt dần khi tiến đến {limit}, nơi giá đạt mức đầy đủ.",
+            "climbing": "Sau {limit}, mỗi bước tốn nhiều hơn, và sau {soft} thì tốn nhiều hơn hẳn.",
+            "steep": "Sau {soft}, mỗi bước tốn nhiều hơn hẳn so với bước trước."
+          },
+          "creditsShort": "cr",
+          "history": "Lịch sử credit",
+          "noTransactions": "Chưa có giao dịch credit nào.",
+          "modal": {
+            "title": "Mua Tài Nguyên",
+            "item": "+{amount} {resource}",
+            "content": "Bạn có chắc muốn mua {item} với giá {cost} credit không?",
+            "confirm": "Mua"
+          },
+          "toast": {
+            "successful": "Mua Thành Công",
+            "failed": "Mua Thất Bại",
+            "bought": {
+              "cpu": "Đã nâng giới hạn CPU của bạn thêm +{amount} với giá {cost} credit.",
+              "memory": "Đã nâng giới hạn RAM của bạn thêm +{amount} với giá {cost} credit.",
+              "disk": "Đã nâng giới hạn ổ đĩa của bạn thêm +{amount} với giá {cost} credit."
+            }
+          },
+          "perks": {
+            "heading": "Mở khóa thêm tài nguyên ({count})",
+            "discordLink": {
+              "title": "Liên kết Discord để nhận {gain}",
+              "body": "Kết nối tài khoản Discord và tham gia các máy chủ Discord của chúng tôi để tăng giới hạn miễn phí.",
+              "cta": "Liên kết Discord"
+            },
+            "discordJoin": {
+              "title": "Tham gia các máy chủ Discord của chúng tôi để nhận {gain}",
+              "body": "Mỗi máy chủ Discord của chúng tôi mà bạn tham gia sẽ cộng thêm RAM cho tài khoản của bạn, và tham gia tất cả sẽ được cộng nhiều hơn.",
+              "cta": "Xem máy chủ"
+            },
+            "discordEarn": {
+              "title": "Kiếm {credits} credit cho mỗi người bạn mời",
+              "body": "Mời mọi người vào Discord của chúng tôi bằng liên kết mời của riêng bạn, rồi dùng credit để mua thêm tài nguyên.",
+              "bodyBoost": "Mời mọi người bằng liên kết mời của riêng bạn, hoặc boost máy chủ để nhận {credits} credit, rồi dùng tất cả để mua thêm tài nguyên.",
+              "cta": "Xem lời mời"
+            },
+            "store": {
+              "title": "{price} credit mua được thêm {amount} RAM",
+              "body": "Bạn có {balance} credit. Dùng chúng để mua CPU, RAM hoặc dung lượng ổ đĩa.",
+              "cta": "Mở cửa hàng"
+            },
+            "gain": {
+              "cpu": "+{amount} CPU",
+              "memory": "+{amount} RAM",
+              "disk": "+{amount} dung lượng ổ đĩa",
+              "and": "và"
+            }
+          }
+        },
+        "tokens": {
+          "title": "Token",
+          "subheading": "Kiếm token và xem token đã được dùng vào đâu",
+          "balance": "{count} token",
+          "explainer": "Kiếm token bằng cách hoàn thành liên kết tài trợ. Token dùng để trả cho {app} {plus}, đánh thức máy chủ đang ngủ đông và tên miền phụ.",
+          "none": "Hiện chưa có cách kiếm token nào được thiết lập.",
+          "provider": {
+            "linkvertise": "Linkvertise",
+            "vylo": "Vylo"
+          },
+          "reward": "{count} token mỗi lần hoàn thành",
+          "used": "Hôm nay: {used} trên {cap}",
+          "capped": "Hãy quay lại vào ngày mai",
+          "linkUnavailable": "Hiện không khả dụng",
+          "earnWith": "Kiếm qua {provider}",
+          "scriptBlocked": "Không tải được liên kết tài trợ. Có thể một trình chặn nội dung đang chặn nó.",
+          "history": "Hoạt động gần đây",
+          "redemption": {
+            "granted": "Đã cộng: +{amount} token",
+            "settled": "Lượt này đã được trả thưởng rồi",
+            "expired": "Quá thời gian — vui lòng bắt đầu lại",
+            "no_token": "Nhà cung cấp đã đưa bạn quay lại mà không có mã hoàn thành",
+            "no_claim": "Không tìm thấy lượt đang chờ nào cho tài khoản của bạn",
+            "replay": "Mã hoàn thành đó đã được sử dụng",
+            "capped": "Bạn đã đạt giới hạn hôm nay cho lựa chọn này",
+            "throttled": "Quá nhiều lần thử — vui lòng chậm lại",
+            "invalid": "Không thể xác minh, nên không có token nào được cộng",
+            "error": "Đã xảy ra lỗi. Không có token nào được cộng."
+          }
+        },
+        "membership": {
+          "title": "Hội Viên",
+          "pageTitle": "{app} {name}",
+          "subtitle": "Vị trí tốt hơn, không phải xếp hàng chờ và không có quảng cáo trong game. Mua một lần, dùng mãi mãi.",
+          "unavailable": "{name} hiện chưa được bán.",
+          "plusplusActive": {
+            "heading": "{name} đang hoạt động",
+            "body": "Có hiệu lực đến {until}."
+          },
+          "owned": {
+            "heading": "Bạn đã có {app} {name}",
+            "body": "Các vị trí {name}, ưu tiên trong hàng chờ khởi động và không có quảng cáo trong game là của bạn mãi mãi. {plusplus} còn bổ sung thêm nữa."
+          },
+          "plus": {
+            "pitch": "Mọi thứ mà hầu hết máy chủ cần, mua một lần, không cần gia hạn.",
+            "term": "Một lần, dùng mãi mãi",
+            "get": "Nhận {name}",
+            "owned": "Đã Sở Hữu"
+          },
+          "plusplus": {
+            "pitch": "Gói bổ sung cho những máy chủ cần nhiều nhất: phần cứng Premium, không có quảng cáo ở bất cứ đâu và thêm CPU.",
+            "term": "{tokens}, hoặc {credits} khi trả bằng credit",
+            "termTokens": "{tokens}",
+            "needsPlus": "{name} cần có {app} {plus} trước.",
+            "extendHint": "Mua lại trước khi hết hạn sẽ cộng thêm vào thời gian còn lại.",
+            "notSold": "Hiện không bán."
+          },
+          "days": "{days} ngày",
+          "duration": {
+            "day": "một ngày",
+            "days": "{count} ngày",
+            "week": "một tuần",
+            "twoWeeks": "hai tuần",
+            "weeks": "{count} tuần"
+          },
+          "cost": {
+            "tokens": "{cost} token",
+            "credits": "{cost} credit"
+          },
+          "balance": "Bạn có {balance} token.",
+          "earnLink": "Kiếm thêm token",
+          "perks": {
+            "plusLocations": "Các vị trí {name}",
+            "priority": "Ưu tiên trong hàng chờ khởi động khi node đang bận",
+            "noGameAds": "Không có quảng cáo trong game trên máy chủ Minecraft của bạn",
+            "burst": "Mỗi máy chủ được burst đến +{cpu}% CPU khi node còn dư tài nguyên",
+            "neoPlus": "Thêm {percent}% mức sử dụng neo (AI)",
+            "devbox": "VS Code trên máy chủ của bạn: {cpu} vCPU, {memory} RAM, {disk} ổ đĩa",
+            "everythingInPlus": "Mọi thứ trong {name}",
+            "premiumLocations": "Các vị trí Premium",
+            "noAds": "Không có quảng cáo ở bất cứ đâu: không banner, popup, màn hình chờ trước khi khởi động hay quảng cáo trong game",
+            "frontOfQueue": "Đứng đầu hàng chờ khởi động, trước cả {name}",
+            "neoPlusplus": "Tổng cộng thêm {percent}% mức sử dụng neo (AI)",
+            "devboxPlusplus": "Devbox VS Code lớn hơn: {cpu} vCPU, {memory} RAM, {disk} ổ đĩa"
+          },
+          "compare": {
+            "heading": "Bạn nhận được gì",
+            "free": "Miễn Phí",
+            "rows": {
+              "locations": "Vị trí",
+              "queue": "Hàng chờ khởi động trên node bận",
+              "gameAds": "Quảng cáo trong game (Minecraft)",
+              "panelAds": "Quảng cáo trong panel",
+              "cpu": "CPU",
+              "ai": "Mức sử dụng neo (AI)",
+              "devbox": "VS Code trên máy chủ của bạn"
+            },
+            "cells": {
+              "locationsFree": "Miễn phí",
+              "locationsPlus": "Miễn phí và {plus}",
+              "locationsPlusplus": "Miễn phí, {plus} và Premium",
+              "queueFree": "Xếp hàng chờ",
+              "queuePlus": "Trước người dùng miễn phí",
+              "queuePlusplus": "Đứng đầu hàng",
+              "gameAdsFree": "Một tin nhắn ngắn mỗi giờ",
+              "none": "Không có",
+              "yes": "Có",
+              "no": "Không",
+              "cpu": "Hạn mức của bạn",
+              "cpuBurst": "Hạn mức của bạn, burst +{cpu}%",
+              "aiFree": "Tiêu chuẩn",
+              "percent": "+{percent}%",
+              "devbox": "{cpu} vCPU, {memory} RAM, {disk} ổ đĩa"
+            }
+          },
+          "faq": {
+            "heading": "Câu hỏi",
+            "once": {
+              "question": "{plus} có phải là gói đăng ký định kỳ không?",
+              "answer": "Không. Bạn trả cho {plus} một lần và giữ nó mãi mãi. Chỉ {plusplus} có thời hạn nhất định, và không có gì tự động gia hạn."
+            },
+            "expiry": {
+              "question": "Điều gì xảy ra khi {plusplus} hết hạn?",
+              "answer": "Bạn vẫn giữ {plus}. Máy chủ ở các vị trí Premium sẽ được chuyển sang vị trí khác, và máy chủ của bạn chỉ burst trong mức {plus} cho phép. Mua lại {plusplus} trước khi hết hạn để giữ cả hai."
+            },
+            "tokens": {
+              "question": "Làm sao để nhận token?",
+              "answer": "Trong trang Token ở thanh bên, bằng cách hoàn thành liên kết tài trợ."
+            },
+            "credits": {
+              "question": "Tôi có thể trả bằng credit không?",
+              "answer": "Với {plusplus} thì có: mỗi lần dùng credit sẽ mua được {duration}. Bản thân {plus} được trả bằng token."
+            }
+          },
+          "modal": {
+            "title": "Mua Hội Viên",
+            "plus": "Dùng **{cost}** token để mua **{name}**? Gói này là của bạn mãi mãi.",
+            "plusplus": {
+              "tokens": "Dùng **{cost}** token để mua **{name}** trong **{days} ngày**?",
+              "credits": "Dùng **{cost}** credit để mua **{name}** trong **{days} ngày**?"
+            },
+            "confirm": "Mua"
+          },
+          "toast": {
+            "plus": "Bạn đã có {name}.",
+            "plusplus": "Đã mua {name}."
+          }
+        },
+        "discord": {
+          "title": "Phần Thưởng Discord",
+          "unlinked": {
+            "heading": "Kiếm credit trên Discord",
+            "headingNoCredits": "Lời mời Discord của bạn",
+            "body": "Mời bạn bè vào máy chủ Discord của {app} và boost máy chủ đó để kiếm credit: {credits} credit cho mỗi người bạn ở lại. Liên kết tài khoản Discord của bạn để bắt đầu.",
+            "bodyNoCredits": "Liên kết tài khoản Discord của bạn để những người bạn mà bạn mời vào máy chủ Discord của {app} được tính.",
+            "link": "Liên kết Discord",
+            "linkNoprofit": "Liên kết Discord trên noprofit.space"
+          },
+          "join": "Tham gia máy chủ Discord",
+          "open": "Mở máy chủ Discord",
+          "earned": "Credit kiếm được trên Discord",
+          "linkedAs": "Đã liên kết với tên {name}",
+          "inServer": "Đang ở trong máy chủ",
+          "notInServer": "Không ở trong máy chủ. Hãy tham gia để tiếp tục kiếm credit.",
+          "notChecked": "Chưa được kiểm tra",
+          "check": "Kiểm tra phần thưởng mới",
+          "tier": {
+            "text": "Ở trong máy chủ sẽ cộng thêm {resources} cho tài khoản của bạn.",
+            "cpu": "{cpu}% CPU",
+            "memory": "{memory} bộ nhớ",
+            "disk": "{disk} ổ đĩa"
+          },
+          "noprofit": {
+            "title": "Máy chủ Discord",
+            "text": "Tài khoản noprofit.space của bạn nhận phần thưởng khi ở trong các máy chủ Discord của noprofit.space và khi boost chúng.",
+            "open": "Mở noprofit.space"
+          },
+          "invites": {
+            "title": "Mời bạn bè",
+            "rule": "{credits} credit cho mỗi người bạn tham gia qua liên kết mời của bạn và ở lại {hours} giờ.",
+            "ruleHour": "{credits} credit cho mỗi người bạn tham gia qua liên kết mời của bạn và ở lại {hours} giờ.",
+            "ruleNow": "{credits} credit cho mỗi người bạn tham gia qua liên kết mời của bạn.",
+            "notPaid": "Mỗi người bạn tham gia qua liên kết mời của bạn đều được tính ở đây.",
+            "age": "Tài khoản Discord của họ phải được tạo ít nhất {days} ngày.",
+            "ageDay": "Tài khoản Discord của họ phải được tạo ít nhất {days} ngày.",
+            "paid": "Đã Trả",
+            "friendsNone": "Chưa có người bạn nào",
+            "friend": "1 người bạn",
+            "friends": "{count} người bạn",
+            "waiting": "Đang Chờ",
+            "next": "Lượt tiếp theo được trả {time}",
+            "nextSoon": "Lượt tiếp theo được trả trong vài phút nữa",
+            "waitingNone": "Hiện không có ai đang chờ",
+            "left": "Đã rời máy chủ",
+            "leftClawback": "Credit cho những người bạn đã rời đi sẽ bị thu hồi.",
+            "leftKept": "Những người bạn đã rời đi không còn được tính.",
+            "tooNew": "Không được tính",
+            "tooNewHint": "Tài khoản Discord của họ mới được tạo chưa đến {days} ngày, hoặc đó là lời mời của chính họ.",
+            "tooNewHintDay": "Tài khoản Discord của họ mới được tạo chưa đến {days} ngày, hoặc đó là lời mời của chính họ.",
+            "tooNewOwn": "Đó là lời mời của chính họ.",
+            "owed": "Còn nợ",
+            "owedHint": "Cho những người bạn đã rời đi sau khi bạn được trả thưởng. Sẽ được trừ vào phần thưởng mời tiếp theo của bạn.",
+            "how": "Trong máy chủ Discord của {app}, dùng Mời mọi người và chia sẻ liên kết đó. Mọi người tham gia qua liên kết của riêng bạn đều được tính cho bạn."
+          },
+          "boosts": {
+            "title": "Boost máy chủ",
+            "boosting": "Bạn đang boost máy chủ. Cảm ơn bạn!",
+            "boostingTwo": "Bạn đang boost máy chủ với 2 boost. Cảm ơn bạn!",
+            "notBoosting": "Hiện bạn không boost máy chủ.",
+            "levelOne": "1 boost",
+            "levelTwo": "2 boost",
+            "levelOneCredits": "{credits} credit",
+            "levelTwoCredits": "thêm {credits}, tổng cộng {total}",
+            "received": "Đã Nhận",
+            "once": "Mỗi cấp chỉ được trả một lần."
+          },
+          "history": "Lịch sử phần thưởng",
+          "historyEmpty": "Chưa có phần thưởng Discord nào.",
+          "toast": {
+            "checked": "Đã kiểm tra với Discord.",
+            "paid": "Đã cộng {credits} credit mới.",
+            "nothing": "Đã cập nhật đầy đủ, không có gì mới để trả."
+          }
+        },
+        "devboxOpen": {
+          "title": "VS Code",
+          "opening": "Đang mở devbox…",
+          "button": {
+            "servers": "Máy Chủ Của Bạn"
           }
         },
         "activity": {
@@ -4913,7 +5888,10 @@
           "title": "Bảng Điều Khiển",
           "input": {
             "placeholder": "Nhập một lệnh...",
-            "ariaLabel": "Nhập lệnh bảng điều khiển."
+            "placeholderOffline": "Máy Chủ Ngoại Tuyến...",
+            "offlineTitle": "Không thể gửi lệnh khi máy chủ Ngoại Tuyến",
+            "ariaLabel": "Nhập lệnh bảng điều khiển.",
+            "prefixPlaceholder": "Tiền tố, ví dụ \"say \""
           },
           "toast": {
             "installCancelled": "Cài đặt máy chủ đã bị hủy.",
@@ -4954,11 +5932,17 @@
             "decreaseFontSize": "Giảm Kích Thước Font",
             "increaseFontSize": "Tăng Kích Thước Font",
             "copySelection": "Sao Chép vùng chọn",
-            "popout": "Mở trong cửa sổ riêng"
+            "popout": "Mở trong cửa sổ riêng",
+            "commandPrefix": "Tiền Tố Lệnh"
+          },
+          "search": {
+            "previous": "Kết Quả Trước",
+            "next": "Kết Quả Tiếp Theo"
           },
           "quickAction": {
             "search": "Tìm trong Console",
-            "scrollToBottom": "Cuộn xuống cuối"
+            "scrollToBottom": "Cuộn xuống cuối",
+            "popout": "Mở Bảng Điều Khiển Trong Cửa Sổ Riêng"
           },
           "popout": {
             "windowTitle": "Bảng Điều Khiển",
@@ -4999,13 +5983,21 @@
             }
           },
           "details": {
+            "name": "Tên",
+            "status": "Trạng Thái",
+            "statusUptime": "{state} ({uptime})",
             "address": "Địa Chỉ",
             "port": "Cổng",
+            "cpu": "CPU",
+            "memory": "Bộ Nhớ",
+            "disk": "Ổ Đĩa",
             "networkIn": "Mạng (Vào)",
             "networkOut": "Mạng (Ra)",
+            "networkDetails": "Tổng {total} · {packets} pps",
             "normalizeCpuLoad": "Chuẩn Hóa Tải CPU (gom tất cả nhân thành chuẩn 100%)"
           },
           "power": {
+            "killTooltip": "Việc này có thể gây hỏng dữ liệu và/hoặc mất dữ liệu!",
             "modal": {
               "forceStop": {
                 "title": "Buộc Dừng Quá Trình",
@@ -5014,19 +6006,28 @@
             }
           },
           "stats": {
-            "offline": "Máy chủ đang ngoại tuyến."
+            "cpu": "CPU",
+            "memory": "Bộ Nhớ",
+            "offline": "Máy chủ đang ngoại tuyến.",
+            "connecting": "Đang kết nối..."
           },
           "socketConnected": "Đã Kết Nối ({ping}ms ping)",
           "socketDisconnected": "Ngắt Kết Nối"
         },
         "files": {
+          "empty": {
+            "title": "Thư Mục Trống",
+            "description": "Thư mục này chưa có gì. Tải tệp lên hoặc tạo tệp mới để thêm nội dung.",
+            "descriptionReadOnly": "Thư mục này chưa có gì."
+          },
           "title": "Tệp",
           "editorNotFound": {
             "title": "Không tìm thấy",
             "content": "Không tìm thấy trình soạn thảo."
           },
           "view": {
-            "list": "Danh sách"
+            "list": "Danh sách",
+            "tree": "Dạng Cây"
           },
           "searchPreview": {
             "expand": "Mở rộng xem trước nội dung cho {file}",
@@ -5036,6 +6037,7 @@
             "empty": "Tệp trống",
             "unavailable": "Xem trước không khả dụng",
             "noContext": "Đã tìm thấy kết quả khớp, không có bản xem trước",
+            "moreMatches": "Còn kết quả khớp khác không được hiển thị",
             "restricted": "Cần có quyền truy cập nội dung"
           },
           "tree": {
@@ -5065,6 +6067,7 @@
             "unsavedTab": "{name} có các thay đổi chưa được lưu",
             "dropToSplit": "Thả để mở trong một ngăn trình soạn thảo mới",
             "resizeEditorPanes": "Thay đổi kích thước các khung soạn thảo",
+            "resizeFileTree": "Đổi kích thước cây thư mục",
             "selectPane": "Chọn khung soạn thảo",
             "editorPane": "Khung soạn thảo {number}"
           },
@@ -5098,11 +6101,18 @@
             "extract": "Giải nén",
             "archive": "Nén",
             "more": "Thêm",
+            "moveToTrash": "Chuyển Vào Thùng Rác",
+            "deletePermanently": "Xóa Vĩnh Viễn",
+            "trash": "Thùng Rác",
+            "emptyTrash": "Dọn Sạch Thùng Rác",
+            "backToFiles": "Quay Lại Tệp",
+            "restoreTo": "Khôi Phục Vào...",
             "remoteCopy": "Sao Chép Máy Chủ Điều Khiển",
             "search": "Tìm Kiếm",
             "exitBackup": "Thoát Sao Lưu",
             "fileFromEditor": "Tệp Từ Trình Soạn Thảo",
             "directory": "Thư Mục",
+            "symlink": "Symlink",
             "fileFromPull": "Tệp Từ Kéo",
             "fileFromUpload": "Tệp Từ Tải Lên",
             "directoryFromUpload": "Thư Mục Từ Tải Lên",
@@ -5143,6 +6153,8 @@
             "permissionsSelection": "Thay đổi quyền",
             "fingerprintSelection": "Hiển thị Dấu Vân Tay Tệp",
             "deleteSelection": "Xóa đã chọn",
+            "trashSelection": "Chuyển Mục Đã Chọn Vào Thùng Rác",
+            "openTrash": "Mở Thùng Rác",
             "saveFile": "Lưu tệp",
             "createFile": "Tạo Tệp"
           },
@@ -5153,6 +6165,7 @@
           "searchBanner": {
             "resultsTitle": "Kết Quả Tìm Kiếm ({files} tìm thấy)",
             "emptyTitle": "Không có tệp nào khớp",
+            "root": "Thư mục gốc:",
             "query": "Truy Vấn:",
             "included": "Bao Gồm:",
             "excluded": "Loại Trừ:",
@@ -5197,6 +6210,8 @@
             "editorEngine": "Công cụ biên tập",
             "editorPreviewTabs": "Xem trước tệp trong các thẻ dạng cây",
             "editorPreviewTabsDescription": "Chỉnh sửa hoặc nhấp đúp vào thẻ để giữ cho thẻ đó luôn mở.",
+            "alwaysOverwrite": "Luôn ghi đè tệp đã có",
+            "alwaysOverwriteDescription": "Bỏ qua hộp thoại xung đột khi tải lên, sao chép hoặc dán.",
             "vscodeUriScheme": "Lược Đồ URI VS Code",
             "imageViewerSmoothing": "Làm Mịn Hình Ảnh (Anti-Aliasing)"
           },
@@ -5214,6 +6229,10 @@
             "moveCouldNotBeUndone": "Không thể hoàn tác thao tác này.",
             "downloadStarted": "Tải xuống đã bắt đầu.",
             "filesDeleted": "Tệp đã được xóa.",
+            "filesTrashed": "{files} đã được chuyển vào thùng rác.",
+            "filesTrashedPartiallyDeleted": "{files} đã được chuyển vào thùng rác, {deleted} đã bị xóa vĩnh viễn.",
+            "trashUndone": "{files} đã được khôi phục từ thùng rác.",
+            "trashCouldNotBeUndone": "Không thể khôi phục tệp từ thùng rác.",
             "archiveCreationStarted": "Tạo kho lưu trữ đã bắt đầu.",
             "decompressionStarted": "Đã bắt đầu giải nén.",
             "fileCopyingStarted": "Sao chép tệp đã bắt đầu.",
@@ -5272,6 +6291,53 @@
                 "original": "Phiên Bản",
                 "current": "Hiện Tại"
               }
+            }
+          },
+          "trash": {
+            "title": "Thùng Rác",
+            "subtitle": "Tệp đã xóa được giữ trong {retention} trước khi bị xóa vĩnh viễn.",
+            "subtitleDisabled": "Thùng rác đã bị tắt cho máy chủ này. Các mục hiện có vẫn được giữ cho đến khi được khôi phục hoặc xóa.",
+            "table": {
+              "columns": {
+                "originalLocation": "Vị Trí Ban Đầu",
+                "deletedAt": "Đã Xóa"
+              }
+            },
+            "empty": {
+              "title": "Thùng rác trống",
+              "description": "Tệp bạn xóa sẽ được chuyển vào đây và có thể khôi phục cho đến khi hết hạn."
+            },
+            "modal": {
+              "deleteEntries": {
+                "title": "Xóa Vĩnh Viễn",
+                "content": "Bạn có chắc muốn xóa vĩnh viễn {entries} khỏi thùng rác không? Hành động này không thể hoàn tác."
+              },
+              "deleteEntry": {
+                "title": "Xóa Vĩnh Viễn",
+                "content": "Bạn có chắc muốn xóa vĩnh viễn **{name}** khỏi thùng rác không? Hành động này không thể hoàn tác."
+              },
+              "emptyTrash": {
+                "title": "Dọn Sạch Thùng Rác",
+                "content": "Bạn có chắc muốn xóa vĩnh viễn mọi thứ trong thùng rác không? Hành động này không thể hoàn tác."
+              },
+              "restoreTo": {
+                "title": "Khôi Phục Vào Thư Mục",
+                "destination": "Thư Mục Đích",
+                "restoredAs": "Tệp này sẽ được khôi phục thành "
+              },
+              "restoreConflict": {
+                "title": "Giải Quyết Xung Đột Khôi Phục",
+                "description": "Đã có mục khác tồn tại ở nơi {files} sau đây sẽ được khôi phục vào.",
+                "confirm": "Khôi Phục {files}"
+              }
+            },
+            "toast": {
+              "restored": "{entries} đã được khôi phục.",
+              "nothingRestored": "Không khôi phục được gì.",
+              "restoreUndone": "{files} đã được chuyển lại vào thùng rác.",
+              "restoreCouldNotBeUndone": "Không thể hoàn tác việc khôi phục.",
+              "deleted": "{entries} đã bị xóa vĩnh viễn.",
+              "emptied": "Thùng rác đã được dọn sạch."
             }
           },
           "modal": {
@@ -5353,7 +6419,12 @@
             },
             "deleteFile": {
               "title": "Xóa Tệp",
-              "multipleFilesWarning": "Bạn sẽ không thể khôi phục nội dung của các tệp sau đây sau khi xóa."
+              "singleFileWarning": "Bạn sẽ không thể khôi phục nội dung của **{file}** sau khi xóa.",
+              "multipleFilesWarning": "Bạn sẽ không thể khôi phục nội dung của các tệp sau đây sau khi xóa.",
+              "trashTitle": "Chuyển Vào Thùng Rác",
+              "singleFileTrash": "**{file}** sẽ được chuyển vào thùng rác và có thể khôi phục trong {retention}.",
+              "multipleFilesTrash": "Các tệp sau sẽ được chuyển vào thùng rác và có thể khôi phục trong {retention}.",
+              "permanent": "Xóa vĩnh viễn thay vì chuyển vào thùng rác"
             },
             "createFile": {
               "title": "Tạo Tệp"
@@ -5442,7 +6513,12 @@
             },
             "largestDirectories": {
               "title": "Thư Mục Lớn Nhất",
-              "empty": "Không tìm thấy thư mục."
+              "empty": "Không tìm thấy thư mục.",
+              "files": "Tệp trong thư mục này",
+              "smallerFolders": "{count} thư mục nhỏ hơn",
+              "inaccessible": "Không truy cập được",
+              "openFolder": "Mở thư mục",
+              "noSubdirectories": "Thư mục này dùng {size} và không có thư mục con lớn nào."
             },
             "searchFiles": {
               "title": "Tìm Kiếm Tệp",
@@ -5598,6 +6674,7 @@
               "noMatchesTruncated": "Không có bảng nào khớp với nội dung tìm kiếm của bạn. Chỉ {tables} bảng đầu tiên được tải, do đó không thể tìm kiếm trong các bảng còn lại.",
               "truncated": "Cơ sở dữ liệu này có quá nhiều bảng để tải. Chỉ {tables} bảng đầu tiên được hiển thị.",
               "tableBeyondLimit": "Bảng này nằm ngoài số lượng {tables} đầu tiên mà cơ sở dữ liệu này có thể tải.",
+              "rowEstimate": "~{rows}",
               "badge": {
                 "view": "Hiển thị"
               }
@@ -5642,6 +6719,7 @@
             },
             "badge": {
               "primaryKey": "Chính",
+              "autoIncrement": "auto_increment",
               "generated": "Đã tạo",
               "binary": "Tệp nhị phân"
             },
@@ -5659,6 +6737,10 @@
             },
             "cell": {
               "setNull": "Set thành NULL",
+              "picker": "Chọn một giá trị",
+              "null": "NULL",
+              "true": "TRUE",
+              "false": "FALSE",
               "empty": "rỗng",
               "truncated": "Giá trị này quá lớn để tải toàn bộ và không thể chỉnh sửa được.",
               "editorHint": "{enter} áp dụng giá trị, {shiftEnter} chèn một dòng mới."
@@ -5688,8 +6770,10 @@
                 "logs": "Nhật ký"
               },
               "stats": {
+                "connecting": "Đang kết nối...",
                 "offline": "Instance đã ngoại tuyến"
-              }
+              },
+              "connectionLost": "Mất kết nối đến instance cơ sở dữ liệu."
             },
             "databases": {
               "title": "Cơ sở dữ liệu",
@@ -6100,6 +7184,13 @@
             }
           },
           "view": {
+            "empty": {
+              "triggers": {
+                "title": "Không Có Trình Kích Hoạt",
+                "description": "Lịch trình này không bao giờ tự bắt đầu và chỉ chạy khi được khởi chạy thủ công. Chỉnh sửa lịch trình để thêm trình kích hoạt.",
+                "descriptionReadOnly": "Lịch trình này không bao giờ tự bắt đầu và chỉ chạy khi được khởi chạy thủ công."
+              }
+            },
             "badge": {
               "running": "Đang Chạy"
             },
@@ -6272,13 +7363,22 @@
             }
           },
           "steps": {
+            "tooltip": {
+              "limitReached": "Lịch trình này chỉ được có tối đa {max} bước."
+            },
             "empty": {
+              "descriptionReadOnly": "Lịch trình này không làm gì khi chạy.",
               "title": "Không có Bước nào Được Cấu Hình",
               "description": "Lịch trình này chưa có bước nào. Thêm một số hành động để bắt đầu."
             },
             "warning": {
               "unclosedIf": "Khối \"If\" đang thiếu \"End If\". Tất cả các bước còn lại sẽ chạy như một phần của khối.",
-              "orphanBranch": "Có một bước \"Else\", \"Else If\" hoặc \"End If\" mà không có bước \"If\" phù hợp trước đó."
+              "orphanBranch": "Có một bước \"Else\", \"Else If\" hoặc \"End If\" mà không có bước \"If\" phù hợp trước đó.",
+              "variable": {
+                "never": "Biến \"{variable}\" không bao giờ được lịch trình này đặt giá trị, nên sẽ không được phân giải.",
+                "unavailable": "Biến \"{variable}\" chưa được đặt bởi trình kích hoạt hoặc bước nào trước đó tại thời điểm này.",
+                "conditional": "Biến \"{variable}\" chỉ được đặt trong một số lần chạy, ví dụ bên trong một nhánh khác, bởi một trong nhiều trình kích hoạt hoặc bởi một bước có thể thất bại."
+              }
             },
             "groups": {
               "server": "Máy chủ",
@@ -6312,18 +7412,21 @@
               }
             },
             "elseIf": {
+              "title": "Else If",
               "description": "Chạy các bước sau khi không có nhánh nào trước đó được chạy và một điều kiện là đúng.",
               "renderer": {
                 "compact": "Nếu không, nếu một điều kiện khớp"
               }
             },
             "else": {
+              "title": "Else",
               "description": "Chạy các bước sau khi không có nhánh nào trước đó của khối If được chạy.",
               "renderer": {
                 "compact": "Nếu không"
               }
             },
             "endIf": {
+              "title": "End If",
               "description": "Đóng khối If hiện tại.",
               "renderer": {
                 "compact": "Kết thúc khối If"
@@ -6365,6 +7468,7 @@
               "description": "Trích xuất các phần của một giá trị văn bản bằng biểu thức chính quy (regular expression).",
               "form": {
                 "input": "Đầu Vào",
+                "regex": "Regex",
                 "outputs": "Đầu Ra",
                 "outputNumber": "Đầu Ra {number}"
               },
@@ -6529,7 +7633,8 @@
               "renderer": {
                 "compact": "Tạo {name} trong {root}",
                 "detail": {
-                  "directory": "Thư Mục: {name}"
+                  "directory": "Thư Mục: {name}",
+                  "root": "Thư mục gốc: {root}"
                 }
               }
             },
@@ -6565,12 +7670,17 @@
               "title": "Xóa Tệp",
               "description": "Xóa các tệp hoặc thư mục.",
               "form": {
-                "filesToDelete": "Tệp Để Xóa"
+                "filesToDelete": "Tệp Để Xóa",
+                "trash": "Chuyển Vào Thùng Rác",
+                "trashDescription": "Chuyển tệp vào thùng rác thay vì xóa vĩnh viễn. Cần bật thùng rác cho máy chủ này."
               },
               "renderer": {
                 "compact": "Xóa {files}",
+                "compactTrash": "Chuyển {files} vào thùng rác",
                 "detail": {
-                  "files": "Tệp: {files}"
+                  "root": "Thư mục gốc: {root}",
+                  "files": "Tệp: {files}",
+                  "trash": "Chuyển Vào Thùng Rác: {value}"
                 }
               }
             },
@@ -6585,6 +7695,7 @@
               "renderer": {
                 "compact": "Đổi tên {files}",
                 "detail": {
+                  "root": "Thư mục gốc: {root}",
                   "files": "Tệp: {files}"
                 }
               }
@@ -6599,6 +7710,7 @@
                 "compact": "Nén {files} trong {root} thành {name}",
                 "detail": {
                   "output": "Đầu Ra: {name}",
+                  "root": "Thư mục gốc: {root}",
                   "format": "Định Dạng: {format}",
                   "files": "Tệp: {files}"
                 }
@@ -6613,7 +7725,8 @@
               "renderer": {
                 "compact": "Giải nén {file} tới {root}",
                 "detail": {
-                  "file": "Tệp: {file}"
+                  "file": "Tệp: {file}",
+                  "root": "Thư mục gốc: {root}"
                 }
               }
             },
@@ -6627,6 +7740,8 @@
               "renderer": {
                 "compact": "Kéo {url} vào {root}",
                 "detail": {
+                  "url": "URL: {url}",
+                  "root": "Thư mục gốc: {root}",
                   "fileName": "Tên tệp: {fileName}",
                   "useHeader": "Sử dụng tên tệp phản hồi: {value}"
                 }
@@ -6668,6 +7783,7 @@
               "description": "Gửi một yêu cầu HTTP, chẳng hạn như đến một webhook.",
               "form": {
                 "method": "Phương thức",
+                "headers": "Tiêu Đề",
                 "headerName": "Tên tiêu đề",
                 "headerValue": "Giá trị tiêu đề",
                 "body": "Nội dung",
@@ -6773,6 +7889,7 @@
             "exportToFiles": "Xuất ra Tệp",
             "createBackup": "Tạo Sao Lưu",
             "createGroup": "Tạo Nhóm Sao Lưu",
+            "offsiteBackups": "Sao Lưu Bên Ngoài",
             "moveToGroup": "Chuyển tới Nhóm",
             "removeFromGroup": "Xóa khỏi nhóm",
             "lock": "Khoá",
@@ -6781,7 +7898,9 @@
           "toast": {
             "downloadStarted": "Tải xuống đã bắt đầu.",
             "restoringBackup": "Đang khôi phục sao lưu...",
-            "exportStarted": "Đã bắt đầu xuất bản sao lưu."
+            "exportStarted": "Đã bắt đầu xuất bản sao lưu.",
+            "locked": "Bản sao lưu đã được khóa.",
+            "unlocked": "Bản sao lưu đã được mở khóa."
           },
           "modal": {
             "createBackup": {
@@ -6922,10 +8041,12 @@
           },
           "rule": {
             "anySource": "bất kỳ nguồn nào",
+            "anyProtocol": "TCP & UDP",
             "allAllocations": "tất cả phân bổ",
             "sourceFile": "tệp: {file}",
             "summary": "{protocols} từ {sources} đến {ports}",
             "moreSources": "thêm +{count}",
+            "position": "#{position}",
             "badge": {
               "shadowed": "Không bao giờ khớp"
             },
@@ -6948,10 +8069,12 @@
             "action": "Hành động",
             "protocols": "Giao Thức",
             "protocolsDescription": "Để trống để khớp với cả TCP và UDP.",
+            "anyProtocol": "TCP & UDP",
             "sources": "Nguồn",
             "sourcesDescription": "Các địa chỉ IP hoặc mạng, chẳng hạn như 10.0.0.0/8. Đối với mạng, các bit host phải được đặt về giá trị 0. Để trống để khớp với bất kỳ nguồn nào.",
             "sourceFile": "Tệp Nguồn",
             "sourceFileDescription": "Đường dẫn đến tệp tin trong thư mục máy chủ, trong đó mỗi dòng chứa một địa chỉ IP hoặc mạng; các dòng bắt đầu bằng dấu # sẽ bị bỏ qua. Các mục trong tệp này được bổ sung vào các nguồn đã nêu ở trên, và nút mạng sẽ tự động cập nhật các thay đổi của tệp tin.",
+            "ports": "Cổng",
             "portsDescription": "Các cổng cấp phát mà quy tắc này áp dụng, dưới dạng Port đơn hoặc dải cổng ví dụ: 25565-25570. Để trống để áp dụng cho mọi cổng được cấp phát của máy chủ.",
             "preview": "Xem Trước",
             "sourcesCount": "Đã sử dụng {count}/{max}",
@@ -6969,6 +8092,7 @@
           },
           "modal": {
             "unsavedChanges": {
+              "title": "Thay Đổi Chưa Lưu",
               "content": "Bạn có các quy tắc tường lửa chưa được lưu. Rời khỏi trang này ngay bây giờ sẽ làm mất các quy tắc đó."
             },
             "importReplace": {
@@ -6988,6 +8112,7 @@
           }
         },
         "tunnel": {
+          "title": "Kết Nối",
           "subtitle": "Kết nối trực tiếp với các máy chủ khác mà không cần đi qua mạng Internet công cộng.",
           "empty": {
             "title": "Không nằm trong mạng riêng",
@@ -7054,6 +8179,7 @@
             "name": "Tên Máy Chủ",
             "nameDescription": "Các chữ cái viết thường, chữ số và dấu gạch ngang, tối đa 63 ký tự. Một máy chủ không thể kết nối tới hai máy chủ có cùng tên máy chủ.",
             "namePlaceholder": "Để trống để lấy giá trị từ tên máy chủ",
+            "port": "Cổng",
             "protocols": "Giao Thức",
             "server": "Máy Chủ",
             "serverDescription": "Chỉ các máy chủ đã nằm trong mạng riêng mới được liệt kê."
@@ -7103,11 +8229,16 @@
               "contentIncoming": "Bạn có chắc chắn muốn ngăn **{server}** kết nối tới máy chủ này không?"
             },
             "leave": {
+              "title": "Xác Nhận Rời Mạng Riêng",
               "content": "Máy chủ này bị mất địa chỉ riêng, các cổng đã được cấp và mọi kết nối theo cả hai chiều. Việc kết nối lại sẽ gán một địa chỉ mới."
             }
           }
         },
         "startup": {
+          "empty": {
+            "title": "Không Có Biến Khởi Động",
+            "description": "Egg mà máy chủ này dùng không có cài đặt nào để thay đổi ở đây, nên lệnh khởi động chạy nguyên như hiện tại."
+          },
           "title": "Khởi Động",
           "variables": "Biến",
           "dockerImageDescription": "Hình ảnh Docker được sử dụng để chạy máy chủ này. Điều này có thể được thay đổi để sử dụng một hình ảnh khác.",
@@ -7160,11 +8291,47 @@
             }
           }
         },
+        "devices": {
+          "title": "Thiết Bị",
+          "table": {
+            "columns": {
+              "attached": "Đã Gắn"
+            }
+          },
+          "button": {
+            "attach": "Gắn",
+            "detach": "Tháo"
+          },
+          "modal": {
+            "attachDevice": {
+              "title": "Gắn Thiết Bị",
+              "content": "Bạn có muốn gắn **{name}** vào `{target}` không?",
+              "toast": {
+                "attached": "{name} đã được gắn vào máy chủ của bạn."
+              }
+            },
+            "detachDevices": {
+              "title": "Tháo Thiết Bị",
+              "content": "Bạn có muốn tháo **{devices}** khỏi máy chủ này không?",
+              "alert": {
+                "skipped": "{devices} sẽ bị bỏ qua. Không thể tháo thiết bị chưa được gắn."
+              }
+            },
+            "detachDevice": {
+              "title": "Tháo Thiết Bị",
+              "content": "Bạn có muốn tháo **{name}** khỏi `{target}` không?",
+              "toast": {
+                "detached": "{name} đã được gỡ khỏi máy chủ của bạn."
+              }
+            }
+          }
+        },
         "settings": {
           "title": "Cài đặt",
           "debugInformation": {
             "title": "Chi tiết",
             "form": {
+              "nodeName": "Node (UUID)",
               "locationName": "Vị trí (UUID)",
               "serverUuid": "UUID Máy Chủ"
             }
@@ -7190,6 +8357,12 @@
               "updated": "Tự động dừng máy chủ đã được cập nhật."
             }
           },
+          "trash": {
+            "title": "Thùng Rác",
+            "toast": {
+              "updated": "Cài đặt thùng rác của máy chủ đã được cập nhật."
+            }
+          },
           "autostart": {
             "title": "Tự khởi chạy",
             "form": {
@@ -7211,6 +8384,1267 @@
                 "reinstalling": "Đang cài đặt lại máy chủ..."
               }
             }
+          },
+          "nav": {
+            "label": "Đi tới",
+            "general": "Thông Tin Máy Chủ",
+            "sftp": "Thông Tin SFTP",
+            "vscode": "VS Code",
+            "resources": "Tài Nguyên",
+            "startup": "Khởi Động",
+            "version": "Phiên Bản",
+            "behaviour": "Hành Vi",
+            "notifications": "Thông Báo",
+            "danger": "Vùng Nguy Hiểm"
+          },
+          "general": {
+            "title": "Thông Tin Máy Chủ",
+            "name": "Tên Máy Chủ",
+            "description": "Mô Tả Máy Chủ",
+            "nameUpdated": "Đã Cập Nhật Tên Máy Chủ",
+            "descriptionUpdated": "Đã Cập Nhật Mô Tả Máy Chủ",
+            "uuid": "UUID",
+            "identifier": "Mã Định Danh",
+            "node": "Node Lưu Trữ",
+            "copyUuid": "Sao Chép UUID",
+            "copyIdentifier": "Sao Chép Mã Định Danh",
+            "limits": "Giới Hạn",
+            "limit": {
+              "cpu": "CPU",
+              "memory": "Bộ Nhớ",
+              "disk": "Dung Lượng Ổ Đĩa",
+              "backups": "Bản Sao Lưu",
+              "databases": "Cơ Sở Dữ Liệu",
+              "allocations": "Phân Bổ"
+            },
+            "unlimited": "Không Giới Hạn",
+            "icon": {
+              "upload": "Tải Lên Biểu Tượng",
+              "delete": "Xóa Biểu Tượng",
+              "tooltip": "Đang Dùng Biểu Tượng Của Egg",
+              "file": "Tệp",
+              "updated": "Biểu tượng máy chủ đã được cập nhật",
+              "deleted": "Biểu tượng máy chủ đã được xóa"
+            }
+          },
+          "sftp": {
+            "title": "Thông Tin SFTP",
+            "description": "Kết nối bằng bất kỳ client SFTP nào (ví dụ FileZilla, Cyberduck, WinSCP) để quản lý trực tiếp tệp trên máy chủ của bạn.",
+            "connection": "Kết Nối",
+            "username": "Tên Người Dùng",
+            "password": "Mật Khẩu",
+            "accountPassword": "Mật Khẩu Tài Khoản Của Bạn",
+            "passwordHint": "Mật khẩu SFTP của bạn giống với mật khẩu bạn dùng để truy cập panel này.",
+            "sshKey": "Một khóa SSH trong tài khoản của bạn",
+            "sshKeyHint": "Thêm khóa trong Tài khoản › Khóa SSH.",
+            "copyHost": "Sao Chép Host",
+            "copyUsername": "Sao Chép Tên Người Dùng",
+            "launch": "Mở Trong Client SFTP",
+            "noprofitPassword": "Mật Khẩu noprofit.space Của Bạn"
+          },
+          "resize": {
+            "title": "Tài Nguyên",
+            "description": "Chọn một gói, hoặc chuyển sang nâng cao để tự đặt giá trị.",
+            "planCurrent": "Gói hiện tại",
+            "planUnavailable": "Vượt quá hạn mức còn lại của bạn",
+            "planMeta": "{cpu}% CPU · {memory} MB Bộ Nhớ · {disk} MB Ổ Đĩa",
+            "advanced": "Nâng Cao",
+            "advancedHint": "Tự đặt CPU, bộ nhớ và ổ đĩa thay vì dùng gói.",
+            "cpu": "CPU",
+            "memory": "Bộ Nhớ",
+            "disk": "Dung Lượng Ổ Đĩa",
+            "left": "Còn {amount}",
+            "save": "Lưu tài nguyên",
+            "atLeastOne": "Mỗi giá trị phải ít nhất là 1.",
+            "overMax": "Vượt quá phần tài khoản của bạn còn lại.",
+            "toast": {
+              "resized": "Giới hạn tài nguyên của máy chủ đã được cập nhật. Có thể cần khởi động lại máy chủ để dùng hết giới hạn tài nguyên mới."
+            }
+          },
+          "startup": {
+            "title": "Lệnh khởi động",
+            "command": "Lệnh Khởi Động",
+            "custom": "Khởi Động Tùy Chỉnh",
+            "image": "Hình Ảnh Docker",
+            "variables": "Biến Máy Chủ",
+            "copyCommand": "Sao Chép Lệnh",
+            "enablePreview": "Bật Xem Trước",
+            "disablePreview": "Tắt Xem Trước",
+            "commandUpdated": "Lệnh khởi động đã được cập nhật. Khởi động lại máy chủ để dùng lệnh khởi động mới.",
+            "imageUpdated": "Hình ảnh Docker đã được cập nhật. Khởi động lại máy chủ để dùng hình ảnh mới.",
+            "variableUpdated": "Đã cập nhật: {variable}"
+          },
+          "software": {
+            "title": "Phiên bản và phần mềm",
+            "description": "Chọn phần mềm và phiên bản để cài đặt. Khi áp dụng, máy chủ sẽ được cài đặt lại.",
+            "label": "Phần mềm máy chủ",
+            "versionLabel": "Phiên bản Minecraft",
+            "versionDescription": "Chỉ liệt kê các phiên bản có sẵn cho phần mềm đã chọn.",
+            "versionLatest": "Bản phát hành mới nhất",
+            "versionsFailed": "Không tải được danh sách phiên bản. Vẫn có thể chọn bản phát hành mới nhất và phiên bản hiện tại.",
+            "button": "Đổi và cài đặt lại",
+            "modal": {
+              "title": "Đổi phiên bản và cài đặt lại?",
+              "content": "Máy chủ sẽ bị dừng và được cài đặt lại với phần mềm và phiên bản đã chọn. Thế giới và tệp cấu hình được giữ lại, nhưng tệp jar và thư viện mod sẽ bị thay thế. Mod và plugin dành cho phiên bản cũ có thể ngừng hoạt động.",
+              "button": "Đổi và cài đặt lại"
+            },
+            "toast": {
+              "switching": "Đang cài đặt lại máy chủ: phần mềm và phiên bản đã chọn đang được cài đặt. Việc này có thể mất vài phút."
+            }
+          },
+          "notifications": {
+            "title": "Thông Báo",
+            "manual": "Thông Báo Sao Lưu Thủ Công",
+            "manualHint": "Nhận email khi một bản sao lưu được tạo thủ công cho máy chủ này hoàn tất hoặc thất bại.",
+            "scheduled": "Thông Báo Sao Lưu Theo Lịch Trình",
+            "scheduledHint": "Nhận email khi một bản sao lưu theo lịch trình của máy chủ này hoàn tất hoặc thất bại.",
+            "saved": "Đã Cập Nhật Cài Đặt Thông Báo"
+          },
+          "danger": {
+            "title": "Vùng Nguy Hiểm",
+            "note": "Các thao tác trong khu vực này mang tính phá hủy và ảnh hưởng trực tiếp đến hoạt động của máy chủ. Hãy đảm bảo bạn đã sao lưu mọi dữ liệu quan trọng hoặc tệp thế giới trước khi tiếp tục.",
+            "reinstallTitle": "Cài Đặt Lại Máy Chủ",
+            "reinstallBody": "Cài đặt lại máy chủ sẽ dừng máy chủ, rồi chạy lại đoạn mã cài đặt đã thiết lập nó ban đầu. Một số tệp có thể bị xóa hoặc thay đổi trong quá trình này, vui lòng sao lưu dữ liệu trước khi tiếp tục.",
+            "reinstallButton": "Cài Đặt Lại",
+            "reinstallModalTitle": "Bạn có chắc muốn cài đặt lại máy chủ không?",
+            "reinstallModalBody": "Một số tệp có thể bị xóa hoặc thay đổi trong quá trình này, vui lòng sao lưu dữ liệu trước khi tiếp tục.",
+            "reinstallConfirm": "Có, Cài Đặt Lại",
+            "reinstallStarted": "Đã Bắt Đầu Cài Đặt Lại",
+            "deleteBody": "Hành động này không thể hoàn tác và mọi dữ liệu sẽ bị mất vĩnh viễn."
+          },
+          "delete": {
+            "title": "Xóa Máy Chủ",
+            "button": "Xóa Máy Chủ",
+            "modal": {
+              "title": "Bạn có chắc muốn xóa máy chủ này không?",
+              "content": "Hành động này không thể hoàn tác và mọi dữ liệu sẽ bị mất vĩnh viễn.",
+              "typeName": "Nhập tên máy chủ để xác nhận",
+              "button": "Xóa Máy Chủ"
+            },
+            "toast": {
+              "deleted": "Máy chủ đã được xóa thành công."
+            }
+          }
+        },
+        "queue": {
+          "title": "Đang chờ khởi động",
+          "subtitle": "Yêu cầu khởi động {server} của bạn đang ở trong hàng chờ.",
+          "heading": "Đang chuẩn bị máy chủ của bạn",
+          "body": {
+            "start": "Node này hiện đang bận. Máy chủ của bạn sẽ tự động khởi động ngay khi có chỗ — bạn không cần nhấn gì cả.",
+            "restart": "Node này hiện đang bận. Việc khởi động lại sẽ tự động chạy ngay khi có chỗ — máy chủ của bạn vẫn tiếp tục chạy cho đến lúc đó."
+          },
+          "position": {
+            "label": "Vị trí của bạn",
+            "value": "Thứ {position} trong hàng",
+            "next": "Bạn là người tiếp theo",
+            "priority": "Ưu Tiên"
+          },
+          "waited": "Đã chờ {time}",
+          "capNote": "Khởi động chậm nhất sau {seconds} giây",
+          "capReached": "Đang khởi động",
+          "reason": {
+            "memory": "Bộ nhớ trên node này đang vượt quá {limit}%. Khởi động thêm một máy chủ lúc này sẽ làm chậm mọi máy chủ trên node, kể cả máy chủ của bạn.",
+            "cpu": "CPU trên node này đang vượt quá {limit}%. Khởi động thêm một máy chủ lúc này sẽ làm chậm mọi máy chủ trên node, kể cả máy chủ của bạn.",
+            "cleared": "Node đã có chỗ trở lại. Máy chủ của bạn đang khởi động."
+          },
+          "usage": {
+            "memory": "Bộ Nhớ",
+            "cpu": "CPU"
+          },
+          "priority": {
+            "plus": {
+              "heading": "Bạn đã có {app} {name}",
+              "body": "{name} đưa máy chủ của bạn lên trước tất cả những người không có nó trong hàng chờ này."
+            },
+            "plusplus": {
+              "heading": "Bạn đã có {app} {name}",
+              "body": "{name} đưa máy chủ của bạn lên đầu hàng chờ này, trước cả {plus}."
+            }
+          },
+          "plusOffer": {
+            "heading": "Vượt lên trước với {app} {name}",
+            "body": "{name} có giá {cost} token, trả một lần, dùng mãi mãi: ưu tiên trong hàng chờ này cho mọi máy chủ của bạn, các vị trí {name} và không có quảng cáo trong game.",
+            "button": "Nhận {name}"
+          },
+          "move": {
+            "heading": "Chuyển sang node ít bận hơn",
+            "body": "Chúng tôi có thể chuyển máy chủ này sang {node}, node này đang không bận. Tệp của bạn sẽ được chuyển theo.",
+            "note": "Máy chủ sẽ ngoại tuyến trong khi sao chép và địa chỉ của máy chủ sẽ thay đổi. Máy chủ tự khởi động lại khi việc chuyển hoàn tất.",
+            "button": "Chuyển máy chủ",
+            "tooBig": "Máy chủ này quá lớn để chuyển nhanh, nên chờ ở đây là lựa chọn nhanh hơn.",
+            "modal": {
+              "title": "Chuyển máy chủ này sang {node}?",
+              "content": "Máy chủ sẽ ngoại tuyến cho đến khi sao chép xong, và địa chỉ IP cùng cổng của máy chủ sẽ thay đổi. Mọi thứ trỏ đến địa chỉ cũ — tên miền, dấu trang, danh sách máy chủ của người chơi — đều phải được cập nhật."
+            }
+          },
+          "toast": {
+            "moveStarted": "Đã bắt đầu chuyển. Máy chủ của bạn sẽ hoạt động trở lại khi tệp được sao chép xong."
+          },
+          "leave": "Hủy và quay lại",
+          "passNote": "Sau khi máy chủ của bạn khởi động, các lần khởi động trong {minutes} phút tiếp theo sẽ bỏ qua trang này."
+        },
+        "waitingRoom": {
+          "title": "Khởi động nhờ quảng cáo",
+          "subtitle": "Đang chuẩn bị {server}",
+          "heading": "Những quảng cáo này đang trả tiền cho máy chủ của bạn",
+          "body": "Máy chủ miễn phí được chi trả nhờ quảng cáo như những quảng cáo trên trang này. Hãy để chúng hiển thị tối đa {seconds} giây — bảng điều khiển sẽ tự mở, và máy chủ đã bắt đầu khởi động trong lúc bạn chờ.",
+          "waitLabel": "Đang mở bảng điều khiển",
+          "seconds": "sau {seconds} giây",
+          "ready": "trong giây lát"
+        },
+        "limbo": {
+          "title": "Máy chủ đang ngủ đông",
+          "body": "Máy chủ này đã không hoạt động một thời gian, nên đã được chuyển sang ngủ đông để giải phóng tài nguyên. Hãy khôi phục để đưa máy chủ trực tuyến trở lại.",
+          "entered": "Ngủ đông từ {time}",
+          "failed": "Lần khôi phục gần nhất thất bại: {error}",
+          "costLabel": "Chi phí khôi phục",
+          "balanceLabel": "Số dư của bạn",
+          "tokens": "{count} token",
+          "pick": {
+            "title": "Chọn vị trí",
+            "body": "Vị trí ban đầu của máy chủ này hiện đã đầy. Chọn một trong các vị trí của bạn để khôi phục máy chủ ở đó. Địa chỉ của máy chủ sẽ thay đổi.",
+            "none": "Hiện không có vị trí nào của bạn còn chỗ cho máy chủ này. Hãy thử lại sau."
+          },
+          "parking": "Máy chủ này đang chuyển sang ngủ đông: máy chủ được sao lưu rồi gỡ khỏi node. Giữ lại máy chủ để ngăn việc này.",
+          "restoring": "Máy chủ của bạn đang được đưa trở lại một node đang hoạt động. Việc này mất vài phút; bảng điều khiển sẽ mở lại ngay khi máy chủ đến nơi.",
+          "button": {
+            "restore": "Khôi phục máy chủ",
+            "keep": "Giữ lại máy chủ"
+          },
+          "modal": {
+            "content": "Khôi phục sẽ tốn {cost} token và đưa máy chủ của bạn trở lại một node đang hoạt động.",
+            "contentFree": "Khôi phục sẽ đưa máy chủ của bạn trở lại một node đang hoạt động.",
+            "confirm": "Xác Nhận"
+          },
+          "toast": {
+            "restoring": "Máy chủ của bạn đang được khôi phục.",
+            "insufficient": "Bạn cần {cost} token để khôi phục máy chủ này.",
+            "failed": "Không thể bắt đầu khôi phục. Không có token nào bị trừ.",
+            "locationFull": "Hiện không còn chỗ cho máy chủ này ở đó. Chọn một vị trí bên dưới. Không có token nào bị trừ."
+          }
+        },
+        "transfer": {
+          "title": "Chuyển Máy Chủ",
+          "subtitle": "Chuyển máy chủ này sang vị trí khác. Tệp, thế giới và bản sao lưu đều được chuyển theo.",
+          "unknownLocation": "Vị trí không xác định",
+          "current": "Hiện Tại",
+          "currentLocation": "Vị trí hiện tại",
+          "anotherNode": "Node khác ở đây",
+          "address": "Địa Chỉ",
+          "data": "Dữ Liệu",
+          "backups": "Bản Sao Lưu",
+          "backupsValue": "{count} · {size}",
+          "none": "Không Có",
+          "downtime": "Ngoại tuyến khoảng",
+          "choose": "Chọn vị trí",
+          "full": "Đã Đầy",
+          "locked": "Bị Khóa",
+          "ms": "{ms} ms",
+          "moveTo": "Chuyển đến {location}",
+          "speed": "Tốc Độ",
+          "eta": "Còn Lại",
+          "attempt": "Lần Thử",
+          "attemptValue": "{attempt} trên {max}",
+          "newAddress": "Địa chỉ mới",
+          "from": "Từ",
+          "to": "Đến",
+          "safe": "Máy chủ của bạn vẫn ở trên node hiện tại cho đến khi bản sao được xác minh trên node mới. Nếu một node gặp lỗi, node khác trong cùng vị trí sẽ thay thế; nếu không node nào làm được, máy chủ đơn giản là ở lại chỗ cũ.",
+          "timeline": "Hoạt Động",
+          "history": "Các lần chuyển trước",
+          "historyState": {
+            "completed": "Đã Chuyển",
+            "failed": "Thất Bại",
+            "cancelled": "Đã Hủy"
+          },
+          "steps": {
+            "prepare": "Chuẩn Bị",
+            "stop": "Dừng",
+            "copy": "Sao Chép",
+            "verify": "Xác Minh",
+            "start": "Khởi Động"
+          },
+          "state": {
+            "queued": "Đang chờ đến lượt",
+            "preparing": "Đang chuẩn bị",
+            "stopping": "Đang dừng máy chủ",
+            "copying": "Đang sao chép tệp",
+            "finalizing": "Đang xác minh trên node mới",
+            "starting": "Đang khởi động trên node mới",
+            "retrying": "Đang thử node khác",
+            "checking": "Đang kiểm tra bản sao",
+            "cancelling": "Đang hủy",
+            "completed": "Đã chuyển",
+            "failed": "Chuyển thất bại",
+            "cancelled": "Đã hủy chuyển"
+          },
+          "stateHint": {
+            "completed": "Mọi thứ đã đến nơi và được xác minh.",
+            "failed": "Không mất gì cả: máy chủ vẫn ở trên node ban đầu với toàn bộ tệp.",
+            "cancelled": "Máy chủ vẫn ở chỗ cũ."
+          },
+          "help": {
+            "safeTitle": "Không mất gì cả",
+            "safeBody": "Bản cũ chỉ bị gỡ bỏ sau khi bản mới đã được kiểm tra, từng byte một.",
+            "retryTitle": "Tự động thử lại",
+            "retryBody": "Nếu một node bị ngắt giữa chừng, node khác trong cùng vị trí sẽ thay thế.",
+            "addressTitle": "Địa chỉ mới",
+            "addressBody": "Hostname đi theo node. Tên miền phụ tự cập nhật; kết nối trực tiếp cần dùng địa chỉ mới."
+          },
+          "blocked": {
+            "disabled": "Tính năng chuyển máy chủ hiện đang bị tắt.",
+            "busy": "Máy chủ này đang được chuyển.",
+            "suspended": "Không thể chuyển máy chủ bị đình chỉ.",
+            "installing": "Máy chủ vẫn đang được cài đặt.",
+            "restoring": "Một bản sao lưu đang được khôi phục.",
+            "backupRunning": "Một bản sao lưu đang chạy. Hãy thử lại khi xong.",
+            "cooldown": "Máy chủ này vừa được chuyển gần đây. Bạn có thể chuyển lại sau {time}."
+          },
+          "reasons": {
+            "noNode": "không có node nào còn chỗ",
+            "copyFailed": "việc sao chép bị gián đoạn",
+            "skippedMoved": "máy chủ đã được chuyển trong lúc đó"
+          },
+          "events": {
+            "requested": "Đã yêu cầu chuyển đến {location}",
+            "adopted": "Quản trị viên đã bắt đầu việc chuyển",
+            "destination": "Đã giữ chỗ node tại {location}",
+            "retrying": "Lần thử {attempt} trên {max}",
+            "attemptFailed": "Lần thử {attempt} thất bại: {reason}",
+            "copied": "Đã xác minh trên node mới",
+            "portVariable": "Đã đặt {name} thành {port}",
+            "completed": "Đã chuyển, địa chỉ mới {address}",
+            "endedFailed": "Chuyển thất bại, máy chủ vẫn ở chỗ cũ",
+            "cancelling": "Đang hủy",
+            "endedCancelled": "Đã hủy chuyển",
+            "started": "Máy chủ đã khởi động trên node mới",
+            "startFailed": "Không thể tự động khởi động máy chủ, hãy khởi động từ bảng điều khiển",
+            "restarted": "Máy chủ đã chạy trở lại",
+            "restartFailed": "Không thể tự động khởi động lại máy chủ"
+          },
+          "button": {
+            "move": "Chuyển",
+            "cancel": "Hủy chuyển"
+          },
+          "modal": {
+            "title": "Chuyển đến {location}?",
+            "content": "Máy chủ sẽ dừng, được sao chép đến {location} rồi khởi động lại ở đó. Máy chủ sẽ ngoại tuyến khoảng {time}. Địa chỉ của máy chủ sẽ thay đổi, nên hãy cập nhật mọi thứ kết nối trực tiếp đến nó; tên miền phụ sẽ tự cập nhật."
+          },
+          "cancelModal": {
+            "title": "Hủy việc chuyển?",
+            "content": "Máy chủ sẽ ở lại chỗ cũ và khởi động lại nếu trước đó đang chạy."
+          },
+          "toast": {
+            "requested": "Đã bắt đầu chuyển",
+            "cancelled": "Đang hủy việc chuyển…",
+            "cancelFailed": "Không thể hủy việc chuyển nữa."
+          }
+        },
+        "minecraft": {
+          "content": {
+            "title": "Plugin & Mod",
+            "titlePlugins": "Plugin",
+            "titleMods": "Mod & Modpack",
+            "subtitlePlugins": "Duyệt Modrinth và cài plugin trực tiếp lên máy chủ này. Chỉ liệt kê plugin dành cho phần mềm máy chủ và phiên bản Minecraft của bạn.",
+            "subtitleMods": "Duyệt Modrinth và cài mod, modpack trực tiếp lên máy chủ này. Chỉ liệt kê nội dung dành cho loader và phiên bản Minecraft của bạn.",
+            "noLoader": "Không xác định được phần mềm máy chủ từ egg của máy chủ này, nên không có nơi nào để cài plugin hoặc mod.",
+            "button": {
+              "view": "Xem trên {source}",
+              "rescan": "Quét Lại",
+              "confirm": "Xác Nhận"
+            },
+            "installed": {
+              "heading": "Đã cài trên máy chủ này",
+              "identifying": "Đang nhận diện {count}…",
+              "empty": "Chưa có plugin hay mod nào được cài đặt.",
+              "unknown": "Không xác định",
+              "identifyUnknown": "Không thể nhận diện tệp jar này trên Modrinth, CurseForge hay SpigotMC, và bên trong nó không ghi tên plugin hay mod nào.",
+              "missingHint": "Plugin này sẽ không tải được nếu thiếu {name}. Hãy cài nó từ danh sách bên dưới.",
+              "confidence": {
+                "hash": "Khớp chính xác (hash tệp)",
+                "fingerprint": "Khớp chính xác (fingerprint CurseForge)",
+                "name": "Khớp theo tên",
+                "metadata": "Đọc từ tệp jar",
+                "unknown": "Chưa nhận diện được"
+              },
+              "badge": {
+                "disabled": "Đã Tắt",
+                "missing": "cần {name}"
+              },
+              "button": {
+                "updateTo": "Cập Nhật Lên {version}",
+                "identify": "Nhận Diện"
+              },
+              "modal": {
+                "delete": {
+                  "title": "Xóa {name}?",
+                  "content": "Xóa {file} khỏi /{directory}. Máy chủ vẫn chạy nó cho đến lần khởi động lại tiếp theo.",
+                  "withData": "Xóa luôn thư mục /{folder} của nó (cấu hình và dữ liệu)",
+                  "withDataDescription": "Không chọn mục này để giữ lại cài đặt phòng khi bạn cài lại."
+                },
+                "update": {
+                  "title": "Cập Nhật {name} Lên {version}?",
+                  "content": "Bản build mới sẽ được tải xuống và tệp jar cũ bị xóa. Cấu hình của bạn vẫn được giữ nguyên."
+                }
+              },
+              "toast": {
+                "enabled": "Đã bật {name}. Khởi động lại máy chủ để áp dụng thay đổi.",
+                "disabled": "Đã tắt {name}. Khởi động lại máy chủ để áp dụng thay đổi.",
+                "deleted": "Đã xóa {name}. Khởi động lại máy chủ để áp dụng thay đổi.",
+                "updating": "Đang tải xuống {file}. Khởi động lại máy chủ để áp dụng thay đổi.",
+                "identified": "Đã nhận diện là {name}"
+              }
+            },
+            "browse": {
+              "search": "Tìm trên Modrinth...",
+              "searchCurseforge": "Tìm trên CurseForge...",
+              "searchSpigotmc": "Tìm trên SpigotMC...",
+              "filters": {
+                "trigger": "Lọc",
+                "heading": "Bộ Lọc",
+                "apply": "Áp dụng bộ lọc",
+                "reset": "Đặt Lại",
+                "indicator": "Bộ lọc đang dùng",
+                "remove": "Gỡ bộ lọc"
+              },
+              "columns": {
+                "trigger": "Quản lý cột",
+                "heading": "Cột"
+              },
+              "filter": {
+                "source": "Nguồn",
+                "kind": "Loại",
+                "version": "Phiên bản Minecraft"
+              },
+              "kind": {
+                "plugin": "Plugin",
+                "mod": "Mod",
+                "modpack": "Modpack"
+              },
+              "table": {
+                "project": "Dự Án",
+                "downloads": "Lượt Tải",
+                "categories": "Danh Mục",
+                "more": "và {count} mục khác"
+              },
+              "emptyHeading": "Không tìm thấy gì",
+              "empty": "Hãy thử từ khóa tìm kiếm khác, hoặc bỏ bộ lọc phiên bản Minecraft - không phải tác giả nào cũng liệt kê mọi phiên bản họ hỗ trợ.",
+              "externalHint": "Plugin này là bản trả phí hoặc được lưu trữ bên ngoài SpigotMC, nên không thể cài từ đây. Hãy mở nó trên SpigotMC, hoặc tìm trên Modrinth.",
+              "badge": {
+                "installed": "Đã Cài Đặt",
+                "external": "Tải xuống bên ngoài"
+              },
+              "button": {
+                "quickInstall": "Cài Đặt 1 Chạm",
+                "versions": "Phiên Bản"
+              },
+              "modal": {
+                "title": "Cài Đặt {name}",
+                "noVersions": "Không có phiên bản nào phù hợp với máy chủ này.",
+                "loose": "Không có bản build nào ghi Minecraft {version}, nên mọi bản build đều được hiển thị. Hãy chọn bản mới nhất và thử - hầu hết vẫn chạy được.",
+                "spigotLatestOnly": "SpigotMC chỉ cho tải xuống bản build mới nhất.",
+                "clientOnly": "Tác giả đánh dấu dự án này chỉ dành cho client, nên nó có thể không có tác dụng gì trên máy chủ."
+              },
+              "toast": {
+                "installed": "Đã bắt đầu cài đặt: {file} đang được tải vào {directory}/. Khởi động lại máy chủ để tải nó."
+              }
+            }
+          },
+          "settings": {
+            "title": "Cài Đặt Game",
+            "empty": "Chưa có tệp cài đặt nào trên máy chủ. Hãy khởi động máy chủ một lần để nó tạo các tệp này, rồi quay lại.",
+            "noMatch": "Không có cài đặt nào trong tệp này khớp với tìm kiếm đó.",
+            "propertiesNote": "Chú thích, thứ tự các khóa và những khóa không hiển thị ở đây được giữ nguyên. Các cổng và mật khẩu RCON do panel đặt.",
+            "yamlNote": "Chú thích và mọi nội dung khác trong tệp được giữ nguyên. Danh sách và giá trị nhiều dòng không hiển thị ở đây: hãy chỉnh sửa tệp dạng văn bản cho những mục đó.",
+            "button": {
+              "editText": "Chỉnh Sửa Dạng Văn Bản"
+            },
+            "toast": {
+              "saved": "Đã lưu {file} ({count} thay đổi). Khởi động lại máy chủ để áp dụng."
+            }
+          },
+          "players": {
+            "title": "Người Chơi",
+            "subtitle": "Chọn ai được vào máy chủ này và ai có quyền OP.",
+            "unreachableHeading": "Không xem được danh sách người chơi",
+            "unreachable": "Không thể kết nối đến máy chủ, nên không đọc được whitelist và danh sách OP. Vui lòng thử lại sau giây lát.",
+            "section": {
+              "title": "Whitelist",
+              "description": "Khi whitelist đang bật, chỉ những người chơi trong danh sách dưới đây mới có thể vào."
+            },
+            "enforced": "Chỉ cho phép người chơi có trong whitelist",
+            "offlineMode": "Máy chủ này không kiểm tra tài khoản với Mojang, nên bất kỳ ai cũng có thể chơi bằng bất kỳ tên nào. Whitelist chỉ đối chiếu theo tên.",
+            "search": "Tìm người chơi",
+            "emptyHeading": "Chưa có người chơi nào",
+            "emptyBody": "Chưa có ai trong whitelist hoặc là OP trên máy chủ này. Thêm một người chơi để bắt đầu.",
+            "noMatch": "Không có người chơi nào khớp với tìm kiếm đó.",
+            "table": {
+              "player": "Người Chơi",
+              "whitelisted": "Có Trong Whitelist",
+              "operator": "OP",
+              "banned": "Bị Cấm"
+            },
+            "badge": {
+              "operator": "Cấp {level}",
+              "banned": "Bị Cấm"
+            },
+            "button": {
+              "refresh": "Tải Lại",
+              "add": "Thêm người chơi",
+              "whitelist": "Thêm Vào Whitelist",
+              "unwhitelist": "Gỡ khỏi whitelist",
+              "op": "Cấp OP",
+              "deop": "Gỡ OP",
+              "ban": "Cấm",
+              "pardon": "Bỏ Cấm"
+            },
+            "form": {
+              "name": "Tên người dùng Minecraft",
+              "nameOnline": "Tên phải thuộc về một tài khoản Minecraft đã tồn tại.",
+              "nameOffline": "Máy chủ này không kiểm tra tài khoản, nên tên sẽ được dùng đúng như bạn nhập.",
+              "nameInvalid": "Tên Minecraft gồm 1 đến 16 chữ cái, chữ số và dấu gạch dưới.",
+              "access": "Cấp cho họ",
+              "accessWhitelist": "Quyền vào máy chủ",
+              "accessOperator": "Quyền OP",
+              "accessBoth": "Quyền vào máy chủ và quyền OP",
+              "reason": "Lý Do"
+            },
+            "modal": {
+              "add": {
+                "title": "Thêm người chơi"
+              },
+              "unwhitelist": {
+                "title": "Gỡ {name} khỏi whitelist?",
+                "content": "Người chơi này sẽ không thể vào nữa, và bị ngắt kết nối ngay nếu đang chơi."
+              },
+              "op": {
+                "title": "Cấp OP cho {name}?",
+                "content": "OP có thể chạy lệnh, thay đổi game và chỉnh sửa thế giới. Chỉ cấp cho người bạn tin tưởng."
+              },
+              "deop": {
+                "title": "Gỡ OP của {name}?",
+                "content": "Người chơi này vẫn giữ quyền vào máy chủ nhưng mất mọi lệnh OP."
+              },
+              "ban": {
+                "title": "Cấm {name}?",
+                "content": "Người chơi sẽ bị ngắt kết nối và không thể vào lại cho đến khi được bỏ cấm."
+              }
+            },
+            "toast": {
+              "whitelisted": "Đã thêm {name} vào whitelist.",
+              "unwhitelisted": "Đã gỡ {name} khỏi whitelist.",
+              "opped": "{name} giờ là OP.",
+              "deopped": "{name} không còn là OP.",
+              "banned": "{name} đã bị cấm.",
+              "pardoned": "{name} đã được bỏ cấm.",
+              "enforcedOn": "Đã bật whitelist.",
+              "enforcedOff": "Đã tắt whitelist.",
+              "atNextStart": "Đã lưu vào tệp máy chủ - thay đổi sẽ áp dụng ở lần khởi động tiếp theo."
+            }
+          },
+          "worlds": {
+            "title": "Thế Giới",
+            "subtitle": "Tải xuống, tải lên, tạo lại hoặc đổi thế giới. Thay đổi cách tạo thế giới sẽ bắt đầu một thế giới mới.",
+            "running": "Dừng máy chủ để tải lên, tạo mới hoặc thay đổi tùy chọn của thế giới đang dùng.",
+            "stopFirst": "Hãy dừng máy chủ trước",
+            "deletesCurrent": "Thế giới hiện tại của bạn sẽ bị xóa!",
+            "importing": "Đang nhập thế giới vừa tải lên…",
+            "importFailed": "Không thể nhập thế giới: {error}",
+            "modifiedAt": "Lưu lần cuối {date}",
+            "badge": {
+              "active": "Đang Dùng",
+              "notGenerated": "Chưa được tạo",
+              "notGeneratedHint": "Máy chủ sẽ tạo thế giới này ở lần khởi động tiếp theo.",
+              "nether": "Nether",
+              "theEnd": "The End"
+            },
+            "stats": {
+              "difficulty": "Độ Khó",
+              "gamemode": "Chế độ chơi",
+              "hardcore": "Hardcore",
+              "on": "Bật",
+              "off": "Tắt",
+              "modified": "Lưu lần cuối",
+              "never": "Chưa có"
+            },
+            "button": {
+              "stop": "Dừng máy chủ",
+              "refresh": "Quét Lại",
+              "options": "Tùy Chọn",
+              "generate": "Tạo Mới",
+              "activate": "Dùng thế giới này",
+              "download": "Tải Xuống",
+              "files": "Tệp",
+              "delete": "Xóa",
+              "create": "Tạo thế giới mới",
+              "uploadSubmit": "Tải lên và thay thế"
+            },
+            "upload": {
+              "title": "Tải lên thế giới",
+              "hint": "Thả tệp .zip hoặc .tar.gz vào đây, hoặc nhấp để chọn.",
+              "failed": "Tải lên thất bại. Hãy kiểm tra tệp và thử lại."
+            },
+            "help": {
+              "uploadTitle": "Mang thế giới chơi đơn của bạn lên",
+              "uploadBody": "Trong Minecraft, mở .minecraft/saves, nén thư mục thế giới thành tệp zip và thả tệp zip vào ô phía trên. Thư mục chứa level.dat sẽ được tìm thấy dù nó nằm ở đâu bên trong.",
+              "safeTitle": "Không mất gì do vô tình",
+              "safeBody": "Tùy Chọn, Tạo Mới và Tải Lên sẽ thay thế thế giới đang dùng. Khi bật \"Giữ một bản sao\", thế giới cũ vẫn ở trong danh sách này.",
+              "switchTitle": "Nhiều hơn một thế giới",
+              "switchBody": "Các thế giới bạn tải lên hoặc giữ lại nằm cạnh nhau. \"Dùng thế giới này\" chọn thế giới mà máy chủ sẽ tải ở lần khởi động tiếp theo."
+            },
+            "modal": {
+              "options": {
+                "title": "Tùy chọn thế giới"
+              },
+              "generate": {
+                "title": "Tạo mới {world}?"
+              },
+              "activate": {
+                "title": "Dùng {world}?",
+                "content": "Máy chủ sẽ tải thế giới này từ lần khởi động tiếp theo. Thế giới hiện tại của bạn vẫn được giữ nguyên."
+              },
+              "delete": {
+                "title": "Xóa {world}?",
+                "content": "Xóa vĩnh viễn {folders}.",
+                "trash": "Chuyển {folders} vào thùng rác, nơi có thể khôi phục lại trong một thời gian."
+              }
+            },
+            "form": {
+              "name": "Tên thế giới",
+              "nameInvalid": "Từ 1 đến 64 chữ cái, chữ số, dấu cách, dấu chấm, dấu gạch ngang và dấu gạch dưới, bắt đầu bằng chữ cái hoặc chữ số.",
+              "nameTaken": "Đã có thế giới khác mang tên này. Hãy dùng \"Dùng thế giới này\" trên thế giới đó.",
+              "seed": "Seed",
+              "seedRandom": "Ngẫu nhiên",
+              "generator": "Cài đặt trình tạo",
+              "type": "Loại thế giới",
+              "structures": "Tạo công trình",
+              "datapacks": "Data pack",
+              "datapacksPlaceholder": "Thẻ mới",
+              "newSeed": "Dùng seed ngẫu nhiên mới",
+              "keep": "Giữ một bản sao của thế giới hiện tại",
+              "keepRenamed": "Được giữ trong danh sách này với tên mới (tính vào dung lượng ổ đĩa của bạn).",
+              "keepAsIs": "Được giữ nguyên trong danh sách này (tính vào dung lượng ổ đĩa của bạn).",
+              "archiveInvalid": "Chọn tệp .zip, .tar, .tar.gz, .tgz, .tar.xz hoặc .tar.zst."
+            },
+            "toast": {
+              "stopping": "Đang dừng máy chủ…",
+              "recreated": "Thế giới {world} đã được đặt lại.",
+              "startToPlay": "Khởi động máy chủ để chơi.",
+              "kept": "Thế giới cũ đã được lưu với tên {name}. Khởi động máy chủ để chơi thế giới mới.",
+              "activated": "Máy chủ sẽ tải {world}. Khởi động lại máy chủ để áp dụng thay đổi.",
+              "deleted": "Đã xóa {world}",
+              "saving": "Đang lưu thế giới trước …",
+              "importStarted": "Đang nhập thế giới vừa tải lên…",
+              "imported": "Thế giới vừa tải lên giờ là {world}."
+            }
+          },
+          "logCheck": {
+            "clean": "Không phát hiện vấn đề nào trong nhật ký máy chủ.",
+            "open": "Xem trên mclo.gs",
+            "problemsOne": "Nhật ký máy chủ của bạn có một vấn đề",
+            "problems": "Nhật ký máy chủ của bạn có {count} vấn đề",
+            "errorsOne": "Nhật ký máy chủ của bạn có một lỗi",
+            "errors": "Nhật ký máy chủ của bạn có {count} lỗi",
+            "fix": "Cách khắc phục: {fix}",
+            "more": "…và {count} mục khác",
+            "errorsBody": "Không nhận ra nguyên nhân đã biết nào, nhưng neo có thể đọc các lỗi và sửa chúng.",
+            "errorsBodyNoNeo": "mclo.gs không tìm thấy vấn đề đã biết nào gây ra chúng. Nhật ký đầy đủ cho biết chúng đến từ đâu.",
+            "ask": "Nhờ neo sửa",
+            "view": "Xem nhật ký"
+          },
+          "bedrock": {
+            "content": "Cài đặt Geyser và Floodgate để người chơi Bedrock (điện thoại và console) có thể vào. Người chơi Java không bị ảnh hưởng.",
+            "join": "Người chơi Bedrock vào qua (nhấn để sao chép):",
+            "restart": "Máy chủ đang chạy và sẽ khởi động lại sau khi Geyser được cài đặt.",
+            "button": {
+              "add": "Thêm hỗ trợ Bedrock",
+              "update": "Cập Nhật Geyser"
+            },
+            "toast": {
+              "installed": "Geyser đã được cài đặt. Người chơi Bedrock vào qua {address}.",
+              "updated": "Geyser đã được cập nhật. Người chơi Bedrock vào qua {address}.",
+              "noFloodgate": "Floodgate không có bản build cho phiên bản Minecraft này, nên người chơi Bedrock cần tài khoản Java để vào."
+            }
+          },
+          "modpacks": {
+            "noLoaders": "Game của máy chủ này không chạy được Fabric, Quilt, Forge hay NeoForge, nên không thể cài modpack.",
+            "running": "Dừng máy chủ để cài modpack.",
+            "modal": {
+              "title": "Cài Đặt {name}",
+              "warning": "Máy chủ sẽ được chuyển sang loader và phiên bản Minecraft mà gói này cần, được cài đặt lại, rồi các tệp của gói sẽ được đặt vào. Thế giới của bạn được giữ lại. Không thể cố định chính xác bản build loader của gói, nên gói nào yêu cầu một bản build cụ thể có thể vẫn cần chỉnh tay.",
+              "noVersions": "Modpack này không có phiên bản nào cho loader mà máy chủ này chạy được.",
+              "clean": "Gỡ các mod đang được cài",
+              "cleanDescription": "Mod từ gói khác thường xung đột với gói này. Chúng sẽ được chuyển vào thùng rác nếu máy chủ có thùng rác."
+            },
+            "step": {
+              "download": "Đang tải xuống gói…",
+              "software": "Đang cài đặt lại máy chủ…",
+              "files": "Đang tải xuống mod…",
+              "overrides": "Đang giải nén cấu hình…",
+              "done": "Xong.",
+              "failed": "Thất bại."
+            },
+            "state": {
+              "queuedHeading": "Đã bắt đầu cài đặt modpack",
+              "queued": "{name} đang được cài đặt. Máy chủ sẽ được cài đặt lại trước, rồi các tệp của gói được đặt vào - việc này mất vài phút.",
+              "software": "({loader}, Minecraft {version})",
+              "doneHeading": "Đã cài đặt modpack",
+              "done": "{name} đã được cài đặt và {count} tệp đã được tải xuống máy chủ. Hãy khởi động máy chủ và theo dõi bảng điều khiển.",
+              "skipped": "Chưa được tải xuống, hãy tự thêm các tệp này: {files}",
+              "overridesSkipped": "Các tệp cấu hình đi kèm gói quá lớn để áp dụng tự động - hãy tải gói từ Modrinth và tải lên thư mục overrides của gói qua trình quản lý tệp.",
+              "failedHeading": "Cài đặt modpack thất bại",
+              "failed": "Không thể cài đặt {name}. Hãy kiểm tra bảng điều khiển và danh sách tệp trước khi khởi động máy chủ. {error}"
+            }
+          },
+          "setup": {
+            "title": "Thiết lập máy chủ của bạn",
+            "subtitle": "Trả lời vài câu hỏi, và máy chủ của bạn sẽ được cấu hình theo ý bạn. Bạn có thể thay đổi bất cứ điều gì sau này.",
+            "gate": "Hãy hoàn tất thiết lập máy chủ trước. Máy chủ này vừa được tạo và vẫn cần chọn phần mềm máy chủ. Phần còn lại của panel sẽ mở ngay khi bạn hoàn tất ở đây.",
+            "finish": "Hoàn tất thiết lập",
+            "callout": {
+              "heading": "Máy chủ của bạn chưa được thiết lập",
+              "body": "Chọn phần mềm máy chủ, modpack, và ai được phép vào - chúng tôi sẽ ghi các tệp cho bạn.",
+              "action": "Bắt đầu thiết lập"
+            },
+            "steps": {
+              "software": {
+                "title": "Phần mềm máy chủ",
+                "description": "Đây là loại máy chủ nào, và chạy phiên bản Minecraft nào."
+              },
+              "modpack": {
+                "title": "Modpack",
+                "description": "Không bắt buộc. Cài một modpack có sẵn thay vì tự thiết lập bằng tay."
+              },
+              "bedrock": {
+                "title": "Hỗ trợ Bedrock",
+                "description": "Cho phép người chơi trên điện thoại, máy tính bảng và console vào máy chủ Java của bạn."
+              },
+              "accounts": {
+                "title": "Tài khoản người chơi",
+                "description": "Người chơi có cần tài khoản Minecraft trả phí để vào hay không."
+              },
+              "access": {
+                "title": "Dành cho ai",
+                "description": "Máy chủ riêng cho bạn bè, hoặc mở cho mọi người."
+              },
+              "players": {
+                "title": "Người Chơi",
+                "description": "Ai được vào, và ai được quyền quản lý máy chủ."
+              }
+            },
+            "software": {
+              "label": "Phần mềm máy chủ",
+              "descriptions": {
+                "plugins": "Máy chủ tiêu chuẩn. Hỗ trợ plugin Bukkit, Spigot và Paper.",
+                "fabric": "Mod loader nhẹ. Dùng cho mod Fabric.",
+                "neoforge": "Bản fork hiện đại của Forge. Dùng cho mod NeoForge.",
+                "forge": "Mod loader cổ điển. Dùng cho mod Forge và các modpack cũ hơn."
+              },
+              "version": "Phiên bản Minecraft",
+              "latest": "Mới nhất (khuyến nghị)",
+              "versionHint": "Để ở Mới nhất thì máy chủ của bạn sẽ theo các bản phát hành Minecraft mới ở lần cài đặt lại tiếp theo."
+            },
+            "modpack": {
+              "label": "Modpack",
+              "none": "Không có modpack - chỉ máy chủ cơ bản",
+              "search": "Tìm modpack trên Modrinth",
+              "nothing": "Không tìm thấy gì",
+              "hint": "Modpack đi kèm loader và phiên bản Minecraft riêng, nên sẽ ghi đè hai câu trả lời ở bước trước. Những gói yêu cầu chính xác một bản build Forge hoặc NeoForge có thể vẫn cần chỉnh tay sau đó.",
+              "version": "Phiên bản modpack",
+              "versionHint": "Bản phát hành mới nhất đã được chọn sẵn cho bạn. Các phiên bản cũ hơn dành cho những gói vẫn đang được cập nhật."
+            },
+            "bedrock": {
+              "yes": "Có, thêm hỗ trợ Bedrock",
+              "yesDescription": "Cài đặt Geyser và Floodgate để người chơi Bedrock (điện thoại và console) có thể vào. Người chơi Java không bị ảnh hưởng.",
+              "no": "Chỉ Java",
+              "noDescription": "Chỉ Minecraft Java Edition có thể kết nối. Bạn có thể thêm hỗ trợ Bedrock sau trong trang Mod.",
+              "note": "Người chơi Bedrock kết nối qua một cổng riêng, được hiển thị trong thông tin kết nối của máy chủ sau khi máy chủ khởi động lại. Bạn có thể thay đổi hoặc gỡ bỏ bất cứ lúc nào trong trang Mod."
+            },
+            "accounts": {
+              "premium": "Chỉ tài khoản bản quyền",
+              "premiumDescription": "Mọi người chơi đều được xác minh với Mojang. Skin, áo choàng và tên người dùng được đảm bảo là thật. Đây là mặc định an toàn.",
+              "cracked": "Cho phép client crack",
+              "crackedDescription": "Bất kỳ ai cũng có thể vào với bất kỳ tên người dùng nào, không cần sở hữu Minecraft. Chỉ chọn mục này nếu bạn biết mình cần.",
+              "crackedWarning": "Cẩn thận: khi cho phép client crack, bất kỳ ai cũng có thể kết nối bằng tên người dùng của bạn - kể cả tên của OP. Hãy luôn bật whitelist, nếu không máy chủ của bạn sẽ bị chiếm quyền."
+            },
+            "access": {
+              "private": "Riêng tư - chỉ bạn bè",
+              "privateDescription": "Chỉ những người chơi bạn liệt kê mới có thể vào. Bật và áp dụng whitelist, nên khi gỡ ai đó, họ cũng sẽ bị ngắt kết nối.",
+              "public": "Công khai - ai cũng có thể vào",
+              "publicDescription": "Không có whitelist. Bất kỳ ai biết địa chỉ đều có thể kết nối.",
+              "publicWarning": "Máy chủ công khai sẽ bị các công cụ quét tìm thấy trong vài giờ. Hãy chuẩn bị cho những vị khách không mời, và giữ các bản sao lưu."
+            },
+            "players": {
+              "whitelist": "Người chơi được phép",
+              "whitelistHint": "Tên người dùng Minecraft, không phải địa chỉ e-mail. Bạn có thể thêm người chơi trong trang Người Chơi bất cứ lúc nào.",
+              "operators": "OP",
+              "operatorsHint": "Hãy bắt đầu với tên người dùng Minecraft của bạn để bạn có thể chạy lệnh trong game.",
+              "operatorsWarning": "OP có thể thay đổi mọi thứ trên máy chủ, kể cả tự cấp vật phẩm cho mình và cấm người chơi khác. Chỉ thêm những người bạn tin tưởng.",
+              "placeholder": "Nhập tên người dùng rồi nhấn Enter",
+              "invalid": "Không phải tên Minecraft: {names}",
+              "tooMany": "Tối đa {max} tên."
+            },
+            "toast": {
+              "done": "Máy chủ của bạn đã được thiết lập. Cài đặt đã được ghi vào tệp máy chủ.",
+              "doneRestart": "Máy chủ của bạn đã được thiết lập. Cài đặt đã được ghi vào tệp máy chủ. Khởi động lại máy chủ để áp dụng cài đặt.",
+              "doneInstalling": "Máy chủ của bạn đã được thiết lập. Máy chủ đang được cài đặt. Whitelist và cài đặt của bạn sẽ được tự động áp dụng ngay khi cài đặt xong - việc này có thể mất vài phút."
+            },
+            "progress": {
+              "title": "Đang thiết lập máy chủ của bạn",
+              "waiting": "Đang chờ máy chủ cài đặt xong…",
+              "software": "Đang cài đặt lại máy chủ với phần mềm đã chọn…",
+              "modpack": "Đang cài đặt modpack…",
+              "settings": "Đang ghi cài đặt và danh sách người chơi…",
+              "bedrock": "Đang thiết lập cho người chơi Bedrock…",
+              "starting": "Đang khởi động máy chủ…",
+              "doneHeading": "Máy chủ của bạn đã được thiết lập",
+              "done": "Cài đặt đã được ghi vào tệp máy chủ.",
+              "failedHeading": "Thiết lập thất bại",
+              "failed": "Quá trình thiết lập đã dừng: {error}",
+              "problems": "Không phải mọi thứ đều được áp dụng: {problems}",
+              "skipped": "Chưa được thêm (không có tài khoản Minecraft nào mang tên này, hoặc Mojang không phản hồi), hãy thêm họ trong trang Người Chơi: {names}"
+            }
+          }
+        },
+        "fivem": {
+          "config": {
+            "title": "Cấu hình máy chủ",
+            "subtitle": "Chỉnh sửa {file} dạng biểu mẫu hoặc dạng văn bản. Cả hai đều ghi vào cùng một tệp.",
+            "invalid": "{list}, hàng {row}: tên chỉ được dùng chữ cái, chữ số và . _ - : @ [ ]. Hãy sửa hoặc xóa hàng đó, rồi lưu lại.",
+            "unreachable": {
+              "title": "Không thể kết nối đến máy chủ",
+              "description": "Node của máy chủ không phản hồi. Hãy thử lại sau một phút."
+            },
+            "empty": {
+              "title": "Chưa có server.cfg",
+              "description": "txAdmin chưa thiết lập máy chủ này, nên chưa có server.cfg để chỉnh sửa. Hãy cài một framework tại đây, hoặc mở txAdmin từ bảng điều khiển và hoàn tất thiết lập của nó.",
+              "frameworks": "Cài đặt framework"
+            },
+            "lists": {
+              "empty": "Chưa có gì.",
+              "remove": "Gỡ Bỏ",
+              "showAll": "Hiện tất cả {count}"
+            },
+            "toast": {
+              "saved": "Đã lưu server.cfg. Khởi động lại máy chủ để áp dụng.",
+              "noChanges": "Không có gì thay đổi",
+              "restarting": "Đang khởi động lại"
+            },
+            "button": {
+              "save": "Lưu thay đổi",
+              "editText": "Chỉnh sửa dạng văn bản",
+              "restart": "Khởi động lại máy chủ"
+            },
+            "restart": {
+              "title": "Khởi động lại máy chủ?",
+              "description": "FXServer đọc server.cfg khi khởi động, nên thay đổi sẽ áp dụng sau khi khởi động lại. Mọi người đang trực tuyến sẽ bị ngắt kết nối."
+            },
+            "raw": {
+              "description": "Toàn bộ tệp, cho mọi thứ mà biểu mẫu không bao gồm. Khi lưu, tệp sẽ được thay thế đúng như nội dung bạn viết."
+            },
+            "locale": {
+              "none": "Mặc định (không đặt ngôn ngữ)"
+            },
+            "identity": {
+              "title": "Nhận Diện",
+              "description": "Cách máy chủ của bạn hiển thị trong danh sách máy chủ FiveM và trên trang chi tiết của nó.",
+              "hostname": "Tên Máy Chủ",
+              "hostnameDescription": "Hiển thị trên trang chi tiết máy chủ sau khi người chơi nhấp vào.",
+              "projectName": "Tên dự án",
+              "projectNameDescription": "Hiển thị làm tên máy chủ trong danh sách máy chủ.",
+              "maxClients": "Số người chơi tối đa",
+              "maxClientsDescription": "Số chỗ máy chủ dành sẵn.",
+              "projectDescription": "Mô Tả",
+              "projectDescriptionDescription": "Hiển thị bên cạnh tên máy chủ trong danh sách máy chủ.",
+              "locale": "Ngôn Ngữ",
+              "localeDescription": "Được client FiveM dùng để hiển thị ngày và số.",
+              "tags": "Thẻ",
+              "tagsDescription": "Nhấn Enter hoặc dấu phẩy để thêm thẻ. Thẻ giúp người chơi tìm thấy máy chủ của bạn.",
+              "tagsPlaceholder": "Thẻ mới",
+              "icon": "Biểu tượng máy chủ",
+              "iconDescription": "Một tệp PNG 96x96, ghi dưới dạng đường dẫn tương đối với thư mục dữ liệu máy chủ. Hiển thị bên cạnh tên máy chủ của bạn."
+            },
+            "network": {
+              "title": "Mạng & bản build",
+              "description": "Địa chỉ mà FXServer lắng nghe, và bản build GTA V mà người chơi cần.",
+              "endpoints": "Địa Chỉ",
+              "noEndpoints": "{address} (do txAdmin đặt)",
+              "endpointsDescription": "Do panel quản lý. Các cổng của máy chủ nằm trong trang Mạng.",
+              "onesync": "OneSync",
+              "onesyncValue": "Do txAdmin quản lý",
+              "onesyncDescription": "Đặt trong txAdmin tại Settings › FXServer. txAdmin biến mọi dòng onesync trong server.cfg thành chú thích.",
+              "gameBuild": "Bắt buộc bản build game",
+              "gameBuildDescription": "Buộc mọi người chơi vào bằng bản build GTA V này, để nội dung DLC mới hơn hoạt động.",
+              "gameBuildNone": "Không bắt buộc (người chơi dùng bản build của họ)"
+            },
+            "database": {
+              "title": "Cơ Sở Dữ Liệu",
+              "description": "Dùng cho oxmysql và các resource khác đọc mysql_connection_string.",
+              "use": "Dùng một cơ sở dữ liệu của bạn",
+              "useDescription": "Điền các trường bên dưới từ một cơ sở dữ liệu trong trang Cơ Sở Dữ Liệu.",
+              "usePlaceholder": "Chọn cơ sở dữ liệu",
+              "host": "Máy Chủ",
+              "port": "Cổng",
+              "user": "Tên Người Dùng",
+              "name": "Cơ Sở Dữ Liệu",
+              "password": "Mật Khẩu",
+              "format": "Định dạng chuỗi kết nối",
+              "formatDescription": "Giữ URI trừ khi resource của bạn cần key=value. key=value không thể chứa mật khẩu có = hoặc ; trong đó."
+            },
+            "keys": {
+              "title": "Khóa bản quyền & khóa API",
+              "description": "Các thông tin bí mật cho phép máy chủ truy cập FiveM, Steam và Tebex. Được ẩn cho đến khi bạn hiện chúng.",
+              "license": "Khóa bản quyền FiveM",
+              "licenseDescription": "Bắt buộc. Nhận miễn phí tại",
+              "steam": "Khóa Steam Web API",
+              "steamDescription": "Chỉ cần nếu resource của bạn nhận diện người chơi qua Steam.",
+              "tebex": "Mã bí mật Tebex",
+              "tebexDescription": "Có trong trang tổng quan Tebex của bạn, mục Game Servers."
+            },
+            "resources": {
+              "title": "Resource",
+              "description": "Các dòng ensure trong server.cfg. Resource bị tắt sẽ được biến thành chú thích, không bị xóa.",
+              "name": "Resource",
+              "enabled": "Đã Bật",
+              "add": "Thêm resource"
+            },
+            "principals": {
+              "title": "Thành viên nhóm",
+              "description": "Mỗi hàng là một dòng add_principal: một mã định danh người chơi (hoặc một nhóm) tham gia một nhóm.",
+              "child": "Người chơi hoặc nhóm",
+              "parent": "Tham gia nhóm",
+              "add": "Thêm thành viên"
+            },
+            "aces": {
+              "title": "Kiểm soát truy cập",
+              "description": "Mỗi hàng là một dòng add_ace: cho phép hoặc chặn một nhóm dùng một lệnh hoặc đối tượng.",
+              "principal": "Nhóm",
+              "object": "Lệnh hoặc đối tượng",
+              "access": "Quyền Truy Cập",
+              "allow": "cho phép",
+              "deny": "chặn",
+              "add": "Thêm quy tắc"
+            }
+          },
+          "players": {
+            "title": "Người Chơi",
+            "subtitle": "Danh sách người chơi trực tiếp. Làm mới mỗi {seconds} giây.",
+            "refresh": "Làm Mới",
+            "online": "Trực Tuyến",
+            "offline": "Ngoại Tuyến",
+            "countSlots": "{count} / {slots} người chơi",
+            "count": {
+              "none": "Không có người chơi"
+            },
+            "search": "Tìm theo tên, ID hoặc mã định danh",
+            "unreachable": "Không kết nối được máy chủ",
+            "unreachableDescription": "Máy chủ có thể đang ngoại tuyến hoặc vẫn đang khởi động.",
+            "nobody": "Không có ai trực tuyến",
+            "nobodyDescription": "Người chơi sẽ hiện ở đây ngay khi họ vào.",
+            "noMatch": "Không có người chơi nào khớp",
+            "noMatchDescription": "Hãy thử một tên, một ID máy chủ hoặc một phần của mã định danh.",
+            "unnamed": "Người chơi không tên",
+            "pingValue": "{ping} ms"
+          },
+          "artifacts": {
+            "title": "Artifact",
+            "subtitle": "Bản build FXServer mà máy chủ của bạn đang chạy. Hãy chọn một bản, hoặc để mỗi lần khởi động tự cài bản mới nhất của Cfx.",
+            "installed": {
+              "title": "Đã Cài Đặt",
+              "unreachable": "Không rõ (node không phản hồi)",
+              "unknown": "Bản build không rõ",
+              "unknownDescription": "Được cài trước khi panel bắt đầu theo dõi. Lần khởi động tới sẽ ghi nhận nó.",
+              "since": "Từ {when}"
+            },
+            "build": "Bản Build {build}",
+            "pending": "Bản build {build} sẽ được cài ở lần khởi động tới.",
+            "mode": {
+              "title": "Cập Nhật",
+              "recommended": {
+                "label": "Theo Bản Khuyến Nghị",
+                "description": "Mỗi lần khởi động sẽ cài bản build mà Cfx khuyến nghị, nếu bản đó đã thay đổi."
+              },
+              "latest": {
+                "label": "Theo Bản Mới Nhất",
+                "description": "Mỗi lần khởi động sẽ cài bản build mới nhất của Cfx, nếu bản đó đã thay đổi. Tính năng mới nhất, đôi khi kèm lỗi mới nhất."
+              },
+              "pin": {
+                "label": "Giữ bản build này",
+                "description": "Giữ bản build đã cài cho đến khi bạn chọn bản khác."
+              }
+            },
+            "search": "Tìm theo số bản build",
+            "count": {
+              "none": "Không có bản build nào"
+            },
+            "noMatch": "Không có bản build nào khớp với số đó.",
+            "cfxUnreachable": "Không thể tải danh sách bản build của Cfx. Hãy thử lại sau một phút.",
+            "badge": {
+              "recommended": "Khuyến Nghị",
+              "latest": "Mới Nhất",
+              "installed": "Đã Cài Đặt"
+            },
+            "unsupported": "Hết hỗ trợ",
+            "supportedUntil": "Được Cfx hỗ trợ đến {date}",
+            "install": {
+              "title": "Cài Đặt Bản Build {build}?",
+              "button": "Cài Đặt",
+              "description": "Máy chủ của bạn sẽ ở lại bản build này cho đến khi bạn chọn bản khác. Nếu máy chủ đang chạy, nó sẽ khởi động lại ngay và cài bản build; việc này mất khoảng một phút."
+            },
+            "toast": {
+              "restarting": "Máy chủ đang khởi động lại để áp dụng ngay.",
+              "nextStart": "Thay đổi sẽ áp dụng ở lần khởi động tiếp theo của máy chủ.",
+              "build": "Đã chọn bản build {build}.",
+              "channel": "Cập nhật theo bản {channel}."
+            },
+            "channel": {
+              "recommended": "Khuyến Nghị",
+              "latest": "Mới Nhất"
+            },
+            "enhancedNote": "Máy chủ này chạy FiveM for GTAV Enhanced, vốn luôn chạy bản build hiện tại của Cfx. Các bản build ở đây dành cho FiveM (Legacy).",
+            "enhancedLink": "Mở FiveM for GTAV Enhanced",
+            "sourceNote": "Các bản build được tải trực tiếp từ Cfx (runtime.fivem.net). {app} không lưu trữ hay thay đổi chúng và không liên kết với Rockstar Games hay Cfx.re."
+          },
+          "enhanced": {
+            "nav": "GTAV Enhanced",
+            "title": "FiveM for GTAV Enhanced",
+            "subtitle": "Chạy máy chủ của bạn trên phiên bản GTAV Enhanced mới của FiveM, hoặc chuyển lại bất cứ lúc nào.",
+            "earlyAccess": "FiveM for GTAV Enhanced đang ở giai đoạn truy cập sớm tại Cfx.re. Hãy chuẩn bị cho lỗi và tính năng còn thiếu, và thử nghiệm trước khi chuyển cộng đồng của bạn sang.",
+            "unavailable": "FiveM for GTAV Enhanced chưa có trên {app}. Cfx.re đang cung cấp nó ở giai đoạn truy cập sớm, và nó chưa chạy được trên máy chủ của chúng tôi. Dưới đây là những gì sẽ thay đổi khi nó chạy được.",
+            "redm": "Đây là máy chủ RedM. RedM không có bản Enhanced.",
+            "edition": {
+              "legacy": "FiveM (Legacy)",
+              "enhanced": "FiveM for GTAV Enhanced"
+            },
+            "runsLegacy": "Máy chủ này chạy bản build máy chủ FiveM thông thường.",
+            "runsEnhanced": "Máy chủ này chạy bản build máy chủ Enhanced.",
+            "runsEnhancedBuild": "Máy chủ này chạy bản build Enhanced {build}, và cập nhật lên bản mới nhất của Cfx mỗi lần khởi động.",
+            "pendingEnhanced": "Sẽ chuyển sang Enhanced ở lần khởi động tới.",
+            "pendingLegacy": "Sẽ chuyển lại FiveM (Legacy) ở lần khởi động tới.",
+            "switchToEnhanced": "Chuyển sang Enhanced",
+            "switchToLegacy": "Chuyển lại Legacy",
+            "confirmEnhanced": "Chuyển sang FiveM for GTAV Enhanced?",
+            "confirmEnhancedDescription": "Sau đó chỉ người chơi có client Enhanced mới có thể vào. Tệp máy chủ, cơ sở dữ liệu và dữ liệu txAdmin của bạn được giữ nguyên. Máy chủ đang chạy sẽ khởi động lại ngay.",
+            "confirmLegacy": "Chuyển lại FiveM (Legacy)?",
+            "confirmLegacyDescription": "Người chơi sẽ lại cần client FiveM thông thường. Tệp máy chủ của bạn được giữ nguyên. Máy chủ đang chạy sẽ khởi động lại ngay.",
+            "switchedEnhanced": "Đã chuyển sang Enhanced.",
+            "switchedLegacy": "Đã chuyển lại FiveM (Legacy).",
+            "compatibility": "Những gì thay đổi",
+            "facts": {
+              "client": {
+                "title": "Người chơi cần client Enhanced",
+                "description": "Người chơi phải sở hữu GTA V Enhanced trên PC và cài client FiveM for GTAV Enhanced riêng từ fivem.net. Người chơi Legacy không thể vào máy chủ Enhanced, và ngược lại. Không có chơi chéo."
+              },
+              "scripts": {
+                "title": "Script và resource",
+                "description": "Theo Cfx.re, các resource Lua, JavaScript và C# đều tương thích, còn server.cfg, cơ sở dữ liệu và dữ liệu txAdmin được giữ nguyên. ESX và QBCore dự kiến vẫn hoạt động, nhưng hãy thử toàn bộ resource của bạn trước khi chuyển cộng đồng đang hoạt động sang."
+              },
+              "assets": {
+                "title": "Asset, MLO và phương tiện",
+                "description": "Hầu hết phương tiện addon, MLO và trang phục đều tải bình thường. Enhanced dùng trình kết xuất GTA V mới hơn, nên shader tùy chỉnh, gói đồ họa và một số gói texture có thể trông khác đi hoặc cần bản cập nhật từ người tạo."
+              },
+              "network": {
+                "title": "Mạng và hiệu năng",
+                "description": "Enhanced đi kèm OneSync được làm lại với tốc độ đồng bộ cao hơn, streaming entity nhanh hơn và chứa được nhiều người chơi hơn. Trò chuyện thoại dùng hệ thống VOIP mới, nên các resource thoại bên ngoài có thể cần cập nhật."
+              },
+              "switching": {
+                "title": "Chuyển lại",
+                "description": "Bạn có thể chuyển lại FiveM (Legacy) bất cứ lúc nào; tệp máy chủ của bạn đều được giữ lại dù chọn cách nào. Trang Artifact chỉ áp dụng cho Legacy: Enhanced luôn chạy bản build hiện tại của Cfx (hiện là bản build {build})."
+              },
+              "txadmin": {
+                "title": "txAdmin",
+                "description": "txAdmin vẫn hoạt động trên Enhanced với cùng thông tin đăng nhập và cài đặt. Enhanced đi kèm txAdmin riêng, mới hơn, nên giao diện có thể hơi khác."
+              }
+            }
+          },
+          "frameworks": {
+            "nav": "Framework",
+            "title": "Trình cài đặt framework",
+            "subtitle": "Cài một framework FiveM chỉ với một cú nhấp. Tệp máy chủ hiện tại của bạn được giữ lại.",
+            "current": "txAdmin hiện đang chạy {folder}. Việc cài đặt sẽ đặt framework vào một thư mục mới và giữ nguyên thư mục này.",
+            "currentNone": "txAdmin chưa thiết lập máy chủ này. Cài đặt một framework sẽ làm việc đó cho bạn.",
+            "unreachable": "Node của máy chủ không phản hồi. Hãy thử lại sau một phút.",
+            "indexUnreachable": "Không thể tải danh sách framework của txAdmin. Hãy thử lại sau một phút.",
+            "by": "bởi {author}",
+            "needsDatabase": "Cần một cơ sở dữ liệu (một trong các suất cơ sở dữ liệu của bạn).",
+            "noDatabase": "Cần một cơ sở dữ liệu, và máy chủ này đã hết suất cơ sở dữ liệu.",
+            "sourceNote": "Đây là các recipe chính thức của txAdmin. Mọi tệp đều được tải trực tiếp từ GitHub của chính framework đó; {app} không lưu trữ hay thay đổi chúng.",
+            "install": {
+              "title": "Cài Đặt {recipe}",
+              "description": "Mọi thứ được tải vào một thư mục mới trong khi máy chủ vẫn chạy, sau đó máy chủ khởi động lại trên thư mục đó. Tệp hiện tại của bạn vẫn nằm trong {folder}.",
+              "descriptionFresh": "Mọi thứ được tải vào một thư mục mới, sau đó máy chủ khởi động lại trên thư mục đó.",
+              "serverName": "Tên máy chủ",
+              "serverNameDescription": "Được ghi vào hostname của máy chủ. Bạn có thể đổi sau trong Cấu hình máy chủ.",
+              "license": "Khóa bản quyền FiveM",
+              "licenseDescription": "Lấy từ portal.cfx.re (miễn phí). Được điền sẵn từ server.cfg hiện tại của bạn nếu có.",
+              "database": "Cơ Sở Dữ Liệu",
+              "databaseDescription": "Framework sẽ tạo các bảng của nó ở đây. Một cơ sở dữ liệu mới là lựa chọn an toàn.",
+              "databaseNew": "Một cơ sở dữ liệu mới",
+              "databaseExisting": "Có sẵn: {name}",
+              "button": "Cài Đặt"
+            },
+            "progress": {
+              "installing": "Đang cài đặt {recipe}",
+              "stepOf": "Bước {step} trên {total}",
+              "prepare": "Đang chuẩn bị",
+              "config": "Đang ghi server.cfg",
+              "restart": "Đang khởi động lại máy chủ trên thư mục mới",
+              "database": "Đã tạo cơ sở dữ liệu {name}",
+              "leave": "Bạn có thể rời trang này; quá trình cài đặt vẫn tiếp tục.",
+              "done": "Đã cài vào {folder}. Máy chủ đang khởi động trên thư mục đó.",
+              "needsAdmin": "txAdmin sẽ khởi động máy chủ khi đã có quản trị viên: mở bảng điều khiển, sau đó mở txAdmin trên cổng thứ hai của máy chủ và đăng ký bằng mã PIN hiển thị ở đó.",
+              "previousKept": "Các tệp trước đây của bạn vẫn nằm trong {folder}.",
+              "failed": "Quá trình cài đặt đã dừng.",
+              "failedNote": "Máy chủ của bạn không có gì thay đổi: thư mục mới và cơ sở dữ liệu được tạo cùng nó đã bị xóa, và txAdmin vẫn chạy các tệp trước đây của bạn.",
+              "console": "Mở bảng điều khiển",
+              "back": "Quay lại framework"
+            },
+            "toast": {
+              "done": "{recipe} đã được cài trên {server}. Framework nằm trong {folder}, và máy chủ đang khởi động trên thư mục đó.",
+              "failed": "Cài đặt {recipe} trên {server} thất bại"
+            }
+          }
+        },
+        "subdomains": {
+          "title": "Tên Miền Phụ",
+          "subtitle": "Đã dùng {current} trên {max}",
+          "button": {
+            "add": "Tạo Tên Miền Phụ",
+            "repair": "Ghi Lại Các Bản Ghi",
+            "edit": "Chỉnh Sửa",
+            "delete": "Xóa"
+          },
+          "limitReached": "Đã đạt giới hạn tên miền phụ",
+          "unavailable": {
+            "off": "Tên miền phụ chưa được thiết lập trên panel này.",
+            "unsupported": "Tên miền phụ không được cung cấp cho game của máy chủ này.",
+            "no_domains": "Chưa có tên miền nào được thiết lập cho tên miền phụ.",
+            "no_address": "Máy chủ này không có địa chỉ nào để tên miền phụ trỏ tới.",
+            "discord_link": "Chủ máy chủ phải liên kết tài khoản Discord (Tài khoản › Phần Thưởng Discord) để dùng tên miền phụ.",
+            "discord_member": "Chủ máy chủ phải tham gia máy chủ Discord để dùng tên miền phụ."
+          },
+          "table": {
+            "name": "Tên",
+            "status": "Trạng Thái",
+            "type": "Loại",
+            "deposit": "Tiền Cọc",
+            "connect": "Kết Nối Bằng"
+          },
+          "depositTooltip": "Tiền cọc có thể hoàn lại. Tự động trả lại vào tài khoản của bạn khi xóa.",
+          "copied": "Đã sao chép tên miền phụ vào bộ nhớ tạm",
+          "connectionCopied": "Đã sao chép lệnh kết nối!",
+          "status": {
+            "processing": "Đang xử lý ({minutes} phút)",
+            "processingTooltip": "Đang lan truyền DNS. Thay đổi thường mất 1 đến 3 phút để truy cập được trên toàn thế giới.",
+            "active": "Đang Hoạt Động",
+            "activeTooltip": "Tên miền phụ đã hoạt động và được lan truyền!"
+          },
+          "type": {
+            "minecraft": "Minecraft (SRV)",
+            "fivem": "FiveM / RedM (SRV)",
+            "srv": "{service} (SRV)",
+            "standard": "Tiêu Chuẩn ({type})"
+          },
+          "empty": "Không Có Tên Miền Phụ",
+          "create": {
+            "title": "Tạo Tên Miền Phụ",
+            "depositCaption": "Tiền Cọc Token • Tên Miền Phụ #{number}",
+            "refundNote": "(được hoàn lại khi xóa)",
+            "balance": "Số Dư Của Bạn",
+            "name": "Tên",
+            "placeholder": "ví dụ: play",
+            "domain": "Tên Miền",
+            "service": {
+              "minecraft": "Đã phát hiện Minecraft: Java Edition. Tên miền phụ sẽ đưa người chơi thẳng đến cổng của bạn mà không cần nhập :{port}.",
+              "fivem": "Đã phát hiện FiveM / RedM. Tên miền phụ sẽ cấu hình bản ghi SRV của Cfx.re để người chơi có thể dùng \"connect\" mà không cần nhập :{port}.",
+              "srv": "Tên này cũng có một bản ghi SRV chứa cổng, cho các client game có tra cứu bản ghi đó.",
+              "plain": "Máy chủ tiêu chuẩn. Tên miền phụ sẽ trỏ thẳng đến {address}."
+            },
+            "serverIp": "IP máy chủ",
+            "nameLength": "Tên phải có ít nhất 2 ký tự.",
+            "nameFormat": "Tên miền phụ chỉ được chứa chữ thường, chữ số và dấu gạch ngang (không được bắt đầu hoặc kết thúc bằng dấu gạch ngang).",
+            "insufficient": "Không đủ token! Tên miền phụ này cần tiền cọc {cost}, nhưng tài khoản của bạn chỉ có {balance} token.",
+            "button": "Tạo"
+          },
+          "edit": {
+            "title": "Chỉnh Sửa Tên Miền Phụ",
+            "button": "Lưu thay đổi"
+          },
+          "delete": {
+            "title": "Xóa Tên Miền Phụ",
+            "body": "Xóa {name}? Các bản ghi DNS của nó sẽ bị gỡ bỏ, và người chơi không thể vào bằng tên này nữa.",
+            "tokensBack": "{tokens} sẽ được trả lại cho chủ máy chủ."
+          },
+          "toast": {
+            "created": "{name} đã được thiết lập. Có thể mất vài phút để mọi người chơi truy cập được.",
+            "saved": "Đã lưu",
+            "repaired": "Các bản ghi của {name} đã được ghi lại.",
+            "deleted": "Đã xóa tên miền phụ.",
+            "deletedWithRefund": "Đã xóa tên miền phụ. {tokens} đã được hoàn lại vào số dư của bạn."
+          }
+        },
+        "devbox": {
+          "title": "VS Code",
+          "description": "Mở máy chủ này trong VS Code: một máy Linux riêng bên cạnh, có sẵn tệp của máy chủ, terminal và mọi extension.",
+          "hidden": "VS Code không được cung cấp trên máy chủ này.",
+          "label": "Devbox",
+          "locked": "VS Code trên máy chủ là một phần của {plan}.",
+          "lockedShared": "Devbox dùng chung của máy chủ này cần tài khoản của chủ máy chủ có hội viên.",
+          "lockedHint": "Một máy Linux riêng bên cạnh máy chủ này: có tệp của máy chủ, terminal, Python, Node, Java và mọi extension VS Code.",
+          "getPlan": "Nhận {plan}",
+          "state": {
+            "none": "Chưa được tạo",
+            "stopped": "Đã Dừng",
+            "creating": "Đang tạo…",
+            "starting": "Đang khởi động…",
+            "stopping": "Đang dừng…",
+            "failed": "Không khởi động được",
+            "mount_missing": "Không truy cập được tệp của máy chủ",
+            "ready": "Đang Chạy"
+          },
+          "hint": {
+            "what": "Một máy Linux chứa tệp của máy chủ này tại /server. Máy sẽ dừng sau {minutes} phút không dùng VS Code.",
+            "ready": "{address} · dừng sau {minutes} phút không dùng VS Code",
+            "creating": "Devbox đầu tiên trên một node sẽ tải xuống hình ảnh của nó, việc này có thể mất vài phút.",
+            "starting": "Sắp xong rồi.",
+            "stopping": "Đang chờ node xác nhận.",
+            "failed": "Hãy dừng devbox và thử lại. Nếu vẫn tiếp tục xảy ra, hãy báo cho bộ phận hỗ trợ.",
+            "mount_missing": "Node này chưa được thiết lập cho devbox. Bộ phận hỗ trợ đã được thông báo qua kiểm tra tình trạng của panel."
+          },
+          "code": "Mã kết nối",
+          "codeHint": "VS Code sẽ hỏi mã này làm mật khẩu. Mỗi lần khởi động có một mã mới.",
+          "copyCode": "Sao chép mã",
+          "ssh": "SSH",
+          "sshHint": "Khóa host {key} (VS Code sẽ hỏi bạn tin tưởng khóa này một lần)",
+          "copySsh": "Sao chép lệnh SSH",
+          "needsExtension": "Cần extension Remote - SSH.",
+          "button": {
+            "start": "Khởi động devbox",
+            "stop": "Dừng",
+            "vscode": "Mở Trong VS Code",
+            "browser": "Mở trong trình duyệt",
+            "install": "Cài Đặt"
+          },
+          "shared": {
+            "label": "Dùng Chung",
+            "on": "Một devbox cho bạn và người dùng phụ của bạn",
+            "off": "Mỗi người có devbox riêng",
+            "hint": "Dùng chung: người dùng phụ có quyền truy cập VS Code sẽ dùng devbox và {plan} của bạn. Mọi người trong đó đều thấy cùng tệp và thông tin đăng nhập.",
+            "share": "Chia Sẻ",
+            "unshare": "Ngừng chia sẻ",
+            "confirmShare": "Dùng chung một devbox với người dùng phụ của bạn? Các devbox cá nhân trên máy chủ này sẽ bị xóa, và mọi người trong devbox dùng chung có thể thấy tệp và thông tin đăng nhập của nhau.",
+            "confirmUnshare": "Ngừng chia sẻ? Devbox dùng chung và mọi thứ trong thư mục home của nó sẽ bị xóa.",
+            "rightsLabel": "Quyền",
+            "rights": "Những gì ph trong devbox dùng chung được phép làm trên máy chủ:",
+            "right": {
+              "status": "Xem trạng thái và tài nguyên",
+              "logs": "Đọc bảng điều khiển",
+              "console": "Gửi lệnh vào bảng điều khiển",
+              "power": "Khởi động, dừng và khởi động lại máy chủ"
+            }
+          },
+          "toast": {
+            "saved": "Đã lưu."
           }
         },
         "activity": {

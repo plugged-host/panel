@@ -7,10 +7,54 @@
 // A key changed on one side only takes that side's value (a removal included); a key changed on
 // both sides to different values keeps ours and is listed, so the merge never stops on a line
 // conflict. Keys come in their order, with ours that they lack after the key they follow in ours.
+// No dependencies, so it runs in a bare clone. Tests: `node --test merge-translations.test.mjs`.
 import fs from 'node:fs';
+import { pathToFileURL } from 'node:url';
 
-const [basePath, oursPath, theirsPath, name = oursPath] = process.argv.slice(2);
+const isObject = (value) => typeof value === 'object' && value !== null && !Array.isArray(value);
+const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 
+/**
+ * Merges `theirs` into `ours` against their common `base` (undefined for a file new on both sides).
+ * Returns the merged object and the paths of the keys both sides changed differently (ours kept).
+ */
+export function mergeTranslations(base, ours, theirs) {
+  const kept = [];
+
+  const merge = (baseValue, oursValue, theirsValue, path) => {
+    if (isObject(oursValue) && isObject(theirsValue)) {
+      const baseObject = isObject(baseValue) ? baseValue : {};
+      const keys = Object.keys(theirsValue);
+      const oursKeys = Object.keys(oursValue);
+      oursKeys.forEach((key, index) => {
+        if (keys.includes(key)) return;
+        const after = oursKeys
+          .slice(0, index)
+          .reverse()
+          .find((previous) => keys.includes(previous));
+        keys.splice(after === undefined ? 0 : keys.indexOf(after) + 1, 0, key);
+      });
+
+      const merged = {};
+      for (const key of keys) {
+        const value = merge(baseObject[key], oursValue[key], theirsValue[key], path ? `${path}.${key}` : key);
+        if (value !== undefined) merged[key] = value;
+      }
+      return merged;
+    }
+
+    if (same(oursValue, theirsValue)) return oursValue;
+    if (same(oursValue, baseValue)) return theirsValue;
+    if (same(theirsValue, baseValue)) return oursValue;
+
+    kept.push(path);
+    return oursValue;
+  };
+
+  return { merged: merge(base, ours, theirs, ''), kept };
+}
+
+// The file's JSON, or undefined when it is missing, empty or not JSON (git passes an empty base for a new file).
 const read = (path) => {
   try {
     return JSON.parse(fs.readFileSync(path, 'utf8'));
@@ -19,48 +63,34 @@ const read = (path) => {
   }
 };
 
-const isObject = (value) => typeof value === 'object' && value !== null && !Array.isArray(value);
-const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
-const kept = [];
+/** Git's side, with %O %A %B %P: writes the merge into %A. Returns 1 (a conflict for git) only for unreadable sides. */
+export function main([basePath, oursPath, theirsPath, name = oursPath]) {
+  const ours = read(oursPath);
+  const theirs = read(theirsPath);
 
-const merge = (base, ours, theirs, path) => {
-  if (isObject(ours) && isObject(theirs)) {
-    const baseObject = isObject(base) ? base : {};
-    const keys = Object.keys(theirs);
-    const oursKeys = Object.keys(ours);
-    oursKeys.forEach((key, index) => {
-      if (keys.includes(key)) return;
-      const after = oursKeys.slice(0, index).reverse().find((previous) => keys.includes(previous));
-      keys.splice(after === undefined ? 0 : keys.indexOf(after) + 1, 0, key);
-    });
-
-    const merged = {};
-    for (const key of keys) {
-      const value = merge(baseObject[key], ours[key], theirs[key], path ? `${path}.${key}` : key);
-      if (value !== undefined) merged[key] = value;
-    }
-    return merged;
+  if (!isObject(ours) || !isObject(theirs)) {
+    console.error(`${name}: not a JSON object on both sides, resolve it by hand`);
+    return 1;
   }
 
-  if (same(ours, theirs)) return ours;
-  if (same(ours, base)) return theirs;
-  if (same(theirs, base)) return ours;
+  const { merged, kept } = mergeTranslations(read(basePath), ours, theirs);
+  fs.writeFileSync(oursPath, `${JSON.stringify(merged, null, 2)}\n`);
 
-  kept.push(path);
-  return ours;
-};
+  for (const path of kept) {
+    console.error(`${name}: ${path} changed on both sides, kept ours`);
+  }
 
-const base = read(basePath);
-const ours = read(oursPath);
-const theirs = read(theirsPath);
-
-if (!isObject(ours) || !isObject(theirs)) {
-  console.error(`${name}: not a JSON object on both sides, resolve it by hand`);
-  process.exit(1);
+  return 0;
 }
 
-fs.writeFileSync(oursPath, `${JSON.stringify(merge(base, ours, theirs, ''), null, 2)}\n`);
+const invoked = (() => {
+  try {
+    return pathToFileURL(fs.realpathSync(process.argv[1])).href;
+  } catch {
+    return null;
+  }
+})();
 
-for (const path of kept) {
-  console.error(`${name}: ${path} changed on both sides, kept ours`);
+if (import.meta.url === invoked) {
+  process.exit(main(process.argv.slice(2)));
 }

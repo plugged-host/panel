@@ -1,4 +1,6 @@
-import { Table, Text, Title, TitleOrder } from '@mantine/core';
+// plugged.host: the offered languages that were built and their locale loaders (vite-plugins/translations.ts)
+import { languages as builtLanguages, cronstrueLocales, monacoLocales, zodLocales } from 'virtual:languages';
+import { DirectionProvider, Table, Text, Title, TitleOrder } from '@mantine/core';
 import { Fragment, ReactNode, startTransition, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Markdown, { Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -7,6 +9,7 @@ import {
   globalTranslationHandle,
   setGlobalTranslationHandle,
   TranslationContext,
+  TranslationItem,
   TranslationItemRecord,
 } from 'shared';
 import { z } from 'zod';
@@ -14,30 +17,18 @@ import { $ZodConfig } from 'zod/v4/core';
 import { axiosInstance } from '@/api/axios.ts';
 import Anchor from '@/elements/typography/Anchor.tsx';
 import Code from '@/elements/typography/Code.tsx';
+import { intlLocale } from '@/lib/languages.ts'; // plugged.host: Latin digits
 import { getGlobalStore, useGlobalStore } from '@/stores/global.ts';
 import baseTranslations from '@/translations.ts';
 
-const zodLocaleModules = import.meta.glob('/node_modules/zod/v4/locales/*.js');
-const monacoNlsModules = import.meta.glob('/node_modules/monaco-editor/esm/vs/nls/lang/*.js');
-const cronstrueLocaleModules: Record<string, () => Promise<unknown>> = {
-  ar: () => import('cronstrue/locales/ar.js'),
-  cs: () => import('cronstrue/locales/cs.js'),
-  da: () => import('cronstrue/locales/da.js'),
-  de: () => import('cronstrue/locales/de.js'),
-  es: () => import('cronstrue/locales/es.js'),
-  fr: () => import('cronstrue/locales/fr.js'),
-  it: () => import('cronstrue/locales/it.js'),
-  ja: () => import('cronstrue/locales/ja.js'),
-  pl: () => import('cronstrue/locales/pl.js'),
-  ro: () => import('cronstrue/locales/ro.js'),
-  ru: () => import('cronstrue/locales/ru.js'),
-  sk: () => import('cronstrue/locales/sk.js'),
-  sv: () => import('cronstrue/locales/sv.js'),
-  tr: () => import('cronstrue/locales/tr.js'),
-  vi: () => import('cronstrue/locales/vi.js'),
-};
-const monacoLocaleAliases: Record<string, string> = { zh: 'zh-cn', pt: 'pt-br' };
+// plugged.host: the zod, Monaco and cronstrue locale loaders come from `virtual:languages`, for the offered
+// languages only (cronstrue: ar, de, fr, id, pt_BR, ru, tr, uk, vi; none for uz, whose cron descriptions stay English)
 const monacoNlsCache: Record<string, string[] | undefined> = {};
+
+// plugged.host: a language off the list (an old choice, an account from before the list) opens in the default
+const offeredLanguage = (language: string | null | undefined): string | null =>
+  language && Object.hasOwn(builtLanguages, language) ? language : null;
+const defaultLanguage = (): string => offeredLanguage(getGlobalStore().settings.app.language) ?? 'en';
 
 // zod's own regex message prints the raw pattern, schemas with a known rule override this via ruleMessage
 z.config({
@@ -150,17 +141,17 @@ String.prototype.md = function (): ReactNode {
 
 const TranslationProvider = ({ children }: { children: ReactNode }) => {
   const [language, setLanguageState] = useState(
-    localStorage.getItem('last_language') || getGlobalStore().settings.app.language || 'en',
+    offeredLanguage(localStorage.getItem('last_language')) ?? defaultLanguage(), // plugged.host
   );
   const [languageData, setLanguageData] = useState<LanguageData | null>(null);
   const languages = useGlobalStore((state) => state.languages);
   const pendingDetection = useRef(
-    !localStorage.getItem('last_language') && getGlobalStore().settings.user.allowChangingLanguage,
+    !offeredLanguage(localStorage.getItem('last_language')) && getGlobalStore().settings.user.allowChangingLanguage, // plugged.host
   );
 
   const setLanguage = useCallback((value: string) => {
     pendingDetection.current = false;
-    setLanguageState(value);
+    setLanguageState(offeredLanguage(value) ?? defaultLanguage()); // plugged.host
   }, []);
 
   useEffect(() => {
@@ -173,12 +164,13 @@ const TranslationProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [languages]);
 
+  // plugged.host: the three loaders read `virtual:languages` instead of globbing every locale
   const loadZod = async (lang: string) => {
-    if (!zodLocaleModules[`/node_modules/zod/v4/locales/${lang}.js`]) {
+    if (!zodLocales[lang]) {
       return;
     }
 
-    const { default: locale } = (await zodLocaleModules[`/node_modules/zod/v4/locales/${lang}.js`]()) as {
+    const { default: locale } = (await zodLocales[lang]()) as {
       default: () => $ZodConfig;
     };
 
@@ -186,26 +178,35 @@ const TranslationProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const loadMonaco = async (lang: string) => {
-    const locale = monacoLocaleAliases[lang] ?? lang;
-    const path = `/node_modules/monaco-editor/esm/vs/nls/lang/${locale}.js`;
+    const nls = monacoLocales[lang];
 
-    if (lang === 'en' || !monacoNlsModules[path]) {
+    if (lang === 'en' || !nls) {
       globalThis._VSCODE_NLS_MESSAGES = undefined;
       globalThis._VSCODE_NLS_LANGUAGE = undefined;
       return;
     }
 
-    if (!monacoNlsCache[locale]) {
-      await monacoNlsModules[path]();
-      monacoNlsCache[locale] = globalThis._VSCODE_NLS_MESSAGES;
+    if (!monacoNlsCache[nls.locale]) {
+      await nls.load();
+      monacoNlsCache[nls.locale] = globalThis._VSCODE_NLS_MESSAGES;
     }
 
-    globalThis._VSCODE_NLS_MESSAGES = monacoNlsCache[locale];
-    globalThis._VSCODE_NLS_LANGUAGE = locale;
+    globalThis._VSCODE_NLS_MESSAGES = monacoNlsCache[nls.locale];
+    globalThis._VSCODE_NLS_LANGUAGE = nls.locale;
   };
 
   const loadCronstrue = async (lang: string) => {
-    await cronstrueLocaleModules[lang]?.();
+    if (lang === 'en') return;
+
+    const locale = cronstrueLocales[lang];
+    await locale?.load();
+
+    // plugged.host: the pages ask cronstrue for the panel's code, so it names the file's locale (pt -> pt_BR),
+    // or English where cronstrue has none. cronstrue is CommonJS: under Node's interop (this package is
+    // "type": "module") `default` is its exports object, whose own `default` holds the locales.
+    const { default: cronstrue } = await import('cronstrue');
+    const descriptor = (cronstrue as unknown as { default?: typeof cronstrue }).default ?? cronstrue;
+    descriptor.locales[lang] ??= descriptor.locales[locale?.name ?? 'en'];
   };
 
   useEffect(() => {
@@ -243,13 +244,10 @@ const TranslationProvider = ({ children }: { children: ReactNode }) => {
               console.debug('Loaded language data', language, result);
             }
 
-            try {
-              const lang = new Intl.Locale(language);
-              document.documentElement.lang = lang.language;
-              document.documentElement.dir = lang.getTextInfo().direction ?? 'ltr';
-            } catch {
-              // ignore
-            }
+            // plugged.host: from the allow-list, which knows the direction (Firefox has no Intl.Locale#getTextInfo);
+            // Mantine's DirectionProvider below follows the attribute
+            document.documentElement.lang = builtLanguages[language]?.locale ?? language;
+            document.documentElement.dir = builtLanguages[language]?.dir ?? 'ltr';
 
             setLanguageData(result);
           })
@@ -272,7 +270,8 @@ const TranslationProvider = ({ children }: { children: ReactNode }) => {
   }, [language]);
 
   const contextValue = useMemo(() => {
-    const numberFormat = new Intl.NumberFormat(language, { maximumFractionDigits: 20 });
+    // plugged.host: Latin digits (intlLocale)
+    const numberFormat = new Intl.NumberFormat(intlLocale(language), { maximumFractionDigits: 20 });
 
     const formatValue = (value: unknown): string => {
       if (typeof value !== 'number') {
@@ -390,8 +389,13 @@ const TranslationProvider = ({ children }: { children: ReactNode }) => {
 
       const translationItem = languageData?.items[key] || baseTranslations.items[key as never];
       const rules = new Intl.PluralRules(language);
+      // plugged.host: a plural form the language's file lacks falls back to English, like a missing string
+      const translation =
+        translationItem[rules.select(count)] ||
+        (baseTranslations.items[key as never] as Partial<TranslationItem> | undefined)?.[rules.select(count)] ||
+        translationItem.other;
 
-      return translationItem[rules.select(count)].replaceAll('{count}', formatValue(count));
+      return translation.replaceAll('{count}', formatValue(count));
     };
 
     return { language, setLanguage, t, tReact, tItem };
@@ -399,7 +403,12 @@ const TranslationProvider = ({ children }: { children: ReactNode }) => {
 
   setGlobalTranslationHandle(contextValue);
 
-  return <TranslationContext.Provider value={contextValue}>{children}</TranslationContext.Provider>;
+  // plugged.host: Mantine's direction follows <html dir> (set above per language)
+  return (
+    <DirectionProvider>
+      <TranslationContext.Provider value={contextValue}>{children}</TranslationContext.Provider>
+    </DirectionProvider>
+  );
 };
 
 export default TranslationProvider;

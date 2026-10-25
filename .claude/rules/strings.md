@@ -14,7 +14,14 @@ paths:
   file keeps en's order. Informal "du", upstream's terms ("Node", "Allocation", "Egg", "Backup"
   stay; "Server suspendieren").
 - Mails: `shared/mails/variables/<lang>.json`, English and German together.
-- `pnpm coverage:translations de` (`--missing` lists keys) must pass; the build refuses otherwise.
+- The offered languages are `LANGUAGES` in `frontend/vite-plugins/translations.ts` (en, de, ar, ru,
+  tr, id, pt = Brazilian, vi, fr, uk, uz); others are never built. The nine besides German need
+  every string except admin-only ones (a key with an `admin` segment) before the next deploy, with
+  their glossary's words (docs/features/languages.md).
+- `pnpm coverage:translations` (all offered; `de --missing` lists one's keys) must pass; the build
+  refuses otherwise. Never edit an off-list language's file (cs, da, es, it, ja, lv, pl, ro, sk, sv,
+  zh): it is upstream's.
 - Keys follow the native tree (`pages.server.backups.toast.locked`); no namespace of our own.
-- Upstream's other languages come from its Crowdin; the `translations` merge driver
-  (`frontend/merge-translations.mjs`, `.gitattributes`) merges them by key on `git merge upstream/main`.
+- Upstream's Crowdin updates come in through the `translations` merge driver
+  (`frontend/merge-translations.mjs`, `.gitattributes`, tests: `pnpm test:translations`), which
+  merges by key on `git merge upstream/main`.
