@@ -6,7 +6,6 @@ import Card from '@/elements/data-display/Card.tsx';
 
 export interface TitleCardProps {
   title: string;
-  description?: ReactNode; // plugged.host: Filament's section description, under the heading
   icon?: React.ReactNode;
   children?: React.ReactNode; // plugged.host: optional, a section may be only its heading
   className?: string;
@@ -23,7 +22,6 @@ export interface TitleCardProps {
 
 function TitleCard({
   title,
-  description,
   icon,
   children,
   className,
