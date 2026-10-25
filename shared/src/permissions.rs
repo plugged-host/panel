@@ -1269,6 +1269,16 @@ pub(crate) static BASE_SERVER_PERMISSIONS: LazyLock<IndexMap<&'static str, Permi
                     ]),
                 },
             ),
+            (
+                "chat",
+                PermissionGroup {
+                    description: "Permissions that control the chat between the server's owner and its subusers.",
+                    permissions: IndexMap::from([
+                        ("read", "Allows reading the server's chat."),
+                        ("write", "Allows writing in the server's chat."),
+                    ]),
+                },
+            ),
         ])
     });
 

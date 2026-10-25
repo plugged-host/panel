@@ -363,7 +363,10 @@ mod tests {
             password_login_disabled: false,
             language: "en".into(),
             has_password: true,
-            burst_cores: 0, // plugged.host
+            burst_cores: 0,           // plugged.host
+            panel_access_until: None, // plugged.host
+            has_plus: false,          // plugged.host
+            has_plusplus: false,      // plugged.host
             created: chrono::NaiveDateTime::default(),
             extension_data: Vec::new(),
         }

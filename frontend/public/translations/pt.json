@@ -2674,7 +2674,10 @@
           "none": "Nenhuma forma de ganhar tokens está configurada no momento.",
           "provider": {
             "linkvertise": "Linkvertise",
-            "vylo": "Vylo"
+            "vylo": "Vylo",
+            "cuty": "Cuty",
+            "shrinkearn": "ShrinkEarn",
+            "shrinkme": "ShrinkMe"
           },
           "reward": "{count} tokens por conclusão",
           "used": "{used} de {cap} hoje",
@@ -2899,6 +2902,22 @@
         },
         "activity": {
           "title": "Atividade"
+        },
+        "panelAccess": {
+          "title": "Acesso ao Painel",
+          "subtitle": "O painel custa {tokens} tokens por mês. Assinaturas e administradores nunca pagam.",
+          "heading": "{tokens} tokens por {days} dias",
+          "active": "Pago até {date}.",
+          "inactive": "O painel fica bloqueado até você pagar.",
+          "exempt": "Você nunca paga pelo painel.",
+          "exemptNotice": "Sua assinatura cobre o painel.",
+          "disabled": "O painel está gratuito agora.",
+          "buy": "Pagar {tokens} tokens",
+          "earn": "Ganhar tokens",
+          "toast": {
+            "bought": "O painel é seu por {days} dias.",
+            "failed": "O pagamento não foi concluído."
+          }
         }
       },
       "server": {
@@ -6675,6 +6694,13 @@
         },
         "activity": {
           "title": "Atividade"
+        },
+        "chat": {
+          "title": "Bate-papo",
+          "empty": "Ainda não há mensagens. Diga olá.",
+          "placeholder": "Escreva uma mensagem…",
+          "loadOlder": "Carregar mensagens antigas",
+          "deletedUser": "Usuário excluído"
         }
       }
     }

@@ -33,8 +33,12 @@ import '@gfazioli/mantine-window/styles.css';
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      refetchOnWindowFocus: true,
-      refetchOnMount: 'always',
+      // plugged.host: a page that was just loaded is not reloaded again on every navigation.
+      // Pages that must be live set their own refetchInterval.
+      staleTime: 30_000,
+      refetchOnWindowFocus: false,
+      refetchOnMount: true,
+      refetchOnReconnect: true,
       retry: 1,
     },
   },

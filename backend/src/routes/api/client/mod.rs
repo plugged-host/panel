@@ -86,6 +86,17 @@ fn check_account_gates(
         );
     }
 
+    if shared::panel_access::required(user, &settings.economy, chrono::Utc::now().naive_utc())
+        && !shared::panel_access::allowed(matched_path)
+    {
+        return Some(
+            ApiResponse::error("panel access required")
+                .with_header(shared::panel_access::HEADER, "required")
+                .with_status(StatusCode::PAYMENT_REQUIRED)
+                .into_response(),
+        );
+    }
+
     None
 }
 

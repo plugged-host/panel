@@ -4,6 +4,7 @@ import {
   faBriefcase,
   faCode, // plugged.host
   faCog,
+  faComments, // plugged.host
   faDatabase,
   faEarthAmericas, // plugged.host
   faFileCode, // plugged.host
@@ -25,6 +26,7 @@ import type { ServerRouteDefinition } from 'shared';
 import ServerActivity from '@/pages/server/activity/ServerActivity.tsx';
 import ServerBackups from '@/pages/server/backups/ServerBackups.tsx';
 import ServerSystemBackups from '@/pages/server/backups/system/ServerSystemBackups.tsx';
+import ServerChat from '@/pages/server/chat/ServerChat.tsx'; // plugged.host
 import DatabaseExplorerView from '@/pages/server/databases/explorer/DatabaseExplorerView.tsx';
 import ServerDatabases from '@/pages/server/databases/ServerDatabases.tsx';
 import ServerDevbox from '@/pages/server/devbox/ServerDevbox.tsx'; // plugged.host
@@ -366,6 +368,14 @@ const routes: ServerRouteDefinition[] = [
     path: '/activity',
     element: ServerActivity,
     permission: 'activity.read',
+  },
+  // plugged.host: the chat between the owner and the subusers (docs/features/server-chat.md)
+  {
+    name: () => getTranslations().t('pages.server.chat.title', {}),
+    icon: faComments,
+    path: '/chat',
+    element: ServerChat,
+    permission: 'chat.read',
   },
 ];
 

@@ -2542,6 +2542,9 @@ const baseTranslations = defineTranslations({
           provider: {
             linkvertise: 'Linkvertise',
             vylo: 'Vylo',
+            cuty: 'Cuty',
+            shrinkearn: 'ShrinkEarn',
+            shrinkme: 'ShrinkMe',
           },
           reward: '{count} tokens per completion',
           used: '{used} of {cap} today',
@@ -2682,6 +2685,23 @@ const baseTranslations = defineTranslations({
           toast: {
             plus: 'You have {name} now.',
             plusplus: '{name} bought.',
+          },
+        },
+        // plugged.host: the panel's own monthly price (docs/features/economy.md)
+        panelAccess: {
+          title: 'Panel Access',
+          subtitle: 'The panel costs {tokens} tokens a month. Memberships and administrators never pay.',
+          heading: '{tokens} tokens for {days} days',
+          active: 'Paid until {date}.',
+          inactive: 'The panel is locked until you pay.',
+          exempt: 'You never pay for the panel.',
+          exemptNotice: 'Your membership covers the panel.',
+          disabled: 'The panel is free right now.',
+          buy: 'Pay {tokens} tokens',
+          earn: 'Earn tokens',
+          toast: {
+            bought: 'The panel is yours for {days} days.',
+            failed: 'The payment did not go through.',
           },
         },
         // plugged.host: docs/features/discord.md
@@ -4332,6 +4352,13 @@ const baseTranslations = defineTranslations({
                   dailyTokens: 'Daily Tokens',
                   dailyTokensDescription:
                     'Tokens every account gets once a day, the first time it looks. 0 gives none.',
+                  panelAccessSection: 'Panel Access',
+                  panelAccessEnabled: 'The Panel Costs Tokens',
+                  panelAccessEnabledDescription:
+                    'Accounts without a membership pay for the panel itself. They can still earn tokens, buy access, change their settings and log out.',
+                  panelAccessTokens: 'Tokens per Month',
+                  panelAccessTokensDescription: 'Memberships and administrators never pay. 0 makes the panel free.',
+                  panelAccessDays: 'Days per Payment',
                   membershipEnabled: 'Memberships',
                   membershipEnabledDescription:
                     'The first membership is bought once with tokens and opens the locations with the tier “plus”. The second runs for a while, needs the first, and opens the tier “premium”.',
@@ -4395,6 +4422,18 @@ const baseTranslations = defineTranslations({
                   vyloApiKey: 'Vylo API Key',
                   vyloMinSeconds: 'Shortest Trip (Seconds)',
                   vyloMinSecondsDescription: 'A trip back faster than this does not count.',
+                  cutyEnabled: 'Cuty',
+                  cutyEnabledDescription:
+                    'Needs the API key from Cuty’s dashboard. A short link is made for every trip.',
+                  cutyApiKey: 'Cuty API Key',
+                  shrinkearnEnabled: 'ShrinkEarn',
+                  shrinkearnEnabledDescription:
+                    'Needs the API key from ShrinkEarn’s dashboard. A short link is made for every trip.',
+                  shrinkearnApiKey: 'ShrinkEarn API Key',
+                  shrinkmeEnabled: 'ShrinkMe',
+                  shrinkmeEnabledDescription:
+                    'Needs the API key from ShrinkMe’s dashboard. A short link is made for every trip.',
+                  shrinkmeApiKey: 'ShrinkMe API Key',
                 },
                 toast: {
                   updated: 'Economy settings saved.',
@@ -12104,6 +12143,13 @@ const baseTranslations = defineTranslations({
         },
         activity: {
           title: 'Activity',
+        },
+        chat: {
+          title: 'Chat',
+          empty: 'No messages yet. Say hello.',
+          placeholder: 'Write a message…',
+          loadOlder: 'Load older messages',
+          deletedUser: 'Deleted user',
         },
       },
     },

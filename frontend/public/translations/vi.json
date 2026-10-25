@@ -2677,7 +2677,10 @@
           "none": "Hiện chưa có cách kiếm token nào được thiết lập.",
           "provider": {
             "linkvertise": "Linkvertise",
-            "vylo": "Vylo"
+            "vylo": "Vylo",
+            "cuty": "Cuty",
+            "shrinkearn": "ShrinkEarn",
+            "shrinkme": "ShrinkMe"
           },
           "reward": "{count} token mỗi lần hoàn thành",
           "used": "Hôm nay: {used} trên {cap}",
@@ -2902,6 +2905,22 @@
         },
         "activity": {
           "title": "Hoạt Động"
+        },
+        "panelAccess": {
+          "title": "Quyền truy cập bảng điều khiển",
+          "subtitle": "Bảng điều khiển tốn {tokens} token mỗi tháng. Thành viên và quản trị viên không bao giờ trả.",
+          "heading": "{tokens} token cho {days} ngày",
+          "active": "Đã trả đến {date}.",
+          "inactive": "Bảng điều khiển bị khóa cho đến khi bạn trả tiền.",
+          "exempt": "Bạn không bao giờ trả tiền cho bảng điều khiển.",
+          "exemptNotice": "Thành viên của bạn bao gồm bảng điều khiển.",
+          "disabled": "Bảng điều khiển hiện miễn phí.",
+          "buy": "Trả {tokens} token",
+          "earn": "Kiếm token",
+          "toast": {
+            "bought": "Bảng điều khiển là của bạn trong {days} ngày.",
+            "failed": "Thanh toán không thành công."
+          }
         }
       },
       "admin": {
@@ -9649,6 +9668,13 @@
         },
         "activity": {
           "title": "Hoạt động"
+        },
+        "chat": {
+          "title": "Trò chuyện",
+          "empty": "Chưa có tin nhắn. Hãy chào hỏi.",
+          "placeholder": "Viết tin nhắn…",
+          "loadOlder": "Tải tin nhắn cũ hơn",
+          "deletedUser": "Người dùng đã xóa"
         }
       }
     }

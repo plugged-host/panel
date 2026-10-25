@@ -2677,7 +2677,10 @@
           "none": "Şu anda jeton kazanmanın bir yolu ayarlanmamış.",
           "provider": {
             "linkvertise": "Linkvertise",
-            "vylo": "Vylo"
+            "vylo": "Vylo",
+            "cuty": "Cuty",
+            "shrinkearn": "ShrinkEarn",
+            "shrinkme": "ShrinkMe"
           },
           "reward": "Tamamlama başına {count} jeton",
           "used": "Bugün {used} / {cap}",
@@ -2902,6 +2905,22 @@
         },
         "activity": {
           "title": "Aktivite"
+        },
+        "panelAccess": {
+          "title": "Panel Erişimi",
+          "subtitle": "Panel ayda {tokens} token tutar. Üyelikler ve yöneticiler asla ödemez.",
+          "heading": "{days} gün için {tokens} token",
+          "active": "{date} tarihine kadar ödendi.",
+          "inactive": "Ödeme yapana kadar panel kilitli.",
+          "exempt": "Panel için asla ödeme yapmazsınız.",
+          "exemptNotice": "Üyeliğiniz paneli kapsıyor.",
+          "disabled": "Panel şu anda ücretsiz.",
+          "buy": "{tokens} token öde",
+          "earn": "Token kazan",
+          "toast": {
+            "bought": "Panel {days} gün boyunca sizin.",
+            "failed": "Ödeme gerçekleşmedi."
+          }
         }
       },
       "server": {
@@ -6678,6 +6697,13 @@
         },
         "activity": {
           "title": "Aktivite"
+        },
+        "chat": {
+          "title": "Sohbet",
+          "empty": "Henüz mesaj yok. Merhaba deyin.",
+          "placeholder": "Bir mesaj yazın…",
+          "loadOlder": "Eski mesajları yükle",
+          "deletedUser": "Silinmiş kullanıcı"
         }
       }
     }

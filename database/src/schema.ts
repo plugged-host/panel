@@ -179,6 +179,9 @@ export const usersTable = pgTable(
     tokens_daily_granted: date({ mode: 'string' }),
     // plugged.host: the memberships' burst cores, kept by the economy
     burst_cores: smallint().default(0).notNull(),
+    // plugged.host: paid panel access (shared/src/panel_access.rs): the moment the current month
+    // runs out, empty for anyone who has never paid
+    panel_access_until: timestamp(),
     created: timestamp().defaultNow().notNull(),
   },
   (cols) => [
@@ -1912,6 +1915,26 @@ export const serverNotificationSettingsTable = pgTable(
   (cols) => [
     primaryKey({ name: 'server_notification_settings_pk', columns: [cols.server_uuid, cols.user_uuid] }),
     index('server_notification_settings_user_uuid_idx').on(cols.user_uuid),
+  ],
+);
+
+// plugged.host: the chat between a server's owner and its subusers (shared/src/server_chat.rs,
+// docs/features/server-chat.md). One row per message; the server it belongs to, who wrote it and
+// what they wrote.
+export const serverChatMessagesTable = pgTable(
+  'server_chat_messages',
+  {
+    uuid: uuid().default(sql`gen_random_uuid()`).primaryKey().notNull(),
+    server_uuid: uuid()
+      .references(() => serversTable.uuid, { onDelete: 'cascade' })
+      .notNull(),
+    user_uuid: uuid().references(() => usersTable.uuid, { onDelete: 'set null' }),
+    message: text().notNull(),
+    created: timestamp().defaultNow().notNull(),
+  },
+  (cols) => [
+    index('server_chat_messages_server_uuid_created_idx').on(cols.server_uuid, cols.created),
+    index('server_chat_messages_user_uuid_idx').on(cols.user_uuid),
   ],
 );
 

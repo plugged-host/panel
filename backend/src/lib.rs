@@ -1003,6 +1003,28 @@ pub async fn handle_startup() -> Result<
                             .ok();
                     }
 
+                    // plugged.host: noprofit.space owns sign-in, so the login page is a detour.
+                    // Send the browser straight to the sign-in redirect; `?local=1` (the emergency
+                    // admin form) and `?error=` (a failure to explain) still get the page.
+                    if path == "/auth/login" {
+                        let query = parts.uri.query().unwrap_or_default();
+                        let stays = query.split('&').any(|part| {
+                            part == "local=1" || part.starts_with("error=")
+                        });
+
+                        if !stays
+                            && state
+                                .settings
+                                .get_as(|s| s.noprofit.connected())
+                                .await?
+                        {
+                            return ApiResponse::new(Body::empty())
+                                .with_header("Location", "/api/auth/noprofit/redirect")
+                                .with_status(StatusCode::TEMPORARY_REDIRECT)
+                                .ok();
+                        }
+                    }
+
                     let path = urlencoding::decode(&path[1.min(path.len())..])?;
 
                     let asset = shared::frontend_asset(&path);

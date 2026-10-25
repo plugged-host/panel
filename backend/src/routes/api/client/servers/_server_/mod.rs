@@ -20,6 +20,7 @@ mod activity;
 mod allocations;
 mod announcements;
 mod backups;
+mod chat; // plugged.host
 mod command;
 mod databases;
 mod delete; // plugged.host
@@ -101,6 +102,7 @@ pub async fn auth(
         "/api/client/servers/{server}/limbo",
         "/api/client/servers/{server}/power",
         "/api/client/servers/{server}/activity",
+        "/api/client/servers/{server}/chat",
     ];
     if let Some(limbo) = server.limbo
         && limbo.away()
@@ -169,6 +171,7 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         .routes(routes!(get::route))
         .routes(routes!(delete::delete::route)) // plugged.host
         .nest("/activity", activity::router(state))
+        .nest("/chat", chat::router(state)) // plugged.host
         .nest("/announcements", announcements::router(state))
         .nest("/resources", resources::router(state))
         .nest("/logs", logs::router(state))

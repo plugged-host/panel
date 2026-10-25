@@ -105,7 +105,16 @@ export const userEconomySchema = z.object({
     .nullable(),
 });
 
-export const earnProviderSchema = z.enum(['linkvertise', 'vylo']);
+export const earnProviderSchema = z.enum(['linkvertise', 'vylo', 'cuty', 'shrinkearn', 'shrinkme']);
+
+export const panelAccessSchema = z.object({
+  enabled: z.boolean(),
+  required: z.boolean(),
+  exempt: z.boolean(),
+  tokens: z.number(),
+  days: z.number(),
+  until: z.coerce.date().nullable(),
+});
 
 export const userTokensSchema = z.object({
   enabled: z.boolean(),

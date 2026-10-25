@@ -2677,7 +2677,10 @@
           "none": "Aucun moyen de gagner des jetons n'est configuré pour le moment.",
           "provider": {
             "linkvertise": "Linkvertise",
-            "vylo": "Vylo"
+            "vylo": "Vylo",
+            "cuty": "Cuty",
+            "shrinkearn": "ShrinkEarn",
+            "shrinkme": "ShrinkMe"
           },
           "reward": "{count} jetons par lien complété",
           "used": "{used} sur {cap} aujourd'hui",
@@ -2902,6 +2905,22 @@
         },
         "activity": {
           "title": "Activité"
+        },
+        "panelAccess": {
+          "title": "Accès au panneau",
+          "subtitle": "Le panneau coûte {tokens} jetons par mois. Les abonnements et les administrateurs ne paient jamais.",
+          "heading": "{tokens} jetons pour {days} jours",
+          "active": "Payé jusqu'au {date}.",
+          "inactive": "Le panneau est verrouillé jusqu'au paiement.",
+          "exempt": "Vous ne payez jamais pour le panneau.",
+          "exemptNotice": "Votre abonnement couvre le panneau.",
+          "disabled": "Le panneau est gratuit en ce moment.",
+          "buy": "Payer {tokens} jetons",
+          "earn": "Gagner des jetons",
+          "toast": {
+            "bought": "Le panneau est à vous pour {days} jours.",
+            "failed": "Le paiement n'a pas abouti."
+          }
         }
       },
       "admin": {
@@ -8556,6 +8575,13 @@
         },
         "activity": {
           "title": "Activité"
+        },
+        "chat": {
+          "title": "Discussion",
+          "empty": "Aucun message pour l'instant. Dites bonjour.",
+          "placeholder": "Écrivez un message…",
+          "loadOlder": "Charger les messages plus anciens",
+          "deletedUser": "Utilisateur supprimé"
         }
       }
     }

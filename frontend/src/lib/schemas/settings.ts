@@ -172,6 +172,7 @@ export const publicSettingsSchema = z.object({
     creditsEnabled: z.boolean(),
     tokensEnabled: z.boolean(),
     membershipEnabled: z.boolean(),
+    panelAccessEnabled: z.boolean(),
     plusName: z.string(),
     plusplusName: z.string(),
   }),

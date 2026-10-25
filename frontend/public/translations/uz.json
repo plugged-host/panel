@@ -2674,7 +2674,10 @@
           "none": "Hozir jeton ishlab olishning hech qanday usuli sozlanmagan.",
           "provider": {
             "linkvertise": "Linkvertise",
-            "vylo": "Vylo"
+            "vylo": "Vylo",
+            "cuty": "Cuty",
+            "shrinkearn": "ShrinkEarn",
+            "shrinkme": "ShrinkMe"
           },
           "reward": "Har bir yakunlash uchun {count} jeton",
           "used": "Bugun: {used} / {cap}",
@@ -2899,6 +2902,22 @@
         },
         "activity": {
           "title": "Faollik"
+        },
+        "panelAccess": {
+          "title": "Panelga kirish",
+          "subtitle": "Panel oyiga {tokens} token turadi. A'zoliklar va administratorlar hech qachon to'lamaydi.",
+          "heading": "{days} kun uchun {tokens} token",
+          "active": "{date} gacha to'langan.",
+          "inactive": "To'lamaguningizcha panel qulflangan.",
+          "exempt": "Panel uchun hech qachon to'lamaysiz.",
+          "exemptNotice": "A'zoligingiz panelni qoplaydi.",
+          "disabled": "Panel hozir bepul.",
+          "buy": "{tokens} token to'lash",
+          "earn": "Token ishlash",
+          "toast": {
+            "bought": "Panel {days} kun sizniki.",
+            "failed": "To'lov amalga oshmadi."
+          }
         }
       },
       "server": {
@@ -6675,6 +6694,13 @@
         },
         "activity": {
           "title": "Faollik"
+        },
+        "chat": {
+          "title": "Suhbat",
+          "empty": "Hozircha xabar yo‘q. Salomlashing.",
+          "placeholder": "Xabar yozing…",
+          "loadOlder": "Eski xabarlarni yuklash",
+          "deletedUser": "O'chirilgan foydalanuvchi"
         }
       }
     }

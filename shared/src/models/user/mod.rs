@@ -51,6 +51,12 @@ pub struct User {
     pub has_password: bool,
 
     pub burst_cores: i16, // plugged.host: shared/src/economy.rs
+    #[serde(default)]
+    pub panel_access_until: Option<chrono::NaiveDateTime>, // plugged.host: shared/src/panel_access.rs
+    #[serde(default)]
+    pub has_plus: bool, // plugged.host: shared/src/panel_access.rs
+    #[serde(default)]
+    pub has_plusplus: bool, // plugged.host: shared/src/panel_access.rs
 
     pub created: chrono::NaiveDateTime,
 
@@ -148,6 +154,19 @@ impl BaseModel for User {
                 "users.burst_cores",
                 compact_str::format_compact!("{prefix}burst_cores"),
             ),
+            // plugged.host
+            (
+                "users.panel_access_until",
+                compact_str::format_compact!("{prefix}panel_access_until"),
+            ),
+            (
+                "EXISTS (SELECT 1 FROM user_memberships WHERE user_memberships.user_uuid = users.uuid AND user_memberships.plus_since IS NOT NULL)",
+                compact_str::format_compact!("{prefix}has_plus"),
+            ),
+            (
+                "EXISTS (SELECT 1 FROM user_memberships WHERE user_memberships.user_uuid = users.uuid AND user_memberships.plusplus_until > NOW())",
+                compact_str::format_compact!("{prefix}has_plusplus"),
+            ),
             (
                 "users.created",
                 compact_str::format_compact!("{prefix}created"),
@@ -206,6 +225,11 @@ impl BaseModel for User {
                 .try_get(compact_str::format_compact!("{prefix}has_password").as_str())?,
             burst_cores: row
                 .try_get(compact_str::format_compact!("{prefix}burst_cores").as_str())?, // plugged.host
+            panel_access_until: row
+                .try_get(compact_str::format_compact!("{prefix}panel_access_until").as_str())?, // plugged.host
+            has_plus: row.try_get(compact_str::format_compact!("{prefix}has_plus").as_str())?, // plugged.host
+            has_plusplus: row
+                .try_get(compact_str::format_compact!("{prefix}has_plusplus").as_str())?, // plugged.host
             created: row.try_get(compact_str::format_compact!("{prefix}created").as_str())?,
             extension_data: Self::map_extensions(prefix, row)?,
         })

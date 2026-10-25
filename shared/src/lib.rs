@@ -56,6 +56,7 @@ pub mod node_failover; // plugged.host
 pub mod node_telemetry; // plugged.host
 pub mod noprofit;
 pub mod ntp;
+pub mod panel_access; // plugged.host
 pub mod payload;
 pub mod permissions;
 pub mod prelude;

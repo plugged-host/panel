@@ -8,8 +8,8 @@
 //! index on `(provider, token_hash)` is the guarantee against a proof paying twice.
 //!
 //! Providers: Linkvertise (a link from its dashboard, or its Full Script on the Tokens page, both
-//! checked with its anti-bypass API) and Vylo (a short link made per trip, back with a proof only
-//! the panel can make).
+//! checked with its anti-bypass API) and the shorteners (Vylo, Cuty, ShrinkEarn and ShrinkMe make a
+//! short link per trip, back with a proof only the panel can make).
 
 use crate::{
     economy::{Currency, change},
@@ -26,8 +26,11 @@ use utoipa::ToSchema;
 
 const LINKVERTISE_VERIFY: &str = "https://publisher.linkvertise.com/api/v1/anti_bypassing";
 const VYLO_API: &str = "https://vylo.cc/api";
-/// The parameter the panel's own Vylo proof comes back in.
-const VYLO_PROOF: &str = "vt";
+const CUTY_API: &str = "https://cuty.io/api";
+const SHRINKEARN_API: &str = "https://shrinkearn.com/api";
+const SHRINKME_API: &str = "https://shrinkme.io/api";
+/// The parameter the panel's own shortener proof comes back in.
+const SHORTENER_PROOF: &str = "vt";
 /// The parameter the return URL carries for Linkvertise's Full Script whitelist.
 pub const LINKVERTISE_RETURN: &str = "lvr";
 /// The parameter the claim's nonce comes back in.
@@ -42,15 +45,27 @@ pub const STATUS_REJECTED: &str = "rejected";
 pub enum Provider {
     Linkvertise,
     Vylo,
+    Cuty,
+    ShrinkEarn,
+    ShrinkMe,
 }
 
 impl Provider {
-    pub const ALL: [Self; 2] = [Self::Linkvertise, Self::Vylo];
+    pub const ALL: [Self; 5] = [
+        Self::Linkvertise,
+        Self::Vylo,
+        Self::Cuty,
+        Self::ShrinkEarn,
+        Self::ShrinkMe,
+    ];
 
     pub fn key(self) -> &'static str {
         match self {
             Self::Linkvertise => "linkvertise",
             Self::Vylo => "vylo",
+            Self::Cuty => "cuty",
+            Self::ShrinkEarn => "shrinkearn",
+            Self::ShrinkMe => "shrinkme",
         }
     }
 
@@ -63,6 +78,20 @@ impl Provider {
         match self {
             Self::Linkvertise => "Linkvertise",
             Self::Vylo => "Vylo",
+            Self::Cuty => "Cuty",
+            Self::ShrinkEarn => "ShrinkEarn",
+            Self::ShrinkMe => "ShrinkMe",
+        }
+    }
+
+    /// The shortener's API, if it is one.
+    fn api(self) -> Option<&'static str> {
+        match self {
+            Self::Linkvertise => None,
+            Self::Vylo => Some(VYLO_API),
+            Self::Cuty => Some(CUTY_API),
+            Self::ShrinkEarn => Some(SHRINKEARN_API),
+            Self::ShrinkMe => Some(SHRINKME_API),
         }
     }
 
@@ -70,7 +99,7 @@ impl Provider {
     fn token_params(self) -> &'static [&'static str] {
         match self {
             Self::Linkvertise => &["hash", "token", "key", "k"],
-            Self::Vylo => &[VYLO_PROOF],
+            _ => &[SHORTENER_PROOF],
         }
     }
 }
@@ -118,6 +147,39 @@ impl Config {
                 whitelist: Vec::new(),
                 min_seconds: settings.vylo_min_seconds.max(0) as i64,
             },
+            Provider::Cuty => Self {
+                provider,
+                enabled: settings.cuty_enabled,
+                reward: settings.cuty_reward.max(1) as i64,
+                daily_cap: settings.cuty_daily_cap.max(0) as i64,
+                secret: settings.cuty_api_key.as_deref().map(str::to_string),
+                link: None,
+                publisher: None,
+                whitelist: Vec::new(),
+                min_seconds: settings.cuty_min_seconds.max(0) as i64,
+            },
+            Provider::ShrinkEarn => Self {
+                provider,
+                enabled: settings.shrinkearn_enabled,
+                reward: settings.shrinkearn_reward.max(1) as i64,
+                daily_cap: settings.shrinkearn_daily_cap.max(0) as i64,
+                secret: settings.shrinkearn_api_key.as_deref().map(str::to_string),
+                link: None,
+                publisher: None,
+                whitelist: Vec::new(),
+                min_seconds: settings.shrinkearn_min_seconds.max(0) as i64,
+            },
+            Provider::ShrinkMe => Self {
+                provider,
+                enabled: settings.shrinkme_enabled,
+                reward: settings.shrinkme_reward.max(1) as i64,
+                daily_cap: settings.shrinkme_daily_cap.max(0) as i64,
+                secret: settings.shrinkme_api_key.as_deref().map(str::to_string),
+                link: None,
+                publisher: None,
+                whitelist: Vec::new(),
+                min_seconds: settings.shrinkme_min_seconds.max(0) as i64,
+            },
         }
     }
 
@@ -138,7 +200,7 @@ impl Config {
                         .as_deref()
                         .is_some_and(|link| link.to_ascii_lowercase().starts_with("https://"))
             }
-            Provider::Vylo => true,
+            _ => true,
         }
     }
 }
@@ -197,12 +259,12 @@ pub fn extract_token(provider: Provider, params: &HashMap<String, String>) -> Op
     })
 }
 
-/// The Vylo proof of a claim: only the panel can make it, so a trip that skipped the link has
-/// none.
-pub fn vylo_proof(app_key: &str, nonce: &str) -> String {
+/// The shortener proof of a claim: only the panel can make it, so a trip that skipped the link has
+/// none. It names the provider, so a proof from one shortener cannot settle another's claim.
+pub fn shortener_proof(app_key: &str, provider: Provider, nonce: &str) -> String {
     let mut mac = Hmac::<Sha256>::new_from_slice(app_key.as_bytes())
         .expect("hmac accepts keys of any length");
-    mac.update(format!("vylo|{nonce}").as_bytes());
+    mac.update(format!("{}|{nonce}", provider.key()).as_bytes());
 
     hex::encode(mac.finalize().into_bytes())[..40].to_string()
 }
@@ -227,7 +289,7 @@ pub fn return_url(app_url: &str, provider: Provider, nonce: &str) -> String {
 
     match provider {
         Provider::Linkvertise => format!("{base}&{LINKVERTISE_RETURN}=1"),
-        Provider::Vylo => base,
+        _ => base,
     }
 }
 
@@ -462,14 +524,15 @@ pub async fn start(
         Provider::Linkvertise => {
             fill_link(config.link.as_deref().unwrap_or_default(), &back, &nonce)
         }
-        Provider::Vylo => {
+        Provider::Vylo | Provider::Cuty | Provider::ShrinkEarn | Provider::ShrinkMe => {
             let destination = format!(
-                "{back}&{VYLO_PROOF}={}",
-                vylo_proof(&state.env.app_encryption_key, &nonce)
+                "{back}&{SHORTENER_PROOF}={}",
+                shortener_proof(&state.env.app_encryption_key, provider, &nonce)
             );
 
-            shorten_vylo(
+            shorten_shortener(
                 state,
+                provider.api().unwrap_or_default(),
                 config.secret.as_deref().unwrap_or_default(),
                 &destination,
             )
@@ -481,7 +544,12 @@ pub async fn start(
     Ok(ApiEarnStart { url, nonce })
 }
 
-async fn shorten_vylo(state: &crate::State, api_key: &str, destination: &str) -> Option<String> {
+async fn shorten_shortener(
+    state: &crate::State,
+    api: &str,
+    api_key: &str,
+    destination: &str,
+) -> Option<String> {
     #[derive(Deserialize)]
     struct Answer {
         status: Option<String>,
@@ -491,7 +559,7 @@ async fn shorten_vylo(state: &crate::State, api_key: &str, destination: &str) ->
 
     let response = state
         .client
-        .get(VYLO_API)
+        .get(api)
         .query(&[("api", api_key), ("url", destination)])
         .timeout(std::time::Duration::from_secs(8))
         .header("Accept", "application/json")
@@ -501,11 +569,14 @@ async fn shorten_vylo(state: &crate::State, api_key: &str, destination: &str) ->
     let answer = match response {
         Ok(response) if response.status().is_success() => response.json::<Answer>().await.ok(),
         Ok(response) => {
-            tracing::warn!("vylo answered {} to a shorten", response.status());
+            tracing::warn!("a shortener answered {} to a shorten", response.status());
             None
         }
         Err(err) => {
-            tracing::warn!("vylo did not answer a shorten: {}", err.without_url());
+            tracing::warn!(
+                "a shortener did not answer a shorten: {}",
+                err.without_url()
+            );
             None
         }
     }?;
@@ -697,8 +768,8 @@ pub async fn redeem(
             Some(api_token) => verify_linkvertise(state, api_token, &token).await,
             None => false,
         },
-        Provider::Vylo => {
-            let proof = vylo_proof(&state.env.app_encryption_key, nonce);
+        Provider::Vylo | Provider::Cuty | Provider::ShrinkEarn | Provider::ShrinkMe => {
+            let proof = shortener_proof(&state.env.app_encryption_key, provider, nonce);
             let age: i64 = row.try_get("age")?;
 
             constant_time_eq(proof.as_bytes(), token.as_bytes()) && age >= config.min_seconds
@@ -784,6 +855,9 @@ async fn grant(
         match provider {
             Provider::Linkvertise => "Linkvertise",
             Provider::Vylo => "Vylo",
+            Provider::Cuty => "Cuty",
+            Provider::ShrinkEarn => "ShrinkEarn",
+            Provider::ShrinkMe => "ShrinkMe",
         },
         serde_json::json!({ "claim_uuid": claim_uuid }),
     )
@@ -809,10 +883,27 @@ mod tests {
         settings.vylo_enabled = true;
         settings.vylo_api_key = Some("<secret>".into());
         settings.vylo_reward = 2;
+        settings.cuty_enabled = true;
+        settings.cuty_api_key = Some("<secret>".into());
+        settings.cuty_reward = 3;
+        settings.shrinkearn_enabled = true;
+        settings.shrinkearn_api_key = Some("<secret>".into());
+        settings.shrinkearn_reward = 4;
+        settings.shrinkme_enabled = true;
+        settings.shrinkme_api_key = Some("<secret>".into());
+        settings.shrinkme_reward = 5;
         settings.linkvertise_enabled = true;
         settings.linkvertise_token = Some("<secret>".into());
         settings.linkvertise_link = Some("http://link.example.com".into());
-        assert_eq!(offered(&settings), vec![(Provider::Vylo, 2, 5)]);
+        assert_eq!(
+            offered(&settings),
+            vec![
+                (Provider::Vylo, 2, 5),
+                (Provider::Cuty, 3, 5),
+                (Provider::ShrinkEarn, 4, 5),
+                (Provider::ShrinkMe, 5, 5),
+            ]
+        );
 
         settings.tokens_enabled = false;
         assert!(offered(&settings).is_empty());
@@ -858,16 +949,23 @@ mod tests {
             extract_token(Provider::Vylo, &params(&[("vt", "0123456789abcdef")])),
             Some("0123456789abcdef".into())
         );
+        for provider in [Provider::Cuty, Provider::ShrinkEarn, Provider::ShrinkMe] {
+            assert_eq!(
+                extract_token(provider, &params(&[("vt", "0123456789abcdef")])),
+                Some("0123456789abcdef".into())
+            );
+        }
     }
 
     #[test]
-    fn the_vylo_proof_depends_on_key_and_nonce() {
-        let proof = vylo_proof("key", "nonce");
+    fn the_shortener_proof_depends_on_key_provider_and_nonce() {
+        let proof = shortener_proof("key", Provider::Vylo, "nonce");
 
         assert_eq!(proof.len(), 40);
-        assert_eq!(proof, vylo_proof("key", "nonce"));
-        assert_ne!(proof, vylo_proof("key", "other"));
-        assert_ne!(proof, vylo_proof("other", "nonce"));
+        assert_eq!(proof, shortener_proof("key", Provider::Vylo, "nonce"));
+        assert_ne!(proof, shortener_proof("key", Provider::Vylo, "other"));
+        assert_ne!(proof, shortener_proof("other", Provider::Vylo, "nonce"));
+        assert_ne!(proof, shortener_proof("key", Provider::Cuty, "nonce"));
     }
 
     #[test]

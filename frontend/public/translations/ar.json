@@ -2677,7 +2677,10 @@
           "none": "لا توجد طريقة مُعدّة لربح التوكن حاليًا.",
           "provider": {
             "linkvertise": "Linkvertise",
-            "vylo": "Vylo"
+            "vylo": "Vylo",
+            "cuty": "Cuty",
+            "shrinkearn": "ShrinkEarn",
+            "shrinkme": "ShrinkMe"
           },
           "reward": "{count} توكن لكل إكمال",
           "used": "{used} من {cap} اليوم",
@@ -2902,6 +2905,22 @@
         },
         "activity": {
           "title": "النشاط"
+        },
+        "panelAccess": {
+          "title": "الوصول إلى لوحة التحكم",
+          "subtitle": "تكلّف لوحة التحكم {tokens} رموز شهريًا. الأعضاء والإداريون لا يدفعون أبدًا.",
+          "heading": "{tokens} رموز مقابل {days} يومًا",
+          "active": "مدفوع حتى {date}.",
+          "inactive": "لوحة التحكم مقفلة حتى تدفع.",
+          "exempt": "أنت لا تدفع للوحة التحكم أبدًا.",
+          "exemptNotice": "عضويتك تغطي لوحة التحكم.",
+          "disabled": "لوحة التحكم مجانية الآن.",
+          "buy": "ادفع {tokens} رموز",
+          "earn": "اكسب رموزًا",
+          "toast": {
+            "bought": "لوحة التحكم لك لمدة {days} يومًا.",
+            "failed": "لم تكتمل عملية الدفع."
+          }
         }
       },
       "server": {
@@ -6678,6 +6697,13 @@
         },
         "activity": {
           "title": "النشاط"
+        },
+        "chat": {
+          "title": "الدردشة",
+          "empty": "لا توجد رسائل بعد. قل مرحبًا.",
+          "placeholder": "اكتب رسالة…",
+          "loadOlder": "تحميل الرسائل الأقدم",
+          "deletedUser": "مستخدم محذوف"
         }
       }
     }

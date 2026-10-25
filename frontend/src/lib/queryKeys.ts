@@ -398,6 +398,9 @@ const server = (serverUuid: string) => ({
   subusers: {
     all: () => ['server', serverUuid, 'subusers'] as const,
   },
+  chat: {
+    all: () => ['server', serverUuid, 'chat'] as const,
+  },
   tunnel: {
     all: () => ['server', serverUuid, 'tunnel'] as const,
     available: () => ['server', serverUuid, 'tunnel', 'available'] as const,
@@ -446,6 +449,7 @@ const user = {
   store: () => ['user', 'store'] as const,
   tokens: () => ['user', 'tokens'] as const,
   membership: () => ['user', 'membership'] as const,
+  panelAccess: () => ['user', 'panel-access'] as const, // plugged.host
   balance: () => ['user', 'balance'] as const,
   discord: () => ['user', 'discord'] as const, // plugged.host: docs/features/discord.md
   ads: () => ['user', 'ads'] as const, // plugged.host: docs/features/ads.md

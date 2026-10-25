@@ -102,6 +102,15 @@ axiosInstance.interceptors.response.use(
       window.dispatchEvent(new Event('session-expired'));
     }
 
+    if (
+      error.response?.status === 402 &&
+      error.response.headers?.['x-panel-access'] === 'required' &&
+      !window.location.pathname.startsWith('/account/panel-access')
+    ) {
+      sessionStorage.setItem('panel-access-redirect', window.location.pathname + window.location.search);
+      window.dispatchEvent(new Event('panel-access-required'));
+    }
+
     return Promise.reject(error);
   },
 );

@@ -107,6 +107,7 @@ mod get {
         credits_enabled: bool,
         tokens_enabled: bool,
         membership_enabled: bool,
+        panel_access_enabled: bool,
         plus_name: &'a str,
         plusplus_name: &'a str,
     }
@@ -258,6 +259,7 @@ mod get {
                 credits_enabled: settings.economy.credits_enabled,
                 tokens_enabled: settings.economy.tokens_enabled,
                 membership_enabled: settings.economy.membership_enabled,
+                panel_access_enabled: settings.economy.panel_access_enabled,
                 plus_name: &settings.economy.plus_name,
                 plusplus_name: &settings.economy.plusplus_name,
             },

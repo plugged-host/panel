@@ -5,8 +5,8 @@ Two currencies (`shared/src/economy.rs`, `shared/src/earn.rs`, `shared/src/prici
 - **Credits** buy CPU, memory and disk in the **Resource Store**, for good, and the second
   membership. Without noprofit.space they are the panel's own; with it they are the account's
   noprofit.space credits and the store is noprofit.space's.
-- **Tokens** are earned through sponsored links (Linkvertise, Vylo) and buy the memberships. They
-  are always the panel's own.
+- **Tokens** are earned through sponsored links (Linkvertise, Vylo, Cuty, ShrinkEarn and ShrinkMe)
+  and buy the memberships and the panel itself. They are always the panel's own.
 
 Two memberships, always the panel's own. Their names are settings (plugged.host calls them Plus and
 PlusPlus); in code, tables and routes they are `plus` and `plusplus`:
@@ -110,6 +110,7 @@ Opening claims is throttled per account and provider (3 × the daily cap per hou
 | Linkvertise, link | The settings' Linkvertise link, with `{return}` or `{return_b64}` replaced by the way back | Linkvertise's anti-bypass API with the API token |
 | Linkvertise, Full Script | With a publisher id the Tokens page loads `linkvertise.js`, which turns the page's own earn link (`…&lvr=1`, matching the whitelist) into a Linkvertise link. The claim is opened when the page loads and reused on reloads | The same API |
 | Vylo | A short link made for every trip through Vylo's API, to the way back plus `vt=<proof>` | The proof is an HMAC of the nonce with the panel's key, so only a trip through the link has it; a trip faster than **Shortest Trip** does not count |
+| Cuty, ShrinkEarn, ShrinkMe | The same as Vylo, through `https://{cuty.io,shrinkearn.com,shrinkme.io}/api?api=<key>&url=…` | The same HMAC, but it names the provider: a proof from one shortener cannot settle another's claim; each has its own **Shortest Trip** |
 
 The page's `script-src` allows `https://publisher.linkvertise.com` only while Linkvertise is on with
 a publisher id and a token (`backend/src/lib.rs`).
@@ -149,6 +150,20 @@ memberships, what the panel's store sold, and both histories. Add or take away c
 noprofit.space) and tokens with a reason the user sees, give or take the first membership, set or
 end the second. Admin activity `user:economy`.
 
+## Panel access
+
+The panel itself can cost tokens (`shared/src/panel_access.rs`, `users.panel_access_until`). One
+payment buys **Panel Access Days** (30 by default) for **Panel Access Tokens** (5 by default), added
+to what is left, so paying early loses nothing. Administrators and both memberships never pay.
+
+The client API's auth middleware checks it after suspension, two-factor and email verification and
+before a route sees the request: a blocked account gets `402 Payment Required` with
+`X-Panel-Access: required`. It may still use `/api/client/account` (profile, settings, tokens and
+earning, balance, memberships, panel access, logout) and `/api/client/permissions`; every server
+route waits for a payment. The frontend's Axios interceptor turns the 402 into a redirect to
+Account › Panel Access, remembering the page to return to. Buying invalidates the user cache so the
+next request sees the new date.
+
 ## Routes
 
 | Route | Permission | Does |
@@ -162,6 +177,8 @@ end the second. Admin activity `user:economy`.
 | `GET /api/client/account/membership` | `economy.read` | `{economy}`: balances, both memberships, their prices, the burst cores of each and the account's now, the queue priority |
 | `POST /api/client/account/membership/plus` | `economy.purchase` | `{economy}`; 409 owned or short |
 | `POST /api/client/account/membership/plusplus` | `economy.purchase` | `{pay: tokens\|credits}` → `{economy}`; 403 without the first membership |
+| `GET /api/client/account/panel-access` | `economy.read` | `{panel_access}`: `enabled`, `required`, `exempt`, `tokens`, `days`, `until` |
+| `POST /api/client/account/panel-access` | `economy.purchase` | `{panel_access}` after charging the tokens; 409 short |
 | `GET /api/admin/users/{user}/economy` | `users.economy` | The user's economy and both histories |
 | `PUT /api/admin/users/{user}/economy` | `users.economy` | `{credits?, tokens?, reason?, plus?, plusplus_until?}` (`null` ends it now) |
 
@@ -174,6 +191,7 @@ User activity: `account:store.purchase`, `account:membership.plus`, `account:mem
 |---|---|
 | `users.credits`, `users.extra_cpu`, `extra_memory`, `extra_disk` | The panel's credits and what its store sold (without noprofit.space) |
 | `users.tokens`, `tokens_earned`, `tokens_daily_granted` | Tokens, all earned so far, the day the daily tokens were given |
+| `users.panel_access_until` | When the paid panel access runs out (empty: never paid) |
 | `user_credit_transactions`, `user_token_transactions` | The ledgers: amount, balance after, type, description, data |
 | `user_token_claims` | Earn trips: nonce, provider, proof hash, status, reason, amount |
 | `user_memberships` | `plus_since`, `plusplus_until`, purchases and `plusplus_settled` of the last lapse |
@@ -182,7 +200,8 @@ User activity: `account:store.purchase`, `account:membership.plus`, `account:mem
 ## Settings
 
 Admin › Settings › Economy, in three tabs: Resource Store (credits, starting credits, prices),
-Tokens (daily tokens, Linkvertise, Vylo) and Memberships. A tab saves only its own fields.
+Tokens (daily tokens, panel access, Linkvertise, Vylo, Cuty, ShrinkEarn, ShrinkMe) and Memberships.
+A tab saves only its own fields.
 
 | Field | Key | Default |
 |---|---|---|
@@ -190,6 +209,7 @@ Tokens (daily tokens, Linkvertise, Vylo) and Memberships. A tab saves only its o
 | Starting Credits (once per account, without noprofit.space) | `economy::starting_credits` | 0 |
 | Tokens | `economy::tokens_enabled` | on |
 | Daily Tokens | `economy::daily_tokens` | 0 |
+| Panel access: on, tokens, days | `economy::panel_access_{enabled,tokens,days}` | on, 5, 30 |
 | Memberships | `economy::membership_enabled` | on |
 | Names | `economy::plus_name`, `plusplus_name` | Plus, PlusPlus |
 | First membership: tokens | `economy::plus_tokens` | 25 |
@@ -202,6 +222,9 @@ Tokens (daily tokens, Linkvertise, Vylo) and Memberships. A tab saves only its o
 | Minutes to Finish a Link | `economy::claim_minutes` | 30 |
 | Linkvertise | `economy::linkvertise_{enabled,token (encrypted),publisher,whitelist,link,reward,daily_cap}` | off, –, –, `lvr=`, –, 1, 5 |
 | Vylo | `economy::vylo_{enabled,api_key (encrypted),reward,daily_cap,min_seconds}` | off, –, 1, 5, 10 |
+| Cuty | `economy::cuty_{enabled,api_key (encrypted),reward,daily_cap,min_seconds}` | off, –, 1, 5, 10 |
+| ShrinkEarn | `economy::shrinkearn_{enabled,api_key (encrypted),reward,daily_cap,min_seconds}` | off, –, 1, 5, 10 |
+| ShrinkMe | `economy::shrinkme_{enabled,api_key (encrypted),reward,daily_cap,min_seconds}` | off, –, 1, 5, 10 |
 
 Turning credits, tokens or memberships off hides their page; balances and memberships are kept.
 
@@ -227,8 +250,11 @@ and `/credits/spend`.
   CPU allowance stays the same (the second membership adds burst cores, not allowance).
 - Admin › Economy › End the second membership now: within a minute, a server on a premium location
   starts moving (its Transfer tab).
-- Linkvertise or Vylo set up with real keys: Earn with …, finish the link, come back: a toast
-  "Added: +1 tokens"; reloading the page that came back does not add more.
+- Linkvertise, Vylo, Cuty, ShrinkEarn or ShrinkMe set up with real keys: Earn with …, finish the
+  link, come back: a toast "Added: +1 tokens"; reloading the page that came back does not add more.
+- Panel access: as a user without a membership, open a server page: it lands on Account › Panel
+  Access; the Tokens page still opens. Pay: the server page opens and the sidebar shows the new
+  date. A Plus account never sees the paywall.
 - With noprofit.space: the store shows noprofit.space's balance and prices; a purchase there raises
   the plan at once (create page allowance).
 - Burst cores: with the first membership, a server with 200 % CPU shows "200% + 100% burst" on its

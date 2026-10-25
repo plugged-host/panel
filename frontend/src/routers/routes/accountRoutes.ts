@@ -8,32 +8,38 @@ import {
   faFingerprint,
   faKey,
   faKeyboard,
+  faLock, // plugged.host
   faMedal, // plugged.host
   faStore, // plugged.host
   faUnlockKeyhole,
   faUser,
   faUserSecret,
 } from '@fortawesome/free-solid-svg-icons';
+import { lazy } from 'react';
 import type { RouteDefinition } from 'shared';
-import DashboardAccount from '@/pages/dashboard/account/DashboardAccount.tsx';
-import DashboardActivity from '@/pages/dashboard/activity/DashboardActivity.tsx';
-import DashboardApiKeys from '@/pages/dashboard/api-keys/DashboardApiKeys.tsx';
-import DashboardApiKeysCreate from '@/pages/dashboard/api-keys/DashboardApiKeysCreate.tsx';
-import DashboardApiKeysUpdate from '@/pages/dashboard/api-keys/DashboardApiKeysUpdate.tsx';
-import DashboardBackups from '@/pages/dashboard/backups/DashboardBackups.tsx'; // plugged.host
-import DashboardCommandSnippets from '@/pages/dashboard/command-snippets/DashboardCommandSnippets.tsx';
-import DashboardDevboxOpen from '@/pages/dashboard/devbox/DashboardDevboxOpen.tsx'; // plugged.host
-import DashboardDiscord from '@/pages/dashboard/discord/DashboardDiscord.tsx'; // plugged.host
-import DashboardMembership from '@/pages/dashboard/membership/DashboardMembership.tsx'; // plugged.host
-import DashboardOAuthLinks from '@/pages/dashboard/oauth-links/DashboardOAuthLinks.tsx';
-import DashboardSecurityKeys from '@/pages/dashboard/security-keys/DashboardSecurityKeys.tsx';
-import DashboardSessions from '@/pages/dashboard/sessions/DashboardSessions.tsx';
-import DashboardShortcuts from '@/pages/dashboard/shortcuts/DashboardShortcuts.tsx';
-import DashboardSshKeys from '@/pages/dashboard/ssh-keys/DashboardSshKeys.tsx';
-import DashboardStore from '@/pages/dashboard/store/DashboardStore.tsx'; // plugged.host
-import DashboardTokens from '@/pages/dashboard/tokens/DashboardTokens.tsx'; // plugged.host
 import { getTranslations } from '@/providers/TranslationProvider.tsx';
 import { useGlobalStore } from '@/stores/global.ts';
+
+// plugged.host: each account page is its own chunk, so opening the dashboard does not download
+// every page it can lead to.
+const DashboardAccount = lazy(() => import('@/pages/dashboard/account/DashboardAccount.tsx'));
+const DashboardActivity = lazy(() => import('@/pages/dashboard/activity/DashboardActivity.tsx'));
+const DashboardApiKeys = lazy(() => import('@/pages/dashboard/api-keys/DashboardApiKeys.tsx'));
+const DashboardApiKeysCreate = lazy(() => import('@/pages/dashboard/api-keys/DashboardApiKeysCreate.tsx'));
+const DashboardApiKeysUpdate = lazy(() => import('@/pages/dashboard/api-keys/DashboardApiKeysUpdate.tsx'));
+const DashboardBackups = lazy(() => import('@/pages/dashboard/backups/DashboardBackups.tsx')); // plugged.host
+const DashboardCommandSnippets = lazy(() => import('@/pages/dashboard/command-snippets/DashboardCommandSnippets.tsx'));
+const DashboardDevboxOpen = lazy(() => import('@/pages/dashboard/devbox/DashboardDevboxOpen.tsx')); // plugged.host
+const DashboardDiscord = lazy(() => import('@/pages/dashboard/discord/DashboardDiscord.tsx')); // plugged.host
+const DashboardMembership = lazy(() => import('@/pages/dashboard/membership/DashboardMembership.tsx')); // plugged.host
+const DashboardOAuthLinks = lazy(() => import('@/pages/dashboard/oauth-links/DashboardOAuthLinks.tsx'));
+const DashboardPanelAccess = lazy(() => import('@/pages/dashboard/panel-access/DashboardPanelAccess.tsx')); // plugged.host
+const DashboardSecurityKeys = lazy(() => import('@/pages/dashboard/security-keys/DashboardSecurityKeys.tsx'));
+const DashboardSessions = lazy(() => import('@/pages/dashboard/sessions/DashboardSessions.tsx'));
+const DashboardShortcuts = lazy(() => import('@/pages/dashboard/shortcuts/DashboardShortcuts.tsx'));
+const DashboardSshKeys = lazy(() => import('@/pages/dashboard/ssh-keys/DashboardSshKeys.tsx'));
+const DashboardStore = lazy(() => import('@/pages/dashboard/store/DashboardStore.tsx')); // plugged.host
+const DashboardTokens = lazy(() => import('@/pages/dashboard/tokens/DashboardTokens.tsx')); // plugged.host
 
 // plugged.host: no security keys or OAuth links while noprofit.space owns sign-in
 const noprofitConnected = () => !!useGlobalStore.getState().settings.noprofit?.enabled;
@@ -129,6 +135,14 @@ const routes: RouteDefinition[] = [
     path: '/membership',
     element: DashboardMembership,
     filter: () => !!useGlobalStore.getState().settings.economy?.membershipEnabled,
+  },
+  // plugged.host: the panel's own monthly price (docs/features/economy.md)
+  {
+    name: () => getTranslations().t('pages.account.panelAccess.title', {}),
+    icon: faLock,
+    path: '/panel-access',
+    element: DashboardPanelAccess,
+    filter: () => !!useGlobalStore.getState().settings.economy?.panelAccessEnabled,
   },
   // plugged.host: Discord rewards (docs/features/discord.md)
   {

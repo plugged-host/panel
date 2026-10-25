@@ -17,6 +17,7 @@ mod membership; // plugged.host
 pub(crate) mod neo; // plugged.host
 mod noprofit;
 mod oauth_links;
+mod panel_access; // plugged.host
 mod password;
 mod password_login;
 mod security_keys;
@@ -204,6 +205,7 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         .nest("/credits", credits::router(state)) // plugged.host
         .nest("/tokens", tokens::router(state)) // plugged.host
         .nest("/membership", membership::router(state)) // plugged.host
+        .nest("/panel-access", panel_access::router(state)) // plugged.host
         .nest("/discord", discord::router(state)) // plugged.host
         .nest("/devboxes", devboxes::router(state)) // plugged.host
         .nest("/neo", neo::router(state)) // plugged.host

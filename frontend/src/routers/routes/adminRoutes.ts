@@ -22,32 +22,40 @@ import {
   faUsers,
 } from '@fortawesome/free-solid-svg-icons';
 import { faComputer } from '@fortawesome/free-solid-svg-icons/faComputer';
-import { createElement } from 'react'; // plugged.host
+import { createElement, lazy } from 'react'; // plugged.host
 import type { AdminRouteDefinition } from 'shared';
 import type { LazyString } from '@/lib/lazy.ts';
-import AdminAbuse from '@/pages/admin/abuse/AdminAbuse.tsx';
-import AdminActivity from '@/pages/admin/activity/AdminActivity.tsx';
-import AdminAdBanners from '@/pages/admin/ad-banners/AdminAdBanners.tsx'; // plugged.host
-import AdminAnnouncements from '@/pages/admin/announcements/AdminAnnouncements.tsx';
-import AdminAssets from '@/pages/admin/assets/AdminAssets.tsx';
-import AdminBackupConfigurations from '@/pages/admin/backup-configurations/AdminBackupConfigurations.tsx';
-import AdminDatabaseHosts from '@/pages/admin/database-hosts/AdminDatabaseHosts.tsx';
-import AdminDomains from '@/pages/admin/domains/AdminDomains.tsx'; // plugged.host
-import AdminEggConfigurations from '@/pages/admin/egg-configurations/AdminEggConfigurations.tsx';
-import AdminEggLibrary from '@/pages/admin/egg-library/AdminEggLibrary.tsx';
-import AdminEggRepositories from '@/pages/admin/egg-repositories/AdminEggRepositories.tsx';
-import AdminHome from '@/pages/admin/home/AdminHome.tsx';
-import AdminLocations from '@/pages/admin/locations/AdminLocations.tsx';
-import AdminNests from '@/pages/admin/nests/AdminNests.tsx';
-import AdminNodes from '@/pages/admin/nodes/AdminNodes.tsx';
-import AdminOAuthProviders from '@/pages/admin/oauth-providers/AdminOAuthProviders.tsx';
-import AdminPlans from '@/pages/admin/plans/AdminPlans.tsx'; // plugged.host
-import AdminRoles from '@/pages/admin/roles/AdminRoles.tsx';
-import AdminServers from '@/pages/admin/servers/AdminServers.tsx';
+
+const AdminAbuse = lazy(() => import('@/pages/admin/abuse/AdminAbuse.tsx'));
+const AdminActivity = lazy(() => import('@/pages/admin/activity/AdminActivity.tsx'));
+const AdminAdBanners = lazy(() => import('@/pages/admin/ad-banners/AdminAdBanners.tsx')); // plugged.host
+const AdminAnnouncements = lazy(() => import('@/pages/admin/announcements/AdminAnnouncements.tsx'));
+const AdminAssets = lazy(() => import('@/pages/admin/assets/AdminAssets.tsx'));
+const AdminBackupConfigurations = lazy(
+  () => import('@/pages/admin/backup-configurations/AdminBackupConfigurations.tsx'),
+);
+const AdminDatabaseHosts = lazy(() => import('@/pages/admin/database-hosts/AdminDatabaseHosts.tsx'));
+const AdminDomains = lazy(() => import('@/pages/admin/domains/AdminDomains.tsx')); // plugged.host
+const AdminEggConfigurations = lazy(() => import('@/pages/admin/egg-configurations/AdminEggConfigurations.tsx'));
+const AdminEggLibrary = lazy(() => import('@/pages/admin/egg-library/AdminEggLibrary.tsx'));
+const AdminEggRepositories = lazy(() => import('@/pages/admin/egg-repositories/AdminEggRepositories.tsx'));
+const AdminHome = lazy(() => import('@/pages/admin/home/AdminHome.tsx'));
+const AdminLocations = lazy(() => import('@/pages/admin/locations/AdminLocations.tsx'));
+const AdminNests = lazy(() => import('@/pages/admin/nests/AdminNests.tsx'));
+const AdminNodes = lazy(() => import('@/pages/admin/nodes/AdminNodes.tsx'));
+const AdminOAuthProviders = lazy(() => import('@/pages/admin/oauth-providers/AdminOAuthProviders.tsx'));
+const AdminPlans = lazy(() => import('@/pages/admin/plans/AdminPlans.tsx')); // plugged.host
+const AdminRoles = lazy(() => import('@/pages/admin/roles/AdminRoles.tsx'));
+const AdminServers = lazy(() => import('@/pages/admin/servers/AdminServers.tsx'));
+
 import AdminSettings, { AdminSettingsRedirect, settingsGroups } from '@/pages/admin/settings/AdminSettings.tsx'; // plugged.host
-import AdminStatus from '@/pages/admin/status/AdminStatus.tsx';
-import AdminSystemBackupPolicies from '@/pages/admin/system-backup-policies/AdminSystemBackupPolicies.tsx';
-import AdminUsers from '@/pages/admin/users/AdminUsers.tsx';
+
+const AdminStatus = lazy(() => import('@/pages/admin/status/AdminStatus.tsx'));
+const AdminSystemBackupPolicies = lazy(
+  () => import('@/pages/admin/system-backup-policies/AdminSystemBackupPolicies.tsx'),
+);
+const AdminUsers = lazy(() => import('@/pages/admin/users/AdminUsers.tsx'));
+
 import { getTranslations } from '@/providers/TranslationProvider.tsx';
 import { useGlobalStore } from '@/stores/global.ts';
 

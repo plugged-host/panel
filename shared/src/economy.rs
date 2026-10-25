@@ -826,44 +826,17 @@ fn amount_of(resources: Resources, resource: StoreResource) -> i64 {
     }
 }
 
-/// The meters' numbers. A noprofit.space plan that says how much of a pool the account shares with
-/// other services (`total_*`, `elsewhere_*`) shows the whole pool, as the Pelican panel does: what
-/// the other services use counts as used, and the limit is the pool's total.
-pub fn store_usage(
-    limit: Resources,
-    used: Resources,
-    plan: Option<&serde_json::Value>,
-) -> Vec<ApiStoreUsage> {
-    let number = |key: &str| {
-        plan.and_then(|plan| plan.get(key)).and_then(|value| {
-            value
-                .as_i64()
-                .or_else(|| value.as_f64().map(|value| value as i64))
-        })
-    };
-
+/// The meters' numbers: this panel's own servers against the share noprofit.space gives the panel.
+/// Other services' use of the shared pool is already taken out of the plan's `cpu`, `memory` and
+/// `disk` (its `planFor`), and is not shown here: the sidebar and the store count plugged.host
+/// only.
+pub fn store_usage(limit: Resources, used: Resources) -> Vec<ApiStoreUsage> {
     StoreResource::ALL
         .into_iter()
-        .map(|resource| {
-            let share = amount_of(limit, resource);
-            let mut used = amount_of(used, resource);
-            let mut limit = share;
-
-            if let Some(total) = number(&format!("total_{}", resource.as_str())) {
-                let total = total.max(0);
-                let elsewhere = number(&format!("elsewhere_{}", resource.as_str()))
-                    .unwrap_or(total - share)
-                    .max(0);
-
-                used += elsewhere;
-                limit = total;
-            }
-
-            ApiStoreUsage {
-                resource,
-                used,
-                limit,
-            }
+        .map(|resource| ApiStoreUsage {
+            resource,
+            used: amount_of(used, resource),
+            limit: amount_of(limit, resource),
         })
         .collect()
 }
@@ -963,11 +936,7 @@ async fn panel_store(
         catalog,
         transactions: transactions(&state.database, Currency::Credits, user_uuid, HISTORY).await?,
         has_plan: true,
-        usage: store_usage(
-            crate::allowance::add_where_limited(base, extras),
-            used,
-            None,
-        ),
+        usage: store_usage(crate::allowance::add_where_limited(base, extras), used),
         rewards_url: None,
     })
 }
@@ -1042,11 +1011,7 @@ async fn noprofit_page(
     };
 
     page.has_plan = plan.is_some();
-    page.usage = store_usage(
-        plan.map(Resources::from_plan).unwrap_or_default(),
-        used,
-        plan,
-    );
+    page.usage = store_usage(plan.map(Resources::from_plan).unwrap_or_default(), used);
     page.rewards_url = Some(format!("{accounts_url}/discord"));
     page.perks = perks(
         page.has_plan,
@@ -1315,6 +1280,7 @@ pub async fn buy_plus(state: &crate::State, user: &User) -> Result<ApiEconomy, E
         .await?;
     transaction.commit().await?;
     sync_burst_now(state, user.uuid).await;
+    User::invalidate_cached(&state.database, user.uuid).await;
 
     Ok(summary(state, user).await?)
 }
@@ -1425,6 +1391,7 @@ pub async fn buy_plusplus(
     .await?;
     transaction.commit().await?;
     sync_burst_now(state, user.uuid).await;
+    User::invalidate_cached(&state.database, user.uuid).await;
 
     if spent_on_noprofit && let Err(err) = crate::noprofit::refresh_user(state, user.uuid).await {
         tracing::warn!(user = %user.uuid, "failed to pull the account after PlusPlus: {err:#}");
@@ -1553,6 +1520,7 @@ pub async fn admin_change(
     }
     transaction.commit().await?;
     sync_burst_now(state, user.uuid).await;
+    User::invalidate_cached(&state.database, user.uuid).await;
 
     Ok(())
 }
@@ -1791,7 +1759,6 @@ mod tests {
         let usage = store_usage(
             Resources::new(400, 8192, 0),
             Resources::new(100, 9000, 2048),
-            None,
         );
 
         assert_eq!(usage.len(), 3);
@@ -1809,23 +1776,18 @@ mod tests {
     }
 
     #[test]
-    fn a_shared_pool_shows_whole() {
-        // noprofit.space's planFor(): this panel's share, the whole pool and what others use of it
+    fn a_shared_pool_shows_only_this_panels_share() {
+        // noprofit.space's planFor(): this panel's share, the whole pool and what others use of it.
+        // The sidebar counts plugged.host alone, so only cpu/memory/disk are read.
         let plan = serde_json::json!({
             "cpu": 300, "total_cpu": 400, "elsewhere_cpu": 100,
             "memory": 6144, "total_memory": 8192.0,
             "disk": 10240,
         });
-        let usage = store_usage(
-            Resources::from_plan(&plan),
-            Resources::new(200, 4096, 1024),
-            Some(&plan),
-        );
+        let usage = store_usage(Resources::from_plan(&plan), Resources::new(200, 4096, 1024));
 
-        assert_eq!((usage[0].used, usage[0].limit), (300, 400));
-        // without elsewhere_*: the pool less this panel's share
-        assert_eq!((usage[1].used, usage[1].limit), (6144, 8192));
-        // no pool: as it is
+        assert_eq!((usage[0].used, usage[0].limit), (200, 300));
+        assert_eq!((usage[1].used, usage[1].limit), (4096, 6144));
         assert_eq!((usage[2].used, usage[2].limit), (1024, 10240));
     }
 

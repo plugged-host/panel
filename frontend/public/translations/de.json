@@ -2678,7 +2678,10 @@
           "none": "Derzeit ist keine Möglichkeit zum Verdienen von Tokens eingerichtet.",
           "provider": {
             "linkvertise": "Linkvertise",
-            "vylo": "Vylo"
+            "vylo": "Vylo",
+            "cuty": "Cuty",
+            "shrinkearn": "ShrinkEarn",
+            "shrinkme": "ShrinkMe"
           },
           "reward": "{count} Tokens pro Abschluss",
           "used": "{used} von {cap} heute",
@@ -2816,6 +2819,22 @@
           "toast": {
             "plus": "Du hast jetzt {name}.",
             "plusplus": "{name} gekauft."
+          }
+        },
+        "panelAccess": {
+          "title": "Panel-Zugang",
+          "subtitle": "Das Panel kostet {tokens} Tokens pro Monat. Mitgliedschaften und Administratoren zahlen nie.",
+          "heading": "{tokens} Tokens für {days} Tage",
+          "active": "Bezahlt bis {date}.",
+          "inactive": "Das Panel ist gesperrt, bis du bezahlst.",
+          "exempt": "Du zahlst nie für das Panel.",
+          "exemptNotice": "Deine Mitgliedschaft deckt das Panel.",
+          "disabled": "Das Panel ist gerade kostenlos.",
+          "buy": "{tokens} Tokens bezahlen",
+          "earn": "Tokens verdienen",
+          "toast": {
+            "bought": "Das Panel gehört dir für {days} Tage.",
+            "failed": "Die Zahlung ist nicht durchgegangen."
           }
         },
         "discord": {
@@ -4284,6 +4303,12 @@
                   "tokensEnabledDescription": "Tokens werden über gesponserte Links verdient und kaufen die Mitgliedschaften.",
                   "dailyTokens": "Tägliche Tokens",
                   "dailyTokensDescription": "Tokens, die jedes Konto einmal am Tag beim ersten Hinsehen bekommt. 0 gibt keine.",
+                  "panelAccessSection": "Panel-Zugang",
+                  "panelAccessEnabled": "Das Panel kostet Tokens",
+                  "panelAccessEnabledDescription": "Konten ohne Mitgliedschaft zahlen für das Panel selbst. Sie können weiterhin Tokens verdienen, Zugang kaufen, ihre Einstellungen ändern und sich abmelden.",
+                  "panelAccessTokens": "Tokens pro Monat",
+                  "panelAccessTokensDescription": "Mitgliedschaften und Administratoren zahlen nie. 0 macht das Panel kostenlos.",
+                  "panelAccessDays": "Tage pro Zahlung",
                   "membershipEnabled": "Mitgliedschaften",
                   "membershipEnabledDescription": "Die erste Mitgliedschaft wird einmal mit Tokens gekauft und öffnet die Standorte mit der Stufe „plus“. Die zweite läuft für eine Weile, braucht die erste und öffnet die Stufe „premium“.",
                   "plusName": "Name der ersten Mitgliedschaft",
@@ -4339,7 +4364,16 @@
                   "vyloEnabledDescription": "Braucht den API-Schlüssel aus dem Vylo-Dashboard. Für jeden Ausflug wird ein Kurzlink erstellt.",
                   "vyloApiKey": "Vylo-API-Schlüssel",
                   "vyloMinSeconds": "Kürzester Ausflug (Sekunden)",
-                  "vyloMinSecondsDescription": "Ein schnellerer Rückweg zählt nicht."
+                  "vyloMinSecondsDescription": "Ein schnellerer Rückweg zählt nicht.",
+                  "cutyEnabled": "Cuty",
+                  "cutyEnabledDescription": "Braucht den API-Schlüssel aus dem Cuty-Dashboard. Für jeden Ausflug wird ein Kurzlink erstellt.",
+                  "cutyApiKey": "Cuty-API-Schlüssel",
+                  "shrinkearnEnabled": "ShrinkEarn",
+                  "shrinkearnEnabledDescription": "Braucht den API-Schlüssel aus dem ShrinkEarn-Dashboard. Für jeden Ausflug wird ein Kurzlink erstellt.",
+                  "shrinkearnApiKey": "ShrinkEarn-API-Schlüssel",
+                  "shrinkmeEnabled": "ShrinkMe",
+                  "shrinkmeEnabledDescription": "Braucht den API-Schlüssel aus dem ShrinkMe-Dashboard. Für jeden Ausflug wird ein Kurzlink erstellt.",
+                  "shrinkmeApiKey": "ShrinkMe-API-Schlüssel"
                 },
                 "toast": {
                   "updated": "Wirtschaftseinstellungen gespeichert."
@@ -11703,6 +11737,13 @@
         },
         "activity": {
           "title": "Aktivität"
+        },
+        "chat": {
+          "title": "Chat",
+          "empty": "Noch keine Nachrichten. Sag Hallo.",
+          "placeholder": "Nachricht schreiben…",
+          "loadOlder": "Ältere Nachrichten laden",
+          "deletedUser": "Gelöschter Benutzer"
         }
       }
     }

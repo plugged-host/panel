@@ -74,6 +74,15 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => window.removeEventListener('session-expired', handleSessionExpired);
   }, [queryClient]);
 
+  // plugged.host: the panel costs tokens; a blocked account lands on the page that buys access
+  useEffect(() => {
+    const handlePanelAccessRequired = () => {
+      navigate('/account/panel-access');
+    };
+    window.addEventListener('panel-access-required', handlePanelAccessRequired);
+    return () => window.removeEventListener('panel-access-required', handlePanelAccessRequired);
+  }, [navigate]);
+
   const doImpersonate = async (target: z.infer<typeof fullUserSchema>) => {
     const event = window.extensionContext.extensionRegistry.events.auth.impersonateHandlers.emit(
       new AuthImpersonateEvent(target, user),

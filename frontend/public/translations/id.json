@@ -2674,7 +2674,10 @@
           "none": "Saat ini belum ada cara untuk mendapatkan token.",
           "provider": {
             "linkvertise": "Linkvertise",
-            "vylo": "Vylo"
+            "vylo": "Vylo",
+            "cuty": "Cuty",
+            "shrinkearn": "ShrinkEarn",
+            "shrinkme": "ShrinkMe"
           },
           "reward": "{count} token per penyelesaian",
           "used": "{used} dari {cap} hari ini",
@@ -2899,6 +2902,22 @@
         },
         "activity": {
           "title": "Aktivitas"
+        },
+        "panelAccess": {
+          "title": "Akses Panel",
+          "subtitle": "Panel berbiaya {tokens} token per bulan. Keanggotaan dan administrator tidak pernah membayar.",
+          "heading": "{tokens} token untuk {days} hari",
+          "active": "Dibayar hingga {date}.",
+          "inactive": "Panel terkunci sampai Anda membayar.",
+          "exempt": "Anda tidak pernah membayar untuk panel.",
+          "exemptNotice": "Keanggotaan Anda mencakup panel.",
+          "disabled": "Panel gratis saat ini.",
+          "buy": "Bayar {tokens} token",
+          "earn": "Dapatkan token",
+          "toast": {
+            "bought": "Panel menjadi milik Anda selama {days} hari.",
+            "failed": "Pembayaran tidak berhasil."
+          }
         }
       },
       "server": {
@@ -6675,6 +6694,13 @@
         },
         "activity": {
           "title": "Aktivitas"
+        },
+        "chat": {
+          "title": "Obrolan",
+          "empty": "Belum ada pesan. Sapa dulu.",
+          "placeholder": "Tulis pesan…",
+          "loadOlder": "Muat pesan lama",
+          "deletedUser": "Pengguna dihapus"
         }
       }
     }

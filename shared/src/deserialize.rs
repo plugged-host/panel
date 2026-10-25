@@ -178,6 +178,11 @@ where
         value => value,
     };
 
+    // Pelican writes `"[]"` when an egg has no config files; the map is the real shape.
+    if value.as_array().is_some_and(|files| files.is_empty()) {
+        return Ok(IndexMap::new());
+    }
+
     #[derive(Deserialize, Clone)]
     pub struct OldExportedNestEggConfigsFilesFile {
         #[serde(default = "true_fn")]
@@ -419,5 +424,12 @@ mod tests {
         assert_eq!(replace.len(), 1);
         assert_eq!(replace[0].r#match, "server-ip");
         assert_eq!(replace[0].replace_with, json!("0.0.0.0"));
+    }
+
+    #[test]
+    fn files_empty_list_is_no_files() {
+        // Pelican writes "[]" for an egg without config files.
+        assert!(parse(json!({ "files": "[]" })).files.is_empty());
+        assert!(parse(json!({ "files": [] })).files.is_empty());
     }
 }
