@@ -23,33 +23,37 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { lazy } from 'react';
 import type { ServerRouteDefinition } from 'shared';
-import ServerActivity from '@/pages/server/activity/ServerActivity.tsx';
-import ServerBackups from '@/pages/server/backups/ServerBackups.tsx';
-import ServerSystemBackups from '@/pages/server/backups/system/ServerSystemBackups.tsx';
-import ServerChat from '@/pages/server/chat/ServerChat.tsx'; // plugged.host
-import DatabaseExplorerView from '@/pages/server/databases/explorer/DatabaseExplorerView.tsx';
-import ServerDatabases from '@/pages/server/databases/ServerDatabases.tsx';
-import ServerDevbox from '@/pages/server/devbox/ServerDevbox.tsx'; // plugged.host
-import FileSqliteQuery from '@/pages/server/files/editor/FileSqliteQuery.tsx';
-import ServerFiles from '@/pages/server/files/ServerFiles.tsx';
-import ServerFilesTrash from '@/pages/server/files/trash/ServerFilesTrash.tsx';
-import ServerFivemArtifacts from '@/pages/server/fivem/artifacts/ServerFivemArtifacts.tsx'; // plugged.host
-import ServerFivemConfig from '@/pages/server/fivem/config/ServerFivemConfig.tsx'; // plugged.host
-import ServerFivemEnhanced from '@/pages/server/fivem/enhanced/ServerFivemEnhanced.tsx'; // plugged.host
-import ServerFivemFrameworks from '@/pages/server/fivem/frameworks/ServerFivemFrameworks.tsx'; // plugged.host
-import ServerFivemPlayers from '@/pages/server/fivem/players/ServerFivemPlayers.tsx'; // plugged.host
-import ServerLimbo from '@/pages/server/limbo/ServerLimbo.tsx'; // plugged.host
-import ServerMinecraftContent from '@/pages/server/minecraft/content/ServerMinecraftContent.tsx'; // plugged.host
-import ServerMinecraftContentRedirect from '@/pages/server/minecraft/content/ServerMinecraftContentRedirect.tsx'; // plugged.host
-import ServerMinecraftPlayers from '@/pages/server/minecraft/players/ServerMinecraftPlayers.tsx'; // plugged.host
-import ServerMinecraftSettings from '@/pages/server/minecraft/settings/ServerMinecraftSettings.tsx'; // plugged.host
-import ServerMinecraftSetup from '@/pages/server/minecraft/setup/ServerMinecraftSetup.tsx'; // plugged.host
-import ServerMinecraftWorlds from '@/pages/server/minecraft/worlds/ServerMinecraftWorlds.tsx'; // plugged.host
-import ServerNetwork from '@/pages/server/network/ServerNetwork.tsx';
-import ServerQueue from '@/pages/server/queue/ServerQueue.tsx'; // plugged.host
-import ScheduleView from '@/pages/server/schedules/ScheduleView.tsx';
-import ServerSchedules from '@/pages/server/schedules/ServerSchedules.tsx';
-import ServerSettings from '@/pages/server/settings/ServerSettings.tsx';
+
+const ServerActivity = lazy(() => import('@/pages/server/activity/ServerActivity.tsx'));
+const ServerBackups = lazy(() => import('@/pages/server/backups/ServerBackups.tsx'));
+const ServerSystemBackups = lazy(() => import('@/pages/server/backups/system/ServerSystemBackups.tsx'));
+const ServerChat = lazy(() => import('@/pages/server/chat/ServerChat.tsx')); // plugged.host
+const DatabaseExplorerView = lazy(() => import('@/pages/server/databases/explorer/DatabaseExplorerView.tsx'));
+const ServerDatabases = lazy(() => import('@/pages/server/databases/ServerDatabases.tsx'));
+const ServerDevbox = lazy(() => import('@/pages/server/devbox/ServerDevbox.tsx')); // plugged.host
+const FileSqliteQuery = lazy(() => import('@/pages/server/files/editor/FileSqliteQuery.tsx'));
+const ServerFiles = lazy(() => import('@/pages/server/files/ServerFiles.tsx'));
+const ServerFilesTrash = lazy(() => import('@/pages/server/files/trash/ServerFilesTrash.tsx'));
+const ServerFivemArtifacts = lazy(() => import('@/pages/server/fivem/artifacts/ServerFivemArtifacts.tsx')); // plugged.host
+const ServerFivemConfig = lazy(() => import('@/pages/server/fivem/config/ServerFivemConfig.tsx')); // plugged.host
+const ServerFivemEnhanced = lazy(() => import('@/pages/server/fivem/enhanced/ServerFivemEnhanced.tsx')); // plugged.host
+const ServerFivemFrameworks = lazy(() => import('@/pages/server/fivem/frameworks/ServerFivemFrameworks.tsx')); // plugged.host
+const ServerFivemPlayers = lazy(() => import('@/pages/server/fivem/players/ServerFivemPlayers.tsx')); // plugged.host
+const ServerLimbo = lazy(() => import('@/pages/server/limbo/ServerLimbo.tsx')); // plugged.host
+const ServerMinecraftContent = lazy(() => import('@/pages/server/minecraft/content/ServerMinecraftContent.tsx')); // plugged.host
+const ServerMinecraftContentRedirect = lazy(
+  () => import('@/pages/server/minecraft/content/ServerMinecraftContentRedirect.tsx'),
+); // plugged.host
+const ServerMinecraftPlayers = lazy(() => import('@/pages/server/minecraft/players/ServerMinecraftPlayers.tsx')); // plugged.host
+const ServerMinecraftSettings = lazy(() => import('@/pages/server/minecraft/settings/ServerMinecraftSettings.tsx')); // plugged.host
+const ServerMinecraftSetup = lazy(() => import('@/pages/server/minecraft/setup/ServerMinecraftSetup.tsx')); // plugged.host
+const ServerMinecraftWorlds = lazy(() => import('@/pages/server/minecraft/worlds/ServerMinecraftWorlds.tsx')); // plugged.host
+const ServerNetwork = lazy(() => import('@/pages/server/network/ServerNetwork.tsx'));
+const ServerQueue = lazy(() => import('@/pages/server/queue/ServerQueue.tsx')); // plugged.host
+const ScheduleView = lazy(() => import('@/pages/server/schedules/ScheduleView.tsx'));
+const ServerSchedules = lazy(() => import('@/pages/server/schedules/ServerSchedules.tsx'));
+const ServerSettings = lazy(() => import('@/pages/server/settings/ServerSettings.tsx'));
+
 // plugged.host: one page per item of the settings jump bar (docs/features/server-settings.md)
 import {
   ServerSettingsBehaviour,
@@ -59,11 +63,13 @@ import {
   ServerSettingsSftp,
   ServerSettingsVersion,
 } from '@/pages/server/settings/ServerSettingsPages.tsx';
-import ServerSettingsStartup from '@/pages/server/settings/ServerSettingsStartup.tsx'; // plugged.host: replaces ServerStartup
-import ServerSubdomains from '@/pages/server/subdomains/ServerSubdomains.tsx'; // plugged.host
-import ServerSubusers from '@/pages/server/subusers/ServerSubusers.tsx';
-import ServerTransfer from '@/pages/server/transfer/ServerTransfer.tsx'; // plugged.host
-import ServerWaitingRoom from '@/pages/server/waiting/ServerWaitingRoom.tsx'; // plugged.host
+
+const ServerSettingsStartup = lazy(() => import('@/pages/server/settings/ServerSettingsStartup.tsx')); // plugged.host: replaces ServerStartup
+const ServerSubdomains = lazy(() => import('@/pages/server/subdomains/ServerSubdomains.tsx')); // plugged.host
+const ServerSubusers = lazy(() => import('@/pages/server/subusers/ServerSubusers.tsx'));
+const ServerTransfer = lazy(() => import('@/pages/server/transfer/ServerTransfer.tsx')); // plugged.host
+const ServerWaitingRoom = lazy(() => import('@/pages/server/waiting/ServerWaitingRoom.tsx')); // plugged.host
+
 import { getTranslations } from '@/providers/TranslationProvider.tsx';
 import { useGlobalStore } from '@/stores/global.ts';
 
