@@ -32,6 +32,8 @@ export const nodeEmptyFormValues: NodeFormValues = {
   role: 'game', // plugged.host
   tags: [], // plugged.host
   srvTarget: null, // plugged.host
+  cpuModel: null, // plugged.host
+  memoryType: null, // plugged.host
   deploymentPaused: false, // plugged.host
 };
 
@@ -51,6 +53,8 @@ export const nodeToFormValues = (node: z.infer<typeof adminNodeSchema>): Partial
   role: node.role, // plugged.host
   tags: node.tags, // plugged.host
   srvTarget: node.srvTarget, // plugged.host
+  cpuModel: node.cpuModel, // plugged.host
+  memoryType: node.memoryType, // plugged.host
   deploymentPaused: node.deploymentPaused, // plugged.host
 });
 
@@ -189,6 +193,21 @@ export function useNodeFormFields({
       tooltip: t('pages.admin.nodes.tabs.general.page.form.unlimitedTooltip', {}),
       mode: 'mb',
       min: 0,
+    },
+    // plugged.host: named on the public status page
+    {
+      type: 'text',
+      name: 'cpuModel',
+      label: t('pages.admin.nodes.tabs.general.page.form.cpuModel', {}),
+      description: t('pages.admin.nodes.tabs.general.page.form.cpuModelDescription', {}),
+      props: { placeholder: 'Xeon E5-2651 v3', maxLength: 64 },
+    },
+    {
+      type: 'text',
+      name: 'memoryType',
+      label: t('pages.admin.nodes.tabs.general.page.form.memoryType', {}),
+      description: t('pages.admin.nodes.tabs.general.page.form.memoryTypeDescription', {}),
+      props: { placeholder: 'DDR4', maxLength: 32 },
     },
     {
       type: 'select',

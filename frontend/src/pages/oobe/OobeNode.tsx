@@ -110,6 +110,8 @@ export default function OobeNode({ onNext, onBack, canGoBack, skipFrom, data }: 
           role: existingNode.role, // plugged.host
           tags: existingNode.tags, // plugged.host
           srvTarget: existingNode.srvTarget, // plugged.host
+          cpuModel: existingNode.cpuModel, // plugged.host
+          memoryType: existingNode.memoryType, // plugged.host
           deploymentPaused: existingNode.deploymentPaused, // plugged.host
         });
 
@@ -139,6 +141,8 @@ export default function OobeNode({ onNext, onBack, canGoBack, skipFrom, data }: 
           role: 'game', // plugged.host
           tags: [], // plugged.host
           srvTarget: null, // plugged.host
+          cpuModel: null, // plugged.host
+          memoryType: null, // plugged.host
           deploymentPaused: false, // plugged.host
         });
         setExistingNode(node);

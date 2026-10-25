@@ -313,6 +313,8 @@ impl shared::extensions::commands::CliCommand<CreateArgs> for CreateCommand {
                     role: shared::models::node::placement::default_role(), // plugged.host
                     tags: Vec::new(),                                      // plugged.host
                     srv_target: None,                                      // plugged.host
+                    cpu_model: None,                                       // plugged.host
+                    memory_type: None,                                     // plugged.host
                 };
                 let node = shared::models::node::Node::create(&state, options).await?;
 

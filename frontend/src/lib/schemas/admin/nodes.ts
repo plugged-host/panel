@@ -37,6 +37,9 @@ export const adminNodeSchema = z.looseObject({
   role: z.enum(['game', 'internal', 'limbo']),
   tags: z.array(z.string().min(1).max(64)).max(32),
   srvTarget: z.preprocess(nullableString, hostnameSchema.nullable()),
+  // the hardware the public status page names
+  cpuModel: z.preprocess(nullableString, z.string().max(64).nullable()),
+  memoryType: z.preprocess(nullableString, z.string().max(32).nullable()),
   deploymentPaused: z.boolean(),
   // why the panel paused it (memory, cpu, unreachable, disk); null when an admin did
   deploymentPausedReason: z.enum(['memory', 'cpu', 'unreachable', 'disk']).nullable().optional(),

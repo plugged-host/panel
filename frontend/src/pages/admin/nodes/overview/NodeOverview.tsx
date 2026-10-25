@@ -223,6 +223,16 @@ export default function NodeOverview({ node }: { node: Node }) {
                   </Text>
                 </InfoRow>
               )}
+              {node.cpuModel && (
+                <InfoRow label={t('pages.admin.nodes.tabs.general.page.form.cpuModel', {})}>
+                  <Text size='sm'>{node.cpuModel}</Text>
+                </InfoRow>
+              )}
+              {node.memoryType && (
+                <InfoRow label={t('pages.admin.nodes.tabs.general.page.form.memoryType', {})}>
+                  <Text size='sm'>{node.memoryType}</Text>
+                </InfoRow>
+              )}
               {node.description && (
                 <InfoRow label={t('common.form.description', {})}>
                   <Text size='sm'>{node.description}</Text>

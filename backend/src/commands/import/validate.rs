@@ -1271,6 +1271,8 @@ impl Validator<'_> {
                         role: role.clone(), // plugged.host
                         tags: tags.iter().map(|tag| tag.as_str().into()).collect(), // plugged.host
                         srv_target: srv_target.as_deref().map(Into::into), // plugged.host
+                        cpu_model: None,    // plugged.host
+                        memory_type: None,  // plugged.host
                     },
                 );
             }

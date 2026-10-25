@@ -62,7 +62,7 @@ Served by the panel at `/data/...` with `Access-Control-Allow-Origin: *` and
 
 | File | Holds |
 |---|---|
-| `current.json` | `overall {status, label, message}`, `components [{label, status, note?}]`, each node's CPU (percent points, 100 per thread), memory and storage (`nodes`) and their sum (`global`), the release |
+| `current.json` | `overall {status, label, message}`, `components [{label, status, note?}]`, each node's CPU (percent points, 100 per thread), memory and storage (`nodes`) and their sum (`global`), the release. Each node also carries `cpu_model` and `memory_type` from the node form ([node fields](node-telemetry.md#node-and-location-fields)), `null` when empty |
 | `history.json` | `recent`: the last hour of each node's CPU and memory; `uptime`: per component the uptime percent and up to 90 days `{date, status, total_checks, operational_checks}` |
 | `incidents.json` | the newest 50 incidents: `title`, `impact`, `status`, `components` (labels, or "All systems"), `started_at`, `resolved_at`, `updates [{status, message, published_at}]` |
 | `targets.json` | each published node's label, host and Wings port, for an outside monitor that probes the nodes when the panel itself is down |
@@ -109,6 +109,8 @@ Nothing changes: the status page only talks to the website, the panel and the no
 - Admin › Settings › General › Status Page: turn it on with a Website URL and a Panel URL and save.
   Within a minute Admin › Status › Components lists the website, the panel and every node, each with
   a status and "Last Checked".
+- Admin › Nodes › a node › Edit: set CPU to `Xeon E5-2651 v3` and Memory Type to `DDR4`; that
+  node in `current.json` has `"cpu_model": "Xeon E5-2651 v3"` and `"memory_type": "DDR4"`.
 - Open `https://<panel>/data/current.json`: it lists the same components; `history.json`,
   `incidents.json`, `targets.json` and `feed.xml` answer too. Turned off, they answer 404.
 - Open `https://<panel>/up`: it says `ok`.

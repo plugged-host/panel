@@ -1062,6 +1062,9 @@ export const nodesTable = pgTable(
     role: varchar({ length: 32 }).default('game').notNull(),
     tags: varchar({ length: 64 }).array().default([]).notNull(),
     srv_target: varchar({ length: 255 }),
+    // plugged.host: the hardware the public status page names (docs/features/status.md)
+    cpu_model: varchar({ length: 64 }),
+    memory_type: varchar({ length: 32 }),
     deployment_paused: boolean().default(false).notNull(),
     // plugged.host: why the panel paused it (memory, cpu, unreachable); null when an admin did
     deployment_paused_reason: varchar({ length: 32 }),

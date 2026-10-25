@@ -128,6 +128,9 @@ pub struct Node {
     pub role: compact_str::CompactString,
     pub tags: Vec<compact_str::CompactString>,
     pub srv_target: Option<compact_str::CompactString>,
+    /// The hardware the public status page names (`Xeon E5-2651 v3`, `DDR4`).
+    pub cpu_model: Option<compact_str::CompactString>,
+    pub memory_type: Option<compact_str::CompactString>,
     pub deployment_paused: bool,
     /// Why the panel paused it (`memory`, `cpu`, `unreachable`); `None` when an admin did.
     pub deployment_paused_reason: Option<compact_str::CompactString>,
@@ -205,6 +208,14 @@ impl BaseModel for Node {
                 compact_str::format_compact!("{prefix}srv_target"),
             ),
             (
+                "nodes.cpu_model",
+                compact_str::format_compact!("{prefix}cpu_model"),
+            ),
+            (
+                "nodes.memory_type",
+                compact_str::format_compact!("{prefix}memory_type"),
+            ),
+            (
                 "nodes.deployment_paused",
                 compact_str::format_compact!("{prefix}deployment_paused"),
             ),
@@ -266,6 +277,9 @@ impl BaseModel for Node {
                 .map(Into::into)
                 .collect(),
             srv_target: row.try_get(compact_str::format_compact!("{prefix}srv_target").as_str())?,
+            cpu_model: row.try_get(compact_str::format_compact!("{prefix}cpu_model").as_str())?,
+            memory_type: row
+                .try_get(compact_str::format_compact!("{prefix}memory_type").as_str())?,
             deployment_paused: row
                 .try_get(compact_str::format_compact!("{prefix}deployment_paused").as_str())?,
             deployment_paused_reason: row.try_get(
@@ -1282,6 +1296,8 @@ impl IntoAdminApiObject for Node {
                 role: self.role,                           // plugged.host
                 tags: self.tags,                           // plugged.host
                 srv_target: self.srv_target,               // plugged.host
+                cpu_model: self.cpu_model,                 // plugged.host
+                memory_type: self.memory_type,             // plugged.host
                 deployment_paused: self.deployment_paused, // plugged.host
                 deployment_paused_reason: self.deployment_paused_reason, // plugged.host
                 created: self.created.and_utc(),
@@ -1384,6 +1400,14 @@ pub struct CreateNodeOptions {
     #[schema(min_length = 1, max_length = 255)]
     #[serde(default)]
     pub srv_target: Option<compact_str::CompactString>,
+    #[garde(length(chars, min = 1, max = 64))]
+    #[schema(min_length = 1, max_length = 64)]
+    #[serde(default)]
+    pub cpu_model: Option<compact_str::CompactString>,
+    #[garde(length(chars, min = 1, max = 32))]
+    #[schema(min_length = 1, max_length = 32)]
+    #[serde(default)]
+    pub memory_type: Option<compact_str::CompactString>,
 }
 
 #[async_trait::async_trait]
@@ -1441,6 +1465,8 @@ impl CreatableModel for Node {
             .set("role", &options.role) // plugged.host
             .set("tags", placement::normalize_tags(&options.tags)) // plugged.host
             .set("srv_target", &options.srv_target) // plugged.host
+            .set("cpu_model", &options.cpu_model) // plugged.host
+            .set("memory_type", &options.memory_type) // plugged.host
             .set("token_id", token_id.clone())
             .set(
                 "token",
@@ -1528,6 +1554,22 @@ pub struct UpdateNodeOptions {
         with = "::serde_with::rust::double_option"
     )]
     pub srv_target: Option<Option<compact_str::CompactString>>,
+    #[garde(length(chars, min = 1, max = 64))]
+    #[schema(min_length = 1, max_length = 64)]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        with = "::serde_with::rust::double_option"
+    )]
+    pub cpu_model: Option<Option<compact_str::CompactString>>,
+    #[garde(length(chars, min = 1, max = 32))]
+    #[schema(min_length = 1, max_length = 32)]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        with = "::serde_with::rust::double_option"
+    )]
+    pub memory_type: Option<Option<compact_str::CompactString>>,
     #[garde(skip)]
     pub deployment_paused: Option<bool>,
 }
@@ -1623,6 +1665,11 @@ impl UpdatableModel for Node {
                 "srv_target",
                 options.srv_target.as_ref().map(|t| t.as_ref()),
             ) // plugged.host
+            .set("cpu_model", options.cpu_model.as_ref().map(|c| c.as_ref())) // plugged.host
+            .set(
+                "memory_type",
+                options.memory_type.as_ref().map(|m| m.as_ref()),
+            ) // plugged.host
             .set("deployment_paused", options.deployment_paused) // plugged.host
             .set(
                 "deployment_paused_reason",
@@ -1685,6 +1732,12 @@ impl UpdatableModel for Node {
         }
         if let Some(srv_target) = options.srv_target {
             self.srv_target = srv_target;
+        }
+        if let Some(cpu_model) = options.cpu_model {
+            self.cpu_model = cpu_model;
+        }
+        if let Some(memory_type) = options.memory_type {
+            self.memory_type = memory_type;
         }
         if let Some(deployment_paused) = options.deployment_paused
             && deployment_paused != self.deployment_paused
@@ -1797,6 +1850,8 @@ impl DuplicableModel for Node {
                 self.tags.iter().map(|t| t.to_string()).collect::<Vec<_>>(),
             ) // plugged.host
             .set("srv_target", &self.srv_target) // plugged.host
+            .set("cpu_model", &self.cpu_model) // plugged.host
+            .set("memory_type", &self.memory_type) // plugged.host
             .set("token_id", token_id)
             .set(
                 "token",
@@ -1892,6 +1947,9 @@ pub struct AdminApiNode {
     pub role: compact_str::CompactString,
     pub tags: Vec<compact_str::CompactString>,
     pub srv_target: Option<compact_str::CompactString>,
+    /// The hardware the public status page names; `None` names none.
+    pub cpu_model: Option<compact_str::CompactString>,
+    pub memory_type: Option<compact_str::CompactString>,
     /// Set while the node is overloaded: no new servers go to it.
     pub deployment_paused: bool,
     /// Why the panel paused it (`memory`, `cpu`, `unreachable`); `None` when an admin did.

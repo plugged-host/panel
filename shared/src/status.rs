@@ -948,6 +948,25 @@ fn iso(at: chrono::DateTime<chrono::Utc>) -> String {
     at.to_rfc3339_opts(chrono::SecondsFormat::Secs, false)
 }
 
+/// Each node's CPU model and memory type, as an admin wrote them in the node form.
+async fn node_hardware(
+    database: &crate::database::Database,
+) -> Result<HashMap<uuid::Uuid, (Option<String>, Option<String>)>, anyhow::Error> {
+    Ok(
+        sqlx::query("SELECT uuid, cpu_model, memory_type FROM nodes")
+            .fetch_all(database.read())
+            .await?
+            .into_iter()
+            .map(|row| {
+                Ok((
+                    row.try_get("uuid")?,
+                    (row.try_get("cpu_model")?, row.try_get("memory_type")?),
+                ))
+            })
+            .collect::<Result<_, sqlx::Error>>()?,
+    )
+}
+
 /// `current.json`: the overall status, every published component, the nodes' load.
 pub async fn current(state: &crate::State) -> Result<Value, anyhow::Error> {
     let components = published_components(&state.database).await?;
@@ -1004,6 +1023,7 @@ pub async fn current(state: &crate::State) -> Result<Value, anyhow::Error> {
     let mut reporting = 0;
     let mut total_nodes = 0;
     let mut nodes = Vec::new();
+    let hardware = node_hardware(&state.database).await?;
 
     for (component, (status, _)) in components.iter().zip(statuses.iter()) {
         if component.kind != "node" {
@@ -1025,12 +1045,19 @@ pub async fn current(state: &crate::State) -> Result<Value, anyhow::Error> {
             reporting += 1;
         }
 
+        let (cpu_model, memory_type) = component
+            .node_uuid
+            .and_then(|uuid| hardware.get(&uuid).cloned())
+            .unwrap_or_default();
+
         nodes.push(json!({
             "label": component.label,
             "status": status,
             "last_reported_at": last_reported.map(iso),
             "latency_ms": metrics.get("response_time_ms").and_then(Value::as_i64),
             "metrics": metrics,
+            "cpu_model": cpu_model,
+            "memory_type": memory_type,
         }));
     }
 

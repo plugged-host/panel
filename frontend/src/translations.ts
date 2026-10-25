@@ -5954,6 +5954,11 @@ const baseTranslations = defineTranslations({
                   memoryDescription: 'The total memory available for servers on this node.',
                   diskDescription: 'The total disk available for servers on this node.',
                   unlimitedTooltip: '0 will not set a limit.',
+                  cpuModel: 'CPU',
+                  cpuModelDescription:
+                    'The processor the public status page names, such as Xeon E5-2651 v3. Empty names none.',
+                  memoryType: 'Memory Type',
+                  memoryTypeDescription: 'The memory the public status page names, such as DDR4. Empty names none.',
                   srvTarget: 'SRV Target',
                   srvTargetDescription:
                     "The host name that server subdomains' SRV records point to. Empty uses the node's address.",
