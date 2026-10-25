@@ -124,7 +124,7 @@ async fn fetch_icon(
         anyhow::bail!("the icon is too large");
     }
 
-    let content_type = response
+    let header_type = response
         .headers()
         .get(reqwest::header::CONTENT_TYPE)
         .and_then(|value| value.to_str().ok())
@@ -134,13 +134,20 @@ async fn fetch_icon(
         .unwrap_or_default()
         .trim()
         .to_ascii_lowercase();
-    if !content_type.starts_with("image/") {
-        anyhow::bail!("the answer is not an image");
-    }
 
     let bytes = response.bytes().await?;
     if bytes.len() as u64 > MAX_BYTES {
         anyhow::bail!("the icon is too large");
+    }
+
+    // Modrinth's CDN sometimes labels a WebP as image/png; trust the bytes, not the header, so
+    // the browser gets a type it will actually decode.
+    let sniffed = infer::get(&bytes)
+        .map(|kind| kind.mime_type())
+        .filter(|mime| mime.starts_with("image/"));
+    let content_type = sniffed.unwrap_or(&header_type).to_string();
+    if !content_type.starts_with("image/") {
+        anyhow::bail!("the answer is not an image");
     }
 
     Ok((content_type, bytes.to_vec()))

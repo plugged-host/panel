@@ -2,7 +2,6 @@
 // after another. `main.tsx` awaits settings and languages; the account and icons continue in the
 // background and are ready by the time the shell needs them.
 
-import getAnnouncements from '@/api/getAnnouncements.ts';
 import getIcons from '@/api/getIcons.ts';
 import getLanguages from '@/api/getLanguages.ts';
 import getSettings from '@/api/getSettings.ts';
@@ -12,4 +11,3 @@ export const settingsPromise = getSettings();
 export const languagesPromise = getLanguages();
 export const iconsPromise = getIcons().catch(() => null);
 export const mePromise = getMe().catch(() => null);
-export const announcementsPromise = getAnnouncements().catch(() => []);

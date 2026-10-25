@@ -1,0 +1,1 @@
+CREATE INDEX "servers_owner_uuid_created_idx" ON "servers" ("owner_uuid","created","uuid");

@@ -78,22 +78,21 @@ async fn redirect_route(
     request_host: shared::GetRequestHost,
     cookies: Cookies,
 ) -> ApiResponseResult {
-    let Some(noprofit) = state.settings.get().await?.noprofit.config() else {
+    let settings = state.settings.get().await?;
+    let Some(noprofit) = settings.noprofit.config() else {
         return not_set_up();
     };
-
-    state
-        .cache
-        .ratelimit("auth/noprofit/redirect", 20, 300, ip.to_string())
-        .await?;
-
-    let settings = state.settings.get().await?;
     let app_url = settings
         .app
         .url_for_host(request_host.as_deref())
         .trim_end_matches('/')
         .to_compact_string();
     drop(settings);
+
+    state
+        .cache
+        .ratelimit("auth/noprofit/redirect", 20, 300, ip.to_string())
+        .await?;
 
     let callback = noprofit
         .callback_url

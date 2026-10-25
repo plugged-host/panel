@@ -1526,6 +1526,7 @@ export const serversTable = pgTable(
     index('servers_node_uuid_idx').on(cols.node_uuid),
     index('servers_destination_node_uuid_idx').on(cols.destination_node_uuid),
     index('servers_owner_uuid_idx').on(cols.owner_uuid),
+    index('servers_owner_uuid_created_idx').on(cols.owner_uuid, cols.created, cols.uuid),
     index('servers_egg_uuid_idx').on(cols.egg_uuid),
     index('servers_backup_configuration_uuid_idx').on(cols.backup_configuration_uuid),
     uniqueIndex('servers_uuid_short_idx').on(cols.uuid_short),
