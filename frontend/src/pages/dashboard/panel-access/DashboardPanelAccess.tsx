@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
+import { httpErrorToHuman } from '@/api/axios.ts';
 import buyPanelAccess from '@/api/me/buyPanelAccess.ts';
 import getPanelAccess from '@/api/me/getPanelAccess.ts';
 import Button from '@/elements/buttons/Button.tsx';
@@ -43,8 +44,8 @@ export default function DashboardPanelAccess() {
       const redirect = sessionStorage.getItem('panel-access-redirect');
       sessionStorage.removeItem('panel-access-redirect');
       navigate(redirect && !redirect.startsWith('/account/panel-access') ? redirect : '/');
-    } catch {
-      addToast(t(`${page}.toast.failed`, {}), 'error');
+    } catch (err) {
+      addToast(httpErrorToHuman(err), 'error');
     } finally {
       setBuying(false);
     }
