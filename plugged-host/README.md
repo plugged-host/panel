@@ -17,7 +17,7 @@ tree to the build host (`BUILD_HOST`, default the ssh alias `plugged-build`; `BU
 | `translations.sh [--missing]` | Regenerates `en.json`, copies it back, checks `LANGUAGES` (default every offered language: German every string, the others all but admin-only ones) for 100% |
 | `generate-migration.sh <name> [snapshot-id]` | `kit:generate` for `database/src/schema.ts`, copies the migration back (`CUSTOM=1` for a data migration; a snapshot id re-chains a migration after an upstream merge) |
 | `build.sh` | Checks the translations (every offered language, `LANGUAGES`), builds the frontend when its sources changed, then `cargo build --profile release-fast -p panel-rs`, and fetches `target/plugged-host/panel-rs` |
-| `deploy.sh [binary]` | Installs it as `/opt/calagopus/releases/<release>`, points `current` at it, restarts `calagopus`, checks `/api/settings` and rolls back if it does not answer; keeps the last 3 releases |
+| `deploy.sh [binary]` | Installs it as `/opt/calagopus/releases/<release>`, points `current` at it, restarts `calagopus`, checks `/api/settings` and rolls back if it does not answer; keeps the last 3 releases. With `PEER_SSH=<alias>` in `/etc/calagopus/deploy.env` it does the same on a second box (after this one is up), restarts `calagopus-tasks` where it runs, and runs migrations once first when `DATABASE_MIGRATE=false` |
 
 ```bash
 plugged-host/format.sh && plugged-host/check.sh

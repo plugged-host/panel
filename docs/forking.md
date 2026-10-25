@@ -61,7 +61,7 @@ SQLX_OFFLINE=true cargo build --profile release-fast -p panel-rs     # target/re
 | File | What it is |
 |---|---|
 | `build.sh` | Copies the tree to a build machine over ssh (`BUILD_HOST`, `BUILD_DIR`), checks the translations, builds the frontend when it changed and the binary, fetches it |
-| `deploy.sh` | Installs a binary as `/opt/calagopus/releases/<release>`, switches `current`, restarts the unit, checks it answers and rolls back if not |
+| `deploy.sh` | Installs a binary as `/opt/calagopus/releases/<release>`, switches `current`, restarts the unit, checks it answers and rolls back if not; optionally on a second box too (`PEER_SSH` in `/etc/calagopus/deploy.env`) |
 | `calagopus.service` | The systemd unit |
 | `panel.env.example` | The environment file (database, Redis with its own DB number and prefix, encryption key, bind address) |
 | `nginx.conf` | The site in front of it |
