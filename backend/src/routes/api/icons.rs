@@ -67,7 +67,9 @@ mod get {
             })
             .await?;
 
-        ApiResponse::new_serialized(Response { icons }).ok()
+        ApiResponse::new_serialized(Response { icons })
+            .with_header("Cache-Control", "public, max-age=60")
+            .ok()
     }
 }
 

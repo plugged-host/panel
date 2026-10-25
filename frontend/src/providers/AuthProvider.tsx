@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { getImpersonatedUser, httpErrorToHuman, setImpersonatedUser } from '@/api/axios.ts';
 import getMe from '@/api/me/getMe.ts';
 import logout from '@/api/me/logout.ts';
+import { mePromise } from '@/bootstrap.ts';
 import Spinner from '@/elements/feedback/Spinner.tsx';
 import { clearFileDrafts } from '@/lib/files/fileDrafts.ts';
 import { fullUserSchema } from '@/lib/schemas/user.ts';
@@ -43,21 +44,43 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [user, setLanguage]);
 
   useEffect(() => {
-    getMe()
-      .then((user) => setUser(user))
-      .catch(() => {
-        if (getImpersonatedUser()) {
-          setImpersonatedUser(null);
-          setImpersonating(false);
+    let cancelled = false;
 
-          return getMe()
-            .then((user) => setUser(user))
-            .catch(() => setUser(null));
-        }
+    // Started in bootstrap.ts next to settings and languages, so the account request is already
+    // on its way while the shell is still loading.
+    mePromise.then((user) => {
+      if (cancelled) return;
 
-        setUser(null);
-      })
-      .finally(() => setLoading(false));
+      if (user) {
+        setUser(user);
+        setLoading(false);
+        return;
+      }
+
+      if (getImpersonatedUser()) {
+        setImpersonatedUser(null);
+        setImpersonating(false);
+
+        getMe()
+          .then((user) => {
+            if (!cancelled) setUser(user);
+          })
+          .catch(() => {
+            if (!cancelled) setUser(null);
+          })
+          .finally(() => {
+            if (!cancelled) setLoading(false);
+          });
+        return;
+      }
+
+      setUser(null);
+      setLoading(false);
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {

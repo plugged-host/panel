@@ -34,6 +34,7 @@ mod get {
                 .try_collect_async_vec()
                 .await?,
         })
+        .with_header("Cache-Control", "public, max-age=60")
         .ok()
     }
 }

@@ -317,6 +317,23 @@ impl UserSession {
     ) {
         let uuid = self.uuid;
         let now = chrono::Utc::now().naive_utc();
+        // The session list only needs minute precision; a cache marker keeps the batch action
+        // from being scheduled (and its mutex taken) on every API call.
+        if (now - self.last_used).num_seconds() < 60 {
+            return;
+        }
+        let marker = compact_str::format_compact!("session_last_used::{uuid}");
+        if database
+            .cache
+            .get::<bool>(&marker)
+            .await
+            .ok()
+            .flatten()
+            .is_some()
+        {
+            return;
+        }
+        let _ = database.cache.set(&marker, 60, &true).await;
         let user_agent = crate::utils::slice_up_to(user_agent, 255).to_string();
         let ip = ip.into();
 

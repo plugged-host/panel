@@ -2,8 +2,7 @@ import { InputWrapper, Loader, mergeThemeOverrides, Tooltip } from '@mantine/cor
 import { createRoot } from 'react-dom/client';
 import { Extension, ExtensionContext } from 'shared';
 import App from '@/App.tsx';
-import getIcons from '@/api/getIcons.ts';
-import getSettings from '@/api/getSettings.ts';
+import { iconsPromise, languagesPromise, settingsPromise } from '@/bootstrap.ts';
 import { SpinnerLoader } from '@/elements/feedback/Spinner.tsx';
 import { preloadRouterForPath } from '@/routers/routerImports.ts';
 import { registerAssetReloadHandler } from '@/stores/assetReload.ts';
@@ -82,12 +81,14 @@ setExtensionStylesEnabled(() => false);
 
   let disabled: string[] = [];
 
-  const icons = getIcons()
-    .then((icons) => useGlobalStore.getState().setIcons(icons))
-    .catch((err) => console.error('Failed to load icons, falling back to default icons:', err));
+  // Icons are not on the first-paint path: the shell draws with its defaults and the store
+  // updates when they arrive.
+  void iconsPromise.then((icons) => {
+    if (icons) useGlobalStore.getState().setIcons(icons);
+  });
 
   try {
-    const settings = await getSettings();
+    const settings = await settingsPromise;
 
     disabled = settings.disabledExtensions;
     useGlobalStore.getState().setSettings(settings);
@@ -96,7 +97,11 @@ setExtensionStylesEnabled(() => false);
     console.error('Failed to load settings, assuming no extensions are disabled:', err);
   }
 
-  await icons;
+  try {
+    useGlobalStore.getState().setLanguages(await languagesPromise);
+  } catch (err) {
+    console.error('Failed to load languages, falling back to English:', err);
+  }
 
   const disabledIdentifiers = disabled.map((packageName) => packageName.replaceAll('.', '_'));
   const isEnabled = (identifier: string) => !disabledIdentifiers.includes(identifier);

@@ -1,5 +1,5 @@
 // plugged.host: one catalog row, installed with one click or a chosen version (docs/features/minecraft.md)
-import { faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons';
+import { faArrowUpRightFromSquare, faBolt, faDownload, faList } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useState } from 'react';
 import { z } from 'zod';
@@ -8,7 +8,6 @@ import installContent from '@/api/server/minecraft/installContent.ts';
 import ActionIcon from '@/elements/buttons/ActionIcon.tsx';
 import Badge from '@/elements/data-display/Badge.tsx';
 import { TableData, TableRow } from '@/elements/data-display/Table.tsx';
-import ConditionalTooltip from '@/elements/overlays/ConditionalTooltip.tsx';
 import Tooltip from '@/elements/overlays/Tooltip.tsx';
 import { intlLocale } from '@/lib/languages.ts';
 import { minecraftProjectSchema } from '@/lib/schemas/server/minecraft.ts';
@@ -16,6 +15,7 @@ import { useServerCan } from '@/plugins/usePermissions.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useServerStore } from '@/stores/server.ts';
+import ContentIcon from './ContentIcon.tsx';
 import InstallVersionModal from './InstallVersionModal.tsx';
 import { minecraftSourceLabels } from './labels.ts';
 import ModpackModal from './ModpackModal.tsx';
@@ -73,11 +73,7 @@ export default function ProjectRow({
   return (
     <TableRow>
       <TableData>
-        {project.icon ? (
-          <img src={project.icon} alt='' loading='lazy' className='theme-catalog-icon' />
-        ) : (
-          <span className='theme-catalog-icon' />
-        )}
+        <ContentIcon icon={project.icon} kind={project.kind} />
       </TableData>
 
       <TableData className='theme-catalog-project'>
@@ -133,20 +129,24 @@ export default function ProjectRow({
                       onStarted={onModpackStarted}
                     />
                   )}
-                  <ConditionalTooltip
-                    enabled={modpackBlocked === 'running'}
-                    label={t('pages.server.minecraft.modpacks.running', {})}
+                  <Tooltip
+                    label={
+                      modpackBlocked === 'running'
+                        ? t('pages.server.minecraft.modpacks.running', {})
+                        : t('common.button.install', {})
+                    }
                   >
-                    <button
-                      type='button'
-                      className='theme-link-action'
-                      data-accent
+                    <ActionIcon
+                      size='input-sm'
+                      variant='subtle'
+                      color={modpackBlocked === null ? 'blue' : 'gray'}
+                      aria-label={t('common.button.install', {})}
                       disabled={!project.installable || modpackBlocked !== null}
                       onClick={() => setOpen(true)}
                     >
-                      {t('common.button.install', {})}
-                    </button>
-                  </ConditionalTooltip>
+                      <FontAwesomeIcon icon={faDownload} />
+                    </ActionIcon>
+                  </Tooltip>
                 </>
               )
             : canManage && (
@@ -160,23 +160,31 @@ export default function ProjectRow({
                       onInstalled={onInstalled}
                     />
                   )}
-                  <button
-                    type='button'
-                    className='theme-link-action'
-                    data-accent
-                    disabled={!project.installable || installing}
-                    onClick={quickInstall}
-                  >
-                    {t(`${base}.button.quickInstall`, {})}
-                  </button>
-                  <button
-                    type='button'
-                    className='theme-link-action'
-                    disabled={!project.installable}
-                    onClick={() => setOpen(true)}
-                  >
-                    {t(`${base}.button.versions`, {})}
-                  </button>
+                  <Tooltip label={t(`${base}.button.quickInstall`, {})}>
+                    <ActionIcon
+                      size='input-sm'
+                      variant='subtle'
+                      color='blue'
+                      aria-label={t(`${base}.button.quickInstall`, {})}
+                      loading={installing}
+                      disabled={!project.installable}
+                      onClick={quickInstall}
+                    >
+                      <FontAwesomeIcon icon={faBolt} />
+                    </ActionIcon>
+                  </Tooltip>
+                  <Tooltip label={t(`${base}.button.versions`, {})}>
+                    <ActionIcon
+                      size='input-sm'
+                      variant='subtle'
+                      color='gray'
+                      aria-label={t(`${base}.button.versions`, {})}
+                      disabled={!project.installable}
+                      onClick={() => setOpen(true)}
+                    >
+                      <FontAwesomeIcon icon={faList} />
+                    </ActionIcon>
+                  </Tooltip>
                 </>
               )}
           <Tooltip

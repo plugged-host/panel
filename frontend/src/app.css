@@ -7037,8 +7037,17 @@ span.theme-neo-image {
   display: block;
   width: 2.75rem;
   height: 2.75rem;
+  overflow: hidden;
   border-radius: 9999px;
+  background-color: var(--theme-raise);
+  color: var(--theme-text-faint);
   object-fit: cover;
+}
+
+/* A project without a picture (or whose picture failed): a visible glyph instead of a hole. */
+.theme-catalog-icon-fallback {
+  display: grid;
+  place-items: center;
 }
 
 /* A wrapping column with a description under its value. */

@@ -2,6 +2,7 @@
 use super::State;
 use utoipa_axum::{router::OpenApiRouter, routes};
 
+mod icon;
 mod install;
 mod installed;
 mod search;
@@ -50,6 +51,7 @@ mod get {
 pub fn router(state: &State) -> OpenApiRouter<State> {
     OpenApiRouter::new()
         .routes(routes!(get::route))
+        .nest("/icon", icon::router(state))
         .nest("/search", search::router(state))
         .nest("/versions", versions::router(state))
         .nest("/install", install::router(state))

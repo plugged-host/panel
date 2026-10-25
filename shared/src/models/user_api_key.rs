@@ -334,6 +334,25 @@ impl UserApiKey {
     pub async fn update_last_used(&self, database: &Arc<crate::database::Database>) {
         let uuid = self.uuid;
         let now = chrono::Utc::now().naive_utc();
+        // Minute precision is enough for the API key list.
+        if self
+            .last_used
+            .is_some_and(|last_used| (now - last_used).num_seconds() < 60)
+        {
+            return;
+        }
+        let marker = compact_str::format_compact!("api_key_last_used::{uuid}");
+        if database
+            .cache
+            .get::<bool>(&marker)
+            .await
+            .ok()
+            .flatten()
+            .is_some()
+        {
+            return;
+        }
+        let _ = database.cache.set(&marker, 60, &true).await;
 
         database
             .batch_action("update_user_api_key", uuid, {

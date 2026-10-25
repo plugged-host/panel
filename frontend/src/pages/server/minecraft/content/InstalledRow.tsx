@@ -1,14 +1,5 @@
 // plugged.host: one installed plugin or mod and what can be done with it (docs/features/minecraft.md)
-import {
-  faArrowsRotate,
-  faArrowUp,
-  faBox,
-  faDownload,
-  faPause,
-  faPlay,
-  faPuzzlePiece,
-  faTrash,
-} from '@fortawesome/free-solid-svg-icons';
+import { faArrowsRotate, faArrowUp, faDownload, faPause, faPlay, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useState } from 'react';
 import { z } from 'zod';
@@ -31,6 +22,7 @@ import { useServerCan } from '@/plugins/usePermissions.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useServerStore } from '@/stores/server.ts';
+import ContentIcon from './ContentIcon.tsx';
 import { minecraftSourceLabels } from './labels.ts';
 
 interface Props {
@@ -148,13 +140,7 @@ export default function InstalledRow({ jar, directory, onChanged }: Props) {
       )}
 
       <div className='theme-jar-icon'>
-        {jar.pending ? (
-          <Spinner size={20} />
-        ) : jar.icon ? (
-          <img src={jar.icon} alt='' loading='lazy' />
-        ) : (
-          <FontAwesomeIcon icon={jar.kind === 'mod' ? faBox : faPuzzlePiece} size='lg' />
-        )}
+        {jar.pending ? <Spinner size={20} /> : <ContentIcon icon={jar.icon} kind={jar.kind} variant='jar' />}
       </div>
 
       <div className='theme-jar-main'>

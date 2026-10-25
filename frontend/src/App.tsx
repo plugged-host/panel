@@ -6,7 +6,6 @@ import {
   Text,
 } from '@mantine/core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { createBrowserHistory } from 'history';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
@@ -74,8 +73,9 @@ export default function App({
     const loadData = () => {
       const loadSettings =
         Object.keys(useGlobalStore.getState().settings).length > 0 ? Promise.resolve(null) : getSettings();
+      const loadLanguages = useGlobalStore.getState().languages.length > 0 ? Promise.resolve(null) : getLanguages();
 
-      Promise.all([loadSettings, getLanguages()])
+      Promise.all([loadSettings, loadLanguages])
         .then(([settings, languages]) => {
           if (cancelled) return;
 
@@ -83,7 +83,7 @@ export default function App({
             setSettings(settings);
             setTimeOffset(Date.now() - new Date(settings.time).getTime());
           }
-          setLanguages(languages);
+          if (languages) setLanguages(languages);
         })
         .catch((err) => {
           if (cancelled) return;
@@ -179,8 +179,6 @@ export default function App({
                           />
                         </TransitionHistoryRouter>
                       </HistoryContext.Provider>
-
-                      <ReactQueryDevtools initialIsOpen={false} theme='dark' />
                     </CurrentWindowProvider>
                   </WindowProvider>
                 </ToastProvider>

@@ -18,6 +18,7 @@ mod get {
         ApiResponse::new_serialized(Response {
             languages: &shared::FRONTEND_LANGUAGES,
         })
+        .with_header("Cache-Control", "public, max-age=300")
         .ok()
     }
 }
