@@ -9582,6 +9582,8 @@
             "modpack": {
               "label": "Modpack",
               "none": "Không có modpack - chỉ máy chủ cơ bản",
+              "card": "Gói mod dựng sẵn. Modpack tự mang theo trình tải và phiên bản Minecraft riêng.",
+              "another": "Chọn modpack khác",
               "search": "Tìm modpack trên Modrinth",
               "nothing": "Không tìm thấy gì",
               "hint": "Modpack đi kèm loader và phiên bản Minecraft riêng, nên sẽ ghi đè hai câu trả lời ở bước trước. Những gói yêu cầu chính xác một bản build Forge hoặc NeoForge có thể vẫn cần chỉnh tay sau đó.",

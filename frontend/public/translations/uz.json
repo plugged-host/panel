@@ -6608,6 +6608,8 @@
             "modpack": {
               "label": "Modpak",
               "none": "Modpaksiz - oddiy server",
+              "card": "Tayyor modlar toʻplami. Modpak oʻz yuklovchisi va Minecraft versiyasini olib keladi.",
+              "another": "Boshqa modpakni tanlash",
               "search": "Modrinthdan modpak qidirish",
               "nothing": "Hech narsa topilmadi",
               "hint": "Modpak oʻz yuklovchisi va Minecraft versiyasi bilan keladi, shuning uchun u oldingi qadamdagi ikkala javobning oʻrnini bosadi. Aynan bitta Forge yoki NeoForge buildini talab qiladigan modpaklarni keyin baribir qoʻlda sozlash kerak boʻlishi mumkin.",

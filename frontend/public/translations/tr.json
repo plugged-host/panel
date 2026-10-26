@@ -6611,6 +6611,8 @@
             "modpack": {
               "label": "Mod paketi",
               "none": "Mod paketi yok - sadece düz sunucu",
+              "card": "Hazır bir mod paketi. Kendi yükleyicisini ve Minecraft sürümünü getirir.",
+              "another": "Başka bir mod paketi seç",
               "search": "Modrinth'te mod paketi ara",
               "nothing": "Hiçbir şey bulunamadı",
               "hint": "Bir mod paketi kendi yükleyicisini ve Minecraft sürümünü getirir, bu yüzden önceki adımdaki iki yanıtın yerine geçer. Tam olarak belirli bir Forge veya NeoForge derlemesi gerektiren paketler sonrasında yine de elle müdahale gerektirebilir.",

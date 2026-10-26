@@ -12323,6 +12323,8 @@ const baseTranslations = defineTranslations({
             modpack: {
               label: 'Modpack',
               none: 'No modpack - just the plain server',
+              card: 'A ready-made pack of mods. It brings its own loader and Minecraft version.',
+              another: 'Pick another pack',
               search: 'Search Modrinth for a modpack',
               nothing: 'Nothing found',
               hint: 'A modpack brings its own loader and Minecraft version, so it overrides the two answers in the previous step. Packs that require one exact Forge or NeoForge build may still need manual work afterwards.',

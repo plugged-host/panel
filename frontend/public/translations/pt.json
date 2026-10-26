@@ -6608,6 +6608,8 @@
             "modpack": {
               "label": "Modpack",
               "none": "Sem modpack - só o servidor puro",
+              "card": "Um pacote de mods pronto. Ele traz o próprio loader e a própria versão do Minecraft.",
+              "another": "Escolher outro modpack",
               "search": "Pesquisar um modpack no Modrinth",
               "nothing": "Nada encontrado",
               "hint": "Um modpack traz o próprio loader e a própria versão do Minecraft, então ele substitui as duas respostas da etapa anterior. Packs que exigem um build exato do Forge ou do NeoForge ainda podem precisar de ajustes manuais depois.",

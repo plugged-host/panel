@@ -6608,6 +6608,8 @@
             "modpack": {
               "label": "Modpack",
               "none": "Tanpa modpack - hanya server biasa",
+              "card": "Paket mod siap pakai. Modpack membawa loader dan versi Minecraft-nya sendiri.",
+              "another": "Pilih modpack lain",
               "search": "Cari modpack di Modrinth",
               "nothing": "Tidak ada hasil",
               "hint": "Modpack membawa loader dan versi Minecraft sendiri, jadi menggantikan dua jawaban di langkah sebelumnya. Pack yang memerlukan satu build Forge atau NeoForge tertentu mungkin masih perlu dikerjakan secara manual setelahnya.",

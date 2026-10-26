@@ -11908,6 +11908,8 @@
             "modpack": {
               "label": "Modpack",
               "none": "Kein Modpack - nur der reine Server",
+              "card": "Ein fertiges Paket aus Mods. Es bringt seinen eigenen Loader und seine Minecraft-Version mit.",
+              "another": "Anderes Modpack wählen",
               "search": "Modrinth nach einem Modpack durchsuchen",
               "nothing": "Nichts gefunden",
               "hint": "Ein Modpack bringt seinen eigenen Loader und seine eigene Minecraft-Version mit und überschreibt damit die beiden Antworten aus dem vorherigen Schritt. Packs, die genau einen bestimmten Forge- oder NeoForge-Build verlangen, können danach noch Handarbeit nötig machen.",

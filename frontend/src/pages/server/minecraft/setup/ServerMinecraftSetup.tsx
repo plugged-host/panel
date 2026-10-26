@@ -7,8 +7,6 @@ import { z } from 'zod';
 import { httpErrorToHuman } from '@/api/axios.ts';
 import chooseMinecraftSoftware, { MinecraftSoftwarePick } from '@/api/server/minecraft/chooseMinecraftSoftware.ts';
 import completeMinecraftOnboarding from '@/api/server/minecraft/completeMinecraftOnboarding.ts';
-import getModpackVersions from '@/api/server/minecraft/getModpackVersions.ts';
-import searchModpacks from '@/api/server/minecraft/searchModpacks.ts';
 import getServerSoftware from '@/api/server/settings/getServerSoftware.ts';
 import getSoftwareVersions from '@/api/server/settings/getSoftwareVersions.ts';
 import ServerContentContainer from '@/elements/containers/ServerContentContainer.tsx';
@@ -21,22 +19,22 @@ import Text from '@/elements/typography/Text.tsx';
 import Wizard, { WizardStep } from '@/elements/Wizard.tsx';
 import { queryKeys } from '@/lib/queryKeys.ts';
 import {
-  minecraftLoaderSchema,
   minecraftOnboardingSchema,
   minecraftProjectSchema,
+  minecraftVersionSchema,
 } from '@/lib/schemas/server/minecraft.ts';
-import { useSearchableResource } from '@/plugins/resource/useSearchableResource.ts';
 import { useServerCan } from '@/plugins/usePermissions.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useServerStore } from '@/stores/server.ts';
 import { useModpacks } from '../content/useModpacks.ts';
+import ModpackPicker from './ModpackPicker.tsx';
 import SetupProgress from './SetupProgress.tsx';
 import { setupRunning, useMinecraftSetup } from './useMinecraftSetup.ts';
 
 type Onboarding = z.infer<typeof minecraftOnboardingSchema>;
-type Loader = z.infer<typeof minecraftLoaderSchema>;
 type Project = z.infer<typeof minecraftProjectSchema>;
+type Version = z.infer<typeof minecraftVersionSchema>;
 
 const base = 'pages.server.minecraft.setup';
 const LATEST = 'latest';
@@ -104,102 +102,6 @@ function SetupNote({ children }: { children: ReactNode }) {
   );
 }
 
-/** A modpack from the first source, searched as it is typed, for the chosen loader. */
-function ModpackSelect({
-  loader,
-  project,
-  onChange,
-}: {
-  loader: Loader | null;
-  project: Project | null;
-  onChange: (project: Project | null) => void;
-}) {
-  const { t } = useTranslations();
-  const server = useServerStore((state) => state.server);
-  const modpacks = useModpacks();
-  const source = modpacks.data?.sources[0] ?? 'modrinth';
-
-  const packs = useSearchableResource<Project>({
-    queryKey: queryKeys.server(server.uuid).minecraft.modpackSearch({ source, loader, setup: true }),
-    fetcher: (query) =>
-      searchModpacks(server.uuid, { source, query, loader, page: 1 }).then((found) => ({
-        ...found,
-        data: found.hits,
-      })),
-    debounceMs: 400,
-  });
-
-  const data = packs.items.map((pack) => ({ value: pack.id, label: pack.title }));
-  if (project && !packs.items.some((pack) => pack.id === project.id)) {
-    data.unshift({ value: project.id, label: project.title });
-  }
-
-  return (
-    <Select
-      label={t(`${base}.modpack.label`, {})}
-      placeholder={t(`${base}.modpack.none`, {})}
-      description={t(`${base}.modpack.hint`, {})}
-      inputWrapperOrder={HELPER_BELOW}
-      nothingFoundMessage={packs.search ? t(`${base}.modpack.nothing`, {}) : t(`${base}.modpack.search`, {})}
-      data={data}
-      value={project?.id ?? null}
-      onChange={(value) => onChange(packs.items.find((pack) => pack.id === value) ?? (value ? project : null))}
-      filter={({ options }) => options}
-      searchable
-      clearable
-      allowDeselect
-      searchValue={packs.search}
-      onSearchChange={packs.setSearch}
-      loading={packs.loading}
-    />
-  );
-}
-
-function ModpackVersionSelect({
-  project,
-  value,
-  onChange,
-}: {
-  project: Project;
-  value: string | null;
-  onChange: (version: string | null) => void;
-}) {
-  const { t } = useTranslations();
-  const server = useServerStore((state) => state.server);
-
-  const versions = useQuery({
-    queryKey: queryKeys.server(server.uuid).minecraft.modpackVersions(project.source, project.id),
-    queryFn: () => getModpackVersions(server.uuid, project.source, project.id),
-  });
-  const list = versions.data ?? [];
-
-  // the newest build is chosen for the player, so a pack is one click
-  useEffect(() => {
-    if (list.length > 0 && !list.some((version) => version.id === value)) {
-      onChange(list[0].id);
-    }
-  }, [list, value]);
-
-  if (versions.isLoading) return <Spinner.Centered />;
-  if (list.length === 0) {
-    return <SetupNote>{t('pages.server.minecraft.modpacks.modal.noVersions', {})}</SetupNote>;
-  }
-
-  return (
-    <Select
-      label={t(`${base}.modpack.version`, {})}
-      description={t(`${base}.modpack.versionHint`, {})}
-      inputWrapperOrder={HELPER_BELOW}
-      data={list.map((version) => ({
-        value: version.id,
-        label: `${version.name || version.number}${version.gameVersions[0] ? ` — ${version.gameVersions[0]}` : ''}`,
-      }))}
-      value={value}
-      onChange={onChange}
-    />
-  );
-}
-
 function SetupForm({ onboarding }: { onboarding: Onboarding }) {
   const { t } = useTranslations();
   const { addToast } = useToast();
@@ -224,8 +126,11 @@ function SetupForm({ onboarding }: { onboarding: Onboarding }) {
   const [active, setActive] = useState(0);
   const [variant, setVariant] = useState<string | null>(null);
   const [version, setVersion] = useState<string | null>(null);
+  // a modpack is a choice next to the software: it brings its own loader and version
+  const [usePack, setUsePack] = useState(false);
   const [project, setProject] = useState<Project | null>(null);
-  const [modpackVersion, setModpackVersion] = useState<string | null>(null);
+  const [packVersion, setPackVersion] = useState<Version | null>(null);
+  const modpackVersion = packVersion?.id ?? null;
   const [bedrock, setBedrock] = useState(false);
   const [onlineMode, setOnlineMode] = useState(true);
   // private first, as the Pelican panel: a public server is found by scanners within hours
@@ -255,18 +160,17 @@ function SetupForm({ onboarding }: { onboarding: Onboarding }) {
     versionData.push({ value: version, label: version });
   }
 
-  // a pack is published for the loaders it runs on; Paper-family software takes plugins instead
-  const modpackLoader: Loader | null = choosesSoftware ? (onboarding.modpackLoaders[variant ?? ''] ?? null) : null;
-  const offersModpacks =
-    canModpack && !!modpacks.data?.loaders.length && (choosesSoftware ? modpackLoader !== null : true);
-  const pack = offersModpacks ? project : null;
+  // packs exist when the server's game can run a mod loader
+  const offersModpacks = canModpack && !!modpacks.data?.loaders.length;
+  const pack = offersModpacks && usePack ? project : null;
 
+  // the pack's own loaders decide, else the software's
   const bedrockPossible =
     canBedrock &&
     (pack
-      ? modpackLoader
-        ? onboarding.bedrockLoaders.includes(modpackLoader)
-        : (modpacks.data?.loaders ?? []).some((loader) => onboarding.bedrockLoaders.includes(loader))
+      ? (packVersion?.loaders ?? []).some((loader) =>
+          onboarding.bedrockLoaders.some((bedrockLoader) => bedrockLoader === loader.toLowerCase()),
+        )
       : choosesSoftware
         ? onboarding.bedrockVariants.includes(variant ?? '')
         : onboarding.bedrockNow);
@@ -308,12 +212,22 @@ function SetupForm({ onboarding }: { onboarding: Onboarding }) {
   };
 
   const chooseVariant = (value: string) => {
+    setUsePack(false);
     if (value === variant) return;
-    // each loader lists other versions, and a pack is made for one loader
+    // each loader lists other versions
     setVariant(value);
     if (choosesVersion) setVersion(LATEST);
-    setProject(null);
-    setModpackVersion(null);
+  };
+
+  // a pack goes on the server the moment it is clicked (its newest version, changeable)
+  const pickPack = (chosen: Project, chosenVersion: Version) => {
+    setProject(chosen);
+    setPackVersion(chosenVersion);
+    choose({
+      variant: null,
+      version: null,
+      modpack: { source: chosen.source, project: chosen.id, version: chosenVersion.id },
+    });
   };
 
   const submit = () => {
@@ -363,31 +277,61 @@ function SetupForm({ onboarding }: { onboarding: Onboarding }) {
 
   const steps: WizardStep[] = [];
 
-  if (canSoftware && software.data && (choosesSoftware || choosesVersion)) {
+  if (canSoftware && software.data && (choosesSoftware || choosesVersion || offersModpacks)) {
     steps.push({
       key: 'software',
       title: t(`${base}.steps.software.title`, {}),
       description: t(`${base}.steps.software.description`, {}),
+      // the Modpack card wants a pack picked
+      validate: () => !(usePack && offersModpacks) || (!!project && !!modpackVersion),
       content: (
         <>
-          {choosesSoftware && (
+          {(choosesSoftware || offersModpacks) && (
             <SetupCards label={t(`${base}.software.label`, {})}>
-              {software.data.variants.map((choice) => {
-                const description = softwareDescription(choice.value);
+              {choosesSoftware ? (
+                software.data.variants.map((choice) => {
+                  const description = softwareDescription(choice.value);
 
-                return (
-                  <SetupCard
-                    key={choice.value}
-                    selected={choice.value === variant}
-                    label={choice.label}
-                    description={description ? t(SOFTWARE_DESCRIPTIONS[description], {}) : undefined}
-                    onSelect={() => chooseVariant(choice.value)}
-                  />
-                );
-              })}
+                  return (
+                    <SetupCard
+                      key={choice.value}
+                      selected={!usePack && choice.value === variant}
+                      label={choice.label}
+                      description={description ? t(SOFTWARE_DESCRIPTIONS[description], {}) : undefined}
+                      onSelect={() => chooseVariant(choice.value)}
+                    />
+                  );
+                })
+              ) : (
+                <SetupCard
+                  selected={!usePack}
+                  label={t(`${base}.modpack.none`, {})}
+                  onSelect={() => setUsePack(false)}
+                />
+              )}
+              {offersModpacks && (
+                <SetupCard
+                  selected={usePack}
+                  label={t(`${base}.modpack.label`, {})}
+                  description={t(`${base}.modpack.card`, {})}
+                  onSelect={() => setUsePack(true)}
+                />
+              )}
             </SetupCards>
           )}
-          {choosesVersion && (
+          {usePack && offersModpacks && (
+            <ModpackPicker
+              sources={modpacks.data?.sources ?? ['modrinth']}
+              project={project}
+              version={packVersion}
+              onPick={pickPack}
+              onClear={() => {
+                setProject(null);
+                setPackVersion(null);
+              }}
+            />
+          )}
+          {!usePack && choosesVersion && (
             <Select
               label={t(`${base}.software.version`, {})}
               description={
@@ -402,28 +346,6 @@ function SetupForm({ onboarding }: { onboarding: Onboarding }) {
               searchable
             />
           )}
-        </>
-      ),
-    });
-  }
-
-  if (offersModpacks) {
-    steps.push({
-      key: 'modpack',
-      title: t(`${base}.steps.modpack.title`, {}),
-      description: t(`${base}.steps.modpack.description`, {}),
-      validate: () => !project || !!modpackVersion,
-      content: (
-        <>
-          <ModpackSelect
-            loader={modpackLoader}
-            project={project}
-            onChange={(chosen) => {
-              setProject(chosen);
-              setModpackVersion(null);
-            }}
-          />
-          {project && <ModpackVersionSelect project={project} value={modpackVersion} onChange={setModpackVersion} />}
         </>
       ),
     });
@@ -542,10 +464,8 @@ function SetupForm({ onboarding }: { onboarding: Onboarding }) {
 
   const changeStep = (next: number) => {
     const left = steps[active]?.key;
-    if (next > active && canSoftware) {
-      if (left === 'software' && !offersModpacks) choose(softwarePick(false));
-      if (left === 'modpack') choose(softwarePick(true));
-    }
+    // a pack was sent when it was clicked; the software goes with the step's Next
+    if (next > active && canSoftware && left === 'software') choose(softwarePick(usePack));
     setActive(next);
   };
 

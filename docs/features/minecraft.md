@@ -206,22 +206,25 @@ set up yet** with **Start setup** instead.
 The page is the Pelican panel's setup wizard (`elements/Wizard.tsx`): numbered steps across the
 top, Back / Next (Enter goes on), **Finish setup** on the last one. The steps:
 
-- **Server software** (with `settings.software`, when the game has software choices or a version):
-  the game's choices as cards with what each takes, and the Minecraft version (Latest by default);
-- **Modpack** (with `settings.software` + `minecraft.content`, when the chosen software takes
-  modpacks: `modpackLoaders` in `GET /onboarding`, every mod loader and not the Paper family):
-  optional, a pack from the first source searched for that loader, then its version (the newest
-  preselected); a pack brings its own software and version;
-- **Bedrock support** (with `minecraft.bedrock`, when the chosen software, or the pack's loader,
-  runs Geyser): yes, or Java only (the default);
+- **Server software** (with `settings.software`, when the game has software choices or a version,
+  or takes modpacks): the game's choices as cards with what each takes, then the Minecraft version
+  (Latest by default); next to them, with `minecraft.content` too, a **Modpack** card when the
+  game can run a mod loader (`modpacks.loaders`). Modpack replaces the version with the Modpacks
+  catalog's rows (icon, name, description, downloads): popular packs at once, a search above that
+  filters as it is typed, and Modrinth / CurseForge when both are offered. A click picks the pack
+  with its newest version the server can run and starts installing it at once; the picked pack
+  stays as the one marked row with a small version select (changing it restarts the install) and
+  **Pick another pack**. A pack brings its own software and version; Next needs one picked;
+- **Bedrock support** (with `minecraft.bedrock`, when the chosen software, or the picked pack
+  version's loader, runs Geyser): yes, or Java only (the default);
 - **Player accounts**: premium accounts only (`online-mode=true`, the default) or cracked clients,
   with the warning;
 - **Who is it for**: private (the whitelist, the default) or public, with the warning;
 - **Players**: the whitelist (when private) and operators, up to 20 valid names each.
 
 What the server runs starts being put in place the moment its step is left, while the rest is
-still being answered: **Next** on Server software (when no Modpack step follows) or on Modpack
-sends the pick (`PUT /onboarding/software`, stored on the row's `answers` while it is pending). A
+still being answered: a click on a pack, or **Next** on Server software, sends the pick
+(`PUT /onboarding/software`, stored on the row's `answers` while it is pending). A
 pick that is what the server was created with sends nothing, until an earlier pick changed it. The
 setup's worker (`minecraft::onboarding`, one per server under the server's software lock, after
 the request) then:
@@ -671,7 +674,8 @@ Nothing here uses noprofit.space.
   Bedrock, starting, then "Your server is set up"; `server.properties` has
   `online-mode=false`, `white-list=true`, the lists hold the names, Geyser is in `mods/` and the
   server runs. A made-up name in online mode is listed as not added.
-- The same with a modpack: Next on the Modpack step starts it at once, the setup page shows the
+- The same with a modpack: the Modpack card shows popular packs with icons at once; a click on one
+  starts it at once (search, the source switch and the version select work too), the setup page shows the
   pack's bar above the questions (downloading, waiting for the install, reinstalling with the mods
   counting up), and "The chosen software is installed" once it is in place; Finish setup then only
   writes the settings and starts the server. With Purpur chosen the Modpack step is not there.

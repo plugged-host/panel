@@ -8489,6 +8489,8 @@
             "modpack": {
               "label": "Modpack",
               "none": "Pas de modpack - juste le serveur de base",
+              "card": "Un pack de mods prêt à l'emploi. Il apporte son propre loader et sa version de Minecraft.",
+              "another": "Choisir un autre modpack",
               "search": "Rechercher un modpack sur Modrinth",
               "nothing": "Aucun résultat",
               "hint": "Un modpack apporte son propre loader et sa propre version de Minecraft, il remplace donc les deux réponses de l'étape précédente. Les packs qui exigent un build précis de Forge ou NeoForge peuvent encore demander une intervention manuelle ensuite.",
