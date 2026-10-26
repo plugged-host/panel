@@ -4,6 +4,7 @@ import Progress from '@/elements/feedback/Progress.tsx';
 import Stack from '@/elements/layout/Stack.tsx';
 import { minecraftOnboardingSchema } from '@/lib/schemas/server/minecraft.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
+import { useServerStore } from '@/stores/server.ts';
 import ModpackProgress from '../content/ModpackProgress.tsx';
 import { modpackInstalling } from '../content/useModpacks.ts';
 
@@ -14,14 +15,20 @@ type RunningStep = Exclude<NonNullable<Onboarding['progress']>['step'], 'done' |
 
 export default function SetupProgress({ onboarding }: { onboarding: Onboarding }) {
   const { t } = useTranslations();
+  const installing = useServerStore((state) => state.server.status === 'installing');
   const progress = onboarding.progress;
   if (!progress) return null;
 
   const step = progress.step as RunningStep;
   const modpack = step === 'modpack' && modpackInstalling(onboarding.modpack) ? onboarding.modpack : null;
-  // the pack is downloaded and read; it goes on the server when its first install is over
+  // the pack is downloaded and read; it goes on the server when the install that runs is over (a
+  // server created without its install has none to wait for)
   const packWaits =
-    !!modpack && modpack.step === 'download' && modpack.totalBytes > 0 && modpack.bytes >= modpack.totalBytes;
+    installing &&
+    !!modpack &&
+    modpack.step === 'download' &&
+    modpack.totalBytes > 0 &&
+    modpack.bytes >= modpack.totalBytes;
 
   return (
     <Stack gap='xs'>

@@ -8,6 +8,7 @@
 //! | Order | Gate | Holds a start while |
 //! |---|---|---|
 //! | 10 | `limbo` | the server is parked and has to be restored first |
+//! | 15 | `setup` | a Minecraft server waits for its setup, which installs and starts it |
 //! | 20 | `queue` | its node is too busy: the start waits in the start queue |
 //! | 30 | `ads` | an ad-funded waiting room comes first |
 //!
@@ -49,6 +50,7 @@ pub trait StartGate: Send + Sync {
 fn gates() -> &'static [&'static dyn StartGate] {
     &[
         &crate::limbo::LimboGate,
+        &crate::minecraft::onboarding::SetupGate,
         &crate::start_queue::QueueGate,
         &crate::waiting_room::RoomGate,
     ]

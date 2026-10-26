@@ -157,11 +157,13 @@ the pack, stores the install as started and answers 202; a background task then:
 Paths in a pack never leave the server's folder (absolute paths, `..` and drive letters are
 dropped). The state (step, files done of total, their bytes of the total the pack lists, skipped
 files, error) is kept in the cache, written every second while it runs (for 3 hours) and kept an
-hour after; the page polls it every 3 seconds, also while the server reinstalls, and shows it above
-the installed list ("Modpack installation started" with a progress bar: the pack's bytes while it
-downloads, then the files done of the total and their size; files already count during the
-reinstall; then "Modpack installed" or "Modpack installation failed" until closed), and toasts when
-it ends. Activity: `server:minecraft.modpack.install` when it ends.
+hour after; the page polls it every 3 seconds and shows it above the installed list ("Modpack
+installation started" with a progress bar: the pack's bytes while it downloads, then the files done
+of the total and their size; files already count during the reinstall; then "Modpack installed" or
+"Modpack installation failed" until closed), and toasts when it ends. When the reinstall starts,
+the page sends the player to the console, which shows the same bar until the install ends
+([While a server installs](#while-a-server-installs)). Activity: `server:minecraft.modpack.install`
+when it ends.
 
 ## Bedrock players
 
@@ -195,13 +197,25 @@ Activity: `server:minecraft.bedrock.install`.
 
 ## Setup
 
-A Minecraft server a player creates ([create-server.md](create-server.md)) is not started after its
-install. It gets a `server_onboardings` row instead, and its owner is sent to **Set up your server**
-(`/minecraft/setup`) from every page of the server, with a warning toast that says why, also while
-it installs (the page is the one a server that installs may show besides the console). Servers an
-admin creates have no row and never see it. Subusers who may answer it (`minecraft.settings` and
-`minecraft.players`) and admins are not sent there; the console shows them **Your server is not
-set up yet** with **Start setup** instead.
+A Minecraft server a player creates ([create-server.md](create-server.md)) gets a
+`server_onboardings` row and is created **without its install**: Wings is told to skip the egg's
+install script (`skip_installer`, Wings' `skip_scripts`), so the server is never marked installing,
+stays empty and is not started. Its player lands on **Set up your server** (`/minecraft/setup`) at
+once, and the setup is what installs it. Servers an admin creates or imports have no row: they
+install and start as before and never see the setup. (Wings still reports the skipped install; the
+install callback leaves that report without the "server installed" mail and notification while the
+setup waits, `remote/servers/{server}/install.rs`.)
+
+While the setup waits, **the setup comes first** for everyone who may answer it (the owner, admins,
+subusers with `minecraft.settings` and `minecraft.players`): every page of the server, deep links
+and the console's popout included, sends to it (`ServerStateGuard`, with a warning toast that says
+why), and the server's sidebar shows only **Set up** (the global links above it, Home, Admin and
+View admin, stay). Not while the server is suspended, moving, on a node in maintenance or parked
+([limbo.md](limbo.md)): those screens come first. A subuser without those permissions is not sent
+there and sees the server's pages as they are. A start is held as well: the `setup` start gate
+([start-gates.md](start-gates.md)) answers every start and restart through the power API with the
+setup page while the setup waits, so a server whose setup was never finished stays empty and
+cannot be started (the setup starts it when it is done).
 
 The page is the Pelican panel's setup wizard (`elements/Wizard.tsx`): numbered steps across the
 top, Back / Next (Enter goes on), **Finish setup** on the last one. The steps:
@@ -224,32 +238,40 @@ top, Back / Next (Enter goes on), **Finish setup** on the last one. The steps:
 
 What the server runs starts being put in place the moment its step is left, while the rest is
 still being answered: a click on a pack, or **Next** on Server software, sends the pick
-(`PUT /onboarding/software`, stored on the row's `answers` while it is pending). A
-pick that is what the server was created with sends nothing, until an earlier pick changed it. The
-setup's worker (`minecraft::onboarding`, one per server under the server's software lock, after
-the request) then:
+(`PUT /onboarding/software`, stored on the row's `answers` while it is pending), also when it is
+what the server was created with, since that pick is what installs it. The setup's worker
+(`minecraft::onboarding`, one per server under the server's software lock, after the request) then
+starts at once (there is no first install to wait for):
 
-- for a modpack, starts it at once: the pack is downloaded and read (its progress bar shows the
-  bytes) while the server's first install still runs, and the server is changed the moment that
-  install ends, as [Modpacks](#modpacks) describes;
-- for software or a version, waits for the first install to end and switches them like Settings ›
-  Software does, a reinstall it waits for.
+- for a modpack, the pack is downloaded and read (its progress bar shows the bytes), then the
+  server is switched to the pack's loader and version and installed, as [Modpacks](#modpacks)
+  describes; on a server that was never installed the install runs even when it already has the
+  pack's loader and version (`modpacks::Start::reinstalling`);
+- for software or a version, switches them like Settings › Software does, an install it waits for;
+- when the pick changed nothing (the software it was created with), or a pack stopped before its
+  install, the server is installed as it is (`install_server`), so it never stays empty once a
+  pick went in. The progress remembers that the setup installed it (`installed`); a progress lost
+  from the cache only costs one more install.
 
-The end of an install is noticed when the node reports it (upstream's `InstallCompleted`, which
-`server_software::register` follows), else at a look every 2 seconds (an end reported to the other
-panel instance). Picking again replaces the pick: one still waiting for the first install, or a
-pack still downloading or reading, is dropped at once; a pack that is downloading its files stops
-starting more (the ones running finish); a reinstall that began is always waited for, then the new
-pick follows, so two reinstalls never run at once. The files the setup's packs downloaded (listed
-in the cache beside the progress) are deleted before a different pick goes in, also when the pack
-had finished. The
-setup page shows the progress above the questions (the step, a modpack's bar), and "The chosen
-software is installed" once it is in place.
+A server created before installs were skipped still had its first install: an install that runs is
+waited for (step `waiting`), and the setup installs it once more. The end of an install is noticed
+when the node reports it (upstream's `InstallCompleted`, which `server_software::register`
+follows), else at a look every 2 seconds (an end reported to the other panel instance). Picking
+again replaces the pick: a pack still downloading or reading is dropped at once; a pack that is
+downloading its files stops starting more (the ones running finish); an install that began is
+always waited for, then the new pick follows, so two installs never run at once. The files the
+setup's packs downloaded (listed in the cache beside the progress) are deleted before a different
+pick goes in, also when the pack had finished. The setup page shows the progress above the
+questions (the step, a modpack's bar, and while the server installs the console's install banner
+with Wings' progress), and "The chosen software is installed" once it is in place; that state is
+kept 7 days, the running ones 3 hours.
 
 **Finish setup** stores the answers on the row (`completed`, once: a second submit is 409), goes to
-the console and says what happens next (installing, restart to apply, or written). The answers
-carry the software as picked (not as changed), so the worker puts it in place when no pick was sent
-before or it differs from the last one. Once it is in place, the worker writes `online-mode`, turns
+the console and says what happens next (installing while no pick installed the server yet or one is
+being put in place, restart to apply, or written). The answers carry the software as picked (not as
+changed), so the worker puts it in place when no pick was sent before (installing the server with
+what it was created with, also when the setup had no software step) or it differs from the last
+one. Once it is in place, the worker writes `online-mode`, turns
 the whitelist on or off and adds the names (looked up at Mojang in online mode; names without an
 account are listed as skipped), installs Geyser when asked, and starts the server. A part that
 fails is listed and the rest still applied; an install that failed stops it ("reinstall it from
@@ -261,10 +283,23 @@ restart) is taken up again by the next look at the setup. Activity:
 
 While the server installs, the routes the setup needs answer (the setup's own, and the reads of
 Settings › Software, its versions and the modpack search, versions and progress), so the setup can
-be answered during the first install and its progress followed during the reinstalls it causes.
-Plugins & Mods stays open too, read only (its lists, search, versions, icons, Bedrock and Modpacks
-answer `GET`), so a modpack's progress bar stays in view through the reinstall it causes; an install
-or change there is still 409 "server is currently installing", like everything else.
+be answered and its progress followed during the installs it causes. Plugins & Mods' reads answer
+too (`GET` of its lists, search, versions, icons, Bedrock and Modpacks); an install or change there
+is still 409 "server is currently installing", like everything else.
+
+### While a server installs
+
+While a server installs or reinstalls (status `installing`; any server, not only Minecraft), its
+sidebar shows only **Console**, where the install shows (Wings' output and progress, the install
+banner with Cancel), and every other page of the server sends to the console (`ServerStateGuard`):
+the page a player lands on keeps the install in view. A setup that waits keeps its own page and
+shows only **Set up** instead (its progress and the install banner are on it). The console also
+follows a modpack's install there (`ConsoleModpackCallout`, with `minecraft.content`): asked while
+the server installs, it shows the pack's bar (the step, files and size) through the reinstall the
+pack causes and its end ("Modpack installed" or failed, until closed), unless a setup shows the
+pack in its own progress. Plugins & Mods is not open during installs any more: a pack installed
+from it leaves the page for the console when its reinstall starts. A restore from a backup, a
+failed install and a move keep upstream's screens.
 
 ### The egg
 
@@ -579,8 +614,8 @@ the software, the jar, the port and address; `POST` installs or updates (`{updat
 address, restarted}`).
 
 `/api/client/servers/{server}/minecraft/onboarding`: `GET` (`minecraft.settings`) whether the setup
-waits, when it was answered, the progress (`step`, `software` and `software_done`, `problems`,
-`fatal`, `error`, `skipped`), the picked modpack's install (`modpack`, the Modpacks state), which
+waits, when it was answered, the progress (`step`, `software` and `software_done`, `installed`,
+`problems`, `fatal`, `error`, `skipped`), the picked modpack's install (`modpack`, the Modpacks state), which
 software choices and loaders run Geyser, and which software choices take modpacks with their loader
 (`modpack_loaders`) (404 for a server without one); `PUT /software` the software picked so far
 `{variant, version, modpack}`, put in place at once (`minecraft.settings` + `settings.software`, plus
@@ -650,12 +685,13 @@ Nothing here uses noprofit.space.
 - Download on a running server: the zip has the world, `world_nether` and `world_the_end`.
 - Delete a world that is not loaded: it shows up in the file manager's trash.
 - Modpacks on a stopped Fabric server: Filters › Type Modpacks, clear the version, install a
-  Modrinth pack for another Minecraft version; the page stays (with the installing banner) and the
-  callout above the list shows the pack downloading (its size), "Reinstalling the server…" with
-  the mods already counting up (files of total and their size), then "Unpacking configs…", then
-  "Modpack installed"; the server starts with the pack's mods and configs; Settings › Software
-  shows the pack's version. A second install meanwhile, or Settings › Software, says the software
-  is being changed.
+  Modrinth pack for another Minecraft version; the callout above the list shows the pack
+  downloading (its size); when the reinstall starts the page goes to the console, whose sidebar
+  shows only Console, and the console shows the installing banner and the pack's bar:
+  "Reinstalling the server…" with the mods already counting up (files of total and their size),
+  then "Unpacking configs…", then "Modpack installed"; the sidebar is back once the reinstall
+  ended; the server starts with the pack's mods and configs; Settings › Software shows the pack's
+  version. A second install meanwhile, or Settings › Software, says the software is being changed.
 - The same with a CurseForge pack (with a key) on a Forge server; a pack whose author blocks
   downloads lists the skipped mods.
 - Modpacks on a running server: Install is disabled and its tooltip says to stop it.
@@ -667,25 +703,37 @@ Nothing here uses noprofit.space.
   problem and its fix, with "Ask neo to fix it" (with neo on and `neo.access`) and View log, a link
   to mclo.gs where passwords in the log show as `••••`. A clean start shows the one quiet line.
   Turning Log Check off in Admin › Settings hides it.
-- Create a Minecraft server as a player: the server page goes to Set up your server while it
-  installs, with the warning toast; the console and other pages lead back to it. Walk the wizard:
-  Fabric and an older version, no modpack, Bedrock yes, cracked clients, private with two names and
-  an operator; Finish setup goes to the console, which shows waiting, reinstalling, settings,
-  Bedrock, starting, then "Your server is set up"; `server.properties` has
-  `online-mode=false`, `white-list=true`, the lists hold the names, Geyser is in `mods/` and the
-  server runs. A made-up name in online mode is listed as not added.
+- Create a Minecraft server as a player: the create page opens Set up your server at once; the
+  server does not install (no installing banner, no "server installed" mail or notification) and
+  its files are empty. The sidebar shows only Set up; Console, Files, Schedules, Backups, Settings
+  and a deep link such as `/server/<id>/schedules` typed by hand all go back to the setup with the
+  warning toast; Start from the server list goes to the setup too. Walk the wizard: Fabric and an
+  older version, no modpack, Bedrock yes, cracked clients, private with two names and an operator;
+  Next on Server software starts the install at once (the setup page shows "Installing the server
+  with the chosen software…" and the installing banner); Finish setup goes to the console, which
+  shows installing, settings, Bedrock, starting, then "Your server is set up", with the whole
+  sidebar back; `server.properties` has `online-mode=false`, `white-list=true`, the lists hold the
+  names, Geyser is in `mods/` and the server runs. A made-up name in online mode is listed as not
+  added.
+- Keep the software the server was created with and press Next: it is installed all the same.
+  Finish without a software step (a subuser without `settings.software`): the console shows the
+  install, then the rest.
 - The same with a modpack: the Modpack card shows popular packs with icons at once; a click on one
-  starts it at once (search, the source switch and the version select work too), the setup page shows the
-  pack's bar above the questions (downloading, waiting for the install, reinstalling with the mods
-  counting up), and "The chosen software is installed" once it is in place; Finish setup then only
-  writes the settings and starts the server. With Purpur chosen the Modpack step is not there.
-- Pick Fabric on a server still in its first install, Next: the setup page says it waits for the
-  install, then reinstalls; go back, pick Purpur, Next: it switches back after that reinstall,
-  never during it. Pick a large pack, and while its mods count up go back and pick no pack: the
-  downloads stop, the pack's mods are deleted and the server gets the Fabric version picked.
-- A subuser with Game Settings opens the console of a server still waiting for its setup: "Your
-  server is not set up yet" with Start setup.
-- A server an admin creates starts after its install as before and has no setup.
+  starts it at once (search, the source switch and the version select work too), the setup page
+  shows the pack's bar above the questions (downloading, installing with the mods counting up),
+  also for a pack of the loader and version the server was created with, and "The chosen software
+  is installed" once it is in place; Finish setup then only writes the settings and starts the
+  server. With Purpur chosen the Modpack step is not there.
+- Pick Fabric, Next: the install starts; go back, pick Purpur, Next: it switches after that
+  install, never during it. Pick a large pack, and while its mods count up go back and pick no
+  pack: the downloads stop, the pack's mods are deleted and the server gets the Fabric version
+  picked.
+- A subuser with Game Settings and Players opens a server still waiting for its setup: every page
+  goes to the setup, like for its owner. A subuser without them sees the server's pages; Start
+  goes to the setup page, which they may not open.
+- A server an admin creates installs and starts as before and has no setup; while it installs (or
+  any server reinstalls from Settings) the sidebar shows only Console and other pages go to the
+  console.
 - Which servers: a Paper server shows the Minecraft pages; a Velocity server and a Vanilla Bedrock
   server show none of them in the sidebar, and `/server/<id>/minecraft/settings` typed by hand goes
   to the not-found page; both still show the log check above the console.

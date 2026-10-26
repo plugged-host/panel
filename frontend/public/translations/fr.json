@@ -8440,6 +8440,7 @@
           },
           "setup": {
             "title": "Configurer votre serveur",
+            "nav": "Configurer",
             "subtitle": "Quelques questions, et votre serveur est configuré comme vous le voulez. Vous pourrez tout modifier plus tard.",
             "gate": "Terminez d'abord la configuration de votre serveur. Ce serveur vient d'être créé et son logiciel serveur doit encore être choisi. Le reste du panel s'ouvre dès que vous avez terminé ici.",
             "finish": "Terminer la configuration",
@@ -8536,7 +8537,7 @@
             "progress": {
               "title": "Configuration de votre serveur",
               "waiting": "En attente de la fin de l'installation du serveur…",
-              "software": "Réinstallation du serveur avec le logiciel choisi…",
+              "software": "Installation du serveur avec le logiciel choisi…",
               "modpack": "Installation du modpack…",
               "ready": "Le logiciel choisi est installé. Terminez la configuration et le reste sera appliqué.",
               "settings": "Écriture des paramètres et des listes de joueurs…",

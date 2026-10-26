@@ -195,12 +195,8 @@ function SetupForm({ onboarding }: { onboarding: Onboarding }) {
   const choose = (pick: MinecraftSoftwarePick) => {
     const key = JSON.stringify(pick);
     if (key === sentPick.current) return;
-    // the software it was created with needs nothing, until another pick changed it
-    const unchanged =
-      !pick.modpack &&
-      (pick.variant ?? software.data?.current) === software.data?.current &&
-      (pick.version ?? software.data?.version) === software.data?.version;
-    if (sentPick.current === null && unchanged) return;
+    // also the software it was created with: the server is created without its install, and this
+    // pick is what installs it, while the rest is answered
     sentPick.current = key;
 
     chooseMinecraftSoftware(server.uuid, pick)
@@ -235,7 +231,9 @@ function SetupForm({ onboarding }: { onboarding: Onboarding }) {
     setLoading(true);
 
     const current = software.data;
+    // no pick installed the server yet (it is created without its install), or another one is picked now
     const changesSoftware =
+      !onboarding.progress?.installed ||
       !!pack ||
       (choosesSoftware && !!variant && variant !== current?.current) ||
       (choosesVersion && !!version && version !== current?.version);
@@ -252,7 +250,10 @@ function SetupForm({ onboarding }: { onboarding: Onboarding }) {
       operators,
     })
       .then(() => {
-        queryClient.invalidateQueries({ queryKey: queryKeys.server(server.uuid).minecraft.onboarding() });
+        const key = queryKeys.server(server.uuid).minecraft.onboarding();
+        // answered: the server's pages open at once, not only once the setup is read again
+        queryClient.setQueryData<Onboarding>(key, (old) => (old ? { ...old, pending: false } : old));
+        queryClient.invalidateQueries({ queryKey: key });
         addToast(
           // the Pelican panel's closing notification: a reinstall applies everything by itself,
           // a server that is up reads the files again only when it restarts

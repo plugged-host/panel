@@ -1234,7 +1234,7 @@ pub fn knowledge_text(facts: &KnowledgeFacts) -> String {
         );
     }
     let setup = if facts.minecraft && creating {
-        " A Minecraft server a user created opens Set Up Your Server first (what to run: the software and Minecraft version or a modpack, Bedrock players, accounts, who can join, operators) and starts once that is done."
+        " A Minecraft server a user created is not installed until its setup: it opens Set Up Your Server first (what to run: the software and Minecraft version or a modpack, Bedrock players, accounts, who can join, operators), is installed with what is picked there and starts once that is done."
     } else {
         ""
     };

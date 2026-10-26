@@ -1,4 +1,4 @@
-import { faArrowUpRightFromSquare, faGraduationCap, faServer } from '@fortawesome/free-solid-svg-icons';
+import { faArrowUpRightFromSquare, faGraduationCap, faRocket, faServer } from '@fortawesome/free-solid-svg-icons'; // plugged.host: faRocket
 import { Suspense, useEffect, useMemo, useState } from 'react';
 import { Navigate, Route, Routes, useLocation, useParams } from 'react-router'; // plugged.host: Navigate, useLocation
 import { useShallow } from 'zustand/react/shallow';
@@ -28,6 +28,7 @@ import { getDisabledServerRoutePaths, isConflictingState } from '@/lib/domain/se
 import { resolveString } from '@/lib/lazy.ts';
 import { queryKeys } from '@/lib/queryKeys.ts';
 import { getAccessibleRoutePaths, to } from '@/lib/routes.ts';
+import { SETUP_PATH, useSetupFirst } from '@/pages/server/minecraft/setup/useMinecraftSetup.ts'; // plugged.host
 import ServerStatusPoller from '@/pages/server/ServerStatusPoller.tsx';
 import ServerStatusToast from '@/pages/server/ServerStatusToast.tsx';
 import WebsocketHandler from '@/pages/server/WebsocketHandler.tsx';
@@ -56,6 +57,9 @@ export default function ServerRouter({ isNormal }: { isNormal: boolean }) {
   // without the sidebar, like the Pelican panel's (docs/features/start-queue.md)
   const { pathname } = useLocation();
   const withSidebar = isNormal && serverPageKind(pathname) !== 'room';
+  // plugged.host: a server waiting for its setup shows only the setup in its sidebar
+  // (docs/features/minecraft.md#setup)
+  const setupFirst = useSetupFirst();
 
   const { server, setSocketInstance, resetState, setServer, setCommandSnippets, setServerAnnouncements } =
     useServerStore(
@@ -142,6 +146,12 @@ export default function ServerRouter({ isNormal }: { isNormal: boolean }) {
       .filter(Boolean);
   }, [server.eggConfiguration?.routeOrder, server.egg?.features, allServerRoutes, language]); // plugged.host: features
 
+  // plugged.host: one that installs only the console, where the install shows; the rest waits for its end
+  const shownSidebarItems =
+    server.status === 'installing'
+      ? sidebarItems.filter((item) => item?.type === 'route' && item.route.path === '/')
+      : sidebarItems;
+
   const accessibleRoutePaths = useMemo(
     () => getAccessibleRoutePaths(allServerRoutes, server.eggConfiguration?.routeOrder),
     [allServerRoutes, server.eggConfiguration?.routeOrder],
@@ -227,10 +237,17 @@ export default function ServerRouter({ isNormal }: { isNormal: boolean }) {
 
               <Sidebar.Divider />
 
-              {loading ? (
+              {loading || setupFirst === null ? ( // plugged.host: setupFirst
                 <Spinner.Centered />
+              ) : setupFirst ? (
+                // plugged.host: the setup alone while it waits
+                <Sidebar.Link
+                  to={`/server/${params.id}${SETUP_PATH}`}
+                  icon={faRocket}
+                  name={t('pages.server.minecraft.setup.nav', {})}
+                />
               ) : (
-                sidebarItems.map((item, index) => {
+                shownSidebarItems.map((item, index) => {
                   if (!item) return null;
 
                   if (item.type === 'divider') {

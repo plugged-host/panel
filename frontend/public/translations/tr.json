@@ -6562,6 +6562,7 @@
           },
           "setup": {
             "title": "Sunucunuzu ayarlayın",
+            "nav": "Kurulum",
             "subtitle": "Birkaç soru ve sunucunuz istediğiniz gibi yapılandırılır. Hepsini daha sonra değiştirebilirsiniz.",
             "gate": "Önce sunucunuzun kurulumunu tamamlayın. Bu sunucu yeni oluşturuldu ve hâlâ sunucu yazılımının seçilmesi gerekiyor. Burada işiniz biter bitmez panelin geri kalanı açılır.",
             "finish": "Kurulumu tamamla",
@@ -6658,7 +6659,7 @@
             "progress": {
               "title": "Sunucunuz ayarlanıyor",
               "waiting": "Sunucunun kurulumu bitirmesi bekleniyor…",
-              "software": "Sunucu seçilen yazılımla yeniden kuruluyor…",
+              "software": "Sunucu seçilen yazılımla kuruluyor…",
               "modpack": "Mod paketi kuruluyor…",
               "ready": "Seçilen yazılım kuruldu. Kurulumu tamamlayın, gerisi uygulanacak.",
               "settings": "Ayarlar ve oyuncu listeleri yazılıyor…",

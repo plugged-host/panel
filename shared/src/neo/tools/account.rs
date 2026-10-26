@@ -459,14 +459,14 @@ impl Tool for CreateServerTool {
 
         let page = format!("/server/{:08x}", server.uuid_short);
         Ok(ToolResult::ok(format!(
-            "Created \"{}\" (id {:08x}): {}. It is installing now; {} Its page: {page}",
+            "Created \"{}\" (id {:08x}): {}. {} Its page: {page}",
             server.name,
             server.uuid_short,
             size(crate::server_resize::current(&server)),
             if crate::minecraft::is_minecraft(&server.egg) {
-                "then the user picks its software and version in the setup on its page, and it starts."
+                "It is not installed yet: the user picks its software and version (or a modpack) in the setup on its page, which installs it, and it starts once the setup is done."
             } else {
-                "it starts on its own when done."
+                "It is installing now; it starts on its own when done."
             }
         ))
         .with_display(format!("Created {}", server.name)))

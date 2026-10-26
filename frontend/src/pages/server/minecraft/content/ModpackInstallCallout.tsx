@@ -52,13 +52,14 @@ function Ended({ install, onClose }: { install: ModpackInstall; onClose: () => v
   );
 }
 
-export default function ModpackInstallCallout() {
+/** `enabled: false` shows what another part of the page asks for (the console's follower). */
+export default function ModpackInstallCallout({ enabled = true }: { enabled?: boolean }) {
   const { t } = useTranslations();
   const { addToast } = useToast();
   const queryClient = useQueryClient();
   const server = useServerStore((state) => state.server);
 
-  const modpacks = useModpacks();
+  const modpacks = useModpacks(enabled);
   const install = modpacks.data?.install ?? null;
   const [dismissed, dismiss] = useDismissed(
     install && !modpackInstalling(install) ? `modpack:${server.uuid}:${install.started.toISOString()}` : null,

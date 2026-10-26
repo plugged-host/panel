@@ -6559,6 +6559,7 @@
           },
           "setup": {
             "title": "Configure seu servidor",
+            "nav": "Configurar",
             "subtitle": "Algumas perguntas, e seu servidor fica configurado do jeito que você quer. Você pode mudar tudo isso depois.",
             "gate": "Termine de configurar seu servidor primeiro. Este servidor acabou de ser criado e ainda precisa que o software dele seja escolhido. O resto do painel é liberado assim que você terminar aqui.",
             "finish": "Concluir configuração",
@@ -6655,7 +6656,7 @@
             "progress": {
               "title": "Configurando seu servidor",
               "waiting": "Esperando o servidor terminar a instalação…",
-              "software": "Reinstalando o servidor com o software escolhido…",
+              "software": "Instalando o servidor com o software escolhido…",
               "modpack": "Instalando o modpack…",
               "ready": "O software escolhido está instalado. Conclua a configuração e o resto será aplicado.",
               "settings": "Gravando as configurações e as listas de jogadores…",

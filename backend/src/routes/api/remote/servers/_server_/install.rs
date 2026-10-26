@@ -70,6 +70,15 @@ mod post {
             return ApiResponse::new_serialized(Response {}).ok();
         }
 
+        // plugged.host: a player's new Minecraft server is created without its install and waits
+        // for its setup, which installs it (docs/features/minecraft.md#setup); the install Wings
+        // reports at its creation is none, so its owner hears of none
+        let skipped_for_setup = data.successful
+            && server.status.is_none()
+            && shared::minecraft::onboarding::pending(&state, server.uuid)
+                .await
+                .unwrap_or(false);
+
         server
             .set_status(
                 state.database.write(),
@@ -85,6 +94,10 @@ mod post {
 
         // plugged.host: the EULA a player accepted, before Wings starts the server
         shared::server_creation::after_install(&state, &server, data.successful).await;
+
+        if skipped_for_setup {
+            return ApiResponse::new_serialized(Response {}).ok(); // plugged.host
+        }
 
         let settings = state.settings.get().await?;
         state

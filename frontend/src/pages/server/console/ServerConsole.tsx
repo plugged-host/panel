@@ -4,6 +4,7 @@ import { ServerCan } from '@/elements/Can.tsx';
 import ServerContentContainer from '@/elements/containers/ServerContentContainer.tsx';
 import { useNavbarPageHeader } from '@/elements/containers/useNavbarPageHeader.ts';
 import Group from '@/elements/layout/Group.tsx';
+import ConsoleModpackCallout from '@/pages/server/minecraft/content/ConsoleModpackCallout.tsx'; // plugged.host
 import LogCheckBanner from '@/pages/server/minecraft/LogCheckBanner.tsx'; // plugged.host
 import SetupCallout from '@/pages/server/minecraft/setup/SetupCallout.tsx'; // plugged.host
 import { useVisualViewportBottomInset } from '@/plugins/viewport/useVisualViewport.ts';
@@ -42,6 +43,8 @@ export default function ServerConsole() {
     >
       {/* plugged.host: "Your server is not set up yet", above everything */}
       <SetupCallout />
+      {/* plugged.host: a modpack's install, followed here through the reinstall it causes */}
+      <ConsoleModpackCallout />
       {/* plugged.host: what Pelican renders at the page's start (PAGE_START), above the title row */}
       <LogCheckBanner />
       <div ref={infobarSentinelRef} />

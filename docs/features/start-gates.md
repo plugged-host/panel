@@ -1,7 +1,8 @@
 # Start gates
 
 A server start can be held back before Wings hears about it: a parked server has to be restored
-first, a busy node makes the start wait in a queue, or an ad-funded waiting room comes first. The
+first, a new Minecraft server waits for its setup, a busy node makes the start wait in a queue, or
+an ad-funded waiting room comes first. The
 start gates are the one place where those features step in, so none of them can be walked around and
 none of them needs to know about the others.
 
@@ -17,6 +18,7 @@ none of them needs to know about the others.
    | Order | Gate | Holds a start while | Phase |
    |---|---|---|---|
    | 10 | `limbo` | the server is parked and has to be restored first | 3 |
+   | 15 | `setup` | a Minecraft server waits for its setup, which installs and starts it ([minecraft.md](minecraft.md#setup)); the user goes to the setup page | 4 |
    | 20 | `queue` | its node is too busy: the start waits in the start queue | 3 |
    | 30 | `ads` | an ad-funded waiting room comes first | 3 |
 
@@ -28,8 +30,10 @@ none of them needs to know about the others.
 4. A gate that fails is logged and skipped: a bug in a waiting room must never be why someone cannot
    start a server.
 
-Limbo ([limbo.md](limbo.md)), the start queue ([start-queue.md](start-queue.md)) and the ad
-waiting room ([ads.md](ads.md#waiting-room)) are in. The waiting room sends the start to Wings
+Limbo ([limbo.md](limbo.md)), the Minecraft setup ([minecraft.md](minecraft.md#setup), its
+`SetupGate` in `shared/src/minecraft/onboarding.rs`), the start queue
+([start-queue.md](start-queue.md)) and the ad waiting room ([ads.md](ads.md#waiting-room)) are in.
+The setup starts the server itself through Wings once it is done, so it never asks the gates. The waiting room sends the start to Wings
 itself on the click, past the gates, and only holds the user on its page.
 
 ## Closing the other ways to start a server
@@ -60,3 +64,5 @@ action to Wings itself, past the gates, as the start queue does.
 - Creating a schedule step "Send power: start" is refused with "a schedule cannot start the
   server"; "restart" is accepted. As an admin both are accepted.
 - The reinstall dialog has no "start after reinstall" switch for a non-admin.
+- A Minecraft server still waiting for its setup: Start from the server list (or the API) goes to
+  the setup page (`202 {"gate": "setup"}`); after Finish setup the setup starts it.

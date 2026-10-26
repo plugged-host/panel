@@ -6559,6 +6559,7 @@
           },
           "setup": {
             "title": "Siapkan server Anda",
+            "nav": "Penyiapan",
             "subtitle": "Jawab beberapa pertanyaan, dan server Anda dikonfigurasi sesuai keinginan. Anda dapat mengubah semuanya nanti.",
             "gate": "Selesaikan penyiapan server Anda terlebih dahulu. Server ini baru dibuat dan software servernya belum dipilih. Bagian panel lainnya akan terbuka begitu Anda selesai di sini.",
             "finish": "Selesaikan penyiapan",
@@ -6655,7 +6656,7 @@
             "progress": {
               "title": "Menyiapkan server Anda",
               "waiting": "Menunggu server selesai diinstal…",
-              "software": "Menginstal ulang server dengan software yang dipilih…",
+              "software": "Menginstal server dengan software yang dipilih…",
               "modpack": "Menginstal modpack…",
               "ready": "Software yang dipilih sudah terinstal. Selesaikan penyiapan dan sisanya akan diterapkan.",
               "settings": "Menulis pengaturan dan daftar pemain…",

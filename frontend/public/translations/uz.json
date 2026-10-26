@@ -6559,6 +6559,7 @@
           },
           "setup": {
             "title": "Serveringizni sozlash",
+            "nav": "Sozlash",
             "subtitle": "Bir nechta savol — va serveringiz siz xohlagandek sozlanadi. Istalgan narsani keyinroq oʻzgartirishingiz mumkin.",
             "gate": "Avval serveringizni sozlashni yakunlang. Bu server hozirgina yaratildi va unga hali server dasturiy taʼminoti tanlanmagan. Bu yerdagi ish tugashi bilan panelning qolgan qismi ochiladi.",
             "finish": "Sozlashni yakunlash",
@@ -6655,7 +6656,7 @@
             "progress": {
               "title": "Serveringiz sozlanmoqda",
               "waiting": "Server oʻrnatilishi tugashi kutilmoqda…",
-              "software": "Server tanlangan dasturiy taʼminot bilan qayta oʻrnatilmoqda…",
+              "software": "Server tanlangan dasturiy taʼminot bilan oʻrnatilmoqda…",
               "modpack": "Modpak oʻrnatilmoqda…",
               "ready": "Tanlangan dasturiy taʼminot oʻrnatildi. Sozlashni yakunlang, qolgani qoʻllaniladi.",
               "settings": "Sozlamalar va oʻyinchilar roʻyxatlari yozilmoqda…",

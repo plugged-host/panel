@@ -7,12 +7,13 @@ import Button from '@/elements/buttons/Button.tsx';
 import { ServerCan } from '@/elements/Can.tsx';
 import ServerContentContainer from '@/elements/containers/ServerContentContainer.tsx';
 import ScreenBlock from '@/elements/feedback/ScreenBlock.tsx';
+import Spinner from '@/elements/feedback/Spinner.tsx'; // plugged.host
 import { DeleteServerButton } from '@/elements/InstallStuck.tsx'; // plugged.host
 import ConfirmationModal from '@/elements/modals/ConfirmationModal.tsx';
 import { isInLimbo } from '@/lib/domain/limbo.ts'; // plugged.host
 import { isConflictingState, serverStatusInfo } from '@/lib/domain/server.ts';
 import ServerLimbo from '@/pages/server/limbo/ServerLimbo.tsx'; // plugged.host
-import { SETUP_PATH, useMinecraftSetup } from '@/pages/server/minecraft/setup/useMinecraftSetup.ts'; // plugged.host
+import { SETUP_PATH, useSetupFirst } from '@/pages/server/minecraft/setup/useMinecraftSetup.ts'; // plugged.host
 import { useCanDeleteServer } from '@/pages/server/settings/useSettingsSections.ts'; // plugged.host
 import { useAdminCan } from '@/plugins/usePermissions.ts';
 import { useAuth } from '@/providers/AuthProvider.tsx';
@@ -35,20 +36,16 @@ export default function ServerStateGuard() {
   const location = useLocation();
 
   const [openModal, setOpenModal] = useState<'acknowledgeFailure' | null>(null);
-  // plugged.host: a new Minecraft server shows its owner the setup first (docs/features/minecraft.md)
-  const setup = useMinecraftSetup(server.isOwner);
+  // plugged.host: a new Minecraft server shows the setup first, on every page, to everyone who may
+  // answer it (docs/features/minecraft.md#setup)
+  const setupFirst = useSetupFirst();
   const serverPaths = [`/server/${server.uuid}`, `/server/${server.uuidShort}`];
   const onSetup = serverPaths.some((path) => location.pathname.startsWith(`${path}${SETUP_PATH}`));
-  const onPopout = serverPaths.some((path) => location.pathname === `${path}/console/popout`);
+  // plugged.host: the console, where an install shows
+  const consolePaths = serverPaths.flatMap((path) => [path, `${path}/`, `${path}/console/popout`]);
+  const onConsole = consolePaths.includes(location.pathname);
   // plugged.host: sent to the setup, says why (the Pelican panel's RequireServerOnboarding notice)
-  const toSetup =
-    !!setup.data?.pending &&
-    !onSetup &&
-    !onPopout &&
-    !server.isSuspended &&
-    !server.isTransferring &&
-    !server.nodeMaintenanceEnabled &&
-    !isInLimbo(server.limboState);
+  const toSetup = !!setupFirst && !onSetup;
   useEffect(() => {
     if (toSetup) addToast(t('pages.server.minecraft.setup.gate', {}), 'warning');
   }, [toSetup]);
@@ -100,18 +97,20 @@ export default function ServerStateGuard() {
 
   // plugged.host: the setup is answered while the server installs, and shows how applying it goes
   if (!server.isSuspended && !server.isTransferring && !server.nodeMaintenanceEnabled) {
+    // a deep link waits until it is known whether the setup comes first
+    if (setupFirst === null) {
+      return <Spinner.Centered />;
+    }
     if (toSetup) {
       return <Navigate to={`/server/${server.uuidShort}${SETUP_PATH}`} replace />;
     }
     if (onSetup && (server.status === null || server.status === 'installing')) {
       return <Outlet />;
     }
-    // plugged.host: Plugins & Mods (read only) follows a modpack install through the reinstall it causes
-    if (
-      server.status === 'installing' &&
-      serverPaths.some((path) => location.pathname.startsWith(`${path}/minecraft/content`))
-    ) {
-      return <Outlet />;
+    // plugged.host: an install shows on the console (its output, a setup's or a modpack's progress);
+    // the other pages wait for its end
+    if (server.status === 'installing' && !onConsole) {
+      return <Navigate to={`/server/${server.uuidShort}`} replace />;
     }
   }
 

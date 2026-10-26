@@ -27,6 +27,7 @@ import { closestLocation, useLocationPings } from '@/lib/locationPing.ts';
 import { queryKeys } from '@/lib/queryKeys.ts';
 import { randomWord } from '@/lib/randomWord.ts';
 import { serverCreateLocationSchema, serverCreateOptionsSchema } from '@/lib/schemas/server/create.ts';
+import { SETUP_PATH } from '@/pages/server/minecraft/setup/useMinecraftSetup.ts';
 import { useResource } from '@/plugins/resource/useResource.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
@@ -255,7 +256,8 @@ function CreateServerForm({ options }: { options: Options }) {
     })
       .then((server) => {
         queryClient.invalidateQueries({ queryKey: queryKeys.user.servers.all() });
-        navigate(`/server/${server.uuidShort}`);
+        // a server that waits for its setup opens on it (docs/features/minecraft.md#setup)
+        navigate(`/server/${server.uuidShort}${game.setup ? SETUP_PATH : ''}`);
       })
       .catch((error) => {
         // the API's reasons are lower case without a full stop; the notification shows a sentence

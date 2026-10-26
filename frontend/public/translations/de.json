@@ -11859,6 +11859,7 @@
           },
           "setup": {
             "title": "Server einrichten",
+            "nav": "Einrichten",
             "subtitle": "Ein paar Fragen, und dein Server ist so eingerichtet, wie du ihn haben willst. Alles davon lässt sich später ändern.",
             "gate": "Richte deinen Server zuerst fertig ein. Dieser Server wurde gerade erstellt und braucht noch seine Server-Software. Der Rest des Panels steht dir offen, sobald du hier fertig bist.",
             "finish": "Einrichtung abschließen",
@@ -11955,7 +11956,7 @@
             "progress": {
               "title": "Server wird eingerichtet",
               "waiting": "Warte, bis die Installation des Servers fertig ist…",
-              "software": "Der Server wird mit der gewählten Software neu installiert…",
+              "software": "Der Server wird mit der gewählten Software installiert…",
               "modpack": "Das Modpack wird installiert…",
               "ready": "Die gewählte Software ist installiert. Schließe die Einrichtung ab, dann wird der Rest übernommen.",
               "settings": "Einstellungen und Spielerlisten werden geschrieben…",

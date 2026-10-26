@@ -360,6 +360,17 @@ pub struct Start {
     pub install: Install,
     url: String,
     clean: bool,
+    reinstall: bool,
+}
+
+impl Start {
+    /// Reinstalls the server for the pack even when it runs the pack's loader and version
+    /// already: a server the setup installs, created without its install
+    /// (docs/features/minecraft.md#setup).
+    pub fn reinstalling(mut self) -> Self {
+        self.reinstall = true;
+        self
+    }
 }
 
 /// Checks that the pack can be installed and stores the install as started; [`install`] then
@@ -454,6 +465,7 @@ pub async fn start(
         install,
         url,
         clean,
+        reinstall: false,
     })
 }
 
@@ -515,7 +527,16 @@ pub async fn install(
             use crate::models::ByUuid;
             Server::by_uuid(&state.database, server.uuid).await?
         };
-        apply(state, &mut server, pack, start.clean, &live, cancel).await
+        apply(
+            state,
+            &mut server,
+            pack,
+            start.clean,
+            start.reinstall,
+            &live,
+            cancel,
+        )
+        .await
     };
     let result = tokio::select! {
         result = work => result,
@@ -611,10 +632,15 @@ async fn apply(
     server: &mut Server,
     pack: Pack,
     clean: bool,
+    reinstall: bool,
     live: &Live,
     cancel: &tokio_util::sync::CancellationToken,
 ) -> Result<(), ModpackError> {
-    let change = software_change(state, server, &pack).await?;
+    let change = match software_change(state, server, &pack).await? {
+        // a server created without its install is installed for the pack all the same
+        None if reinstall => Some((None, None)),
+        change => change,
+    };
     if cancel.is_cancelled() {
         return Err(ModpackError::Cancelled);
     }

@@ -9533,6 +9533,7 @@
           },
           "setup": {
             "title": "Thiết lập máy chủ của bạn",
+            "nav": "Thiết lập",
             "subtitle": "Trả lời vài câu hỏi, và máy chủ của bạn sẽ được cấu hình theo ý bạn. Bạn có thể thay đổi bất cứ điều gì sau này.",
             "gate": "Hãy hoàn tất thiết lập máy chủ trước. Máy chủ này vừa được tạo và vẫn cần chọn phần mềm máy chủ. Phần còn lại của panel sẽ mở ngay khi bạn hoàn tất ở đây.",
             "finish": "Hoàn tất thiết lập",
@@ -9629,7 +9630,7 @@
             "progress": {
               "title": "Đang thiết lập máy chủ của bạn",
               "waiting": "Đang chờ máy chủ cài đặt xong…",
-              "software": "Đang cài đặt lại máy chủ với phần mềm đã chọn…",
+              "software": "Đang cài đặt máy chủ với phần mềm đã chọn…",
               "modpack": "Đang cài đặt modpack…",
               "ready": "Phần mềm đã chọn đã được cài đặt. Hoàn tất thiết lập để áp dụng phần còn lại.",
               "settings": "Đang ghi cài đặt và danh sách người chơi…",

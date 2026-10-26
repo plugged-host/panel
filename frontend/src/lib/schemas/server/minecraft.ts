@@ -385,6 +385,8 @@ export const minecraftOnboardingProgressSchema = z.object({
   softwareDone: z.boolean().default(true),
   problems: z.array(z.string()).default([]),
   fatal: z.string().nullable().default(null),
+  // the setup installed the server (it is created without its install)
+  installed: z.boolean().default(true),
 });
 
 export const minecraftOnboardingSchema = z.object({

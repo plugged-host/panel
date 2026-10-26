@@ -1,22 +1,30 @@
 //! plugged.host: the setup a player's new Minecraft server starts with (docs/features/minecraft.md):
-//! software and version or a modpack, Bedrock, who may join, and who runs it, asked in plain words
-//! while the server installs, then applied once the install is over, after which the server
-//! starts.
+//! software and version or a modpack, Bedrock, who may join, and who runs it, asked in plain words,
+//! after which the server starts.
 //!
 //! A `server_onboardings` row is made when a player creates a Minecraft server; servers an admin
-//! creates have none and never see the setup. The software (or modpack) is put in place as soon as
-//! it is picked ([`choose`], stored on the row's `answers` while it is pending), the rest once all
-//! the answers are submitted ([`complete`], `completed`). One worker per server ([`kick`], under
-//! the server's software lock) does both after the requests; the page polls its progress.
+//! creates have none and never see the setup. Such a server is created without its install (the
+//! egg's script does not run) and stays empty until the setup installs it with what was picked:
+//! the software (or modpack) is put in place as soon as it is picked ([`choose`], stored on the
+//! row's `answers` while it is pending), the rest once all the answers are submitted
+//! ([`complete`], `completed`). One worker per server ([`kick`], under the server's software lock)
+//! does both after the requests; the page polls its progress. Until then a start is held
+//! ([`SetupGate`]).
 
 use super::{Loader, Source, bedrock, files, modpacks, players};
-use crate::models::{ByUuid, server::Server};
+use crate::{
+    models::{ByUuid, server::Server, user::User},
+    start_gates::{Decision, StartGate},
+};
 use garde::Validate;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
 const RUNNING_TTL: u64 = 3 * 60 * 60;
 const DONE_TTL: u64 = 60 * 60;
+/// A pick in place waits for the rest of the answers as long as the player takes: its progress
+/// must outlast that, or the next look would put it in place (reinstall) again.
+const READY_TTL: u64 = 7 * 24 * 60 * 60;
 /// Names per list, as many as a first setup reasonably holds.
 const MAX_NAMES: usize = 20;
 /// How often a running pick looks whether the player picked something else.
@@ -139,7 +147,7 @@ impl Answers {
 #[derive(ToSchema, Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub enum Step {
-    /// The server's first install is still running.
+    /// An install of the server is still running (a server created before the setup skipped it).
     Waiting,
     Software,
     Modpack,
@@ -172,15 +180,21 @@ pub struct Progress {
     /// Why the rest cannot follow it (the server's install failed).
     #[serde(default)]
     pub fatal: Option<String>,
+    /// The setup installed the server. It is created without its install, so the setup installs
+    /// it at least once, also with the software it was created with.
+    #[serde(default = "in_place")]
+    pub installed: bool,
 }
 
 /// A progress stored before picks were put in place at once had nothing in place but the
-/// server's own software.
+/// server's own software, and one stored before servers were created without their install
+/// belongs to a server that was installed when it was created.
 fn in_place() -> bool {
     true
 }
 
 impl Progress {
+    /// Nothing put in place yet: the server, created without its install, has no software.
     fn new() -> Self {
         Self {
             step: Step::Waiting,
@@ -188,9 +202,10 @@ impl Progress {
             skipped: Vec::new(),
             started: chrono::Utc::now(),
             software: SoftwarePick::default(),
-            software_done: true,
+            software_done: false,
             problems: Vec::new(),
             fatal: None,
+            installed: false,
         }
     }
 
@@ -248,6 +263,7 @@ fn key(server_uuid: uuid::Uuid) -> String {
 async fn store(state: &crate::State, server_uuid: uuid::Uuid, progress: &Progress) {
     let ttl = match progress.step {
         Step::Done | Step::Failed => DONE_TTL,
+        Step::Ready => READY_TTL,
         _ => RUNNING_TTL,
     };
     state.cache.set(&key(server_uuid), ttl, progress).await.ok();
@@ -263,6 +279,42 @@ pub async fn require(state: &crate::State, server_uuid: uuid::Uuid) -> Result<()
     .await?;
 
     Ok(())
+}
+
+/// Whether the server waits for its setup (it has one whose answers were not submitted yet).
+pub async fn pending(state: &crate::State, server_uuid: uuid::Uuid) -> Result<bool, sqlx::Error> {
+    Ok(Row::load(state, server_uuid)
+        .await?
+        .is_some_and(|row| row.completed.is_none()))
+}
+
+/// Holds a start while the server waits for its setup and sends the user to it: the server has no
+/// software until the setup installs it, and the setup starts it once it is done
+/// (docs/features/start-gates.md).
+pub struct SetupGate;
+
+#[async_trait::async_trait]
+impl StartGate for SetupGate {
+    fn name(&self) -> &'static str {
+        "setup"
+    }
+
+    async fn check(
+        &self,
+        state: &crate::State,
+        server: &Server,
+        _user: &User,
+        _action: wings_api::ServerPowerAction,
+    ) -> Result<Decision, anyhow::Error> {
+        // the setup page is only there for a Minecraft server (an egg changed since: no setup)
+        if !super::is_minecraft(&server.egg) || !pending(state, server.uuid).await? {
+            return Ok(Decision::Pass);
+        }
+
+        Ok(Decision::Hold {
+            url: format!("/server/{:08x}/minecraft/setup", server.uuid_short),
+        })
+    }
 }
 
 /// The server's setup, `None` when it has none.
@@ -500,7 +552,7 @@ async fn work(state: &crate::State, server_uuid: uuid::Uuid) -> Result<(), anyho
         }
 
         // the software is in place, the rest of the answers are still being given
-        if pick.reinstalls() && progress.step != Step::Ready {
+        if (pick.reinstalls() || progress.installed) && progress.step != Step::Ready {
             progress.step = Step::Ready;
             store(state, server_uuid, &progress).await;
         }
@@ -527,10 +579,11 @@ async fn watch(
     }
 }
 
-/// Puts `pick` in place: switches the software and version or installs the modpack, once the
-/// server's first install is over (a pack is downloaded and read meanwhile). Stopped when the
-/// player picks something else (`software_done` stays false), except during a reinstall, which
-/// is waited for.
+/// Puts `pick` in place: switches the software and version or installs the modpack, after an
+/// install of the server that still runs (a pack is downloaded and read meanwhile), and installs a
+/// server that never was even when the pick is what it was created with. Stopped when the player
+/// picks something else (`software_done` stays false), except during a reinstall, which is
+/// waited for.
 async fn put_in_place(
     state: &crate::State,
     server_uuid: uuid::Uuid,
@@ -570,11 +623,15 @@ async fn put_in_place(
         }
     };
 
+    // a server that was never installed is reinstalled for a pack even when it runs the pack's
+    // loader and version already
+    let install = !progress.installed;
+
     // the watch only cancels: what runs stops where it safely can (never during a reinstall)
-    let result: Result<Option<String>, PutError> = tokio::select! {
+    let result: Result<Put, PutError> = tokio::select! {
         result = async {
             match &pick.modpack {
-                Some(modpack) => put_modpack(state, server, modpack, ready, &cancel).await,
+                Some(modpack) => put_modpack(state, server, modpack, install, ready, &cancel).await,
                 None => put_software(state, server, &pick, ready, &cancel, progress).await,
             }
         } => result,
@@ -582,8 +639,9 @@ async fn put_in_place(
     };
 
     match result {
-        Ok(problem) => {
-            progress.problems.extend(problem);
+        Ok(put) => {
+            progress.problems.extend(put.problem);
+            progress.installed |= put.installed;
             progress.software_done = true;
         }
         Err(PutError::Cancelled) => return Ok(()),
@@ -595,6 +653,14 @@ async fn put_in_place(
     if first_install_failed.load(std::sync::atomic::Ordering::Relaxed) {
         progress.fatal =
             Some("the server's install did not finish; reinstall it from Settings".into());
+    }
+    // a server created without its install gets one whatever the pick did: the software it was
+    // created with changes nothing, a pack may have stopped before its reinstall
+    if !progress.installed
+        && progress.fatal.is_none()
+        && let Err(message) = install_server(state, server_uuid, progress).await
+    {
+        progress.fatal = Some(message);
     }
     store(state, server_uuid, progress).await;
 
@@ -608,13 +674,83 @@ enum PutError {
     Fatal(String),
 }
 
+/// What putting a pick in place did.
+#[derive(Default)]
+struct Put {
+    /// What did not work, reported with the rest.
+    problem: Option<String>,
+    /// The server was installed (reinstalled) for it.
+    installed: bool,
+}
+
+impl Put {
+    fn problem(problem: String) -> Self {
+        Self {
+            problem: Some(problem),
+            installed: false,
+        }
+    }
+}
+
+/// Installs the server as its variables say now, after an install that still runs, and waits for
+/// it: what a server created without its install gets when its pick did not install it. `Err`
+/// with why the setup cannot go on.
+async fn install_server(
+    state: &crate::State,
+    server_uuid: uuid::Uuid,
+    progress: &mut Progress,
+) -> Result<(), String> {
+    let failed = |err: &dyn std::fmt::Display| {
+        tracing::warn!(server = %server_uuid, "minecraft setup install: {err}");
+        "the server could not be installed; reinstall it from Settings".to_string()
+    };
+    let install_failed =
+        || "installing the server failed; reinstall it from Settings".to_string();
+
+    if !crate::server_software::wait_for_install(
+        state,
+        server_uuid,
+        crate::server_software::INSTALL_WAIT,
+    )
+    .await
+    .map_err(|err| failed(&err))?
+    {
+        return Err(install_failed());
+    }
+
+    progress.step = Step::Software;
+    store(state, server_uuid, progress).await;
+    let mut server = Server::by_uuid(&state.database, server_uuid)
+        .await
+        .map_err(|err| failed(&err))?;
+    crate::server_software::switch(state, &mut server, None, None)
+        .await
+        .map_err(|err| failed(&err.message()))?;
+
+    match crate::server_software::wait_for_install(
+        state,
+        server_uuid,
+        crate::server_software::INSTALL_WAIT,
+    )
+    .await
+    {
+        Ok(true) => {
+            progress.installed = true;
+            Ok(())
+        }
+        Ok(false) => Err(install_failed()),
+        Err(err) => Err(failed(&err)),
+    }
+}
+
 async fn put_modpack(
     state: &crate::State,
     server: Server,
     modpack: &ModpackChoice,
+    install: bool,
     ready: impl Future<Output = Result<(), modpacks::ModpackError>>,
     cancel: &tokio_util::sync::CancellationToken,
-) -> Result<Option<String>, PutError> {
+) -> Result<Put, PutError> {
     let start = match modpacks::start(
         state,
         &server,
@@ -625,9 +761,10 @@ async fn put_modpack(
     )
     .await
     {
+        Ok(start) if install => start.reinstalling(),
         Ok(start) => start,
         Err(err) => {
-            return Ok(Some(format!(
+            return Ok(Put::problem(format!(
                 "the modpack did not install: {}",
                 err.message()
             )));
@@ -649,10 +786,14 @@ async fn put_modpack(
         return Err(PutError::Cancelled);
     }
 
-    Ok(outcome
-        .install
-        .error
-        .map(|error| format!("the modpack did not install: {error}")))
+    Ok(Put {
+        // a pack that went in was reinstalled for (always, on a server that never was)
+        installed: outcome.install.step == modpacks::Step::Done,
+        problem: outcome
+            .install
+            .error
+            .map(|error| format!("the modpack did not install: {error}")),
+    })
 }
 
 async fn put_software(
@@ -662,7 +803,7 @@ async fn put_software(
     ready: impl Future<Output = Result<(), modpacks::ModpackError>>,
     cancel: &tokio_util::sync::CancellationToken,
     progress: &mut Progress,
-) -> Result<Option<String>, PutError> {
+) -> Result<Put, PutError> {
     let failed = |err: &dyn std::fmt::Display| {
         tracing::warn!(server = %server.uuid, "minecraft setup: {err}");
         PutError::Fatal("the setup could not be applied, change it on the server's pages".into())
@@ -692,8 +833,9 @@ async fn put_software(
         .version
         .as_deref()
         .filter(|version| !software.version.eq_ignore_ascii_case(version));
+    // nothing to change (installing a server that never was follows in put_in_place)
     if variant.is_none() && version.is_none() {
-        return Ok(None);
+        return Ok(Put::default());
     }
     if cancel.is_cancelled() {
         return Err(PutError::Cancelled);
@@ -702,7 +844,7 @@ async fn put_software(
     progress.step = Step::Software;
     store(state, server.uuid, progress).await;
     if let Err(err) = crate::server_software::switch(state, &mut server, variant, version).await {
-        return Ok(Some(format!(
+        return Ok(Put::problem(format!(
             "the software was not changed: {}",
             err.message()
         )));
@@ -716,7 +858,10 @@ async fn put_software(
     )
     .await
     {
-        Ok(true) => Ok(None),
+        Ok(true) => Ok(Put {
+            problem: None,
+            installed: true,
+        }),
         Ok(false) => Err(PutError::Fatal(
             "reinstalling with the chosen software failed; reinstall it from Settings".into(),
         )),
@@ -1134,6 +1279,26 @@ mod tests {
         assert_eq!(progress.step, Step::Settings);
         assert!(progress.software_done);
         assert_eq!(progress.software, SoftwarePick::default());
+        // its server was installed when it was created
+        assert!(progress.installed);
+    }
+
+    #[test]
+    fn a_new_setup_has_nothing_in_place() {
+        // the server is created without its install: even the software it was created with is
+        // put in place (installed) by the setup
+        let progress = Progress::new();
+        assert!(!progress.software_done);
+        assert!(!progress.installed);
+
+        // submitted without a pick: the install is left
+        assert!(work_left(&row(None, true), Some(&progress)));
+
+        // a progress stored now reads back as stored
+        let stored: Progress =
+            rmp_serde::from_slice(&rmp_serde::to_vec(&progress).unwrap()).unwrap();
+        assert!(!stored.installed);
+        assert!(!stored.software_done);
     }
 
     #[test]

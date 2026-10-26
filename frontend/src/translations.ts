@@ -12273,6 +12273,7 @@ const baseTranslations = defineTranslations({
           },
           setup: {
             title: 'Set up your server',
+            nav: 'Set up',
             subtitle:
               'A few questions, and your server is configured the way you want it. You can change any of it later.',
             gate: 'Finish setting up your server first. This server was just created and still needs its server software chosen. The rest of the panel opens up as soon as you are done here.',
@@ -12382,7 +12383,7 @@ const baseTranslations = defineTranslations({
             progress: {
               title: 'Setting up your server',
               waiting: 'Waiting for the server to finish installing…',
-              software: 'Reinstalling the server with the chosen software…',
+              software: 'Installing the server with the chosen software…',
               modpack: 'Installing the modpack…',
               ready: 'The chosen software is installed. Finish the setup and the rest is applied.',
               settings: 'Writing the settings and player lists…',
