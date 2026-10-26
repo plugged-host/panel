@@ -53,7 +53,12 @@ export default function SoftwareContainer() {
   });
 
   if (!software || !usable) {
-    return resource.loading ? <Spinner.Centered /> : null;
+    // the section is there while its choices load, as on the other settings pages
+    return resource.loading ? (
+      <TitleCard title={t(`${base}.title`, {})} description={t(`${base}.description`, {})}>
+        <Spinner.Centered />
+      </TitleCard>
+    ) : null;
   }
 
   const variantChanged = choosesSoftware && !!variant && variant !== software.current;
@@ -103,9 +108,11 @@ export default function SoftwareContainer() {
         </Text>
       </ConfirmationModal>
 
-      <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+      {/* the section's two columns from lg, Filament's `columns(2)` */}
+      <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
         {choosesSoftware && (
           <Select
+            withAsterisk
             label={t(`${base}.label`, {})}
             description={variantDescription ?? undefined}
             inputWrapperOrder={HELPER_UNDER}
@@ -117,6 +124,7 @@ export default function SoftwareContainer() {
         )}
         {choosesVersion && (
           <Select
+            withAsterisk
             label={t(`${base}.versionLabel`, {})}
             description={versions.isError ? t(`${base}.versionsFailed`, {}) : t(`${base}.versionDescription`, {})}
             inputWrapperOrder={HELPER_UNDER}

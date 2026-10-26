@@ -8,7 +8,6 @@ import getServerNotifications from '@/api/server/settings/getServerNotifications
 import updateServerNotifications from '@/api/server/settings/updateServerNotifications.ts';
 import TitleCard from '@/elements/data-display/TitleCard.tsx';
 import Switch from '@/elements/input/Switch.tsx';
-import Stack from '@/elements/layout/Stack.tsx';
 import ResourceView from '@/elements/ResourceView.tsx';
 import { queryKeys } from '@/lib/queryKeys.ts';
 import { serverSettingsNotificationsSchema } from '@/lib/schemas/server/settings.ts';
@@ -59,7 +58,7 @@ export default function NotificationsContainer() {
           const notifications = saved ?? stored;
 
           return (
-            <Stack>
+            <div className='flex flex-col gap-6'>
               <Switch
                 label={t(`${base}.manual`, {})}
                 description={t(`${base}.manualHint`, {})}
@@ -74,7 +73,7 @@ export default function NotificationsContainer() {
                 disabled={saving}
                 onChange={(event) => save({ ...notifications, scheduledBackups: event.currentTarget.checked })}
               />
-            </Stack>
+            </div>
           );
         }}
       </ResourceView>

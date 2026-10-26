@@ -1,17 +1,13 @@
 // plugged.host: the server settings pages behind the jump bar, one per section of the Pelican
-// panel's settings page; "Behaviour" holds Calagopus' own Auto-Kill, Auto-Start, Timezone and
-// Trash cards, which Pelican has no section for (docs/features/server-settings.md)
-import { ServerCan } from '@/elements/Can.tsx';
-import AutokillContainer from './AutokillContainer.tsx';
-import AutostartContainer from './AutostartContainer.tsx';
+// panel's settings page; "Behaviour" holds Calagopus' own auto-start, timezone, auto-kill and
+// trash settings, which Pelican has no section for (docs/features/server-settings.md)
+import BehaviourContainer from './BehaviourContainer.tsx';
 import DangerZoneContainer from './DangerZoneContainer.tsx';
 import NotificationsContainer from './NotificationsContainer.tsx';
 import ResizeContainer from './ResizeContainer.tsx';
 import ServerSettingsShell from './ServerSettingsShell.tsx';
 import SftpContainer from './SftpContainer.tsx';
 import SoftwareContainer from './SoftwareContainer.tsx';
-import TimezoneContainer from './TimezoneContainer.tsx';
-import TrashContainer from './TrashContainer.tsx';
 
 export function ServerSettingsSftp() {
   return (
@@ -40,18 +36,7 @@ export function ServerSettingsVersion() {
 export function ServerSettingsBehaviour() {
   return (
     <ServerSettingsShell>
-      <ServerCan action='settings.auto-kill'>
-        <AutokillContainer />
-      </ServerCan>
-      <ServerCan action='settings.auto-start'>
-        <AutostartContainer />
-      </ServerCan>
-      <ServerCan action='settings.timezone'>
-        <TimezoneContainer />
-      </ServerCan>
-      <ServerCan action='settings.trash'>
-        <TrashContainer />
-      </ServerCan>
+      <BehaviourContainer />
     </ServerSettingsShell>
   );
 }

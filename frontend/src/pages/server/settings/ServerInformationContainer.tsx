@@ -14,7 +14,6 @@ import ActionIcon from '@/elements/buttons/ActionIcon.tsx';
 import TitleCard from '@/elements/data-display/TitleCard.tsx';
 import TextArea from '@/elements/input/TextArea.tsx';
 import TextInput from '@/elements/input/TextInput.tsx';
-import Stack from '@/elements/layout/Stack.tsx';
 import Tooltip from '@/elements/overlays/Tooltip.tsx';
 import { CopyActionIcon, SettingRow, SettingRows } from '@/elements/SettingRows.tsx';
 import { bytesToString, mbToBytes } from '@/lib/format/size.ts';
@@ -185,7 +184,8 @@ export default function ServerInformationContainer() {
       <div className='theme-server-info' data-icon={withIcon || undefined}>
         {withIcon && <IconColumn />}
 
-        <Stack className='min-w-0'>
+        {/* Filament's fields, 1.5rem apart */}
+        <div className='flex min-w-0 flex-col gap-6'>
           <TextInput
             withAsterisk
             label={t(`${base}.name`, {})}
@@ -205,10 +205,10 @@ export default function ServerInformationContainer() {
             onChange={(e) => setDescription(e.currentTarget.value)}
             onBlur={() => save('description')}
           />
-        </Stack>
+        </div>
       </div>
 
-      <SettingRows className='mt-4'>
+      <SettingRows className='mt-6'>
         <SettingRow
           label={t(`${base}.uuid`, {})}
           mono

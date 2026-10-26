@@ -11,7 +11,6 @@ import Spinner from '@/elements/feedback/Spinner.tsx';
 import Choice from '@/elements/input/Choice.tsx';
 import NumberInput from '@/elements/input/NumberInput.tsx';
 import Switch from '@/elements/input/Switch.tsx';
-import Stack from '@/elements/layout/Stack.tsx';
 import { serverSettingsResizeSchema } from '@/lib/schemas/server/settings.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
@@ -52,7 +51,12 @@ export default function ResizeContainer() {
   }, [options]);
 
   if (!options || !usable) {
-    return resource.loading ? <Spinner.Centered /> : null;
+    // the section is there while its plans load, as on the other settings pages
+    return resource.loading ? (
+      <TitleCard title={t(`${base}.title`, {})} description={t(`${base}.description`, {})}>
+        <Spinner.Centered />
+      </TitleCard>
+    ) : null;
   }
 
   const hasPlans = options.plans.length > 0;
@@ -90,7 +94,11 @@ export default function ResizeContainer() {
 
     return (
       <span className='theme-field-label'>
-        <span>{text}</span>
+        {/* Filament's required mark, inside the label's first part so the hint keeps its line */}
+        <span>
+          {text}
+          <span className='text-(--mantine-color-error)'> *</span>
+        </span>
         <span className='theme-field-hint' data-over={left !== null && left < 0 ? true : undefined}>
           {left === null
             ? t('pages.server.settings.general.unlimited', {})
@@ -109,7 +117,7 @@ export default function ResizeContainer() {
       allowDecimal={false}
       value={values[field]}
       error={error(field)}
-      rightSection={<span className='theme-eco-small'>{unit}</span>}
+      rightSection={<span className='theme-input-suffix'>{unit}</span>}
       rightSectionWidth={44}
       rightSectionPointerEvents='none'
       hideControls
@@ -141,12 +149,15 @@ export default function ResizeContainer() {
         </Button>
       }
     >
-      <Stack gap='lg'>
+      {/* Filament's fields 1.5rem apart; the plans are CardSelect's radio cards, four from lg, as on
+          Create Server */}
+      <div className='flex flex-col gap-6'>
         {hasPlans && !advanced && (
-          <div className='theme-choice-grid'>
+          <div className='theme-choice-grid theme-choice-grid-4'>
             {options.plans.map((choice) => (
               <Choice
                 key={choice.uuid}
+                radio
                 selected={choice.uuid === plan}
                 disabled={!choice.fits && !choice.current}
                 onSelect={() => pickPlan(choice.uuid)}
@@ -157,7 +168,7 @@ export default function ResizeContainer() {
                     {choice.current ? t(`${base}.planCurrent`, {}) : t(`${base}.planUnavailable`, {})}
                   </span>
                 )}
-                <span className='theme-choice-text'>
+                <span className='theme-choice-meta'>
                   {t(`${base}.planMeta`, { cpu: choice.cpu, memory: choice.memory, disk: choice.disk })}
                 </span>
               </Choice>
@@ -179,13 +190,13 @@ export default function ResizeContainer() {
         )}
 
         {showInputs && (
-          <div className='grid grid-cols-1 lg:grid-cols-3 gap-4'>
+          <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
             {input('cpu', t(`${base}.cpu`, {}), '%')}
             {input('memory', t(`${base}.memory`, {}), 'MB')}
             {input('disk', t(`${base}.disk`, {}), 'MB')}
           </div>
         )}
-      </Stack>
+      </div>
     </TitleCard>
   );
 }

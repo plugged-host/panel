@@ -15,13 +15,21 @@ of its pages' permissions.
 | Resources | `/settings/resources` | `settings.resize` | Admin › Settings › Hosting › Games › "Players Resize Servers" is on, or the viewer is an admin |
 | Startup | `/startup` | `startup.read` | always (Pelican's "Startup command" section) |
 | Version | `/settings/version` | `settings.software` | the server's egg is a game in the catalog with at least two software choices, or a Minecraft egg with a version variable |
-| Behaviour | `/settings/behaviour` | `settings.auto-kill`, `.auto-start`, `.timezone` or `.trash` | Calagopus' own Auto-Kill, Auto-Start, Timezone and Trash cards (Pelican has no such section), gray Saves |
+| Behaviour | `/settings/behaviour` | `settings.auto-kill`, `.auto-start`, `.timezone` or `.trash` | Calagopus' own auto-start, timezone, auto-kill and trash settings as one section (Pelican has none of them; [below](#behaviour)) |
 | Notifications | `/settings/notifications` | `backups.read` | always |
 | Danger Zone | `/settings/danger` | `settings.install` or `settings.delete` | Reinstall, and Delete Server when deleting is allowed (below) |
 
-Each section is a `TitleCard` with Filament's description and footer (`description`, `footer`,
-`danger` props); the label/value rows are `elements/SettingRows.tsx`; the styles are the
-`.theme-jump*`, `.theme-section-*`, `.theme-setting-*` and `.theme-field-*` block of `app.css`.
+Every page is one section, as every jump-bar item is one section on the Pelican panel: a
+`TitleCard` (Filament's section: the heading without an icon, its description, the content, a
+footer with the section's one action at the end; `description`, `footer`, `danger` props). Inside,
+Filament's spacing: fields 1.5 rem apart (`flex flex-col gap-6`), side by side in
+`grid gap-6` columns where Pelican's section has columns, helper text under the field. A section
+whose fields save on their own (Server Information, Startup, Notifications) has no button; one with
+a Save has it in the footer, filled once per page (Resources, Behaviour), gray where it reinstalls
+or deletes (Version, Danger Zone) with the red in the confirmation. A section whose data still loads
+shows its heading with a spinner. The label/value rows are `elements/SettingRows.tsx`; the styles
+are the `.theme-jump*`, `.theme-section-*`, `.theme-setting-*` and `.theme-field-*` block of
+`app.css`, the plan cards `.theme-choice*` (as on Create Server).
 
 ## Server Information
 
@@ -67,8 +75,9 @@ the Files page (`frontend/src/plugins/useSftpPassword.ts`). The public settings 
 
 ## Resources
 
-`shared/src/server_resize.rs`. The public plans (Admin › Plans) as cards, the current one picked and
-marked "Current plan"; a plan larger than the server plus what the owner has left is "Exceeds your
+`shared/src/server_resize.rs`. The public plans (Admin › Plans) as radio cards (Pelican's
+CardSelect, four a row from `lg`, as on Create Server: name, the note, the size), the current one
+picked and marked "Current plan"; a plan larger than the server plus what the owner has left is "Exceeds your
 remaining allowance" and cannot be picked (`plan_fits`). **Advanced** sets the values by hand
 instead; it starts on when the server's size is no plan. Each field shows what is left on its label
 line, red below zero, and **Save resources** sends the values. Without public plans the fields show
@@ -130,6 +139,19 @@ egg with the server's value or the default (a variable of that name wins over th
 Wings' environment). Variables the egg hides from players, and secret ones, show as `[hidden]`, so
 the preview never shows a value the variables list does not; unknown `{{…}}` stay as written. The
 preview is fetched again when the command, a variable, the memory or the allocation changes.
+
+## Behaviour
+
+`pages/server/settings/BehaviourContainer.tsx`: upstream's Auto-Start, Timezone, Auto-Kill and
+Trash cards as one section titled Behaviour, laid out like Pelican's Resources section. Auto-Start
+and Timezone side by side (the timezone's helper text is the server's time in it, ticking; empty
+means the system's), then the Auto-Kill switch with "Seconds until auto-kill" under it, then "Use
+custom trash settings" with Retention and Clear at Disk Usage under it once on (the panel's default
+under the switch while off; only when Admin › Settings lets servers change their trash). Each part
+shows with its own permission. One **Save** in the footer sends only the parts that changed, each to
+its own route (`settings/auto-start`, `timezone`, `auto-kill`, `trash`) with its own toast; it stays
+off while nothing changed or a changed value is invalid. Upstream's four cards
+(`{Autokill,Autostart,Timezone,Trash}Container.tsx`) are unused.
 
 ## Notifications
 
@@ -229,6 +251,9 @@ changes.
 - Startup: change a variable and leave the field: "Updated: <name>". Enable Preview: the well
   shows the command with the memory, port and variable values in it, `[hidden]` for a secret
   variable; change a variable and the preview follows; Disable Preview shows the command again.
+- Behaviour: change the timezone (the time under it follows) and the auto-start, Save: two toasts,
+  and Save turns off again. Clear the seconds of auto-kill: the field says why and Save stays off.
+  As a subuser with only `settings.timezone`, only the timezone shows.
 - Version: pick another choice, "Change and reinstall", confirm: the console shows the reinstall;
   the files are still there afterwards and the new software runs after a start.
 - Minecraft version on a Paper server: pick an older version, confirm; the egg variable shows it,

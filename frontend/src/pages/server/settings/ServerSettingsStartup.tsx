@@ -132,7 +132,7 @@ function StartupCommand() {
         <CopyActionIcon content={shown} label={t(`${base}.copyCommand`, {})} />
       </div>
 
-      <div className='grid grid-cols-1 md:grid-cols-2 gap-4 mt-6'>
+      <div className='grid grid-cols-1 gap-6 mt-6 md:grid-cols-2'>
         {presets.length > 0 ? (
           <WithHintAction action={previewAction}>
             <Select
@@ -179,7 +179,7 @@ function StartupCommand() {
 
       {/* without a list of commands, this field carries the preview action */}
       {editsCustom && (
-        <WithHintAction className='mt-4' action={presets.length === 0 ? previewAction : null}>
+        <WithHintAction className='mt-6' action={presets.length === 0 ? previewAction : null}>
           <TextArea
             label={t(`${base}.custom`, {})}
             value={command}
@@ -244,7 +244,7 @@ function StartupVariables() {
       ) : variables.length === 0 ? (
         <p className='theme-setting-note'>{t('pages.server.startup.empty.description', {})}</p>
       ) : (
-        <div className='grid grid-cols-1 xl:grid-cols-2 gap-x-4 gap-y-6'>
+        <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
           {variables.map((variable) => (
             <StartupVariableField
               key={variable.envVariable}
