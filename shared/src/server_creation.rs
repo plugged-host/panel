@@ -82,7 +82,7 @@ pub struct ApiCreateLocation {
     /// The fastest answer of its nodes to the panel, in milliseconds.
     pub latency: Option<i32>,
     /// plugged.host: addresses a browser times for the visitor's own ping (a few of its nodes'
-    /// Wings, at the root, https only). `latency` is the panel's distance, not the player's: from
+    /// Wings, at the root, https only). `latency` is the panel's distance, not the user's: from
     /// Paris, Thailand read 763 ms to everyone.
     pub probes: Vec<compact_str::CompactString>,
 }

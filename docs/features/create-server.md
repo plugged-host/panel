@@ -127,7 +127,7 @@ when it is on. It is laid out like the Pelican panel's create page, one section 
 ## Ping
 
 A location's `latency` in the API is the panel's: the fastest answer of its nodes' Wings to the
-panel, measured from wherever the panel runs. That is no player's ping (from a panel in Europe, a
+panel, measured from wherever the panel runs. That is no user's ping (from a panel in Europe, a
 location in Asia reads several hundred ms to everyone), so the pages do not show it. Each location
 also carries `probes`: up to four of its nodes' Wings addresses (https, at the root; a node in
 maintenance is left out). The browser times them (`frontend/src/lib/locationPing.ts`): the first
@@ -136,7 +136,7 @@ three counts, and a location's ping is its fastest node's. The answer is opaque 
 status will do. Each node is timed once per page load. The create page, the Transfer page and the
 limbo page show this ping; a node that does not answer shows none. The create page also selects
 the closest location that can take the server (unlocked, with room for the chosen size) until the
-player picks one. `latency` stays for neo's tools and for moves off a lapsed PlusPlus.
+user picks one. `latency` stays for neo's tools and for moves off a lapsed PlusPlus.
 
 ## Without noprofit.space
 
