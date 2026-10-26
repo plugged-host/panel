@@ -38,6 +38,8 @@ export const serverCreateLocationSchema = z.object({
   available: z.boolean(),
   full: z.boolean(),
   latency: z.number().nullable(),
+  // plugged.host: the nodes' addresses the browser times for the visitor's own ping (lib/locationPing.ts)
+  probes: z.array(z.string()).default([]),
 });
 
 export const serverCreatePlanSchema = z.object({

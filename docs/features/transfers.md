@@ -31,8 +31,8 @@ faces. With no move under way:
    backups (count · size) and "Offline for about" (the estimate below);
 3. "Pick a location": one full-width row per location with its flag, name, tier badge (the settings'
    tier name, `tierName()`), "Current" / "Another node here" on the server's own location,
-   "Locked" (a tier the owner has not unlocked) or "Full" (no node taking new servers), the latency
-   and a radio. Picking the current location moves the server to another node there. When a move
+   "Locked" (a tier the owner has not unlocked) or "Full" (no node taking new servers), the
+   visitor's own ping (create-server.md#ping) and a radio. Picking the current location moves the server to another node there. When a move
    cannot start, the reason stands above the rows in yellow (`blocked`, below) and the rows are
    greyed out;
 4. "Move to <location>" (filled, at the end of the row; full width on a phone) with a confirmation

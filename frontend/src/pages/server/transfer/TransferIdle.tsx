@@ -19,6 +19,7 @@ import {
 } from '@/lib/domain/transfer.ts';
 import { tierName } from '@/lib/economy.ts';
 import { bytesToString } from '@/lib/format/size.ts';
+import { useLocationPings } from '@/lib/locationPing.ts';
 import { serverTransferOptionsSchema } from '@/lib/schemas/server/transfer.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
@@ -49,6 +50,8 @@ export default function TransferIdle({ options, refresh }: { options: Options; r
   const recent = options.request && endedWithin(options.request, OUTCOME_MINUTES) ? options.request : null;
   const blocked = transferBlockedText(t, options.blocked, options.cooldownUntil);
   const location = options.locations.find((location) => location.uuid === locationUuid) ?? null;
+  // the visitor's own ping, not the panel's distance to the nodes (lib/locationPing.ts)
+  const pings = useLocationPings(options.locations);
   const time = shortDuration(options.estimateSeconds);
   const reason = recent?.status === 'failed' ? transferReasonText(t, recent) : null;
   const hint =
@@ -182,8 +185,8 @@ export default function TransferIdle({ options, refresh }: { options: Options; r
                     )
                   )}
                 </span>
-                {option.latency !== null && (
-                  <span className='theme-location-ms font-mono'>{t(`${page}.ms`, { ms: option.latency })}</span>
+                {pings[option.uuid] !== undefined && (
+                  <span className='theme-location-ms font-mono'>{t(`${page}.ms`, { ms: pings[option.uuid] })}</span>
                 )}
                 <span className='theme-radio' aria-hidden />
               </button>

@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Loader } from '@mantine/core';
 import { useDebouncedValue, useHotkeys } from '@mantine/hooks';
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ReactNode, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { z } from 'zod';
 import { httpErrorToHuman } from '@/api/axios.ts';
@@ -23,6 +23,7 @@ import TextInput from '@/elements/input/TextInput.tsx';
 import Tooltip from '@/elements/overlays/Tooltip.tsx';
 import ResourceView from '@/elements/ResourceView.tsx';
 import Text from '@/elements/typography/Text.tsx';
+import { closestLocation, useLocationPings } from '@/lib/locationPing.ts';
 import { queryKeys } from '@/lib/queryKeys.ts';
 import { randomWord } from '@/lib/randomWord.ts';
 import { serverCreateLocationSchema, serverCreateOptionsSchema } from '@/lib/schemas/server/create.ts';
@@ -170,6 +171,15 @@ function CreateServerForm({ options }: { options: Options }) {
   });
   const locations = (size && sizedOptions.data?.locations) || options.locations;
   const location = locations.find((option) => option.uuid === locationUuid) ?? null;
+
+  // the visitor's own ping per location (lib/locationPing.ts); until they pick one themselves, the
+  // closest location that can take the server is the one selected
+  const pings = useLocationPings(locations);
+  const [locationPicked, setLocationPicked] = useState(false);
+  const closest = locationPicked ? null : closestLocation(locations, pings);
+  useEffect(() => {
+    if (closest) setLocationUuid(closest);
+  }, [closest]);
 
   const pickPlan = (plan: Plan) => {
     setPlanUuid(plan.uuid);
@@ -372,8 +382,11 @@ function CreateServerForm({ options }: { options: Options }) {
                     locked={!option.unlocked}
                     disabled={disabled}
                     selected={option.uuid === locationUuid && !disabled}
-                    onSelect={() => setLocationUuid(option.uuid)}
-                    corner={option.latency !== null ? <Signal ms={option.latency} /> : undefined}
+                    onSelect={() => {
+                      setLocationUuid(option.uuid);
+                      setLocationPicked(true);
+                    }}
+                    corner={pings[option.uuid] !== undefined ? <Signal ms={pings[option.uuid]} /> : undefined}
                     media={
                       option.flag ? (
                         <span className='theme-choice-flag' aria-hidden>

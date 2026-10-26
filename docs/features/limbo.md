@@ -65,7 +65,7 @@ The limbo page is laid out like the Pelican panel's restore page: "Server hibern
 with what happened, when it was parked and (with tokens on) the restore cost and the user's balance
 side by side, and Restore server in the page header behind a confirmation. When the server's own
 node cannot take it, "Choose a location" lists the user's locations with room as rows (flag, name,
-tier, latency) and Restore waits for one to be picked. A failed click says why in a notification
+tier, the visitor's own ping: create-server.md#ping) and Restore waits for one to be picked. A failed click says why in a notification
 (too few tokens, no room there, or not started; no tokens are spent), and the last restore that
 failed later stays on the card. While the server is being parked the card says so and the header
 offers Keep server (a start, which stops the park); while it comes back the card says it is on its

@@ -113,7 +113,8 @@ when it is on. It is laid out like the Pelican panel's create page, one section 
   cannot take the server, and its tier pill (Free, Plus, Premium, the uptime behind the (i)). A free
   one that cannot take it is dimmed; a locked paid one shows "Get Plus" / "Get PlusPlus" (the
   membership names) to the membership page. The locations are asked again for the chosen size
-  half a second after it changes.
+  half a second after it changes. The meter is the visitor's own ping (see *Ping* below), and until
+  they pick a location themselves the closest one that can take the server is selected.
 - **Resources**: the plans ("Exceeds your remaining allowance" when one does not fit), then CPU (%),
   Memory and Disk Space (MB) inputs. A plan fills them in; editing them keeps the plan selected
   only while all three are its own.
@@ -123,12 +124,28 @@ when it is on. It is laid out like the Pelican panel's create page, one section 
   secondary action, with the reason as its tooltip; Ctrl/Cmd+S deploys too. A refused create shows
   "Could not create server" with the reason. It opens the new server's console.
 
+## Ping
+
+A location's `latency` in the API is the panel's: the fastest answer of its nodes' Wings to the
+panel, measured from wherever the panel runs. That is no player's ping (from a panel in Europe, a
+location in Asia reads several hundred ms to everyone), so the pages do not show it. Each location
+also carries `probes`: up to four of its nodes' Wings addresses (https, at the root; a node in
+maintenance is left out). The browser times them (`frontend/src/lib/locationPing.ts`): the first
+request to a node opens the connection (DNS, TCP, TLS) and is left out, the fastest of the next
+three counts, and a location's ping is its fastest node's. The answer is opaque (`no-cors`), any
+status will do. Each node is timed once per page load. The create page, the Transfer page and the
+limbo page show this ping; a node that does not answer shows none. The create page also selects
+the closest location that can take the server (unlocked, with room for the chosen size) until the
+player picks one. `latency` stays for neo's tools and for moves off a lapsed PlusPlus.
+
 ## Without noprofit.space
 
 The allowance comes from the games settings, the same for every account. Nothing else changes.
 
 ## Check
 
+- The location cards show a ping a few seconds after the page opens, and the closest location that
+  can take the server is selected; picking another one keeps it.
 - Admin › Plans: create two plans, edit one, change the order; hide one and it is gone from the
   create page.
 - Admin › Settings › Hosting › Games: add a game with two variants and a variable, set a per-account

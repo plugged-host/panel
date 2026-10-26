@@ -81,6 +81,10 @@ pub struct ApiCreateLocation {
     pub full: bool,
     /// The fastest answer of its nodes to the panel, in milliseconds.
     pub latency: Option<i32>,
+    /// plugged.host: addresses a browser times for the visitor's own ping (a few of its nodes'
+    /// Wings, at the root, https only). `latency` is the panel's distance, not the player's: from
+    /// Paris, Thailand read 763 ms to everyone.
+    pub probes: Vec<compact_str::CompactString>,
 }
 
 #[derive(ToSchema, Serialize)]
@@ -314,7 +318,10 @@ pub async fn locations_for(
             ) AS roomy_nodes,
             MIN(telemetry.response_time_ms) FILTER (
                 WHERE telemetry.reachable AND nodes.role = 'game'
-            ) AS latency
+            ) AS latency,
+            ARRAY_AGG(DISTINCT COALESCE(nodes.public_url, nodes.url)::TEXT) FILTER (
+                WHERE nodes.role = 'game' AND NOT nodes.maintenance_enabled
+            ) AS probes
         FROM locations
         LEFT JOIN nodes ON nodes.location_uuid = locations.uuid
         LEFT JOIN server_usage u ON u.node_uuid = nodes.uuid
@@ -353,10 +360,35 @@ pub async fn locations_for(
             ),
             full: row.try_get::<i64, _>("open_nodes")? == 0,
             latency: row.try_get("latency")?,
+            probes: probes(row.try_get("probes")?),
         });
     }
 
     Ok(locations)
+}
+
+/// Nodes a browser times per location ([`ApiCreateLocation::probes`]): a few find the closest.
+const PROBES_PER_LOCATION: usize = 4;
+
+/// The Wings addresses a browser can time for a location: https only (an http one is blocked as
+/// mixed content), at the root (any answer will do, even a 404).
+fn probes(urls: Option<Vec<String>>) -> Vec<compact_str::CompactString> {
+    let mut probes = urls
+        .unwrap_or_default()
+        .iter()
+        .filter_map(|url| reqwest::Url::parse(url).ok())
+        .filter(|url| url.scheme() == "https")
+        .map(|mut url| {
+            url.set_path("/");
+            url.set_query(None);
+            url.set_fragment(None);
+            compact_str::CompactString::from(url.as_str())
+        })
+        .collect::<Vec<_>>();
+    probes.sort();
+    probes.dedup();
+    probes.truncate(PROBES_PER_LOCATION);
+    probes
 }
 
 /// Whether a location takes a new server: an open node, and with a size one with room for it.
@@ -808,6 +840,31 @@ mod tests {
             Some("ghcr.io/example/other:1")
         );
         assert_eq!(pick_named(None, &indexmap::IndexMap::new()), None);
+    }
+
+    #[test]
+    fn probes_are_https_wings_roots() {
+        let urls = vec![
+            "https://pl2.example.com:8443/api?x=1".to_string(),
+            "http://pl9.example.com:8080".to_string(),
+            "https://pl1.example.com:8443".to_string(),
+            "https://pl1.example.com:8443/".to_string(),
+            "not a url".to_string(),
+        ];
+
+        assert_eq!(
+            probes(Some(urls)),
+            vec![
+                compact_str::CompactString::from("https://pl1.example.com:8443/"),
+                compact_str::CompactString::from("https://pl2.example.com:8443/"),
+            ]
+        );
+        assert!(probes(None).is_empty());
+
+        let many = (0..9)
+            .map(|n| format!("https://n{n}.example.com:8443"))
+            .collect::<Vec<_>>();
+        assert_eq!(probes(Some(many)).len(), PROBES_PER_LOCATION);
     }
 
     #[test]

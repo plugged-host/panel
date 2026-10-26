@@ -3,6 +3,7 @@
 // Transfer page draws its rows with the same classes.
 import { ReactNode } from 'react';
 import { z } from 'zod';
+import { useLocationPings } from '@/lib/locationPing.ts';
 import { serverCreateLocationSchema } from '@/lib/schemas/server/create.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 
@@ -19,6 +20,8 @@ interface Props {
 
 export default function LocationList({ locations, selected, onSelect, badges, disabled }: Props) {
   const { t } = useTranslations();
+  // the visitor's own ping, not the panel's distance to the nodes (lib/locationPing.ts)
+  const pings = useLocationPings(locations);
 
   return (
     <div className='theme-location-list'>
@@ -37,9 +40,9 @@ export default function LocationList({ locations, selected, onSelect, badges, di
             {location.name}
             {badges?.(location)}
           </span>
-          {location.latency !== null && (
+          {pings[location.uuid] !== undefined && (
             <span className='theme-location-ms font-mono'>
-              {t('pages.account.createServer.latency', { ms: location.latency })}
+              {t('pages.account.createServer.latency', { ms: pings[location.uuid] })}
             </span>
           )}
           <span className='theme-radio' aria-hidden />
