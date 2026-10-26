@@ -9629,6 +9629,7 @@
               "waiting": "Đang chờ máy chủ cài đặt xong…",
               "software": "Đang cài đặt lại máy chủ với phần mềm đã chọn…",
               "modpack": "Đang cài đặt modpack…",
+              "ready": "Phần mềm đã chọn đã được cài đặt. Hoàn tất thiết lập để áp dụng phần còn lại.",
               "settings": "Đang ghi cài đặt và danh sách người chơi…",
               "bedrock": "Đang thiết lập cho người chơi Bedrock…",
               "starting": "Đang khởi động máy chủ…",

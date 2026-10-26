@@ -12382,6 +12382,7 @@ const baseTranslations = defineTranslations({
               waiting: 'Waiting for the server to finish installing…',
               software: 'Reinstalling the server with the chosen software…',
               modpack: 'Installing the modpack…',
+              ready: 'The chosen software is installed. Finish the setup and the rest is applied.',
               settings: 'Writing the settings and player lists…',
               bedrock: 'Setting up Bedrock players…',
               starting: 'Starting the server…',

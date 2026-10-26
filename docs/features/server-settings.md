@@ -216,7 +216,7 @@ from when the page saw it start.
 | `POST /api/client/servers/{server}/settings/resize` | `settings.resize` | Body `{cpu, memory, disk}`; 403 when off, 409 when the allowance or the node has no room, 429 while another change of the owner runs |
 | `GET /api/client/servers/{server}/settings/software` | `settings.software` | `{software: {variants, current, version}}`, `null` without choices or version |
 | `GET /api/client/servers/{server}/settings/software/versions?variant` | `settings.software` | The Minecraft versions of that choice (the server's own without one), newest first |
-| `POST /api/client/servers/{server}/settings/software` | `settings.software` | Body `{variant?, version?}` (one at least); 202, the reinstall runs |
+| `POST /api/client/servers/{server}/settings/software` | `settings.software` | Body `{variant?, version?}` (one at least); 202, the reinstall runs; 409 while a Minecraft setup or a modpack holds the server's software lock ([minecraft.md](minecraft.md#modpacks)) |
 | `DELETE /api/client/servers/{server}` | `settings.delete` | 403 when off |
 | `POST /api/client/servers/{server}/settings/install/retry` | `settings.install` | Starts a stuck install over; 202, 409 while it is not stuck (30 minutes) |
 | `GET /api/client/servers/{server}/settings/usage` | any | `{usage: {backups, databases, allocations}}`, each `null` without its list's read permission |

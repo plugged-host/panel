@@ -437,6 +437,20 @@ async fn pull_with(
         )
         .await;
 
+    pull_into(&client, server, url, file_name, directory, foreground).await
+}
+
+/// Has Wings download `url` as `file_name` into `directory`, a folder that exists already (a
+/// modpack makes each of its folders once, not once per file). In the foreground the request
+/// answers when the file is there.
+pub async fn pull_into(
+    client: &wings_api::client::WingsClient,
+    server: &Server,
+    url: &str,
+    file_name: &str,
+    directory: &str,
+    foreground: bool,
+) -> Result<(), ContentError> {
     let body = wings_api::servers_server_files_pull::post::RequestBody {
         root: format!("/{directory}").into(),
         url: url.into(),
@@ -446,7 +460,11 @@ async fn pull_with(
     };
 
     // 5 seconds for one install, 3 minutes for a file of a modpack
-    let attempts = if foreground { 360 } else { 10 };
+    let (attempts, pause) = if foreground {
+        (1800, std::time::Duration::from_millis(100))
+    } else {
+        (10, std::time::Duration::from_millis(500))
+    };
     for _ in 0..attempts {
         match client
             .post_servers_server_files_pull(server.uuid, &body)
@@ -456,7 +474,7 @@ async fn pull_with(
             Err(wings_api::client::ApiHttpError::Http(status, err))
                 if busy(status, &format!("{err:?}")) =>
             {
-                tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+                tokio::time::sleep(pause).await;
             }
             Err(err) => {
                 return Err(ContentError::Wings(format!(

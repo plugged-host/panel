@@ -1184,6 +1184,15 @@ impl Tool for InstallModpackTool {
         let source = source(arguments)?;
         let clean = support::boolean(arguments, "clean", false);
 
+        // one install (or setup) of the server at a time, held until it ends
+        let Some(lock) =
+            crate::server_software::lock(context.state, server.uuid, std::time::Duration::ZERO)
+                .await
+        else {
+            return Err(modpack_error(
+                crate::minecraft::modpacks::ModpackError::Installing,
+            ));
+        };
         let start = crate::minecraft::modpacks::start(
             context.state,
             server,
@@ -1209,7 +1218,16 @@ impl Tool for InstallModpackTool {
         let user_uuid = context.user.uuid;
         tokio::spawn(async move {
             let (uuid, name) = (server.uuid, server.name.clone());
-            let install = crate::minecraft::modpacks::install(&state, server, start).await;
+            let install = crate::minecraft::modpacks::install(
+                &state,
+                server,
+                start,
+                async { Ok(()) },
+                &tokio_util::sync::CancellationToken::new(),
+            )
+            .await
+            .install;
+            drop(lock);
             crate::notifications::modpack_ended(&state, user_uuid, uuid, &name, &install).await;
             tracing::info!(
                 server = %uuid,

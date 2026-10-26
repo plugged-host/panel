@@ -122,35 +122,46 @@ It searches Modrinth's and (with a key) CurseForge's modpacks for those loaders,
 filter's Minecraft version (cleared: any). **Install** warns that the server is switched and
 reinstalled, asks for the pack's version and whether to **remove the mods installed now** (on by
 default: the `mods` folder goes to the trash when the server has one, else it is deleted). The
-server has to be stopped (the link says so while it runs). The request
-checks the pack, stores the install as started and answers 202; a background task then:
+server has to be stopped (the link says so while it runs). The request takes the server's software
+lock (`server_software::lock`, held until the install ends: a second install, or one while the
+[setup](#setup) puts its software in place, is 409 "a modpack is already being installed"), checks
+the pack, stores the install as started and answers 202; a background task then:
 
 1. downloads the pack into the panel (Modrinth: the `.mrpack` from `cdn.modrinth.com`; CurseForge:
    the pack zip through its download URL), at most 256 MB;
 2. reads `modrinth.index.json` (the `minecraft` and loader dependencies, the files with
-   `env.server` other than `unsupported`, their first download on a host the format allows:
-   `cdn.modrinth.com`, `github.com`, `raw.githubusercontent.com`, `gitlab.com`) or CurseForge's
-   `manifest.json` (the primary mod loader, the required files by project and file id);
-3. when the server's software choice or Minecraft version differ from the pack's, switches them like
+   `env.server` other than `unsupported` and their `fileSize`, their first download on a host the
+   format allows: `cdn.modrinth.com`, `github.com`, `raw.githubusercontent.com`, `gitlab.com`) or
+   CurseForge's `manifest.json` (the primary mod loader, the required files by project and file
+   id), and collects the overrides: `overrides/` then `server-overrides/` (which wins) of a
+   `.mrpack`, the manifest's `overrides` folder of a CurseForge pack, copied as they are compressed
+   into one archive rooted at the server root (not unpacked and packed again). A file of the index
+   that an override replaces is not downloaded (the format unpacks the overrides last, so it would
+   be overwritten anyway). More than 256 MB of overrides are left out and the page says to upload
+   them in Files;
+3. removes the old mods when asked;
+4. when the server's software choice or Minecraft version differ from the pack's, switches them like
    Settings › Software does (writing `BUILD_NUMBER` back to `latest`) and waits up to 30 minutes for
    the reinstall; the loader's own build is the newest the egg installs for that version (no egg
-   variable pins an exact Forge or Fabric loader build);
-4. removes the old mods when asked;
-5. has Wings download every file into its folder, three at a time, each waited for. A file that
-   fails (a dead link, a CurseForge author who forbids downloads by other apps) is listed as
-   skipped instead of failing the pack; CurseForge files that are not `.jar` (resource and shader
-   packs, which only clients load) are left out;
-6. unpacks the overrides: `overrides/` then `server-overrides/` (which wins) of a `.mrpack`, the
-   manifest's `overrides` folder of a CurseForge pack, zipped again by the panel and unpacked by
-   Wings at the server root. More than 256 MB of overrides are left out and the page says to upload
-   them in Files.
+   variable pins an exact Forge or Fabric loader build). While the reinstall runs, Wings already
+   downloads the files whose folder the reinstall leaves alone (`mods/`, `config/`…: anything but
+   the root, `libraries/`, `versions/`, `.fabric/`, `cache/`) and the overrides archive is written
+   to the root as `.modpack-overrides.zip`;
+5. once the reinstall is over (at once when nothing had to change), Wings unpacks the overrides
+   while it downloads the files that had to wait (the two never name the same path). Files are
+   downloaded three at a time (Wings' `limits.server_concurrent_pulls`, 3 by default), each waited
+   for; each folder is made once. A file that fails (a dead link, a CurseForge author who forbids
+   downloads by other apps) is listed as skipped instead of failing the pack; CurseForge files that
+   are not `.jar` (resource and shader packs, which only clients load) are left out.
 
 Paths in a pack never leave the server's folder (absolute paths, `..` and drive letters are
-dropped). The state (step, files done of total, skipped files, error) is kept in the cache, for 2
-hours while running and an hour after; the page polls it every 3 seconds and shows it above the
-installed list ("Modpack installation started" with the step and a progress bar, then "Modpack
-installed" or "Modpack installation failed" until closed), and toasts when it ends. Activity:
-`server:minecraft.modpack.install` when it ends.
+dropped). The state (step, files done of total, their bytes of the total the pack lists, skipped
+files, error) is kept in the cache, written every second while it runs (for 3 hours) and kept an
+hour after; the page polls it every 3 seconds, also while the server reinstalls, and shows it above
+the installed list ("Modpack installation started" with a progress bar: the pack's bytes while it
+downloads, then the files done of the total and their size; files already count during the
+reinstall; then "Modpack installed" or "Modpack installation failed" until closed), and toasts when
+it ends. Activity: `server:minecraft.modpack.install` when it ends.
 
 ## Bedrock players
 
@@ -208,16 +219,49 @@ top, Back / Next (Enter goes on), **Finish setup** on the last one. The steps:
 - **Who is it for**: private (the whitelist, the default) or public, with the warning;
 - **Players**: the whitelist (when private) and operators, up to 20 valid names each.
 
+What the server runs starts being put in place the moment its step is left, while the rest is
+still being answered: **Next** on Server software (when no Modpack step follows) or on Modpack
+sends the pick (`PUT /onboarding/software`, stored on the row's `answers` while it is pending). A
+pick that is what the server was created with sends nothing, until an earlier pick changed it. The
+setup's worker (`minecraft::onboarding`, one per server under the server's software lock, after
+the request) then:
+
+- for a modpack, starts it at once: the pack is downloaded and read (its progress bar shows the
+  bytes) while the server's first install still runs, and the server is changed the moment that
+  install ends, as [Modpacks](#modpacks) describes;
+- for software or a version, waits for the first install to end and switches them like Settings ›
+  Software does, a reinstall it waits for.
+
+The end of an install is noticed when the node reports it (upstream's `InstallCompleted`, which
+`server_software::register` follows), else at a look every 2 seconds (an end reported to the other
+panel instance). Picking again replaces the pick: one still waiting for the first install, or a
+pack still downloading or reading, is dropped at once; a pack that is downloading its files stops
+starting more (the ones running finish); a reinstall that began is always waited for, then the new
+pick follows, so two reinstalls never run at once. The files the setup's packs downloaded (listed
+in the cache beside the progress) are deleted before a different pick goes in, also when the pack
+had finished. The
+setup page shows the progress above the questions (the step, a modpack's bar), and "The chosen
+software is installed" once it is in place.
+
 **Finish setup** stores the answers on the row (`completed`, once: a second submit is 409), goes to
-the console and says what happens next (installing, restart to apply, or written).
-`minecraft::onboarding::apply` runs after the request: it waits for the install to end (30 minutes
-at most), installs the modpack or switches the software and version (a reinstall it waits for
-too), writes `online-mode`, turns the whitelist on or off and adds the names (looked up at Mojang in
-online mode; names without an account are listed as skipped), installs Geyser when asked, and
-starts the server. A part that fails is listed and the rest still applied; an install that failed
-stops it ("reinstall it from Settings"). The console shows each step (polled every 3 seconds, kept
-in the cache 2 hours while running and an hour after), then whether it worked, until closed.
-Activity: `server:minecraft.onboarding.complete` when it ends.
+the console and says what happens next (installing, restart to apply, or written). The answers
+carry the software as picked (not as changed), so the worker puts it in place when no pick was sent
+before or it differs from the last one. Once it is in place, the worker writes `online-mode`, turns
+the whitelist on or off and adds the names (looked up at Mojang in online mode; names without an
+account are listed as skipped), installs Geyser when asked, and starts the server. A part that
+fails is listed and the rest still applied; an install that failed stops it ("reinstall it from
+Settings"). The console shows each step (polled every 3 seconds, also while the server reinstalls;
+kept in the cache 3 hours while running and an hour after), with the modpack's bar while it
+installs one, then whether it worked, until closed. A worker that died with its panel instance (a
+restart) is taken up again by the next look at the setup. Activity:
+`server:minecraft.onboarding.complete` when it ends.
+
+While the server installs, the routes the setup needs answer (the setup's own, and the reads of
+Settings › Software, its versions and the modpack search, versions and progress), so the setup can
+be answered during the first install and its progress followed during the reinstalls it causes.
+Plugins & Mods stays open too, read only (its lists, search, versions, icons, Bedrock and Modpacks
+answer `GET`), so a modpack's progress bar stays in view through the reinstall it causes; an install
+or change there is still 409 "server is currently installing", like everything else.
 
 ### The egg
 
@@ -532,11 +576,16 @@ the software, the jar, the port and address; `POST` installs or updates (`{updat
 address, restarted}`).
 
 `/api/client/servers/{server}/minecraft/onboarding`: `GET` (`minecraft.settings`) whether the setup
-waits, when it was answered, the progress, which software choices and loaders run Geyser, and which
-software choices take modpacks with their loader (`modpack_loaders`) (404 for a server without one); `POST` the answers `{variant, version, modpack: {source, project,
-version}, bedrock, online_mode, private, players, operators}` (`minecraft.settings` +
-`minecraft.players`, plus `settings.software` to change the software, `minecraft.content` for a
-modpack, `minecraft.bedrock` for Bedrock); 202, 409 when already answered.
+waits, when it was answered, the progress (`step`, `software` and `software_done`, `problems`,
+`fatal`, `error`, `skipped`), the picked modpack's install (`modpack`, the Modpacks state), which
+software choices and loaders run Geyser, and which software choices take modpacks with their loader
+(`modpack_loaders`) (404 for a server without one); `PUT /software` the software picked so far
+`{variant, version, modpack}`, put in place at once (`minecraft.settings` + `settings.software`, plus
+`minecraft.content` for a modpack); 202, 409 when already answered; `POST` the answers `{variant,
+version, modpack: {source, project, version}, bedrock, online_mode, private, players, operators}`
+(`minecraft.settings` + `minecraft.players`, plus `settings.software` to change the software,
+`minecraft.content` for a modpack, `minecraft.bedrock` for Bedrock); 202, 409 when already
+answered.
 
 `GET /api/client/servers/{server}/minecraft/log-check` (`control.console` + `files.read-content`):
 `{enabled, result}`, the result being `{id, url, errors, problems: [{message, solution}], checked}`;
@@ -598,9 +647,12 @@ Nothing here uses noprofit.space.
 - Download on a running server: the zip has the world, `world_nether` and `world_the_end`.
 - Delete a world that is not loaded: it shows up in the file manager's trash.
 - Modpacks on a stopped Fabric server: Filters › Type Modpacks, clear the version, install a
-  Modrinth pack for another Minecraft version; the callout above the list shows "Reinstalling the
-  server…", then the mods count up, then "Modpack installed"; the server starts with the pack's
-  mods and configs; Settings › Software shows the pack's version.
+  Modrinth pack for another Minecraft version; the page stays (with the installing banner) and the
+  callout above the list shows the pack downloading (its size), "Reinstalling the server…" with
+  the mods already counting up (files of total and their size), then "Unpacking configs…", then
+  "Modpack installed"; the server starts with the pack's mods and configs; Settings › Software
+  shows the pack's version. A second install meanwhile, or Settings › Software, says the software
+  is being changed.
 - The same with a CurseForge pack (with a key) on a Forge server; a pack whose author blocks
   downloads lists the skipped mods.
 - Modpacks on a running server: Install is disabled and its tooltip says to stop it.
@@ -619,8 +671,14 @@ Nothing here uses noprofit.space.
   Bedrock, starting, then "Your server is set up"; `server.properties` has
   `online-mode=false`, `white-list=true`, the lists hold the names, Geyser is in `mods/` and the
   server runs. A made-up name in online mode is listed as not added.
-- The same with a modpack: the pack installs, then the settings are written and the server starts.
-  With Purpur chosen the Modpack step is not there.
+- The same with a modpack: Next on the Modpack step starts it at once, the setup page shows the
+  pack's bar above the questions (downloading, waiting for the install, reinstalling with the mods
+  counting up), and "The chosen software is installed" once it is in place; Finish setup then only
+  writes the settings and starts the server. With Purpur chosen the Modpack step is not there.
+- Pick Fabric on a server still in its first install, Next: the setup page says it waits for the
+  install, then reinstalls; go back, pick Purpur, Next: it switches back after that reinstall,
+  never during it. Pick a large pack, and while its mods count up go back and pick no pack: the
+  downloads stop, the pack's mods are deleted and the server gets the Fabric version picked.
 - A subuser with Game Settings opens the console of a server still waiting for its setup: "Your
   server is not set up yet" with Start setup.
 - A server an admin creates starts after its install as before and has no setup.

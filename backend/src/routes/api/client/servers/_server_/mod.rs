@@ -86,8 +86,37 @@ pub async fn auth(
         "/api/client/servers/{server}/transfer/status",
     ];
 
+    // plugged.host: a new Minecraft server's setup is answered while its install runs, and the
+    // setup's and a modpack's progress (with the lists the setup picks from, and Plugins & Mods)
+    // are read during the reinstalls they cause (docs/features/minecraft.md#setup)
+    const INSTALLING_PATHS: &[&str] = &[
+        "/api/client/servers/{server}/minecraft/onboarding",
+        "/api/client/servers/{server}/minecraft/onboarding/software",
+    ];
+    const INSTALLING_READ_PATHS: &[&str] = &[
+        "/api/client/servers/{server}/minecraft/content",
+        "/api/client/servers/{server}/minecraft/content/installed",
+        "/api/client/servers/{server}/minecraft/content/search",
+        "/api/client/servers/{server}/minecraft/content/versions",
+        "/api/client/servers/{server}/minecraft/content/icon",
+        "/api/client/servers/{server}/minecraft/bedrock",
+        "/api/client/servers/{server}/minecraft/modpacks",
+        "/api/client/servers/{server}/minecraft/modpacks/search",
+        "/api/client/servers/{server}/minecraft/modpacks/versions",
+        "/api/client/servers/{server}/settings/software",
+        "/api/client/servers/{server}/settings/software/versions",
+    ];
+    let installing_allowed = server.status
+        == Some(shared::models::server::ServerStatus::Installing)
+        && !server.suspended
+        && server.destination_node.is_none()
+        && (INSTALLING_PATHS.contains(&matched_path.as_str())
+            || (req.method() == axum::http::Method::GET
+                && INSTALLING_READ_PATHS.contains(&matched_path.as_str())));
+
     // anyone allowed to update servers stays able to act on a suspended one, which is what suspension is for
     if !IGNORED_STATUS_PATHS.contains(&matched_path.as_str())
+        && !installing_allowed // plugged.host
         && let Some(message) = server.unavailable_reason()
         && !(server.suspended && permissions.has_admin_permission("servers.update").is_ok())
     {

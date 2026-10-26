@@ -6658,6 +6658,7 @@
               "waiting": "Sunucunun kurulumu bitirmesi bekleniyor…",
               "software": "Sunucu seçilen yazılımla yeniden kuruluyor…",
               "modpack": "Mod paketi kuruluyor…",
+              "ready": "Seçilen yazılım kuruldu. Kurulumu tamamlayın, gerisi uygulanacak.",
               "settings": "Ayarlar ve oyuncu listeleri yazılıyor…",
               "bedrock": "Bedrock oyuncuları için hazırlık yapılıyor…",
               "starting": "Sunucu başlatılıyor…",

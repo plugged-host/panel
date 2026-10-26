@@ -1,8 +1,9 @@
 //! plugged.host: installing a modpack (docs/features/minecraft.md): a Modrinth `.mrpack` or a
 //! CurseForge pack. The panel reads the pack, switches the server to the pack's loader and
-//! Minecraft version (a reinstall, see `server_software.rs`) and waits for it, then has Wings
-//! download every server file the pack lists and unpacks the pack's overrides on top. It runs
-//! after the request; the page polls the state stored here.
+//! Minecraft version (a reinstall, see `server_software.rs`), has Wings download every server file
+//! the pack lists (the ones in folders the reinstall leaves alone while it runs) and unpacks the
+//! pack's overrides on top once it is over. It runs after the request; the page polls the state
+//! stored here.
 
 use super::{Kind, Loader, SearchPage, Source, Version, content, curseforge, files, modrinth};
 use crate::models::server::Server;
@@ -48,6 +49,8 @@ pub struct Install {
     pub version: String,
     /// The pack's name and version, as players read it.
     pub name: String,
+    /// What runs now. The files the reinstall leaves alone are already downloaded during
+    /// `software`, so `files` may grow then too.
     pub step: Step,
     /// Files downloaded so far, of `total`.
     pub files: u32,
@@ -61,6 +64,12 @@ pub struct Install {
     pub loader: Option<Loader>,
     pub error: Option<String>,
     pub started: chrono::DateTime<chrono::Utc>,
+    /// Bytes downloaded so far, of `total_bytes`: the pack itself while `download`, then its
+    /// files (`total_bytes` is 0 when the source does not say how large they are).
+    #[serde(default)]
+    pub bytes: u64,
+    #[serde(default)]
+    pub total_bytes: u64,
 }
 
 /// What the Modpacks tab offers for the server.
@@ -87,6 +96,8 @@ pub enum ModpackError {
     Unsupported(String),
     TooLarge,
     InstallFailed,
+    /// Something else was picked meanwhile (the setup).
+    Cancelled,
     Software(crate::server_software::SoftwareError),
     Source(anyhow::Error),
     Wings(anyhow::Error),
@@ -124,6 +135,7 @@ impl ModpackError {
             }
             Self::TooLarge => "the modpack is too large to install through the panel".into(),
             Self::InstallFailed => "reinstalling the server for the modpack failed".into(),
+            Self::Cancelled => "something else was picked meanwhile".into(),
             Self::Software(err) => err.message(),
             Self::Source(_) => "the modpack's source did not answer, try again later".into(),
             Self::Wings(_) => {
@@ -138,7 +150,7 @@ impl ModpackError {
 
         let status = match &self {
             Self::Other(_) => StatusCode::INTERNAL_SERVER_ERROR,
-            Self::Running | Self::Installing => StatusCode::CONFLICT,
+            Self::Running | Self::Installing | Self::Cancelled => StatusCode::CONFLICT,
             Self::UnknownVersion => StatusCode::NOT_FOUND,
             Self::Source(err) | Self::Wings(err) => {
                 tracing::warn!("minecraft modpack: {err:#}");
@@ -173,10 +185,6 @@ async fn store(state: &crate::State, server: &Server, install: &Install) {
         _ => RUNNING_TTL,
     };
     state.cache.set(&key(server), ttl, install).await.ok();
-}
-
-fn running(install: &Install) -> bool {
-    !matches!(install.step, Step::Done | Step::Failed)
 }
 
 /// The loaders a pack installed on this server may be for.
@@ -355,7 +363,9 @@ pub struct Start {
 }
 
 /// Checks that the pack can be installed and stores the install as started; [`install`] then
-/// does the work.
+/// does the work. The caller holds the server's software lock
+/// ([`crate::server_software::lock`]), which is what keeps two installs (or an install and a
+/// setup) from running at once.
 pub async fn start(
     state: &crate::State,
     server: &Server,
@@ -376,12 +386,6 @@ pub async fn start(
         Some(wings_api::ServerState::Offline)
     ) {
         return Err(ModpackError::Running);
-    }
-    if current(state, server)
-        .await
-        .is_some_and(|install| running(&install))
-    {
-        return Err(ModpackError::Installing);
     }
 
     let (pack, url) = match source {
@@ -441,6 +445,8 @@ pub async fn start(
         loader: None,
         error: None,
         started: chrono::Utc::now(),
+        bytes: 0,
+        total_bytes: 0,
     };
     store(state, server, &install).await;
 
@@ -451,14 +457,78 @@ pub async fn start(
     })
 }
 
-/// Installs a started pack. Takes minutes (a reinstall, then hundreds of downloads), so it runs
-/// after the request.
-pub async fn install(state: &crate::State, server: Server, start: Start) -> Install {
-    let mut install = start.install.clone();
-    let result = run(state, server.clone(), &start, &mut install).await;
+/// What an install ended with.
+pub struct Outcome {
+    pub install: Install,
+    /// The files it downloaded onto the server (`directory/name`), also when it stopped early: the
+    /// setup removes them when the player picks something else.
+    pub written: Vec<String>,
+}
 
+/// Installs a started pack. Takes minutes (a reinstall, then hundreds of downloads), so it runs
+/// after the request. The pack is downloaded and read while `ready` runs (the setup waits there
+/// for the server's first install); the server is only changed once both are through. `cancel`
+/// stops it between files (a reinstall that began is waited for), with [`ModpackError::Cancelled`].
+pub async fn install(
+    state: &crate::State,
+    server: Server,
+    start: Start,
+    ready: impl Future<Output = Result<(), ModpackError>>,
+    cancel: &tokio_util::sync::CancellationToken,
+) -> Outcome {
+    let live = Live {
+        install: parking_lot::Mutex::new(start.install.clone()),
+        written: parking_lot::Mutex::new(Vec::new()),
+    };
+    let began = std::time::Instant::now();
+
+    let work = async {
+        let (pack, ready) = tokio::join!(
+            async {
+                tokio::select! {
+                    pack = fetch(state, &start.url, &live) => pack,
+                    _ = cancel.cancelled() => Err(ModpackError::Cancelled),
+                }
+            },
+            async {
+                tokio::select! {
+                    ready = ready => ready,
+                    _ = cancel.cancelled() => Err(ModpackError::Cancelled),
+                }
+            }
+        );
+        let pack = pack?;
+        ready?;
+        if cancel.is_cancelled() {
+            return Err(ModpackError::Cancelled);
+        }
+        tracing::info!(
+            server = %server.uuid,
+            "modpack read in {:?}: {} files, overrides {}",
+            began.elapsed(),
+            pack.files.len(),
+            pack.overrides.as_ref().map_or(0, Vec::len)
+        );
+
+        // the server as it is now: its first install may have ended meanwhile
+        let mut server = {
+            use crate::models::ByUuid;
+            Server::by_uuid(&state.database, server.uuid).await?
+        };
+        apply(state, &mut server, pack, start.clean, &live, cancel).await
+    };
+    let result = tokio::select! {
+        result = work => result,
+        _ = live.report(state, &server) => unreachable!("reporting never ends"),
+    };
+
+    let mut install = live.install.into_inner();
     match result {
         Ok(()) => install.step = Step::Done,
+        Err(ModpackError::Cancelled) => {
+            install.step = Step::Failed;
+            install.error = Some(ModpackError::Cancelled.message());
+        }
         Err(err) => {
             if let ModpackError::Other(err) | ModpackError::Wings(err) | ModpackError::Source(err) =
                 &err
@@ -469,35 +539,98 @@ pub async fn install(state: &crate::State, server: Server, start: Start) -> Inst
             install.error = Some(err.message());
         }
     }
-    store(state, &server, &install).await;
+    tracing::info!(
+        server = %server.uuid,
+        "modpack {} ended in {:?}: {:?}, {} of {} files",
+        install.name,
+        began.elapsed(),
+        install.step,
+        install.files,
+        install.total
+    );
+    if cancel.is_cancelled() {
+        // the player picked something else: what replaces it shows its own state
+        state.cache.invalidate(&key(&server)).await.ok();
+    } else {
+        store(state, &server, &install).await;
+    }
 
-    install
+    Outcome {
+        install,
+        written: live.written.into_inner(),
+    }
 }
 
-async fn run(
-    state: &crate::State,
-    mut server: Server,
-    start: &Start,
-    install: &mut Install,
-) -> Result<(), ModpackError> {
-    let archive = download(state, &start.url).await?;
+/// The install as it goes, shared by the downloads that run side by side.
+struct Live {
+    install: parking_lot::Mutex<Install>,
+    written: parking_lot::Mutex<Vec<String>>,
+}
+
+impl Live {
+    fn update(&self, change: impl FnOnce(&mut Install)) {
+        change(&mut self.install.lock());
+    }
+
+    async fn store(&self, state: &crate::State, server: &Server) {
+        let install = self.install.lock().clone();
+        store(state, server, &install).await;
+    }
+
+    /// Stores the state every second, for the page that polls it.
+    async fn report(&self, state: &crate::State, server: &Server) {
+        loop {
+            tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+            self.store(state, server).await;
+        }
+    }
+}
+
+/// Downloads and reads the pack.
+async fn fetch(state: &crate::State, url: &str, live: &Live) -> Result<Pack, ModpackError> {
+    let archive = download(state, url, live).await?;
     let pack = tokio::task::spawn_blocking(move || read_pack(&archive))
         .await
         .map_err(anyhow::Error::from)??;
-    install.minecraft = Some(pack.minecraft.clone());
-    install.loader = Some(pack.loader);
-    install.overrides_skipped = pack.overrides_skipped;
-    install.step = Step::Software;
-    store(state, &server, install).await;
 
-    switch_software(state, &mut server, &pack).await?;
+    // the bytes stay the pack's (all of them) until the files start, after the first install
+    live.update(|install| {
+        install.minecraft = Some(pack.minecraft.clone());
+        install.loader = Some(pack.loader);
+        install.overrides_skipped = pack.overrides_skipped;
+        install.total = pack.files.len() as u32;
+    });
 
-    let client = files::client(state, &server).await?;
-    if start.clean {
+    Ok(pack)
+}
+
+/// Puts the read pack on the server: the old mods out, the loader and version in (a reinstall),
+/// the files and the overrides.
+async fn apply(
+    state: &crate::State,
+    server: &mut Server,
+    pack: Pack,
+    clean: bool,
+    live: &Live,
+    cancel: &tokio_util::sync::CancellationToken,
+) -> Result<(), ModpackError> {
+    let change = software_change(state, server, &pack).await?;
+    if cancel.is_cancelled() {
+        return Err(ModpackError::Cancelled);
+    }
+    let client = files::client(state, server).await?;
+    live.update(|install| {
+        install.files = 0;
+        install.bytes = 0;
+        install.total_bytes = pack.files.iter().map(|file| file.size).sum();
+    });
+
+    // before the downloads put the new ones there
+    if clean {
         files::remove(
             state,
             &client,
-            &server,
+            server,
             "/",
             vec![pack.loader.directory().into()],
         )
@@ -505,21 +638,109 @@ async fn run(
         .map_err(ModpackError::Wings)?;
     }
 
-    install.step = Step::Files;
-    install.total = pack.files.len() as u32;
-    store(state, &server, install).await;
-    pull_files(state, &server, pack.files, install).await;
+    // a server that never started has none of the pack's folders yet: each is made once here
+    let mut directories: Vec<&str> = pack
+        .files
+        .iter()
+        .filter_map(|file| file.directory())
+        .filter(|directory| !directory.is_empty())
+        .collect();
+    directories.sort_unstable();
+    directories.dedup();
+    for directory in directories {
+        let _ = client
+            .post_servers_server_files_create_directory(
+                server.uuid,
+                &wings_api::servers_server_files_create_directory::post::RequestBody {
+                    root: "/".into(),
+                    name: directory.into(),
+                },
+            )
+            .await;
+    }
 
-    if let Some(overrides) = pack.overrides {
-        install.step = Step::Overrides;
-        store(state, &server, install).await;
-        unpack_overrides(&client, &server, overrides).await?;
+    // the reinstall writes the server's root and libraries/; the pack's folders (mods/,
+    // config/...) are filled while it runs, the rest after it
+    let (during, after): (Vec<PackFile>, Vec<PackFile>) = pack
+        .files
+        .into_iter()
+        .partition(PackFile::outside_the_install);
+    // the overrides go up as a hidden archive at the root, which the reinstall leaves alone
+    let overrides = pack.overrides;
+
+    let uploaded = match change {
+        Some((variant, version)) => {
+            live.update(|install| install.step = Step::Software);
+            live.store(state, server).await;
+
+            crate::server_software::switch(state, server, variant.as_deref(), version.as_deref())
+                .await
+                .map_err(ModpackError::Software)?;
+            let server = &*server;
+
+            // the status turns to installing within the switch, so the first look already sees it
+            let (installed, (), uploaded) = tokio::join!(
+                crate::server_software::wait_for_install(
+                    state,
+                    server.uuid,
+                    crate::server_software::INSTALL_WAIT,
+                ),
+                pull_files(state, &client, server, during, live, cancel),
+                upload_overrides(&client, server, overrides),
+            );
+            let uploaded = uploaded?;
+            if !installed? {
+                remove_overrides(&client, server, uploaded).await;
+                return Err(ModpackError::InstallFailed);
+            }
+
+            uploaded
+        }
+        None => {
+            live.update(|install| install.step = Step::Files);
+            live.store(state, server).await;
+
+            let ((), uploaded) = tokio::join!(
+                pull_files(state, &client, server, during, live, cancel),
+                upload_overrides(&client, server, overrides),
+            );
+            uploaded?
+        }
+    };
+    if cancel.is_cancelled() {
+        remove_overrides(&client, server, uploaded).await;
+        return Err(ModpackError::Cancelled);
+    }
+
+    // the overrides and the files left never name the same path (read_pack drops index files
+    // that an override replaces), so they go side by side
+    live.update(|install| {
+        install.step = if uploaded {
+            Step::Overrides
+        } else {
+            Step::Files
+        }
+    });
+    live.store(state, server).await;
+    let ((), unpacked) = tokio::join!(
+        pull_files(state, &client, server, after, live, cancel),
+        async {
+            if uploaded {
+                unpack_overrides(&client, server).await
+            } else {
+                Ok(())
+            }
+        }
+    );
+    unpacked?;
+    if cancel.is_cancelled() {
+        return Err(ModpackError::Cancelled);
     }
 
     Ok(())
 }
 
-async fn download(state: &crate::State, url: &str) -> Result<Vec<u8>, ModpackError> {
+async fn download(state: &crate::State, url: &str, live: &Live) -> Result<Vec<u8>, ModpackError> {
     let mut response = state
         .client
         .get(url)
@@ -529,11 +750,16 @@ async fn download(state: &crate::State, url: &str) -> Result<Vec<u8>, ModpackErr
         .await
         .and_then(|response| response.error_for_status())
         .map_err(|err| ModpackError::Source(err.into()))?;
-    if response.content_length().unwrap_or(0) > MAX_PACK_BYTES {
+    let length = response.content_length().unwrap_or(0);
+    if length > MAX_PACK_BYTES {
         return Err(ModpackError::TooLarge);
     }
+    live.update(|install| {
+        install.bytes = 0;
+        install.total_bytes = length;
+    });
 
-    let mut archive = Vec::new();
+    let mut archive = Vec::with_capacity(length as usize);
     while let Some(chunk) = response
         .chunk()
         .await
@@ -543,18 +769,20 @@ async fn download(state: &crate::State, url: &str) -> Result<Vec<u8>, ModpackErr
             return Err(ModpackError::TooLarge);
         }
         archive.extend_from_slice(&chunk);
+        live.update(|install| install.bytes = archive.len() as u64);
     }
 
     Ok(archive)
 }
 
-/// Writes the pack's loader and Minecraft version, when they differ from the server's, and
-/// waits for the reinstall that follows.
-async fn switch_software(
+/// The software choice and Minecraft version to write for the pack, `None` when the server runs
+/// them already.
+#[allow(clippy::type_complexity)]
+async fn software_change(
     state: &crate::State,
-    server: &mut Server,
+    server: &Server,
     pack: &Pack,
-) -> Result<(), ModpackError> {
+) -> Result<Option<(Option<compact_str::CompactString>, Option<String>)>, ModpackError> {
     let software = super::software(state, server).await?;
     let settings = state.settings.get().await?;
     let variant = settings
@@ -576,28 +804,10 @@ async fn switch_software(
     let new_version = software
         .version_variable
         .is_some()
-        .then_some(pack.minecraft.as_str())
+        .then(|| pack.minecraft.clone())
         .filter(|version| software.version != *version);
-    if new_variant.is_none() && new_version.is_none() {
-        return Ok(());
-    }
 
-    crate::server_software::switch(state, server, new_variant.as_deref(), new_version)
-        .await
-        .map_err(ModpackError::Software)?;
-
-    // the status turns to installing within the switch, so the first look already sees it
-    if crate::server_software::wait_for_install(
-        state,
-        server.uuid,
-        crate::server_software::INSTALL_WAIT,
-    )
-    .await?
-    {
-        Ok(())
-    } else {
-        Err(ModpackError::InstallFailed)
-    }
+    Ok((new_variant.is_some() || new_version.is_some()).then_some((new_variant, new_version)))
 }
 
 fn loader_name(loader: Loader) -> &'static str {
@@ -610,14 +820,20 @@ fn loader_name(loader: Loader) -> &'static str {
     }
 }
 
-/// Downloads the pack's files, a few at a time. A file that fails is listed as skipped rather
-/// than failing the pack: one dead link should cost one mod, not the install.
+/// Downloads the pack's files, as many at a time as Wings takes for one server. A file that fails
+/// is listed as skipped rather than failing the pack: one dead link should cost one mod, not the
+/// install. A cancel stops it from starting more (the ones running finish).
 async fn pull_files(
     state: &crate::State,
+    client: &wings_api::client::WingsClient,
     server: &Server,
     list: Vec<PackFile>,
-    install: &mut Install,
+    live: &Live,
+    cancel: &tokio_util::sync::CancellationToken,
 ) {
+    if list.is_empty() {
+        return;
+    }
     let curseforge_key = curseforge::key(state).await;
 
     let mut pulls = futures_util::stream::iter(list.into_iter().map(|file| {
@@ -625,6 +841,7 @@ async fn pull_files(
 
         async move {
             let label = file.label();
+            let size = file.size;
             let target = match file.source {
                 FileSource::Url { url, directory, name } => Some((url, directory, name)),
                 FileSource::CurseForge { project, file: id } => match &curseforge_key {
@@ -636,8 +853,8 @@ async fn pull_files(
                 return Err(label);
             };
 
-            match content::pull_now(state, server, &url, &name, &directory).await {
-                Ok(()) => Ok(()),
+            match content::pull_into(client, server, &url, &name, &directory, true).await {
+                Ok(()) => Ok((join_path(&directory, &name), size)),
                 Err(err) => {
                     tracing::debug!(server = %server.uuid, "modpack file {name}: {}", err.message());
                     Err(name)
@@ -645,16 +862,28 @@ async fn pull_files(
             }
         }
     }))
+    .take_until(Box::pin(cancel.cancelled()))
     .buffer_unordered(PARALLEL_PULLS);
 
     while let Some(result) = pulls.next().await {
         match result {
-            Ok(()) => install.files += 1,
-            Err(name) => install.skipped.push(name),
+            Ok((path, size)) => {
+                live.update(|install| {
+                    install.files += 1;
+                    install.bytes += size;
+                });
+                live.written.lock().push(path);
+            }
+            Err(name) => live.update(|install| install.skipped.push(name)),
         }
-        if (install.files + install.skipped.len() as u32) % 5 == 0 {
-            store(state, server, install).await;
-        }
+    }
+}
+
+fn join_path(directory: &str, name: &str) -> String {
+    if directory.is_empty() {
+        name.to_string()
+    } else {
+        format!("{directory}/{name}")
     }
 }
 
@@ -680,12 +909,16 @@ async fn curseforge_target(
     Some((url.to_string(), "mods".into(), name))
 }
 
-/// Writes the overrides as one archive and has Wings unpack it over the server's files.
-async fn unpack_overrides(
+/// Writes the overrides as one archive at the server root; `true` when there were any.
+async fn upload_overrides(
     client: &wings_api::client::WingsClient,
     server: &Server,
-    overrides: Vec<u8>,
-) -> Result<(), ModpackError> {
+    overrides: Option<Vec<u8>>,
+) -> Result<bool, ModpackError> {
+    let Some(overrides) = overrides else {
+        return Ok(false);
+    };
+
     client
         .post_servers_server_files_write(
             server.uuid,
@@ -698,6 +931,14 @@ async fn unpack_overrides(
         .await
         .map_err(|err| ModpackError::Wings(err.into()))?;
 
+    Ok(true)
+}
+
+/// Has Wings unpack the uploaded overrides over the server's files, then deletes the archive.
+async fn unpack_overrides(
+    client: &wings_api::client::WingsClient,
+    server: &Server,
+) -> Result<(), ModpackError> {
     let unpacked = client
         .post_servers_server_files_decompress(
             server.uuid,
@@ -708,6 +949,21 @@ async fn unpack_overrides(
             },
         )
         .await;
+    remove_overrides(client, server, true).await;
+    unpacked.map_err(|err| ModpackError::Wings(err.into()))?;
+
+    Ok(())
+}
+
+async fn remove_overrides(
+    client: &wings_api::client::WingsClient,
+    server: &Server,
+    uploaded: bool,
+) {
+    if !uploaded {
+        return;
+    }
+
     let _ = client
         .post_servers_server_files_delete(
             server.uuid,
@@ -717,9 +973,6 @@ async fn unpack_overrides(
             },
         )
         .await;
-    unpacked.map_err(|err| ModpackError::Wings(err.into()))?;
-
-    Ok(())
 }
 
 #[derive(Debug, PartialEq)]
@@ -738,7 +991,13 @@ enum FileSource {
 #[derive(Debug, PartialEq)]
 struct PackFile {
     source: FileSource,
+    /// Its size as the pack lists it (0 when it does not).
+    size: u64,
 }
+
+/// The folders a reinstall writes besides the server root (the loaders' libraries, Fabric's
+/// cache, the vanilla jars): files of a pack that go there wait until the reinstall is over.
+const INSTALL_DIRECTORIES: &[&str] = &["libraries", "versions", ".fabric", "cache"];
 
 impl PackFile {
     fn label(&self) -> String {
@@ -746,6 +1005,33 @@ impl PackFile {
             FileSource::Url { name, .. } => name.clone(),
             FileSource::CurseForge { project, file } => format!("CurseForge {project}/{file}"),
         }
+    }
+
+    /// The folder it goes into, when the pack says (CurseForge files are looked up later).
+    fn directory(&self) -> Option<&str> {
+        match &self.source {
+            FileSource::Url { directory, .. } => Some(directory),
+            FileSource::CurseForge { .. } => Some("mods"),
+        }
+    }
+
+    /// The path inside the server, when the pack says.
+    fn path(&self) -> Option<String> {
+        match &self.source {
+            FileSource::Url {
+                directory, name, ..
+            } => Some(join_path(directory, name)),
+            FileSource::CurseForge { .. } => None,
+        }
+    }
+
+    /// Whether it goes into a folder a reinstall leaves alone (`mods/`, `config/`...), so that it
+    /// can be downloaded while the reinstall runs; the root and [`INSTALL_DIRECTORIES`] wait.
+    fn outside_the_install(&self) -> bool {
+        self.directory().is_some_and(|directory| {
+            let top = directory.split('/').next().unwrap_or_default();
+            !top.is_empty() && !INSTALL_DIRECTORIES.contains(&top)
+        })
     }
 }
 
@@ -848,6 +1134,7 @@ fn read_mrpack_index(index: &serde_json::Value) -> Result<(String, Loader, Vec<P
                 directory,
                 name,
             },
+            size: file["fileSize"].as_u64().unwrap_or_default(),
         });
     }
 
@@ -886,6 +1173,7 @@ fn read_curseforge_manifest(
                     project: file["projectID"].as_u64()?,
                     file: file["fileID"].as_u64()?,
                 },
+                size: 0,
             })
         })
         .collect();
@@ -940,7 +1228,11 @@ fn read_pack(archive: &[u8]) -> Result<Pack, ModpackError> {
         ));
     };
 
-    let (overrides, overrides_skipped) = repack_overrides(&mut zip, &prefixes)?;
+    let (overrides, overrides_skipped, replaced) = repack_overrides(&mut zip, &prefixes)?;
+    // the format unpacks the overrides after the files, so a file an override replaces is
+    // never downloaded (and the two can then be placed side by side)
+    let mut files = files;
+    files.retain(|file| file.path().is_none_or(|path| !replaced.contains(&path)));
 
     Ok(Pack {
         minecraft,
@@ -951,12 +1243,14 @@ fn read_pack(archive: &[u8]) -> Result<Pack, ModpackError> {
     })
 }
 
-/// The files under the override folders, in a new zip rooted at the server root. `None` when
-/// there are none; skipped when they are too big to hold.
+/// The files under the override folders, in a new zip rooted at the server root, and their
+/// paths. `None` when there are none; skipped when they are too big to hold. Entries are copied
+/// as they are compressed (stored or deflated), not unpacked and packed again.
+#[allow(clippy::type_complexity)]
 fn repack_overrides<R: Read + std::io::Seek>(
     zip: &mut zip::ZipArchive<R>,
     prefixes: &[String],
-) -> Result<(Option<Vec<u8>>, bool), ModpackError> {
+) -> Result<(Option<Vec<u8>>, bool, std::collections::BTreeSet<String>), ModpackError> {
     let mut entries: std::collections::BTreeMap<String, usize> = std::collections::BTreeMap::new();
     let mut total = 0u64;
 
@@ -985,23 +1279,34 @@ fn repack_overrides<R: Read + std::io::Seek>(
     }
 
     if entries.is_empty() {
-        return Ok((None, false));
+        return Ok((None, false, Default::default()));
     }
     if total > MAX_OVERRIDES_BYTES {
-        return Ok((None, true));
+        return Ok((None, true, Default::default()));
     }
 
     let mut writer = zip::ZipWriter::new(std::io::Cursor::new(Vec::new()));
     let options = zip::write::SimpleFileOptions::default()
         .compression_method(zip::CompressionMethod::Deflated);
-    for (path, index) in entries {
+    for (path, index) in &entries {
         let mut file = zip
-            .by_index(index)
+            .by_index(*index)
             .map_err(|err| ModpackError::Broken(err.to_string()))?;
+
+        if matches!(
+            file.compression(),
+            zip::CompressionMethod::Stored | zip::CompressionMethod::Deflated
+        ) && !file.encrypted()
+        {
+            writer
+                .raw_copy_file_rename(file, path)
+                .map_err(|err| ModpackError::Broken(err.to_string()))?;
+            continue;
+        }
+
         let mut contents = Vec::with_capacity(file.size() as usize);
         file.read_to_end(&mut contents)
             .map_err(|err| ModpackError::Broken(err.to_string()))?;
-
         writer
             .start_file(path, options)
             .and_then(|_| writer.write_all(&contents).map_err(Into::into))
@@ -1012,7 +1317,11 @@ fn repack_overrides<R: Read + std::io::Seek>(
         .finish()
         .map_err(|err| ModpackError::Other(err.into()))?;
 
-    Ok((Some(written.into_inner()), false))
+    Ok((
+        Some(written.into_inner()),
+        false,
+        entries.into_keys().collect(),
+    ))
 }
 
 #[cfg(test)]
@@ -1068,6 +1377,7 @@ mod tests {
                     directory: "mods".into(),
                     name: "lithium.jar".into(),
                 },
+                size: 0,
             }]
         );
         assert!(
@@ -1099,6 +1409,7 @@ mod tests {
                     project: 238222,
                     file: 4712345,
                 },
+                size: 0,
             }]
         );
         assert_eq!(overrides, "overrides");
@@ -1121,12 +1432,13 @@ mod tests {
         let archive = writer.finish().unwrap().into_inner();
 
         let mut zip = zip::ZipArchive::new(std::io::Cursor::new(archive)).unwrap();
-        let (overrides, skipped) = repack_overrides(
+        let (overrides, skipped, paths) = repack_overrides(
             &mut zip,
             &["overrides".to_string(), "server-overrides".to_string()],
         )
         .unwrap();
         assert!(!skipped);
+        assert_eq!(paths.into_iter().collect::<Vec<_>>(), vec!["config/a.toml"]);
 
         let mut repacked = zip::ZipArchive::new(std::io::Cursor::new(overrides.unwrap())).unwrap();
         assert_eq!(repacked.len(), 1);
@@ -1137,6 +1449,101 @@ mod tests {
             .read_to_string(&mut contents)
             .unwrap();
         assert_eq!(contents, "a = 2");
+    }
+
+    fn mrpack(entries: &[(&str, &str)], options: zip::write::SimpleFileOptions) -> Vec<u8> {
+        let mut writer = zip::ZipWriter::new(std::io::Cursor::new(Vec::new()));
+        for (name, body) in entries {
+            writer.start_file(*name, options).unwrap();
+            writer.write_all(body.as_bytes()).unwrap();
+        }
+        writer.finish().unwrap().into_inner()
+    }
+
+    #[test]
+    fn files_an_override_replaces_are_not_downloaded() {
+        let index = serde_json::json!({
+            "dependencies": { "minecraft": "1.20.1", "fabric-loader": "0.15.11" },
+            "files": [
+                {
+                    "path": "mods/lithium.jar",
+                    "fileSize": 700,
+                    "downloads": ["https://cdn.modrinth.com/data/x/lithium.jar"]
+                },
+                {
+                    "path": "mods/patched.jar",
+                    "fileSize": 300,
+                    "downloads": ["https://cdn.modrinth.com/data/y/patched.jar"]
+                },
+            ]
+        })
+        .to_string();
+
+        for method in [
+            zip::CompressionMethod::Deflated,
+            zip::CompressionMethod::Stored,
+        ] {
+            let archive = mrpack(
+                &[
+                    ("modrinth.index.json", &index),
+                    ("overrides/mods/patched.jar", "jar"),
+                    ("server-overrides/config/x.toml", "x = 1"),
+                ],
+                zip::write::SimpleFileOptions::default().compression_method(method),
+            );
+
+            let pack = read_pack(&archive).unwrap();
+            assert_eq!(
+                pack.files
+                    .iter()
+                    .map(|file| (file.path().unwrap(), file.size))
+                    .collect::<Vec<_>>(),
+                vec![("mods/lithium.jar".to_string(), 700)]
+            );
+
+            // copied as they were compressed, readable as before
+            let mut overrides =
+                zip::ZipArchive::new(std::io::Cursor::new(pack.overrides.unwrap())).unwrap();
+            let mut contents = String::new();
+            overrides
+                .by_name("config/x.toml")
+                .unwrap()
+                .read_to_string(&mut contents)
+                .unwrap();
+            assert_eq!(contents, "x = 1");
+            assert_eq!(
+                overrides.by_name("mods/patched.jar").unwrap().compression(),
+                method
+            );
+        }
+    }
+
+    #[test]
+    fn the_install_folders_wait_for_the_reinstall() {
+        let file = |directory: &str| PackFile {
+            source: FileSource::Url {
+                url: String::new(),
+                directory: directory.into(),
+                name: "a.jar".into(),
+            },
+            size: 0,
+        };
+
+        assert!(file("mods").outside_the_install());
+        assert!(file("config/sub").outside_the_install());
+        assert!(!file("").outside_the_install());
+        assert!(!file("libraries/net/x").outside_the_install());
+        assert!(!file(".fabric").outside_the_install());
+        assert!(
+            PackFile {
+                source: FileSource::CurseForge {
+                    project: 1,
+                    file: 2
+                },
+                size: 0,
+            }
+            .outside_the_install()
+        );
     }
 
     #[test]

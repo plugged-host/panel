@@ -66,6 +66,15 @@ mod post {
         permissions.has_server_permission("settings.software")?;
         shared::minecraft::require(&server)?;
 
+        // one install (or setup) of the server at a time, held until it ends
+        let Some(lock) =
+            shared::server_software::lock(&state, server.uuid, std::time::Duration::ZERO).await
+        else {
+            return shared::minecraft::modpacks::ModpackError::Installing
+                .response()
+                .ok();
+        };
+
         let start = match shared::minecraft::modpacks::start(
             &state,
             &server,
@@ -85,7 +94,16 @@ mod post {
         let server = server.0;
         tokio::spawn(async move {
             let (server_uuid, server_name) = (server.uuid, server.name.clone());
-            let install = shared::minecraft::modpacks::install(&state, server, start).await;
+            let install = shared::minecraft::modpacks::install(
+                &state,
+                server,
+                start,
+                async { Ok(()) },
+                &tokio_util::sync::CancellationToken::new(),
+            )
+            .await
+            .install;
+            drop(lock);
             shared::notifications::modpack_ended(
                 &state,
                 activity_logger.user_uuid,

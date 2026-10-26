@@ -1,16 +1,18 @@
 // plugged.host: the setup a player's new Minecraft server starts with, the Pelican panel's setup
 // wizard (ServerOnboardingPage, docs/features/minecraft.md)
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useEffect, useRef, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router';
 import { z } from 'zod';
 import { httpErrorToHuman } from '@/api/axios.ts';
+import chooseMinecraftSoftware, { MinecraftSoftwarePick } from '@/api/server/minecraft/chooseMinecraftSoftware.ts';
 import completeMinecraftOnboarding from '@/api/server/minecraft/completeMinecraftOnboarding.ts';
 import getModpackVersions from '@/api/server/minecraft/getModpackVersions.ts';
 import searchModpacks from '@/api/server/minecraft/searchModpacks.ts';
 import getServerSoftware from '@/api/server/settings/getServerSoftware.ts';
 import getSoftwareVersions from '@/api/server/settings/getSoftwareVersions.ts';
 import ServerContentContainer from '@/elements/containers/ServerContentContainer.tsx';
+import Notification from '@/elements/feedback/Notification.tsx';
 import Spinner from '@/elements/feedback/Spinner.tsx';
 import Choice from '@/elements/input/Choice.tsx';
 import Select from '@/elements/input/Select.tsx';
@@ -29,7 +31,8 @@ import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useServerStore } from '@/stores/server.ts';
 import { useModpacks } from '../content/useModpacks.ts';
-import { useMinecraftSetup } from './useMinecraftSetup.ts';
+import SetupProgress from './SetupProgress.tsx';
+import { setupRunning, useMinecraftSetup } from './useMinecraftSetup.ts';
 
 type Onboarding = z.infer<typeof minecraftOnboardingSchema>;
 type Loader = z.infer<typeof minecraftLoaderSchema>;
@@ -277,6 +280,33 @@ function SetupForm({ onboarding }: { onboarding: Onboarding }) {
   const playersError = privateServer ? nameError(players) : undefined;
   const operatorsError = nameError(operators);
 
+  // what the server runs is put in place as soon as its step is left, while the rest is answered
+  const softwarePick = (withModpack: boolean): MinecraftSoftwarePick => ({
+    variant: choosesSoftware ? variant : null,
+    version: choosesVersion ? version : null,
+    modpack:
+      withModpack && pack && modpackVersion ? { source: pack.source, project: pack.id, version: modpackVersion } : null,
+  });
+  const sentPick = useRef<string | null>(null);
+  const choose = (pick: MinecraftSoftwarePick) => {
+    const key = JSON.stringify(pick);
+    if (key === sentPick.current) return;
+    // the software it was created with needs nothing, until another pick changed it
+    const unchanged =
+      !pick.modpack &&
+      (pick.variant ?? software.data?.current) === software.data?.current &&
+      (pick.version ?? software.data?.version) === software.data?.version;
+    if (sentPick.current === null && unchanged) return;
+    sentPick.current = key;
+
+    chooseMinecraftSoftware(server.uuid, pick)
+      .then(() => queryClient.invalidateQueries({ queryKey: queryKeys.server(server.uuid).minecraft.onboarding() }))
+      .catch((error) => {
+        sentPick.current = null;
+        addToast(httpErrorToHuman(error), 'error');
+      });
+  };
+
   const chooseVariant = (value: string) => {
     if (value === variant) return;
     // each loader lists other versions, and a pack is made for one loader
@@ -296,9 +326,10 @@ function SetupForm({ onboarding }: { onboarding: Onboarding }) {
       (choosesSoftware && !!variant && variant !== current?.current) ||
       (choosesVersion && !!version && version !== current?.version);
 
+    // as picked, not as changed: an earlier pick may have changed the server already
     completeMinecraftOnboarding(server.uuid, {
-      variant: !pack && choosesSoftware && variant && variant !== current?.current ? variant : null,
-      version: !pack && choosesVersion && version && version !== current?.version ? version : null,
+      variant: !pack && choosesSoftware && variant ? variant : null,
+      version: !pack && choosesVersion && version ? version : null,
       modpack: pack && modpackVersion ? { source: pack.source, project: pack.id, version: modpackVersion } : null,
       bedrock: bedrock && bedrockPossible,
       onlineMode,
@@ -509,11 +540,20 @@ function SetupForm({ onboarding }: { onboarding: Onboarding }) {
     },
   );
 
+  const changeStep = (next: number) => {
+    const left = steps[active]?.key;
+    if (next > active && canSoftware) {
+      if (left === 'software' && !offersModpacks) choose(softwarePick(false));
+      if (left === 'modpack') choose(softwarePick(true));
+    }
+    setActive(next);
+  };
+
   return (
     <Wizard
       steps={steps}
       active={active}
-      onActiveChange={setActive}
+      onActiveChange={changeStep}
       submitLabel={t(`${base}.finish`, {})}
       submitting={loading}
       onSubmit={submit}
@@ -531,8 +571,20 @@ export default function ServerMinecraftSetup() {
     return <Navigate to={`/server/${server.uuidShort}`} replace />;
   }
 
+  // the picked software being put in place while the rest is answered
+  const working = setupRunning(setup.data?.progress);
+
   return (
     <ServerContentContainer title={t(`${base}.title`, {})} subtitle={t(`${base}.subtitle`, {})}>
+      {setup.data && working && (
+        <Notification
+          className='theme-callout mb-6'
+          loading={setup.data.progress?.step !== 'ready'}
+          title={t(`${base}.progress.title`, {})}
+        >
+          <SetupProgress onboarding={setup.data} />
+        </Notification>
+      )}
       {setup.data ? <SetupForm onboarding={setup.data} /> : <Spinner.Centered />}
     </ServerContentContainer>
   );

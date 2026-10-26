@@ -6655,6 +6655,7 @@
               "waiting": "Menunggu server selesai diinstal…",
               "software": "Menginstal ulang server dengan software yang dipilih…",
               "modpack": "Menginstal modpack…",
+              "ready": "Software yang dipilih sudah terinstal. Selesaikan penyiapan dan sisanya akan diterapkan.",
               "settings": "Menulis pengaturan dan daftar pemain…",
               "bedrock": "Menyiapkan pemain Bedrock…",
               "starting": "Memulai server…",

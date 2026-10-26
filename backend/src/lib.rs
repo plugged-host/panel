@@ -774,6 +774,7 @@ pub async fn handle_startup() -> Result<
     shared::deleted_servers::register(); // plugged.host: docs/features/backups-page.md
     shared::backup_notifications::register(); // plugged.host: docs/features/server-settings.md
     shared::notifications::register(); // plugged.host: docs/features/notifications.md
+    shared::server_software::register(); // plugged.host: docs/features/minecraft.md#setup
     shared::limbo::register(); // plugged.host: docs/features/limbo.md
     shared::rux::register(); // plugged.host: docs/features/rux.md
     shared::allocations::register(); // plugged.host: docs/features/allocations.md

@@ -95,10 +95,16 @@ mod post {
             return err.response().ok();
         }
 
-        // The answers wait for the install, may reinstall, then start the server: the page polls.
-        let server = server.0;
+        // The answers wait for the software picked before (or now), then start the server: the
+        // page polls.
+        let server_uuid = server.uuid;
         tokio::spawn(async move {
-            let progress = shared::minecraft::onboarding::apply(&state, server, data.clone()).await;
+            let progress = shared::minecraft::onboarding::run_until_ended(
+                &state,
+                server_uuid,
+                std::time::Duration::from_secs(3 * 60 * 60),
+            )
+            .await;
 
             activity_logger
                 .log(
@@ -112,8 +118,8 @@ mod post {
                         "private": data.private,
                         "players": data.players.len(),
                         "operators": data.operators.len(),
-                        "step": progress.step,
-                        "error": progress.error,
+                        "step": progress.as_ref().map(|progress| progress.step),
+                        "error": progress.and_then(|progress| progress.error),
                     }),
                 )
                 .await;
@@ -125,8 +131,62 @@ mod post {
     }
 }
 
+mod software {
+    use axum::http::StatusCode;
+    use shared::{
+        ApiError, GetState,
+        minecraft::onboarding::SoftwarePick,
+        models::{server::GetServer, user::GetPermissionManager},
+        response::{ApiResponse, ApiResponseResult},
+    };
+
+    /// Puts the picked software (or modpack) in place at once, while the rest is still being
+    /// answered.
+    #[utoipa::path(put, path = "/software", responses(
+        (status = ACCEPTED, body = inline(serde_json::Value)),
+        (status = BAD_REQUEST, body = ApiError),
+        (status = UNAUTHORIZED, body = ApiError),
+        (status = NOT_FOUND, body = ApiError),
+        (status = CONFLICT, body = ApiError),
+    ), params(
+        (
+            "server" = uuid::Uuid,
+            description = "The server ID",
+            example = "123e4567-e89b-12d3-a456-426614174000",
+        ),
+    ), request_body = inline(SoftwarePick))]
+    pub async fn route(
+        state: GetState,
+        permissions: GetPermissionManager,
+        server: GetServer,
+        shared::Payload(data): shared::Payload<SoftwarePick>,
+    ) -> ApiResponseResult {
+        if let Err(errors) = shared::utils::validate_data(&data) {
+            return ApiResponse::new_serialized(ApiError::new_strings_value(errors))
+                .with_status(StatusCode::BAD_REQUEST)
+                .ok();
+        }
+
+        permissions.has_server_permission("minecraft.settings")?;
+        permissions.has_server_permission("settings.software")?;
+        if data.modpack.is_some() {
+            permissions.has_server_permission("minecraft.content")?;
+        }
+        shared::minecraft::require(&server)?;
+
+        if let Err(err) = shared::minecraft::onboarding::choose(&state, &server, &data).await {
+            return err.response().ok();
+        }
+
+        ApiResponse::new_serialized(serde_json::json!({}))
+            .with_status(StatusCode::ACCEPTED)
+            .ok()
+    }
+}
+
 pub fn router(state: &State) -> OpenApiRouter<State> {
     OpenApiRouter::new()
         .routes(routes!(get::route, post::route))
+        .routes(routes!(software::route))
         .with_state(state.clone())
 }

@@ -11955,6 +11955,7 @@
               "waiting": "Warte, bis die Installation des Servers fertig ist…",
               "software": "Der Server wird mit der gewählten Software neu installiert…",
               "modpack": "Das Modpack wird installiert…",
+              "ready": "Die gewählte Software ist installiert. Schließe die Einrichtung ab, dann wird der Rest übernommen.",
               "settings": "Einstellungen und Spielerlisten werden geschrieben…",
               "bedrock": "Bedrock-Spieler werden eingerichtet…",
               "starting": "Der Server wird gestartet…",

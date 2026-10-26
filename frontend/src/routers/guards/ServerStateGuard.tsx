@@ -106,6 +106,13 @@ export default function ServerStateGuard() {
     if (onSetup && (server.status === null || server.status === 'installing')) {
       return <Outlet />;
     }
+    // plugged.host: Plugins & Mods (read only) follows a modpack install through the reinstall it causes
+    if (
+      server.status === 'installing' &&
+      serverPaths.some((path) => location.pathname.startsWith(`${path}/minecraft/content`))
+    ) {
+      return <Outlet />;
+    }
   }
 
   // plugged.host: the Transfer page follows a move while it runs (docs/features/transfers.md)

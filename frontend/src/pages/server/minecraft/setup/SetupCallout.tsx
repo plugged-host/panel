@@ -3,12 +3,12 @@
 import { NavLink } from 'react-router';
 import Button from '@/elements/buttons/Button.tsx';
 import Notification from '@/elements/feedback/Notification.tsx';
-import Progress from '@/elements/feedback/Progress.tsx';
 import Stack from '@/elements/layout/Stack.tsx';
 import { useServerCan } from '@/plugins/usePermissions.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useServerStore } from '@/stores/server.ts';
 import { useDismissed } from '../useDismissed.ts';
+import SetupProgress from './SetupProgress.tsx';
 import { SETUP_PATH, setupRunning, useMinecraftSetup } from './useMinecraftSetup.ts';
 
 const base = 'pages.server.minecraft.setup';
@@ -49,14 +49,9 @@ export default function SetupCallout() {
   if (!progress) return null;
 
   if (setupRunning(progress)) {
-    const step = progress.step as Exclude<typeof progress.step, 'done' | 'failed'>;
-
     return (
       <Notification className='theme-callout mb-6' loading title={t(`${base}.progress.title`, {})}>
-        <Stack gap='xs'>
-          <span>{t(`${base}.progress.${step}`, {})}</span>
-          <Progress value={NaN} indeterminate />
-        </Stack>
+        <SetupProgress onboarding={setup.data} />
       </Notification>
     );
   }

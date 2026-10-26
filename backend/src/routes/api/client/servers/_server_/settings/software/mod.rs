@@ -80,6 +80,7 @@ mod post {
         (status = ACCEPTED, body = inline(Response)),
         (status = BAD_REQUEST, body = ApiError),
         (status = UNAUTHORIZED, body = ApiError),
+        (status = CONFLICT, body = ApiError),
     ), params(
         (
             "server" = uuid::Uuid,
@@ -107,6 +108,17 @@ mod post {
                 .with_status(StatusCode::BAD_REQUEST)
                 .ok();
         }
+
+        // not in the middle of a setup's or a modpack's switch and files
+        let Some(_lock) =
+            shared::server_software::lock(&state, server.uuid, std::time::Duration::ZERO).await
+        else {
+            return ApiResponse::error(
+                "the server's software is being changed, try again when it is done",
+            )
+            .with_status(StatusCode::CONFLICT)
+            .ok();
+        };
 
         match shared::server_software::switch(
             &state,

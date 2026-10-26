@@ -8536,6 +8536,7 @@
               "waiting": "En attente de la fin de l'installation du serveur…",
               "software": "Réinstallation du serveur avec le logiciel choisi…",
               "modpack": "Installation du modpack…",
+              "ready": "Le logiciel choisi est installé. Terminez la configuration et le reste sera appliqué.",
               "settings": "Écriture des paramètres et des listes de joueurs…",
               "bedrock": "Configuration des joueurs Bedrock…",
               "starting": "Démarrage du serveur…",

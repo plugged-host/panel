@@ -297,8 +297,31 @@ pub async fn switch(
 /// How long a reinstall may take before waiting for it gives up.
 pub const INSTALL_WAIT: std::time::Duration = std::time::Duration::from_secs(30 * 60);
 
+/// How often [`wait_for_install`] looks at the status itself, for an install whose end was
+/// reported to the other panel instance (this one is woken by [`register`]).
+const INSTALL_POLL: std::time::Duration = std::time::Duration::from_secs(2);
+
+/// Woken whenever a node reports an install over, so that whatever waits for one goes on the
+/// moment it ends instead of at its next look.
+static INSTALL_ENDED: std::sync::LazyLock<tokio::sync::Notify> =
+    std::sync::LazyLock::new(tokio::sync::Notify::new);
+
+/// Follows upstream's `InstallCompleted` (sent when a node reports an install over) for
+/// [`wait_for_install`].
+pub fn register() {
+    use crate::models::{EventEmittingModel, server::ServerEvent};
+
+    let _ = Server::register_event_handler(|_, event| async move {
+        if let ServerEvent::InstallCompleted { .. } = &*event {
+            INSTALL_ENDED.notify_waiters();
+        }
+
+        Ok(())
+    });
+}
+
 /// Waits until the server's install is over: `true` when it finished, `false` when it failed or
-/// outlasted `timeout`. Polls the server's status every 5 seconds.
+/// outlasted `timeout`. Wakes when a node reports an install over, else looks every 2 seconds.
 pub async fn wait_for_install(
     state: &crate::State,
     server_uuid: uuid::Uuid,
@@ -308,14 +331,42 @@ pub async fn wait_for_install(
 
     let deadline = tokio::time::Instant::now() + timeout;
     loop {
+        // made before the status is read, so an end reported in between still wakes it
+        let ended = INSTALL_ENDED.notified();
+
         match Server::by_uuid(&state.database, server_uuid).await?.status {
             Some(ServerStatus::Installing) if tokio::time::Instant::now() < deadline => {}
             Some(ServerStatus::Installing) | Some(ServerStatus::InstallFailed) => return Ok(false),
             _ => return Ok(true),
         }
 
-        tokio::time::sleep(std::time::Duration::from_secs(5)).await;
+        tokio::select! {
+            _ = ended => {}
+            _ = tokio::time::sleep(INSTALL_POLL) => {}
+        }
     }
+}
+
+/// How long the software lock is held at most: a first install, a reinstall and a pack's files.
+const LOCK_TTL: u64 = 3 * 60 * 60;
+
+/// The server's software lock, held while a setup or a modpack switches, reinstalls and fills
+/// the server, so that two of them never reinstall one server at once. `None` when someone else
+/// still holds it after `wait`.
+pub async fn lock(
+    state: &crate::State,
+    server_uuid: uuid::Uuid,
+    wait: std::time::Duration,
+) -> Option<crate::cache::CacheLock> {
+    state
+        .cache
+        .lock(
+            format!("server_software::{server_uuid}"),
+            Some(LOCK_TTL),
+            Some(wait.as_millis() as u64),
+        )
+        .await
+        .ok()
 }
 
 /// The variables a Minecraft egg pins a software build with, set back to `latest` with the

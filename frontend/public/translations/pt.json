@@ -6655,6 +6655,7 @@
               "waiting": "Esperando o servidor terminar a instalação…",
               "software": "Reinstalando o servidor com o software escolhido…",
               "modpack": "Instalando o modpack…",
+              "ready": "O software escolhido está instalado. Conclua a configuração e o resto será aplicado.",
               "settings": "Gravando as configurações e as listas de jogadores…",
               "bedrock": "Configurando o acesso Bedrock…",
               "starting": "Iniciando o servidor…",

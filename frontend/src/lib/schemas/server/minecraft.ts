@@ -344,6 +344,9 @@ export const minecraftModpackInstallSchema = z.object({
   loader: minecraftLoaderSchema.nullable(),
   error: z.string().nullable(),
   started: z.coerce.date(),
+  // plugged.host: bytes of the pack while downloading it, then of its files (totalBytes 0: unknown)
+  bytes: z.number().default(0),
+  totalBytes: z.number().default(0),
 });
 
 export const minecraftModpacksSchema = z.object({
@@ -359,6 +362,7 @@ export const minecraftOnboardingStepSchema = z.enum([
   'waiting',
   'software',
   'modpack',
+  'ready',
   'settings',
   'bedrock',
   'starting',
@@ -366,11 +370,21 @@ export const minecraftOnboardingStepSchema = z.enum([
   'failed',
 ]);
 
+export const minecraftOnboardingSoftwareSchema = z.object({
+  variant: z.string().nullable(),
+  version: z.string().nullable(),
+  modpack: z.object({ source: minecraftSourceSchema, project: z.string(), version: z.string() }).nullable(),
+});
+
 export const minecraftOnboardingProgressSchema = z.object({
   step: minecraftOnboardingStepSchema,
   error: z.string().nullable(),
   skipped: z.array(z.string()),
   started: z.coerce.date(),
+  software: minecraftOnboardingSoftwareSchema.nullable().default(null),
+  softwareDone: z.boolean().default(true),
+  problems: z.array(z.string()).default([]),
+  fatal: z.string().nullable().default(null),
 });
 
 export const minecraftOnboardingSchema = z.object({
@@ -381,4 +395,5 @@ export const minecraftOnboardingSchema = z.object({
   bedrockLoaders: z.array(minecraftLoaderSchema),
   bedrockNow: z.boolean(),
   modpackLoaders: z.record(z.string(), minecraftLoaderSchema),
+  modpack: minecraftModpackInstallSchema.nullable().default(null),
 });

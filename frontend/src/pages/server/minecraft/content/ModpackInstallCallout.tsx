@@ -2,34 +2,25 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef } from 'react';
 import Notification from '@/elements/feedback/Notification.tsx';
-import Progress from '@/elements/feedback/Progress.tsx';
 import Stack from '@/elements/layout/Stack.tsx';
 import { queryKeys } from '@/lib/queryKeys.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useServerStore } from '@/stores/server.ts';
 import { useDismissed } from '../useDismissed.ts';
-import { minecraftLoaderLabels } from './labels.ts';
+import ModpackProgress from './ModpackProgress.tsx';
 import { ModpackInstall, modpackInstalling, useModpacks } from './useModpacks.ts';
 
 const base = 'pages.server.minecraft.modpacks';
 
 function Running({ install }: { install: ModpackInstall }) {
   const { t } = useTranslations();
-  const files = install.step === 'files' && install.total > 0;
 
   return (
     <Notification className='theme-callout' loading title={t(`${base}.state.queuedHeading`, {})}>
       <Stack gap='xs'>
         <span>{t(`${base}.state.queued`, { name: install.name })}</span>
-        <span>
-          {t(`${base}.step.${install.step}`, {})}
-          {install.step === 'software' && install.loader && install.minecraft
-            ? ` ${t(`${base}.state.software`, { loader: minecraftLoaderLabels[install.loader], version: install.minecraft })}`
-            : ''}
-          {files ? ` ${install.files}/${install.total}` : ''}
-        </span>
-        <Progress value={files ? (install.files / install.total) * 100 : NaN} indeterminate={!files} />
+        <ModpackProgress install={install} />
       </Stack>
     </Notification>
   );
