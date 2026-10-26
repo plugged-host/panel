@@ -5852,13 +5852,13 @@ span.theme-neo-image {
 }
 
 /* =============================================================================
- * plugged.host: the server settings pages, Theme v2's settings page on the Pelican panel
+ * plugged.host: the server settings page, Theme v2's settings page on the Pelican panel
  * (server-form.blade.php ".phsf-*", settings/*.blade.php ".phset-*", the devbox's ".phdb-*").
  * docs/features/server-settings.md
  * ============================================================================= */
 
-/* The jump bar (".phsf-nav"): sticky on the modal surface, text items, Danger Zone red at the end.
-   Below 64rem it sticks under the sidebar's menu button (top 1rem, 2.75rem high). */
+/* The jump bar (".phsf-nav"): in-page links, sticky on the modal surface, text items, Danger Zone
+   red at the end. Below 64rem it sticks under the sidebar's menu button (top 1rem, 2.75rem high). */
 .theme-jump {
   position: sticky;
   inset-block-start: 4.25rem;
@@ -5914,6 +5914,18 @@ span.theme-neo-image {
 .theme-jump-item-danger:focus-visible,
 .theme-jump-item-danger.active {
   color: var(--mantine-color-red-4);
+}
+
+/* A section the bar scrolls to stops a section gap (1.5rem) under the bar, not behind it: the bar's
+   top plus its 3.25rem height plus the gap. */
+.theme-jump-target {
+  scroll-margin-block-start: 9rem;
+}
+
+@media (min-width: 64rem) {
+  .theme-jump-target {
+    scroll-margin-block-start: 5.25rem;
+  }
 }
 
 /* Filament's section description and footer (TitleCard's `description` and `footer`). */

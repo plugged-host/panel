@@ -26,7 +26,7 @@ export default function WelcomeTourServer() {
   const canFiles = useServerCan('files.read');
   const canBackups = useServerCan('backups.read');
   // the Settings row's permissions (routers/routes/serverRoutes.ts)
-  const canSettings = useServerCan(['settings.*', 'files.sftp', 'startup.read', 'devbox.connect', 'backups.read']);
+  const canSettings = useServerCan(['settings.*', 'files.sftp', 'backups.read']);
 
   // the setup step is in the count from the start, so wait for whether the guide is waiting
   if (!tour?.serverActive || setup.isLoading) {

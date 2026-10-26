@@ -1,35 +1,47 @@
 # Server settings for players
 
-A server's settings look like the Pelican panel's settings page: the title "Settings" with a gray
-**Delete Server** in the header, a sticky jump bar, then full-width sections in one column. Pelican
-has one long page; here each jump-bar item is a page of its own, and the bar (`ServerSettingsNav`)
-links them. Startup and VS Code left the sidebar for the bar, as on the Pelican panel; the
-sidebar's Settings row stays active on them (`activeMatches`). Settings shows for anyone holding one
-of its pages' permissions.
+A server's settings are one page, as on the Pelican panel's settings page: the title "Settings"
+with a gray **Delete Server** in the header, a sticky jump bar, then full-width sections in one
+column in Pelican's order. Settings shows in the sidebar for anyone holding one of its sections'
+permissions (`settings.*`, `files.sftp` or `backups.read`). **Startup** and **VS Code** are pages
+of their own with their own sidebar rows, like every other server page.
 
-| Bar item | Page | Permission | Shown when |
+| Section | Anchor | Permission | Shown when |
 |---|---|---|---|
-| Server Information | `/settings` | any of Settings' | always: the icon (`settings.change-icon` to change it), name and description (saved on leaving the field, `settings.rename`), UUID, identifier, node, and the limits when the viewer cannot resize |
-| SFTP Information | `/settings/sftp` | `files.sftp` | always |
-| VS Code | `/devbox` | `devbox.connect` | devboxes are on ([devboxes.md](devboxes.md)) |
-| Resources | `/settings/resources` | `settings.resize` | Admin › Settings › Hosting › Games › "Players Resize Servers" is on, or the viewer is an admin |
-| Startup | `/startup` | `startup.read` | always (Pelican's "Startup command" section) |
-| Version | `/settings/version` | `settings.software` | the server's egg is a game in the catalog with at least two software choices, or a Minecraft egg with a version variable |
-| Behaviour | `/settings/behaviour` | `settings.auto-kill`, `.auto-start`, `.timezone` or `.trash` | Calagopus' own auto-start, timezone, auto-kill and trash settings as one section (Pelican has none of them; [below](#behaviour)) |
-| Notifications | `/settings/notifications` | `backups.read` | always |
-| Danger Zone | `/settings/danger` | `settings.install` or `settings.delete` | Reinstall, and Delete Server when deleting is allowed (below) |
+| Server Information | `#general` | any of Settings' | always: the icon (`settings.change-icon` to change it), name and description (saved on leaving the field, `settings.rename`), UUID, identifier, node, and the limits when the viewer cannot resize |
+| SFTP Information | `#sftp` | `files.sftp` | always |
+| Resources | `#resources` | `settings.resize` | Admin › Settings › Hosting › Games › "Players Resize Servers" is on, or the viewer is an admin |
+| Version | `#version` | `settings.software` | the server's egg is a game in the catalog with at least two software choices, or a Minecraft egg with a version variable |
+| Behaviour | `#behaviour` | `settings.auto-kill`, `.auto-start`, `.timezone` or `.trash` | Calagopus' own auto-start, timezone, auto-kill and trash settings as one section (Pelican has none of them; [below](#behaviour)); the trash only where Admin › Settings lets servers change it |
+| Notifications | `#notifications` | `backups.read` | always |
+| Danger Zone | `#danger` | `settings.install` or `settings.delete` | Reinstall, and Delete Server when deleting is allowed (below) |
 
-Every page is one section, as every jump-bar item is one section on the Pelican panel: a
-`TitleCard` (Filament's section: the heading without an icon, its description, the content, a
-footer with the section's one action at the end; `description`, `footer`, `danger` props). Inside,
-Filament's spacing: fields 1.5 rem apart (`flex flex-col gap-6`), side by side in
-`grid gap-6` columns where Pelican's section has columns, helper text under the field. A section
-whose fields save on their own (Server Information, Startup, Notifications) has no button; one with
-a Save has it in the footer, filled once per page (Resources, Behaviour), gray where it reinstalls
-or deletes (Version, Danger Zone) with the red in the confirmation. A section whose data still loads
-shows its heading with a spinner. The label/value rows are `elements/SettingRows.tsx`; the styles
-are the `.theme-jump*`, `.theme-section-*`, `.theme-setting-*` and `.theme-field-*` block of
-`app.css`, the plan cards `.theme-choice*` (as on Create Server).
+The page is `pages/server/settings/ServerSettings.tsx`; which sections a person gets is
+`useSettingsSections.ts`, shared by the page, the bar and the sections. The page waits for the two
+answers that decide Resources and Version (`GET …/settings/resize`, `…/settings/software`) before
+it shows its sections, so nothing moves when they arrive.
+
+The jump bar (`ServerSettingsNav.tsx`, Pelican's `.phsf-nav`) holds in-page links to the sections
+shown, Danger Zone red at its end. As on the Pelican panel it marks the section in view while the
+page scrolls (the first one near the top, the last one at the end). A link sets the address to
+`/settings#<anchor>` and scrolls the section to just under the bar (`.theme-jump-target`'s
+`scroll-margin`); an address with an anchor does the same when the page opens, and keeps the
+section there for three seconds while sections above it still load (Notifications loads its own
+switches), until the reader scrolls. The old addresses of the sections, from when each was a page
+of its own (`/settings/sftp`, `/settings/resources`, `/settings/version`, `/settings/behaviour`,
+`/settings/notifications`, `/settings/danger`), redirect to `/settings#<anchor>`
+(`ServerSettingsRedirect.tsx`).
+
+Every section is a `TitleCard` (Filament's section: the heading without an icon, its description,
+the content, a footer with the section's one action at the end; `description`, `footer`, `danger`,
+`id` props), 1.5 rem apart. Inside, Filament's spacing: fields 1.5 rem apart
+(`flex flex-col gap-6`), side by side in `grid gap-6` columns where Pelican's section has columns,
+helper text under the field. A section whose fields save on their own (Server Information,
+Notifications) has no button; one with a Save has it in the footer, filled, one per section
+(Resources, Behaviour), gray where it reinstalls or deletes (Version, Danger Zone) with the red in
+the confirmation. The label/value rows are `elements/SettingRows.tsx`; the styles are the
+`.theme-jump*`, `.theme-section-*`, `.theme-setting-*` and `.theme-field-*` block of `app.css`, the
+plan cards `.theme-choice*` (as on Create Server).
 
 ## Server Information
 
@@ -122,8 +134,9 @@ The activity log gets `server:settings.software` with the variant and the versio
 
 ## Startup
 
-`/startup` is upstream's route with a page of ours (`ServerSettingsStartup.tsx`; upstream's
-`ServerStartup.tsx` stays unused): the command in a well with a copy button, the startup command
+`/startup` is upstream's route and sidebar row (`startup.read`) with a page of ours
+(`ServerSettingsStartup.tsx`; upstream's `ServerStartup.tsx` stays unused), titled "Startup" with
+Pelican's "Startup command" section: the command in a well with a copy button, the startup command
 (the egg's list, "Custom" where the egg allows commands of its own, which opens the command for
 editing) and the Docker image side by side, then **Server Variables**. Each field saves on its own
 when it loses focus, switches and lists when they change ("Updated: <variable>"), like Pelican's
@@ -234,9 +247,14 @@ changes.
 ## Check
 
 - Admin › Settings › Hosting › Games: turn "Players Resize Servers" and "Players Delete Servers" on.
-- As the owner of a server: Settings shows the jump bar with every item; it sticks while scrolling,
-  marks the current page, and Danger Zone sits red at its end. The sidebar keeps Settings active on
-  Startup and VS Code.
+- As the owner of a server: Settings is one page with every section under each other, no sub-pages.
+  The jump bar sticks while scrolling and marks the section in view; a click on an item scrolls to
+  its section, just under the bar, and the address ends in `#<anchor>`. Danger Zone sits red at the
+  bar's end and is the last section. Startup and VS Code (devboxes on) are rows of their own in the
+  sidebar, each active on its own page.
+- Open `/server/<id>/settings/resources` (and `sftp`, `version`, `behaviour`, `notifications`,
+  `danger`): it lands on `/settings#resources` with that section under the bar, also on a fresh
+  load. `/settings#danger` opens at the end of the page.
 - Server Information: change the name, click elsewhere: "Updated Server Name". The copy icons turn
   green for 2 s.
 - Server icon: on a server whose game has an icon (Admin › Settings › Hosting › Games), the game's
@@ -268,4 +286,5 @@ changes.
   with Wings still down too. A
   subuser with neither `settings.install` nor `settings.delete` sees only the banner. A server whose
   install failed shows Delete Server on its block screen.
-- As a subuser with only `startup.read`: Settings shows Server Information (read-only) and Startup.
+- As a subuser with only `startup.read`: the sidebar has Startup and no Settings. With only
+  `backups.read`: Settings shows Server Information (read-only) and Notifications.

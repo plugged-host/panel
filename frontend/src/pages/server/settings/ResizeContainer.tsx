@@ -15,7 +15,7 @@ import { serverSettingsResizeSchema } from '@/lib/schemas/server/settings.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useServerStore } from '@/stores/server.ts';
-import { useResizeOptions } from './useSettingsSections.ts';
+import { sectionAnchor, useResizeOptions } from './useSettingsSections.ts';
 
 type Values = z.infer<typeof serverSettingsResizeSchema>;
 type Field = keyof Values;
@@ -51,9 +51,13 @@ export default function ResizeContainer() {
   }, [options]);
 
   if (!options || !usable) {
-    // the section is there while its plans load, as on the other settings pages
+    // the section stays while its plans load again (the page waits for the first answer itself)
     return resource.loading ? (
-      <TitleCard title={t(`${base}.title`, {})} description={t(`${base}.description`, {})}>
+      <TitleCard
+        {...sectionAnchor('resources')}
+        title={t(`${base}.title`, {})}
+        description={t(`${base}.description`, {})}
+      >
         <Spinner.Centered />
       </TitleCard>
     ) : null;
@@ -141,6 +145,7 @@ export default function ResizeContainer() {
 
   return (
     <TitleCard
+      {...sectionAnchor('resources')}
       title={t(`${base}.title`, {})}
       description={t(`${base}.description`, {})}
       footer={

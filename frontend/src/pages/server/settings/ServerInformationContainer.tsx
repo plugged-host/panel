@@ -25,7 +25,7 @@ import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useServerStore } from '@/stores/server.ts';
 import ServerIconModal from './modals/ServerIconModal.tsx';
-import { useResizeOptions } from './useSettingsSections.ts';
+import { sectionAnchor, useResizeOptions } from './useSettingsSections.ts';
 
 const base = 'pages.server.settings.general';
 
@@ -180,7 +180,7 @@ export default function ServerInformationContainer() {
   };
 
   return (
-    <TitleCard title={t(`${base}.title`, {})}>
+    <TitleCard {...sectionAnchor('general')} title={t(`${base}.title`, {})}>
       <div className='theme-server-info' data-icon={withIcon || undefined}>
         {withIcon && <IconColumn />}
 

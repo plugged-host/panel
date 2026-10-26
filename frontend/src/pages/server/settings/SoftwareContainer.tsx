@@ -15,7 +15,7 @@ import { queryKeys } from '@/lib/queryKeys.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useServerStore } from '@/stores/server.ts';
-import { useSoftwareOptions } from './useSettingsSections.ts';
+import { sectionAnchor, useSoftwareOptions } from './useSettingsSections.ts';
 
 const LATEST = 'latest';
 // Filament's helper text sits under the field
@@ -53,9 +53,13 @@ export default function SoftwareContainer() {
   });
 
   if (!software || !usable) {
-    // the section is there while its choices load, as on the other settings pages
+    // the section stays while its choices load again (the page waits for the first answer itself)
     return resource.loading ? (
-      <TitleCard title={t(`${base}.title`, {})} description={t(`${base}.description`, {})}>
+      <TitleCard
+        {...sectionAnchor('version')}
+        title={t(`${base}.title`, {})}
+        description={t(`${base}.description`, {})}
+      >
         <Spinner.Centered />
       </TitleCard>
     ) : null;
@@ -88,6 +92,7 @@ export default function SoftwareContainer() {
 
   return (
     <TitleCard
+      {...sectionAnchor('version')}
       title={t(`${base}.title`, {})}
       description={t(`${base}.description`, {})}
       footer={

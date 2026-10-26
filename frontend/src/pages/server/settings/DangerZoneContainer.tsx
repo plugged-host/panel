@@ -8,7 +8,7 @@ import { useServerCan } from '@/plugins/usePermissions.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import DeleteServerModal from './modals/DeleteServerModal.tsx';
 import SettingsReinstallModal from './modals/SettingsReinstallModal.tsx';
-import { useCanDeleteServer } from './useSettingsSections.ts';
+import { sectionAnchor, useCanDeleteServer } from './useSettingsSections.ts';
 
 const base = 'pages.server.settings';
 
@@ -24,6 +24,7 @@ export default function DangerZoneContainer() {
 
   return (
     <TitleCard
+      {...sectionAnchor('danger')}
       danger
       title={t(`${base}.danger.title`, {})}
       footer={

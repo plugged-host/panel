@@ -54,17 +54,7 @@ const ServerQueue = lazy(() => import('@/pages/server/queue/ServerQueue.tsx')); 
 const ScheduleView = lazy(() => import('@/pages/server/schedules/ScheduleView.tsx'));
 const ServerSchedules = lazy(() => import('@/pages/server/schedules/ServerSchedules.tsx'));
 const ServerSettings = lazy(() => import('@/pages/server/settings/ServerSettings.tsx'));
-
-// plugged.host: one page per item of the settings jump bar (docs/features/server-settings.md)
-import {
-  ServerSettingsBehaviour,
-  ServerSettingsDanger,
-  ServerSettingsNotifications,
-  ServerSettingsResources,
-  ServerSettingsSftp,
-  ServerSettingsVersion,
-} from '@/pages/server/settings/ServerSettingsPages.tsx';
-
+const ServerSettingsRedirect = lazy(() => import('@/pages/server/settings/ServerSettingsRedirect.tsx')); // plugged.host
 const ServerSettingsStartup = lazy(() => import('@/pages/server/settings/ServerSettingsStartup.tsx')); // plugged.host: replaces ServerStartup
 const ServerSubdomains = lazy(() => import('@/pages/server/subdomains/ServerSubdomains.tsx')); // plugged.host
 const ServerSubusers = lazy(() => import('@/pages/server/subusers/ServerSubusers.tsx'));
@@ -78,6 +68,10 @@ const ServerConsole = lazy(() => import('@/pages/server/console/ServerConsole.ts
 const PopoutConsole = lazy(() => import('@/pages/server/console/PopoutConsole.tsx'));
 const ServerFilesEditor = lazy(() => import('@/pages/server/files/editor/FileEditor.tsx'));
 const FileRevisionDiff = lazy(() => import('@/pages/server/files/editor/FileRevisionDiff.tsx'));
+
+// plugged.host: everyone with one of its sections sees Settings, as on the Pelican panel (Startup and
+// VS Code are pages of their own)
+const SETTINGS_PERMISSIONS = ['settings.*', 'files.sftp', 'backups.read'];
 
 // plugged.host: no managed database instances, firewall, private network, mounts or devices
 // (docs/upstream.md)
@@ -282,10 +276,9 @@ const routes: ServerRouteDefinition[] = [
     permission: 'subdomains.read',
     filter: () => !!useGlobalStore.getState().settings.games?.subdomainsEnabled,
   },
-  // plugged.host: a devbox with the server's files (docs/features/devboxes.md); a settings page,
-  // reached through the jump bar like on the Pelican panel
+  // plugged.host: a devbox with the server's files (docs/features/devboxes.md)
   {
-    name: undefined,
+    name: () => getTranslations().t('pages.server.devbox.title', {}),
     icon: faCode,
     path: '/devbox',
     element: ServerDevbox,
@@ -293,7 +286,7 @@ const routes: ServerRouteDefinition[] = [
     filter: () => !!useGlobalStore.getState().settings.games?.devboxesEnabled,
   },
   {
-    name: undefined, // plugged.host: a settings page, reached through the jump bar like on the Pelican panel
+    name: () => getTranslations().t('pages.server.startup.title', {}),
     icon: faPlay,
     path: '/startup',
     element: ServerSettingsStartup, // plugged.host: the Pelican panel's "Startup command" section
@@ -303,49 +296,17 @@ const routes: ServerRouteDefinition[] = [
     name: () => getTranslations().t('pages.server.settings.title', {}),
     icon: faCog,
     path: '/settings',
-    // plugged.host: the jump bar's pages outside /settings keep the Settings row active
-    activeMatches: ['/server/:id/startup', '/server/:id/devbox'],
     element: ServerSettings,
-    // plugged.host: everyone with one of its pages sees Settings, as on the Pelican panel
-    permission: ['settings.*', 'files.sftp', 'startup.read', 'devbox.connect', 'backups.read'],
+    permission: SETTINGS_PERMISSIONS, // plugged.host
   },
-  // plugged.host: the settings pages behind the jump bar (docs/features/server-settings.md)
-  {
+  // plugged.host: the old settings pages, sections of the one Settings page now; their addresses
+  // land on the section (/settings#sftp; docs/features/server-settings.md)
+  ...['sftp', 'resources', 'version', 'behaviour', 'notifications', 'danger'].map((section) => ({
     name: undefined,
-    path: '/settings/sftp',
-    element: ServerSettingsSftp,
-    permission: 'files.sftp',
-  },
-  {
-    name: undefined,
-    path: '/settings/resources',
-    element: ServerSettingsResources,
-    permission: 'settings.resize',
-  },
-  {
-    name: undefined,
-    path: '/settings/version',
-    element: ServerSettingsVersion,
-    permission: 'settings.software',
-  },
-  {
-    name: undefined,
-    path: '/settings/behaviour',
-    element: ServerSettingsBehaviour,
-    permission: ['settings.auto-kill', 'settings.auto-start', 'settings.timezone', 'settings.trash'],
-  },
-  {
-    name: undefined,
-    path: '/settings/notifications',
-    element: ServerSettingsNotifications,
-    permission: 'backups.read',
-  },
-  {
-    name: undefined,
-    path: '/settings/danger',
-    element: ServerSettingsDanger,
-    permission: ['settings.install', 'settings.delete'],
-  },
+    path: `/settings/${section}`,
+    element: ServerSettingsRedirect,
+    permission: SETTINGS_PERMISSIONS,
+  })),
   // plugged.host: players moving their server (docs/features/transfers.md)
   {
     name: () => getTranslations().t('pages.server.transfer.title', {}),

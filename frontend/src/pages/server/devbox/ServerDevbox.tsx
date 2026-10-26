@@ -1,6 +1,6 @@
-// plugged.host: the server's VS Code page: a devbox with the server's files, as the Pelican panel's
-// "VS Code" settings section (plugged-host-devbox's open-in-vscode.blade.php): label/value rows,
-// one filled button (docs/features/devboxes.md)
+// plugged.host: the server's VS Code page, a page of its own in the sidebar: a devbox with the server's
+// files, with the Pelican panel's "VS Code" settings section in it (plugged-host-devbox's
+// open-in-vscode.blade.php): label/value rows, one filled button (docs/features/devboxes.md)
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { z } from 'zod';
@@ -11,7 +11,8 @@ import startDevbox from '@/api/server/devbox/startDevbox.ts';
 import stopDevbox from '@/api/server/devbox/stopDevbox.ts';
 import updateSharedDevbox from '@/api/server/devbox/updateSharedDevbox.ts';
 import Button from '@/elements/buttons/Button.tsx';
-import TitleCard from '@/elements/data-display/TitleCard.tsx';
+import ServerContentContainer from '@/elements/containers/ServerContentContainer.tsx';
+import Card from '@/elements/data-display/Card.tsx';
 import Checkbox from '@/elements/input/Checkbox.tsx';
 import Group from '@/elements/layout/Group.tsx';
 import ConfirmationModal from '@/elements/modals/ConfirmationModal.tsx';
@@ -21,7 +22,6 @@ import Text from '@/elements/typography/Text.tsx';
 import { tierName } from '@/lib/economy.ts';
 import { queryKeys } from '@/lib/queryKeys.ts';
 import { serverDevboxSchema, serverDevboxSharedRightsSchema } from '@/lib/schemas/server/devbox.ts';
-import ServerSettingsShell from '@/pages/server/settings/ServerSettingsShell.tsx';
 import { useResource } from '@/plugins/resource/useResource.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
@@ -282,12 +282,15 @@ export default function ServerDevbox() {
   }, [resource.data?.polling]);
 
   return (
-    <ServerSettingsShell>
-      <TitleCard title={t(`${page}.title`, {})} description={t(`${page}.description`, {})}>
-        <ResourceView resource={resource}>
-          {(devbox) => <DevboxRows devbox={devbox} refresh={() => resource.invalidate()} />}
-        </ResourceView>
-      </TitleCard>
-    </ServerSettingsShell>
+    <ServerContentContainer title={t(`${page}.title`, {})} subtitle={t(`${page}.description`, {})}>
+      {/* the section's body as TitleCard draws it; the page's title is its heading */}
+      <Card p={0}>
+        <div className='p-4 md:p-6'>
+          <ResourceView resource={resource}>
+            {(devbox) => <DevboxRows devbox={devbox} refresh={() => resource.invalidate()} />}
+          </ResourceView>
+        </div>
+      </Card>
+    </ServerContentContainer>
   );
 }

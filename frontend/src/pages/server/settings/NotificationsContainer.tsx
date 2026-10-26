@@ -15,6 +15,7 @@ import { useResource } from '@/plugins/resource/useResource.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useServerStore } from '@/stores/server.ts';
+import { sectionAnchor } from './useSettingsSections.ts';
 
 type Notifications = z.infer<typeof serverSettingsNotificationsSchema>;
 
@@ -52,7 +53,7 @@ export default function NotificationsContainer() {
   };
 
   return (
-    <TitleCard title={t(`${base}.title`, {})}>
+    <TitleCard {...sectionAnchor('notifications')} title={t(`${base}.title`, {})}>
       <ResourceView resource={resource}>
         {(stored) => {
           const notifications = saved ?? stored;

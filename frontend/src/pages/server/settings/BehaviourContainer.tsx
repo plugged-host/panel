@@ -1,7 +1,7 @@
-// plugged.host: the Behaviour page as one section of the Pelican panel's settings page: Calagopus' own
-// auto-start, timezone, auto-kill and trash settings (Pelican has none of them) laid out like its
-// Resources section, fields in Filament's grid and a toggle with the fields it opens under it, and
-// one Save in the section's footer that sends only the parts that changed, each to its own route
+// plugged.host: the settings page's Behaviour section: Calagopus' own auto-start, timezone, auto-kill
+// and trash settings (Pelican has none of them) laid out like the Pelican panel's Resources section,
+// fields in Filament's grid and a toggle with the fields it opens under it, and one Save in the
+// section's footer that sends only the parts that changed, each to its own route
 // (docs/features/server-settings.md)
 import { useForm } from '@mantine/form';
 import { zod4Resolver } from 'mantine-form-zod-resolver';
@@ -34,6 +34,7 @@ import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useGlobalStore } from '@/stores/global.ts';
 import { useServerStore } from '@/stores/server.ts';
+import { sectionAnchor } from './useSettingsSections.ts';
 
 const base = 'pages.server.settings';
 // Filament's helper text sits under the field
@@ -187,6 +188,7 @@ export default function BehaviourContainer() {
   return (
     <form onSubmit={save}>
       <TitleCard
+        {...sectionAnchor('behaviour')}
         title={t(`${base}.nav.behaviour`, {})}
         footer={
           <Button type='submit' loading={saving} disabled={changed.length === 0 || !valid}>

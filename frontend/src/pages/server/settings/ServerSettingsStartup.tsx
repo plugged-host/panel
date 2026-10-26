@@ -1,7 +1,7 @@
-// plugged.host: the server's Startup page as the Pelican panel's "Startup command" section
-// (ServerSettings::startupSections, settings/startup-command.blade.php): the command in a well
-// ("Enable Preview" fills its values in), the startup command and Docker image side by side, then
-// the server variables, each saved on its own. Replaces upstream's
+// plugged.host: the server's Startup page, a page of its own in the sidebar, with the Pelican panel's
+// "Startup command" section (ServerSettings::startupSections, settings/startup-command.blade.php):
+// the command in a well ("Enable Preview" fills its values in), the startup command and Docker image
+// side by side, then the server variables, each saved on its own. Replaces upstream's
 // pages/server/startup/ServerStartup.tsx on /startup (docs/features/server-settings.md)
 import classNames from 'classnames';
 import { ReactNode, useEffect, useState } from 'react';
@@ -12,6 +12,7 @@ import getVariables from '@/api/server/startup/getVariables.ts';
 import updateCommand from '@/api/server/startup/updateCommand.ts';
 import updateDockerImage from '@/api/server/startup/updateDockerImage.ts';
 import updateVariables from '@/api/server/startup/updateVariables.ts';
+import ServerContentContainer from '@/elements/containers/ServerContentContainer.tsx';
 import TitleCard from '@/elements/data-display/TitleCard.tsx';
 import ErrorState from '@/elements/feedback/ErrorState.tsx';
 import Spinner from '@/elements/feedback/Spinner.tsx';
@@ -27,7 +28,6 @@ import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { trackActivity } from '@/stores/activity.ts';
 import { useGlobalStore } from '@/stores/global.ts';
 import { useServerStore } from '@/stores/server.ts';
-import ServerSettingsShell from './ServerSettingsShell.tsx';
 import StartupVariableField from './StartupVariableField.tsx';
 
 const base = 'pages.server.settings.startup';
@@ -265,11 +265,14 @@ export default function ServerSettingsStartup() {
   const { t } = useTranslations();
 
   return (
-    <ServerSettingsShell registry={window.extensionContext.extensionRegistry.pages.server.startup.container}>
+    <ServerContentContainer
+      title={t('pages.server.startup.title', {})}
+      registry={window.extensionContext.extensionRegistry.pages.server.startup.container}
+    >
       <TitleCard title={t(`${base}.title`, {})}>
         <StartupCommand />
         <StartupVariables />
       </TitleCard>
-    </ServerSettingsShell>
+    </ServerContentContainer>
   );
 }

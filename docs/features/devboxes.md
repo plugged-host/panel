@@ -3,9 +3,10 @@
 A devbox is a small Linux box next to a game server, with the game server's files at `/server`.
 People open it in VS Code over SSH (Remote - SSH) or, when the browser edge is set up, as VS Code
 in the browser. Inside, `ph` shows the game server's state and console and sends power actions.
-Players find it on the server's **VS Code** page, a settings page reached through the jump bar like
-the Pelican panel's VS Code section ([server-settings.md](server-settings.md)). In
-`shared/src/devboxes/`, the image in `docker/devbox/`.
+Players find it on the server's **VS Code** page, a row of its own in the server's sidebar
+(`devbox.connect`, while devboxes are on), with the Pelican panel's VS Code section on it: the
+page's title, the section's description under it, then its rows. In `shared/src/devboxes/`, the
+image in `docker/devbox/`.
 
 ## What a devbox is
 

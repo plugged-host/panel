@@ -1,5 +1,5 @@
-// plugged.host: which of the server's settings pages a person gets, shared by the jump bar and the
-// pages themselves (docs/features/server-settings.md)
+// plugged.host: which sections of the server's settings page a person gets, shared by the page, its
+// jump bar and the sections themselves (docs/features/server-settings.md)
 import getServerResize from '@/api/server/settings/getServerResize.ts';
 import getServerSoftware from '@/api/server/settings/getServerSoftware.ts';
 import { queryKeys } from '@/lib/queryKeys.ts';
@@ -9,12 +9,14 @@ import { useAuth } from '@/providers/AuthProvider.tsx';
 import { useGlobalStore } from '@/stores/global.ts';
 import { useServerStore } from '@/stores/server.ts';
 
-export const BEHAVIOUR_PERMISSIONS = [
-  'settings.auto-kill',
-  'settings.auto-start',
-  'settings.timezone',
-  'settings.trash',
-];
+// the page's sections by their anchor (/settings#sftp), the Pelican panel's section ids
+// (server-form.blade.php); Behaviour is ours
+export type SettingsSection = 'general' | 'sftp' | 'resources' | 'version' | 'behaviour' | 'notifications' | 'danger';
+
+// a section's TitleCard props: its anchor, and the class that stops it below the sticky jump bar
+export function sectionAnchor(id: SettingsSection) {
+  return { id, className: 'theme-jump-target' };
+}
 
 // what the server may be resized to; `usable` once the person may resize it
 export function useResizeOptions() {
@@ -49,6 +51,16 @@ export function useSoftwareOptions() {
   const usable = canSwitch && !!software && (software.variants.length >= 2 || software.version !== null);
 
   return { resource, usable };
+}
+
+// whether Behaviour has a part for the person: auto-start, timezone, auto-kill, or the trash where the
+// panel lets servers change it (BehaviourContainer.tsx)
+export function useBehaviourShown() {
+  const allowChangingTrashSettings = useGlobalStore((state) => state.settings.server.allowChangingTrashSettings);
+  const canOther = useServerCan(['settings.auto-kill', 'settings.auto-start', 'settings.timezone']);
+  const canTrash = useServerCan('settings.trash');
+
+  return canOther || (canTrash && allowChangingTrashSettings);
 }
 
 // deleting needs the permission and a panel that lets players delete their servers (admins always may)

@@ -8,6 +8,7 @@ import { useAuth } from '@/providers/AuthProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useGlobalStore } from '@/stores/global.ts';
 import { useServerStore } from '@/stores/server.ts';
+import { sectionAnchor } from './useSettingsSections.ts';
 
 const base = 'pages.server.settings.sftp';
 
@@ -25,7 +26,7 @@ export default function SftpContainer() {
   const accountPassword = password === 'noprofit' || (password === 'panel' && passwordLoginEnabled);
 
   return (
-    <TitleCard title={t(`${base}.title`, {})} description={t(`${base}.description`, {})}>
+    <TitleCard {...sectionAnchor('sftp')} title={t(`${base}.title`, {})} description={t(`${base}.description`, {})}>
       <SettingRows>
         <SettingRow
           label={t(`${base}.connection`, {})}
