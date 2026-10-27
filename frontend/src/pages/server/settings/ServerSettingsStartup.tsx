@@ -263,7 +263,7 @@ function StartupVariables() {
       ) : variables.length === 0 ? (
         <p className='theme-setting-note'>{t('pages.server.startup.empty.description', {})}</p>
       ) : (
-        <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
+        <div className='theme-startup-variables grid grid-cols-1 gap-x-6 gap-y-8 lg:grid-cols-2'>
           {variables.map((variable) => (
             <StartupVariableField
               key={variable.envVariable}
