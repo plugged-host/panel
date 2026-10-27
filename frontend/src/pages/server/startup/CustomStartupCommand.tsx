@@ -8,6 +8,7 @@ import TextArea from '@/elements/input/TextArea.tsx';
 import { toCamelCase } from '@/lib/serialization/transformers.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
+import { useGlobalStore } from '@/stores/global.ts';
 import { useServerStore } from '@/stores/server.ts';
 
 const base = 'pages.server.settings.startup';
@@ -61,6 +62,9 @@ export default function CustomStartupCommand({ command, onChange, action }: Prop
   const { addToast } = useToast();
   const server = useServerStore((state) => state.server);
   const updateServer = useServerStore((state) => state.updateServer);
+  const neoEnabled = useGlobalStore((state) => state.settings.neo.enabled);
+  // neo always tunes a Minecraft Java server's or proxy's command (smooth game, least memory and CPU)
+  const tunable = neoEnabled && (server.egg.minecraft === 'java' || server.egg.minecraft === 'proxy');
 
   const [checking, setChecking] = useState(false);
   const [result, setResult] = useState<CustomCommandResult | null>(null);
@@ -72,8 +76,11 @@ export default function CustomStartupCommand({ command, onChange, action }: Prop
     applyCustomCommand(server.uuid, command)
       .then((answer) => {
         if (answer.applied) {
+          const applied = answer.command ?? command;
           addToast(t(`${base}.check.applied`, {}), 'success');
-          updateServer({ startup: command });
+          updateServer({ startup: applied });
+          onChange(applied);
+          if (answer.verdict?.optimized) setResult(answer);
         } else {
           setResult(answer);
         }
@@ -93,6 +100,7 @@ export default function CustomStartupCommand({ command, onChange, action }: Prop
   const refusal = result?.refusal;
   const problems = result?.verdict?.problems ?? [];
   const summary = result?.verdict?.summary;
+  const optimizations = result?.applied ? (result.verdict?.optimizations ?? []) : [];
 
   return (
     <div className='mt-6'>
@@ -111,12 +119,25 @@ export default function CustomStartupCommand({ command, onChange, action }: Prop
         />
         {action}
       </div>
+      {tunable && <p className='theme-setting-note mt-2'>{t(`${base}.check.tuneNote`, {})}</p>}
 
       <div className='mt-4'>
         <Button loading={checking} disabled={!command.trim() || command === server.startup} onClick={apply}>
           {t(`${base}.check.button`, {})}
         </Button>
       </div>
+
+      {result?.applied && result.verdict?.optimized && (
+        <Alert color='blue' title={t(`${base}.check.optimized`, {})} className='mt-4'>
+          {optimizations.length > 0 && (
+            <ul className='list-disc ps-5'>
+              {optimizations.map((note, index) => (
+                <li key={`${index}-${note}`}>{note}</li>
+              ))}
+            </ul>
+          )}
+        </Alert>
+      )}
 
       {refusal && (
         <Alert color='red' title={t(`${base}.check.refused`, {})} className='mt-4'>

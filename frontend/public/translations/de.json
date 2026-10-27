@@ -11127,6 +11127,8 @@
               "button": "Prüfen & übernehmen",
               "applied": "Startbefehl geprüft und übernommen. Starte den Server neu, um ihn zu nutzen.",
               "refused": "Nicht übernommen",
+              "tuneNote": "Auf einem Minecraft-Server optimiert neo den Befehl außerdem für ein flüssiges Spiel mit möglichst wenig Arbeitsspeicher und CPU und behält deine übrigen Angaben bei.",
+              "optimized": "Mit neos Optimierungen übernommen",
               "reasons": {
                 "empty": "Gib zuerst einen Befehl ein.",
                 "tooLong": "Der Befehl ist länger als {detail} Zeichen.",

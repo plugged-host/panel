@@ -31,6 +31,9 @@ mod post {
     struct Response {
         /// Whether it is now the server's startup command.
         applied: bool,
+        /// The startup command it now has: the one sent, or neo's tuned version of it (a Minecraft
+        /// server's is always tuned: a smooth game on the least memory and CPU).
+        command: Option<String>,
         /// Why it was not applied.
         refusal: Option<Refusal>,
         /// neo's verdict, when neo was asked.
@@ -104,6 +107,7 @@ mod post {
 
             return ApiResponse::new_serialized(Response {
                 applied: false,
+                command: None,
                 refusal: outcome.refusal,
                 verdict: outcome.verdict,
             })
@@ -114,7 +118,10 @@ mod post {
             .update(
                 &state,
                 shared::models::server::UpdateServerOptions {
-                    startup: Some(data.command),
+                    startup: Some(match &outcome.command {
+                        Some(tuned) => tuned.as_str().into(),
+                        None => data.command,
+                    }),
                     ..Default::default()
                 },
             )
@@ -127,14 +134,17 @@ mod post {
                     "command": server.startup,
                     "checked_by": outcome.checked_by,
                     "summary": summary,
+                    "tuned_by_neo": outcome.command.is_some(),
                 }),
             )
             .await;
 
+        let applied = server.startup.to_string();
         server.0.batch_sync(&state).await;
 
         ApiResponse::new_serialized(Response {
             applied: true,
+            command: Some(applied),
             refusal: None,
             verdict: outcome.verdict,
         })

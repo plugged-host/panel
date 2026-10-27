@@ -8791,6 +8791,8 @@
               "button": "Kiểm Tra & Áp Dụng",
               "applied": "Lệnh khởi động đã được kiểm tra và áp dụng. Khởi động lại máy chủ để dùng lệnh này.",
               "refused": "Chưa được áp dụng",
+              "tuneNote": "Trên máy chủ Minecraft, neo còn tối ưu lệnh để trò chơi mượt mà với ít bộ nhớ và CPU nhất, và giữ nguyên các lựa chọn khác của bạn.",
+              "optimized": "Đã áp dụng với tối ưu của neo",
               "reasons": {
                 "empty": "Hãy nhập lệnh trước.",
                 "tooLong": "Lệnh dài hơn {detail} ký tự.",

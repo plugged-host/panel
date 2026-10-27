@@ -5817,6 +5817,8 @@
               "button": "Periksa & Terapkan",
               "applied": "Perintah startup diperiksa dan diterapkan. Mulai ulang server untuk menggunakannya.",
               "refused": "Tidak diterapkan",
+              "tuneNote": "Di server Minecraft, neo juga mengoptimalkan perintah agar permainan lancar dengan memori dan CPU sesedikit mungkin, dan tetap mempertahankan pilihan Anda yang lain.",
+              "optimized": "Diterapkan dengan optimasi dari neo",
               "reasons": {
                 "empty": "Ketik perintah terlebih dahulu.",
                 "tooLong": "Perintah lebih panjang dari {detail} karakter.",

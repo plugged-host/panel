@@ -5820,6 +5820,8 @@
               "button": "Kontrol Et ve Uygula",
               "applied": "Başlangıç komutu kontrol edildi ve uygulandı. Kullanmak için sunucuyu yeniden başlatın.",
               "refused": "Uygulanmadı",
+              "tuneNote": "Bir Minecraft sunucusunda neo komutu ayrıca en az bellek ve CPU ile akıcı bir oyun için optimize eder ve diğer seçimlerini korur.",
+              "optimized": "neo'nun optimizasyonlarıyla uygulandı",
               "reasons": {
                 "empty": "Önce bir komut yazın.",
                 "tooLong": "Komut {detail} karakterden uzun.",

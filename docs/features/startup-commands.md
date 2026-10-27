@@ -91,6 +91,36 @@ window is used up), `neo_busy`, `neo_unlinked` (noprofit.space runs neo and does
 account), `neo_model` (the picked model is not available to the user), `neo_unavailable` (the
 providers or the gateway failed, or no answer within 85 seconds).
 
+## neo's tuning (Minecraft)
+
+On a Minecraft: Java Edition server or proxy (`minecraft::Edition` `java` or `proxy`, so a JVM) neo
+always tunes the command (owner's call, 2026-10-27: a smooth game on the least memory and CPU, since
+every megabyte a server does not hold is one another user gets). The facts carry
+`tune_for_minecraft`, and the same turn answers `optimized` (the tuned command, null only when it
+already follows the rules) and `optimizations` (what it changed and what that does, one sentence
+each, in the user's language). The rules it is given, in order of weight when they pull against each
+other:
+
+1. A smooth game: G1 with short pauses (`-XX:+UseG1GC -XX:MaxGCPauseMillis=200
+   -XX:+ParallelRefProcEnabled`), `-XX:+DisableExplicitGC`, `-XX:+PerfDisableSharedMem`.
+2. The least memory: the heap ceiling sized as the egg sizes it (`{{SERVER_MEMORY}}` in `-Xmx`, or
+   `-XX:MaxRAMPercentage`), a low `-Xms`, never `-Xms` equal to `-Xmx`, unused heap given back when
+   the server is quiet (`G1PeriodicGCInterval`, `MinHeapFreeRatio`/`MaxHeapFreeRatio`), never
+   `-XX:+AlwaysPreTouch`, none of Aikar's memory-holding parts.
+3. The least CPU: no background work without a clear gain; GC and compiler threads as the JVM sizes
+   them for the container.
+
+It keeps the user's jar, loader and other arguments, every `{{NAME}}`, `-XX:+IgnoreUnrecognizedVMOptions`
+and the egg's own flags unless a rule replaces them.
+
+The tuned command is applied instead only when it passes what the user's command had to (`tuned`):
+the syntax checks, only known variables, every variable of the original kept, and for non-admins
+the hiding and abuse rules. Otherwise the user's own command is applied and the tuning dropped. A
+tuning that is not a single line is dropped while reading the answer; it never refuses a verdict.
+
+Admins skip the rules and neo's verdict but get the tuning too: on a Minecraft server neo is asked,
+its tuning applied when it approves, and the admin's own command otherwise (never refused).
+
 ## Page
 
 The server's Startup page (`frontend/src/pages/server/settings/ServerSettingsStartup.tsx`, the
@@ -99,20 +129,22 @@ editor in `frontend/src/pages/server/startup/CustomStartupCommand.tsx`): with th
 the current one), with a note on what is checked and one button, **Check & apply**. While it is
 typed the well above shows it, and Enable Preview fills its values in
 (`POST …/startup/preview`, a moment after typing stops). Applied: the toast "Startup command checked
-and applied. Restart the server to use it." Refused: a red callout "Not applied" with the reason,
+and applied. Restart the server to use it."; when neo tuned it, the editor shows the tuned command
+and a callout "Applied with neo's tuning" lists what it changed. On a Minecraft server with neo on, a
+note under the editor says neo tunes the command. Refused: a red callout "Not applied" with the reason,
 neo's problems and neo's summary; it goes away when the command is edited.
 
 ## API
 
 | Route | Permission | Does |
 |---|---|---|
-| `POST /api/client/servers/{server}/startup/custom-command` | `startup.custom-command` | Body `{command}`; `{applied, refusal: {code, detail} \| null, verdict: {safe, starts_the_game, problems, summary} \| null}` with 200 either way; 429 after 20 checks in 5 minutes per user |
+| `POST /api/client/servers/{server}/startup/custom-command` | `startup.custom-command` | Body `{command}`; `{applied, command, refusal: {code, detail} \| null, verdict: {safe, starts_the_game, problems, summary, optimized, optimizations} \| null}` with 200 either way (`command`: what the server now has); 429 after 20 checks in 5 minutes per user |
 | `POST /api/client/servers/{server}/startup/preview` | `startup.read` | Body `{command}`; `{command}` with its values filled in, `[hidden]` for what the viewer may not read |
 
 ## Activity
 
 - `server:startup.command` (upstream's event) with `command`, `checked_by` (`egg`, `admin`,
-  `rules` or `neo`) and neo's `summary`.
+  `rules` or `neo`), neo's `summary` and `tuned_by_neo`.
 - `server:startup.command-refused` with `command`, `reason` (the code), `detail`, `checked_by`,
   neo's `problems` and `summary`.
 

@@ -5817,6 +5817,8 @@
               "button": "Verificar e aplicar",
               "applied": "Comando de inicialização verificado e aplicado. Reinicie o servidor para usá-lo.",
               "refused": "Não aplicado",
+              "tuneNote": "Em um servidor de Minecraft, o neo também otimiza o comando para um jogo fluido com o mínimo de memória e CPU, e mantém as suas outras escolhas.",
+              "optimized": "Aplicado com as otimizações do neo",
               "reasons": {
                 "empty": "Digite um comando primeiro.",
                 "tooLong": "O comando tem mais de {detail} caracteres.",

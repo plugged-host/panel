@@ -11501,6 +11501,9 @@ const baseTranslations = defineTranslations({
               button: 'Check & apply',
               applied: 'Startup command checked and applied. Restart the server to use it.',
               refused: 'Not applied',
+              tuneNote:
+                'On a Minecraft server, neo also tunes the command for a smooth game on the least memory and CPU, and keeps your other choices.',
+              optimized: "Applied with neo's tuning",
               reasons: {
                 empty: 'Type a command first.',
                 tooLong: 'The command is longer than {detail} characters.',

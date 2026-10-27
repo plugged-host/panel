@@ -7698,6 +7698,8 @@
               "button": "Vérifier et appliquer",
               "applied": "Commande de démarrage vérifiée et appliquée. Redémarrez le serveur pour l'utiliser.",
               "refused": "Non appliquée",
+              "tuneNote": "Sur un serveur Minecraft, neo optimise aussi la commande pour un jeu fluide avec le moins de mémoire et de CPU possible, et garde vos autres choix.",
+              "optimized": "Appliquée avec les optimisations de neo",
               "reasons": {
                 "empty": "Saisissez d'abord une commande.",
                 "tooLong": "La commande dépasse {detail} caractères.",

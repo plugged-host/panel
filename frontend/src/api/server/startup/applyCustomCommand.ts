@@ -13,10 +13,15 @@ export interface CustomCommandVerdict {
   startsTheGame: boolean;
   problems: string[];
   summary: string;
+  /** neo's tuned version, applied instead (a Minecraft server's memory and JVM flags). */
+  optimized: string | null;
+  optimizations: string[];
 }
 
 export interface CustomCommandResult {
   applied: boolean;
+  /** The startup command the server now has. */
+  command: string | null;
   refusal: CustomCommandRefusal | null;
   verdict: CustomCommandVerdict | null;
 }

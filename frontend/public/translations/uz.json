@@ -5817,6 +5817,8 @@
               "button": "Tekshirish va qoʻllash",
               "applied": "Ishga tushirish buyrugʻi tekshirildi va qoʻllandi. Undan foydalanish uchun serverni qayta ishga tushiring.",
               "refused": "Qoʻllanmadi",
+              "tuneNote": "Minecraft serverida neo buyruqni eng kam xotira va CPU bilan silliq oʻyin uchun ham optimallashtiradi va boshqa tanlovlaringizni saqlab qoladi.",
+              "optimized": "neo optimallashtirishlari bilan qoʻllandi",
               "reasons": {
                 "empty": "Avval buyruq kiriting.",
                 "tooLong": "Buyruq {detail} belgidan uzun.",
