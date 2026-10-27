@@ -233,6 +233,22 @@ pub struct Onboarding {
     pub modpack: Option<modpacks::Install>,
 }
 
+impl Onboarding {
+    /// A server without a setup: nothing pending, nothing running.
+    pub fn none() -> Self {
+        Self {
+            pending: false,
+            completed: None,
+            progress: None,
+            bedrock_variants: Vec::new(),
+            bedrock_loaders: Vec::new(),
+            bedrock_now: false,
+            modpack_loaders: Default::default(),
+            modpack: None,
+        }
+    }
+}
+
 #[derive(Debug)]
 pub enum OnboardingError {
     /// The server has no setup, or it was already done.

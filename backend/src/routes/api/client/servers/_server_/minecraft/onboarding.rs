@@ -4,7 +4,6 @@ use super::State;
 use utoipa_axum::{router::OpenApiRouter, routes};
 
 mod get {
-    use axum::http::StatusCode;
     use shared::{
         ApiError, GetState,
         minecraft::onboarding::Onboarding,
@@ -31,11 +30,11 @@ mod get {
         permissions.has_server_permission("minecraft.settings")?;
         shared::minecraft::require(&server)?;
 
+        // a server without a setup (one imported from the Pelican panel, or made before setups)
+        // has nothing pending: every page waits on this answer, so it is never an error
         match shared::minecraft::onboarding::get(&state, &server).await? {
             Some(onboarding) => ApiResponse::new_serialized(onboarding).ok(),
-            None => ApiResponse::error("this server has no setup")
-                .with_status(StatusCode::NOT_FOUND)
-                .ok(),
+            None => ApiResponse::new_serialized(Onboarding::none()).ok(),
         }
     }
 }
