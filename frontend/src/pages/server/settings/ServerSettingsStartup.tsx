@@ -254,7 +254,7 @@ function StartupVariables() {
 
   return (
     <>
-      <h3 className='theme-eco-heading mt-6 mb-4'>{t(`${base}.variables`, {})}</h3>
+      <h3 className='theme-eco-heading mt-10 mb-6'>{t(`${base}.variables`, {})}</h3>
 
       {loading ? (
         <Spinner.Centered />
@@ -289,8 +289,10 @@ export default function ServerSettingsStartup() {
       registry={window.extensionContext.extensionRegistry.pages.server.startup.container}
     >
       <TitleCard title={t(`${base}.title`, {})}>
-        <StartupCommand />
-        <StartupVariables />
+        <div className='theme-startup'>
+          <StartupCommand />
+          <StartupVariables />
+        </div>
       </TitleCard>
     </ServerContentContainer>
   );
