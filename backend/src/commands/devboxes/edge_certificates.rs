@@ -3,7 +3,7 @@
 // through the API: it is only written here.
 use clap::{Args, FromArgMatches};
 use colored::Colorize;
-use std::{io::Write, os::unix::fs::OpenOptionsExt, path::Path};
+use std::{io::Write, path::Path};
 
 #[derive(Args)]
 pub struct EdgeCertificatesArgs {
@@ -14,7 +14,10 @@ pub struct EdgeCertificatesArgs {
     dir: String,
 }
 
+#[cfg(unix)]
 fn write(path: &Path, contents: &str, mode: u32) -> std::io::Result<()> {
+    use std::os::unix::fs::{OpenOptionsExt, PermissionsExt};
+
     let mut file = std::fs::OpenOptions::new()
         .write(true)
         .create(true)
@@ -23,7 +26,13 @@ fn write(path: &Path, contents: &str, mode: u32) -> std::io::Result<()> {
         .open(path)?;
     file.write_all(contents.as_bytes())?;
     // an existing file keeps its mode on open: set it again
-    std::fs::set_permissions(path, std::os::unix::fs::PermissionsExt::from_mode(mode))
+    std::fs::set_permissions(path, std::fs::Permissions::from_mode(mode))
+}
+
+// the edge runs on Unix; elsewhere (the Windows build) the files are written without a mode
+#[cfg(not(unix))]
+fn write(path: &Path, contents: &str, _mode: u32) -> std::io::Result<()> {
+    std::fs::File::create(path)?.write_all(contents.as_bytes())
 }
 
 pub struct EdgeCertificatesCommand;
