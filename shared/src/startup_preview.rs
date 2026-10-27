@@ -74,6 +74,16 @@ pub fn render(startup: &str, values: &HashMap<String, Option<String>>) -> String
 /// The preview of `server`'s startup command. Variables the egg hides from players and secret
 /// ones show as [`HIDDEN`].
 pub async fn for_server(state: &crate::State, server: &Server) -> Result<String, anyhow::Error> {
+    for_command(state, server, &server.startup).await
+}
+
+/// [`for_server`] for another command on `server`: a custom one being written
+/// (docs/features/startup-commands.md).
+pub async fn for_command(
+    state: &crate::State,
+    server: &Server,
+    command: &str,
+) -> Result<String, anyhow::Error> {
     let variables =
         ServerVariable::all_by_server_uuid_egg_uuid(&state.database, server.uuid, server.egg.uuid)
             .await?;
@@ -93,7 +103,7 @@ pub async fn for_server(state: &crate::State, server: &Server) -> Result<String,
         }),
     );
 
-    Ok(render(&server.startup, &values))
+    Ok(render(command, &values))
 }
 
 #[cfg(test)]

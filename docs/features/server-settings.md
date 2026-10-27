@@ -156,7 +156,8 @@ The activity log gets `server:settings.software` with the variant and the versio
 (`ServerSettingsStartup.tsx`; upstream's `ServerStartup.tsx` stays unused), titled "Startup" with
 Pelican's "Startup command" section: the command in a well with a copy button, the startup command
 (the egg's list, "Custom" where the egg allows commands of its own, which opens the command for
-editing) and the Docker image side by side, then **Server Variables**. Each field saves on its own
+editing, or with `startup.custom-command`, which checks a command before it is applied:
+[startup-commands.md](startup-commands.md)) and the Docker image side by side, then **Server Variables**. Each field saves on its own
 when it loses focus, switches and lists when they change ("Updated: <variable>"), like Pelican's
 live startup variables; there is no Save button.
 

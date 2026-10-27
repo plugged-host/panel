@@ -76,6 +76,7 @@ pub mod server_transfers; // plugged.host
 pub mod settings;
 pub mod start_gates; // plugged.host
 pub mod start_queue; // plugged.host
+pub mod startup_command; // plugged.host
 pub mod startup_preview; // plugged.host
 pub mod status; // plugged.host
 pub mod storage;

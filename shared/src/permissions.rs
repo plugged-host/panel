@@ -1010,6 +1010,11 @@ pub(crate) static BASE_SERVER_PERMISSIONS: LazyLock<IndexMap<&'static str, Permi
                             "command",
                             "Allows modifying the command used to start the server.",
                         ),
+                        // plugged.host: docs/features/startup-commands.md
+                        (
+                            "custom-command",
+                            "Allows applying a startup command of one's own, once the panel's checks (and neo, where it is on) find it safe.",
+                        ),
                         (
                             "docker-image",
                             "Allows modifying the Docker image used when running the server.",

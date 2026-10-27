@@ -3,6 +3,7 @@
 // the command in a well ("Enable Preview" fills its values in), the startup command and Docker image
 // side by side, then the server variables, each saved on its own. Replaces upstream's
 // pages/server/startup/ServerStartup.tsx on /startup (docs/features/server-settings.md)
+import { useDebouncedValue } from '@mantine/hooks';
 import classNames from 'classnames';
 import { ReactNode, useEffect, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
@@ -21,6 +22,7 @@ import TextArea from '@/elements/input/TextArea.tsx';
 import TextInput from '@/elements/input/TextInput.tsx';
 import { CopyActionIcon } from '@/elements/SettingRows.tsx';
 import { queryKeys } from '@/lib/queryKeys.ts';
+import CustomStartupCommand from '@/pages/server/startup/CustomStartupCommand.tsx';
 import { useResource } from '@/plugins/resource/useResource.ts';
 import { useServerCan } from '@/plugins/usePermissions.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
@@ -59,38 +61,50 @@ function StartupCommand() {
   const updateServer = useServerStore((state) => state.updateServer);
   const canModifyStartupCommand = useServerCan('startup.command');
   const canModifyDockerImage = useServerCan('startup.docker-image');
+  const canCustomCommand = useServerCan('startup.custom-command');
+
+  const presets = Object.entries(server.egg.startupCommands);
+  const isPreset = presets.some(([, value]) => value === server.startup);
+  const allowCustom = !!server.eggConfiguration?.startupAllowCustomCommand;
+  // without the egg's leave, a command of one's own is checked before it is applied (the panel's
+  // rules, then neo where it is on; docs/features/startup-commands.md)
+  const checksCustom = canCustomCommand && !(allowCustom && canModifyStartupCommand);
+
+  // "Custom" in the list opens the command for editing where the egg allows commands of its own, or
+  // where they are checked
+  const [custom, setCustom] = useState(!isPreset);
+  const [command, setCommand] = useState(server.startup);
+
+  useEffect(() => setCommand(server.startup), [server.startup]);
+
+  const editsCustom = custom && allowCustom && canModifyStartupCommand;
+  const editsChecked = custom && checksCustom;
+  const editing = editsCustom || editsChecked;
+  // the well shows a checked command while it is written; its preview follows once typing pauses
+  const draft = editsChecked ? command : server.startup;
+  const [previewed] = useDebouncedValue(draft, 400);
 
   // Pelican's PreviewStartupAction: the well shows the command with its values filled in, by the
   // panel, which hides the variables the viewer may not read. Fetched again when any of them changes.
   const [previewing, setPreviewing] = useState(false);
   const preview = useResource({
     queryKey: queryKeys.server(server.uuid).settings.startupPreview({
-      startup: server.startup,
+      startup: previewed,
       memory: server.limits.memory,
       allocation: server.allocation?.uuid ?? null,
       values: variables.map((variable) => variable.value),
     }),
-    queryFn: () => getStartupPreview(server.uuid),
+    queryFn: () => getStartupPreview(server.uuid, previewed === server.startup ? undefined : previewed),
     enabled: previewing,
     keepPrevious: true,
   });
-  const shown = previewing && preview.data !== undefined ? preview.data : server.startup;
+  const shown = previewing && preview.data !== undefined ? preview.data : draft;
 
   const previewAction = (
     <button type='button' className='theme-eco-link theme-field-action' onClick={() => setPreviewing((on) => !on)}>
       {t(previewing ? `${base}.disablePreview` : `${base}.enablePreview`, {})}
     </button>
   );
-
-  const presets = Object.entries(server.egg.startupCommands);
-  const isPreset = presets.some(([, value]) => value === server.startup);
-  const allowCustom = !!server.eggConfiguration?.startupAllowCustomCommand;
-
-  // "Custom" in the list opens the command for editing where the egg allows commands of its own
-  const [custom, setCustom] = useState(!isPreset);
-  const [command, setCommand] = useState(server.startup);
-
-  useEffect(() => setCommand(server.startup), [server.startup]);
 
   const images = Object.entries(server.egg.dockerImages);
   const isEggImage = images.some(([, value]) => value === server.image);
@@ -123,8 +137,6 @@ function StartupCommand() {
       });
   };
 
-  const editsCustom = custom && allowCustom && canModifyStartupCommand;
-
   return (
     <>
       <div className='theme-setting-cmd'>
@@ -138,11 +150,13 @@ function StartupCommand() {
             <Select
               label={t(`${base}.command`, {})}
               data={[
-                ...(allowCustom || !isPreset ? [{ label: t('common.custom', {}), value: '' }] : []),
-                ...presets.map(([label, value]) => ({ value, label })),
+                ...(allowCustom || checksCustom || !isPreset ? [{ label: t('common.custom', {}), value: '' }] : []),
+                ...presets.map(([label, value]) => ({ value, label, disabled: !canModifyStartupCommand })),
               ]}
               value={custom ? '' : server.startup}
-              disabled={!canModifyStartupCommand || (!allowCustom && !isPreset)}
+              disabled={
+                !(canModifyStartupCommand || checksCustom) || (!allowCustom && !checksCustom && !isPreset)
+              }
               onChange={(value) => {
                 if (!value) {
                   setCustom(true);
@@ -155,7 +169,7 @@ function StartupCommand() {
             />
           </WithHintAction>
         ) : (
-          !editsCustom && (
+          !editing && (
             <WithHintAction action={previewAction}>
               <TextInput label={t(`${base}.command`, {})} value={t(`${base}.custom`, {})} readOnly />
             </WithHintAction>
@@ -188,6 +202,13 @@ function StartupCommand() {
             onBlur={() => saveCommand(command)}
           />
         </WithHintAction>
+      )}
+      {editsChecked && (
+        <CustomStartupCommand
+          command={command}
+          onChange={setCommand}
+          action={presets.length === 0 ? previewAction : null}
+        />
       )}
     </>
   );
