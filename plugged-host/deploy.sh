@@ -1,17 +1,22 @@
 #!/usr/bin/env bash
-# Installs a built panel binary on this box (and on a second box, when the panel runs on two) and
-# restarts the panel, rolling back if it does not come up.
+# Installs a built panel binary and restarts the panel, rolling back if it does not come up.
 #
-#   plugged-host/deploy.sh [binary]      # default target/plugged-host/panel-rs
+#   plugged-host/deploy.sh [binary]          # the dev panel (default binary target/plugged-host/panel-rs)
+#   plugged-host/deploy.sh --prod [binary]   # the prod panel: emergency fixes only
 #
-# Releases live in /opt/calagopus/releases/<release>/panel-rs and /opt/calagopus/current points
-# at the running one; the last KEEP releases stay for rollbacks.
+# Two panels: dev (unit calagopus-dev, /opt/calagopus-dev, /etc/calagopus-dev/panel.env, one box)
+# and prod (unit calagopus, /opt/calagopus, /etc/calagopus/panel.env). A release is v{VERSION}, so a
+# prod fix is a new VERSION (3.0.0 -> 3.0.1): --prod refuses a release prod already ran unless
+# SAME_RELEASE=1. A box with one panel only uses --prod.
 #
-# Two boxes: /etc/calagopus/deploy.env (not in git) names the other box as an ssh alias,
+# Each deploy lives in <base>/releases/<release>-<UTC time>/panel-rs and <base>/current points at
+# the running one; the last KEEP deploys stay for rollbacks.
+#
+# Prod on two boxes: /etc/calagopus/deploy.env (not in git) names the other box as an ssh alias,
 # PEER_SSH=<alias>. The release is copied there too; where the `calagopus` unit is enabled it is
 # restarted after this box's came up, and `calagopus-tasks` (background tasks, one box at a time)
-# is restarted wherever it runs. Migrations: with DATABASE_MIGRATE=true in /etc/calagopus/panel.env
-# the panel runs them on start (one box); with false they run once here, before any restart.
+# is restarted wherever it runs. Migrations: with DATABASE_MIGRATE=true in the panel.env the panel
+# runs them on start (one box); with false they run once here, before any restart.
 set -euo pipefail
 
 # `panel-rs version` parses the environment first; it needs these set but connects to nothing.
@@ -21,19 +26,36 @@ release_of() {
 }
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
+PROD=0
+[ "${1:-}" = --prod ] && { PROD=1; shift; }
 BINARY=${1:-$ROOT/target/plugged-host/panel-rs}
-BASE=/opt/calagopus
-UNIT=calagopus
-TASKS=calagopus-tasks
-ENV_FILE=/etc/calagopus/panel.env
-KEEP=${KEEP:-3}
-HEALTH_URL=${HEALTH_URL:-http://127.0.0.1:8730/api/settings}
 PEER_SSH=
-[ -f /etc/calagopus/deploy.env ] && . /etc/calagopus/deploy.env
+if [ "$PROD" = 1 ]; then
+  BASE=/opt/calagopus
+  UNIT=calagopus
+  TASKS=calagopus-tasks
+  ENV_FILE=/etc/calagopus/panel.env
+  KEEP=${KEEP:-3}
+  HEALTH_URL=${HEALTH_URL:-http://127.0.0.1:8730/api/settings}
+  [ -f /etc/calagopus/deploy.env ] && . /etc/calagopus/deploy.env
+else
+  BASE=/opt/calagopus-dev
+  UNIT=calagopus-dev
+  TASKS=
+  ENV_FILE=/etc/calagopus-dev/panel.env
+  KEEP=${KEEP:-2}
+  HEALTH_URL=${HEALTH_URL:-http://127.0.0.1:8732/api/settings}
+  [ -f "/etc/systemd/system/$UNIT.service" ] || { echo "no dev panel on this box ($UNIT); --prod deploys the prod panel" >&2; exit 1; }
+fi
 peer() { ssh -o BatchMode=yes -o ConnectTimeout=10 "$PEER_SSH" "$@"; }
 
 release=$(release_of "$BINARY")
 [ -n "$release" ] || { echo "cannot read the release of $BINARY" >&2; exit 1; }
+
+if [ "$PROD" = 1 ] && [ "${SAME_RELEASE:-0}" != 1 ] && compgen -G "$BASE/releases/$release-*" >/dev/null; then
+  echo "prod already ran $release: a prod fix is a new VERSION (bump it, commit, build), or SAME_RELEASE=1 to redeploy $release" >&2
+  exit 1
+fi
 
 # The release is only v{VERSION}, so every deploy gets its own directory.
 dir="$BASE/releases/$release-$(date -u +%Y%m%d-%H%M%S)"
@@ -80,8 +102,8 @@ rollback() {
     switch_to "$previous"
     systemctl restart "$UNIT"
     [ "$peer_running" = 1 ] && peer "systemctl restart $UNIT"
-    systemctl try-restart "$TASKS" 2>/dev/null || true
-    [ -n "$PEER_SSH" ] && peer "systemctl try-restart $TASKS" 2>/dev/null || true
+    [ -n "$TASKS" ] && { systemctl try-restart "$TASKS" 2>/dev/null || true; }
+    [ -n "$PEER_SSH" ] && [ -n "$TASKS" ] && { peer "systemctl try-restart $TASKS" 2>/dev/null || true; }
   fi
   exit 1
 }
@@ -94,8 +116,8 @@ if [ "$peer_running" = 1 ]; then
   up "peer" || { peer "journalctl -u $UNIT -n 30 --no-pager" >&2 || true; rollback "$PEER_SSH"; }
   echo "==> up on $PEER_SSH"
 fi
-systemctl try-restart "$TASKS" 2>/dev/null || true
-[ -n "$PEER_SSH" ] && { peer "systemctl try-restart $TASKS" 2>/dev/null || true; }
+[ -n "$TASKS" ] && { systemctl try-restart "$TASKS" 2>/dev/null || true; }
+[ -n "$PEER_SSH" ] && [ -n "$TASKS" ] && { peer "systemctl try-restart $TASKS" 2>/dev/null || true; }
 
 # Keep the newest releases (and whatever is running), on both boxes.
 prune="ls -1dt '$BASE'/releases/*/ | tail -n +$((KEEP + 1)) | while read -r old; do [ \"\${old%/}\" = '$dir' ] || rm -rf \"\$old\"; done"
