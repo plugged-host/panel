@@ -74,6 +74,7 @@ pub mod server_resize; // plugged.host
 pub mod server_software; // plugged.host
 pub mod server_transfers; // plugged.host
 pub mod settings;
+pub mod standing; // plugged.host
 pub mod start_gates; // plugged.host
 pub mod start_queue; // plugged.host
 pub mod startup_command; // plugged.host

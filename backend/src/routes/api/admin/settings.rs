@@ -354,6 +354,17 @@ mod put {
         cpu_minutes: Option<i32>,
         #[garde(range(min = 0, max = 8760))]
         delete_after_hours: Option<i32>,
+        /// The panel's own account standing (docs/features/standing.md).
+        #[garde(range(min = 1, max = 100))]
+        standing_limited_at: Option<i32>,
+        #[garde(range(min = 1, max = 3650))]
+        standing_limited_days: Option<i32>,
+        #[garde(range(min = 1, max = 100))]
+        standing_very_limited_at: Option<i32>,
+        #[garde(range(min = 1, max = 3650))]
+        standing_very_limited_days: Option<i32>,
+        #[garde(range(min = 1, max = 100))]
+        standing_suspended_at: Option<i32>,
     }
 
     #[derive(ToSchema, Validate, Deserialize)]
@@ -964,6 +975,26 @@ mod put {
             }
             if let Some(delete_after_hours) = abuse.delete_after_hours {
                 settings.abuse.delete_after_hours = delete_after_hours;
+            }
+            if let Some(limited_at) = abuse.standing_limited_at {
+                settings.abuse.standing_limited_at = limited_at;
+            }
+            if let Some(limited_days) = abuse.standing_limited_days {
+                settings.abuse.standing_limited_days = limited_days;
+            }
+            if let Some(very_limited_at) = abuse.standing_very_limited_at {
+                settings.abuse.standing_very_limited_at = very_limited_at;
+            }
+            if let Some(very_limited_days) = abuse.standing_very_limited_days {
+                settings.abuse.standing_very_limited_days = very_limited_days;
+            }
+            if let Some(suspended_at) = abuse.standing_suspended_at {
+                settings.abuse.standing_suspended_at = suspended_at;
+            }
+            if !settings.abuse.standing_rules().ordered() {
+                return ApiResponse::error("the standing thresholds must not go down")
+                    .with_status(StatusCode::BAD_REQUEST)
+                    .ok();
             }
         }
 

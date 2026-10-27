@@ -21,6 +21,7 @@ import NoprofitContainer from './NoprofitContainer.tsx';
 import PasswordContainer from './PasswordContainer.tsx';
 import PasswordLoginContainer from './PasswordLoginContainer.tsx';
 import PreferencesContainer from './PreferencesContainer.tsx';
+import StandingContainer from './StandingContainer.tsx'; // plugged.host
 import TwoFactorContainer from './TwoFactorContainer.tsx';
 
 export interface AccountCardProps {
@@ -125,6 +126,8 @@ export default function DashboardAccount() {
             <PasswordLoginContainer requireTwoFactorActivation={requireTwoFactorActivation} />
           </>
         )}
+        {/* plugged.host: the account's standing, once it has suspensions (docs/features/standing.md) */}
+        <StandingContainer />
         <AccountContainer requireTwoFactorActivation={requireTwoFactorActivation} />
         <PreferencesContainer requireTwoFactorActivation={requireTwoFactorActivation} />
         <AvatarContainer requireTwoFactorActivation={requireTwoFactorActivation} />

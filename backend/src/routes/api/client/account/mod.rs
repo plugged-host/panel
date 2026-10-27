@@ -26,6 +26,7 @@ mod security_keys;
 mod sessions;
 mod settings;
 mod ssh_keys;
+mod standing; // plugged.host
 mod tokens; // plugged.host
 mod tour; // plugged.host
 mod two_factor;
@@ -212,6 +213,7 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         .nest("/devboxes", devboxes::router(state)) // plugged.host
         .nest("/neo", neo::router(state)) // plugged.host
         .nest("/notifications", notifications::router(state)) // plugged.host
+        .nest("/standing", standing::router(state)) // plugged.host
         .nest("/partners", partners::router(state)) // plugged.host
         .with_state(state.clone())
 }

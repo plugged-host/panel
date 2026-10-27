@@ -824,6 +824,13 @@
           "goodSpeed": "Boa velocidade",
           "goodCompression": "Boa compressão",
           "bestCompression": "Compressão máxima"
+        },
+        "accountStanding": {
+          "good": "Boa",
+          "warning": "Advertência",
+          "limited": "Limitada",
+          "veryLimited": "Muito limitada",
+          "suspended": "Suspensa"
         }
       },
       "unit": {
@@ -2076,6 +2083,11 @@
           },
           "toast": {
             "failed": "Não foi possível criar o servidor"
+          },
+          "standing": {
+            "blocked": "Situação da sua conta: {level}. Você não pode criar servidores no momento.",
+            "blockedUntil": "Situação da sua conta: {level}. Você não pode criar servidores até {date}.",
+            "view": "Ver a situação da conta"
           }
         },
         "home": {
@@ -2231,6 +2243,17 @@
               "button": {
                 "manage": "Gerenciar no noprofit.space"
               }
+            },
+            "standing": {
+              "title": "Situação da conta",
+              "description": "Cada suspensão de um dos seus servidores por quebrar as regras conta aqui. Quanto mais houver, por mais tempo você não poderá criar novos servidores.",
+              "level": "Nível",
+              "suspensions": "Suspensões",
+              "create": "Criar servidores",
+              "createAllowed": "Permitido",
+              "createBlocked": "Não permitido",
+              "createBlockedUntil": "Não permitido até {date}",
+              "details": "Detalhes"
             },
             "password": {
               "title": "Senha",

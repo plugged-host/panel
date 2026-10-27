@@ -65,7 +65,8 @@ the check and the write, so two requests at once cannot both spend the same room
 `shared/src/server_creation.rs`, in this order:
 
 1. The page is on, the account is neither suspended nor frozen, the name is 1 to 191 characters
-   (trimmed), the account's lock is free.
+   (trimmed), the account's standing allows creating ([standing.md](standing.md); admins are not
+   limited, a standing nobody can tell limits nobody), the account's lock is free.
 2. The game is in the catalog, the EULA is accepted when the egg has the `eula` feature, the variant
    exists, the location is public and its tier is unlocked for the account (every account has the
    empty tier; `plus` comes with Plus, `premium` with PlusPlus), and the size fits the allowance:

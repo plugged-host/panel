@@ -824,6 +824,13 @@
           "goodSpeed": "Bonne vitesse",
           "goodCompression": "Bonne compression",
           "bestCompression": "Compression maximale"
+        },
+        "accountStanding": {
+          "good": "Bon",
+          "warning": "Avertissement",
+          "limited": "Limité",
+          "veryLimited": "Très limité",
+          "suspended": "Suspendu"
         }
       },
       "unit": {
@@ -2076,6 +2083,11 @@
           },
           "toast": {
             "failed": "Impossible de créer le serveur"
+          },
+          "standing": {
+            "blocked": "Statut de votre compte : {level}. Vous ne pouvez pas créer de serveurs pour le moment.",
+            "blockedUntil": "Statut de votre compte : {level}. Vous ne pouvez pas créer de serveurs avant le {date}.",
+            "view": "Voir le statut du compte"
           }
         },
         "home": {
@@ -2234,6 +2246,17 @@
               "button": {
                 "manage": "Gérer sur noprofit.space"
               }
+            },
+            "standing": {
+              "title": "Statut du compte",
+              "description": "Chaque suspension d'un de vos serveurs pour non-respect des règles compte ici. Plus il y en a, plus vous devez attendre longtemps avant de pouvoir créer de nouveaux serveurs.",
+              "level": "Niveau",
+              "suspensions": "Suspensions",
+              "create": "Création de serveurs",
+              "createAllowed": "Autorisée",
+              "createBlocked": "Non autorisée",
+              "createBlockedUntil": "Non autorisée avant le {date}",
+              "details": "Détails"
             },
             "password": {
               "title": "Mot de passe",

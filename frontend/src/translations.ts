@@ -620,6 +620,14 @@ const baseTranslations = defineTranslations({
           goodCompression: 'Good Compression',
           bestCompression: 'Best Compression',
         },
+        // plugged.host: an account's standing (docs/features/standing.md)
+        accountStanding: {
+          good: 'Good',
+          warning: 'Warning',
+          limited: 'Limited',
+          veryLimited: 'Very Limited',
+          suspended: 'Suspended',
+        },
       },
       unit: {
         bytes: {
@@ -1935,6 +1943,11 @@ const baseTranslations = defineTranslations({
           toast: {
             failed: 'Could not create server',
           },
+          standing: {
+            blocked: 'Your account standing is {level}, so you cannot create servers right now.',
+            blockedUntil: 'Your account standing is {level}, so you cannot create servers until {date}.',
+            view: 'View your standing',
+          },
         },
         home: {
           empty: {
@@ -2099,6 +2112,19 @@ const baseTranslations = defineTranslations({
               button: {
                 manage: 'Manage on noprofit.space',
               },
+            },
+            // plugged.host: the account's standing (docs/features/standing.md)
+            standing: {
+              title: 'Standing',
+              description:
+                'Every suspension of one of your servers for breaking the rules counts here. The more there are, the longer you cannot create new servers.',
+              level: 'Level',
+              suspensions: 'Suspensions',
+              create: 'Creating servers',
+              createAllowed: 'Allowed',
+              createBlocked: 'Not allowed',
+              createBlockedUntil: 'Not allowed until {date}',
+              details: 'Details',
             },
             password: {
               title: 'Password',
@@ -3845,6 +3871,20 @@ const baseTranslations = defineTranslations({
                   cpuMinutes: 'CPU Minutes',
                   cpuMinutesDescription:
                     'Minutes at the threshold before the full check runs. Full CPU alone never suspends.',
+                  standingLimitedAt: 'Limited From (Suspensions)',
+                  standingLimitedAtDescription:
+                    "Every abuse suspension is a strike on the server's owner; one is a warning. From this many, the account cannot create servers for the days below after its latest one. With noprofit.space connected, its standing is used instead of these settings.",
+                  standingLimitedDays: 'Limited For (Days)',
+                  standingLimitedDaysDescription:
+                    'Days after the latest suspension a limited account cannot create servers.',
+                  standingVeryLimitedAt: 'Very Limited From (Suspensions)',
+                  standingVeryLimitedAtDescription: 'From this many suspensions the account is very limited.',
+                  standingVeryLimitedDays: 'Very Limited For (Days)',
+                  standingVeryLimitedDaysDescription:
+                    'Days after the latest suspension a very limited account cannot create servers.',
+                  standingSuspendedAt: 'Suspended From (Suspensions)',
+                  standingSuspendedAtDescription:
+                    'From this many suspensions the account cannot create servers at all.',
                 },
                 button: {
                   removeWebhook: 'Remove Webhook',

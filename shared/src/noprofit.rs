@@ -234,6 +234,19 @@ impl Config {
         path: &str,
         body: &serde_json::Value,
     ) -> Result<reqwest::Response, anyhow::Error> {
+        let timeout = std::time::Duration::from_secs(8);
+
+        self.post_within(client, path, body, timeout).await
+    }
+
+    /// [`Self::post`] with its own time limit (a page waiting for the answer gives up sooner).
+    async fn post_within(
+        &self,
+        client: &reqwest::Client,
+        path: &str,
+        body: &serde_json::Value,
+        timeout: std::time::Duration,
+    ) -> Result<reqwest::Response, anyhow::Error> {
         let body = serde_json::to_vec(body)?;
         let headers = self
             .sign_request("POST", path, &body)
@@ -241,7 +254,7 @@ impl Config {
 
         let mut request = client
             .post(format!("{}{path}", self.accounts_url))
-            .timeout(std::time::Duration::from_secs(8))
+            .timeout(timeout)
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
             .body(body);
@@ -459,6 +472,79 @@ impl Config {
         }
     }
 
+    /// The account's standing (docs/features/standing.md). A page waits for it, so it gives up
+    /// after a few seconds.
+    pub async fn standing(
+        &self,
+        client: &reqwest::Client,
+        account_id: i64,
+    ) -> Result<crate::standing::Standing, anyhow::Error> {
+        const PATH: &str = "/api/v1/internal/calagopus/standing";
+
+        let response = self
+            .post_within(
+                client,
+                PATH,
+                &serde_json::json!({ "account_id": account_id }),
+                std::time::Duration::from_secs(4),
+            )
+            .await?;
+        let status = response.status();
+
+        if !status.is_success() {
+            anyhow::bail!("noprofit.space answered {status} to a standing request");
+        }
+
+        let answer: serde_json::Value = response.json().await?;
+
+        match crate::standing::Standing::from_answer(&answer) {
+            Some(standing) => Ok(standing),
+            None => anyhow::bail!("noprofit.space's answer has no standing"),
+        }
+    }
+
+    /// Reports a suspension made here as a strike on the account (docs/features/standing.md):
+    /// `reference` (`server:<uuid>`) counts once however often it is sent. An `Err` is worth
+    /// sending again (unreachable, refused secret, throttled, a 5xx).
+    pub async fn report_strike(
+        &self,
+        client: &reqwest::Client,
+        account_id: i64,
+        reference: &str,
+        reason: &str,
+    ) -> Result<StrikeAnswer, anyhow::Error> {
+        const PATH: &str = "/api/v1/internal/calagopus/standing/strikes";
+
+        let response = self
+            .post(
+                client,
+                PATH,
+                &serde_json::json!({
+                    "account_id": account_id,
+                    "reference": reference,
+                    "reason": reason,
+                }),
+            )
+            .await?;
+        let status = response.status();
+
+        match status {
+            // 201 recorded now, 200 recorded before
+            status if status.is_success() => {
+                let answer: serde_json::Value = response.json().await.unwrap_or_default();
+
+                match crate::standing::Standing::from_answer(&answer) {
+                    Some(standing) => Ok(StrikeAnswer::Recorded(standing)),
+                    None => anyhow::bail!("noprofit.space's answer to a strike has no standing"),
+                }
+            }
+            reqwest::StatusCode::NOT_FOUND | reqwest::StatusCode::UNPROCESSABLE_ENTITY => {
+                Ok(StrikeAnswer::Refused(status))
+            }
+            status => anyhow::bail!("noprofit.space answered {status} to a strike"),
+        }
+    }
+
     /// Whether noprofit.space signed this request to the panel (`/api/noprofit/*`) with the API
     /// secret, at most [`REQUEST_TOLERANCE`] seconds from `now`. Without an API secret nothing
     /// is. The caller still has to accept each nonce once.
@@ -583,6 +669,15 @@ impl SignedRequest<'_> {
 
         mac.verify_slice(&signature).is_ok()
     }
+}
+
+/// noprofit.space's answer to a strike ([`Config::report_strike`]).
+#[derive(Debug, Clone)]
+pub enum StrikeAnswer {
+    /// Recorded, now or before under the same reference: the account's standing after it.
+    Recorded(crate::standing::Standing),
+    /// Refused for good: no such account (404) or invalid (422).
+    Refused(reqwest::StatusCode),
 }
 
 /// noprofit.space's answer to a credit change ([`Config::apply_credits`]).
@@ -1120,6 +1215,10 @@ pub async fn sync_all(state: &crate::State) -> Result<(), anyhow::Error> {
     // first, so the snapshots below already count them
     if let Err(err) = push_credit_changes(state).await {
         tracing::warn!("failed to send credit changes to noprofit.space: {err:#}");
+    }
+    // abuse suspensions noprofit.space has not confirmed as strikes yet (docs/features/standing.md)
+    if let Err(err) = crate::standing::send_pending(state, &noprofit).await {
+        tracing::warn!("failed to send strikes to noprofit.space: {err:#}");
     }
 
     let account_ids = Link::live_account_ids(&state.database).await?;

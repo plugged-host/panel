@@ -239,6 +239,13 @@ impl Tool for ListCreateOptionsTool {
                     .with_display("Creating servers is off"),
             );
         }
+        // the account's standing (docs/features/standing.md)
+        if let Some(standing) = &options.standing {
+            return Ok(
+                ToolResult::ok(standing_refusal(standing))
+                    .with_display("Creating servers is blocked by the account's standing"),
+            );
+        }
         let names = names(context.state).await?;
 
         let games: Vec<String> = options
@@ -473,6 +480,27 @@ impl Tool for CreateServerTool {
     }
 }
 
+/// Why the account's standing keeps it from creating servers, and where the user reads more
+/// (docs/features/standing.md).
+fn standing_refusal(standing: &crate::standing::Standing) -> String {
+    let mut text = format!(
+        "This account cannot create servers right now: its standing is {} after {} suspension(s).",
+        standing.level_label(),
+        standing.suspensions
+    );
+    if let Some(until) = standing.create_blocked_until {
+        text.push_str(&format!(
+            " It can create servers again after {}.",
+            until.format("%Y-%m-%d %H:%M UTC")
+        ));
+    }
+    if let Some(url) = &standing.url {
+        text.push_str(&format!(" The user can read why on {url}."));
+    }
+
+    text
+}
+
 /// A create refusal as the model hears it.
 fn create_refusal(err: &CreateError, names: &Names) -> String {
     match err {
@@ -494,6 +522,7 @@ fn create_refusal(err: &CreateError, names: &Names) -> String {
             names.plus, names.plus, names.plusplus, names.plusplus
         ),
         CreateError::UnknownPlan => "Unknown plan id; use list_create_options.".into(),
+        CreateError::Standing(standing) => standing_refusal(standing),
         CreateError::InvalidName | CreateError::InvalidSize => format!("That was refused: {}.", err.message()),
         CreateError::Allowance(refusal) => format!(
             "That does not fit the account's allowance ({}); check account_overview and pick a smaller plan.",

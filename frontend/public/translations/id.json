@@ -824,6 +824,13 @@
           "goodSpeed": "Kecepatan Baik",
           "goodCompression": "Kompresi Baik",
           "bestCompression": "Kompresi Terbaik"
+        },
+        "accountStanding": {
+          "good": "Baik",
+          "warning": "Peringatan",
+          "limited": "Dibatasi",
+          "veryLimited": "Sangat Dibatasi",
+          "suspended": "Ditangguhkan"
         }
       },
       "unit": {
@@ -2076,6 +2083,11 @@
           },
           "toast": {
             "failed": "Gagal membuat server"
+          },
+          "standing": {
+            "blocked": "Status akun Anda: {level}. Anda tidak dapat membuat server saat ini.",
+            "blockedUntil": "Status akun Anda: {level}. Anda tidak dapat membuat server hingga {date}.",
+            "view": "Lihat status akun"
           }
         },
         "home": {
@@ -2231,6 +2243,17 @@
               "button": {
                 "manage": "Kelola di noprofit.space"
               }
+            },
+            "standing": {
+              "title": "Status akun",
+              "description": "Setiap penangguhan salah satu server Anda karena melanggar aturan dihitung di sini. Semakin banyak, semakin lama Anda tidak dapat membuat server baru.",
+              "level": "Tingkat",
+              "suspensions": "Penangguhan",
+              "create": "Membuat server",
+              "createAllowed": "Diizinkan",
+              "createBlocked": "Tidak diizinkan",
+              "createBlockedUntil": "Tidak diizinkan hingga {date}",
+              "details": "Detail"
             },
             "password": {
               "title": "Kata Sandi",

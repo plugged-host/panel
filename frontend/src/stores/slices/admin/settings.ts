@@ -209,6 +209,11 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
     cpuPercent: 90,
     cpuMinutes: 20,
     deleteAfterHours: 24,
+    standingLimitedAt: 2,
+    standingLimitedDays: 7,
+    standingVeryLimitedAt: 3,
+    standingVeryLimitedDays: 30,
+    standingSuspendedAt: 4,
   },
   // plugged.host: what players may create, the deployment pause
   games: {

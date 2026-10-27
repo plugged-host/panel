@@ -824,6 +824,13 @@
           "goodSpeed": "سرعة جيدة",
           "goodCompression": "ضغط جيد",
           "bestCompression": "أفضل ضغط"
+        },
+        "accountStanding": {
+          "good": "جيد",
+          "warning": "تحذير",
+          "limited": "مقيّد",
+          "veryLimited": "مقيّد بشدة",
+          "suspended": "معلّق"
         }
       },
       "unit": {
@@ -2076,6 +2083,11 @@
           },
           "toast": {
             "failed": "تعذّر إنشاء الخادم"
+          },
+          "standing": {
+            "blocked": "حالة حسابك: {level}. لا يمكنك إنشاء خوادم حالياً.",
+            "blockedUntil": "حالة حسابك: {level}. لا يمكنك إنشاء خوادم حتى {date}.",
+            "view": "عرض حالة الحساب"
           }
         },
         "home": {
@@ -2234,6 +2246,17 @@
               "button": {
                 "manage": "الإدارة على noprofit.space"
               }
+            },
+            "standing": {
+              "title": "حالة الحساب",
+              "description": "يُحتسب هنا كل تعليق لأحد خوادمك بسبب مخالفة القواعد. كلما زاد عددها، طالت المدة التي لا يمكنك فيها إنشاء خوادم جديدة.",
+              "level": "المستوى",
+              "suspensions": "مرات التعليق",
+              "create": "إنشاء الخوادم",
+              "createAllowed": "مسموح",
+              "createBlocked": "غير مسموح",
+              "createBlockedUntil": "غير مسموح حتى {date}",
+              "details": "التفاصيل"
             },
             "password": {
               "title": "كلمة المرور",

@@ -1690,6 +1690,22 @@ export const abuseFindingsTable = pgTable(
   ],
 );
 
+// plugged.host: the suspensions counted against their owner's standing, kept when the server is
+// deleted (shared/src/standing.rs, docs/features/standing.md); one row per user and reference
+export const userStrikesTable = pgTable(
+  'user_strikes',
+  {
+    uuid: uuid().default(sql`gen_random_uuid()`).primaryKey().notNull(),
+    user_uuid: uuid()
+      .references(() => usersTable.uuid, { onDelete: 'cascade' })
+      .notNull(),
+    reference: varchar({ length: 64 }).notNull(),
+    reason: text(),
+    created: timestamp().defaultNow().notNull(),
+  },
+  (cols) => [uniqueIndex('user_strikes_user_uuid_reference_idx').on(cols.user_uuid, cols.reference)],
+);
+
 // plugged.host: decreases of an account's allowance its servers give back (docs/features/allowance-cuts.md)
 export const userAllowanceCutsTable = pgTable(
   'user_allowance_cuts',

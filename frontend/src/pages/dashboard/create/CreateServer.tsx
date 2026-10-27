@@ -2,7 +2,7 @@
 // Game, Location, Resources, the EULA for Minecraft, then the deploy row (docs/features/create-server.md)
 import { faCircleInfo, faDiceFive, faGamepad } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Loader } from '@mantine/core';
+import { Button as MantineButton, Loader } from '@mantine/core';
 import { useDebouncedValue, useHotkeys } from '@mantine/hooks';
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ReactNode, useEffect, useState } from 'react';
@@ -23,10 +23,12 @@ import TextInput from '@/elements/input/TextInput.tsx';
 import Tooltip from '@/elements/overlays/Tooltip.tsx';
 import ResourceView from '@/elements/ResourceView.tsx';
 import Text from '@/elements/typography/Text.tsx';
+import { formatDateTime } from '@/lib/format/time.ts';
 import { closestLocation, useLocationPings } from '@/lib/locationPing.ts';
 import { queryKeys } from '@/lib/queryKeys.ts';
 import { randomWord } from '@/lib/randomWord.ts';
 import { serverCreateLocationSchema, serverCreateOptionsSchema } from '@/lib/schemas/server/create.ts';
+import { standingLevelKey } from '@/lib/standing.ts';
 import { SETUP_PATH } from '@/pages/server/minecraft/setup/useMinecraftSetup.ts';
 import { useResource } from '@/plugins/resource/useResource.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
@@ -36,6 +38,7 @@ import { useGlobalStore } from '@/stores/global.ts';
 type Options = z.infer<typeof serverCreateOptionsSchema>;
 type Location = z.infer<typeof serverCreateLocationSchema>;
 type Plan = Options['plans'][number];
+type Standing = NonNullable<Options['standing']>;
 type Amount = number | '';
 type Resource = 'cpu' | 'memory' | 'disk';
 
@@ -116,6 +119,36 @@ function left(limit: number, used: number): number | null {
 
 function isAmount(value: Amount): value is number {
   return typeof value === 'number' && Number.isInteger(value) && value >= 1;
+}
+
+/** Why the account cannot create servers for now: its standing (docs/features/standing.md). */
+function StandingNotice({ standing }: { standing: Standing }) {
+  const { t } = useTranslations();
+  const levelKey = standingLevelKey(standing.level);
+  const level = levelKey ? t(levelKey, {}) : standing.level;
+
+  return (
+    <div className='flex flex-col items-start gap-4'>
+      <Text c='dimmed'>
+        {standing.createBlockedUntil
+          ? t(`${page}.standing.blockedUntil`, { level, date: formatDateTime(standing.createBlockedUntil) })
+          : t(`${page}.standing.blocked`, { level })}
+      </Text>
+      {/* noprofit.space's standing page, when the standing is noprofit.space's */}
+      {standing.url && (
+        <MantineButton
+          component='a'
+          href={standing.url}
+          target='_blank'
+          rel='noopener noreferrer'
+          variant='default'
+          fw={600}
+        >
+          {t(`${page}.standing.view`, {})}
+        </MantineButton>
+      )}
+    </div>
+  );
 }
 
 function CreateServerForm({ options }: { options: Options }) {
@@ -491,6 +524,8 @@ export default function CreateServer() {
 
   // the Pelican panel hides the page from an account that cannot create anything; here it says why
   const options = resource.data;
+  // the account's standing keeps it from creating for now (docs/features/standing.md)
+  const standing = options?.enabled && options.standing && !options.standing.canCreate ? options.standing : null;
   const blocked = !options
     ? null
     : !options.enabled
@@ -501,13 +536,19 @@ export default function CreateServer() {
           ? t(`${page}.nothingOffered`, {})
           : null;
 
-  if (options && !blocked) {
+  if (options && !blocked && !standing) {
     return <CreateServerForm options={options} />;
   }
 
   return (
     <AccountContentContainer title={t(`${page}.title`, {})} subtitle={t(`${page}.subtitle`, {})}>
-      {blocked ? <Text c='dimmed'>{blocked}</Text> : <ResourceView resource={resource}>{() => null}</ResourceView>}
+      {standing ? (
+        <StandingNotice standing={standing} />
+      ) : blocked ? (
+        <Text c='dimmed'>{blocked}</Text>
+      ) : (
+        <ResourceView resource={resource}>{() => null}</ResourceView>
+      )}
     </AccountContentContainer>
   );
 }

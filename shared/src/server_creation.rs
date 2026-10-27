@@ -106,6 +106,9 @@ pub struct ApiCreateOptions {
     pub games: Vec<ApiGame>,
     pub locations: Vec<ApiCreateLocation>,
     pub plans: Vec<ApiCreatePlan>,
+    /// The account's standing when it keeps the player from creating servers
+    /// (docs/features/standing.md); asked without a size only.
+    pub standing: Option<crate::standing::Standing>,
 }
 
 /// What a player picked on the create page.
@@ -134,6 +137,8 @@ pub enum CreateError {
     UnknownLocation,
     LocationLocked,
     UnknownPlan,
+    /// The account's standing keeps it from creating for now (docs/features/standing.md).
+    Standing(crate::standing::Standing),
     Allowance(Refusal),
     /// No node can take it; the reason is the deployment blocker's or the allocation error.
     NoNode(String),
@@ -154,6 +159,7 @@ impl CreateError {
             Self::UnknownLocation => "this location is not offered".into(),
             Self::LocationLocked => "your plan does not include this location".into(),
             Self::UnknownPlan => "this plan is not offered".into(),
+            Self::Standing(standing) => standing.refusal(),
             Self::Allowance(refusal) => refusal.message().into(),
             Self::NoNode(reason) => format!("no node can take the server right now: {reason}"),
             Self::Other(err) => format!("{err:#}"),
@@ -163,7 +169,7 @@ impl CreateError {
     /// The HTTP status a route answers with.
     pub fn status(&self) -> u16 {
         match self {
-            Self::Disabled | Self::AccountBlocked | Self::LocationLocked => 403,
+            Self::Disabled | Self::AccountBlocked | Self::LocationLocked | Self::Standing(_) => 403,
             Self::Busy => 429,
             Self::Allowance(_) | Self::NoNode(_) => 409,
             Self::Other(_) => 500,
@@ -251,6 +257,12 @@ pub async fn options(
 
     let locations = locations_for(state, user, size).await?;
 
+    // the page asks again with each size for the locations only: one standing check per page
+    let standing = match size {
+        Some(_) => None,
+        None => crate::standing::create_refusal(state, user).await,
+    };
+
     let plans = Plan::all_public(&state.database)
         .await?
         .into_iter()
@@ -273,6 +285,7 @@ pub async fn options(
         games,
         locations,
         plans,
+        standing,
     })
 }
 
@@ -468,6 +481,11 @@ pub async fn create(
     }
     if valid_name(&request.name).is_none() {
         return Err(CreateError::InvalidName);
+    }
+    // the account's standing (docs/features/standing.md): admins are not limited, and a standing
+    // nobody can tell (noprofit.space not answering) limits nobody
+    if let Some(standing) = crate::standing::create_refusal(state, user).await {
+        return Err(CreateError::Standing(standing));
     }
 
     let Some(_lock) = crate::allowance::lock(state, user.uuid).await else {

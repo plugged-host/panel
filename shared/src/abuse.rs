@@ -585,7 +585,7 @@ async fn suspend_for(
                 state,
                 suspension::Suspend {
                     kind: suspension::SuspensionKind::Abuse,
-                    reason: Some(reason),
+                    reason: Some(reason.clone()),
                     by: None,
                     delete_at: (hours > 0)
                         .then(|| chrono::Utc::now() + chrono::Duration::hours(hours as i64)),
@@ -598,6 +598,10 @@ async fn suspend_for(
             result.error = Some(err.to_string());
             return;
         }
+
+        // a strike on the owner's standing, in the background: the suspension never waits for
+        // it (docs/features/standing.md)
+        crate::standing::report_server_strike(state, fresh.uuid, fresh.owner.uuid, reason);
 
         result.suspended = true;
         "suspended"
@@ -1261,6 +1265,12 @@ pub async fn close_finding(
     transaction.commit().await?;
     if server_uuid.is_some() {
         crate::devboxes::blocks::on_finding_status(database, finding_uuid, status).await;
+    }
+    // a false positive is no strike on the owner's standing (docs/features/standing.md)
+    if status == STATUS_DISMISSED
+        && let Some(Some(server_uuid)) = server_uuid
+    {
+        crate::standing::forgive_server(database, server_uuid).await;
     }
 
     Ok(server_uuid)

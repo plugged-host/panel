@@ -824,6 +824,13 @@
           "goodSpeed": "Yaxshi tezlik",
           "goodCompression": "Yaxshi siqish",
           "bestCompression": "Eng yuqori siqish"
+        },
+        "accountStanding": {
+          "good": "Yaxshi",
+          "warning": "Ogohlantirish",
+          "limited": "Cheklangan",
+          "veryLimited": "Qattiq cheklangan",
+          "suspended": "Muzlatilgan"
         }
       },
       "unit": {
@@ -2076,6 +2083,11 @@
           },
           "toast": {
             "failed": "Serverni yaratib boʻlmadi"
+          },
+          "standing": {
+            "blocked": "Hisobingiz holati: {level}. Hozir server yarata olmaysiz.",
+            "blockedUntil": "Hisobingiz holati: {level}. {date} gacha server yarata olmaysiz.",
+            "view": "Hisob holatini koʻrish"
           }
         },
         "home": {
@@ -2231,6 +2243,17 @@
               "button": {
                 "manage": "noprofit.space saytida boshqarish"
               }
+            },
+            "standing": {
+              "title": "Hisob holati",
+              "description": "Qoidalarni buzgani uchun serverlaringizdan birining har bir muzlatilishi shu yerda hisoblanadi. Ular qancha koʻp boʻlsa, yangi server yarata olmaydigan muddat shuncha uzayadi.",
+              "level": "Daraja",
+              "suspensions": "Muzlatishlar",
+              "create": "Server yaratish",
+              "createAllowed": "Ruxsat etilgan",
+              "createBlocked": "Ruxsat etilmagan",
+              "createBlockedUntil": "{date} gacha ruxsat etilmagan",
+              "details": "Batafsil"
             },
             "password": {
               "title": "Parol",

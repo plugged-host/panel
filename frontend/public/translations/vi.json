@@ -824,6 +824,13 @@
           "goodSpeed": "Tốc độ tốt",
           "goodCompression": "Nén tốt",
           "bestCompression": "Nén tốt nhất"
+        },
+        "accountStanding": {
+          "good": "Tốt",
+          "warning": "Cảnh cáo",
+          "limited": "Bị hạn chế",
+          "veryLimited": "Bị hạn chế nghiêm ngặt",
+          "suspended": "Bị đình chỉ"
         }
       },
       "unit": {
@@ -2076,6 +2083,11 @@
           },
           "toast": {
             "failed": "Không thể tạo máy chủ"
+          },
+          "standing": {
+            "blocked": "Trạng thái tài khoản của bạn: {level}. Hiện tại bạn không thể tạo máy chủ.",
+            "blockedUntil": "Trạng thái tài khoản của bạn: {level}. Bạn không thể tạo máy chủ cho đến {date}.",
+            "view": "Xem trạng thái tài khoản"
           }
         },
         "home": {
@@ -2234,6 +2246,17 @@
               "button": {
                 "manage": "Quản Lý Trên noprofit.space"
               }
+            },
+            "standing": {
+              "title": "Trạng thái tài khoản",
+              "description": "Mỗi lần một máy chủ của bạn bị đình chỉ vì vi phạm quy định đều được tính ở đây. Càng nhiều lần, bạn càng phải chờ lâu hơn mới có thể tạo máy chủ mới.",
+              "level": "Mức độ",
+              "suspensions": "Số lần đình chỉ",
+              "create": "Tạo máy chủ",
+              "createAllowed": "Được phép",
+              "createBlocked": "Không được phép",
+              "createBlockedUntil": "Không được phép cho đến {date}",
+              "details": "Chi tiết"
             },
             "password": {
               "title": "Mật khẩu",

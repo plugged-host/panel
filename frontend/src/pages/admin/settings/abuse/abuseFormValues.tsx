@@ -12,6 +12,11 @@ export const abuseEmptyFormValues: AbuseFormValues = {
   cpuPercent: 90,
   cpuMinutes: 20,
   deleteAfterHours: 24,
+  standingLimitedAt: 2,
+  standingLimitedDays: 7,
+  standingVeryLimitedAt: 3,
+  standingVeryLimitedDays: 30,
+  standingSuspendedAt: 4,
 };
 
 // The webhook is never sent to the browser: an empty field keeps the stored one.
@@ -75,6 +80,52 @@ export function useAbuseFormFields(
       required: true,
       advanced: true,
       props: { min: 5, max: 1440 },
+    },
+    // the panel's own account standing (docs/features/standing.md)
+    {
+      type: 'number',
+      name: 'standingLimitedAt',
+      label: t('pages.admin.settings.tabs.abuse.page.form.standingLimitedAt', {}),
+      description: t('pages.admin.settings.tabs.abuse.page.form.standingLimitedAtDescription', {}),
+      required: true,
+      advanced: true,
+      props: { min: 1, max: 100 },
+    },
+    {
+      type: 'number',
+      name: 'standingLimitedDays',
+      label: t('pages.admin.settings.tabs.abuse.page.form.standingLimitedDays', {}),
+      description: t('pages.admin.settings.tabs.abuse.page.form.standingLimitedDaysDescription', {}),
+      required: true,
+      advanced: true,
+      props: { min: 1, max: 3650 },
+    },
+    {
+      type: 'number',
+      name: 'standingVeryLimitedAt',
+      label: t('pages.admin.settings.tabs.abuse.page.form.standingVeryLimitedAt', {}),
+      description: t('pages.admin.settings.tabs.abuse.page.form.standingVeryLimitedAtDescription', {}),
+      required: true,
+      advanced: true,
+      props: { min: 1, max: 100 },
+    },
+    {
+      type: 'number',
+      name: 'standingVeryLimitedDays',
+      label: t('pages.admin.settings.tabs.abuse.page.form.standingVeryLimitedDays', {}),
+      description: t('pages.admin.settings.tabs.abuse.page.form.standingVeryLimitedDaysDescription', {}),
+      required: true,
+      advanced: true,
+      props: { min: 1, max: 3650 },
+    },
+    {
+      type: 'number',
+      name: 'standingSuspendedAt',
+      label: t('pages.admin.settings.tabs.abuse.page.form.standingSuspendedAt', {}),
+      description: t('pages.admin.settings.tabs.abuse.page.form.standingSuspendedAtDescription', {}),
+      required: true,
+      advanced: true,
+      props: { min: 1, max: 100 },
     },
   ];
 }

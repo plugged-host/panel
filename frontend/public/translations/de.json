@@ -824,6 +824,13 @@
           "goodSpeed": "Gute Geschwindigkeit",
           "goodCompression": "Gute Komprimierung",
           "bestCompression": "Beste Komprimierung"
+        },
+        "accountStanding": {
+          "good": "Gut",
+          "warning": "Verwarnung",
+          "limited": "Eingeschränkt",
+          "veryLimited": "Stark eingeschränkt",
+          "suspended": "Suspendiert"
         }
       },
       "unit": {
@@ -2092,6 +2099,11 @@
           },
           "toast": {
             "failed": "Konnte Server nicht erstellen"
+          },
+          "standing": {
+            "blocked": "Dein Kontostatus: {level}. Du kannst gerade keine Server erstellen.",
+            "blockedUntil": "Dein Kontostatus: {level}. Du kannst bis {date} keine Server erstellen.",
+            "view": "Kontostatus ansehen"
           }
         },
         "home": {
@@ -2250,6 +2262,17 @@
               "button": {
                 "manage": "Auf noprofit.space verwalten"
               }
+            },
+            "standing": {
+              "title": "Kontostatus",
+              "description": "Jede Suspendierung eines deiner Server wegen eines Regelverstoßes zählt hier. Je mehr es sind, desto länger kannst du keine neuen Server erstellen.",
+              "level": "Stufe",
+              "suspensions": "Suspendierungen",
+              "create": "Server erstellen",
+              "createAllowed": "Erlaubt",
+              "createBlocked": "Nicht erlaubt",
+              "createBlockedUntil": "Nicht erlaubt bis {date}",
+              "details": "Details"
             },
             "password": {
               "title": "Passwort",
@@ -3901,7 +3924,17 @@
                   "cpuPercent": "CPU-Schwelle",
                   "cpuPercentDescription": "Prozent seines CPU-Limits, die ein Server halten muss, damit seine Konsole gelesen wird und nach den Minuten unten die vollständige Prüfung läuft.",
                   "cpuMinutes": "CPU-Minuten",
-                  "cpuMinutesDescription": "Minuten an der Schwelle, bevor die vollständige Prüfung läuft. Volle CPU allein suspendiert nie."
+                  "cpuMinutesDescription": "Minuten an der Schwelle, bevor die vollständige Prüfung läuft. Volle CPU allein suspendiert nie.",
+                  "standingLimitedAt": "Eingeschränkt ab (Suspendierungen)",
+                  "standingLimitedAtDescription": "Jede Suspendierung wegen Missbrauchs zählt gegen den Besitzer des Servers; eine ist eine Verwarnung. Ab so vielen kann das Konto nach seiner letzten für die Tage unten keine Server erstellen. Ist noprofit.space verbunden, gilt dessen Kontostatus statt dieser Einstellungen.",
+                  "standingLimitedDays": "Eingeschränkt für (Tage)",
+                  "standingLimitedDaysDescription": "Tage nach der letzten Suspendierung, in denen ein eingeschränktes Konto keine Server erstellen kann.",
+                  "standingVeryLimitedAt": "Stark eingeschränkt ab (Suspendierungen)",
+                  "standingVeryLimitedAtDescription": "Ab so vielen Suspendierungen ist das Konto stark eingeschränkt.",
+                  "standingVeryLimitedDays": "Stark eingeschränkt für (Tage)",
+                  "standingVeryLimitedDaysDescription": "Tage nach der letzten Suspendierung, in denen ein stark eingeschränktes Konto keine Server erstellen kann.",
+                  "standingSuspendedAt": "Suspendiert ab (Suspendierungen)",
+                  "standingSuspendedAtDescription": "Ab so vielen Suspendierungen kann das Konto gar keine Server mehr erstellen."
                 },
                 "button": {
                   "removeWebhook": "Webhook entfernen"

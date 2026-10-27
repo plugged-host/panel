@@ -102,6 +102,10 @@ The mode (Admin › Settings › Security › Abuse) decides:
 Admin › Abuse › Scan a Server records findings like the scheduled scan but never suspends: the admin
 decides. Review findings never suspend.
 
+**Standing.** Every abuse suspension is a strike on the server's owner; enough of them keep the
+account from creating servers for a while, or for good ([standing.md](standing.md)). Dismissing a
+finding takes the panel's own strike for that server back.
+
 **Owner sweep.** Someone caught mining on one server usually runs the same kit on the rest: after a
 new critical finding, the owner's other servers get the full scan right away in the background,
 once per owner per hour.

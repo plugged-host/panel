@@ -377,6 +377,12 @@ export const adminSettingsAbuseSchema = z.object({
   cpuPercent: z.number().int().min(50).max(100),
   cpuMinutes: z.number().int().min(5).max(1440),
   deleteAfterHours: z.number().int().min(0).max(8760),
+  // the panel's own account standing (shared/src/standing.rs, docs/features/standing.md)
+  standingLimitedAt: z.number().int().min(1).max(100),
+  standingLimitedDays: z.number().int().min(1).max(3650),
+  standingVeryLimitedAt: z.number().int().min(1).max(100),
+  standingVeryLimitedDays: z.number().int().min(1).max(3650),
+  standingSuspendedAt: z.number().int().min(1).max(100),
 });
 
 // plugged.host: what players may create (shared/src/settings/games.rs, docs/features/create-server.md)

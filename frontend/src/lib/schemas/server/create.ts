@@ -1,5 +1,6 @@
 // plugged.host: what the create page offers (shared/src/server_creation.rs, docs/features/create-server.md)
 import { z } from 'zod';
+import { accountStandingSchema } from '@/lib/schemas/standing.ts';
 
 const resourcesSchema = z.object({
   cpu: z.number(),
@@ -58,6 +59,8 @@ export const serverCreateOptionsSchema = z.object({
   games: z.array(serverCreateGameSchema),
   locations: z.array(serverCreateLocationSchema),
   plans: z.array(serverCreatePlanSchema),
+  // the account's standing when it keeps the player from creating (docs/features/standing.md)
+  standing: accountStandingSchema.nullable().catch(null),
 });
 
 // A plan, or the player's own CPU, memory and disk (a plan only fills them in on the page).

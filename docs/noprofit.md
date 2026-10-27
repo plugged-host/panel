@@ -18,6 +18,7 @@ version:
 | Credits and the Resource Store | The panel's own (`users.credits`, its own prices) | noprofit.space's balance, store and prices ([features/economy.md](features/economy.md)); credits the panel gives or takes (Discord invites, admins) are sent to it |
 | Deleting an account | Admins delete users | Deleting the noprofit.space account deletes the panel user and its servers (asked by noprofit.space, or by the sync once the account is gone) |
 | Plan, Discord (later phases) | Settings and the panel's own tables | noprofit.space's, synced every minute |
+| Account standing | The panel's own strikes, counted with Admin › Settings › Security › Abuse | noprofit.space's, counted across all its services ([features/standing.md](features/standing.md)) |
 
 Code that needs one of these asks the settings (`settings.noprofit.connected()`, `.config()`), never
 an environment variable, and has a branch for both cases.
@@ -149,6 +150,15 @@ What the accounts app must implement to work with this panel (tested against its
   what was applied the first time; `credits` is the balance now), 404 for an unknown account, 409
   when the key belongs to a different change, 422 for an invalid one. The panel retries anything
   else.
+- `POST /api/v1/internal/calagopus/standing` with `{"account_id"}` answers the account's standing:
+  `{level, suspensions, can_create, create_blocked_until, url}` (`level` one of `good`, `warning`,
+  `limited`, `very_limited`, `suspended`; `create_blocked_until` ISO 8601 or null; `url` the
+  account's standing page). The panel waits 4 seconds for it and limits nobody without an answer
+  ([features/standing.md](features/standing.md)).
+- `POST /api/v1/internal/calagopus/standing/strikes` with `{"account_id", "reference", "reason"}`
+  (`reference` = `server:<uuid>`) records an abuse suspension made here: 201 with the standing
+  after it, 200 when the reference was recorded before (it counts once). 404 and 422 are refused
+  for good; the panel sends anything else again with the account sync.
 
 noprofit.space calls the panel too, signed the same way with the API secret (a minute's tolerance,
 each nonce once; 401 `unauthorized` otherwise, 60 requests per minute and address):

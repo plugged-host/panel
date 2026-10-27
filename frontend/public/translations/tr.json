@@ -824,6 +824,13 @@
           "goodSpeed": "İyi Hız",
           "goodCompression": "İyi Sıkıştırma",
           "bestCompression": "En İyi Sıkıştırma"
+        },
+        "accountStanding": {
+          "good": "İyi",
+          "warning": "Uyarı",
+          "limited": "Kısıtlı",
+          "veryLimited": "Çok Kısıtlı",
+          "suspended": "Askıya Alındı"
         }
       },
       "unit": {
@@ -2076,6 +2083,11 @@
           },
           "toast": {
             "failed": "Sunucu oluşturulamadı"
+          },
+          "standing": {
+            "blocked": "Hesap durumunuz: {level}. Şu anda sunucu oluşturamazsınız.",
+            "blockedUntil": "Hesap durumunuz: {level}. {date} tarihine kadar sunucu oluşturamazsınız.",
+            "view": "Hesap durumunu görüntüle"
           }
         },
         "home": {
@@ -2234,6 +2246,17 @@
               "button": {
                 "manage": "noprofit.space'te Yönet"
               }
+            },
+            "standing": {
+              "title": "Hesap durumu",
+              "description": "Kuralları ihlal ettiği için sunucularınızdan birinin her askıya alınması burada sayılır. Sayı arttıkça yeni sunucu oluşturamadığınız süre uzar.",
+              "level": "Seviye",
+              "suspensions": "Askıya almalar",
+              "create": "Sunucu oluşturma",
+              "createAllowed": "İzin veriliyor",
+              "createBlocked": "İzin verilmiyor",
+              "createBlockedUntil": "{date} tarihine kadar izin verilmiyor",
+              "details": "Ayrıntılar"
             },
             "password": {
               "title": "Şifre",
