@@ -5,9 +5,8 @@
 #
 # The build host is an ssh alias (BUILD_HOST, default plugged-build, a Ryzen 5 PRO 3600) with
 # Rust, Node 26 and pnpm 11; never build on the panel box itself (not enough disk or memory). The
-# repository is copied over with its .git, so the binary knows its commit (plugged.host release
-# v{VERSION}.{commit}). Commit before building anything that gets deployed: the release names the
-# commit, not the working tree.
+# release is v{VERSION} (docs/features/release.md); commit before building anything that gets
+# deployed, so what runs is in git.
 #
 # It stops when an offered language misses an English string (LANGUAGES, default every offered
 # language: German every string, the others all but the admin-only ones; docs/features/languages.md).
@@ -30,7 +29,7 @@ LANGUAGES=${LANGUAGES:-}
 OUT="$ROOT/target/plugged-host"
 
 if [ -n "$(git -C "$ROOT" status --porcelain --untracked-files=no)" ]; then
-  echo "warning: uncommitted changes, the release will name $(git -C "$ROOT" rev-parse --short=7 HEAD) anyway" >&2
+  echo "warning: uncommitted changes are in this build but not in git" >&2
 fi
 
 echo "==> copying the tree to $BUILD_HOST:$BUILD_DIR"

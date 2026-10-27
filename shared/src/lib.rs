@@ -100,7 +100,7 @@ pub const TARGET: &str = env!("CARGO_TARGET");
 /// plugged.host: the release's version, the `VERSION` file at the repository root (e.g. `3.0.0`).
 /// Cargo's own version ([`VERSION`]) stays upstream's.
 pub const RELEASE_VERSION: &str = env!("RELEASE_VERSION");
-/// plugged.host: the release, `v{VERSION}.{commit}` (e.g. `v3.0.0.7bc33d4`), shown in the footer.
+/// plugged.host: the release, `v{VERSION}` (e.g. `v3.0.0`), shown in the footer.
 pub const RELEASE: &str = env!("RELEASE");
 
 pub fn full_version() -> String {

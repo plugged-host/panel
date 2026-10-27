@@ -35,7 +35,8 @@ peer() { ssh -o BatchMode=yes -o ConnectTimeout=10 "$PEER_SSH" "$@"; }
 release=$(release_of "$BINARY")
 [ -n "$release" ] || { echo "cannot read the release of $BINARY" >&2; exit 1; }
 
-dir="$BASE/releases/$release"
+# The release is only v{VERSION}, so every deploy gets its own directory.
+dir="$BASE/releases/$release-$(date -u +%Y%m%d-%H%M%S)"
 install -d -m 755 "$dir"
 install -m 755 "$BINARY" "$dir/panel-rs.new"
 mv -f "$dir/panel-rs.new" "$dir/panel-rs"

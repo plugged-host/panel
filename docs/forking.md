@@ -21,9 +21,8 @@ Search for leftovers before you ship: `git grep -n "plugged.host" -- frontend/pu
 
 ## Version
 
-`VERSION` at the root holds your version (`3.0.0`); the release is `v{VERSION}.{commit}`, read from
-git at build time. `PANEL_RELEASE=...` at build time overrides it (for builds outside a git
-checkout). Cargo's own version stays upstream's, so `panel-rs version` shows both
+`VERSION` at the root holds your version (`3.0.0`); the release is `v{VERSION}`.
+`PANEL_RELEASE=...` at build time overrides it. Cargo's own version stays upstream's, so `panel-rs version` shows both
 ([features/release.md](features/release.md)).
 
 ## Languages

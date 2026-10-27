@@ -31,7 +31,7 @@ For AI agents: [`AGENTS.md`](../AGENTS.md) at the root has the hard rules in sho
 | Feature | Page |
 |---|---|
 | **Theme v2**: the look of plugged.host's Pelican panel (royal-blue accent, obsidian surfaces, Space Grotesk + JetBrains Mono, Tabler icons, flat sidebar), dark only, with an admin-chosen accent colour | [features/theme.md](features/theme.md) |
-| **Release** `v{VERSION}.{commit}`, shown in the footer and by `panel-rs version` | [features/release.md](features/release.md) |
+| **Release** `v{VERSION}`, shown in the footer and by `panel-rs version` | [features/release.md](features/release.md) |
 | **noprofit.space** sign-in, account sync and SFTP passwords, optional | [noprofit.md](noprofit.md) |
 | **Start gates**: one place where a server start can be held back (limbo, the start queue, the ad waiting room), with the other ways to start a server closed for non-admins | [features/start-gates.md](features/start-gates.md) |
 | **Node telemetry**: every node checked once a minute (answering, Wings not listening, unreachable; CPU, memory, disk, load, response time), a week of history on the Statistics tab; node role, tags, SRV target and deployment pause; location tier, sort order and public | [features/node-telemetry.md](features/node-telemetry.md) |

@@ -165,7 +165,7 @@ pub struct KnowledgeFacts {
     pub app_url: String,
     /// The panel's default language.
     pub language: String,
-    /// `v{VERSION}.{commit}` ([`crate::RELEASE`]).
+    /// `v{VERSION}` ([`crate::RELEASE`]).
     pub release: String,
     /// noprofit.space, while it is connected.
     pub accounts: Option<AccountsFacts>,
@@ -1038,7 +1038,7 @@ pub fn knowledge_text(facts: &KnowledgeFacts) -> String {
     item(
         &mut out,
         &format!(
-            "This panel runs {app} {} (versions read v<generation>.<major release>.<patch>.<commit>; it is also in the footer of every panel page).",
+            "This panel runs {app} {} (versions read v<generation>.<major release>.<patch>; it is also in the footer of every panel page).",
             facts.release
         ),
     );
