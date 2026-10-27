@@ -26,7 +26,7 @@ We enforce this because reviewing unreviewed, AI-generated code costs maintainer
 
 ### Translations
 
-Only edit `frontend/src/translations.ts` by hand, and run `pnpm build:translations` to update `en.json`. All other locale files are managed through [Crowdin](https://crowdin.com/project/calagopus) and updated by an automated PR. Don't hand-edit or add translated strings for other languages.
+Only edit `frontend/src/translations.ts` by hand, and run `pnpm build:translations` to update `en.json`. The other offered languages are edited directly in this fork, together with the English string ([docs/features/languages.md](docs/features/languages.md)). <!-- plugged.host: no Crowdin -->
 
 ### Database changes
 
