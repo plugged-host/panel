@@ -1,82 +1,71 @@
 <div align="center">
 
-![Calagopus Logo](https://calagopus.com/fulllogo.svg)
-
-# Calagopus Panel
+# plugged.host Calagopus
 
 [![Rust](https://img.shields.io/badge/rust-stable-orange.svg?logo=rust)](https://www.rust-lang.org/)
-[![License](https://img.shields.io/github/license/calagopus/panel?color=blue)](https://github.com/calagopus/panel/blob/main/LICENSE)
-[![GitHub issues](https://img.shields.io/github/issues/calagopus/panel?color=green)](https://github.com/calagopus/panel/issues)
-[![GitHub stars](https://img.shields.io/github/stars/calagopus/panel)](https://github.com/calagopus/panel/stargazers)
-[![Discord](https://img.shields.io/discord/1429911351777824892?label=discord&logo=discord&color=5865F2)](https://discord.gg/uSM8tvTxBV)
-[![Crowdin](https://img.shields.io/badge/translate-Crowdin-red?logo=crowdin)](https://crowdin.com/project/calagopus)
+[![License](https://img.shields.io/github/license/plugged-host/panel?color=blue)](./LICENSE)
+[![Release](https://img.shields.io/github/v/release/plugged-host/panel)](https://github.com/plugged-host/panel/releases)
 
-**A modern game server management panel, rebuilt from the ground up in Rust.**
+**The game-server panel behind [plugged.host](https://plugged.host): a similar frontend, a brand new backend.**
 
 </div>
 
-> This is **plugged.host's fork** of Calagopus: what it changes and how to work on it are in [docs/](./docs/README.md). <!-- plugged.host -->
-
-Calagopus is a ground-up reimplementation of [Pterodactyl Panel](https://github.com/pterodactyl/panel) in Rust. It keeps what made the original great - secure, container-based game server management - while aiming for better performance, a refreshed UI, more features, and a cleaner extension model on both the frontend and backend. If you already run Pterodactyl or Pelican, there is a supported migration path.
+This is plugged.host's panel since v3: a fork of [Calagopus](https://github.com/calagopus/panel), the
+Rust (Tokio + Axum) and React (Mantine) reimplementation of Pterodactyl, with everything plugged.host's
+Pelican panel did built into the panel's own source. It replaces the Pelican plugins
+([plugged-host/plugins](https://github.com/plugged-host/plugins), deprecated). Pages look like the
+Pelican panel's and load up to 88 % faster.
 
 <div align="center">
 
-![Calagopus dashboard](./README-assets/dashboard.gif)
+![The dashboard](./README-assets/dashboard.gif)
 
 </div>
 
-## Features
+## What it adds over Calagopus
 
-- **Rust backend** - a fast, efficient backend built on Tokio and Axum.
-- **Modern frontend** - React, Mantine, and Tailwind for a clean, responsive UI.
-- **Extensible by design** - first-class extension systems for backend and frontend, no hacky patches or overrides, real plugin APIs.
-- **Egg compatible** - reuses Pterodactyl-style eggs, including a Rust port of Laravel's validation rules.
-- **Migration friendly** - import your existing setup from [Pterodactyl](https://calagopus.com/docs/additional/migrations/pterodactyl) or [Pelican](https://calagopus.com/docs/additional/migrations/pelican).
+- **Creating servers** from a game, its software, a location and a plan, within each account's allowance;
+  placement on the least loaded node, a deployment pause for busy nodes, moves between locations.
+- **Minecraft pages** (plugins and mods from Modrinth, CurseForge and SpigotMC, game settings, players,
+  worlds, modpacks) and **FiveM pages** (server.cfg as a form, txAdmin recipes, players, artifacts).
+- **Server settings** on one page, **custom startup commands** checked before they are applied, **server
+  chat**, **subdomains**, **VS Code devboxes**.
+- **Abuse protection** (files, startup, console, CPU and, with the Wings fork, processes and connections)
+  and **account standing**: abuse suspensions count against the account.
+- **Limbo** for idle servers, a **start queue**, **node failover** from off-node backups, **node
+  telemetry**, a **status page** export.
+- **Credits, tokens and memberships**, ads and sponsored links, **Discord** rewards and a partner program.
+- **neo**, an assistant on the dashboard, on every server and on Discord; **rux**, a Discord moderation bot.
+- **Importing a Pelican panel** with the Pelican plugins' data: `panel-rs import pelican`.
+- Theme v2, 11 languages, [noprofit.space](https://noprofit.space) sign-in as an option: every feature
+  works without it.
 
-## Installation
+Each feature has its own page in [docs/features/](./docs/features/); the full list is in
+[docs/README.md](./docs/README.md).
 
-Full instructions live in the [documentation](https://calagopus.com/docs/panel/installation).
+## Running it
 
-## Roadmap
+- **Releases**: [GitHub releases](https://github.com/plugged-host/panel/releases) carry the panel binary
+  (frontend included). A release is named by its version only (`v3.0.0`); every fix is a new version.
+- **Nodes** run [plugged-host/wings](https://github.com/plugged-host/wings), which some features need
+  ([docs/wings.md](./docs/wings.md)).
+- **Installing** works as for Calagopus ([calagopus.com/docs](https://calagopus.com/docs/panel/installation));
+  this fork's settings, optional services and branding are in [docs/forking.md](./docs/forking.md).
 
-Tracked publicly here:
+## Working on it
 
-- [Frontend](https://notes.rjns.dev/workspace/cb7ccae8-0508-4f90-9161-d1e69b0ca8f0/oXJcC5ei3IQhEf1RFCh6K)
-- [Backend](https://notes.rjns.dev/workspace/cb7ccae8-0508-4f90-9161-d1e69b0ca8f0/xfvzMIFHkFSMnOfO_WUEO)
+- [docs/development.md](./docs/development.md): running the panel from a fresh clone, tests, migrations.
+- [docs/contributing.md](./docs/contributing.md): where code goes, naming, what a change brings along.
+- [docs/upstream.md](./docs/upstream.md): merging Calagopus and every change made to its files.
+- [AGENTS.md](./AGENTS.md): the short rules for AI agents.
 
-## Project Structure
-
-<details>
-<summary>Repository layout</summary>
-
-- [**`frontend/`**](./frontend/) - The frontend of the panel, built with React, Mantine, and Tailwind.
-  - [**`extensions/*`**](./frontend/extensions/) - Frontend extensions, such as themes and plugins.
-- [**`backend/`**](./backend/) - The backend of the panel, built with Rust and Axum.
-- [**`backend-extensions/*`**](./backend-extensions/) - Backend extensions, such as auth providers and database drivers.
-- [**`database/`**](./database/) - Database migrations using Drizzle.
-- [**`database-migrator/`**](./database-migrator/) - A tool to run database migrations, built with Rust and SQLx.
-- [**`shared/`**](./shared/) - Shared code between backend parts, mainly relevant for extensions.
-- [**`wings-api/`**](./wings-api/) - An auto-generated API client for the Wings API, built with Rust.
-  - [**`generator-src/`**](./wings-api/generator-src/) - The source for the API generator, written in TypeScript.
-- [**`rule-validator/`**](./rule-validator/) - A semi-port of Laravel's validation rules in Rust for use with eggs.
-- [**`schema-extension/`**](./schema-extension/)
-  - [**`core/`**](./schema-extension/core/) - Core library for the schema extension system.
-  - [**`derive/`**](./schema-extension/derive/) - A proc macro to derive schema extensions.
-
-</details>
-
-## Contributing
-
-Contributions are welcome. See [CONTRIBUTING.md](./CONTRIBUTING.md) for PR guidelines, open an issue to discuss larger changes first, and check the [Discord](https://discord.gg/uSM8tvTxBV) if you want to chat through an idea before writing code.
+Questions and ideas: the [plugged.host Discord](https://discord.gg/plugged-host-1502647500295635085).
 
 ## Acknowledgments
 
-Calagopus builds on the ideas and ecosystem of [Pterodactyl](https://github.com/pterodactyl/panel) and [Pelican](https://github.com/pelican-dev/panel). Thanks to those projects and their communities.
+Built on [Calagopus](https://github.com/calagopus/panel) by 0x7d8 and its contributors, which builds on
+[Pterodactyl](https://github.com/pterodactyl/panel) and [Pelican](https://github.com/pelican-dev/panel).
 
 ## License
 
-See [LICENSE](https://github.com/calagopus/panel/blob/main/LICENSE).
-
-## Star History
-
-![Star History Chart](https://api.star-history.com/chart?repos=calagopus/panel&type=date&legend=top-left&sealed_token=B2O-QGHUHAa_2R6TXAtmVmA-ASHkIyhBD3Rm6jlD9mOeO9XJsHW0uBvsZ-5zINucUHJPH5c29w8c7lL_2Kr7tb5770-KK58lG2pGrET0ksegRMrP1IEbft05EdOtyO6RAUCo1FCK5gnNscF6lwXhRp5LLQd08n2sZgUisdnct1irxGRvQmzUx9o-Bk4o)
+MIT, like Calagopus: see [LICENSE](./LICENSE).
