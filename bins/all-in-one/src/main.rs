@@ -78,6 +78,10 @@ async fn handle_aio_wings(
                             name: "Integrated Location".into(),
                             description: None,
                             flag: None,
+                            // plugged.host: the location catalog's fields (models/location.rs)
+                            tier: None,
+                            sort: 0,
+                            public: true,
                         },
                     )
                     .await?
@@ -115,6 +119,12 @@ async fn handle_aio_wings(
                     sftp_port: 2022,
                     memory: round_to_closest_gib(system.total_memory()) as i64 / 1024 / 1024,
                     disk: round_to_closest_gib(disk.total_space()) as i64 / 1024 / 1024,
+                    // plugged.host: placement and the status page's fields (models/node/placement.rs)
+                    role: shared::models::node::placement::default_role(),
+                    tags: Vec::new(),
+                    srv_target: None,
+                    cpu_model: None,
+                    memory_type: None,
                 },
             )
             .await?;
