@@ -85,7 +85,9 @@ export default function CustomStartupCommand({ command, onChange, action }: Prop
   const reason = (code: string, detail: string | null) => {
     const key = toCamelCase(code);
 
-    return t(`${base}.check.reasons.${REASONS.has(key) ? key : 'other'}`, { detail: detail ?? '' });
+    return t(`${base}.check.reasons.${REASONS.has(key) ? key : 'other'}` as Parameters<typeof t>[0], {
+      detail: detail ?? '',
+    });
   };
 
   const refusal = result?.refusal;
