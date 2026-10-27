@@ -104,8 +104,10 @@ task runs every minute (20 per run, also with limbo off). Its backups, the final
 the deleted servers' hold like any deleted server's ([backups page](backups-page.md)), so the owner
 can still download the newest until the hold ends. The limbo page says when the server will be
 deleted, and a restore is refused (409) once that time has passed. A restore under way
-(`restoring`, `unpacking`) stops the clock. A server whose node cannot delete it is tried again the
-next minute. The Pelican panel's `LIMBO_DELETE_AFTER_HOURS` is the same setting; the importer does
+(`restoring`, `unpacking`) stops the clock. A suspended server is left alone: its suspension's
+deletion time, which its owner is shown, is the only one it has
+([suspension.md](suspension.md#purge)); once unsuspended, limbo's clock applies again, from
+`parked`. A server whose node cannot delete it is tried again the next minute. The Pelican panel's `LIMBO_DELETE_AFTER_HOURS` is the same setting; the importer does
 not carry settings, so set it again after an import.
 
 ## Parked on a node

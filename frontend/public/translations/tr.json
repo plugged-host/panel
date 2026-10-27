@@ -1344,7 +1344,8 @@
               "noprofit": "Bu sunucu, sahibinin noprofit.space hesabı silindiği için {date} tarihinde askıya alındı."
             },
             "reason": "Sebep: {reason}",
-            "deleteAt": "Askıya alma o tarihten önce kaldırılmazsa sunucu, dosyalarıyla birlikte {date} tarihinde silinecek.",
+            "deletesIn": "Askıya alma daha önce kaldırılmazsa bu sunucu {time} silinecek ({date}).",
+            "notEarlier": "Sunucuları yanlışlıkla askıya almayız ve sunucunuz bu tarihten önce silinmez.",
             "help": "Bunun bir hata olduğunu düşünüyorsanız panel yöneticileriyle iletişime geçin ve sunucunun adını belirtin.",
             "helpLink": "Bunun bir hata olduğunu düşünüyorsanız yardım isteyin ve sunucunun adını belirtin.",
             "getHelp": "Yardım al"

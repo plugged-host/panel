@@ -218,8 +218,10 @@ pub fn deletes_at(
 const PURGE_BATCH: i64 = 20;
 
 /// Deletes servers parked for longer than `delete_after_days` (run by `settle`, also with limbo
-/// off). Only `parked` ones: a restore under way stops the clock. A server whose node cannot
-/// delete it is tried again next run.
+/// off). Only `parked` ones: a restore under way stops the clock. Not suspended ones: their
+/// owner is shown the suspension's deletion time, and nothing deletes them before it
+/// (docs/features/suspension.md#purge). A server whose node cannot delete it is tried again next
+/// run.
 pub async fn purge_due(state: &crate::State) -> Result<usize, anyhow::Error> {
     use crate::models::DeletableModel;
 
@@ -233,6 +235,7 @@ pub async fn purge_due(state: &crate::State) -> Result<usize, anyhow::Error> {
         SELECT servers.uuid FROM servers
         JOIN server_limbo ON server_limbo.server_uuid = servers.uuid
         WHERE servers.limbo_state = 'parked' AND server_limbo.parked IS NOT NULL
+            AND NOT servers.suspended
             AND server_limbo.parked <= NOW() - make_interval(days => $1)
         ORDER BY server_limbo.parked
         LIMIT $2
@@ -246,7 +249,7 @@ pub async fn purge_due(state: &crate::State) -> Result<usize, anyhow::Error> {
     let mut deleted = 0;
     for server_uuid in due {
         let server = match Server::by_uuid_optional(&state.database, server_uuid).await? {
-            Some(server) if server.limbo == Some(LimboState::Parked) => server,
+            Some(server) if server.limbo == Some(LimboState::Parked) && !server.suspended => server,
             _ => continue,
         };
 

@@ -1344,7 +1344,8 @@
               "noprofit": "Server ini ditangguhkan pada {date} karena akun noprofit.space pemiliknya telah dihapus."
             },
             "reason": "Alasan: {reason}",
-            "deleteAt": "Server ini akan dihapus beserta filenya pada {date}, kecuali penangguhan dicabut sebelum tanggal tersebut.",
+            "deletesIn": "Server ini akan dihapus {time} ({date}), kecuali penangguhan dicabut sebelum itu.",
+            "notEarlier": "Kami tidak menangguhkan server karena kesalahan, dan server Anda tidak akan dihapus sebelum tanggal ini.",
             "help": "Jika menurut Anda ini sebuah kesalahan, hubungi administrator panel dan sertakan nama server.",
             "helpLink": "Jika menurut Anda ini sebuah kesalahan, mintalah bantuan dan sertakan nama server.",
             "getHelp": "Dapatkan bantuan"

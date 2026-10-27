@@ -1344,7 +1344,8 @@
               "noprofit": "Bu server egasining noprofit.space hisobi oʻchirilgani sababli muzlatilgan ({date})."
             },
             "reason": "Sabab: {reason}",
-            "deleteAt": "Oʻchirilish sanasi: {date}. Agar muzlatish bungacha bekor qilinmasa, server fayllari bilan birga oʻchiriladi.",
+            "deletesIn": "Agar muzlatish bungacha bekor qilinmasa, bu server {time} oʻchiriladi ({date}).",
+            "notEarlier": "Biz serverlarni xato tufayli muzlatmaymiz va serveringiz bu sanadan oldin oʻchirilmaydi.",
             "help": "Agar bu xato deb hisoblasangiz, panel administratorlariga murojaat qiling va server nomini koʻrsating.",
             "helpLink": "Agar bu xato deb hisoblasangiz, yordam soʻrang va server nomini koʻrsating.",
             "getHelp": "Yordam olish"

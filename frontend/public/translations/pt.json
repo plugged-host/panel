@@ -1344,7 +1344,8 @@
               "noprofit": "Este servidor foi suspenso em {date} porque a conta do noprofit.space do proprietário dele foi excluída."
             },
             "reason": "Motivo: {reason}",
-            "deleteAt": "Ele será excluído junto com seus arquivos em {date}, a menos que a suspensão seja removida antes disso.",
+            "deletesIn": "Este servidor será excluído {time} ({date}), a menos que a suspensão seja removida antes disso.",
+            "notEarlier": "Não suspendemos servidores por engano, e seu servidor não será excluído antes desta data.",
             "help": "Se você acha que isso é um engano, entre em contato com os administradores do painel e informe o nome do servidor.",
             "helpLink": "Se você acha que isso é um engano, peça ajuda e informe o nome do servidor.",
             "getHelp": "Obter ajuda"

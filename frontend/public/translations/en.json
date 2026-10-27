@@ -1360,7 +1360,8 @@
               "noprofit": "This server was suspended on {date} because its owner's noprofit.space account was deleted."
             },
             "reason": "Reason: {reason}",
-            "deleteAt": "It will be deleted with its files on {date}, unless the suspension is lifted before then.",
+            "deletesIn": "This server will be deleted {time} ({date}), unless the suspension is lifted before then.",
+            "notEarlier": "We don't suspend servers by mistake, and your server won't be deleted before this date.",
             "help": "If you think this is a mistake, contact the panel's administrators and include the server's name.",
             "helpLink": "If you think this is a mistake, ask for help and include the server's name.",
             "getHelp": "Get help"

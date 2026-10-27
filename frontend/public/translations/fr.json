@@ -1344,7 +1344,8 @@
               "noprofit": "Ce serveur a été suspendu le {date} car le compte noprofit.space de son propriétaire a été supprimé."
             },
             "reason": "Raison : {reason}",
-            "deleteAt": "Il sera supprimé avec ses fichiers le {date}, sauf si la suspension est levée d'ici là.",
+            "deletesIn": "Ce serveur sera supprimé {time} ({date}), sauf si la suspension est levée d'ici là.",
+            "notEarlier": "Nous ne suspendons pas de serveurs par erreur, et votre serveur ne sera pas supprimé avant cette date.",
             "help": "Si vous pensez qu'il s'agit d'une erreur, contactez les administrateurs du panel en indiquant le nom du serveur.",
             "helpLink": "Si vous pensez qu'il s'agit d'une erreur, demandez de l'aide en indiquant le nom du serveur.",
             "getHelp": "Obtenir de l'aide"

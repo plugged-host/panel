@@ -1344,7 +1344,8 @@
               "noprofit": "Máy chủ này đã bị đình chỉ vào {date} vì tài khoản noprofit.space của chủ sở hữu đã bị xóa."
             },
             "reason": "Lý do: {reason}",
-            "deleteAt": "Máy chủ cùng các tệp của nó sẽ bị xóa vào {date}, trừ khi lệnh đình chỉ được gỡ trước thời điểm đó.",
+            "deletesIn": "Máy chủ này sẽ bị xóa {time} ({date}), trừ khi lệnh đình chỉ được gỡ trước thời điểm đó.",
+            "notEarlier": "Chúng tôi không đình chỉ máy chủ do nhầm lẫn, và máy chủ của bạn sẽ không bị xóa trước thời điểm này.",
             "help": "Nếu bạn cho rằng đây là nhầm lẫn, hãy liên hệ quản trị viên của panel và gửi kèm tên máy chủ.",
             "helpLink": "Nếu bạn cho rằng đây là nhầm lẫn, hãy nhờ hỗ trợ và gửi kèm tên máy chủ.",
             "getHelp": "Nhận trợ giúp"
