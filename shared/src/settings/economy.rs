@@ -71,6 +71,13 @@ pub struct AppSettingsEconomy {
     pub soft_multiplier: i32,
     /// Past the soft limit the price doubles every this many percent of the limit.
     pub doubling: i32,
+    /// A sale: percent off every price in the Resource Store (0: none), with or without
+    /// noprofit.space, between the start and the end (either may be empty: open on that side).
+    pub store_discount: i32,
+    pub store_discount_starts: Option<chrono::DateTime<chrono::Utc>>,
+    pub store_discount_ends: Option<chrono::DateTime<chrono::Utc>>,
+    /// What the store calls the sale, such as "Halloween special"; empty: a plain "Sale".
+    pub store_discount_name: Option<compact_str::CompactString>,
 
     /// Minutes a player has to come back from a sponsored link.
     pub claim_minutes: i32,
@@ -158,6 +165,10 @@ impl Default for AppSettingsEconomy {
             soft_limit: 125,
             soft_multiplier: 4,
             doubling: 5,
+            store_discount: 0,
+            store_discount_starts: None,
+            store_discount_ends: None,
+            store_discount_name: None,
             claim_minutes: 30,
             linkvertise_enabled: false,
             linkvertise_publisher: None,
@@ -191,6 +202,21 @@ impl Default for AppSettingsEconomy {
 }
 
 impl AppSettingsEconomy {
+    /// The percent off the Resource Store's prices at `now`: the discount while its window is
+    /// open, else 0.
+    pub fn store_discount_at(&self, now: chrono::DateTime<chrono::Utc>) -> i64 {
+        let started = self
+            .store_discount_starts
+            .is_none_or(|starts| now >= starts);
+        let running = self.store_discount_ends.is_none_or(|ends| now < ends);
+
+        if started && running {
+            i64::from(self.store_discount.clamp(0, 100))
+        } else {
+            0
+        }
+    }
+
     /// Linkvertise's Full Script, which the Tokens page loads: on when Linkvertise is on with a
     /// publisher id and an API token.
     pub fn linkvertise_full_script(&self) -> bool {
@@ -275,6 +301,18 @@ pub struct PayloadEconomy {
     soft_multiplier: Option<i32>,
     #[garde(inner(range(min = 1, max = 100)))]
     doubling: Option<i32>,
+    #[garde(inner(range(min = 0, max = 100)))]
+    store_discount: Option<i32>,
+    /// `null` clears it; absent leaves it alone.
+    #[garde(skip)]
+    #[serde(default, with = "::serde_with::rust::double_option")]
+    store_discount_starts: Option<Option<chrono::DateTime<chrono::Utc>>>,
+    #[garde(skip)]
+    #[serde(default, with = "::serde_with::rust::double_option")]
+    store_discount_ends: Option<Option<chrono::DateTime<chrono::Utc>>>,
+    #[garde(inner(inner(length(chars, max = 64))))]
+    #[serde(default, with = "::serde_with::rust::double_option")]
+    store_discount_name: Option<Option<compact_str::CompactString>>,
 
     #[garde(inner(range(min = 1, max = 1440)))]
     claim_minutes: Option<i32>,
@@ -401,6 +439,7 @@ impl PayloadEconomy {
             soft_limit,
             soft_multiplier,
             doubling,
+            store_discount,
             claim_minutes,
             linkvertise_enabled,
             linkvertise_reward,
@@ -428,6 +467,22 @@ impl PayloadEconomy {
         }
         if let Some(name) = self.plusplus_name {
             settings.plusplus_name = name.trim().into();
+        }
+
+        if let Some(starts) = self.store_discount_starts {
+            settings.store_discount_starts = starts;
+        }
+        if let Some(ends) = self.store_discount_ends {
+            settings.store_discount_ends = ends;
+        }
+        if let (Some(starts), Some(ends)) =
+            (settings.store_discount_starts, settings.store_discount_ends)
+            && ends <= starts
+        {
+            return Err("the discount must end after it starts");
+        }
+        if let Some(name) = self.store_discount_name {
+            settings.store_discount_name = text(name);
         }
 
         if let Some(publisher) = self.linkvertise_publisher {
@@ -517,6 +572,7 @@ impl SettingsSerializeExt for AppSettingsEconomy {
             ("soft_limit", self.soft_limit),
             ("soft_multiplier", self.soft_multiplier),
             ("doubling", self.doubling),
+            ("store_discount", self.store_discount),
             ("claim_minutes", self.claim_minutes),
             ("linkvertise_reward", self.linkvertise_reward),
             ("linkvertise_daily_cap", self.linkvertise_daily_cap),
@@ -536,7 +592,22 @@ impl SettingsSerializeExt for AppSettingsEconomy {
             serializer = serializer.write_raw_setting(key, value.to_compact_string());
         }
 
+        for (key, time) in [
+            ("store_discount_starts", self.store_discount_starts),
+            ("store_discount_ends", self.store_discount_ends),
+        ] {
+            serializer = serializer.write_raw_setting(
+                key,
+                time.map(|time| time.to_rfc3339().to_compact_string())
+                    .unwrap_or_default(),
+            );
+        }
+
         serializer = serializer
+            .write_raw_setting(
+                "store_discount_name",
+                self.store_discount_name.clone().unwrap_or_default(),
+            )
             .write_raw_setting(
                 "linkvertise_enabled",
                 self.linkvertise_enabled.to_compact_string(),
@@ -638,6 +709,14 @@ impl SettingsDeserializeExt for AppSettingsEconomyDeserializer {
                     .and_then(|s| s.into_optional())
             };
         }
+        macro_rules! time {
+            ($field:ident) => {
+                deserializer
+                    .take_raw_setting(stringify!($field))
+                    .and_then(|s| chrono::DateTime::parse_from_rfc3339(&s).ok())
+                    .map(|time| time.with_timezone(&chrono::Utc))
+            };
+        }
 
         Ok(Box::new(AppSettingsEconomy {
             credits_enabled: flag!(credits_enabled),
@@ -670,6 +749,10 @@ impl SettingsDeserializeExt for AppSettingsEconomyDeserializer {
             soft_limit: read!(soft_limit),
             soft_multiplier: read!(soft_multiplier),
             doubling: read!(doubling),
+            store_discount: read!(store_discount),
+            store_discount_starts: time!(store_discount_starts),
+            store_discount_ends: time!(store_discount_ends),
+            store_discount_name: text!(store_discount_name),
             claim_minutes: read!(claim_minutes),
             linkvertise_enabled: flag!(linkvertise_enabled),
             linkvertise_publisher: text!(linkvertise_publisher),
@@ -699,5 +782,48 @@ impl SettingsDeserializeExt for AppSettingsEconomyDeserializer {
             shrinkme_daily_cap: read!(shrinkme_daily_cap),
             shrinkme_min_seconds: read!(shrinkme_min_seconds),
         }))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn at(hours: i64) -> chrono::DateTime<chrono::Utc> {
+        chrono::DateTime::from_timestamp(1_800_000_000 + hours * 3600, 0).unwrap()
+    }
+
+    #[test]
+    fn the_discount_runs_only_inside_its_window() {
+        let mut economy = AppSettingsEconomy {
+            store_discount: 25,
+            ..Default::default()
+        };
+        assert_eq!(economy.store_discount_at(at(0)), 25);
+
+        economy.store_discount_starts = Some(at(10));
+        economy.store_discount_ends = Some(at(20));
+        assert_eq!(economy.store_discount_at(at(9)), 0);
+        assert_eq!(economy.store_discount_at(at(10)), 25);
+        assert_eq!(economy.store_discount_at(at(19)), 25);
+        assert_eq!(economy.store_discount_at(at(20)), 0);
+
+        economy.store_discount = 0;
+        assert_eq!(economy.store_discount_at(at(15)), 0);
+    }
+
+    #[test]
+    fn a_window_must_end_after_it_starts() {
+        let payload = |starts: i64, ends: i64| PayloadEconomy {
+            store_discount_starts: Some(Some(at(starts))),
+            store_discount_ends: Some(Some(at(ends))),
+            ..serde_json::from_value(serde_json::json!({})).unwrap()
+        };
+        let mut economy = AppSettingsEconomy::default();
+
+        assert!(payload(20, 10).apply(&mut economy).is_err());
+        assert!(payload(10, 10).apply(&mut economy).is_err());
+        assert!(payload(10, 20).apply(&mut economy).is_ok());
+        assert_eq!(economy.store_discount_ends, Some(at(20)));
     }
 }

@@ -15,10 +15,41 @@ pub enum TwitterCard {
     SummaryLargeImage,
 }
 
+/// plugged.host: a seasonal look over Theme v2: its own accent, surfaces and decorations
+/// (frontend lib/seasonalTheme.ts, docs/features/theme.md#seasonal-themes). `Default` is Theme v2 with
+/// the theme colour.
+#[derive(ToSchema, Serialize, Deserialize, Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum SeasonalTheme {
+    #[default]
+    Default,
+    Halloween,
+    Christmas,
+}
+
+impl SeasonalTheme {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Default => "default",
+            Self::Halloween => "halloween",
+            Self::Christmas => "christmas",
+        }
+    }
+
+    fn parse(value: &str) -> Self {
+        match value {
+            "halloween" => Self::Halloween,
+            "christmas" => Self::Christmas,
+            _ => Self::Default,
+        }
+    }
+}
+
 #[derive(Clone, ToSchema, Serialize, Deserialize)]
 pub struct AppSettingsMetadata {
     pub description: Option<compact_str::CompactString>,
     pub theme_color: compact_str::CompactString,
+    pub seasonal_theme: SeasonalTheme, // plugged.host
     pub og_image: Option<compact_str::CompactString>,
     pub twitter_card: TwitterCard,
     pub indexable: bool,
@@ -80,6 +111,7 @@ impl SettingsSerializeExt for AppSettingsMetadata {
         Ok(serializer
             .write_raw_setting("description", self.description.as_deref().unwrap_or(""))
             .write_raw_setting("theme_color", &*self.theme_color)
+            .write_raw_setting("seasonal_theme", self.seasonal_theme.as_str()) // plugged.host
             .write_raw_setting("og_image", self.og_image.as_deref().unwrap_or(""))
             .write_raw_setting(
                 "twitter_card",
@@ -108,6 +140,10 @@ impl SettingsDeserializeExt for AppSettingsMetadataDeserializer {
             theme_color: deserializer
                 .take_raw_setting("theme_color")
                 .unwrap_or_else(|| "#1d4ed8".into()),
+            // plugged.host
+            seasonal_theme: deserializer
+                .take_raw_setting("seasonal_theme")
+                .map_or_else(SeasonalTheme::default, |s| SeasonalTheme::parse(&s)),
             og_image: deserializer
                 .take_raw_setting("og_image")
                 .and_then(|s| s.into_optional()),

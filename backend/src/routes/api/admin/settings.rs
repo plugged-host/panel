@@ -100,6 +100,8 @@ mod put {
         description: Option<Option<compact_str::CompactString>>,
         #[garde(pattern("^#[0-9a-fA-F]{6}$"))]
         theme_color: Option<compact_str::CompactString>,
+        #[garde(skip)]
+        seasonal_theme: Option<shared::settings::metadata::SeasonalTheme>, // plugged.host
         #[garde(length(chars, min = 1, max = 255))]
         #[serde(default, with = "::serde_with::rust::double_option")]
         og_image: Option<Option<compact_str::CompactString>>,
@@ -603,6 +605,10 @@ mod put {
             }
             if let Some(theme_color) = metadata.theme_color {
                 settings.metadata.theme_color = theme_color;
+            }
+            // plugged.host
+            if let Some(seasonal_theme) = metadata.seasonal_theme {
+                settings.metadata.seasonal_theme = seasonal_theme;
             }
             if let Some(og_image) = metadata.og_image {
                 settings.metadata.og_image = og_image;

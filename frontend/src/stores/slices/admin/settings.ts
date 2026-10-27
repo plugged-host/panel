@@ -54,6 +54,7 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
     ogImage: null,
     twitterCard: 'summary_large_image',
     indexable: true,
+    seasonalTheme: 'default', // plugged.host
   },
   server: {
     maxFileManagerViewSize: 10 * 1024 * 1024 * 1024,
@@ -509,6 +510,10 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
     softLimit: 125,
     softMultiplier: 4,
     doubling: 5,
+    storeDiscount: 0,
+    storeDiscountStarts: null,
+    storeDiscountEnds: null,
+    storeDiscountName: null,
     claimMinutes: 30,
     linkvertiseEnabled: false,
     linkvertisePublisher: null,

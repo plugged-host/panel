@@ -2787,6 +2787,11 @@
             "steep": "{soft} chegarasidan keyin har bir qadam oldingisidan ancha qimmat."
           },
           "creditsShort": "kr",
+          "sale": {
+            "defaultName": "Chegirma",
+            "until": "{name}: {date} gacha doʻkondagi hamma narsaga {percent}% chegirma.",
+            "running": "{name}: doʻkondagi hamma narsaga {percent}% chegirma."
+          },
           "history": "Kreditlar tarixi",
           "noTransactions": "Hali kredit tranzaksiyalari yoʻq.",
           "modal": {

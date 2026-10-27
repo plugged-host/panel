@@ -360,21 +360,22 @@ impl Config {
     }
 
     /// The account's Resource Store on noprofit.space: its credits, what each resource costs
-    /// it now and its latest credit history (docs/features/economy.md).
+    /// it now (`discount` percent off, the panel's sale) and its latest credit history
+    /// (docs/features/economy.md).
     pub async fn store(
         &self,
         client: &reqwest::Client,
         account_id: i64,
+        discount: i64,
     ) -> Result<Store, anyhow::Error> {
         const PATH: &str = "/api/v1/internal/calagopus/store";
 
-        let response = self
-            .post(
-                client,
-                PATH,
-                &serde_json::json!({ "account_id": account_id }),
-            )
-            .await?;
+        let mut body = serde_json::json!({ "account_id": account_id });
+        if discount > 0 {
+            body["discount"] = discount.into();
+        }
+
+        let response = self.post(client, PATH, &body).await?;
         let status = response.status();
 
         if !status.is_success() {
@@ -384,8 +385,8 @@ impl Config {
         Ok(response.json().await?)
     }
 
-    /// Buys `steps` steps of a resource at the price the player was shown. A price that moved
-    /// since buys nothing.
+    /// Buys `steps` steps of a resource at the price the player was shown, `discount` percent
+    /// off. A price that moved since buys nothing.
     pub async fn purchase(
         &self,
         client: &reqwest::Client,
@@ -393,21 +394,21 @@ impl Config {
         resource: crate::pricing::StoreResource,
         steps: i64,
         price: i64,
+        discount: i64,
     ) -> Result<Purchase, anyhow::Error> {
         const PATH: &str = "/api/v1/internal/calagopus/purchase";
 
-        let response = self
-            .post(
-                client,
-                PATH,
-                &serde_json::json!({
-                    "account_id": account_id,
-                    "resource": resource,
-                    "steps": steps,
-                    "price": price,
-                }),
-            )
-            .await?;
+        let mut body = serde_json::json!({
+            "account_id": account_id,
+            "resource": resource,
+            "steps": steps,
+            "price": price,
+        });
+        if discount > 0 {
+            body["discount"] = discount.into();
+        }
+
+        let response = self.post(client, PATH, &body).await?;
         let status = response.status();
 
         match status {
@@ -704,6 +705,9 @@ pub struct Store {
     /// is left of them (docs/features/economy.md#the-resource-store).
     #[serde(default)]
     pub discord: Option<StoreDiscord>,
+    /// The percent noprofit.space took off the prices; 0 when it applied none.
+    #[serde(default)]
+    pub discount: i64,
 }
 
 /// What the account's Discord membership adds to its plan and could still add (accounts

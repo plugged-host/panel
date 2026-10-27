@@ -2790,6 +2790,11 @@
             "steep": "{soft} sınırından sonra her adım bir öncekinden çok daha pahalıdır."
           },
           "creditsShort": "kr",
+          "sale": {
+            "defaultName": "İndirim",
+            "until": "{name}: {date} tarihine kadar mağazadaki her şeyde %{percent} indirim.",
+            "running": "{name}: Mağazadaki her şeyde %{percent} indirim."
+          },
           "history": "Kredi geçmişi",
           "noTransactions": "Henüz kredi işlemi yok.",
           "modal": {

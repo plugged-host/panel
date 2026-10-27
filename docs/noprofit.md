@@ -130,15 +130,18 @@ What the accounts app must implement to work with this panel (tested against its
   the servers give back, [allowance cuts](features/allowance-cuts.md)). The sidebar, the store and
   Create Server show the whole pool with the other services' part counted as used, like the
   Pelican panel; `discord`: `{id, username, avatar}`.
-- `POST /api/v1/internal/calagopus/store` with `{"account_id"}` answers the account's Resource Store:
-  `{credits, catalog: [{resource, step, total, limit, soft_limit, offers: [{steps, amount, price}]}],
-  transactions: [{amount, balance_after, type, description, created_at}]}` (the last 10). Optional
+- `POST /api/v1/internal/calagopus/store` with `{"account_id", "discount"?}` answers the account's Resource Store:
+  `{credits, catalog: [{resource, step, total, limit, soft_limit, offers: [{steps, amount, price, full_price}]}],
+  transactions: [{amount, balance_after, type, description, created_at}], discount}` (the last 10).
+  `discount` is the panel's sale in percent (0 to 100, sent only while one runs): every `price` is
+  `full_price` with it taken off, rounded half up, and the answer's `discount` says what was
+  applied ([sales](features/economy.md#sales)). Optional
   `discord: {bonus, max_bonus, credits_per_invite, credits_per_boost}` (`bonus` and `max_bonus` as
   `{cpu, memory, disk}`, accounts `DiscordGuilds::status`: what the Discord servers the account is in
   add, and what all of them would) lets the store offer what is left of the Discord rewards; without
   it the store offers none.
-- `POST /api/v1/internal/calagopus/purchase` with `{"account_id", "resource", "steps", "price"}`
-  buys at that price: 200 `{ok, purchase, ...store}`; 409 `{error: "price_changed", ...store}` when
+- `POST /api/v1/internal/calagopus/purchase` with `{"account_id", "resource", "steps", "price",
+  "discount"?}` buys at that price (the discounted one while a sale runs): 200 `{ok, purchase, ...store}`; 409 `{error: "price_changed", ...store}` when
   the price moved; 422 `{error: "refused", message}` (not for sale, balance short).
 - `POST /api/v1/internal/calagopus/credits/spend` with `{"account_id", "amount", "type",
   "description", "idempotency_key"}` takes credits for something bought on the panel (the second

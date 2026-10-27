@@ -26,6 +26,8 @@ export const storeCatalogEntrySchema = z.object({
       steps: z.number(),
       amount: z.number(),
       price: z.number(),
+      // what it costs without the sale; the price when none runs
+      fullPrice: z.number(),
     }),
   ),
 });
@@ -60,6 +62,14 @@ export const userStoreSchema = z.object({
   ),
   rewardsUrl: z.string().nullable(),
   perks: z.array(storePerkSchema),
+  // the sale the prices are on, while one runs (shared/src/economy.rs ApiDiscount)
+  discount: z
+    .object({
+      percent: z.number(),
+      name: z.string().nullable(),
+      ends: z.coerce.date().nullable(),
+    })
+    .nullable(),
 });
 
 export const economyPaySchema = z.enum(['tokens', 'credits']);

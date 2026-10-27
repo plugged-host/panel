@@ -23,6 +23,7 @@ import Button from '@/elements/buttons/Button.tsx';
 import CloseButton from '@/elements/buttons/CloseButton.tsx';
 import Avatar from '@/elements/data-display/Avatar.tsx';
 import Card from '@/elements/data-display/Card.tsx';
+import SeasonalDecor from '@/elements/navigation/SeasonalDecor.tsx'; // plugged.host
 import SidebarGroup from '@/elements/navigation/SidebarGroup.tsx'; // plugged.host
 import ContextMenu, { ContextMenuItem } from '@/elements/overlays/ContextMenu.tsx';
 import Drawer from '@/elements/overlays/Drawer.tsx';
@@ -95,19 +96,23 @@ function Sidebar({ children, header, footer }: SidebarProps) {
         </ActionIcon>
       </Card>
 
-      <div className='lg:hidden -mt-11 mb-2 ms-20 me-4 h-11 flex flex-col justify-center min-w-0'>
-        {pageHeader && (
-          <>
-            <Title order={3} lineClamp={1}>
-              {pageHeader.title}
-            </Title>
-            {pageHeader.subtitle && (
-              <Text size='xs' c='dimmed' truncate>
-                {pageHeader.subtitle}
-              </Text>
-            )}
-          </>
-        )}
+      {/* plugged.host: the seasonal theme's drawing at the end of the bar (SeasonalDecor) */}
+      <div className='lg:hidden -mt-11 mb-2 ms-20 me-4 h-11 flex items-center gap-3 min-w-0'>
+        <div className='flex flex-col justify-center min-w-0 flex-1'>
+          {pageHeader && (
+            <>
+              <Title order={3} lineClamp={1}>
+                {pageHeader.title}
+              </Title>
+              {pageHeader.subtitle && (
+                <Text size='xs' c='dimmed' truncate>
+                  {pageHeader.subtitle}
+                </Text>
+              )}
+            </>
+          )}
+        </div>
+        <SeasonalDecor slot='bar' />
       </div>
 
       <Drawer
@@ -123,7 +128,13 @@ function Sidebar({ children, header, footer }: SidebarProps) {
           <div id='sidebar-content' className='h-full flex flex-col'>
             {header && <div className='shrink-0'>{header}</div>}
             <div className='flex flex-col flex-1 overflow-y-auto min-h-0'>{children}</div>
-            {footer && <div className='shrink-0 pt-2'>{footer}</div>}
+            {footer && (
+              <div className='shrink-0 pt-2'>
+                {/* plugged.host */}
+                <SeasonalDecor slot='shelf' />
+                {footer}
+              </div>
+            )}
           </div>
         </CloseMobileMenuContext.Provider>
       </Drawer>
@@ -137,7 +148,13 @@ function Sidebar({ children, header, footer }: SidebarProps) {
         <div id='sidebar-content' className='h-full flex flex-col'>
           {header && <div className='shrink-0'>{header}</div>}
           <div className='flex flex-col flex-1 overflow-y-auto min-h-0'>{children}</div>
-          {footer && <div className='shrink-0 pt-2'>{footer}</div>}
+          {footer && (
+            <div className='shrink-0 pt-2'>
+              {/* plugged.host */}
+              <SeasonalDecor slot='shelf' />
+              {footer}
+            </div>
+          )}
         </div>
       </Card>
     </>
@@ -260,6 +277,8 @@ function Logo() {
   return (
     <NavLink to='/' className='theme-sidebar-logo' aria-label={settings.app.name} onClick={() => closeMobileMenu?.()}>
       <img src={settings.app.banner ?? settings.app.icon} alt={settings.app.name} />
+      {/* plugged.host */}
+      <SeasonalDecor slot='logo' />
     </NavLink>
   );
 }

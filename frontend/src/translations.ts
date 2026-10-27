@@ -2677,6 +2677,11 @@ const baseTranslations = defineTranslations({
             steep: 'Past {soft} every step costs far more than the last.',
           },
           creditsShort: 'cr',
+          sale: {
+            defaultName: 'Sale',
+            until: '{name}: {percent}% off everything in the store until {date}.',
+            running: '{name}: {percent}% off everything in the store.',
+          },
           history: 'Credit history',
           noTransactions: 'No credit transactions yet.',
           modal: {
@@ -3406,6 +3411,10 @@ const baseTranslations = defineTranslations({
                   themeColor: 'Theme Color',
                   themeColorDescription:
                     "The panel's accent: buttons, links, active items and focus rings. The swatches are the presets; blue is the theme's own. A light colour is darkened until white text on it stays readable. Also tints the browser UI on mobile and link previews.",
+                  // plugged.host
+                  seasonalTheme: 'Theme',
+                  seasonalThemeDescription:
+                    'A seasonal look over the panel: its own colours and a few drawings in the sidebar. Default turns it off and uses the theme colour again.',
                   indexable: 'Allow Search Engine Indexing',
                   twitterCard: 'Twitter Card Type',
                 },
@@ -3413,6 +3422,12 @@ const baseTranslations = defineTranslations({
                   twitterCard: {
                     summary: 'Summary',
                     summaryLargeImage: 'Summary with Large Image',
+                  },
+                  // plugged.host
+                  seasonalTheme: {
+                    default: 'Default',
+                    halloween: 'Halloween',
+                    christmas: 'Christmas',
                   },
                 },
                 placeholder: {
@@ -4719,6 +4734,17 @@ const baseTranslations = defineTranslations({
                   startingCredits: 'Starting Credits',
                   startingCreditsDescription:
                     'Credits every account gets once, the first time its balance is shown (without noprofit.space).',
+                  discountSection: 'Sale',
+                  storeDiscount: 'Discount (%)',
+                  storeDiscountDescription:
+                    'Taken off every price in the Resource Store while the sale runs, with or without noprofit.space. 0 turns it off.',
+                  storeDiscountName: 'Name',
+                  storeDiscountNameDescription:
+                    'What the store calls the sale, such as Halloween special. Empty: Sale.',
+                  storeDiscountStarts: 'Starts',
+                  storeDiscountStartsDescription: 'In your browser’s time zone. Empty: right away.',
+                  storeDiscountEnds: 'Ends',
+                  storeDiscountEndsDescription: 'Shown in the store. Empty: until the discount is set back to 0.',
                   tokensEnabled: 'Tokens',
                   tokensEnabledDescription: 'Tokens are earned through sponsored links and buy the memberships.',
                   dailyTokens: 'Daily Tokens',

@@ -69,6 +69,28 @@ A purchase is confirmed ("Are you sure you want to purchase +50% CPU for 100 cre
 with the price the player saw: a price that moved since buys nothing (409, the page shows the new
 prices). Either way a toast says how it went.
 
+### Sales
+
+Admin › Settings › Economy › Resource Store › Sale takes a percentage off every price in the store
+for a while: **Discount** (0 to 100 %, 0 is off), **Name** (what the store calls it, such as
+"Halloween special"; empty: "Sale"), **Starts** and **Ends** (in the admin's browser time zone;
+either may be empty: right away, and until the discount is set back to 0). It works with and
+without noprofit.space and covers the Resource Store only, not the memberships.
+
+- The price of an offer is `round(full × (100 − discount) / 100)`, half up
+  (`pricing::discounted`); an unaffordable price stays unaffordable. 100 % makes the offers free
+  (the history shows a 0-credit purchase).
+- While it runs, the credits card says "Halloween special: 25% off everything in the store until
+  2 Nov 2026, 22:00." and every offer shows its full price struck through in front of the sale's.
+- The window is checked on every store request and purchase (`AppSettingsEconomy::store_discount_at`):
+  a price shown before the sale started or after it ended has moved, so the purchase answers 409
+  and the page shows the prices as they are now.
+- Without noprofit.space the panel applies it; the ledger row's data keeps `full_cost` and
+  `discount`. With noprofit.space the panel sends `discount` with its store and purchase requests
+  and noprofit.space prices and charges with it ([noprofit.md](../noprofit.md#wire-format)); the
+  sale is shown only when noprofit.space answers with the same `discount`, so an accounts app that
+  does not know it simply sells at full price.
+
 **Without noprofit.space** the account has the games allowance (Admin › Settings › Hosting › Games)
 plus what it bought (`users.extra_cpu`, `extra_memory`, `extra_disk`); a resource the allowance does
 not limit is not sold. Prices follow one curve per resource, the same as noprofit.space's
@@ -174,7 +196,7 @@ next request sees the new date.
 
 | Route | Permission | Does |
 |---|---|---|
-| `GET /api/client/account/credits` | `economy.read` | `{store}`: `source` (`panel`/`noprofit`), `available`, `credits`, `catalog: [{resource, step, total, limit, soft_limit, offers: [{steps, amount, price}]}]`, `transactions`, `has_plan`, `usage: [{resource, used, limit}]` (the meters), `rewards_url` (noprofit.space's Discord page or `null`), `perks: [{id: discord_link\|discord_join, gain, url} \| {id: discord_earn, per_invite, per_boost, url} \| {id: store, price, amount}]` |
+| `GET /api/client/account/credits` | `economy.read` | `{store}`: `source` (`panel`/`noprofit`), `available`, `credits`, `catalog: [{resource, step, total, limit, soft_limit, offers: [{steps, amount, price, full_price}]}]`, `discount` (`{percent, name, ends}` while a sale runs, else `null`), `transactions`, `has_plan`, `usage: [{resource, used, limit}]` (the meters), `rewards_url` (noprofit.space's Discord page or `null`), `perks: [{id: discord_link\|discord_join, gain, url} \| {id: discord_earn, per_invite, per_boost, url} \| {id: store, price, amount}]` |
 | `POST /api/client/account/credits/store` | `economy.purchase` | `{resource, steps (1–50), price}` → `{store}`; 409 when the price changed or the balance is short, 422 when noprofit.space refused |
 | `GET /api/client/account/tokens` | `economy.read` | `{tokens}`: balance, earned, `claim_minutes`, `providers: [{provider, reward, daily_cap, granted_today, full_script, publisher, whitelist}]`, `transactions` |
 | `POST /api/client/account/tokens/earn` | `economy.earn` | `{provider}` → `{earn: {url, nonce}}`; 409 capped, 429 throttled, 502 the provider made no link |
@@ -225,6 +247,7 @@ A tab saves only its own fields.
 | Store steps and prices | `economy::{cpu,memory,disk}_{step,price}` | 50 % / 100, 1024 MiB / 150, 5120 MiB / 75 |
 | Store limits | `economy::limit_{cpu,memory,disk}` | 600 %, 24576 MiB, 102400 MiB |
 | Curve | `economy::price_floor`, `soft_limit`, `soft_multiplier`, `doubling` | 50 %, 125 %, 4 ×, 5 % |
+| Sale: discount, starts, ends, name | `economy::store_discount` (0 to 100), `store_discount_starts`, `store_discount_ends` (RFC 3339, empty: open), `store_discount_name` | 0, –, –, – |
 | Minutes to Finish a Link | `economy::claim_minutes` | 30 |
 | Linkvertise | `economy::linkvertise_{enabled,token (encrypted),publisher,whitelist,link,reward,daily_cap}` | off, –, –, `lvr=`, –, 1, 5 |
 | Vylo | `economy::vylo_{enabled,api_key (encrypted),reward,daily_cap,min_seconds}` | off, –, 1, 5, 10 |
@@ -248,6 +271,10 @@ four routes of the accounts app ([noprofit.md](../noprofit.md#wire-format)): `/s
   › a user › Economy › add 500 credits. Resource Store: +50 % CPU costs 50 credits; buy it; the
   balance, the history and the create page's allowance show it.
 - A resource without a limit in the games settings shows its meter without offers.
+- Sale: Resource Store tab › Discount 25, Name "Halloween special", Ends tomorrow 22:00, save. The
+  store's credits card names the sale and its end; each offer shows the full price struck through
+  and a quarter less (50 → 38). Buy one: the toast and the history say 38. Set Starts to tomorrow:
+  the store is back at full price until then. Back to 0: no sale anywhere.
 - Resource Store: "Unlock more resources (1)" is closed; open it, reload: still open. Its row says
   what 1 GiB of memory costs and "Open store" scrolls to the resources. Each meter's solid part
   follows the servers' use; a server bigger than the limit turns the row red.

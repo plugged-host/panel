@@ -45,12 +45,15 @@ export default function MetadataContainer() {
     form,
     schema: adminSettingsMetadataSchema,
     storeKey: 'metadata',
-    // plugged.host: the theme colour is the panel's accent; apply it as soon as it is saved.
+    // plugged.host: the theme colour is the panel's accent and the seasonal theme goes over it;
+    // apply both as soon as they are saved.
     update: async (values) => {
       await updateMetadataSettings(values);
 
       const { settings, updateSettings } = useGlobalStore.getState();
-      updateSettings({ app: { ...settings.app, themeColor: values.themeColor } });
+      updateSettings({
+        app: { ...settings.app, themeColor: values.themeColor, seasonalTheme: values.seasonalTheme },
+      });
     },
     successMessage: t('pages.admin.settings.tabs.metadata.page.toast.updated', {}),
   });

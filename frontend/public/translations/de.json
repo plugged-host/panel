@@ -2806,6 +2806,11 @@
             "steep": "Ab {soft} kostet jeder Schritt deutlich mehr als der vorige."
           },
           "creditsShort": "Cr",
+          "sale": {
+            "defaultName": "Aktion",
+            "until": "{name}: {percent} % Rabatt auf alles im Shop bis {date}.",
+            "running": "{name}: {percent} % Rabatt auf alles im Shop."
+          },
           "history": "Credit-Verlauf",
           "noTransactions": "Noch keine Credit-Transaktionen vorhanden.",
           "modal": {
@@ -3502,6 +3507,8 @@
                   "ogImageDescription": "Wird in Link-Vorschauen angezeigt. Muss ein PNG oder JPEG sein, kein SVG.",
                   "themeColor": "Themenfarbe",
                   "themeColorDescription": "Färbt die Browser-Oberfläche auf Mobilgeräten und Link-Vorschauen.",
+                  "seasonalTheme": "Theme",
+                  "seasonalThemeDescription": "Ein saisonaler Look für das Panel: eigene Farben und ein paar Zeichnungen in der Seitenleiste. „Standard“ schaltet ihn aus und nutzt wieder die Themenfarbe.",
                   "indexable": "Indexierung durch Suchmaschinen erlauben",
                   "twitterCard": "Twitter-Card-Typ"
                 },
@@ -3509,6 +3516,11 @@
                   "twitterCard": {
                     "summary": "Zusammenfassung",
                     "summaryLargeImage": "Zusammenfassung mit großem Bild"
+                  },
+                  "seasonalTheme": {
+                    "default": "Standard",
+                    "halloween": "Halloween",
+                    "christmas": "Weihnachten"
                   }
                 },
                 "placeholder": {
@@ -4638,6 +4650,15 @@
                   "creditsEnabledDescription": "Mit Credits kauft man CPU, Arbeitsspeicher und Speicherplatz im Ressourcen-Shop und die zweite Mitgliedschaft. Ist noprofit.space verbunden, sind es dessen Credits. Ausgeschaltet ist der Shop ausgeblendet; die Guthaben bleiben.",
                   "startingCredits": "Startguthaben",
                   "startingCreditsDescription": "Credits, die jedes Konto einmal bekommt, wenn sein Guthaben zum ersten Mal angezeigt wird (ohne noprofit.space).",
+                  "discountSection": "Aktion",
+                  "storeDiscount": "Rabatt (%)",
+                  "storeDiscountDescription": "Wird von jedem Preis im Ressourcen-Shop abgezogen, solange die Aktion läuft, mit oder ohne noprofit.space. 0 schaltet sie aus.",
+                  "storeDiscountName": "Name",
+                  "storeDiscountNameDescription": "Wie der Shop die Aktion nennt, etwa Halloween-Special. Leer: Aktion.",
+                  "storeDiscountStarts": "Beginn",
+                  "storeDiscountStartsDescription": "In der Zeitzone deines Browsers. Leer: sofort.",
+                  "storeDiscountEnds": "Ende",
+                  "storeDiscountEndsDescription": "Wird im Shop angezeigt. Leer: bis der Rabatt wieder auf 0 steht.",
                   "tokensEnabled": "Tokens",
                   "tokensEnabledDescription": "Tokens werden über gesponserte Links verdient und kaufen die Mitgliedschaften.",
                   "dailyTokens": "Tägliche Tokens",

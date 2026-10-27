@@ -26,6 +26,18 @@ pub const OFFER_STEPS: [i64; 3] = [1, 2, 4];
 /// The most steps bought at once.
 pub const MAX_STEPS: i64 = 50;
 
+/// `price` with `percent` off, rounded half up, as noprofit.space rounds it. A price nobody can
+/// pay stays one.
+pub fn discounted(price: i64, percent: i64) -> i64 {
+    let percent = percent.clamp(0, 100);
+
+    if percent == 0 || price >= UNAFFORDABLE {
+        return price;
+    }
+
+    (price * (100 - percent) + 50) / 100
+}
+
 #[derive(ToSchema, Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, Hash)]
 #[serde(rename_all = "snake_case")]
 pub enum StoreResource {
@@ -221,7 +233,19 @@ impl Pricing {
 pub struct Offer {
     pub steps: i64,
     pub amount: i64,
+    /// What it costs now, the discount taken off.
     pub price: i64,
+    /// What it costs without the discount; `price` when there is none. noprofit.space answers
+    /// without it when it applied none (filled in by [`Offer::fill_full_price`]).
+    #[serde(default)]
+    pub full_price: i64,
+}
+
+impl Offer {
+    /// A discount never raises a price: an offer without a full price costs it in full.
+    pub fn fill_full_price(&mut self) {
+        self.full_price = self.full_price.max(self.price);
+    }
 }
 
 /// A resource in the store, in the shape noprofit.space's store answers with.
@@ -237,8 +261,9 @@ pub struct CatalogEntry {
 }
 
 impl Pricing {
-    /// The store's offers for an account that has `total` of each resource.
-    pub fn catalog(&self, totals: [i64; 3]) -> Vec<CatalogEntry> {
+    /// The store's offers for an account that has `total` of each resource, `discount` percent
+    /// off.
+    pub fn catalog(&self, totals: [i64; 3], discount: i64) -> Vec<CatalogEntry> {
         StoreResource::ALL
             .into_iter()
             .map(|resource| {
@@ -257,10 +282,15 @@ impl Pricing {
                     } else {
                         OFFER_STEPS
                             .into_iter()
-                            .map(|steps| Offer {
-                                steps,
-                                amount: steps * step,
-                                price: self.cost(resource, total, steps * step, limit),
+                            .map(|steps| {
+                                let full_price = self.cost(resource, total, steps * step, limit);
+
+                                Offer {
+                                    steps,
+                                    amount: steps * step,
+                                    price: discounted(full_price, discount),
+                                    full_price,
+                                }
                             })
                             .collect()
                     },
@@ -337,7 +367,7 @@ mod tests {
         pricing.steps[1] = 0;
 
         assert_eq!(pricing.cost(StoreResource::Memory, 0, 1024, 24576), 0);
-        let catalog = pricing.catalog([0, 0, 0]);
+        let catalog = pricing.catalog([0, 0, 0], 0);
         assert!(catalog[1].offers.is_empty());
         assert_eq!(catalog[0].offers.len(), OFFER_STEPS.len());
         assert_eq!(catalog[0].offers[2].amount, 200);
@@ -352,5 +382,45 @@ mod tests {
         let at_limit = pricing.cost(StoreResource::Disk, 102_400, 5120, 102_400);
         assert!(at_limit >= 75);
         assert!(at_limit < UNAFFORDABLE);
+    }
+
+    #[test]
+    fn a_discount_rounds_half_up_and_leaves_the_unaffordable_alone() {
+        assert_eq!(discounted(100, 0), 100);
+        assert_eq!(discounted(100, 25), 75);
+        assert_eq!(discounted(75, 50), 38);
+        assert_eq!(discounted(1, 50), 1);
+        assert_eq!(discounted(1, 51), 0);
+        assert_eq!(discounted(150, 100), 0);
+        assert_eq!(discounted(150, 150), 0);
+        assert_eq!(discounted(150, -5), 150);
+        assert_eq!(discounted(UNAFFORDABLE, 50), UNAFFORDABLE);
+    }
+
+    #[test]
+    fn a_discounted_offer_keeps_its_full_price() {
+        let pricing = pricing();
+
+        let full = pricing.catalog([0, 0, 0], 0);
+        let sale = pricing.catalog([0, 0, 0], 25);
+        for (full, sale) in full.iter().zip(&sale) {
+            for (full, sale) in full.offers.iter().zip(&sale.offers) {
+                assert_eq!(full.price, full.full_price);
+                assert_eq!(sale.full_price, full.price);
+                assert_eq!(sale.price, discounted(full.price, 25));
+            }
+        }
+        // 50 % CPU from nothing costs 50 credits, 38 at a quarter off
+        assert_eq!(sale[0].offers[0].price, 38);
+    }
+
+    #[test]
+    fn an_offer_from_noprofit_without_a_full_price_costs_it_in_full() {
+        let mut offer: Offer =
+            serde_json::from_value(serde_json::json!({"steps": 1, "amount": 50, "price": 40}))
+                .unwrap();
+        offer.fill_full_price();
+
+        assert_eq!(offer.full_price, 40);
     }
 }

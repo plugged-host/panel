@@ -113,6 +113,8 @@ export const publicSettingsSchema = z.object({
     release: z.string(),
     // plugged.host: Theme v2's accent (lib/accent.ts).
     themeColor: z.string(),
+    // plugged.host: the seasonal theme over it (lib/seasonalTheme.ts).
+    seasonalTheme: z.enum(['default', 'halloween', 'christmas']).catch('default'),
   }),
   webauthn: z.object({
     enabled: z.boolean(),

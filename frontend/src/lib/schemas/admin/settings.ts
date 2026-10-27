@@ -311,6 +311,7 @@ export const adminSettingsMetadataSchema = z.object({
   ogImage: z.preprocess(nullableString, z.string().min(1).max(255).nullable()),
   twitterCard: z.enum(['summary', 'summary_large_image']),
   indexable: z.boolean(),
+  seasonalTheme: z.enum(['default', 'halloween', 'christmas']), // plugged.host
 });
 
 // plugged.host: noprofit.space (shared/src/settings/noprofit.rs). A stored secret comes back as an
@@ -905,6 +906,10 @@ export const adminSettingsEconomySchema = z.object({
   softLimit: z.number().int().min(100).max(1000),
   softMultiplier: z.number().int().min(1).max(100),
   doubling: z.number().int().min(1).max(100),
+  storeDiscount: z.number().int().min(0).max(100),
+  storeDiscountStarts: z.coerce.date().nullable(),
+  storeDiscountEnds: z.coerce.date().nullable(),
+  storeDiscountName: z.preprocess(nullableString, z.string().max(64).nullable()),
   claimMinutes: z.number().int().min(1).max(1440),
   linkvertiseEnabled: z.boolean(),
   linkvertisePublisher: z.preprocess(

@@ -22,7 +22,7 @@
 use crate::{
     allowance::Resources,
     models::{ByUuid, user::User},
-    pricing::{CatalogEntry, MAX_STEPS, Pricing, StoreResource, UNAFFORDABLE},
+    pricing::{CatalogEntry, MAX_STEPS, Pricing, StoreResource, UNAFFORDABLE, discounted},
 };
 use serde::{Deserialize, Serialize};
 use sqlx::Row;
@@ -793,6 +793,42 @@ pub struct ApiStore {
     pub rewards_url: Option<String>,
     /// What the account has not claimed yet; the page's bar is gone once this is empty.
     pub perks: Vec<ApiPerk>,
+    /// The sale the prices are on, while one runs.
+    pub discount: Option<ApiDiscount>,
+}
+
+/// A sale on the Resource Store: percent off every price while its window is open (Admin ›
+/// Settings › Economy › Resource Store).
+#[derive(ToSchema, Serialize, Clone, Debug, PartialEq, Eq)]
+pub struct ApiDiscount {
+    pub percent: i64,
+    /// What the store calls it, such as "Halloween special"; `None`: a plain sale.
+    pub name: Option<String>,
+    /// When it ends; `None`: when an admin ends it.
+    pub ends: Option<chrono::DateTime<chrono::Utc>>,
+}
+
+impl ApiDiscount {
+    /// The sale running at `now`, if one is.
+    pub fn at(
+        economy: &crate::settings::economy::AppSettingsEconomy,
+        now: chrono::DateTime<chrono::Utc>,
+    ) -> Option<Self> {
+        let percent = economy.store_discount_at(now);
+
+        (percent > 0).then(|| Self {
+            percent,
+            name: economy
+                .store_discount_name
+                .as_ref()
+                .map(ToString::to_string),
+            ends: economy.store_discount_ends,
+        })
+    }
+
+    fn percent(discount: Option<&Self>) -> i64 {
+        discount.map_or(0, |discount| discount.percent)
+    }
 }
 
 /// A resource's meter: what the account's servers use against its limit.
@@ -919,6 +955,7 @@ async fn panel_store(
     user_uuid: uuid::Uuid,
     pricing: &Pricing,
     base: Resources,
+    discount: Option<&ApiDiscount>,
 ) -> Result<ApiStore, anyhow::Error> {
     grant_starting_credits(
         state,
@@ -930,7 +967,7 @@ async fn panel_store(
     let (credits, _, _) = balances(&state.database, user_uuid).await?;
     let extras = extras(&state.database, user_uuid).await?;
     let (used, _) = crate::allowance::usage(&state.database, user_uuid).await?;
-    let catalog = panel_catalog(pricing, base, extras);
+    let catalog = panel_catalog(pricing, base, extras, ApiDiscount::percent(discount));
 
     Ok(ApiStore {
         source: Source::Panel,
@@ -942,10 +979,16 @@ async fn panel_store(
         has_plan: true,
         usage: store_usage(crate::allowance::add_where_limited(base, extras), used),
         rewards_url: None,
+        discount: discount.cloned(),
     })
 }
 
-fn panel_catalog(pricing: &Pricing, base: Resources, extras: Resources) -> Vec<CatalogEntry> {
+fn panel_catalog(
+    pricing: &Pricing,
+    base: Resources,
+    extras: Resources,
+    discount: i64,
+) -> Vec<CatalogEntry> {
     let mut pricing = *pricing;
     // An unlimited resource is not sold: there is nothing to add to.
     for (index, limit) in [base.cpu, base.memory, base.disk].into_iter().enumerate() {
@@ -954,18 +997,30 @@ fn panel_catalog(pricing: &Pricing, base: Resources, extras: Resources) -> Vec<C
         }
     }
 
-    pricing.catalog([
-        base.cpu.max(0) + extras.cpu,
-        base.memory.max(0) + extras.memory,
-        base.disk.max(0) + extras.disk,
-    ])
+    pricing.catalog(
+        [
+            base.cpu.max(0) + extras.cpu,
+            base.memory.max(0) + extras.memory,
+            base.disk.max(0) + extras.disk,
+        ],
+        discount,
+    )
 }
 
-fn noprofit_store(store: crate::noprofit::Store) -> ApiStore {
+/// noprofit.space's answer as the page shows it. The sale is shown only when noprofit.space
+/// applied it to the prices (`discount` in its answer).
+fn noprofit_store(mut store: crate::noprofit::Store, discount: Option<&ApiDiscount>) -> ApiStore {
+    for offer in store.catalog.iter_mut().flat_map(|entry| &mut entry.offers) {
+        offer.fill_full_price();
+    }
+
     ApiStore {
         source: Source::Noprofit,
         available: true,
         credits: store.credits,
+        discount: discount
+            .filter(|discount| store.discount > 0 && discount.percent == store.discount)
+            .cloned(),
         catalog: store.catalog,
         transactions: store
             .transactions
@@ -990,6 +1045,7 @@ fn closed_store(source: Source) -> ApiStore {
         usage: Vec::new(),
         rewards_url: None,
         perks: Vec::new(),
+        discount: None,
     }
 }
 
@@ -1001,13 +1057,14 @@ async fn noprofit_page(
     accounts_url: &str,
     link: Option<&crate::noprofit::Link>,
     answer: Option<crate::noprofit::Store>,
+    discount: Option<&ApiDiscount>,
 ) -> Result<ApiStore, anyhow::Error> {
     let (used, _) = crate::allowance::usage(&state.database, user_uuid).await?;
     let plan = link.and_then(|link| link.plan.as_ref());
     let discord = answer.as_ref().and_then(|store| store.discord.clone());
 
     let mut page = match answer {
-        Some(store) => noprofit_store(store),
+        Some(store) => noprofit_store(store, discount),
         None => ApiStore {
             credits: link.map_or(0, |link| link.credits),
             ..closed_store(Source::Noprofit)
@@ -1051,12 +1108,20 @@ pub async fn store(state: &crate::State, user: &User) -> Result<ApiStore, Econom
     if !economy.credits_enabled {
         return Err(EconomyError::Disabled);
     }
+    let discount = ApiDiscount::at(&economy, chrono::Utc::now());
 
     match noprofit {
         Some(noprofit) => {
             let link = crate::noprofit::Link::by_user_uuid(&state.database, user.uuid).await?;
             let answer = match &link {
-                Some(link) => match noprofit.store(&state.client, link.account_id).await {
+                Some(link) => match noprofit
+                    .store(
+                        &state.client,
+                        link.account_id,
+                        ApiDiscount::percent(discount.as_ref()),
+                    )
+                    .await
+                {
                     Ok(store) => Some(store),
                     Err(err) => {
                         tracing::warn!(user = %user.uuid, "noprofit.space's store did not answer: {err:#}");
@@ -1073,10 +1138,18 @@ pub async fn store(state: &crate::State, user: &User) -> Result<ApiStore, Econom
                 &noprofit.accounts_url,
                 link.as_ref(),
                 answer,
+                discount.as_ref(),
             )
             .await?)
         }
-        None => Ok(panel_store(state, user.uuid, &Pricing::from_settings(&economy), base).await?),
+        None => Ok(panel_store(
+            state,
+            user.uuid,
+            &Pricing::from_settings(&economy),
+            base,
+            discount.as_ref(),
+        )
+        .await?),
     }
 }
 
@@ -1103,6 +1176,9 @@ pub async fn purchase(
     if !(1..=MAX_STEPS).contains(&steps) {
         return Err(EconomyError::BadRequest("buy between 1 and 50 steps"));
     }
+    // The sale as it is now: a price shown before it started or ended has moved.
+    let discount = ApiDiscount::at(&economy, chrono::Utc::now());
+    let percent = ApiDiscount::percent(discount.as_ref());
 
     if let Some(noprofit) = noprofit {
         let link = crate::noprofit::Link::by_user_uuid(&state.database, user.uuid)
@@ -1110,7 +1186,14 @@ pub async fn purchase(
             .ok_or(EconomyError::Unavailable)?;
 
         let answer = noprofit
-            .purchase(&state.client, link.account_id, resource, steps, price)
+            .purchase(
+                &state.client,
+                link.account_id,
+                resource,
+                steps,
+                price,
+                percent,
+            )
             .await
             .map_err(|err| {
                 tracing::warn!(user = %user.uuid, "noprofit.space's store did not answer a purchase: {err:#}");
@@ -1134,12 +1217,13 @@ pub async fn purchase(
                     &noprofit.accounts_url,
                     Some(&link),
                     Some(store),
+                    discount.as_ref(),
                 )
                 .await?)
             }
-            crate::noprofit::Purchase::PriceChanged(Some(store)) => {
-                Err(EconomyError::PriceChanged(Box::new(noprofit_store(store))))
-            }
+            crate::noprofit::Purchase::PriceChanged(Some(store)) => Err(
+                EconomyError::PriceChanged(Box::new(noprofit_store(store, discount.as_ref()))),
+            ),
             crate::noprofit::Purchase::PriceChanged(None) => Err(EconomyError::Unavailable),
             crate::noprofit::Purchase::Refused(reason) => Err(EconomyError::Refused(reason)),
         };
@@ -1176,19 +1260,20 @@ pub async fn purchase(
         StoreResource::Disk => extras.disk,
     };
 
-    let cost = pricing.cost(
+    let full_cost = pricing.cost(
         resource,
         base_of + extra_of,
         amount,
         pricing.limit(resource),
     );
+    let cost = discounted(full_cost, percent);
     if cost != price {
         drop(transaction);
 
-        let store = panel_store(state, user.uuid, &pricing, base).await?;
+        let store = panel_store(state, user.uuid, &pricing, base, discount.as_ref()).await?;
         return Err(EconomyError::PriceChanged(Box::new(store)));
     }
-    if cost >= UNAFFORDABLE || i32::try_from(extra_of + amount).is_err() {
+    if full_cost >= UNAFFORDABLE || i32::try_from(extra_of + amount).is_err() {
         return Err(EconomyError::Short);
     }
 
@@ -1204,7 +1289,13 @@ pub async fn purchase(
         -cost,
         TYPE_STORE,
         &format!("{amount}{unit} {}", resource.as_str()),
-        serde_json::json!({ "resource": resource, "amount": amount, "cost": cost }),
+        serde_json::json!({
+            "resource": resource,
+            "amount": amount,
+            "cost": cost,
+            "full_cost": full_cost,
+            "discount": percent,
+        }),
     )
     .await?;
     if paid.is_none() {
@@ -1221,7 +1312,7 @@ pub async fn purchase(
     .await?;
     transaction.commit().await?;
 
-    Ok(panel_store(state, user.uuid, &pricing, base).await?)
+    Ok(panel_store(state, user.uuid, &pricing, base, discount.as_ref()).await?)
 }
 
 /// The membership row, made when missing and locked for the rest of the transaction.
@@ -1856,6 +1947,7 @@ mod tests {
             &pricing,
             Resources::new(200, 0, 10240),
             Resources::new(50, 0, 0),
+            0,
         );
 
         assert_eq!(catalog[0].total, 250);
@@ -1919,6 +2011,7 @@ mod tests {
                 steps: 1,
                 amount: 1024,
                 price: memory_price,
+                full_price: memory_price,
             }],
         }]
     }

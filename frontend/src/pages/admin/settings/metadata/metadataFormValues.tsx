@@ -13,6 +13,7 @@ export const metadataEmptyFormValues: MetadataFormValues = {
   ogImage: null,
   twitterCard: 'summary_large_image',
   indexable: true,
+  seasonalTheme: 'default', // plugged.host
 };
 
 export const metadataToFormValues = (metadata: MetadataFormValues): Partial<MetadataFormValues> => ({ ...metadata });
@@ -77,6 +78,19 @@ export function useMetadataFormFields({
           {...form.getInputProps('themeColor')}
         />
       ),
+    },
+    // plugged.host: a seasonal look over Theme v2 (lib/seasonalTheme.ts); Default turns it off.
+    {
+      type: 'select',
+      name: 'seasonalTheme',
+      label: t('pages.admin.settings.tabs.metadata.page.form.seasonalTheme', {}),
+      description: t('pages.admin.settings.tabs.metadata.page.form.seasonalThemeDescription', {}),
+      required: true,
+      options: [
+        { label: t('pages.admin.settings.tabs.metadata.page.enum.seasonalTheme.default', {}), value: 'default' },
+        { label: t('pages.admin.settings.tabs.metadata.page.enum.seasonalTheme.halloween', {}), value: 'halloween' },
+        { label: t('pages.admin.settings.tabs.metadata.page.enum.seasonalTheme.christmas', {}), value: 'christmas' },
+      ],
     },
     {
       type: 'switch',

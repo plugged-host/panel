@@ -17,6 +17,7 @@ import getSettings from './api/getSettings.ts';
 import ErrorBoundary from './elements/ErrorBoundary.tsx';
 import ExtensionSlot from './elements/ExtensionSlot.tsx';
 import { accentFor } from './lib/accent.ts';
+import { seasonalAccentColor, seasonFor } from './lib/seasonalTheme.ts'; // plugged.host
 import { CurrentWindowProvider } from './providers/CurrentWindowProvider.tsx';
 import { HistoryContext } from './providers/contexts/historyContext.ts';
 import { ToastProvider } from './providers/ToastProvider.tsx';
@@ -127,15 +128,31 @@ export default function App({
   }, [settings?.app?.icon]);
 
   // plugged.host: Theme v2's accent from the theme colour: Mantine's blue palette and the
-  // --theme-accent* tokens (lib/accent.ts). Theme v2's own blue changes nothing.
-  const accent = useMemo(() => accentFor(settings?.app?.themeColor), [settings?.app?.themeColor]);
+  // --theme-accent* tokens (lib/accent.ts). Theme v2's own blue changes nothing. A seasonal theme
+  // brings its own accent, tints the surfaces and Mantine's dark ramp (lib/seasonalTheme.ts) and
+  // marks the root for its decorations.
+  const seasonalTheme = settings?.app?.seasonalTheme;
+  const season = useMemo(() => seasonFor(seasonalTheme), [seasonalTheme]);
+  const accent = useMemo(
+    () => accentFor(seasonalAccentColor(seasonalTheme, settings?.app?.themeColor)),
+    [seasonalTheme, settings?.app?.themeColor],
+  );
   const accentedTheme = useMemo(
-    () => (accent ? mergeThemeOverrides(theme, { colors: { blue: accent.palette } }) : theme),
-    [theme, accent],
+    () =>
+      accent || season
+        ? mergeThemeOverrides(theme, {
+            colors: { ...(accent ? { blue: accent.palette } : {}), ...(season ? { dark: season.dark } : {}) },
+          })
+        : theme,
+    [theme, accent, season],
   );
 
   useLayoutEffect(() => {
-    const tokens = Object.entries(accent?.tokens ?? {});
+    const tokens = Object.entries({ ...season?.tokens, ...accent?.tokens });
+
+    if (season && seasonalTheme) {
+      document.documentElement.dataset.season = seasonalTheme;
+    }
 
     for (const [name, value] of tokens) {
       document.documentElement.style.setProperty(name, value);
@@ -145,8 +162,9 @@ export default function App({
       for (const [name] of tokens) {
         document.documentElement.style.removeProperty(name);
       }
+      delete document.documentElement.dataset.season;
     };
-  }, [accent]);
+  }, [accent, season, seasonalTheme]);
 
   return (
     <>

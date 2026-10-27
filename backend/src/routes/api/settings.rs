@@ -28,6 +28,8 @@ mod get {
         release: &'a str,
         /// plugged.host: the theme colour, Theme v2's accent (frontend lib/accent.ts).
         theme_color: &'a str,
+        /// plugged.host: the seasonal theme over it (frontend lib/seasonalTheme.ts).
+        seasonal_theme: shared::settings::metadata::SeasonalTheme,
     }
 
     #[derive(ToSchema, Serialize)]
@@ -210,6 +212,7 @@ mod get {
                 debug: state.env.is_debug(),
                 release: shared::RELEASE,
                 theme_color: &settings.metadata.theme_color,
+                seasonal_theme: settings.metadata.seasonal_theme, // plugged.host
             },
             webauthn: ResponseWebauthn {
                 // plugged.host: no security keys while noprofit.space owns sign-in

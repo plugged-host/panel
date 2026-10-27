@@ -1,6 +1,7 @@
 // plugged.host: the Resource Store, laid out like the Pelican panel's: the upgrades not claimed
 // yet, the credit balance, one row per resource with its meter and offers, then the credit
 // history. No filled button: every purchase is a gray one with its price (docs/features/economy.md).
+// While a sale runs, the credits card says so and each price shows the full one struck through.
 import { Button as MantineButton } from '@mantine/core';
 import { useQueryClient } from '@tanstack/react-query';
 import classNames from 'classnames';
@@ -143,6 +144,11 @@ function ResourceRow({
             >
               <span>+{amountOf(entry.resource, offer.amount)}</span>
               <span className='tabular-nums'>
+                {offer.fullPrice > offer.price && (
+                  <s className='theme-eco-was' aria-hidden='true'>
+                    {number.format(offer.fullPrice)}
+                  </s>
+                )}
                 {number.format(offer.price)} {t(`${page}.creditsShort`, {})}
               </span>
             </Button>
@@ -234,6 +240,23 @@ export default function DashboardStore() {
               </div>
 
               <div className='flex flex-col gap-1'>
+                {store.discount && (
+                  <p className='theme-eco-text'>
+                    {store.discount.ends
+                      ? t(`${page}.sale.until`, {
+                          name: store.discount.name ?? t(`${page}.sale.defaultName`, {}),
+                          percent: store.discount.percent,
+                          date: new Intl.DateTimeFormat(intlLocale(language), {
+                            dateStyle: 'medium',
+                            timeStyle: 'short',
+                          }).format(store.discount.ends),
+                        })
+                      : t(`${page}.sale.running`, {
+                          name: store.discount.name ?? t(`${page}.sale.defaultName`, {}),
+                          percent: store.discount.percent,
+                        })}
+                  </p>
+                )}
                 <p className='theme-eco-text'>{t(`${page}.whatCreditsBuy`, {})}</p>
                 {store.rewardsUrl && <p className='theme-eco-muted'>{t(`${page}.balanceHint`, {})}</p>}
               </div>

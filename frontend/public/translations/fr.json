@@ -2790,6 +2790,11 @@
             "steep": "Au-delà de {soft}, chaque palier coûte bien plus que le précédent."
           },
           "creditsShort": "cr",
+          "sale": {
+            "defaultName": "Promotion",
+            "until": "{name} : {percent} % de réduction sur toute la boutique jusqu'au {date}.",
+            "running": "{name} : {percent} % de réduction sur toute la boutique."
+          },
           "history": "Historique des crédits",
           "noTransactions": "Aucune transaction de crédits pour l'instant.",
           "modal": {
