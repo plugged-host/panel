@@ -68,4 +68,4 @@ Built on [Calagopus](https://github.com/calagopus/panel) by 0x7d8 and its contri
 
 ## License
 
-MIT, like Calagopus: see [LICENSE](./LICENSE).
+MIT: © noprofit.space for plugged.host's changes, © Calagopus and 0x7d8 for Calagopus. See [LICENSE](./LICENSE).

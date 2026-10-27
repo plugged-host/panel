@@ -7,6 +7,7 @@ on:
 
 jobs:
   deploy-backend:
+    if: github.repository == 'calagopus/panel' # plugged.host: upstream's docs/Crowdin only
     name: Build and Deploy Backend Docs
     runs-on: ubuntu-24.04
     permissions:

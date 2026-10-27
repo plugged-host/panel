@@ -20,6 +20,7 @@ permissions:
 
 jobs:
   crowdin:
+    if: github.repository == 'calagopus/panel' # plugged.host: upstream's docs/Crowdin only
     runs-on: ubuntu-latest
     env:
       TRANSLATION_DIRS: >-

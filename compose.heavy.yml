@@ -1,7 +1,7 @@
 services:
   web:
-    # image: ghcr.io/calagopus/panel:nightly-heavy # if you want to live on the edge
-    image: ghcr.io/calagopus/panel:heavy
+    # image: ghcr.io/plugged-host/panel:nightly-heavy # if you want to live on the edge
+    image: ghcr.io/plugged-host/panel:heavy
     restart: unless-stopped
     stop_grace_period: 40s # the panel's shutdown handlers need longer than docker's 10s default
     environment:

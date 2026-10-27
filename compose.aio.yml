@@ -1,7 +1,7 @@
 services:
   web:
-    # image: ghcr.io/calagopus/panel:nightly-aio # if you want to live on the edge
-    image: ghcr.io/calagopus/panel:aio
+    # image: ghcr.io/plugged-host/panel:nightly-aio # if you want to live on the edge
+    image: ghcr.io/plugged-host/panel:aio
     restart: unless-stopped
     environment:
       - TZ=Europe/Berlin

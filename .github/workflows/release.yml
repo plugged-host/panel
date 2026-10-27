@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     tags:
-      - "release-*"
+      - "v*" # plugged.host: releases are tagged v{VERSION}
 
 env:
   PROJECT_NAME: panel-rs
@@ -30,13 +30,13 @@ jobs:
         id: info
         run: |
           RAW_TAG="${{ github.ref_name }}"
-          VERSION="${RAW_TAG#release-}"
+          VERSION="${RAW_TAG#v}"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
           # A tag is only allowed to move the "latest" markers if it is
           # actually the newest published version.
-          LATEST_STABLE=$(git tag -l 'release-*' | sed 's/^release-//' | grep -vF -- '-' | sort -V | tail -n1)
-          LATEST_OVERALL=$(git tag -l 'release-*' | sed 's/^release-//; s/-/~/' | sort -V | sed 's/~/-/' | tail -n1)
+          LATEST_STABLE=$(git tag -l 'v*' | sed 's/^v//' | grep -vF -- '-' | sort -V | tail -n1)
+          LATEST_OVERALL=$(git tag -l 'v*' | sed 's/^v//; s/-/~/' | sort -V | sed 's/~/-/' | tail -n1)
 
           if [[ "$VERSION" == *-* ]]; then
             echo "is_prerelease=true" >> $GITHUB_OUTPUT
