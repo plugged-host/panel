@@ -1,6 +1,5 @@
-// plugged.host: the Pelican panel's "SFTP Information" section (ServerSettings::sftpSection,
-// settings/sftp-card.blade.php): connection, username and password rows (docs/features/server-settings.md)
-import TitleCard from '@/elements/data-display/TitleCard.tsx';
+// plugged.host: Settings' "SFTP Information" rows: the connection, the username and which password works,
+// with copy buttons and the sftp:// link, as the VS Code page lists its own (docs/features/server-settings.md#sftp)
 import { CopyActionIcon, LinkActionIcon, SettingRow, SettingRows } from '@/elements/SettingRows.tsx';
 import { useRedactedAddress } from '@/plugins/privacy/useRedactAddresses.ts';
 import { useSftpPassword } from '@/plugins/useSftpPassword.ts';
@@ -8,11 +7,11 @@ import { useAuth } from '@/providers/AuthProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useGlobalStore } from '@/stores/global.ts';
 import { useServerStore } from '@/stores/server.ts';
-import { sectionAnchor } from './useSettingsSections.ts';
+import SettingsSection from './SettingsSection.tsx';
 
 const base = 'pages.server.settings.sftp';
 
-export default function SftpContainer() {
+export default function SftpSection() {
   const { t } = useTranslations();
   const { user } = useAuth();
   const server = useServerStore((state) => state.server);
@@ -26,8 +25,8 @@ export default function SftpContainer() {
   const accountPassword = password === 'noprofit' || (password === 'panel' && passwordLoginEnabled);
 
   return (
-    <TitleCard {...sectionAnchor('sftp')} title={t(`${base}.title`, {})} description={t(`${base}.description`, {})}>
-      <SettingRows>
+    <SettingsSection id='sftp' title={t(`${base}.title`, {})} description={t(`${base}.description`, {})}>
+      <SettingRows className='theme-eco-list'>
         <SettingRow
           label={t(`${base}.connection`, {})}
           mono
@@ -54,6 +53,6 @@ export default function SftpContainer() {
           {accountPassword ? t(`${base}.accountPassword`, {}) : t(`${base}.sshKey`, {})}
         </SettingRow>
       </SettingRows>
-    </TitleCard>
+    </SettingsSection>
   );
 }

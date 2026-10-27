@@ -1,13 +1,11 @@
-// plugged.host: the Pelican panel's "Version and software" section (ServerSettings::versionSections):
-// the server's software and Minecraft version, applied by a reinstall (docs/features/server-settings.md)
+// plugged.host: Settings' "Version and software": the server's software and Minecraft version, applied by a
+// reinstall. Its button is gray, the red is in the confirmation (docs/features/server-settings.md#software)
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import getSoftwareVersions from '@/api/server/settings/getSoftwareVersions.ts';
 import switchServerSoftware from '@/api/server/settings/switchServerSoftware.ts';
 import Button from '@/elements/buttons/Button.tsx';
-import TitleCard from '@/elements/data-display/TitleCard.tsx';
-import Spinner from '@/elements/feedback/Spinner.tsx';
 import Select from '@/elements/input/Select.tsx';
 import ConfirmationModal from '@/elements/modals/ConfirmationModal.tsx';
 import Text from '@/elements/typography/Text.tsx';
@@ -15,19 +13,18 @@ import { queryKeys } from '@/lib/queryKeys.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useServerStore } from '@/stores/server.ts';
-import { sectionAnchor, useSoftwareOptions } from './useSettingsSections.ts';
+import SettingsSection, { HELPER_UNDER } from './SettingsSection.tsx';
+import { useSoftwareOptions } from './useSettingsSections.ts';
 
+const base = 'pages.server.settings.software';
 const LATEST = 'latest';
-// Filament's helper text sits under the field
-const HELPER_UNDER: ('label' | 'input' | 'description' | 'error')[] = ['label', 'input', 'description', 'error'];
 
-export default function SoftwareContainer() {
+export default function VersionSection() {
   const { t } = useTranslations();
   const { addToast } = useToast();
   const navigate = useNavigate();
   const server = useServerStore((state) => state.server);
   const updateServer = useServerStore((state) => state.updateServer);
-  const base = 'pages.server.settings.software';
 
   const { resource, usable } = useSoftwareOptions();
   const software = resource.data;
@@ -52,17 +49,9 @@ export default function SoftwareContainer() {
     retry: false,
   });
 
+  // the page waits for the first answer, so there is nothing to hold a place for
   if (!software || !usable) {
-    // the section stays while its choices load again (the page waits for the first answer itself)
-    return resource.loading ? (
-      <TitleCard
-        {...sectionAnchor('version')}
-        title={t(`${base}.title`, {})}
-        description={t(`${base}.description`, {})}
-      >
-        <Spinner.Centered />
-      </TitleCard>
-    ) : null;
+    return null;
   }
 
   const variantChanged = choosesSoftware && !!variant && variant !== software.current;
@@ -91,16 +80,7 @@ export default function SoftwareContainer() {
   };
 
   return (
-    <TitleCard
-      {...sectionAnchor('version')}
-      title={t(`${base}.title`, {})}
-      description={t(`${base}.description`, {})}
-      footer={
-        <Button variant='default' disabled={!variantChanged && !versionChanged} onClick={() => setConfirming(true)}>
-          {t(`${base}.button`, {})}
-        </Button>
-      }
-    >
+    <SettingsSection id='version' title={t(`${base}.title`, {})} description={t(`${base}.description`, {})}>
       <ConfirmationModal
         opened={confirming}
         onClose={() => setConfirming(false)}
@@ -113,34 +93,41 @@ export default function SoftwareContainer() {
         </Text>
       </ConfirmationModal>
 
-      {/* the section's two columns from lg, Filament's `columns(2)` */}
-      <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
-        {choosesSoftware && (
-          <Select
-            withAsterisk
-            label={t(`${base}.label`, {})}
-            description={variantDescription ?? undefined}
-            inputWrapperOrder={HELPER_UNDER}
-            data={software.variants.map((choice) => ({ value: choice.value, label: choice.label }))}
-            value={variant}
-            onChange={setVariant}
-            allowDeselect={false}
-          />
-        )}
-        {choosesVersion && (
-          <Select
-            withAsterisk
-            label={t(`${base}.versionLabel`, {})}
-            description={versions.isError ? t(`${base}.versionsFailed`, {}) : t(`${base}.versionDescription`, {})}
-            inputWrapperOrder={HELPER_UNDER}
-            data={versionData}
-            value={version}
-            onChange={setVersion}
-            allowDeselect={false}
-            searchable
-          />
-        )}
+      <div className='theme-eco-card'>
+        <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+          {choosesSoftware && (
+            <Select
+              withAsterisk
+              label={t(`${base}.label`, {})}
+              description={variantDescription ?? undefined}
+              inputWrapperOrder={HELPER_UNDER}
+              data={software.variants.map((choice) => ({ value: choice.value, label: choice.label }))}
+              value={variant}
+              onChange={setVariant}
+              allowDeselect={false}
+            />
+          )}
+          {choosesVersion && (
+            <Select
+              withAsterisk
+              label={t(`${base}.versionLabel`, {})}
+              description={versions.isError ? t(`${base}.versionsFailed`, {}) : t(`${base}.versionDescription`, {})}
+              inputWrapperOrder={HELPER_UNDER}
+              data={versionData}
+              value={version}
+              onChange={setVersion}
+              allowDeselect={false}
+              searchable
+            />
+          )}
+        </div>
+
+        <div>
+          <Button variant='default' disabled={!variantChanged && !versionChanged} onClick={() => setConfirming(true)}>
+            {t(`${base}.button`, {})}
+          </Button>
+        </div>
       </div>
-    </TitleCard>
+    </SettingsSection>
   );
 }

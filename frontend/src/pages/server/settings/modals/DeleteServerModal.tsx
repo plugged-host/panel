@@ -1,5 +1,5 @@
-// plugged.host: deleting the server, from the settings header and the Danger Zone. Pelican's
-// wording, and the server's name typed to confirm (docs/features/server-settings.md)
+// plugged.host: deleting the server, from Settings' Danger Zone and a stuck or failed install's banner
+// or block screen. Pelican's wording, and the server's name typed to confirm (docs/features/server-settings.md)
 import { ModalProps } from '@mantine/core';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';

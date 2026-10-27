@@ -5852,81 +5852,11 @@ span.theme-neo-image {
 }
 
 /* =============================================================================
- * plugged.host: the server settings page, Theme v2's settings page on the Pelican panel
- * (server-form.blade.php ".phsf-*", settings/*.blade.php ".phset-*", the devbox's ".phdb-*").
- * docs/features/server-settings.md
+ * plugged.host: shapes shared by the server's form pages (Settings, Startup, VS Code, the Minecraft
+ * Players pages): TitleCard's description, footer and danger edge, label/value rows split by hairlines
+ * (elements/SettingRows.tsx), the startup command well and field hints. The Settings page itself is
+ * built from the ".theme-eco-*" sections and ".theme-row" rows. docs/features/server-settings.md
  * ============================================================================= */
-
-/* The jump bar (".phsf-nav"): in-page links, sticky on the modal surface, text items, Danger Zone
-   red at the end. Below 64rem it sticks under the sidebar's menu button (top 1rem, 2.75rem high). */
-.theme-jump {
-  position: sticky;
-  inset-block-start: 4.25rem;
-  z-index: 20;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.5rem;
-  border-radius: 1rem;
-  background-color: var(--theme-modal);
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.theme-jump::-webkit-scrollbar {
-  display: none;
-}
-
-@media (min-width: 64rem) {
-  .theme-jump {
-    inset-block-start: 0.5rem;
-  }
-}
-
-.theme-jump-item {
-  flex: none;
-  padding: 0.5rem 0.75rem;
-  border-radius: 0.75rem;
-  color: var(--theme-text-nav);
-  font-size: 0.875rem;
-  font-weight: 500;
-  line-height: 1.25rem;
-  white-space: nowrap;
-  text-decoration: none;
-  transition:
-    background-color 150ms ease,
-    color 150ms ease;
-}
-
-.theme-jump-item:hover,
-.theme-jump-item:focus-visible,
-.theme-jump-item.active {
-  background-color: var(--theme-raise-2);
-  color: var(--theme-text);
-}
-
-.theme-jump-item-danger {
-  margin-inline-start: auto;
-}
-
-.theme-jump-item-danger,
-.theme-jump-item-danger:hover,
-.theme-jump-item-danger:focus-visible,
-.theme-jump-item-danger.active {
-  color: var(--mantine-color-red-4);
-}
-
-/* A section the bar scrolls to stops a section gap (1.5rem) under the bar, not behind it: the bar's
-   top plus its 3.25rem height plus the gap. */
-.theme-jump-target {
-  scroll-margin-block-start: 9rem;
-}
-
-@media (min-width: 64rem) {
-  .theme-jump-target {
-    scroll-margin-block-start: 5.25rem;
-  }
-}
 
 /* Filament's section description and footer (TitleCard's `description` and `footer`). */
 .theme-section-footer {
@@ -6041,77 +5971,6 @@ span.theme-neo-image {
   padding-block-start: 0.75rem;
 }
 
-.theme-setting-caption {
-  display: block;
-  margin-block: 1.5rem 0.75rem;
-  color: var(--theme-text-muted);
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-
-.theme-setting-limits {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
-}
-
-@media (min-width: 40rem) {
-  .theme-setting-limits {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-@media (min-width: 64rem) {
-  .theme-setting-limits {
-    grid-template-columns: repeat(6, minmax(0, 1fr));
-  }
-}
-
-.theme-setting-limit small {
-  display: block;
-  color: var(--theme-text-muted);
-  font-size: 0.75rem;
-}
-
-.theme-setting-limit strong {
-  display: block;
-  margin-block-start: 0.125rem;
-  color: var(--theme-text);
-  font-size: 0.875rem;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-}
-
-/* Server Information: the icon in a 3/12 column next to name and description (generalSection's
-   12-column grid), stacked above them on narrow screens. */
-.theme-server-info {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 1.5rem;
-}
-
-@media (min-width: 48rem) {
-  .theme-server-info[data-icon] {
-    grid-template-columns: minmax(0, 3fr) minmax(0, 9fr);
-  }
-}
-
-.theme-server-info-icon {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.theme-server-info-image {
-  width: 120px;
-  height: 120px;
-  border-radius: 0.75rem;
-  object-fit: cover;
-}
-
 /* The startup command well (".phset-cmd"). */
 .theme-setting-cmd {
   display: flex;
@@ -6136,34 +5995,6 @@ span.theme-neo-image {
 
 .theme-setting-note {
   margin: 0;
-  color: var(--theme-text-muted);
-  font-size: 0.8125rem;
-  line-height: 1.25rem;
-}
-
-.theme-setting-danger-rows {
-  display: flex;
-  flex-direction: column;
-  margin-block-start: 0.75rem;
-}
-
-.theme-setting-danger-row {
-  padding-block: 0.75rem;
-}
-
-.theme-setting-danger-row + .theme-setting-danger-row {
-  border-block-start: 1px solid var(--theme-hairline);
-}
-
-.theme-setting-danger-row strong {
-  display: block;
-  color: var(--theme-text);
-  font-size: 0.875rem;
-  font-weight: 600;
-}
-
-.theme-setting-danger-row p {
-  margin: 0.125rem 0 0;
   color: var(--theme-text-muted);
   font-size: 0.8125rem;
   line-height: 1.25rem;

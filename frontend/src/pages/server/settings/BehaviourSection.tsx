@@ -1,8 +1,6 @@
-// plugged.host: the settings page's Behaviour section: Calagopus' own auto-start, timezone, auto-kill
-// and trash settings (Pelican has none of them) laid out like the Pelican panel's Resources section,
-// fields in Filament's grid and a toggle with the fields it opens under it, and one Save in the
-// section's footer that sends only the parts that changed, each to its own route
-// (docs/features/server-settings.md)
+// plugged.host: Settings' "Behaviour": upstream's auto-start, timezone, auto-kill and trash settings as one
+// form, each part only with its permission, and one Save that sends only the parts that changed, each to
+// its own route with its own toast (docs/features/server-settings.md#behaviour)
 import { useForm } from '@mantine/form';
 import { zod4Resolver } from 'mantine-form-zod-resolver';
 import { FormEvent, useEffect, useState } from 'react';
@@ -13,7 +11,6 @@ import updateAutostart from '@/api/server/settings/updateAutostart.ts';
 import updateTimezone from '@/api/server/settings/updateTimezone.ts';
 import updateTrash from '@/api/server/settings/updateTrash.ts';
 import Button from '@/elements/buttons/Button.tsx';
-import TitleCard from '@/elements/data-display/TitleCard.tsx';
 import NumberInput from '@/elements/input/NumberInput.tsx';
 import Select from '@/elements/input/Select.tsx';
 import Switch from '@/elements/input/Switch.tsx';
@@ -34,13 +31,11 @@ import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useGlobalStore } from '@/stores/global.ts';
 import { useServerStore } from '@/stores/server.ts';
-import { sectionAnchor } from './useSettingsSections.ts';
+import SettingsSection, { HELPER_UNDER } from './SettingsSection.tsx';
 
 const base = 'pages.server.settings';
-// Filament's helper text sits under the field
-const HELPER_UNDER: ('label' | 'input' | 'description' | 'error')[] = ['label', 'input', 'description', 'error'];
 
-// the server's time in the chosen timezone, ticking, as the timezone field's helper text
+// the server's time in the chosen timezone, ticking, under the timezone's label
 function useTimeIn(timezone: string | null) {
   const [time, setTime] = useState<string | null>(null);
 
@@ -59,7 +54,7 @@ function useTimeIn(timezone: string | null) {
   return time;
 }
 
-export default function BehaviourContainer() {
+export default function BehaviourSection() {
   const { t } = useTranslations();
   const { addToast } = useToast();
   const server = useServerStore((state) => state.server);
@@ -184,99 +179,93 @@ export default function BehaviourContainer() {
   };
 
   const custom = trash.values.custom;
+  // what the trash does while the server has no settings of its own, under the switch
+  const trashDefault = t('common.elements.trashSettings.default', {
+    summary: formatTrashSettings(server.trash.defaults),
+  });
 
   return (
-    <form onSubmit={save}>
-      <TitleCard
-        {...sectionAnchor('behaviour')}
-        title={t(`${base}.nav.behaviour`, {})}
-        footer={
+    <SettingsSection id='behaviour' title={t(`${base}.nav.behaviour`, {})}>
+      <form className='theme-eco-card' onSubmit={save}>
+        {(canAutostart || canTimezone) && (
+          <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+            {canAutostart && (
+              <Select
+                withAsterisk
+                label={t(`${base}.autostart.title`, {})}
+                data={[
+                  { label: t('common.enum.serverAutoStartBehavior.always', {}), value: 'always' },
+                  { label: t('common.enum.serverAutoStartBehavior.unlessStopped', {}), value: 'unless_stopped' },
+                  { label: t('common.enum.serverAutoStartBehavior.never', {}), value: 'never' },
+                ]}
+                {...autostart.getInputProps('behavior')}
+              />
+            )}
+            {canTimezone && (
+              <TimezoneInput
+                placeholder={t('common.form.timezoneSystem', {})}
+                description={time ?? undefined}
+                inputWrapperOrder={HELPER_UNDER}
+                allowDeselect
+                clearable
+                {...timezone.getInputProps('timezone')}
+              />
+            )}
+          </div>
+        )}
+
+        {canAutokill && (
+          <>
+            <Switch
+              label={t(`${base}.autokill.title`, {})}
+              {...autokill.getInputProps('enabled', { type: 'checkbox' })}
+            />
+            <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+              <NumberInput
+                label={t(`${base}.autokill.form.secondsUntilAutoKill`, {})}
+                {...autokill.getInputProps('seconds')}
+              />
+            </div>
+          </>
+        )}
+
+        {canTrash && (
+          <>
+            <Switch
+              label={t('common.elements.trashSettings.custom', {})}
+              description={custom ? undefined : trashDefault}
+              checked={custom !== null}
+              onChange={(e) => trash.setFieldValue('custom', e.currentTarget.checked ? server.trash.defaults : null)}
+            />
+            {custom && (
+              <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                <TrashRetentionInput
+                  label={t('common.elements.trashSettings.retention', {})}
+                  description={t('common.elements.trashSettings.retentionDescription', {})}
+                  inputWrapperOrder={HELPER_UNDER}
+                  value={custom.retention}
+                  onChange={(retention) => trash.setFieldValue('custom', { ...custom, retention })}
+                  error={trash.errors['custom.retention']}
+                />
+                <TrashUsageThresholdInput
+                  label={t('common.elements.trashSettings.usageThreshold', {})}
+                  description={t('common.elements.trashSettings.usageThresholdDescription', {})}
+                  inputWrapperOrder={HELPER_UNDER}
+                  value={custom.usageThreshold}
+                  onChange={(usageThreshold) => trash.setFieldValue('custom', { ...custom, usageThreshold })}
+                  error={trash.errors['custom.usageThreshold']}
+                />
+              </div>
+            )}
+          </>
+        )}
+
+        <div>
           <Button type='submit' loading={saving} disabled={changed.length === 0 || !valid}>
             {t('common.button.save', {})}
           </Button>
-        }
-      >
-        <div className='flex flex-col gap-6'>
-          {(canAutostart || canTimezone) && (
-            <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
-              {canAutostart && (
-                <Select
-                  withAsterisk
-                  label={t(`${base}.autostart.title`, {})}
-                  data={[
-                    { label: t('common.enum.serverAutoStartBehavior.always', {}), value: 'always' },
-                    { label: t('common.enum.serverAutoStartBehavior.unlessStopped', {}), value: 'unless_stopped' },
-                    { label: t('common.enum.serverAutoStartBehavior.never', {}), value: 'never' },
-                  ]}
-                  {...autostart.getInputProps('behavior')}
-                />
-              )}
-              {canTimezone && (
-                <TimezoneInput
-                  placeholder={t('common.form.timezoneSystem', {})}
-                  description={time ?? undefined}
-                  inputWrapperOrder={HELPER_UNDER}
-                  allowDeselect
-                  clearable
-                  {...timezone.getInputProps('timezone')}
-                />
-              )}
-            </div>
-          )}
-
-          {canAutokill && (
-            <>
-              <Switch
-                label={t(`${base}.autokill.title`, {})}
-                {...autokill.getInputProps('enabled', { type: 'checkbox' })}
-              />
-              <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
-                <NumberInput
-                  label={t(`${base}.autokill.form.secondsUntilAutoKill`, {})}
-                  {...autokill.getInputProps('seconds')}
-                />
-              </div>
-            </>
-          )}
-
-          {canTrash && (
-            <>
-              <Switch
-                label={t('common.elements.trashSettings.custom', {})}
-                description={
-                  custom
-                    ? undefined
-                    : t('common.elements.trashSettings.default', {
-                        summary: formatTrashSettings(server.trash.defaults),
-                      })
-                }
-                checked={custom !== null}
-                onChange={(e) => trash.setFieldValue('custom', e.currentTarget.checked ? server.trash.defaults : null)}
-              />
-              {custom && (
-                <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
-                  <TrashRetentionInput
-                    label={t('common.elements.trashSettings.retention', {})}
-                    description={t('common.elements.trashSettings.retentionDescription', {})}
-                    inputWrapperOrder={HELPER_UNDER}
-                    value={custom.retention}
-                    onChange={(retention) => trash.setFieldValue('custom', { ...custom, retention })}
-                    error={trash.errors['custom.retention']}
-                  />
-                  <TrashUsageThresholdInput
-                    label={t('common.elements.trashSettings.usageThreshold', {})}
-                    description={t('common.elements.trashSettings.usageThresholdDescription', {})}
-                    inputWrapperOrder={HELPER_UNDER}
-                    value={custom.usageThreshold}
-                    onChange={(usageThreshold) => trash.setFieldValue('custom', { ...custom, usageThreshold })}
-                    error={trash.errors['custom.usageThreshold']}
-                  />
-                </div>
-              )}
-            </>
-          )}
         </div>
-      </TitleCard>
-    </form>
+      </form>
+    </SettingsSection>
   );
 }

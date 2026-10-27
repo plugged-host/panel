@@ -1,65 +1,82 @@
 # Server settings for players
 
-A server's settings are one page, as on the Pelican panel's settings page: the title "Settings"
-with a gray **Delete Server** in the header, a sticky jump bar, then full-width sections in one
-column in Pelican's order. Settings shows in the sidebar for anyone holding one of its sections'
-permissions (`settings.*`, `files.sftp` or `backups.read`). **Startup** and **VS Code** are pages
-of their own with their own sidebar rows, like every other server page.
+A server's settings are one page, **Settings**, laid out like v3's own pages (Transfer, Limbo, the
+account's Discord and Partners pages), not like the Pelican panel's settings page: the title, then
+one column of sections, each a heading on the page with one box under it. Settings shows in the
+sidebar for anyone holding one of its sections' permissions (`settings.*`, `files.sftp` or
+`backups.read`). **Startup** and **VS Code** are pages of their own with their own sidebar rows,
+like every other server page.
 
 | Section | Anchor | Permission | Shown when |
 |---|---|---|---|
-| Server Information | `#general` | any of Settings' | always: the icon (`settings.change-icon` to change it), name and description (saved on leaving the field, `settings.rename`), UUID, identifier, node, and the limits when the viewer cannot resize |
+| Server Information | `#general` | any of Settings' | always: the icon (`settings.change-icon` to change it), name and description (saved on leaving the field, `settings.rename`), UUID, identifier and node |
 | SFTP Information | `#sftp` | `files.sftp` | always |
 | Resources | `#resources` | `settings.resize` | Admin › Settings › Hosting › Games › "Players Resize Servers" is on, or the viewer is an admin |
+| Limits | `#resources` | any of Settings' | in Resources' place for whoever cannot resize ([below](#server-information)) |
 | Version | `#version` | `settings.software` | the server's egg is a game in the catalog with at least two software choices, or a Minecraft egg with a version variable |
-| Behaviour | `#behaviour` | `settings.auto-kill`, `.auto-start`, `.timezone` or `.trash` | Calagopus' own auto-start, timezone, auto-kill and trash settings as one section (Pelican has none of them; [below](#behaviour)); the trash only where Admin › Settings lets servers change it |
+| Behaviour | `#behaviour` | `settings.auto-kill`, `.auto-start`, `.timezone` or `.trash` | Calagopus' own auto-start, timezone, auto-kill and trash settings as one form ([below](#behaviour)); the trash only where Admin › Settings lets servers change it |
 | Notifications | `#notifications` | `backups.read` | always |
-| Danger Zone | `#danger` | `settings.install` or `settings.delete` | Reinstall, and Delete Server when deleting is allowed (below) |
+| Danger Zone | `#danger` | `settings.install` or `settings.delete` | Reinstall Server, and Delete Server when deleting is allowed (below) |
 
-The page is `pages/server/settings/ServerSettings.tsx`; which sections a person gets is
-`useSettingsSections.ts`, shared by the page, the bar and the sections. The page waits for the two
-answers that decide Resources and Version (`GET …/settings/resize`, `…/settings/software`) before
-it shows its sections, so nothing moves when they arrive.
+The page is `pages/server/settings/ServerSettings.tsx` (upstream's file; its container, registry and
+extension slots stay), with one file per section (`InformationSection`, `SftpSection`,
+`ResourcesSection`, `VersionSection`, `BehaviourSection`, `NotificationsSection`, `DangerSection`),
+each in `SettingsSection.tsx`. Which sections a person gets is `useSettingsSections.ts`. The page
+waits for the first answers that decide or fill its sections (`GET …/settings/resize`,
+`…/settings/software`, `…/settings/notifications`) before it shows them, so nothing moves when they
+arrive.
 
-The jump bar (`ServerSettingsNav.tsx`, Pelican's `.phsf-nav`) holds in-page links to the sections
-shown, Danger Zone red at its end. As on the Pelican panel it marks the section in view while the
-page scrolls (the first one near the top, the last one at the end). A link sets the address to
-`/settings#<anchor>` and scrolls the section to just under the bar (`.theme-jump-target`'s
-`scroll-margin`); an address with an anchor does the same when the page opens, and keeps the
-section there for three seconds while sections above it still load (Notifications loads its own
-switches), until the reader scrolls. The old addresses of the sections, from when each was a page
-of its own (`/settings/sftp`, `/settings/resources`, `/settings/version`, `/settings/behaviour`,
-`/settings/notifications`, `/settings/danger`), redirect to `/settings#<anchor>`
-(`ServerSettingsRedirect.tsx`).
+### Layout
 
-Every section is a `TitleCard` (Filament's section: the heading without an icon, its description,
-the content, a footer with the section's one action at the end; `description`, `footer`, `danger`,
-`id` props), 1.5 rem apart. Inside, Filament's spacing: fields 1.5 rem apart
-(`flex flex-col gap-6`), side by side in `grid gap-6` columns where Pelican's section has columns,
-helper text under the field. A section whose fields save on their own (Server Information,
-Notifications) has no button; one with a Save has it in the footer, filled, one per section
-(Resources, Behaviour), gray where it reinstalls or deletes (Version, Danger Zone) with the red in
-the confirmation. The label/value rows are `elements/SettingRows.tsx`; the styles are the
-`.theme-jump*`, `.theme-section-*`, `.theme-setting-*` and `.theme-field-*` block of `app.css`, the
-plan cards `.theme-choice*` (as on Create Server).
+Every part comes from a page that already has it:
+
+- **Header**: the title alone. There are no page actions; Delete Server is in Danger Zone.
+- **Section** (`SettingsSection.tsx`): the heading (`.theme-eco-heading`) and, where the section has
+  one, a line under it (`.theme-eco-muted`), then the section's one box 0.75 rem below; sections
+  1.5 rem apart. As Transfer's "Choose a location" and the Discord page's sections.
+- **A box of fields** is `.theme-eco-card` (a fill without a border, children 1.25 rem apart):
+  Server Information, Resources, Version, Behaviour, Notifications. Fields side by side in
+  `grid gap-4 md:grid-cols-2` (CPU, memory and disk in three from `lg`), helper text under the input
+  as on the Startup page (so fields side by side keep their inputs in line), switches with their
+  label and description.
+- **A box of rows** is `.theme-eco-list` with `elements/SettingRows.tsx` (label, value, copy or link
+  icons at the end, hairlines between), as on the VS Code page: SFTP Information, Limits. Server
+  Information ends with its UUID, identifier and node rows inside its card.
+- **Rows with an action** are `.theme-rows` / `.theme-row` (title and text, the button at the end,
+  under the text on a phone), as the Store's perks: Danger Zone.
+- **Saving**: what stands alone saves at once (name and description when they lose focus, the
+  Notifications switches when they flip, each with a toast); a form of several values has one filled
+  button under its fields, start-aligned ("Save resources", Behaviour's "Save"). At most one filled
+  button per section.
+- **Destructive**: "Change and reinstall", "Reinstall" and "Delete Server" are gray; the red is in
+  their confirmation dialogs.
+- **Anchors**: each section has its anchor as `id`. `/settings#<anchor>` opens the page at that
+  section (a `scroll-margin` keeps it clear of the phone's menu button), and the old addresses of
+  the sections, from when each was a page of its own (`/settings/sftp`, `/settings/resources`,
+  `/settings/version`, `/settings/behaviour`, `/settings/notifications`, `/settings/danger`),
+  redirect there (`ServerSettingsRedirect.tsx`). There is no jump bar.
+- **Phones**: one column; the field grids become one column and Danger Zone's buttons go under
+  their text.
 
 ## Server Information
 
-Name and description save when they lose focus ("Updated Server Name"), like Pelican's live fields.
-The rows show the UUID and the identifier with copy buttons and the hosting node with the start of
-its UUID (nodes have no number here). When the viewer cannot resize, the **Limits** grid shows CPU,
-memory, disk, and backups, databases and allocations as "used / limit" (∞ for none) from
-`GET …/settings/usage`; a count the viewer may not see (no `backups.read`, …) shows the limit only.
+The card starts with the icon ([below](#server-icon)), then Server Name and Server Description side
+by side, each saved when it loses focus ("Updated Server Name"), like Pelican's live fields. Under
+them, rows with the UUID and the identifier (copy buttons) and the hosting node with the start of its
+UUID (nodes have no number here). When the viewer cannot resize, the **Limits** section takes
+Resources' place: rows with CPU, memory, disk, and backups, databases and allocations as
+"used / limit" (∞ for none) from `GET …/settings/usage`; a count the viewer may not see (no
+`backups.read`, …) shows the limit only.
 
 ## Server icon
 
 `shared/src/models/server/icon.rs`, shaped like upstream's account avatar. Server Information
-shows the icon at 120 px in a column of its own (3/12 of the width, above the name on narrow
-screens), with **Upload Icon** and, when the server has an icon of its own, **Delete Icon** under
-it; both need `settings.change-icon` (Pelican's permission of that name, which the importer now
-keeps). Without an icon of its own the server shows its game's: the icon of its egg's game in
-Admin › Settings › Hosting › Games, what the Pelican panel calls the egg's icon, with the tooltip
-"Using Egg Icon". With neither, no picture (as on the Pelican panel).
+starts with the icon at 64 px, with the gray buttons **Upload Icon** and, when the server has an icon
+of its own, **Delete Icon** beside it; both need `settings.change-icon` (Pelican's permission of that
+name, which the importer now keeps). Without an icon of its own the server shows its game's: the
+icon of its egg's game in Admin › Settings › Hosting › Games, what the Pelican panel calls the egg's
+icon, with "Using Egg Icon" next to it. With neither, no picture (as on the Pelican panel), and
+without the permission no buttons.
 
 Upload Icon opens a dialog with a file field and upstream's avatar editor (pick the square); the
 upload is checked like an avatar (PNG, JPEG, WebP or GIF, 64 to 4096 px a side, the request at
@@ -91,9 +108,10 @@ the Files page (`frontend/src/plugins/useSftpPassword.ts`). The public settings 
 CardSelect, four a row from `lg`, as on Create Server: name, the note, the size), the current one
 picked and marked "Current plan"; a plan larger than the server plus what the owner has left is "Exceeds your
 remaining allowance" and cannot be picked (`plan_fits`). **Advanced** sets the values by hand
-instead; it starts on when the server's size is no plan. Each field shows what is left on its label
-line, red below zero, and **Save resources** sends the values. Without public plans the fields show
-directly.
+instead; it starts on when the server's size is no plan. Each field shows what is left under it
+(a value over that says so there), and **Save resources** under the fields sends the
+values; it stays off while nothing changed or a value is invalid. Without public plans the fields
+show directly.
 
 CPU (percent of one thread), memory and disk, each up to the server's
 own size plus what its owner's allowance has left ([create-server.md](create-server.md#allowance));
@@ -155,16 +173,16 @@ preview is fetched again when the command, a variable, the memory or the allocat
 
 ## Behaviour
 
-`pages/server/settings/BehaviourContainer.tsx`: upstream's Auto-Start, Timezone, Auto-Kill and
-Trash cards as one section titled Behaviour, laid out like Pelican's Resources section. Auto-Start
-and Timezone side by side (the timezone's helper text is the server's time in it, ticking; empty
-means the system's), then the Auto-Kill switch with "Seconds until auto-kill" under it, then "Use
-custom trash settings" with Retention and Clear at Disk Usage under it once on (the panel's default
-under the switch while off; only when Admin › Settings lets servers change their trash). Each part
-shows with its own permission. One **Save** in the footer sends only the parts that changed, each to
-its own route (`settings/auto-start`, `timezone`, `auto-kill`, `trash`) with its own toast; it stays
-off while nothing changed or a changed value is invalid. Upstream's four cards
-(`{Autokill,Autostart,Timezone,Trash}Container.tsx`) are unused.
+`pages/server/settings/BehaviourSection.tsx`: upstream's Auto-Start, Timezone, Auto-Kill and Trash
+cards as one form titled Behaviour. Auto-Start and Timezone side by side (the timezone's helper text
+is the server's time in it, ticking; empty means the system's), then the Auto-Kill switch with
+"Seconds until auto-kill" under it, then "Use custom trash settings" with Retention and Clear at
+Disk Usage under it once on (the panel's default under the switch while off; only when Admin ›
+Settings lets servers change their trash). Each part shows with its own permission. One **Save**
+under the fields sends only the parts that changed, each to its own route (`settings/auto-start`,
+`timezone`, `auto-kill`, `trash`) with its own toast; it stays off while nothing changed or a changed
+value is invalid. Upstream's four cards (`{Autokill,Autostart,Timezone,Trash}Container.tsx`) are
+unused.
 
 ## Notifications
 
@@ -181,9 +199,10 @@ The switches are rows of `server_notification_settings` (migration `backup_notif
 
 ## Danger Zone
 
-The red-edged section: a note, then Reinstall Server (the reinstall dialog keeps upstream's "delete
-all files" switch, and admins' start afterwards) and Delete Server. Both buttons are gray; the red
-one is in the confirmation.
+The last section: its note under the heading, then two rows, Reinstall Server (the reinstall dialog
+keeps upstream's "delete all files" switch, and admins' start afterwards) and Delete Server, each
+with what it does and a gray button at its end. The red is in the confirmations; the section has no
+red edge or tint of its own.
 
 ## Delete
 
@@ -247,25 +266,25 @@ changes.
 ## Check
 
 - Admin › Settings › Hosting › Games: turn "Players Resize Servers" and "Players Delete Servers" on.
-- As the owner of a server: Settings is one page with every section under each other, no sub-pages.
-  The jump bar sticks while scrolling and marks the section in view; a click on an item scrolls to
-  its section, just under the bar, and the address ends in `#<anchor>`. Danger Zone sits red at the
-  bar's end and is the last section. Startup and VS Code (devboxes on) are rows of their own in the
-  sidebar, each active on its own page.
+- As the owner of a server: Settings is one page with every section under each other, no sub-pages
+  and no bar: each section's heading sits on the page with its box under it, like Transfer's
+  sections, and Danger Zone is the last section. The header has the title only. Startup and VS Code
+  (devboxes on) are rows of their own in the sidebar, each active on its own page.
 - Open `/server/<id>/settings/resources` (and `sftp`, `version`, `behaviour`, `notifications`,
-  `danger`): it lands on `/settings#resources` with that section under the bar, also on a fresh
-  load. `/settings#danger` opens at the end of the page.
+  `danger`): it lands on `/settings#resources` with that section at the top, also on a fresh load
+  and on a phone (clear of the menu button). `/settings#danger` opens at the end of the page.
 - Server Information: change the name, click elsewhere: "Updated Server Name". The copy icons turn
   green for 2 s.
 - Server icon: on a server whose game has an icon (Admin › Settings › Hosting › Games), the game's
-  icon shows at 120 px with the tooltip "Using Egg Icon". Upload Icon, pick a picture, Upload Icon:
+  icon shows at 64 px with "Using Egg Icon" beside it. Upload Icon, pick a picture, Upload Icon:
   "Server icon updated", and it shows on Settings, on the server's card in the server list and in
   the sidebar's server card. Delete Icon: "Server icon deleted", the game's icon is back. A subuser
   without "change-icon" sees the icon but no buttons.
 - SFTP Information: copy host and username, log in with the password the row names.
 - Resources: the current plan is picked; a plan over the allowance is dimmed. Advanced: raise memory
-  past what is left: its hint turns red and Save resources stays off. Lower it and save: the
-  console's memory limit follows without a restart.
+  past what is left: the field says so and Save resources stays off. Lower it and save: the
+  console's memory limit follows without a restart. As a subuser without `settings.resize`, Limits
+  shows in its place.
 - Startup: change a variable and leave the field: "Updated: <name>". Enable Preview: the well
   shows the command with the memory, port and variable values in it, `[hidden]` for a secret
   variable; change a variable and the preview follows; Disable Preview shows the command again.
@@ -287,4 +306,5 @@ changes.
   subuser with neither `settings.install` nor `settings.delete` sees only the banner. A server whose
   install failed shows Delete Server on its block screen.
 - As a subuser with only `startup.read`: the sidebar has Startup and no Settings. With only
-  `backups.read`: Settings shows Server Information (read-only) and Notifications.
+  `backups.read`: Settings shows Server Information (read-only, no icon buttons), Limits and
+  Notifications.
