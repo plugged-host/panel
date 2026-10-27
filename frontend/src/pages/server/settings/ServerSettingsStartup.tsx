@@ -154,9 +154,7 @@ function StartupCommand() {
                 ...presets.map(([label, value]) => ({ value, label, disabled: !canModifyStartupCommand })),
               ]}
               value={custom ? '' : server.startup}
-              disabled={
-                !(canModifyStartupCommand || checksCustom) || (!allowCustom && !checksCustom && !isPreset)
-              }
+              disabled={!(canModifyStartupCommand || checksCustom) || (!allowCustom && !checksCustom && !isPreset)}
               onChange={(value) => {
                 if (!value) {
                   setCustom(true);

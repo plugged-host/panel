@@ -455,7 +455,10 @@ fn escapes(command: &str) -> Vec<String> {
             continue;
         }
 
-        if matches!(chars[i + 1], 'x' | 'u' | 'U' | '0' | 'n' | 'r' | 'e' | 'E' | 'c') {
+        if matches!(
+            chars[i + 1],
+            'x' | 'u' | 'U' | '0' | 'n' | 'r' | 'e' | 'E' | 'c'
+        ) {
             push_unique(&mut found, format!("\\{}", chars[i + 1]));
         }
         i += 2;
@@ -1343,7 +1346,10 @@ mod tests {
     }
 
     fn checked(command: &str, egg: &str) -> Result<(), Refusal> {
-        hidden(&scan(command).expect("scans"), &scan(egg).expect("the egg scans"))
+        hidden(
+            &scan(command).expect("scans"),
+            &scan(egg).expect("the egg scans"),
+        )
     }
 
     #[test]
@@ -1376,10 +1382,7 @@ mod tests {
             refusal("java -jar \"server.jar"),
             Refusal::with("unclosed_quote", "\"")
         );
-        assert_eq!(
-            refusal("echo 'hello"),
-            Refusal::with("unclosed_quote", "'")
-        );
+        assert_eq!(refusal("echo 'hello"), Refusal::with("unclosed_quote", "'"));
         assert_eq!(code("echo $(pwd"), "unclosed_substitution");
         assert_eq!(code("echo ${HOME"), "unclosed_substitution");
         assert_eq!(code("echo `pwd"), "unclosed_substitution");
@@ -1532,10 +1535,7 @@ mod tests {
             Ok(())
         );
         assert_eq!(
-            checked(
-                "cd server && java -jar server.jar; echo stopped",
-                MINECRAFT
-            ),
+            checked("cd server && java -jar server.jar; echo stopped", MINECRAFT),
             Ok(())
         );
         assert_eq!(
@@ -1564,7 +1564,10 @@ mod tests {
             "abuse"
         );
         assert_eq!(
-            abuse("java -Xms128M -jar server.jar", "java -Xms128M -jar server.jar"),
+            abuse(
+                "java -Xms128M -jar server.jar",
+                "java -Xms128M -jar server.jar"
+            ),
             Ok(Vec::new())
         );
     }

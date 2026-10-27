@@ -2,7 +2,7 @@
 // Game, Location, Resources, the EULA for Minecraft, then the deploy row (docs/features/create-server.md)
 import { faCircleInfo, faDiceFive, faGamepad } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Button as MantineButton, Loader } from '@mantine/core';
+import { Loader, Button as MantineButton } from '@mantine/core';
 import { useDebouncedValue, useHotkeys } from '@mantine/hooks';
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ReactNode, useEffect, useState } from 'react';

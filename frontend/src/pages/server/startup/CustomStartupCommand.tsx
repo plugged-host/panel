@@ -13,7 +13,7 @@ import { useServerStore } from '@/stores/server.ts';
 const base = 'pages.server.settings.startup';
 
 // the refusals the panel names (shared/src/startup_command.rs) by their string keys; any other reads as `other`
-const REASONS = new Set([
+const REASONS = [
   'empty',
   'tooLong',
   'lineBreak',
@@ -43,7 +43,9 @@ const REASONS = new Set([
   'neoUnsafe',
   'neoNotStarting',
   'neoUnsure',
-]);
+] as const;
+type Reason = (typeof REASONS)[number];
+const isReason = (key: string): key is Reason => (REASONS as readonly string[]).includes(key);
 
 const HELPER_UNDER: ('label' | 'input' | 'description' | 'error')[] = ['label', 'input', 'description', 'error'];
 
@@ -85,9 +87,7 @@ export default function CustomStartupCommand({ command, onChange, action }: Prop
   const reason = (code: string, detail: string | null) => {
     const key = toCamelCase(code);
 
-    return t(`${base}.check.reasons.${REASONS.has(key) ? key : 'other'}` as Parameters<typeof t>[0], {
-      detail: detail ?? '',
-    });
+    return t(`${base}.check.reasons.${isReason(key) ? key : 'other'}`, { detail: detail ?? '' });
   };
 
   const refusal = result?.refusal;

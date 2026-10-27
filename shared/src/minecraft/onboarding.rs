@@ -704,8 +704,7 @@ async fn install_server(
         tracing::warn!(server = %server_uuid, "minecraft setup install: {err}");
         "the server could not be installed; reinstall it from Settings".to_string()
     };
-    let install_failed =
-        || "installing the server failed; reinstall it from Settings".to_string();
+    let install_failed = || "installing the server failed; reinstall it from Settings".to_string();
 
     if !crate::server_software::wait_for_install(
         state,

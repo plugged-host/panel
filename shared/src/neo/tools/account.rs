@@ -241,10 +241,8 @@ impl Tool for ListCreateOptionsTool {
         }
         // the account's standing (docs/features/standing.md)
         if let Some(standing) = &options.standing {
-            return Ok(
-                ToolResult::ok(standing_refusal(standing))
-                    .with_display("Creating servers is blocked by the account's standing"),
-            );
+            return Ok(ToolResult::ok(standing_refusal(standing))
+                .with_display("Creating servers is blocked by the account's standing"));
         }
         let names = names(context.state).await?;
 
