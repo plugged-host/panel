@@ -1958,6 +1958,36 @@ mod tests {
     }
 
     #[test]
+    fn a_sale_noprofit_applied_reaches_the_page() {
+        // what accounts answers during a 50 % sale
+        let answer: crate::noprofit::Store = serde_json::from_value(serde_json::json!({
+            "credits": 500,
+            "catalog": [{"resource": "memory", "step": 1024, "total": 4096, "limit": 24576,
+                "soft_limit": 30720, "offers": [{"steps": 1, "amount": 1024, "price": 38, "full_price": 75}]}],
+            "discount": 50,
+            "transactions": [],
+        }))
+        .unwrap();
+        let sale = ApiDiscount {
+            percent: 50,
+            name: Some("Halloween special".into()),
+            ends: None,
+        };
+
+        let page = serde_json::to_value(noprofit_store(answer.clone(), Some(&sale))).unwrap();
+        assert_eq!(page["discount"]["percent"], 50);
+        assert_eq!(page["catalog"][0]["offers"][0]["full_price"], 75);
+        assert_eq!(page["catalog"][0]["offers"][0]["price"], 38);
+
+        // a sale noprofit.space did not apply is not shown
+        let other = ApiDiscount {
+            percent: 25,
+            ..sale
+        };
+        assert!(noprofit_store(answer, Some(&other)).discount.is_none());
+    }
+
+    #[test]
     fn meters_show_the_servers_against_the_limit() {
         let usage = store_usage(
             Resources::new(400, 8192, 0),

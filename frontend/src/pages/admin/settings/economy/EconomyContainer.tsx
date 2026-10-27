@@ -216,7 +216,7 @@ export default function EconomyContainer({ part }: { part: EconomyPart }) {
         name: 'storeDiscountName',
         label: t(`${page}.storeDiscountName`, {}),
         description: t(`${page}.storeDiscountNameDescription`, {}),
-        when: (values) => values.creditsEnabled && values.storeDiscount > 0,
+        when: credits,
       },
       {
         type: 'date',
@@ -224,7 +224,7 @@ export default function EconomyContainer({ part }: { part: EconomyPart }) {
         label: t(`${page}.storeDiscountStarts`, {}),
         description: t(`${page}.storeDiscountStartsDescription`, {}),
         props: { clearable: true },
-        when: (values) => values.creditsEnabled && values.storeDiscount > 0,
+        when: credits,
       },
       {
         type: 'date',
@@ -232,7 +232,7 @@ export default function EconomyContainer({ part }: { part: EconomyPart }) {
         label: t(`${page}.storeDiscountEnds`, {}),
         description: t(`${page}.storeDiscountEndsDescription`, {}),
         props: { clearable: true },
-        when: (values) => values.creditsEnabled && values.storeDiscount > 0,
+        when: credits,
       },
       { type: 'divider', name: 'storeDivider', label: t(`${page}.storeSection`, {}), when: credits },
       {

@@ -2789,8 +2789,8 @@
           "creditsShort": "cr",
           "sale": {
             "defaultName": "Promoção",
-            "until": "{name}: {percent}% de desconto em tudo na loja até {date}.",
-            "running": "{name}: {percent}% de desconto em tudo na loja."
+            "until": "{percent}% de desconto em tudo na loja até {date}.",
+            "running": "{percent}% de desconto em tudo na loja."
           },
           "history": "Histórico de créditos",
           "noTransactions": "Nenhuma transação de créditos ainda.",

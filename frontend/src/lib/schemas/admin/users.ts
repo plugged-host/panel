@@ -8,7 +8,9 @@ export const adminUserSchema = z.looseObject({
   uuid: z.string(),
   externalId: z.preprocess(nullableString, z.string().nullable()),
   username: z.string(),
-  email: z.email(),
+  // plugged.host: read as stored; one address zod's strict check refuses (an imported account's)
+  // must not fail the whole list.
+  email: z.string(),
   nameFirst: z.preprocess(nullableString, z.string().min(1).max(255).nullable()),
   nameLast: z.preprocess(nullableString, z.string().min(1).max(255).nullable()),
   admin: z.boolean(),
@@ -52,6 +54,9 @@ export const adminUserUpdateSchema = z.lazy(() =>
     })
     .extend({
       username: usernameSchema,
+      // plugged.host: the API checks the format (garde, international domains too); zod's stricter
+      // check would keep such an account from being saved at all.
+      email: z.string().trim().min(1).max(255),
       roleUuid: z.string().nullable(),
       password: z.preprocess(nullableString, z.string().nullable()),
     }),

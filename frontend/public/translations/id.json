@@ -2789,8 +2789,8 @@
           "creditsShort": "kr",
           "sale": {
             "defaultName": "Diskon",
-            "until": "{name}: diskon {percent}% untuk semua di toko hingga {date}.",
-            "running": "{name}: diskon {percent}% untuk semua di toko."
+            "until": "Diskon {percent}% untuk semua di toko hingga {date}.",
+            "running": "Diskon {percent}% untuk semua di toko."
           },
           "history": "Riwayat kredit",
           "noTransactions": "Belum ada transaksi kredit.",

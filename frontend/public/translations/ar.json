@@ -2792,8 +2792,8 @@
           "creditsShort": "كريدت",
           "sale": {
             "defaultName": "تخفيضات",
-            "until": "{name}: خصم {percent}% على كل ما في المتجر حتى {date}.",
-            "running": "{name}: خصم {percent}% على كل ما في المتجر."
+            "until": "خصم {percent}% على كل ما في المتجر حتى {date}.",
+            "running": "خصم {percent}% على كل ما في المتجر."
           },
           "history": "سجل الكريدت",
           "noTransactions": "لا توجد معاملات كريدت بعد.",

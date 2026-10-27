@@ -2789,8 +2789,8 @@
           "creditsShort": "кр.",
           "sale": {
             "defaultName": "Розпродаж",
-            "until": "{name}: знижка {percent}% на все в магазині до {date}.",
-            "running": "{name}: знижка {percent}% на все в магазині."
+            "until": "Знижка {percent}% на все в магазині до {date}.",
+            "running": "Знижка {percent}% на все в магазині."
           },
           "history": "Історія кредитів",
           "noTransactions": "Операцій з кредитами ще немає.",

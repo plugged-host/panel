@@ -1,7 +1,7 @@
 // plugged.host: the Resource Store, laid out like the Pelican panel's: the upgrades not claimed
 // yet, the credit balance, one row per resource with its meter and offers, then the credit
 // history. No filled button: every purchase is a gray one with its price (docs/features/economy.md).
-// While a sale runs, the credits card says so and each price shows the full one struck through.
+// While a sale runs, a banner over the page names it and each price shows the full one struck through.
 import { Button as MantineButton } from '@mantine/core';
 import { useQueryClient } from '@tanstack/react-query';
 import classNames from 'classnames';
@@ -15,6 +15,7 @@ import { AdPageSlot } from '@/elements/ads/AdPlacements.tsx';
 import Button from '@/elements/buttons/Button.tsx';
 import AccountContentContainer from '@/elements/containers/AccountContentContainer.tsx';
 import TransactionRows from '@/elements/economy/TransactionRows.tsx';
+import Alert from '@/elements/feedback/Alert.tsx';
 import ConfirmationModal from '@/elements/modals/ConfirmationModal.tsx';
 import ResourceView from '@/elements/ResourceView.tsx';
 import { bytesToString, mbToBytes } from '@/lib/format/size.ts';
@@ -231,6 +232,20 @@ export default function DashboardStore() {
       <ResourceView resource={store}>
         {(store) => (
           <div className='flex flex-col gap-6'>
+            {store.discount && (
+              <Alert color='blue' title={store.discount.name ?? t(`${page}.sale.defaultName`, {})}>
+                {store.discount.ends
+                  ? t(`${page}.sale.until`, {
+                      percent: store.discount.percent,
+                      date: new Intl.DateTimeFormat(intlLocale(language), {
+                        dateStyle: 'medium',
+                        timeStyle: 'short',
+                      }).format(store.discount.ends),
+                    })
+                  : t(`${page}.sale.running`, { percent: store.discount.percent })}
+              </Alert>
+            )}
+
             <StorePerks perks={store.perks} credits={store.credits} onOpenStore={openResources} />
 
             <section className='theme-eco-card'>
@@ -240,23 +255,6 @@ export default function DashboardStore() {
               </div>
 
               <div className='flex flex-col gap-1'>
-                {store.discount && (
-                  <p className='theme-eco-text'>
-                    {store.discount.ends
-                      ? t(`${page}.sale.until`, {
-                          name: store.discount.name ?? t(`${page}.sale.defaultName`, {}),
-                          percent: store.discount.percent,
-                          date: new Intl.DateTimeFormat(intlLocale(language), {
-                            dateStyle: 'medium',
-                            timeStyle: 'short',
-                          }).format(store.discount.ends),
-                        })
-                      : t(`${page}.sale.running`, {
-                          name: store.discount.name ?? t(`${page}.sale.defaultName`, {}),
-                          percent: store.discount.percent,
-                        })}
-                  </p>
-                )}
                 <p className='theme-eco-text'>{t(`${page}.whatCreditsBuy`, {})}</p>
                 {store.rewardsUrl && <p className='theme-eco-muted'>{t(`${page}.balanceHint`, {})}</p>}
               </div>

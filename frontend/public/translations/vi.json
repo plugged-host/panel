@@ -2792,8 +2792,8 @@
           "creditsShort": "cr",
           "sale": {
             "defaultName": "Khuyến mãi",
-            "until": "{name}: giảm {percent}% mọi thứ trong cửa hàng đến {date}.",
-            "running": "{name}: giảm {percent}% mọi thứ trong cửa hàng."
+            "until": "Giảm {percent}% mọi thứ trong cửa hàng đến {date}.",
+            "running": "Giảm {percent}% mọi thứ trong cửa hàng."
           },
           "history": "Lịch sử credit",
           "noTransactions": "Chưa có giao dịch credit nào.",

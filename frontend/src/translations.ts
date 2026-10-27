@@ -2679,8 +2679,8 @@ const baseTranslations = defineTranslations({
           creditsShort: 'cr',
           sale: {
             defaultName: 'Sale',
-            until: '{name}: {percent}% off everything in the store until {date}.',
-            running: '{name}: {percent}% off everything in the store.',
+            until: '{percent}% off everything in the store until {date}.',
+            running: '{percent}% off everything in the store.',
           },
           history: 'Credit history',
           noTransactions: 'No credit transactions yet.',

@@ -80,8 +80,9 @@ without noprofit.space and covers the Resource Store only, not the memberships.
 - The price of an offer is `round(full × (100 − discount) / 100)`, half up
   (`pricing::discounted`); an unaffordable price stays unaffordable. 100 % makes the offers free
   (the history shows a 0-credit purchase).
-- While it runs, the credits card says "Halloween special: 25% off everything in the store until
-  2 Nov 2026, 22:00." and every offer shows its full price struck through in front of the sale's.
+- While it runs, a banner in the accent colour heads the store page (the name as its title, "25% off
+  everything in the store until 2 Nov 2026, 22:00.") and every offer shows its full price struck
+  through in front of the sale's.
 - The window is checked on every store request and purchase (`AppSettingsEconomy::store_discount_at`):
   a price shown before the sale started or after it ended has moved, so the purchase answers 409
   and the page shows the prices as they are now.
@@ -271,8 +272,8 @@ four routes of the accounts app ([noprofit.md](../noprofit.md#wire-format)): `/s
   › a user › Economy › add 500 credits. Resource Store: +50 % CPU costs 50 credits; buy it; the
   balance, the history and the create page's allowance show it.
 - A resource without a limit in the games settings shows its meter without offers.
-- Sale: Resource Store tab › Discount 25, Name "Halloween special", Ends tomorrow 22:00, save. The
-  store's credits card names the sale and its end; each offer shows the full price struck through
+- Sale: Resource Store tab › Discount 25, Name "Halloween special", Ends tomorrow 22:00, save. A
+  banner over the store names the sale and its end; each offer shows the full price struck through
   and a quarter less (50 → 38). Buy one: the toast and the history say 38. Set Starts to tomorrow:
   the store is back at full price until then. Back to 0: no sale anywhere.
 - Resource Store: "Unlock more resources (1)" is closed; open it, reload: still open. Its row says

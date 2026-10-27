@@ -3233,7 +3233,7 @@ strong {
 /* plugged.host: a price before the sale, struck through in front of the sale's. */
 .theme-eco-was {
   margin-inline-end: 0.375rem;
-  color: var(--theme-text-faint);
+  color: var(--theme-text-muted);
   font-weight: 400;
 }
 

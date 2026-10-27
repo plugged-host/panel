@@ -2808,8 +2808,8 @@
           "creditsShort": "Cr",
           "sale": {
             "defaultName": "Aktion",
-            "until": "{name}: {percent} % Rabatt auf alles im Shop bis {date}.",
-            "running": "{name}: {percent} % Rabatt auf alles im Shop."
+            "until": "{percent} % Rabatt auf alles im Shop bis {date}.",
+            "running": "{percent} % Rabatt auf alles im Shop."
           },
           "history": "Credit-Verlauf",
           "noTransactions": "Noch keine Credit-Transaktionen vorhanden.",
