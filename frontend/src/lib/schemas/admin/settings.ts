@@ -951,6 +951,11 @@ export const adminSettingsEconomySchema = z.object({
   shrinkmeReward: z.number().int().min(1).max(1000),
   shrinkmeDailyCap: z.number().int().min(0).max(1000),
   shrinkmeMinSeconds: z.number().int().min(0).max(600),
+  adfocusEnabled: z.boolean(),
+  adfocusApiKey: z.string().max(512).nullable(),
+  adfocusReward: z.number().int().min(1).max(1000),
+  adfocusDailyCap: z.number().int().min(0).max(1000),
+  adfocusMinSeconds: z.number().int().min(0).max(600),
 });
 
 // plugged.host: the welcome tour (shared/src/settings/tour.rs, docs/features/welcome-tour.md)

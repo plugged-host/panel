@@ -130,6 +130,15 @@ pub struct AppSettingsEconomy {
     pub shrinkme_daily_cap: i32,
     /// Seconds a ShrinkMe trip must at least take.
     pub shrinkme_min_seconds: i32,
+    pub adfocus_enabled: bool,
+    /// Stored encrypted.
+    #[serde(serialize_with = "super::noprofit::serialize_secret")]
+    #[schema(value_type = Option<String>)]
+    pub adfocus_api_key: Option<compact_str::CompactString>,
+    pub adfocus_reward: i32,
+    pub adfocus_daily_cap: i32,
+    /// Seconds an AdFoc.us trip must at least take.
+    pub adfocus_min_seconds: i32,
 }
 
 impl Default for AppSettingsEconomy {
@@ -197,6 +206,11 @@ impl Default for AppSettingsEconomy {
             shrinkme_reward: 1,
             shrinkme_daily_cap: 5,
             shrinkme_min_seconds: 10,
+            adfocus_enabled: false,
+            adfocus_api_key: None,
+            adfocus_reward: 1,
+            adfocus_daily_cap: 5,
+            adfocus_min_seconds: 10,
         }
     }
 }
@@ -378,6 +392,17 @@ pub struct PayloadEconomy {
     shrinkme_daily_cap: Option<i32>,
     #[garde(inner(range(min = 0, max = 600)))]
     shrinkme_min_seconds: Option<i32>,
+    #[garde(skip)]
+    adfocus_enabled: Option<bool>,
+    #[garde(inner(inner(length(chars, max = 512))))]
+    #[serde(default, with = "::serde_with::rust::double_option")]
+    adfocus_api_key: Option<Option<compact_str::CompactString>>,
+    #[garde(inner(range(min = 1, max = 1000)))]
+    adfocus_reward: Option<i32>,
+    #[garde(inner(range(min = 0, max = 1000)))]
+    adfocus_daily_cap: Option<i32>,
+    #[garde(inner(range(min = 0, max = 600)))]
+    adfocus_min_seconds: Option<i32>,
 }
 
 /// An optional text field: empty clears it.
@@ -460,6 +485,10 @@ impl PayloadEconomy {
             shrinkme_reward,
             shrinkme_daily_cap,
             shrinkme_min_seconds,
+            adfocus_enabled,
+            adfocus_reward,
+            adfocus_daily_cap,
+            adfocus_min_seconds,
         );
 
         if let Some(name) = self.plus_name {
@@ -513,6 +542,7 @@ impl PayloadEconomy {
         secret(self.cuty_api_key, &mut settings.cuty_api_key);
         secret(self.shrinkearn_api_key, &mut settings.shrinkearn_api_key);
         secret(self.shrinkme_api_key, &mut settings.shrinkme_api_key);
+        secret(self.adfocus_api_key, &mut settings.adfocus_api_key);
 
         Ok(())
     }
@@ -588,6 +618,9 @@ impl SettingsSerializeExt for AppSettingsEconomy {
             ("shrinkme_reward", self.shrinkme_reward),
             ("shrinkme_daily_cap", self.shrinkme_daily_cap),
             ("shrinkme_min_seconds", self.shrinkme_min_seconds),
+            ("adfocus_reward", self.adfocus_reward),
+            ("adfocus_daily_cap", self.adfocus_daily_cap),
+            ("adfocus_min_seconds", self.adfocus_min_seconds),
         ] {
             serializer = serializer.write_raw_setting(key, value.to_compact_string());
         }
@@ -633,7 +666,8 @@ impl SettingsSerializeExt for AppSettingsEconomy {
             .write_raw_setting(
                 "shrinkme_enabled",
                 self.shrinkme_enabled.to_compact_string(),
-            );
+            )
+            .write_raw_setting("adfocus_enabled", self.adfocus_enabled.to_compact_string());
 
         for (key, secret) in [
             ("linkvertise_token", &self.linkvertise_token),
@@ -641,6 +675,7 @@ impl SettingsSerializeExt for AppSettingsEconomy {
             ("cuty_api_key", &self.cuty_api_key),
             ("shrinkearn_api_key", &self.shrinkearn_api_key),
             ("shrinkme_api_key", &self.shrinkme_api_key),
+            ("adfocus_api_key", &self.adfocus_api_key),
         ] {
             serializer = match secret {
                 Some(secret) => {
@@ -666,13 +701,14 @@ impl SettingsDeserializeExt for AppSettingsEconomyDeserializer {
     ) -> Result<ExtensionSettings, anyhow::Error> {
         let defaults = AppSettingsEconomy::default();
 
-        let mut secrets = Vec::with_capacity(5);
+        let mut secrets = Vec::with_capacity(6);
         for key in [
             "linkvertise_token",
             "vylo_api_key",
             "cuty_api_key",
             "shrinkearn_api_key",
             "shrinkme_api_key",
+            "adfocus_api_key",
         ] {
             secrets.push(match deserializer.take_raw_setting(key) {
                 Some(secret) if secret.is_empty() => None,
@@ -680,6 +716,7 @@ impl SettingsDeserializeExt for AppSettingsEconomyDeserializer {
                 None => None,
             });
         }
+        let adfocus_api_key = secrets.pop().flatten();
         let shrinkme_api_key = secrets.pop().flatten();
         let shrinkearn_api_key = secrets.pop().flatten();
         let cuty_api_key = secrets.pop().flatten();
@@ -781,6 +818,11 @@ impl SettingsDeserializeExt for AppSettingsEconomyDeserializer {
             shrinkme_reward: read!(shrinkme_reward),
             shrinkme_daily_cap: read!(shrinkme_daily_cap),
             shrinkme_min_seconds: read!(shrinkme_min_seconds),
+            adfocus_enabled: flag!(adfocus_enabled),
+            adfocus_api_key: adfocus_api_key.and_then(|s| s.into_optional()),
+            adfocus_reward: read!(adfocus_reward),
+            adfocus_daily_cap: read!(adfocus_daily_cap),
+            adfocus_min_seconds: read!(adfocus_min_seconds),
         }))
     }
 }

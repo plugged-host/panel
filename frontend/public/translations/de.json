@@ -2870,7 +2870,8 @@
             "vylo": "Vylo",
             "cuty": "Cuty",
             "shrinkearn": "ShrinkEarn",
-            "shrinkme": "ShrinkMe"
+            "shrinkme": "ShrinkMe",
+            "adfocus": "AdFoc.us"
           },
           "reward": "{count} Tokens pro Abschluss",
           "used": "{used} von {cap} heute",
@@ -4733,7 +4734,10 @@
                   "shrinkearnApiKey": "ShrinkEarn-API-Schlüssel",
                   "shrinkmeEnabled": "ShrinkMe",
                   "shrinkmeEnabledDescription": "Braucht den API-Schlüssel aus dem ShrinkMe-Dashboard. Für jeden Ausflug wird ein Kurzlink erstellt.",
-                  "shrinkmeApiKey": "ShrinkMe-API-Schlüssel"
+                  "shrinkmeApiKey": "ShrinkMe-API-Schlüssel",
+                  "adfocusEnabled": "AdFoc.us",
+                  "adfocusEnabledDescription": "Braucht den API-Schlüssel von der Seite Tools › API bei AdFoc.us. Für jeden Ausflug wird ein Kurzlink erstellt.",
+                  "adfocusApiKey": "AdFoc.us-API-Schlüssel"
                 },
                 "toast": {
                   "updated": "Wirtschaftseinstellungen gespeichert."

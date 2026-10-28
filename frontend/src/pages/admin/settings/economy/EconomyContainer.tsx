@@ -79,6 +79,11 @@ const partFields: Record<EconomyPart, (keyof EconomyValues)[]> = {
     'shrinkmeReward',
     'shrinkmeDailyCap',
     'shrinkmeMinSeconds',
+    'adfocusEnabled',
+    'adfocusApiKey',
+    'adfocusReward',
+    'adfocusDailyCap',
+    'adfocusMinSeconds',
   ],
   memberships: [
     'membershipEnabled',
@@ -110,6 +115,7 @@ export default function EconomyContainer({ part }: { part: EconomyPart }) {
     cutyApiKey: economy.cutyApiKey !== null,
     shrinkearnApiKey: economy.shrinkearnApiKey !== null,
     shrinkmeApiKey: economy.shrinkmeApiKey !== null,
+    adfocusApiKey: economy.adfocusApiKey !== null,
   }));
 
   const form = useForm<EconomyValues>({
@@ -120,6 +126,7 @@ export default function EconomyContainer({ part }: { part: EconomyPart }) {
       cutyApiKey: '',
       shrinkearnApiKey: '',
       shrinkmeApiKey: '',
+      adfocusApiKey: '',
     },
     ...liveValidation,
     validate: zod4Resolver(adminSettingsEconomySchema),
@@ -133,6 +140,7 @@ export default function EconomyContainer({ part }: { part: EconomyPart }) {
     cutyApiKey: '',
     shrinkearnApiKey: '',
     shrinkmeApiKey: '',
+    adfocusApiKey: '',
   }));
   useFormDraft(form, `economy.${part}`);
 
@@ -157,6 +165,7 @@ export default function EconomyContainer({ part }: { part: EconomyPart }) {
           cutyApiKey: stored.cutyApiKey || !!values.cutyApiKey,
           shrinkearnApiKey: stored.shrinkearnApiKey || !!values.shrinkearnApiKey,
           shrinkmeApiKey: stored.shrinkmeApiKey || !!values.shrinkmeApiKey,
+          adfocusApiKey: stored.adfocusApiKey || !!values.adfocusApiKey,
         })),
       ),
     successMessage: t('pages.admin.settings.tabs.economy.page.toast.updated', {}),
@@ -509,6 +518,45 @@ export default function EconomyContainer({ part }: { part: EconomyPart }) {
         0,
         600,
         (values) => values.tokensEnabled && values.shrinkmeEnabled,
+      ),
+      {
+        type: 'switch',
+        name: 'adfocusEnabled',
+        label: t(`${page}.adfocusEnabled`, {}),
+        description: t(`${page}.adfocusEnabledDescription`, {}),
+        when: tokens,
+      },
+      {
+        type: 'password',
+        name: 'adfocusApiKey',
+        label: t(`${page}.adfocusApiKey`, {}),
+        description: secret(stored.adfocusApiKey),
+        props: { autoComplete: 'new-password' },
+        when: (values) => values.tokensEnabled && values.adfocusEnabled,
+      },
+      number(
+        'adfocusReward',
+        t(`${page}.reward`, {}),
+        null,
+        1,
+        1000,
+        (values) => values.tokensEnabled && values.adfocusEnabled,
+      ),
+      number(
+        'adfocusDailyCap',
+        t(`${page}.dailyCap`, {}),
+        t(`${page}.dailyCapDescription`, {}),
+        0,
+        1000,
+        (values) => values.tokensEnabled && values.adfocusEnabled,
+      ),
+      number(
+        'adfocusMinSeconds',
+        t(`${page}.vyloMinSeconds`, {}),
+        t(`${page}.vyloMinSecondsDescription`, {}),
+        0,
+        600,
+        (values) => values.tokensEnabled && values.adfocusEnabled,
       ),
     ],
     memberships: [

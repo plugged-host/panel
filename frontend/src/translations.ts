@@ -2744,6 +2744,7 @@ const baseTranslations = defineTranslations({
             cuty: 'Cuty',
             shrinkearn: 'ShrinkEarn',
             shrinkme: 'ShrinkMe',
+            adfocus: 'AdFoc.us',
           },
           reward: '{count} tokens per completion',
           used: '{used} of {cap} today',
@@ -4832,6 +4833,10 @@ const baseTranslations = defineTranslations({
                   shrinkmeEnabledDescription:
                     'Needs the API key from ShrinkMe’s dashboard. A short link is made for every trip.',
                   shrinkmeApiKey: 'ShrinkMe API Key',
+                  adfocusEnabled: 'AdFoc.us',
+                  adfocusEnabledDescription:
+                    'Needs the API key from AdFoc.us’s Tools › API page. A short link is made for every trip.',
+                  adfocusApiKey: 'AdFoc.us API Key',
                 },
                 toast: {
                   updated: 'Economy settings saved.',

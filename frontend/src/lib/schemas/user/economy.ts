@@ -115,7 +115,7 @@ export const userEconomySchema = z.object({
     .nullable(),
 });
 
-export const earnProviderSchema = z.enum(['linkvertise', 'vylo', 'cuty', 'shrinkearn', 'shrinkme']);
+export const earnProviderSchema = z.enum(['linkvertise', 'vylo', 'cuty', 'shrinkearn', 'shrinkme', 'adfocus']);
 
 export const panelAccessSchema = z.object({
   enabled: z.boolean(),

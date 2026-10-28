@@ -542,6 +542,11 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
     shrinkmeReward: 1,
     shrinkmeDailyCap: 5,
     shrinkmeMinSeconds: 10,
+    adfocusEnabled: false,
+    adfocusApiKey: null,
+    adfocusReward: 1,
+    adfocusDailyCap: 5,
+    adfocusMinSeconds: 10,
   },
   // plugged.host: neo on Discord
   neoDiscord: {

@@ -5,8 +5,8 @@ Two currencies (`shared/src/economy.rs`, `shared/src/earn.rs`, `shared/src/prici
 - **Credits** buy CPU, memory and disk in the **Resource Store**, for good, and the second
   membership. Without noprofit.space they are the panel's own; with it they are the account's
   noprofit.space credits and the store is noprofit.space's.
-- **Tokens** are earned through sponsored links (Linkvertise, Vylo, Cuty, ShrinkEarn and ShrinkMe)
-  and buy the memberships and the panel itself. They are always the panel's own.
+- **Tokens** are earned through sponsored links (Linkvertise, Vylo, Cuty, ShrinkEarn, ShrinkMe and
+  AdFoc.us) and buy the memberships and the panel itself. They are always the panel's own.
 
 Two memberships, always the panel's own. Their names are settings (plugged.host calls them Plus and
 PlusPlus); in code, tables and routes they are `plus` and `plusplus`:
@@ -135,6 +135,7 @@ Opening claims is throttled per account and provider (3 × the daily cap per hou
 | Linkvertise, Full Script | With a publisher id the Tokens page loads `linkvertise.js`, which turns the page's own earn link (`…&lvr=1`, matching the whitelist) into a Linkvertise link. The claim is opened when the page loads and reused on reloads | The same API |
 | Vylo | A short link made for every trip through Vylo's API, to the way back plus `vt=<proof>` | The proof is an HMAC of the nonce with the panel's key, so only a trip through the link has it; a trip faster than **Shortest Trip** does not count |
 | Cuty, ShrinkEarn, ShrinkMe | The same as Vylo, through `https://{cuty.io,shrinkearn.com,shrinkme.io}/api?api=<key>&url=…` | The same HMAC, but it names the provider: a proof from one shortener cannot settle another's claim; each has its own **Shortest Trip** |
+| AdFoc.us | The same, through `https://adfoc.us/api/?key=<key>&url=…`, which answers the short link as plain text (`0` when it refuses). It refuses an encoded `url` and may cut a raw one at `&`, so the way back carries the proof in the claim: `?claim=<nonce>.<proof>` | The same HMAC |
 
 The page's `script-src` allows `https://publisher.linkvertise.com` only while Linkvertise is on with
 a publisher id and a token (`backend/src/lib.rs`).
@@ -229,7 +230,8 @@ User activity: `account:store.purchase`, `account:membership.plus`, `account:mem
 ## Settings
 
 Admin › Settings › Economy, in three tabs: Resource Store (credits, starting credits, prices),
-Tokens (daily tokens, panel access, Linkvertise, Vylo, Cuty, ShrinkEarn, ShrinkMe) and Memberships.
+Tokens (daily tokens, panel access, Linkvertise, Vylo, Cuty, ShrinkEarn, ShrinkMe, AdFoc.us) and
+Memberships.
 A tab saves only its own fields.
 
 | Field | Key | Default |
@@ -255,6 +257,7 @@ A tab saves only its own fields.
 | Cuty | `economy::cuty_{enabled,api_key (encrypted),reward,daily_cap,min_seconds}` | off, –, 1, 5, 10 |
 | ShrinkEarn | `economy::shrinkearn_{enabled,api_key (encrypted),reward,daily_cap,min_seconds}` | off, –, 1, 5, 10 |
 | ShrinkMe | `economy::shrinkme_{enabled,api_key (encrypted),reward,daily_cap,min_seconds}` | off, –, 1, 5, 10 |
+| AdFoc.us | `economy::adfocus_{enabled,api_key (encrypted),reward,daily_cap,min_seconds}` | off, –, 1, 5, 10 |
 
 Turning credits, tokens or memberships off hides their page; balances and memberships are kept.
 
@@ -284,7 +287,7 @@ four routes of the accounts app ([noprofit.md](../noprofit.md#wire-format)): `/s
   CPU allowance stays the same (the second membership adds burst cores, not allowance).
 - Admin › Economy › End the second membership now: within a minute, a server on a premium location
   starts moving (its Transfer tab).
-- Linkvertise, Vylo, Cuty, ShrinkEarn or ShrinkMe set up with real keys: Earn with …, finish the
+- Linkvertise, Vylo, Cuty, ShrinkEarn, ShrinkMe or AdFoc.us set up with real keys: Earn with …, finish the
   link, come back: a toast "Added: +1 tokens"; reloading the page that came back does not add more.
 - Panel access: as a user without a membership, open a server page: it lands on Account › Panel
   Access; the Tokens page still opens. Pay: the server page opens and the sidebar shows the new

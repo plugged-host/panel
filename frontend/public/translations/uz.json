@@ -2851,7 +2851,8 @@
             "vylo": "Vylo",
             "cuty": "Cuty",
             "shrinkearn": "ShrinkEarn",
-            "shrinkme": "ShrinkMe"
+            "shrinkme": "ShrinkMe",
+            "adfocus": "AdFoc.us"
           },
           "reward": "Har bir yakunlash uchun {count} jeton",
           "used": "Bugun: {used} / {cap}",

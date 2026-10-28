@@ -2854,7 +2854,8 @@
             "vylo": "Vylo",
             "cuty": "Cuty",
             "shrinkearn": "ShrinkEarn",
-            "shrinkme": "ShrinkMe"
+            "shrinkme": "ShrinkMe",
+            "adfocus": "AdFoc.us"
           },
           "reward": "{count} jetons par lien complété",
           "used": "{used} sur {cap} aujourd'hui",

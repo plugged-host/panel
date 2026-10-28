@@ -19,8 +19,8 @@ mod post {
 
     #[derive(ToSchema, Validate, Deserialize)]
     pub struct Payload {
-        /// The claim's nonce, from the return URL.
-        #[garde(length(min = 1, max = 64))]
+        /// The claim's nonce, from the return URL (AdFoc.us: `<nonce>.<proof>`).
+        #[garde(length(min = 1, max = 128))]
         claim: String,
         /// The return URL's other query parameters.
         #[garde(length(max = 20))]

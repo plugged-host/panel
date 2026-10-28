@@ -8,8 +8,8 @@
 //! index on `(provider, token_hash)` is the guarantee against a proof paying twice.
 //!
 //! Providers: Linkvertise (a link from its dashboard, or its Full Script on the Tokens page, both
-//! checked with its anti-bypass API) and the shorteners (Vylo, Cuty, ShrinkEarn and ShrinkMe make a
-//! short link per trip, back with a proof only the panel can make).
+//! checked with its anti-bypass API) and the shorteners (Vylo, Cuty, ShrinkEarn, ShrinkMe and
+//! AdFoc.us make a short link per trip, back with a proof only the panel can make).
 
 use crate::{
     economy::{Currency, change},
@@ -29,12 +29,15 @@ const VYLO_API: &str = "https://vylo.cc/api";
 const CUTY_API: &str = "https://cuty.io/api";
 const SHRINKEARN_API: &str = "https://shrinkearn.com/api";
 const SHRINKME_API: &str = "https://shrinkme.io/api";
+const ADFOCUS_API: &str = "https://adfoc.us/api/";
 /// The parameter the panel's own shortener proof comes back in.
 const SHORTENER_PROOF: &str = "vt";
 /// The parameter the return URL carries for Linkvertise's Full Script whitelist.
 pub const LINKVERTISE_RETURN: &str = "lvr";
 /// The parameter the claim's nonce comes back in.
 pub const CLAIM_PARAM: &str = "claim";
+/// Between the nonce and the proof when the proof rides in the claim (AdFoc.us).
+const CLAIM_PROOF_SEPARATOR: char = '.';
 
 pub const STATUS_PENDING: &str = "pending";
 pub const STATUS_GRANTED: &str = "granted";
@@ -48,15 +51,18 @@ pub enum Provider {
     Cuty,
     ShrinkEarn,
     ShrinkMe,
+    #[serde(rename = "adfocus")]
+    AdFocus,
 }
 
 impl Provider {
-    pub const ALL: [Self; 5] = [
+    pub const ALL: [Self; 6] = [
         Self::Linkvertise,
         Self::Vylo,
         Self::Cuty,
         Self::ShrinkEarn,
         Self::ShrinkMe,
+        Self::AdFocus,
     ];
 
     pub fn key(self) -> &'static str {
@@ -66,6 +72,7 @@ impl Provider {
             Self::Cuty => "cuty",
             Self::ShrinkEarn => "shrinkearn",
             Self::ShrinkMe => "shrinkme",
+            Self::AdFocus => "adfocus",
         }
     }
 
@@ -81,6 +88,7 @@ impl Provider {
             Self::Cuty => "Cuty",
             Self::ShrinkEarn => "ShrinkEarn",
             Self::ShrinkMe => "ShrinkMe",
+            Self::AdFocus => "AdFoc.us",
         }
     }
 
@@ -92,6 +100,7 @@ impl Provider {
             Self::Cuty => Some(CUTY_API),
             Self::ShrinkEarn => Some(SHRINKEARN_API),
             Self::ShrinkMe => Some(SHRINKME_API),
+            Self::AdFocus => Some(ADFOCUS_API),
         }
     }
 
@@ -179,6 +188,17 @@ impl Config {
                 publisher: None,
                 whitelist: Vec::new(),
                 min_seconds: settings.shrinkme_min_seconds.max(0) as i64,
+            },
+            Provider::AdFocus => Self {
+                provider,
+                enabled: settings.adfocus_enabled,
+                reward: settings.adfocus_reward.max(1) as i64,
+                daily_cap: settings.adfocus_daily_cap.max(0) as i64,
+                secret: settings.adfocus_api_key.as_deref().map(str::to_string),
+                link: None,
+                publisher: None,
+                whitelist: Vec::new(),
+                min_seconds: settings.adfocus_min_seconds.max(0) as i64,
             },
         }
     }
@@ -524,19 +544,24 @@ pub async fn start(
         Provider::Linkvertise => {
             fill_link(config.link.as_deref().unwrap_or_default(), &back, &nonce)
         }
-        Provider::Vylo | Provider::Cuty | Provider::ShrinkEarn | Provider::ShrinkMe => {
-            let destination = format!(
-                "{back}&{SHORTENER_PROOF}={}",
-                shortener_proof(&state.env.app_encryption_key, provider, &nonce)
-            );
+        Provider::Vylo
+        | Provider::Cuty
+        | Provider::ShrinkEarn
+        | Provider::ShrinkMe
+        | Provider::AdFocus => {
+            let proof = shortener_proof(&state.env.app_encryption_key, provider, &nonce);
+            let api = provider.api().unwrap_or_default();
+            let api_key = config.secret.as_deref().unwrap_or_default();
 
-            shorten_shortener(
-                state,
-                provider.api().unwrap_or_default(),
-                config.secret.as_deref().unwrap_or_default(),
-                &destination,
-            )
-            .await
+            match provider {
+                Provider::AdFocus => {
+                    shorten_adfocus(state, api, api_key, &adfocus_destination(&back, &proof)).await
+                }
+                _ => {
+                    let destination = format!("{back}&{SHORTENER_PROOF}={proof}");
+                    shorten_shortener(state, api, api_key, &destination).await
+                }
+            }
             .ok_or(EarnError::ProviderFailed)?
         }
     };
@@ -587,6 +612,73 @@ async fn shorten_shortener(
         .filter(|url| {
             url.to_ascii_lowercase().starts_with("https://") && !url.contains(char::is_whitespace)
         })
+}
+
+/// AdFoc.us's way back: it refuses an encoded `url`, and a raw one may lose what follows an `&`,
+/// so the proof rides in the claim (`?claim=<nonce>.<proof>`, see [`split_claim`]).
+fn adfocus_destination(back: &str, proof: &str) -> String {
+    format!("{back}{CLAIM_PROOF_SEPARATOR}{proof}")
+}
+
+/// A claim as it comes back: the nonce, and the proof when it rides along (AdFoc.us).
+pub fn split_claim(claim: &str) -> (&str, Option<&str>) {
+    match claim.split_once(CLAIM_PROOF_SEPARATOR) {
+        Some((nonce, proof)) => (nonce, Some(proof)),
+        None => (claim, None),
+    }
+}
+
+/// AdFoc.us's API (`?key=<key>&url=<destination>`, the destination raw and last) answers the short
+/// link as plain text, or `0`.
+async fn shorten_adfocus(
+    state: &crate::State,
+    api: &str,
+    api_key: &str,
+    destination: &str,
+) -> Option<String> {
+    // raw means it must need no encoding: the panel's address, the path and the claim
+    if !destination.bytes().all(|b| {
+        b.is_ascii_alphanumeric() || matches!(b, b':' | b'/' | b'.' | b'-' | b'_' | b'?' | b'=')
+    }) {
+        tracing::warn!("an adfoc.us destination needs encoding, which adfoc.us refuses");
+        return None;
+    }
+
+    let response = state
+        .client
+        .get(format!(
+            "{api}?key={}&url={destination}",
+            urlencoding::encode(api_key)
+        ))
+        .timeout(std::time::Duration::from_secs(8))
+        .send()
+        .await;
+
+    match response {
+        Ok(response) if response.status().is_success() => {
+            adfocus_link(&response.text().await.ok()?)
+        }
+        Ok(response) => {
+            tracing::warn!("adfoc.us answered {} to a shorten", response.status());
+            None
+        }
+        Err(err) => {
+            tracing::warn!("adfoc.us did not answer a shorten: {}", err.without_url());
+            None
+        }
+    }
+}
+
+/// The short link in an AdFoc.us answer, on https (its http links redirect there), or `None` for
+/// `0` or anything that is not an AdFoc.us link.
+fn adfocus_link(answer: &str) -> Option<String> {
+    let answer = answer.trim();
+    let path = answer
+        .strip_prefix("https://adfoc.us/")
+        .or_else(|| answer.strip_prefix("http://adfoc.us/"))?;
+
+    (!path.is_empty() && path.bytes().all(|b| b.is_ascii_alphanumeric()))
+        .then(|| format!("https://adfoc.us/{path}"))
 }
 
 /// Asks Linkvertise whether a proof is genuine. No answer is a no.
@@ -697,6 +789,21 @@ pub async fn redeem(
         return Err(EarnError::Disabled);
     }
 
+    // a proof that rode in the claim counts as the shortener's parameter, unless that came too
+    let (nonce, carried) = split_claim(nonce);
+    let with_proof: HashMap<String, String>;
+    let params = match carried {
+        Some(proof) if !params.contains_key(SHORTENER_PROOF) => {
+            with_proof = params
+                .iter()
+                .map(|(k, v)| (k.clone(), v.clone()))
+                .chain([(SHORTENER_PROOF.to_string(), proof.to_string())])
+                .collect();
+            &with_proof
+        }
+        _ => params,
+    };
+
     let answer = |status, amount, provider| ApiRedeem {
         status,
         amount,
@@ -768,7 +875,11 @@ pub async fn redeem(
             Some(api_token) => verify_linkvertise(state, api_token, &token).await,
             None => false,
         },
-        Provider::Vylo | Provider::Cuty | Provider::ShrinkEarn | Provider::ShrinkMe => {
+        Provider::Vylo
+        | Provider::Cuty
+        | Provider::ShrinkEarn
+        | Provider::ShrinkMe
+        | Provider::AdFocus => {
             let proof = shortener_proof(&state.env.app_encryption_key, provider, nonce);
             let age: i64 = row.try_get("age")?;
 
@@ -858,6 +969,7 @@ async fn grant(
             Provider::Cuty => "Cuty",
             Provider::ShrinkEarn => "ShrinkEarn",
             Provider::ShrinkMe => "ShrinkMe",
+            Provider::AdFocus => "AdFoc.us",
         },
         serde_json::json!({ "claim_uuid": claim_uuid }),
     )
@@ -892,6 +1004,9 @@ mod tests {
         settings.shrinkme_enabled = true;
         settings.shrinkme_api_key = Some("<secret>".into());
         settings.shrinkme_reward = 5;
+        settings.adfocus_enabled = true;
+        settings.adfocus_api_key = Some("<secret>".into());
+        settings.adfocus_reward = 6;
         settings.linkvertise_enabled = true;
         settings.linkvertise_token = Some("<secret>".into());
         settings.linkvertise_link = Some("http://link.example.com".into());
@@ -902,6 +1017,7 @@ mod tests {
                 (Provider::Cuty, 3, 5),
                 (Provider::ShrinkEarn, 4, 5),
                 (Provider::ShrinkMe, 5, 5),
+                (Provider::AdFocus, 6, 5),
             ]
         );
 
@@ -949,7 +1065,12 @@ mod tests {
             extract_token(Provider::Vylo, &params(&[("vt", "0123456789abcdef")])),
             Some("0123456789abcdef".into())
         );
-        for provider in [Provider::Cuty, Provider::ShrinkEarn, Provider::ShrinkMe] {
+        for provider in [
+            Provider::Cuty,
+            Provider::ShrinkEarn,
+            Provider::ShrinkMe,
+            Provider::AdFocus,
+        ] {
             assert_eq!(
                 extract_token(provider, &params(&[("vt", "0123456789abcdef")])),
                 Some("0123456789abcdef".into())
@@ -966,6 +1087,41 @@ mod tests {
         assert_ne!(proof, shortener_proof("key", Provider::Vylo, "other"));
         assert_ne!(proof, shortener_proof("other", Provider::Vylo, "nonce"));
         assert_ne!(proof, shortener_proof("key", Provider::Cuty, "nonce"));
+    }
+
+    #[test]
+    fn adfocus_answers_are_read_strictly() {
+        assert_eq!(
+            adfocus_link("http://adfoc.us/12345678\n").as_deref(),
+            Some("https://adfoc.us/12345678")
+        );
+        assert_eq!(
+            adfocus_link("https://adfoc.us/abc123").as_deref(),
+            Some("https://adfoc.us/abc123")
+        );
+        assert_eq!(adfocus_link("0"), None);
+        assert_eq!(adfocus_link("https://adfoc.us/"), None);
+        assert_eq!(adfocus_link("https://adfoc.us/a?b"), None);
+        assert_eq!(adfocus_link("https://adfoc.us.example.com/1"), None);
+        assert_eq!(adfocus_link("<html>"), None);
+
+        let back = return_url("https://panel.example.com", Provider::AdFocus, "n0nce");
+        let destination = adfocus_destination(&back, "0123456789abcdef");
+        assert_eq!(
+            destination,
+            "https://panel.example.com/account/tokens?claim=n0nce.0123456789abcdef"
+        );
+        assert!(!destination.contains('&'));
+        assert_eq!(
+            split_claim("n0nce.0123456789abcdef"),
+            ("n0nce", Some("0123456789abcdef"))
+        );
+        assert_eq!(split_claim("n0nce"), ("n0nce", None));
+        assert_eq!(Provider::from_key("adfocus"), Some(Provider::AdFocus));
+        assert_eq!(
+            serde_json::to_string(&Provider::AdFocus).unwrap(),
+            "\"adfocus\""
+        );
     }
 
     #[test]
