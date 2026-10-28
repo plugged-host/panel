@@ -215,6 +215,18 @@ function CreateServerForm({ options }: { options: Options }) {
     if (closest) setLocationUuid(closest);
   }, [closest]);
 
+  // a location that cannot take the server (full, no room for this size, its tier locked) is never
+  // the selection: when the chosen one stops fitting, the closest one that fits takes its place
+  const selectable = !!location && location.unlocked && location.available;
+  useEffect(() => {
+    if (selectable) return;
+    const fallback =
+      closestLocation(locations, pings) ??
+      locations.find((option) => option.unlocked && option.available)?.uuid ??
+      null;
+    setLocationUuid(fallback);
+  }, [selectable, locations, pings]);
+
   const pickPlan = (plan: Plan) => {
     setPlanUuid(plan.uuid);
     setAmounts({ cpu: plan.cpu, memory: plan.memory, disk: plan.disk });
@@ -406,9 +418,9 @@ function CreateServerForm({ options }: { options: Options }) {
           ) : (
             <div className='theme-choice-grid theme-choice-grid-3'>
               {locations.map((option) => {
-                // a free location that cannot take the server is dimmed; a paid one stays a
-                // normal card (the deploy row says why), and a locked one shows how to open it
-                const disabled = !option.available && !option.tier;
+                // a location that cannot take the server (full, no room) is dimmed and cannot be
+                // picked; a locked one shows how to open it
+                const disabled = !option.available;
 
                 return (
                   <Choice
