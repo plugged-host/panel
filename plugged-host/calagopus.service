@@ -1,4 +1,4 @@
-# plugged.host panel (Calagopus), installed by plugged-host/README.md › Install.
+# plugged.host panel (Calagopus), single box: plugged-host/README.md › A fresh box.
 # /etc/systemd/system/calagopus.service
 [Unit]
 Description=plugged.host panel (Calagopus)

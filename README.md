@@ -13,7 +13,7 @@
 This is plugged.host's panel since v3: a fork of [Calagopus](https://github.com/calagopus/panel), the
 Rust (Tokio + Axum) and React (Mantine) reimplementation of Pterodactyl, with everything plugged.host's
 Pelican panel did built into the panel's own source. It replaces the Pelican plugins
-([plugged-host/plugins](https://github.com/plugged-host/plugins), deprecated). Pages look like the
+([plugged-host/plugins](https://github.com/plugged-host/plugins), archived). Pages look like the
 Pelican panel's and load up to 88 % faster.
 
 <div align="center">
@@ -51,6 +51,7 @@ Each feature has its own page in [docs/features/](./docs/features/); the full li
   ([docs/wings.md](./docs/wings.md)).
 - **Installing** works as for Calagopus ([calagopus.com/docs](https://calagopus.com/docs/panel/installation));
   this fork's settings, optional services and branding are in [docs/forking.md](./docs/forking.md).
+- **plugged.host's own build, deploy and rollback**: [plugged-host/README.md](./plugged-host/README.md).
 
 ## Working on it
 
