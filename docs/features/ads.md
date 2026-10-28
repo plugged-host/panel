@@ -17,8 +17,11 @@ Code: `shared/src/ads.rs` (zones, unit documents, who sees ads, in-game messages
 | Audience | Who | Ads |
 |---|---|---|
 | `none` | ads off; the second membership while "Fewer Ads for Members" is on | none, and no waiting room |
-| `member` | the first membership (with memberships on) | all, refreshed after `refresh_member_seconds` (10) instead of `refresh_seconds` (5); no Vignette unless "Vignette for the First Membership" |
+| `room` | the first membership while "Fewer Ads for Members" is on (since 3.0.4) | only the waiting room before a start and the start queue page, with their own units (refreshed after `refresh_member_seconds`); no slot on any other page, no Social Bar, Popunder, room interstitial, In-Page Push or Vignette, no ad blocker notice |
+| `member` | either membership while "Fewer Ads for Members" is off | all, refreshed after `refresh_member_seconds` (10) instead of `refresh_seconds` (5); no Vignette unless "Vignette for the First Membership" |
 | `everyone` | everybody else, admins included | all |
+
+In-game messages skip every account with a membership running, whatever the audience.
 
 Admin pages never show ads. Dashboard pages and server pages each have their own switch.
 

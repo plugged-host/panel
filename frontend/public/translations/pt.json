@@ -888,7 +888,8 @@
           "store": "Loja de Recursos",
           "plus": "Assinatura",
           "plusplus": "Assinatura",
-          "earn": "Link patrocinado",
+          "earn": "Ganho",
+          "earnReversal": "Estorno",
           "limbo": "Servidor restaurado",
           "limboRefund": "Restauração reembolsada",
           "subdomain": "Subdomínio",
@@ -1050,7 +1051,7 @@
           },
           "membershipEnded": {
             "title": "{membership} terminou",
-            "body": "Os servidores em localizações Premium estão sendo transferidos para outra localização: {servers}. Acompanhe na página Transferência de cada servidor."
+            "body": "Os servidores em localizações liberadas por essa assinatura estão sendo transferidos para outra localização: {servers}. Acompanhe na página Transferência de cada servidor."
           },
           "failoverDone": {
             "title": "Servidor recuperado",
@@ -2844,11 +2845,12 @@
           "title": "Tokens",
           "subheading": "Ganhe tokens e veja onde eles foram usados",
           "balance": "{count} tokens",
-          "explainer": "Ganhe tokens concluindo links patrocinados. Eles pagam o {app} {plus}, a reativação de um servidor hibernado e subdomínios.",
+          "explainer": "Ganhe tokens respondendo a uma pesquisa ou concluindo links patrocinados. Eles pagam o {app} {plus}, a reativação de um servidor hibernado e subdomínios.",
           "saved": "{amount} tokens guardados para o seu próximo token",
           "decays": "Cada link hoje rende um pouco menos (o primeiro rendeu {full}).",
           "none": "Nenhuma forma de ganhar tokens está configurada no momento.",
           "provider": {
+            "cpx_research": "CPX Research",
             "linkvertise": "Linkvertise",
             "vylo": "Vylo",
             "cuty": "Cuty",
@@ -2861,6 +2863,11 @@
           "capped": "Volte amanhã",
           "linkUnavailable": "Indisponível no momento",
           "earnWith": "Ganhar com {provider}",
+          "takeSurvey": "Responder a uma pesquisa",
+          "surveyReward": "Paga o valor mostrado em cada pesquisa",
+          "surveyConfirm": "Os tokens chegam assim que {provider} confirmar a pesquisa, geralmente em poucos minutos.",
+          "surveyCapOne": "Uma pesquisa por dia é paga. Uma pesquisa que termina antes porque você não se encaixa no perfil pode pagar um pequeno bônus e não conta.",
+          "surveyCap": "{cap} pesquisas por dia são pagas. Uma pesquisa que termina antes porque você não se encaixa no perfil pode pagar um pequeno bônus e não conta.",
           "scriptBlocked": "Não foi possível carregar o link patrocinado. Um bloqueador de conteúdo pode estar impedindo.",
           "history": "Atividade recente",
           "redemption": {
@@ -2879,37 +2886,31 @@
         "membership": {
           "title": "Assinatura",
           "pageTitle": "{app} {name}",
-          "subtitle": "Localizações melhores, sem espera na fila e sem anúncios no seu jogo. Compra única, seu para sempre.",
+          "subtitle": "Localizações melhores, sem espera na fila e menos anúncios. Pago por mês com tokens; nada é renovado sozinho.",
           "unavailable": "O {name} não está à venda no momento.",
-          "plusplusActive": {
+          "active": {
             "heading": "O {name} está ativo",
             "body": "Ele vale até {until}."
           },
-          "owned": {
-            "heading": "Você tem o {app} {name}",
-            "body": "As localizações {name}, a prioridade na fila de inicialização e o jogo sem anúncios são seus para sempre. O {plusplus} acrescenta ainda mais."
-          },
           "plus": {
-            "pitch": "Tudo o que a maioria dos servidores precisa, pago uma vez, sem renovações.",
-            "term": "Uma vez, para sempre",
-            "get": "Obter o {name}",
-            "owned": "Adquirido"
+            "pitch": "Tudo o que a maioria dos servidores precisa, por mês.",
+            "get": "Obter o {name}"
           },
           "plusplus": {
-            "pitch": "O complemento para servidores que precisam de mais: hardware Premium, nenhum anúncio em lugar nenhum e mais CPU.",
+            "pitch": "Para servidores que precisam de mais: hardware Premium, nenhum anúncio em lugar nenhum e mais CPU.",
             "term": "{tokens}, ou {credits} com créditos",
             "termTokens": "{tokens}",
-            "needsPlus": "O {name} requer o {app} {plus} antes.",
-            "extendHint": "Comprar de novo antes do fim soma ao tempo restante.",
             "notSold": "Não está à venda no momento."
           },
+          "extendHint": "Comprar de novo antes do fim soma ao tempo restante.",
           "days": "{days} dias",
           "duration": {
             "day": "um dia",
             "days": "{count} dias",
             "week": "uma semana",
             "twoWeeks": "duas semanas",
-            "weeks": "{count} semanas"
+            "weeks": "{count} semanas",
+            "month": "um mês"
           },
           "cost": {
             "tokens": "{cost} tokens",
@@ -2920,14 +2921,16 @@
           "perks": {
             "plusLocations": "As localizações {name}",
             "priority": "Prioridade na fila de inicialização quando um node está ocupado",
-            "noGameAds": "Nenhum anúncio no jogo nos seus servidores de Minecraft",
+            "noBannerAds": "Sem anúncios: sem banners, pop-ups ou anúncios no jogo",
             "burst": "Cada servidor faz burst de até +{cpu}% CPU enquanto o node dele tiver folga",
             "neoPlus": "{percent}% a mais de uso do neo (IA)",
             "devbox": "VS Code no seu servidor: {cpu} vCPU, {memory} de RAM, {disk} de disco",
-            "everythingInPlus": "Tudo do {name}",
-            "premiumLocations": "As localizações Premium",
+            "panelAccess": "Acesso ao Painel incluído",
+            "fasterFiles": "Compactação, descompactação e backups mais rápidos",
+            "fastestFiles": "A compactação, a descompactação e os backups mais rápidos",
+            "premiumLocations": "As localizações {plus} e Premium",
+            "highestPriority": "Prioridade máxima na fila de inicialização quando um node está ocupado",
             "noAds": "Nenhum anúncio em lugar nenhum: sem banners, pop-ups, tela de espera antes de iniciar ou anúncios no jogo",
-            "frontOfQueue": "O início da fila de inicialização, à frente do {name}",
             "neoPlusplus": "{percent}% a mais de uso do neo (IA) no total",
             "devboxPlusplus": "Um devbox do VS Code maior: {cpu} vCPU, {memory} de RAM, {disk} de disco"
           },
@@ -2939,9 +2942,12 @@
               "queue": "Fila de inicialização em um node ocupado",
               "gameAds": "Anúncios no jogo (Minecraft)",
               "panelAds": "Anúncios no painel",
+              "waitingRoom": "Tela de espera antes de iniciar",
               "cpu": "CPU",
+              "files": "Compactação e backups",
               "ai": "Uso do neo (IA)",
-              "devbox": "VS Code no seu servidor"
+              "devbox": "VS Code no seu servidor",
+              "panelAccess": "Acesso ao painel"
             },
             "cells": {
               "locationsFree": "Grátis",
@@ -2956,24 +2962,34 @@
               "no": "Não",
               "cpu": "Sua cota",
               "cpuBurst": "Sua cota, com burst de +{cpu}%",
+              "filesFree": "Padrão",
+              "filesPlus": "Mais rápidos",
+              "filesPlusplus": "Os mais rápidos",
               "aiFree": "Padrão",
               "percent": "+{percent}%",
-              "devbox": "{cpu} vCPU, {memory} de RAM, {disk} de disco"
+              "devbox": "{cpu} vCPU, {memory} de RAM, {disk} de disco",
+              "panelAccessFree": "Pago com tokens",
+              "included": "Incluído"
             }
           },
           "faq": {
             "heading": "Perguntas",
-            "once": {
-              "question": "O {plus} é uma assinatura recorrente?",
-              "answer": "Não. Você paga o {plus} uma vez e fica com ele. Só o {plusplus} vale por um tempo definido, e nada é renovado sozinho."
+            "renew": {
+              "question": "A assinatura é renovada sozinha?",
+              "answer": "Não. O {plus} e o {plusplus} valem pelos dias que você comprar, e nada é renovado sozinho. Comprar de novo antes do fim soma ao tempo restante. O {plusplus} inclui tudo o que o {plus} oferece, então você nunca precisa dos dois."
             },
             "expiry": {
-              "question": "O que acontece quando o {plusplus} termina?",
-              "answer": "Você continua com o {plus}. Os servidores em localizações Premium são transferidos para outra localização, e seus servidores só fazem burst até onde o {plus} permite. Compre o {plusplus} de novo antes do fim para manter os dois."
+              "question": "O que acontece quando a assinatura termina?",
+              "answer": "Os servidores em localizações liberadas por ela são transferidos para uma que você ainda pode usar, e seus servidores só fazem burst até onde o que restar permitir. Compre de novo antes do fim para manter tudo."
+            },
+            "idle": {
+              "question": "Meus servidores continuam sendo parados quando ninguém os usa?",
+              "answer": "Sim. A assinatura não muda isso: como todo servidor, um que ninguém usa é parado depois de um tempo e então hibernado. Você pode iniciá-lo de novo pela página dele.",
+              "answerDelete": "Sim. A assinatura não muda isso: como todo servidor, um que ninguém usa é parado depois de um tempo, então hibernado e excluído se continuar hibernado por muito tempo. Até lá, você pode iniciá-lo de novo pela página dele."
             },
             "tokens": {
               "question": "Como consigo tokens?",
-              "answer": "Na página Tokens da barra lateral, concluindo links patrocinados."
+              "answer": "Na página Tokens da barra lateral, respondendo a uma pesquisa ou concluindo links patrocinados."
             },
             "credits": {
               "question": "Posso pagar com créditos?",
@@ -2982,7 +2998,7 @@
           },
           "modal": {
             "title": "Comprar assinatura",
-            "plus": "Gastar **{cost}** tokens com o **{name}**? Ele é seu para sempre.",
+            "plus": "Gastar **{cost}** tokens em **{days} dias** de **{name}**?",
             "plusplus": {
               "tokens": "Gastar **{cost}** tokens em **{days} dias** de **{name}**?",
               "credits": "Gastar **{cost}** créditos em **{days} dias** de **{name}**?"
@@ -2990,7 +3006,7 @@
             "confirm": "Comprar"
           },
           "toast": {
-            "plus": "Agora você tem o {name}.",
+            "plus": "{name} comprado.",
             "plusplus": "{name} comprado."
           }
         },
@@ -5951,7 +5967,7 @@
           },
           "plusOffer": {
             "heading": "Passe na frente com o {app} {name}",
-            "body": "O {name} custa {cost} tokens, uma única vez, e é seu para sempre: prioridade nesta fila para todos os seus servidores, as localizações {name} e nenhum anúncio no jogo.",
+            "body": "O {name} custa {cost} tokens por mês: prioridade nesta fila para todos os seus servidores, as localizações {name} e nenhum anúncio além da tela de espera.",
             "button": "Obter o {name}"
           },
           "move": {

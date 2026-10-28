@@ -1,6 +1,6 @@
 // plugged.host: the memberships, laid out like the Pelican panel's Plus page: the two plans side
-// by side, what each adds over the free tier, and the questions people ask before buying
-// (docs/features/economy.md).
+// by side (each bought by the month, neither needing the other), what each adds over the free
+// tier, and the questions people ask before buying (docs/features/economy.md).
 import { useQueryClient } from '@tanstack/react-query';
 import { Fragment, ReactNode, useState } from 'react';
 import { Link } from 'react-router';
@@ -10,7 +10,6 @@ import buyPlusPlus from '@/api/me/economy/buyPlusPlus.ts';
 import getMembership from '@/api/me/economy/getMembership.ts';
 import Button from '@/elements/buttons/Button.tsx';
 import AccountContentContainer from '@/elements/containers/AccountContentContainer.tsx';
-import Badge from '@/elements/data-display/Badge.tsx';
 import Notification from '@/elements/feedback/Notification.tsx';
 import Stack from '@/elements/layout/Stack.tsx';
 import ConfirmationModal from '@/elements/modals/ConfirmationModal.tsx';
@@ -122,21 +121,26 @@ export default function DashboardMembership() {
     >
       <ResourceView resource={membership}>
         {(economy) => {
-          const hasPlus = economy.plusSince !== null;
+          const hasPlus = economy.plusUntil !== null;
+          const hasPlusplus = economy.plusplusUntil !== null;
+          // the membership the page reports as running: the second one when both run
+          const activeUntil = economy.plusplusUntil ?? economy.plusUntil;
           const tokensOffer = economy.plusplusOffers.find((offer) => offer.pay === 'tokens');
           const creditsOffer = economy.plusplusOffers.find((offer) => offer.pay === 'credits');
           const pricedOffer = tokensOffer ?? economy.plusplusOffers[0];
-          // "a week, or credits for two weeks", as the Pelican panel words it
+          // "a month", "a week, or credits for two weeks", as the Pelican panel words it
           const duration = (days: number) =>
-            days % 7 === 0
-              ? days === 7
-                ? t(`${page}.duration.week`, {})
-                : days === 14
-                  ? t(`${page}.duration.twoWeeks`, {})
-                  : t(`${page}.duration.weeks`, { count: days / 7 })
-              : days === 1
-                ? t(`${page}.duration.day`, {})
-                : t(`${page}.duration.days`, { count: days });
+            days === 30
+              ? t(`${page}.duration.month`, {})
+              : days % 7 === 0
+                ? days === 7
+                  ? t(`${page}.duration.week`, {})
+                  : days === 14
+                    ? t(`${page}.duration.twoWeeks`, {})
+                    : t(`${page}.duration.weeks`, { count: days / 7 })
+                : days === 1
+                  ? t(`${page}.duration.day`, {})
+                  : t(`${page}.duration.days`, { count: days });
           const plusplusTerm =
             tokensOffer && creditsOffer
               ? t(`${page}.plusplus.term`, { tokens: duration(tokensOffer.days), credits: duration(creditsOffer.days) })
@@ -144,6 +148,12 @@ export default function DashboardMembership() {
                 ? t(`${page}.plusplus.termTokens`, { tokens: duration(pricedOffer.days) })
                 : undefined;
           const balanceOf = (pay: Offer['pay']) => (pay === 'tokens' ? economy.tokens : economy.credits);
+          // one filled button: Plus to start with, then the second membership
+          const plusFilled = !hasPlus && !hasPlusplus;
+          const plusShort = economy.tokens < economy.plusCost;
+          const plusplusShort =
+            economy.plusplusOffers.length > 0 &&
+            economy.plusplusOffers.every((offer) => balanceOf(offer.pay) < offer.cost);
           const size = (key: SizeKey, value: DevboxSize) =>
             t(key, {
               cpu: (value.cpu / 100).toLocaleString(),
@@ -177,14 +187,32 @@ export default function DashboardMembership() {
             {
               label: t(`${page}.compare.rows.panelAds`, {}),
               free: t(`${page}.compare.cells.yes`, {}),
-              plus: t(`${page}.compare.cells.yes`, {}),
+              plus: t(`${page}.compare.cells.no`, {}),
               plusplus: t(`${page}.compare.cells.no`, {}),
             },
+          ];
+
+          if (economy.waitingRoom) {
+            rows.push({
+              label: t(`${page}.compare.rows.waitingRoom`, {}),
+              free: t(`${page}.compare.cells.yes`, {}),
+              plus: t(`${page}.compare.cells.yes`, {}),
+              plusplus: t(`${page}.compare.cells.no`, {}),
+            });
+          }
+
+          rows.push(
             {
               label: t(`${page}.compare.rows.cpu`, {}),
               free: t(`${page}.compare.cells.cpu`, {}),
               plus: cpuCell(economy.plusBurstCores),
               plusplus: cpuCell(economy.plusplusBurstCores),
+            },
+            {
+              label: t(`${page}.compare.rows.files`, {}),
+              free: t(`${page}.compare.cells.filesFree`, {}),
+              plus: t(`${page}.compare.cells.filesPlus`, {}),
+              plusplus: t(`${page}.compare.cells.filesPlusplus`, {}),
             },
             {
               label: t(`${page}.compare.rows.ai`, {}),
@@ -198,7 +226,7 @@ export default function DashboardMembership() {
                   ? t(`${page}.compare.cells.percent`, { percent: economy.neoPlusplusPercent.toLocaleString() })
                   : t(`${page}.compare.cells.aiFree`, {}),
             },
-          ];
+          );
 
           if (economy.devbox) {
             rows.push({
@@ -211,30 +239,43 @@ export default function DashboardMembership() {
             });
           }
 
+          if (economy.panelAccess) {
+            rows.push({
+              label: t(`${page}.compare.rows.panelAccess`, {}),
+              free: t(`${page}.compare.cells.panelAccessFree`, {}),
+              plus: t(`${page}.compare.cells.included`, {}),
+              plusplus: t(`${page}.compare.cells.included`, {}),
+            });
+          }
+
           const plusPerks = [
             t(`${page}.perks.plusLocations`, { name: economy.plusName }),
             t(`${page}.perks.priority`, {}),
-            t(`${page}.perks.noGameAds`, {}),
+            t(`${page}.perks.noBannerAds`, {}),
           ];
           if (economy.plusBurstCores > 0) {
             plusPerks.push(t(`${page}.perks.burst`, { cpu: (economy.plusBurstCores * 100).toLocaleString() }));
           }
+          plusPerks.push(t(`${page}.perks.fasterFiles`, {}));
           if (economy.neoPlusPercent !== null && economy.neoPlusPercent > 0) {
             plusPerks.push(t(`${page}.perks.neoPlus`, { percent: economy.neoPlusPercent.toLocaleString() }));
           }
           if (economy.devbox) {
             plusPerks.push(size(`${page}.perks.devbox`, economy.devbox.standard));
           }
+          if (economy.panelAccess) {
+            plusPerks.push(t(`${page}.perks.panelAccess`, {}));
+          }
 
           const plusplusPerks = [
-            t(`${page}.perks.everythingInPlus`, { name: economy.plusName }),
-            t(`${page}.perks.premiumLocations`, {}),
+            t(`${page}.perks.premiumLocations`, { plus: economy.plusName }),
+            t(`${page}.perks.highestPriority`, {}),
             t(`${page}.perks.noAds`, {}),
-            t(`${page}.perks.frontOfQueue`, { name: economy.plusName }),
           ];
           if (economy.plusplusBurstCores > 0) {
             plusplusPerks.push(t(`${page}.perks.burst`, { cpu: (economy.plusplusBurstCores * 100).toLocaleString() }));
           }
+          plusplusPerks.push(t(`${page}.perks.fastestFiles`, {}));
           if (economy.neoPlusplusPercent !== null && economy.neoPlusplusPercent > 0) {
             plusplusPerks.push(
               t(`${page}.perks.neoPlusplus`, { percent: economy.neoPlusplusPercent.toLocaleString() }),
@@ -243,18 +284,24 @@ export default function DashboardMembership() {
           if (economy.devbox) {
             plusplusPerks.push(size(`${page}.perks.devboxPlusplus`, economy.devbox.premium));
           }
+          if (economy.panelAccess) {
+            plusplusPerks.push(t(`${page}.perks.panelAccess`, {}));
+          }
 
           const faq: { question: string; answer: string }[] = [
             {
-              question: t(`${page}.faq.once.question`, { plus: economy.plusName }),
-              answer: t(`${page}.faq.once.answer`, { plus: economy.plusName, plusplus: economy.plusplusName }),
+              question: t(`${page}.faq.renew.question`, {}),
+              answer: t(`${page}.faq.renew.answer`, { plus: economy.plusName, plusplus: economy.plusplusName }),
             },
-            {
-              question: t(`${page}.faq.expiry.question`, { plusplus: economy.plusplusName }),
-              answer: t(`${page}.faq.expiry.answer`, { plus: economy.plusName, plusplus: economy.plusplusName }),
-            },
-            { question: t(`${page}.faq.tokens.question`, {}), answer: t(`${page}.faq.tokens.answer`, {}) },
+            { question: t(`${page}.faq.expiry.question`, {}), answer: t(`${page}.faq.expiry.answer`, {}) },
           ];
+          if (economy.idleStop) {
+            faq.push({
+              question: t(`${page}.faq.idle.question`, {}),
+              answer: economy.idleDelete ? t(`${page}.faq.idle.answerDelete`, {}) : t(`${page}.faq.idle.answer`, {}),
+            });
+          }
+          faq.push({ question: t(`${page}.faq.tokens.question`, {}), answer: t(`${page}.faq.tokens.answer`, {}) });
           if (creditsOffer) {
             faq.push({
               question: t(`${page}.faq.credits.question`, {}),
@@ -265,6 +312,15 @@ export default function DashboardMembership() {
               }),
             });
           }
+
+          const earnMore = (
+            <p className='theme-eco-small'>
+              {t(`${page}.balance`, { balance: economy.tokens.toLocaleString() })}{' '}
+              <Link to={to('/tokens', '/account')} className='theme-eco-link'>
+                {t(`${page}.earnLink`, {})}
+              </Link>
+            </p>
+          );
 
           return (
             <Stack gap='lg'>
@@ -279,6 +335,7 @@ export default function DashboardMembership() {
                 {buying?.kind === 'plus' &&
                   t(`${page}.modal.plus`, {
                     name: economy.plusName,
+                    days: economy.plusDays,
                     cost: economy.plusCost.toLocaleString(),
                   }).md()}
                 {buying?.kind === 'plusplus' &&
@@ -293,56 +350,39 @@ export default function DashboardMembership() {
                 <p className='theme-eco-muted'>{t(`${page}.unavailable`, { name: economy.plusName })}</p>
               ) : (
                 <>
-                  {economy.plusplusUntil ? (
+                  {activeUntil && (
                     <Notification
                       className='theme-callout'
                       color='green'
-                      title={t(`${page}.plusplusActive.heading`, { name: economy.plusplusName })}
+                      title={t(`${page}.active.heading`, {
+                        name: hasPlusplus ? economy.plusplusName : economy.plusName,
+                      })}
                     >
-                      {t(`${page}.plusplusActive.body`, { until: formatDateTime(economy.plusplusUntil) })}
+                      {t(`${page}.active.body`, { until: formatDateTime(activeUntil) })}
                     </Notification>
-                  ) : hasPlus ? (
-                    <Notification
-                      className='theme-callout'
-                      color='green'
-                      title={t(`${page}.owned.heading`, { app: appName, name: economy.plusName })}
-                    >
-                      {t(`${page}.owned.body`, { name: economy.plusName, plusplus: economy.plusplusName })}
-                    </Notification>
-                  ) : null}
+                  )}
 
                   <div className='theme-plus-plans'>
                     <PlanCard
                       name={t(`${page}.pageTitle`, { app: appName, name: economy.plusName })}
                       pitch={t(`${page}.plus.pitch`, {})}
                       price={t(`${page}.cost.tokens`, { cost: economy.plusCost.toLocaleString() })}
-                      term={t(`${page}.plus.term`, {})}
+                      term={duration(economy.plusDays)}
                       perks={plusPerks}
                     >
-                      {hasPlus ? (
-                        <Badge color='green' variant='light' className='self-start'>
-                          {t(`${page}.plus.owned`, {})}
-                        </Badge>
-                      ) : (
-                        <>
-                          <Button
-                            className='w-full'
-                            disabled={!economy.tokensEnabled || economy.tokens < economy.plusCost}
-                            onClick={() => setBuying({ kind: 'plus' })}
-                          >
-                            {t(`${page}.plus.get`, { name: economy.plusName })}
-                          </Button>
+                      <Button
+                        className='theme-plus-offer w-full'
+                        variant={plusFilled ? 'filled' : 'default'}
+                        disabled={!economy.tokensEnabled || plusShort}
+                        onClick={() => setBuying({ kind: 'plus' })}
+                      >
+                        <span className='font-semibold'>{t(`${page}.days`, { days: economy.plusDays })}</span>
+                        <span className='theme-plus-offer-cost'>
+                          {t(`${page}.cost.tokens`, { cost: economy.plusCost.toLocaleString() })}
+                        </span>
+                      </Button>
 
-                          {economy.tokens < economy.plusCost && (
-                            <p className='theme-eco-small'>
-                              {t(`${page}.balance`, { balance: economy.tokens.toLocaleString() })}{' '}
-                              <Link to={to('/tokens', '/account')} className='theme-eco-link'>
-                                {t(`${page}.earnLink`, {})}
-                              </Link>
-                            </p>
-                          )}
-                        </>
-                      )}
+                      {plusShort ? earnMore : <p className='theme-eco-small'>{t(`${page}.extendHint`, {})}</p>}
                     </PlanCard>
 
                     <PlanCard
@@ -363,8 +403,8 @@ export default function DashboardMembership() {
                           <Button
                             key={offer.pay}
                             className='theme-plus-offer w-full'
-                            variant={!credits && hasPlus ? 'filled' : 'default'}
-                            disabled={!hasPlus || balanceOf(offer.pay) < offer.cost}
+                            variant={!credits && !plusFilled ? 'filled' : 'default'}
+                            disabled={balanceOf(offer.pay) < offer.cost}
                             onClick={() => setBuying({ kind: 'plusplus', offer })}
                           >
                             <span className='font-semibold'>{t(`${page}.days`, { days: offer.days })}</span>
@@ -375,17 +415,13 @@ export default function DashboardMembership() {
                         );
                       })}
 
-                      <p className='theme-eco-small'>
-                        {!hasPlus
-                          ? t(`${page}.plusplus.needsPlus`, {
-                              app: appName,
-                              name: economy.plusplusName,
-                              plus: economy.plusName,
-                            })
-                          : economy.plusplusOffers.length === 0
-                            ? t(`${page}.plusplus.notSold`, {})
-                            : t(`${page}.plusplus.extendHint`, {})}
-                      </p>
+                      {economy.plusplusOffers.length === 0 ? (
+                        <p className='theme-eco-small'>{t(`${page}.plusplus.notSold`, {})}</p>
+                      ) : plusplusShort ? (
+                        earnMore
+                      ) : (
+                        <p className='theme-eco-small'>{t(`${page}.extendHint`, {})}</p>
+                      )}
                     </PlanCard>
                   </div>
 

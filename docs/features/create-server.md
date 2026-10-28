@@ -69,7 +69,7 @@ the check and the write, so two requests at once cannot both spend the same room
    limited, a standing nobody can tell limits nobody), the account's lock is free.
 2. The game is in the catalog, the EULA is accepted when the egg has the `eula` feature, the variant
    exists, the location is public and its tier is unlocked for the account (every account has the
-   empty tier; `plus` comes with Plus, `premium` with PlusPlus), and the size fits the allowance:
+   empty tier; `plus` comes with Plus, `premium` with Premium, which opens `plus` too), and the size fits the allowance:
    a public plan's, or without a plan the player's own CPU, memory and disk, each at least 1.
 3. A node: the location's nodes ranked like an admin deploy ([placement.md](placement.md)), only
    nodes with the role `game`. On the first node with enough free allocations: the egg
@@ -116,7 +116,7 @@ when it is on. It is laid out like the Pelican panel's create page, one section 
 - **Location**: a card per location with its flag, a latency meter (four bars under 40 ms, three
   under 80, two under 150, then one), "Full" or "No capacity for the selected resources" when it
   cannot take the server, and its tier pill (Free, Plus, Premium, the uptime behind the (i)). A free
-  one that cannot take it is dimmed; a locked paid one shows "Get Plus" / "Get PlusPlus" (the
+  one that cannot take it is dimmed; a locked paid one shows "Get Plus" / "Get Premium" (the
   membership names) to the membership page. The locations are asked again for the chosen size
   half a second after it changes. The meter is the visitor's own ping (see *Ping* below), and until
   they pick a location themselves the closest one that can take the server is selected.
@@ -141,7 +141,7 @@ three counts, and a location's ping is its fastest node's. The answer is opaque 
 status will do. Each node is timed once per page load. The create page, the Transfer page and the
 limbo page show this ping; a node that does not answer shows none. The create page also selects
 the closest location that can take the server (unlocked, with room for the chosen size) until the
-user picks one. `latency` stays for neo's tools and for moves off a lapsed PlusPlus.
+user picks one. `latency` stays for neo's tools and for moves off a lapsed membership.
 
 ## Without noprofit.space
 

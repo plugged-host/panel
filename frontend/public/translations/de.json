@@ -889,7 +889,8 @@
           "plus": "Mitgliedschaft",
           "plusplus": "Mitgliedschaft",
           "admin": "Von einem Admin geändert",
-          "earn": "Gesponserter Link",
+          "earn": "Verdient",
+          "earnReversal": "Storniert",
           "limbo": "Server wiederhergestellt",
           "limboRefund": "Wiederherstellung erstattet",
           "subdomain": "Subdomain",
@@ -1051,7 +1052,7 @@
           },
           "membershipEnded": {
             "title": "{membership} ist abgelaufen",
-            "body": "Server auf Premium-Standorten ziehen an einen anderen Standort um: {servers}. Den Fortschritt siehst du auf der Umzug-Seite des jeweiligen Servers."
+            "body": "Server auf Standorten, die sie freigeschaltet hat, ziehen an einen anderen Standort um: {servers}. Den Fortschritt siehst du auf der Umzug-Seite des jeweiligen Servers."
           },
           "failoverDone": {
             "title": "Server wiederhergestellt",
@@ -2863,11 +2864,12 @@
           "title": "Tokens",
           "subheading": "Tokens verdienen und sehen, wohin sie gingen",
           "balance": "{count} Tokens",
-          "explainer": "Verdiene Tokens über gesponserte Links. Sie bezahlen {app} {plus}, das Aufwecken eines schlafenden Servers und Subdomains.",
+          "explainer": "Verdiene Tokens über eine Umfrage oder gesponserte Links. Sie bezahlen {app} {plus}, das Aufwecken eines schlafenden Servers und Subdomains.",
           "saved": "{amount} Tokens für deinen nächsten Token angespart",
           "decays": "Jeder Link bringt heute etwas weniger (der erste brachte {full}).",
           "none": "Derzeit ist keine Möglichkeit zum Verdienen von Tokens eingerichtet.",
           "provider": {
+            "cpx_research": "CPX Research",
             "linkvertise": "Linkvertise",
             "vylo": "Vylo",
             "cuty": "Cuty",
@@ -2880,6 +2882,11 @@
           "capped": "Komm morgen wieder",
           "linkUnavailable": "Gerade nicht verfügbar",
           "earnWith": "Mit {provider} verdienen",
+          "takeSurvey": "Umfrage machen",
+          "surveyReward": "Bringt, was die jeweilige Umfrage anzeigt",
+          "surveyConfirm": "Die Tokens kommen, sobald {provider} die Umfrage bestätigt, meist innerhalb weniger Minuten.",
+          "surveyCapOne": "Eine Umfrage am Tag wird bezahlt. Endet eine Umfrage früh, weil du nicht zur Zielgruppe passt, gibt es vielleicht einen kleinen Bonus, und sie zählt nicht.",
+          "surveyCap": "{cap} Umfragen am Tag werden bezahlt. Endet eine Umfrage früh, weil du nicht zur Zielgruppe passt, gibt es vielleicht einen kleinen Bonus, und sie zählt nicht.",
           "scriptBlocked": "Der gesponserte Link konnte nicht geladen werden. Vielleicht blockiert ihn ein Werbeblocker.",
           "history": "Letzte Vorgänge",
           "redemption": {
@@ -2898,37 +2905,31 @@
         "membership": {
           "title": "Mitgliedschaft",
           "pageTitle": "{app} {name}",
-          "subtitle": "Bessere Standorte, kein Warten in der Schlange und keine Werbung im Spiel. Einmal gekauft, gehört es dir.",
+          "subtitle": "Bessere Standorte, kein Warten in der Schlange und weniger Werbung. Monatlich mit Tokens bezahlt; nichts verlängert sich von selbst.",
           "unavailable": "{name} ist gerade nicht erhältlich.",
-          "plusplusActive": {
+          "active": {
             "heading": "{name} ist aktiv",
             "body": "Es läuft bis {until}."
           },
-          "owned": {
-            "heading": "Du hast {app} {name}",
-            "body": "{name}-Standorte, Vorrang in der Start-Warteschlange und keine Werbung im Spiel gehören dir dauerhaft. {plusplus} legt noch etwas drauf."
-          },
           "plus": {
-            "pitch": "Alles, was die meisten Server brauchen, einmalig und ohne Verlängerung.",
-            "term": "Einmalig, dauerhaft",
-            "get": "{name} holen",
-            "owned": "Gekauft"
+            "pitch": "Alles, was die meisten Server brauchen, monatlich.",
+            "get": "{name} holen"
           },
           "plusplus": {
-            "pitch": "Das Add-on für Server, die am meisten brauchen: Premium-Hardware, nirgends Werbung und mehr CPU.",
+            "pitch": "Für Server, die am meisten brauchen: Premium-Hardware, nirgends Werbung und mehr CPU.",
             "term": "für {tokens}, oder Credits für {credits}",
             "termTokens": "für {tokens}",
-            "needsPlus": "{name} braucht zuerst {app} {plus}.",
-            "extendHint": "Ein erneuter Kauf vor dem Ende verlängert die Restzeit.",
             "notSold": "Gerade nicht im Angebot."
           },
+          "extendHint": "Ein erneuter Kauf vor dem Ende verlängert die Restzeit.",
           "days": "{days} Tage",
           "duration": {
             "day": "einen Tag",
             "days": "{count} Tage",
             "week": "eine Woche",
             "twoWeeks": "zwei Wochen",
-            "weeks": "{count} Wochen"
+            "weeks": "{count} Wochen",
+            "month": "einen Monat"
           },
           "cost": {
             "tokens": "{cost} Tokens",
@@ -2939,14 +2940,16 @@
           "perks": {
             "plusLocations": "Die {name}-Standorte",
             "priority": "Vorrang in der Start-Warteschlange, wenn ein Node ausgelastet ist",
-            "noGameAds": "Keine Werbung im Spiel auf deinen Minecraft-Servern",
+            "noBannerAds": "Keine Werbung: keine Banner, Popups oder Werbung im Spiel",
             "burst": "Jeder Server darf bis zu +{cpu} % CPU nutzen, solange sein Node Luft hat",
             "neoPlus": "{percent} % mehr neo-Nutzung (KI)",
             "devbox": "VS Code auf deinem Server: {cpu} vCPU, {memory} RAM, {disk} Speicher",
-            "everythingInPlus": "Alles aus {name}",
-            "premiumLocations": "Die Premium-Standorte",
+            "panelAccess": "Panel-Zugang inklusive",
+            "fasterFiles": "Schnelleres Packen, Entpacken und Backups",
+            "fastestFiles": "Das schnellste Packen, Entpacken und die schnellsten Backups",
+            "premiumLocations": "Die {plus}- und Premium-Standorte",
+            "highestPriority": "Höchster Vorrang in der Start-Warteschlange, wenn ein Node ausgelastet ist",
             "noAds": "Nirgends Werbung: keine Banner, Popups, kein Warteschirm vor dem Start und keine Werbung im Spiel",
-            "frontOfQueue": "Ganz vorne in der Start-Warteschlange, noch vor {name}",
             "neoPlusplus": "Insgesamt {percent} % mehr neo-Nutzung (KI)",
             "devboxPlusplus": "Eine größere VS-Code-Devbox: {cpu} vCPU, {memory} RAM, {disk} Speicher"
           },
@@ -2958,9 +2961,12 @@
               "queue": "Start-Warteschlange auf einem vollen Node",
               "gameAds": "Werbung im Spiel (Minecraft)",
               "panelAds": "Werbung im Panel",
+              "waitingRoom": "Warteschirm vor dem Start",
               "cpu": "CPU",
+              "files": "Archive und Backups",
               "ai": "neo-Nutzung (KI)",
-              "devbox": "VS Code auf deinem Server"
+              "devbox": "VS Code auf deinem Server",
+              "panelAccess": "Panel-Zugang"
             },
             "cells": {
               "locationsFree": "Kostenlos",
@@ -2975,24 +2981,34 @@
               "no": "Nein",
               "cpu": "Dein Kontingent",
               "cpuBurst": "Dein Kontingent, Burst +{cpu} %",
+              "filesFree": "Standard",
+              "filesPlus": "Schneller",
+              "filesPlusplus": "Am schnellsten",
               "aiFree": "Standard",
               "percent": "+{percent} %",
-              "devbox": "{cpu} vCPU, {memory} RAM, {disk} Speicher"
+              "devbox": "{cpu} vCPU, {memory} RAM, {disk} Speicher",
+              "panelAccessFree": "Mit Tokens bezahlt",
+              "included": "Inklusive"
             }
           },
           "faq": {
             "heading": "Fragen",
-            "once": {
-              "question": "Ist {plus} ein Abo?",
-              "answer": "Nein. {plus} bezahlst du einmal und behältst es. Nur {plusplus} läuft eine feste Zeit, und nichts verlängert sich von selbst."
+            "renew": {
+              "question": "Verlängert sich eine Mitgliedschaft von selbst?",
+              "answer": "Nein. {plus} und {plusplus} laufen jeweils für die gekauften Tage, und nichts verlängert sich von selbst. Ein erneuter Kauf vor dem Ende verlängert die Restzeit. {plusplus} enthält alles aus {plus}, du brauchst also nie beides."
             },
             "expiry": {
-              "question": "Was passiert, wenn {plusplus} endet?",
-              "answer": "{plus} behältst du. Server auf Premium-Standorten ziehen an einen anderen Standort um, und deine Server bekommen nur noch den Burst von {plus}. Kauf {plusplus} vor dem Ende erneut, um beides zu behalten."
+              "question": "Was passiert, wenn eine Mitgliedschaft endet?",
+              "answer": "Server auf Standorten, die sie freigeschaltet hat, ziehen an einen Standort um, den du noch nutzen kannst, und deine Server bekommen nur noch den Burst, der dir bleibt. Kauf vor dem Ende erneut, um alles zu behalten."
+            },
+            "idle": {
+              "question": "Werden meine Server weiterhin gestoppt, wenn sie niemand nutzt?",
+              "answer": "Ja. Daran ändert eine Mitgliedschaft nichts: Wie jeder Server wird einer, den niemand nutzt, nach einer Weile gestoppt und dann in den Ruhezustand versetzt. Du kannst ihn auf seiner Seite wieder starten.",
+              "answerDelete": "Ja. Daran ändert eine Mitgliedschaft nichts: Wie jeder Server wird einer, den niemand nutzt, nach einer Weile gestoppt, dann in den Ruhezustand versetzt und gelöscht, wenn er lange im Ruhezustand bleibt. Bis dahin kannst du ihn auf seiner Seite wieder starten."
             },
             "tokens": {
               "question": "Wie bekomme ich Tokens?",
-              "answer": "Auf der Seite „Tokens“ in der Seitenleiste, über gesponserte Links."
+              "answer": "Auf der Seite „Tokens“ in der Seitenleiste, über eine Umfrage oder gesponserte Links."
             },
             "credits": {
               "question": "Kann ich mit Credits bezahlen?",
@@ -3001,7 +3017,7 @@
           },
           "modal": {
             "title": "Mitgliedschaft kaufen",
-            "plus": "**{cost}** Tokens für **{name}** ausgeben? Es gehört dir dauerhaft.",
+            "plus": "**{cost}** Tokens für **{days} Tage** **{name}** ausgeben?",
             "plusplus": {
               "tokens": "**{cost}** Tokens für **{days} Tage** **{name}** ausgeben?",
               "credits": "**{cost}** Credits für **{days} Tage** **{name}** ausgeben?"
@@ -3009,7 +3025,7 @@
             "confirm": "Kaufen"
           },
           "toast": {
-            "plus": "Du hast jetzt {name}.",
+            "plus": "{name} gekauft.",
             "plusplus": "{name} gekauft."
           }
         },
@@ -4472,7 +4488,7 @@
                   "showServer": "Auf Serverseiten",
                   "showServerDescription": "Die Konsole eines Servers und seine anderen Seiten.",
                   "memberFree": "Weniger Werbung für Mitglieder",
-                  "memberFreeDescription": "Konten mit der zweiten Mitgliedschaft sehen keine Werbung; bei der ersten Mitgliedschaft lädt sie langsamer neu.",
+                  "memberFreeDescription": "Die zweite Mitgliedschaft sieht keine Werbung, die erste nur den Warteraum vor einem Start, keine Banner oder Pop-ups. Aus: Mitglieder sehen alle Werbung, die langsamer neu lädt.",
                   "slots": "Plätze",
                   "slotTop": "Banner oben",
                   "slotTopDescription": "Die gesponserten Banner oben (Admin › Gesponserte Banner) über jeder Seite.",
@@ -4663,7 +4679,7 @@
                   "storeDiscountEnds": "Ende",
                   "storeDiscountEndsDescription": "Wird im Shop angezeigt. Leer: bis der Rabatt wieder auf 0 steht.",
                   "tokensEnabled": "Tokens",
-                  "tokensEnabledDescription": "Tokens werden über gesponserte Links verdient und kaufen die Mitgliedschaften.",
+                  "tokensEnabledDescription": "Tokens werden über Umfragen und gesponserte Links verdient und kaufen die Mitgliedschaften.",
                   "dailyTokens": "Tägliche Tokens",
                   "dailyTokensDescription": "Tokens, die jedes Konto einmal am Tag beim ersten Hinsehen bekommt. 0 gibt keine.",
                   "panelAccessSection": "Panel-Zugang",
@@ -4673,12 +4689,13 @@
                   "panelAccessTokensDescription": "Mitgliedschaften und Administratoren zahlen nie. 0 macht das Panel kostenlos.",
                   "panelAccessDays": "Tage pro Zahlung",
                   "membershipEnabled": "Mitgliedschaften",
-                  "membershipEnabledDescription": "Die erste Mitgliedschaft wird einmal mit Tokens gekauft und öffnet die Standorte mit der Stufe „plus“. Die zweite läuft für eine Weile, braucht die erste und öffnet die Stufe „premium“.",
+                  "membershipEnabledDescription": "Beide werden für einige Tage gekauft. Die erste öffnet die Standorte mit der Stufe „plus“; die zweite gibt alles, was die erste gibt, öffnet auch die Stufe „premium“ und braucht keine erste Mitgliedschaft.",
                   "plusName": "Name der ersten Mitgliedschaft",
                   "plusNameDescription": "Was Spieler sehen, etwa Plus.",
                   "plusplusName": "Name der zweiten Mitgliedschaft",
-                  "plusplusNameDescription": "Was Spieler sehen, etwa PlusPlus.",
+                  "plusplusNameDescription": "Was Spieler sehen, etwa Premium.",
                   "plusTokens": "Erste Mitgliedschaft: Tokens",
+                  "plusDays": "Erste Mitgliedschaft: Tage",
                   "plusplusTokens": "Zweite Mitgliedschaft: Tokens",
                   "plusplusTokenDays": "Zweite Mitgliedschaft: Tage für Tokens",
                   "plusplusCredits": "Zweite Mitgliedschaft: Credits",
@@ -4743,7 +4760,16 @@
                   "shrinkmeApiKey": "ShrinkMe-API-Schlüssel",
                   "adfocusEnabled": "AdFoc.us",
                   "adfocusEnabledDescription": "Braucht den API-Schlüssel von der Seite Tools › API bei AdFoc.us. Für jeden Ausflug wird ein Kurzlink erstellt.",
-                  "adfocusApiKey": "AdFoc.us-API-Schlüssel"
+                  "adfocusApiKey": "AdFoc.us-API-Schlüssel",
+                  "cpxResearchEnabled": "CPX Research",
+                  "cpxResearchEnabledDescription": "Eine Umfrage-Wand, als Erstes auf der Tokens-Seite: Jede Umfrage bringt, was CPX Research für sie anzeigt, und die Tokens kommen mit dessen Postback. Braucht die App-ID und den Secure Hash von der Seite der App im CPX-Research-Dashboard.",
+                  "cpxResearchAppId": "CPX-Research-App-ID",
+                  "cpxResearchSecret": "CPX-Research-Secure-Hash",
+                  "cpxResearchDailyCap": "Umfragen pro Tag",
+                  "cpxResearchDailyCapDescription": "Abgeschlossene Umfragen, die bezahlt werden, pro Konto. Screen-outs und Boni werden bezahlt und zählen nicht. 0 hat kein Limit.",
+                  "cpxResearchPostback": "Postback-URL",
+                  "cpxResearchPostbackDescription": "Trag sie in den Postback Settings der App bei CPX Research ein (Klick zum Kopieren). Die Server von CPX rufen sie auf, ein Proxy oder CDN vor dem Panel muss sie also durchlassen.",
+                  "cpxResearchRewards": "Gib der Währung in den Reward Settings der App den Namen Token (Mehrzahl Tokens) und setz den Currency Factor: wie viele Tokens ein Dollar deiner Einnahmen wert ist. So viel zeigt die Wand für jede Umfrage an und so viel bringt sie."
                 },
                 "toast": {
                   "updated": "Wirtschaftseinstellungen gespeichert."
@@ -5577,7 +5603,7 @@
                 "summary": "{credits} Credits, {tokens} Tokens ({earned} verdient).",
                 "noprofit": "Credits und der Ressourcen-Shop gehören zu noprofit.space: Credits werden dort geändert.",
                 "noprofitSent": "Credits und der Ressourcen-Shop gehören zu noprofit.space: Eine Änderung der Credits hier wird an das Konto dort gesendet.",
-                "plusSince": "{name} seit",
+                "plusLapsed": "{name} läuft nicht; zuerst gekauft",
                 "noPlus": "Kein {name}.",
                 "plusplusRuns": "{name} läuft bis",
                 "noPlusplus": "Kein {name} aktiv (bisher {purchases} gekauft).",
@@ -5589,8 +5615,6 @@
                 "reason": "Grund",
                 "reasonDescription": "Wird im Verlauf des Benutzers angezeigt.",
                 "memberships": "Mitgliedschaften",
-                "givePlus": "{name} geben",
-                "takePlus": "{name} entziehen",
                 "plusplusUntil": "{name} bis",
                 "setPlusplus": "Ende setzen",
                 "endPlusplus": "{name} jetzt beenden",
@@ -11284,7 +11308,7 @@
           },
           "plusOffer": {
             "heading": "Mit {app} {name} nach vorne",
-            "body": "{name} kostet einmalig {cost} Tokens und gehört dir dauerhaft: Vorrang in dieser Schlange für alle deine Server, die {name}-Standorte und keine Werbung im Spiel.",
+            "body": "{name} kostet {cost} Tokens im Monat: Vorrang in dieser Schlange für alle deine Server, die {name}-Standorte und keine Werbung außer dem Warteschirm.",
             "button": "{name} holen"
           },
           "move": {

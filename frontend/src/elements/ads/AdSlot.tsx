@@ -42,8 +42,19 @@ function SponsoredBanner({ unit, labelled = true }: { unit: Extract<AdUnit, { ty
   );
 }
 
-/** A slot: measures the width it has and shows the unit it was given, or nothing. */
-export function AdSlot({ kind, labelled = true }: { kind: AdSlotKind; labelled?: boolean }) {
+/**
+ * A slot: measures the width it has and shows the unit it was given, or nothing. Outside the
+ * waiting rooms (`room`) it is not there for the first membership, which sees no banners.
+ */
+export function AdSlot({ room = false, ...props }: { kind: AdSlotKind; labelled?: boolean; room?: boolean }) {
+  const { pathname } = useLocation();
+  const { pageShown } = useAds(adAreaOf(pathname));
+  if (!room && !pageShown) return null;
+
+  return <Slot {...props} />;
+}
+
+function Slot({ kind, labelled = true }: { kind: AdSlotKind; labelled?: boolean }) {
   const { pathname } = useLocation();
   const { settings, refreshSeconds } = useAds(adAreaOf(pathname));
   const register = useAdSlotsStore((state) => state.register);
@@ -116,9 +127,9 @@ export function AdStack({ part }: { part: 'above' | 'below' }) {
       <span className='theme-ad-stack-label'>{t('elements.ads.sponsored', {})}</span>
       <div className='theme-ad-stack-grid'>
         {Array.from({ length: room }, (_, index) => (
-          <AdSlot key={index} kind='room' labelled={false} />
+          <AdSlot key={index} kind='room' labelled={false} room />
         ))}
-        {native && <AdSlot kind='native' labelled={false} />}
+        {native && <AdSlot kind='native' labelled={false} room />}
       </div>
     </div>
   );

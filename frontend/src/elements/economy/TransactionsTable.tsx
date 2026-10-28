@@ -13,6 +13,7 @@ const typeKeys = {
   plus: 'plus',
   plusplus: 'plusplus',
   admin: 'admin',
+  earn_reversal: 'earnReversal', // a survey the provider took back (docs/features/economy.md)
   limbo: 'limbo', // plugged.host: docs/features/limbo.md
   limbo_refund: 'limboRefund',
   subdomain: 'subdomain', // docs/features/subdomains.md

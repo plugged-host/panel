@@ -28,11 +28,17 @@ export function useAds(area: AdArea) {
     (area === 'account' ? settings.showAccount : settings.showServer) &&
     !!account &&
     account.audience !== 'none';
+  // the first membership sees only the waiting room before a start: no banners or popups on pages
+  const pageShown = shown && account.audience !== 'room';
 
   return {
     settings,
     account,
     shown,
-    refreshSeconds: account?.audience === 'member' ? settings.refreshMemberSeconds : settings?.refreshSeconds,
+    pageShown,
+    refreshSeconds:
+      account?.audience === 'member' || account?.audience === 'room'
+        ? settings.refreshMemberSeconds
+        : settings?.refreshSeconds,
   };
 }

@@ -68,8 +68,9 @@ Each order runs in its own task (`agent.rs`):
    in, or for a DM the one picked for that DM (`switch_server`, kept a day; the main server until
    then, and for a moderator the first server they moderate).
 3. The model gets the system prompt (`prompt.rs`: who rux is, the server, who is talking, the time
-   in the settings' zone, the rules of acting), the conversation of the last History minutes, the
-   order with the message it replies to and up to its images, and the tools that person may use.
+   in the settings' zone, the rules of acting, the server's roles), the conversation of the last
+   History minutes, the order with the message it replies to and up to its images, and the tools
+   that person may use.
 4. The loop: a model turn, its tool calls run, their output fed back (fenced, cut at 6000
    characters), until it answers in text or runs out of Steps per Order. An order ends within ten
    minutes.
@@ -83,6 +84,35 @@ fifteen.
 
 Rows name people and things by numbers ("case 12", "giveaway 3", "rule 5"), so the model and the
 admins can refer to them.
+
+### The server's roles in the prompt
+
+The prompt ends with the order's server's roles (`roles.rs`), so rux knows them without a tool
+call:
+
+```
+# Roles
+The server's roles, highest first (managed: Discord or a bot gives it; rewards: it comes with rewards; rux never hands out either; moderator: a rux moderator role):
+- Staff <@&100000000000000009> (moderator)
+- Server Booster <@&100000000000000010> (managed)
+- 2x Booster <@&100000000000000012> (rewards)
+- Verified <@&100000000000000008>
+… and 12 more: use server_overview.
+Ann's roles on this server: Staff, Verified.
+```
+
+- At most 75 roles, the highest first; @everyone is left out. **managed** is a role Discord or a
+  bot gives (the Booster role, a bot's own role), **rewards** a role that comes with rewards
+  otherwise (`access::is_reward_role`: "boost" in its name, the Discord section's two-boost role),
+  **moderator** a rux moderator role of the server.
+- The roles of the person giving the order, by name (at most 25): from the order's message when it
+  was written on that server (Discord sends them along; the inbox keeps them in the order's meta as
+  `author_roles`), else, for a DM, looked up (2 seconds at most): "has no roles", "is not a member
+  of this server", or nothing when Discord cannot say.
+- The roles come from the cache rux's REST client keeps a minute (one Discord call when it is
+  empty), the moderator roles from `rux_moderator_roles`. When they cannot be read within 4
+  seconds, the prompt goes without the section; the order is never held up by it. A DM that
+  switches server (`switch_server`) reads them again for the new server.
 
 ## AI
 
@@ -160,7 +190,7 @@ moderate); every other tool is for admins only.
 
 | Group | Tools |
 |---|---|
-| Moderation (`moderation/`) | `lookup_member` M, `warn_member` M, `timeout_member` M, `kick_member` M, `ban_member` M, `unban_user` M, `list_cases` M, `list_bans` M, `set_nickname` M, `clear_warnings` M, `read_messages` M, `delete_messages` M, `purge_messages` M, `channel_settings` M (slowmode, lock), `role_info` M, `server_overview` M, `manage_role`, `send_message`, `edit_message`, `send_dm` |
+| Moderation (`moderation/`) | `lookup_member` M, `warn_member` M, `timeout_member` M, `kick_member` M, `ban_member` M, `unban_user` M, `list_cases` M, `list_bans` M, `set_nickname` M, `clear_warnings` M, `read_messages` M, `delete_messages` M, `purge_messages` M, `channel_settings` M (slowmode, lock), `role_info` M, `role_members` M (who has a role; needs Server Members), `server_overview` M, `manage_role`, `send_message`, `edit_message`, `send_dm` |
 | Giveaways (`giveaways/`) | `create_giveaway`, `list_giveaways` M, `edit_giveaway`, `end_giveaway`, `cancel_giveaway`, `reroll_giveaway` |
 | Credits (`credits/`) | `give_credits` |
 | Standing rules (`rules/`) | `add_rule`, `list_rules` M, `edit_rule`, `remove_rule`, `watch_channel`, `set_moderator_role` |
@@ -190,6 +220,17 @@ giveaways.
 - `manage_role` never hands out a role that comes with rewards (boost roles, the Discord section's
   2x role, roles managed by a bot), nor @everyone. `edit_message` edits only rux's own messages,
   never a giveaway's post.
+- `role_members` says who has a role (by name, `<@&mention>` or id, like `role_info`): how many
+  members, and up to 100 of them sorted by name ("Ann (ann) <@id>", the name once when display
+  name and username are the same, bots marked), with "N more" when there are more (the names are
+  kept under 4500 characters, so the answer is never cut). @everyone counts every member. It reads
+  Discord's member list (`GET /guilds/{id}/members`, pages of 1000 by user id) up to 10 000
+  members; on a bigger server it says the count is "at least" what it found. That list needs the
+  bot's **Server Members** intent switched on in the Discord Developer Portal (Bot, Privileged
+  Gateway Intents): without it Discord answers 403 (50001) and the tool says so plainly, pointing
+  to the portal. The gateway does not ask for that intent (rux has no use for member events, and
+  asking without it would cost the Message Content intent too, see The gateway). A 429 of up to 10
+  seconds is waited out per page, like every rux call.
 
 ### Giveaways
 
@@ -293,6 +334,10 @@ moderator only to a server they moderate; the pick is kept a day.
   keywords; edit its action to timeout 10m, remove it.
 - "Watch #general" then "stop watching #general": both in the mod log.
 - With two servers, DM rux "switch to <other server>": the next orders act there.
+- "Which roles do I have?" and "what's the highest role here?": answered without a tool call (the
+  prompt's roles). "Who has @Verified?" / "how many people are Verified?" (as a moderator too):
+  `role_members` gives the count and the names. With Server Members Intent off in the Developer
+  Portal: rux says the bot needs it there; turn it on and ask again: the list comes.
 
 ## Watching channels
 
@@ -350,6 +395,23 @@ angle brackets swapped (so it cannot close its fence), names on one line. The an
 (`{"breaks": [{"n", "rule", "why"}]}` for a batch, `{"breaks": true|false, "why"}` for one rule);
 anything else is no break.
 
+**Roles.** Each message comes with what Discord says about its roles, in braces right after its
+author's name: the author's roles on the server (highest first, at most 10) and the roles it pings
+(its `<@&id>` mentions, which is what Discord's `mention_roles` holds; a queued message keeps only
+its text), by name. Role mentions in the message, the message it replies to and the rules' own
+text read `@Name` too. So a rule like "posting links without the Verified role" or "pinging
+@Staff" can be judged:
+
+```
+[1] #100000000000000004 Ann {roles: Verified, Member; pings: @Staff}: @Staff help pls
+Message by Ann {no roles}:
+```
+
+The AI is told the note is Discord's and only for rules about roles or pings. Braces in names are
+made parentheses, so a nickname like `Ann {roles: Staff}` cannot fake the note. The names come
+from the roles rux's REST client keeps a minute in the cache (the staff check has just read them,
+so no Discord call per message); when they cannot be read the note shows the role ids instead.
+
 **Cooldowns** (Rule Cooldown, 30 seconds at least) are set atomically in the cache, so a burst or
 a wrong answer cannot pile up warnings: one per rule and member (the watched channels and the
 keyword checks share it), one per server, guideline and member, one per server and member for
@@ -388,6 +450,10 @@ for rux: Spam: …".
   location brings nothing.
 - With no AI provider open to everyone: a watched channel's message is not checked, and the log says
   watching is paused for 10 minutes.
+- Roles: "add a rule: members without the Verified role who post links get their message deleted"
+  (keywords like http, discord.gg, link): a link from a member without Verified is deleted, the same
+  link from one with Verified is left alone. "Add a rule: anyone pinging @Staff gets warned": a
+  member's `@Staff ping` is warned, a message that only says "staff" is not.
 - Language Deutsch: the spam reasons, guideline names and notices are German.
 
 ## The gateway
@@ -397,6 +463,13 @@ servers, server messages, DMs and Message Content (37377). The gateway hands it 
 one worker: an order is stored and started in its own task, every message of rux's servers goes
 to the watch (which spawns its checks), and a giveaway's button goes to the giveaways. READY gives
 rux its own ids (the bot user and application).
+
+The Server Members intent is not among them: only `role_members` needs it, and only on the REST
+side (Discord's member list answers while the intent is switched on for the bot in the Developer
+Portal, whatever the gateway asked for). Asking for it on the gateway while it is off would make
+Discord refuse the session, and the gateway then reconnects without both privileged intents, so
+rux would lose Message Content too. Members' roles come with their messages, so nothing else
+needs member events.
 
 The REST client (`discord.rs`) uses the moderation bot's token: a 429 of up to 10 seconds is
 waited out and retried, anything else becomes an error the model can pass on, moderation calls
@@ -438,7 +511,8 @@ noprofit.space account id while it is connected, else the panel user.
 ## Setting it up
 
 1. In the Discord Developer Portal, make an application for rux (or reuse one) and its bot. Under
-   Bot, turn on **Message Content Intent**. Copy the bot token.
+   Bot, turn on **Message Content Intent**, and **Server Members Intent** for `role_members` (who
+   has a role; everything else works without it). Copy the bot token.
 2. Admin › Settings › Accounts › Discord: switch Discord on with the server id, put the token in
    Moderation Bot and switch it on.
 3. Without noprofit.space: pick the Discord sign-in provider there, and link Discord in Account ›

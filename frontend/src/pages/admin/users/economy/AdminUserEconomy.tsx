@@ -49,6 +49,7 @@ function ChangeForm({ user, economy }: { user: z.infer<typeof adminFullUserSchem
   const [credits, setCredits] = useState<number | string>('');
   const [tokens, setTokens] = useState<number | string>('');
   const [reason, setReason] = useState('');
+  const [plusUntil, setPlusUntil] = useState<Date | null>(economy.plusUntil);
   const [plusplusUntil, setPlusplusUntil] = useState<Date | null>(economy.plusplusUntil);
   const [loading, setLoading] = useState(false);
 
@@ -60,6 +61,7 @@ function ChangeForm({ user, economy }: { user: z.infer<typeof adminFullUserSchem
         setCredits('');
         setTokens('');
         setReason('');
+        setPlusUntil(updated.plusUntil);
         setPlusplusUntil(updated.plusplusUntil);
         addToast(t(`${page}.toast.updated`, {}), 'success');
       })
@@ -118,12 +120,21 @@ function ChangeForm({ user, economy }: { user: z.infer<typeof adminFullUserSchem
       </Section>
 
       <Section title={t(`${page}.memberships`, {})}>
-        <Group>
-          <Button variant='default' loading={loading} onClick={() => send({ plus: !economy.plusSince })}>
-            {economy.plusSince
-              ? t(`${page}.takePlus`, { name: economy.plusName })
-              : t(`${page}.givePlus`, { name: economy.plusName })}
+        <Group align='flex-end'>
+          <DateTimePicker
+            label={t(`${page}.plusplusUntil`, { name: economy.plusName })}
+            value={plusUntil}
+            onChange={(value) => setPlusUntil(value ? new Date(value) : null)}
+            clearable
+          />
+          <Button variant='default' loading={loading} disabled={!plusUntil} onClick={() => send({ plusUntil })}>
+            {t(`${page}.setPlusplus`, {})}
           </Button>
+          {economy.plusUntil && (
+            <Button variant='default' loading={loading} onClick={() => send({ plusUntil: null })}>
+              {t(`${page}.endPlusplus`, { name: economy.plusName })}
+            </Button>
+          )}
         </Group>
         <Group align='flex-end'>
           <DateTimePicker
@@ -173,9 +184,14 @@ export default function AdminUserEconomy({ user }: { user: z.infer<typeof adminF
                 </Text>
               )}
               <Text size='sm' c='dimmed'>
-                {economy.plusSince ? (
+                {economy.plusUntil ? (
                   <>
-                    {t(`${page}.plusSince`, { name: economy.plusName })}{' '}
+                    {t(`${page}.plusplusRuns`, { name: economy.plusName })}{' '}
+                    <FormattedTimestamp timestamp={economy.plusUntil} />
+                  </>
+                ) : economy.plusSince ? (
+                  <>
+                    {t(`${page}.plusLapsed`, { name: economy.plusName })}{' '}
                     <FormattedTimestamp timestamp={economy.plusSince} />
                   </>
                 ) : (
@@ -204,7 +220,11 @@ export default function AdminUserEconomy({ user }: { user: z.infer<typeof adminF
             </Stack>
 
             <AdminCan action='users.economy'>
-              <ChangeForm key={economy.plusplusUntil?.toISOString() ?? 'none'} user={user} economy={economy} />
+              <ChangeForm
+                key={`${economy.plusUntil?.toISOString() ?? 'none'}:${economy.plusplusUntil?.toISOString() ?? 'none'}`}
+                user={user}
+                economy={economy}
+              />
             </AdminCan>
 
             <Section title={t(`${page}.creditHistory`, {})}>

@@ -18,7 +18,8 @@ mod get {
 
     #[derive(ToSchema, Serialize)]
     struct Response {
-        /// `none` (no ads), `member` (the slower refresh) or `everyone`.
+        /// `none` (no ads), `room` (only the waiting room before a start), `member` (the slower
+        /// refresh) or `everyone`.
         audience: Audience,
         banners: Vec<ApiAdBanner>,
     }

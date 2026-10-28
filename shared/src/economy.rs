@@ -8,10 +8,11 @@
 //! bought arrives with the account's plan. Credits the panel gives or takes then (an admin's
 //! change, Discord invite rewards) are sent to noprofit.space ([`crate::noprofit::queue_credit_change`]).
 //!
-//! Tokens are earned from sponsored links ([`crate::earn`]) and buy the memberships, which are
-//! always the panel's: Plus once, for good (the `plus` locations), PlusPlus for a while with
-//! tokens or credits (the `premium` locations, more CPU). When PlusPlus runs out its servers leave
-//! the premium locations and the CPU it added comes off ([`settle_memberships`]).
+//! Tokens are earned from sponsored links and surveys ([`crate::earn`]) and buy the memberships,
+//! which are always the panel's, each for some days at a time: Plus (the `plus` locations) with
+//! tokens, Premium (`plusplus` in code: the `premium` and `plus` locations, more CPU, everything
+//! Plus gives) with tokens or credits. Neither needs the other. When one runs out the servers
+//! leave the locations it opened and the CPU it added comes off ([`settle_memberships`]).
 //!
 //! Both memberships give **burst cores**: CPU above each server's paid limit (100 % per core) that
 //! a server uses while its node has it to spare. They are outside the allowance and the store. The
@@ -83,25 +84,35 @@ pub enum Source {
 
 #[derive(Clone, Debug, Default)]
 pub struct Membership {
+    /// When Plus was first bought.
     pub plus_since: Option<chrono::NaiveDateTime>,
+    pub plus_until: Option<chrono::NaiveDateTime>,
+    pub plus_purchases: i32,
     pub plusplus_until: Option<chrono::NaiveDateTime>,
     pub plusplus_purchases: i32,
 }
 
 impl Membership {
-    pub fn has_plus(&self) -> bool {
-        self.plus_since.is_some()
+    /// Plus runs (bought by the month). PlusPlus gives everything Plus does: ask [`Self::is_member`]
+    /// for "any membership".
+    pub fn has_plus(&self, now: chrono::NaiveDateTime) -> bool {
+        self.plus_until.is_some_and(|until| until > now)
     }
 
     pub fn has_plusplus(&self, now: chrono::NaiveDateTime) -> bool {
         self.plusplus_until.is_some_and(|until| until > now)
     }
 
+    /// Either membership runs.
+    pub fn is_member(&self, now: chrono::NaiveDateTime) -> bool {
+        self.has_plus(now) || self.has_plusplus(now)
+    }
+
     /// The account's place in the start queue: 2 with PlusPlus, 1 with Plus, 0 without.
     pub fn priority(&self, now: chrono::NaiveDateTime) -> u8 {
         if self.has_plusplus(now) {
             2
-        } else if self.has_plus() {
+        } else if self.has_plus(now) {
             1
         } else {
             0
@@ -113,7 +124,7 @@ impl Membership {
     pub fn unlocks(&self, tier: Option<&str>, now: chrono::NaiveDateTime) -> bool {
         match tier.filter(|tier| !tier.is_empty()) {
             None => true,
-            Some(TIER_PLUS) => self.has_plus() || self.has_plusplus(now),
+            Some(TIER_PLUS) => self.is_member(now),
             Some(TIER_PREMIUM) => self.has_plusplus(now),
             Some(_) => false,
         }
@@ -128,7 +139,7 @@ impl Membership {
     ) -> i16 {
         let cores = if self.has_plusplus(now) {
             settings.plusplus_burst_cores
-        } else if self.has_plus() {
+        } else if self.has_plus(now) {
             settings.plus_burst_cores
         } else {
             0
@@ -139,12 +150,41 @@ impl Membership {
 
     /// When PlusPlus bought now runs out: bought time adds to what is left.
     pub fn extended_until(&self, now: chrono::NaiveDateTime, days: i64) -> chrono::NaiveDateTime {
-        let from = self
-            .plusplus_until
-            .filter(|until| *until > now)
-            .unwrap_or(now);
+        extend(self.plusplus_until, now, days)
+    }
 
-        from + chrono::Duration::days(days.max(1))
+    /// The same for Plus.
+    pub fn plus_extended_until(
+        &self,
+        now: chrono::NaiveDateTime,
+        days: i64,
+    ) -> chrono::NaiveDateTime {
+        extend(self.plus_until, now, days)
+    }
+}
+
+/// `days` more from what is left of `until`, or from now when it ran out.
+fn extend(
+    until: Option<chrono::NaiveDateTime>,
+    now: chrono::NaiveDateTime,
+    days: i64,
+) -> chrono::NaiveDateTime {
+    until.filter(|until| *until > now).unwrap_or(now) + chrono::Duration::days(days.max(1))
+}
+
+/// The columns [`Membership::from_row`] reads.
+const MEMBERSHIP_COLUMNS: &str =
+    "plus_since, plus_until, plus_purchases, plusplus_until, plusplus_purchases";
+
+impl Membership {
+    fn from_row(row: &sqlx::postgres::PgRow) -> Result<Self, sqlx::Error> {
+        Ok(Self {
+            plus_since: row.try_get("plus_since")?,
+            plus_until: row.try_get("plus_until")?,
+            plus_purchases: row.try_get("plus_purchases")?,
+            plusplus_until: row.try_get("plusplus_until")?,
+            plusplus_purchases: row.try_get("plusplus_purchases")?,
+        })
     }
 }
 
@@ -152,20 +192,15 @@ pub async fn membership(
     database: &crate::database::Database,
     user_uuid: uuid::Uuid,
 ) -> Result<Membership, sqlx::Error> {
-    let row = sqlx::query(
-        "SELECT plus_since, plusplus_until, plusplus_purchases FROM user_memberships
-        WHERE user_uuid = $1",
-    )
+    let row = sqlx::query(sqlx::AssertSqlSafe(format!(
+        "SELECT {MEMBERSHIP_COLUMNS} FROM user_memberships WHERE user_uuid = $1"
+    )))
     .bind(user_uuid)
     .fetch_optional(database.write())
     .await?;
 
     match row {
-        Some(row) => Ok(Membership {
-            plus_since: row.try_get("plus_since")?,
-            plusplus_until: row.try_get("plusplus_until")?,
-            plusplus_purchases: row.try_get("plusplus_purchases")?,
-        }),
+        Some(row) => Membership::from_row(&row),
         None => Ok(Membership::default()),
     }
 }
@@ -207,7 +242,7 @@ pub async fn sync_burst(
     let now = chrono::Utc::now().naive_utc();
 
     let rows = sqlx::query(
-        "SELECT users.uuid, users.burst_cores, user_memberships.plus_since,
+        "SELECT users.uuid, users.burst_cores, user_memberships.plus_until,
             user_memberships.plusplus_until
         FROM users
         LEFT JOIN user_memberships ON user_memberships.user_uuid = users.uuid
@@ -222,9 +257,9 @@ pub async fn sync_burst(
         let uuid: uuid::Uuid = row.try_get("uuid")?;
         let stored: i16 = row.try_get("burst_cores")?;
         let cores = Membership {
-            plus_since: row.try_get("plus_since")?,
+            plus_until: row.try_get("plus_until")?,
             plusplus_until: row.try_get("plusplus_until")?,
-            plusplus_purchases: 0,
+            ..Default::default()
         }
         .burst_cores(&economy, now);
 
@@ -534,13 +569,28 @@ pub struct ApiEconomy {
     pub membership_enabled: bool,
     pub plus_name: compact_str::CompactString,
     pub plusplus_name: compact_str::CompactString,
+    /// When Plus was first bought.
     pub plus_since: Option<chrono::DateTime<chrono::Utc>>,
+    /// While Plus runs.
+    pub plus_until: Option<chrono::DateTime<chrono::Utc>>,
     /// While PlusPlus runs.
     pub plusplus_until: Option<chrono::DateTime<chrono::Utc>>,
     /// The start queue's priority: 2 PlusPlus, 1 Plus, 0 none.
     pub priority: u8,
+    /// Tokens Plus costs for `plus_days` days.
     pub plus_cost: i64,
+    pub plus_days: i64,
     pub plusplus_offers: Vec<ApiPlusPlusOffer>,
+    /// Whether the panel costs tokens for accounts without a membership (both memberships
+    /// include it).
+    pub panel_access: bool,
+    /// Whether a start may wait in the ad-funded waiting room: Plus keeps it, PlusPlus does not
+    /// (while Fewer Ads for Members is on).
+    pub waiting_room: bool,
+    /// Whether idle servers of members are stopped and parked too (limbo on, members not
+    /// spared), and deleted after a while parked.
+    pub idle_stop: bool,
+    pub idle_delete: bool,
     /// Burst cores on every server with Plus, and with PlusPlus (the total).
     pub plus_burst_cores: i64,
     pub plusplus_burst_cores: i64,
@@ -573,8 +623,12 @@ pub struct ApiMembershipDevbox {
 
 /// The account's economy. Gives the daily tokens and the starting credits when they are due.
 pub async fn summary(state: &crate::State, user: &User) -> Result<ApiEconomy, anyhow::Error> {
-    let (economy, connected, neo_percents, devbox) = {
+    let (economy, connected, neo_percents, devbox, waiting_room, idle_stop, idle_delete) = {
         let settings = state.settings.get().await?;
+        let waiting_room = settings.ads.enabled && settings.ads.room_enabled;
+        let idle_stop = settings.limbo.enabled
+            && !(settings.limbo.exempt_members && settings.economy.membership_enabled);
+        let idle_delete = idle_stop && settings.limbo.delete_after_days > 0;
         let neo_percents = crate::neo::offered(&settings).then(|| {
             use crate::settings::neo::NeoPlan;
 
@@ -606,6 +660,9 @@ pub async fn summary(state: &crate::State, user: &User) -> Result<ApiEconomy, an
             settings.noprofit.connected(),
             neo_percents,
             devbox,
+            waiting_room,
+            idle_stop,
+            idle_delete,
         )
     };
 
@@ -659,13 +716,22 @@ pub async fn summary(state: &crate::State, user: &User) -> Result<ApiEconomy, an
         plus_name: economy.plus_name,
         plusplus_name: economy.plusplus_name,
         plus_since: membership.plus_since.map(|since| since.and_utc()),
+        plus_until: membership
+            .plus_until
+            .filter(|_| membership.has_plus(now))
+            .map(|until| until.and_utc()),
         plusplus_until: membership
             .plusplus_until
             .filter(|_| membership.has_plusplus(now))
             .map(|until| until.and_utc()),
         priority: membership.priority(now),
         plus_cost: economy.plus_tokens.max(0) as i64,
+        plus_days: economy.plus_days.max(1) as i64,
         plusplus_offers,
+        panel_access: economy.panel_access_enabled,
+        waiting_room,
+        idle_stop,
+        idle_delete,
         plus_burst_cores: economy.plus_burst_cores.max(0) as i64,
         plusplus_burst_cores: economy.plusplus_burst_cores.max(0) as i64,
         burst_cores,
@@ -720,7 +786,6 @@ pub enum EconomyError {
     Unavailable,
     /// The balance is short.
     Short,
-    NeedsPlus,
     Owned,
     /// The price moved since the player saw it; the store as it is now.
     PriceChanged(Box<ApiStore>),
@@ -736,7 +801,6 @@ impl EconomyError {
             Self::Disabled => "this is turned off".into(),
             Self::Unavailable => "this is not for sale right now".into(),
             Self::Short => "your balance is too low".into(),
-            Self::NeedsPlus => "this needs the first membership".into(),
             Self::Owned => "you have this already".into(),
             Self::PriceChanged(_) => "the price changed, look at the new one".into(),
             Self::Refused(reason) if reason.is_empty() => "the purchase was refused".into(),
@@ -748,7 +812,7 @@ impl EconomyError {
 
     pub fn status(&self) -> u16 {
         match self {
-            Self::Disabled | Self::NeedsPlus => 403,
+            Self::Disabled => 403,
             Self::Unavailable | Self::Short | Self::Owned | Self::PriceChanged(_) => 409,
             Self::Refused(_) => 422,
             Self::BadRequest(_) => 400,
@@ -1325,39 +1389,31 @@ async fn locked_membership(
         .execute(&mut **transaction)
         .await?;
 
-    let row = sqlx::query(
-        "SELECT plus_since, plusplus_until, plusplus_purchases FROM user_memberships
-        WHERE user_uuid = $1 FOR UPDATE",
-    )
+    let row = sqlx::query(sqlx::AssertSqlSafe(format!(
+        "SELECT {MEMBERSHIP_COLUMNS} FROM user_memberships WHERE user_uuid = $1 FOR UPDATE"
+    )))
     .bind(user_uuid)
     .fetch_one(&mut **transaction)
     .await?;
 
-    Ok(Membership {
-        plus_since: row.try_get("plus_since")?,
-        plusplus_until: row.try_get("plusplus_until")?,
-        plusplus_purchases: row.try_get("plusplus_purchases")?,
-    })
+    Membership::from_row(&row)
 }
 
-/// Buys Plus with tokens: the tokens and Plus change together or not at all.
+/// Buys (or extends) Plus with tokens: the tokens and Plus change together or not at all. Bought
+/// time adds to what is left, so buying early loses nothing.
 pub async fn buy_plus(state: &crate::State, user: &User) -> Result<ApiEconomy, EconomyError> {
     let economy = state.settings.get().await?.economy.clone();
     if !economy.membership_enabled {
         return Err(EconomyError::Disabled);
     }
     let cost = economy.plus_tokens.max(0) as i64;
+    let days = economy.plus_days.max(1) as i64;
     if cost > 0 && !economy.tokens_enabled {
         return Err(EconomyError::Unavailable);
     }
 
     let mut transaction = state.database.write().begin().await?;
-    if locked_membership(&mut transaction, user.uuid)
-        .await?
-        .has_plus()
-    {
-        return Err(EconomyError::Owned);
-    }
+    let membership = locked_membership(&mut transaction, user.uuid).await?;
 
     if cost > 0
         && change(
@@ -1366,8 +1422,8 @@ pub async fn buy_plus(state: &crate::State, user: &User) -> Result<ApiEconomy, E
             user.uuid,
             -cost,
             TYPE_PLUS,
-            &economy.plus_name,
-            serde_json::json!({}),
+            &format!("{} ({days} days)", economy.plus_name),
+            serde_json::json!({ "days": days }),
         )
         .await?
         .is_none()
@@ -1375,10 +1431,16 @@ pub async fn buy_plus(state: &crate::State, user: &User) -> Result<ApiEconomy, E
         return Err(EconomyError::Short);
     }
 
-    sqlx::query("UPDATE user_memberships SET plus_since = NOW() WHERE user_uuid = $1")
-        .bind(user.uuid)
-        .execute(&mut *transaction)
-        .await?;
+    sqlx::query(
+        "UPDATE user_memberships
+        SET plus_since = COALESCE(plus_since, NOW()), plus_until = $2,
+            plus_purchases = plus_purchases + 1
+        WHERE user_uuid = $1",
+    )
+    .bind(user.uuid)
+    .bind(membership.plus_extended_until(chrono::Utc::now().naive_utc(), days))
+    .execute(&mut *transaction)
+    .await?;
     transaction.commit().await?;
     sync_burst_now(state, user.uuid).await;
     User::invalidate_cached(&state.database, user.uuid).await;
@@ -1386,8 +1448,8 @@ pub async fn buy_plus(state: &crate::State, user: &User) -> Result<ApiEconomy, E
     Ok(summary(state, user).await?)
 }
 
-/// Buys (or extends) PlusPlus with tokens or credits. Needs Plus. Bought time adds to what is
-/// left, so buying early loses nothing.
+/// Buys (or extends) PlusPlus with tokens or credits. It gives everything Plus does, so it needs
+/// no Plus. Bought time adds to what is left, so buying early loses nothing.
 pub async fn buy_plusplus(
     state: &crate::State,
     user: &User,
@@ -1415,9 +1477,6 @@ pub async fn buy_plusplus(
 
     let mut transaction = state.database.write().begin().await?;
     let membership = locked_membership(&mut transaction, user.uuid).await?;
-    if !membership.has_plus() {
-        return Err(EconomyError::NeedsPlus);
-    }
 
     let description = format!("{} ({days} days)", economy.plusplus_name);
     let data = serde_json::json!({ "days": days, "pay": pay });
@@ -1599,7 +1658,8 @@ pub struct AdminChange {
     pub tokens: Option<i64>,
     /// Shown in the user's history.
     pub reason: Option<String>,
-    pub plus: Option<bool>,
+    /// `Some(None)` ends Plus now.
+    pub plus_until: Option<Option<chrono::DateTime<chrono::Utc>>>,
     /// `Some(None)` ends PlusPlus now.
     pub plusplus_until: Option<Option<chrono::DateTime<chrono::Utc>>>,
 }
@@ -1685,17 +1745,22 @@ pub async fn admin_change(
         }
     }
 
-    if change_request.plus.is_some() || change_request.plusplus_until.is_some() {
+    if change_request.plus_until.is_some() || change_request.plusplus_until.is_some() {
         locked_membership(&mut transaction, user.uuid).await?;
 
-        if let Some(plus) = change_request.plus {
+        if let Some(until) = change_request.plus_until {
+            // Ended by an admin: the servers leave the plus locations like after a lapse.
+            let until = until
+                .map(|until| until.naive_utc())
+                .unwrap_or_else(|| chrono::Utc::now().naive_utc());
+
             sqlx::query(
                 "UPDATE user_memberships
-                SET plus_since = CASE WHEN $2 THEN COALESCE(plus_since, NOW()) ELSE NULL END
+                SET plus_until = $2, plus_since = COALESCE(plus_since, NOW())
                 WHERE user_uuid = $1",
             )
             .bind(user.uuid)
-            .bind(plus)
+            .bind(until)
             .execute(&mut *transaction)
             .await?;
         }
@@ -1724,8 +1789,8 @@ pub async fn admin_change(
     Ok(())
 }
 
-/// The order a server leaving a premium location tries the other locations in: the same country
-/// (flag) first, Plus before free, then the fastest.
+/// The order a server leaving a location its owner lost tries the other locations in: the same
+/// country (flag) first, Plus before free (when Plus still runs), then the fastest.
 pub fn destination_order(
     current_flag: Option<&str>,
     location: &crate::server_creation::ApiCreateLocation,
@@ -1737,17 +1802,19 @@ pub fn destination_order(
     )
 }
 
-/// Carries out every PlusPlus that ran out: every server on a premium location moves to another
-/// location the owner may use (an admin move, a few at a time). A lapse is settled once no server is left on a premium
-/// location; until then the task comes back, so a full location is tried again. Buying PlusPlus
-/// again before that stops it. Then every account's burst cores are brought in line
-/// ([`sync_burst`]).
+/// Carries out every membership that ran out: every server on a location the owner may no longer
+/// use (`premium` once PlusPlus ran out, `plus` once both did) moves to another location the
+/// owner may use (an admin move, a few at a time). A lapse is settled once no such server is
+/// left; until then the task comes back, so a full location is tried again. Buying again before
+/// that stops it. Then every account's burst cores are brought in line ([`sync_burst`]).
 pub async fn settle_memberships(state: &crate::State) -> Result<(), anyhow::Error> {
     let due = sqlx::query(
-        "SELECT user_uuid, plusplus_until FROM user_memberships
-        WHERE plusplus_until IS NOT NULL AND plusplus_until <= NOW()
-            AND (plusplus_settled IS NULL OR plusplus_settled < plusplus_until)
-        ORDER BY plusplus_until
+        "SELECT user_uuid FROM user_memberships
+        WHERE (plusplus_until IS NOT NULL AND plusplus_until <= NOW()
+                AND (plusplus_settled IS NULL OR plusplus_settled < plusplus_until))
+            OR (plus_until IS NOT NULL AND plus_until <= NOW()
+                AND (plus_settled IS NULL OR plus_settled < plus_until))
+        ORDER BY LEAST(plusplus_until, plus_until)
         LIMIT 50",
     )
     .fetch_all(state.database.write())
@@ -1757,20 +1824,36 @@ pub async fn settle_memberships(state: &crate::State) -> Result<(), anyhow::Erro
         let user_uuid: uuid::Uuid = row.try_get("user_uuid")?;
 
         if let Err(err) = settle_lapse(state, user_uuid).await {
-            tracing::warn!(user = %user_uuid, "failed to settle a lapsed PlusPlus: {err:#}");
+            tracing::warn!(user = %user_uuid, "failed to settle a lapsed membership: {err:#}");
         }
     }
 
-    // a PlusPlus that ran out drops to Plus's burst cores
+    // a membership that ran out drops to the other's burst cores, or none
     sync_burst(state, None).await
+}
+
+/// The location tiers a lapse takes away from an account with `membership` now.
+pub fn lost_tiers(membership: &Membership, now: chrono::NaiveDateTime) -> Vec<&'static str> {
+    [TIER_PREMIUM, TIER_PLUS]
+        .into_iter()
+        .filter(|tier| !membership.unlocks(Some(tier), now))
+        .collect()
 }
 
 async fn settle_lapse(state: &crate::State, user_uuid: uuid::Uuid) -> Result<(), anyhow::Error> {
     let Some(user) = User::by_uuid_optional(&state.database, user_uuid).await? else {
         return Ok(());
     };
+    let now = chrono::Utc::now().naive_utc();
+    let membership = membership(&state.database, user_uuid).await?;
+    let lost: Vec<String> = lost_tiers(&membership, now)
+        .into_iter()
+        .map(str::to_string)
+        .collect();
+    // which one the owner is told ended: the second when it ran out, else the first
+    let second = membership.plusplus_until.is_some_and(|until| until <= now);
 
-    // The owner's servers on premium locations, and whether a move of each is under way.
+    // The owner's servers on locations it lost, and whether a move of each is under way.
     let servers = sqlx::query(
         r#"
         SELECT servers.uuid, locations.flag,
@@ -1782,19 +1865,25 @@ async fn settle_lapse(state: &crate::State, user_uuid: uuid::Uuid) -> Result<(),
         FROM servers
         JOIN nodes ON nodes.uuid = servers.node_uuid
         JOIN locations ON locations.uuid = nodes.location_uuid
-        WHERE servers.owner_uuid = $1 AND locations.tier = $2
+        WHERE servers.owner_uuid = $1 AND locations.tier = ANY($2)
         "#,
     )
     .bind(user_uuid)
-    .bind(TIER_PREMIUM)
+    .bind(&lost)
     .fetch_all(state.database.write())
     .await?;
 
     if servers.is_empty() {
-        sqlx::query("UPDATE user_memberships SET plusplus_settled = NOW() WHERE user_uuid = $1")
-            .bind(user_uuid)
-            .execute(state.database.write())
-            .await?;
+        sqlx::query(
+            "UPDATE user_memberships
+            SET plusplus_settled = CASE WHEN plusplus_until <= NOW() THEN NOW()
+                    ELSE plusplus_settled END,
+                plus_settled = CASE WHEN plus_until <= NOW() THEN NOW() ELSE plus_settled END
+            WHERE user_uuid = $1",
+        )
+        .bind(user_uuid)
+        .execute(state.database.write())
+        .await?;
 
         return Ok(());
     }
@@ -1814,11 +1903,14 @@ async fn settle_lapse(state: &crate::State, user_uuid: uuid::Uuid) -> Result<(),
             .filter(|location| {
                 location.unlocked
                     && location.available
-                    && location.tier.as_deref() != Some(TIER_PREMIUM)
+                    && !location
+                        .tier
+                        .as_deref()
+                        .is_some_and(|tier| lost.iter().any(|lost| lost == tier))
             })
             .min_by_key(|location| destination_order(flag.as_deref(), location))
         else {
-            tracing::info!(server = %server_uuid, "PlusPlus ran out, but no other location takes the server yet");
+            tracing::info!(server = %server_uuid, "a membership ran out, but no other location takes the server yet");
             continue;
         };
 
@@ -1829,10 +1921,10 @@ async fn settle_lapse(state: &crate::State, user_uuid: uuid::Uuid) -> Result<(),
         };
 
         crate::server_transfers::queue_admin_move(state, &server, destination.uuid).await?;
-        tracing::info!(server = %server_uuid, location = %destination.uuid, "PlusPlus ran out, moving the server off its premium location");
+        tracing::info!(server = %server_uuid, location = %destination.uuid, "a membership ran out, moving the server off a location it opened");
         moving.push(server.name.to_string());
     }
-    crate::notifications::membership_ended(state, user_uuid, &moving).await;
+    crate::notifications::membership_ended(state, user_uuid, second, &moving).await;
 
     Ok(())
 }
@@ -1853,6 +1945,7 @@ mod tests {
         let now = at(0);
         let plus = Membership {
             plus_since: Some(at(-10)),
+            plus_until: Some(at(10)),
             ..Default::default()
         };
         let plusplus = Membership {
@@ -1863,12 +1956,22 @@ mod tests {
             plusplus_until: Some(at(-1)),
             ..plus.clone()
         };
+        let plusplus_alone = Membership {
+            plusplus_until: Some(at(5)),
+            ..Default::default()
+        };
+        let plus_lapsed = Membership {
+            plus_until: Some(at(-1)),
+            ..plus.clone()
+        };
 
         assert_eq!(Membership::default().burst_cores(&settings, now), 0);
         assert_eq!(plus.burst_cores(&settings, now), 1);
         // the total, not 1 + 2
         assert_eq!(plusplus.burst_cores(&settings, now), 2);
+        assert_eq!(plusplus_alone.burst_cores(&settings, now), 2);
         assert_eq!(lapsed.burst_cores(&settings, now), 1);
+        assert_eq!(plus_lapsed.burst_cores(&settings, now), 0);
     }
 
     #[test]
@@ -1891,19 +1994,32 @@ mod tests {
         let none = Membership::default();
         let plus = Membership {
             plus_since: Some(at(-10)),
+            plus_until: Some(at(10)),
+            plus_purchases: 1,
             ..Default::default()
         };
         let plusplus = Membership {
-            plus_since: Some(at(-10)),
             plusplus_until: Some(at(5)),
             plusplus_purchases: 1,
+            ..plus.clone()
         };
         let lapsed = Membership {
             plusplus_until: Some(at(-1)),
             ..plusplus.clone()
         };
+        // PlusPlus gives everything Plus does, without it
+        let plusplus_alone = Membership {
+            plusplus_until: Some(at(5)),
+            plusplus_purchases: 1,
+            ..Default::default()
+        };
+        // Plus bought by the month runs out like PlusPlus
+        let plus_lapsed = Membership {
+            plus_until: Some(at(-1)),
+            ..plus.clone()
+        };
 
-        for membership in [&none, &plus, &plusplus] {
+        for membership in [&none, &plus, &plusplus, &plusplus_alone] {
             assert!(membership.unlocks(None, now));
             assert!(membership.unlocks(Some(""), now));
             assert!(!membership.unlocks(Some("gold"), now));
@@ -1914,22 +2030,39 @@ mod tests {
         assert!(plusplus.unlocks(Some(TIER_PREMIUM), now));
         assert!(!lapsed.unlocks(Some(TIER_PREMIUM), now));
         assert!(lapsed.unlocks(Some(TIER_PLUS), now));
+        assert!(plusplus_alone.unlocks(Some(TIER_PLUS), now));
+        assert!(plusplus_alone.unlocks(Some(TIER_PREMIUM), now));
+        assert!(!plus_lapsed.unlocks(Some(TIER_PLUS), now));
+        assert!(!plus_lapsed.is_member(now));
+        assert!(plusplus_alone.is_member(now));
 
         assert_eq!(none.priority(now), 0);
         assert_eq!(plus.priority(now), 1);
         assert_eq!(plusplus.priority(now), 2);
+        assert_eq!(plusplus_alone.priority(now), 2);
         assert_eq!(lapsed.priority(now), 1);
+        assert_eq!(plus_lapsed.priority(now), 0);
+
+        // what a lapse takes away
+        assert!(lost_tiers(&plusplus, now).is_empty());
+        assert!(lost_tiers(&plusplus_alone, now).is_empty());
+        assert_eq!(lost_tiers(&lapsed, now), vec![TIER_PREMIUM]);
+        assert_eq!(lost_tiers(&plus_lapsed, now), vec![TIER_PREMIUM, TIER_PLUS]);
+        assert_eq!(lost_tiers(&none, now), vec![TIER_PREMIUM, TIER_PLUS]);
     }
 
     #[test]
-    fn plusplus_bought_early_adds_to_what_is_left() {
+    fn memberships_bought_early_add_to_what_is_left() {
         let now = at(0);
         let running = Membership {
             plus_since: Some(at(-10)),
+            plus_until: Some(at(24)),
+            plus_purchases: 1,
             plusplus_until: Some(at(48)),
             plusplus_purchases: 1,
         };
         let lapsed = Membership {
+            plus_until: Some(at(-24)),
             plusplus_until: Some(at(-48)),
             ..running.clone()
         };
@@ -1937,6 +2070,13 @@ mod tests {
         assert_eq!(running.extended_until(now, 7), at(48 + 7 * 24));
         assert_eq!(lapsed.extended_until(now, 7), at(7 * 24));
         assert_eq!(Membership::default().extended_until(now, 0), at(24));
+
+        assert_eq!(running.plus_extended_until(now, 30), at(24 + 30 * 24));
+        assert_eq!(lapsed.plus_extended_until(now, 30), at(30 * 24));
+        assert_eq!(
+            Membership::default().plus_extended_until(now, 30),
+            at(30 * 24)
+        );
     }
 
     #[test]

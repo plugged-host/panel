@@ -38,8 +38,9 @@ pub struct AppSettingsEconomy {
     pub membership_enabled: bool,
     pub plus_name: compact_str::CompactString,
     pub plusplus_name: compact_str::CompactString,
-    /// Tokens Plus costs, once.
+    /// Tokens the first membership costs for `plus_days` days.
     pub plus_tokens: i32,
+    pub plus_days: i32,
     pub plusplus_tokens: i32,
     pub plusplus_token_days: i32,
     /// Credits PlusPlus costs; 0 does not sell it for credits.
@@ -145,6 +146,16 @@ pub struct AppSettingsEconomy {
     pub adfocus_daily_cap: i32,
     /// Seconds an AdFoc.us trip must at least take.
     pub adfocus_min_seconds: i32,
+    /// CPX Research's survey wall (shared/src/earn.rs): each survey pays what CPX shows for it,
+    /// worked out from the Currency Factor in CPX's dashboard, told by its postback.
+    pub cpx_research_enabled: bool,
+    pub cpx_research_app_id: Option<compact_str::CompactString>,
+    /// The app's secure hash, which signs the wall's link and the postbacks. Stored encrypted.
+    #[serde(serialize_with = "super::noprofit::serialize_secret")]
+    #[schema(value_type = Option<String>)]
+    pub cpx_research_secret: Option<compact_str::CompactString>,
+    /// Finished surveys a day that pay; screen-outs and bonuses do not count. 0: no cap.
+    pub cpx_research_daily_cap: i32,
 }
 
 impl Default for AppSettingsEconomy {
@@ -159,12 +170,13 @@ impl Default for AppSettingsEconomy {
             panel_access_days: 30,
             membership_enabled: true,
             plus_name: "Plus".into(),
-            plusplus_name: "PlusPlus".into(),
-            plus_tokens: 25,
-            plusplus_tokens: 10,
-            plusplus_token_days: 7,
-            plusplus_credits: 150,
-            plusplus_credit_days: 14,
+            plusplus_name: "Premium".into(),
+            plus_tokens: 15,
+            plus_days: 30,
+            plusplus_tokens: 30,
+            plusplus_token_days: 30,
+            plusplus_credits: 0,
+            plusplus_credit_days: 30,
             plus_burst_cores: 1,
             plusplus_burst_cores: 2,
             cpu_step: 50,
@@ -219,6 +231,10 @@ impl Default for AppSettingsEconomy {
             adfocus_reward: 1.0,
             adfocus_daily_cap: 5,
             adfocus_min_seconds: 10,
+            cpx_research_enabled: false,
+            cpx_research_app_id: None,
+            cpx_research_secret: None,
+            cpx_research_daily_cap: 1,
         }
     }
 }
@@ -284,6 +300,8 @@ pub struct PayloadEconomy {
     plusplus_name: Option<compact_str::CompactString>,
     #[garde(inner(range(min = 0, max = 100_000)))]
     plus_tokens: Option<i32>,
+    #[garde(inner(range(min = 1, max = 365)))]
+    plus_days: Option<i32>,
     #[garde(inner(range(min = 0, max = 100_000)))]
     plusplus_tokens: Option<i32>,
     #[garde(inner(range(min = 1, max = 365)))]
@@ -415,6 +433,16 @@ pub struct PayloadEconomy {
     adfocus_daily_cap: Option<i32>,
     #[garde(inner(range(min = 0, max = 600)))]
     adfocus_min_seconds: Option<i32>,
+    #[garde(skip)]
+    cpx_research_enabled: Option<bool>,
+    #[garde(inner(inner(length(chars, max = 20))))]
+    #[serde(default, with = "::serde_with::rust::double_option")]
+    cpx_research_app_id: Option<Option<compact_str::CompactString>>,
+    #[garde(inner(inner(length(chars, max = 512))))]
+    #[serde(default, with = "::serde_with::rust::double_option")]
+    cpx_research_secret: Option<Option<compact_str::CompactString>>,
+    #[garde(inner(range(min = 0, max = 1000)))]
+    cpx_research_daily_cap: Option<i32>,
 }
 
 /// An optional text field: empty clears it.
@@ -457,6 +485,7 @@ impl PayloadEconomy {
             panel_access_days,
             membership_enabled,
             plus_tokens,
+            plus_days,
             plusplus_tokens,
             plusplus_token_days,
             plusplus_credits,
@@ -503,6 +532,8 @@ impl PayloadEconomy {
             adfocus_reward,
             adfocus_daily_cap,
             adfocus_min_seconds,
+            cpx_research_enabled,
+            cpx_research_daily_cap,
         );
 
         if let Some(name) = self.plus_name {
@@ -557,6 +588,17 @@ impl PayloadEconomy {
         secret(self.shrinkearn_api_key, &mut settings.shrinkearn_api_key);
         secret(self.shrinkme_api_key, &mut settings.shrinkme_api_key);
         secret(self.adfocus_api_key, &mut settings.adfocus_api_key);
+        if let Some(app_id) = self.cpx_research_app_id {
+            let app_id = text(app_id);
+            if app_id
+                .as_ref()
+                .is_some_and(|app_id| !app_id.bytes().all(|b| b.is_ascii_digit()))
+            {
+                return Err("the cpx research app id must be a number");
+            }
+            settings.cpx_research_app_id = app_id;
+        }
+        secret(self.cpx_research_secret, &mut settings.cpx_research_secret);
 
         Ok(())
     }
@@ -597,6 +639,7 @@ impl SettingsSerializeExt for AppSettingsEconomy {
 
         for (key, value) in [
             ("plus_tokens", self.plus_tokens),
+            ("plus_days", self.plus_days),
             ("plusplus_tokens", self.plusplus_tokens),
             ("plusplus_token_days", self.plusplus_token_days),
             ("plusplus_credits", self.plusplus_credits),
@@ -631,6 +674,7 @@ impl SettingsSerializeExt for AppSettingsEconomy {
             ("shrinkme_min_seconds", self.shrinkme_min_seconds),
             ("adfocus_daily_cap", self.adfocus_daily_cap),
             ("adfocus_min_seconds", self.adfocus_min_seconds),
+            ("cpx_research_daily_cap", self.cpx_research_daily_cap),
         ] {
             serializer = serializer.write_raw_setting(key, value.to_compact_string());
         }
@@ -692,7 +736,15 @@ impl SettingsSerializeExt for AppSettingsEconomy {
                 "shrinkme_enabled",
                 self.shrinkme_enabled.to_compact_string(),
             )
-            .write_raw_setting("adfocus_enabled", self.adfocus_enabled.to_compact_string());
+            .write_raw_setting("adfocus_enabled", self.adfocus_enabled.to_compact_string())
+            .write_raw_setting(
+                "cpx_research_enabled",
+                self.cpx_research_enabled.to_compact_string(),
+            )
+            .write_raw_setting(
+                "cpx_research_app_id",
+                self.cpx_research_app_id.clone().unwrap_or_default(),
+            );
 
         for (key, secret) in [
             ("linkvertise_token", &self.linkvertise_token),
@@ -701,6 +753,7 @@ impl SettingsSerializeExt for AppSettingsEconomy {
             ("shrinkearn_api_key", &self.shrinkearn_api_key),
             ("shrinkme_api_key", &self.shrinkme_api_key),
             ("adfocus_api_key", &self.adfocus_api_key),
+            ("cpx_research_secret", &self.cpx_research_secret),
         ] {
             serializer = match secret {
                 Some(secret) => {
@@ -726,7 +779,7 @@ impl SettingsDeserializeExt for AppSettingsEconomyDeserializer {
     ) -> Result<ExtensionSettings, anyhow::Error> {
         let defaults = AppSettingsEconomy::default();
 
-        let mut secrets = Vec::with_capacity(6);
+        let mut secrets = Vec::with_capacity(7);
         for key in [
             "linkvertise_token",
             "vylo_api_key",
@@ -734,6 +787,7 @@ impl SettingsDeserializeExt for AppSettingsEconomyDeserializer {
             "shrinkearn_api_key",
             "shrinkme_api_key",
             "adfocus_api_key",
+            "cpx_research_secret",
         ] {
             secrets.push(match deserializer.take_raw_setting(key) {
                 Some(secret) if secret.is_empty() => None,
@@ -741,6 +795,7 @@ impl SettingsDeserializeExt for AppSettingsEconomyDeserializer {
                 None => None,
             });
         }
+        let cpx_research_secret = secrets.pop().flatten();
         let adfocus_api_key = secrets.pop().flatten();
         let shrinkme_api_key = secrets.pop().flatten();
         let shrinkearn_api_key = secrets.pop().flatten();
@@ -792,6 +847,7 @@ impl SettingsDeserializeExt for AppSettingsEconomyDeserializer {
             plus_name: text!(plus_name).unwrap_or(defaults.plus_name),
             plusplus_name: text!(plusplus_name).unwrap_or(defaults.plusplus_name),
             plus_tokens: read!(plus_tokens),
+            plus_days: read!(plus_days),
             plusplus_tokens: read!(plusplus_tokens),
             plusplus_token_days: read!(plusplus_token_days),
             plusplus_credits: read!(plusplus_credits),
@@ -850,6 +906,10 @@ impl SettingsDeserializeExt for AppSettingsEconomyDeserializer {
             adfocus_reward: read!(adfocus_reward),
             adfocus_daily_cap: read!(adfocus_daily_cap),
             adfocus_min_seconds: read!(adfocus_min_seconds),
+            cpx_research_enabled: flag!(cpx_research_enabled),
+            cpx_research_app_id: text!(cpx_research_app_id),
+            cpx_research_secret: cpx_research_secret.and_then(|s| s.into_optional()),
+            cpx_research_daily_cap: read!(cpx_research_daily_cap),
         }))
     }
 }
@@ -894,5 +954,39 @@ mod tests {
         assert!(payload(10, 10).apply(&mut economy).is_err());
         assert!(payload(10, 20).apply(&mut economy).is_ok());
         assert_eq!(economy.store_discount_ends, Some(at(20)));
+    }
+
+    #[test]
+    fn the_cpx_research_app_id_is_a_number_and_its_secret_is_kept() {
+        let payload =
+            |value: serde_json::Value| -> PayloadEconomy { serde_json::from_value(value).unwrap() };
+        let mut economy = AppSettingsEconomy::default();
+        assert_eq!(economy.cpx_research_daily_cap, 1);
+
+        assert!(
+            payload(serde_json::json!({ "cpx_research_app_id": "12a" }))
+                .apply(&mut economy)
+                .is_err()
+        );
+        assert!(
+            payload(serde_json::json!({
+                "cpx_research_app_id": " 12345 ",
+                "cpx_research_secret": "<secret>",
+            }))
+            .apply(&mut economy)
+            .is_ok()
+        );
+        assert_eq!(economy.cpx_research_app_id.as_deref(), Some("12345"));
+        assert_eq!(economy.cpx_research_secret.as_deref(), Some("<secret>"));
+
+        // sent empty, as the form does, the stored secret stays; null removes it
+        payload(serde_json::json!({ "cpx_research_secret": "" }))
+            .apply(&mut economy)
+            .unwrap();
+        assert_eq!(economy.cpx_research_secret.as_deref(), Some("<secret>"));
+        payload(serde_json::json!({ "cpx_research_secret": null }))
+            .apply(&mut economy)
+            .unwrap();
+        assert_eq!(economy.cpx_research_secret, None);
     }
 }

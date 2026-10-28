@@ -888,7 +888,8 @@
           "store": "Kaynak Mağazası",
           "plus": "Üyelik",
           "plusplus": "Üyelik",
-          "earn": "Sponsorlu bağlantı",
+          "earn": "Kazanıldı",
+          "earnReversal": "Kazanç geri alındı",
           "limbo": "Sunucu geri yüklendi",
           "limboRefund": "Geri yükleme iade edildi",
           "subdomain": "Alt alan adı",
@@ -1050,7 +1051,7 @@
           },
           "membershipEnded": {
             "title": "{membership} sona erdi",
-            "body": "Premium konumlardaki sunucular başka bir konuma taşınıyor: {servers}. İlerlemeyi her sunucunun Taşıma sayfasından takip edin."
+            "body": "Üyeliğin açtığı konumlardaki sunucular başka bir konuma taşınıyor: {servers}. İlerlemeyi her sunucunun Taşıma sayfasından takip edin."
           },
           "failoverDone": {
             "title": "Sunucu kurtarıldı",
@@ -2847,11 +2848,12 @@
           "title": "Jetonlar",
           "subheading": "Jeton kazanın ve nereye gittiklerini görün",
           "balance": "{count} jeton",
-          "explainer": "Sponsorlu bağlantıları tamamlayarak jeton kazanın. Jetonlarla {app} {plus}, uyku modundaki bir sunucuyu uyandırma ve alt alan adları için ödeme yaparsınız.",
+          "explainer": "Bir anket doldurarak veya sponsorlu bağlantıları tamamlayarak jeton kazanın. Jetonlarla {app} {plus}, uyku modundaki bir sunucuyu uyandırma ve alt alan adları için ödeme yaparsınız.",
           "saved": "Bir sonraki jeton için {amount} jeton biriktirildi",
           "decays": "Bugün her bağlantı biraz daha az kazandırır (ilki {full} kazandırdı).",
           "none": "Şu anda jeton kazanmanın bir yolu ayarlanmamış.",
           "provider": {
+            "cpx_research": "CPX Research",
             "linkvertise": "Linkvertise",
             "vylo": "Vylo",
             "cuty": "Cuty",
@@ -2864,6 +2866,11 @@
           "capped": "Yarın tekrar gelin",
           "linkUnavailable": "Şu anda kullanılamıyor",
           "earnWith": "{provider} ile kazan",
+          "takeSurvey": "Anket doldur",
+          "surveyReward": "Her anketin gösterdiği kadar öder",
+          "surveyConfirm": "Jetonlar, {provider} anketi onayladığında gelir; genellikle birkaç dakika içinde.",
+          "surveyCapOne": "Günde bir anket ödeme yapar. Uygun olmadığınız için erken biten bir anket küçük bir bonus verebilir ve sayılmaz.",
+          "surveyCap": "Günde {cap} anket ödeme yapar. Uygun olmadığınız için erken biten bir anket küçük bir bonus verebilir ve sayılmaz.",
           "scriptBlocked": "Sponsorlu bağlantı yüklenemedi. Bir içerik engelleyici buna engel oluyor olabilir.",
           "history": "Son aktiviteler",
           "redemption": {
@@ -2882,37 +2889,31 @@
         "membership": {
           "title": "Üyelik",
           "pageTitle": "{app} {name}",
-          "subtitle": "Daha iyi lokasyonlar, sırada bekleme yok ve oyununuzda reklam yok. Bir kez satın alın, kalıcı olarak sizin olsun.",
+          "subtitle": "Daha iyi lokasyonlar, sırada bekleme yok ve daha az reklam. Jetonla aylık ödenir; hiçbir şey kendiliğinden yenilenmez.",
           "unavailable": "{name} şu anda satışta değil.",
-          "plusplusActive": {
+          "active": {
             "heading": "{name} etkin",
             "body": "{until} tarihine kadar geçerli."
           },
-          "owned": {
-            "heading": "{app} {name} üyeliğiniz var",
-            "body": "{name} lokasyonları, başlatma sırasında öncelik ve oyun içi reklamsız deneyim kalıcı olarak sizin. {plusplus} bunların üstüne daha fazlasını ekler."
-          },
           "plus": {
-            "pitch": "Çoğu sunucunun ihtiyaç duyduğu her şey; tek seferlik, yenileme yok.",
-            "term": "Tek seferlik, kalıcı",
-            "get": "{name} Al",
-            "owned": "Sahipsiniz"
+            "pitch": "Çoğu sunucunun ihtiyaç duyduğu her şey, aylık olarak.",
+            "get": "{name} Al"
           },
           "plusplus": {
-            "pitch": "En çok ihtiyacı olan sunucular için ek paket: Premium donanım, hiçbir yerde reklam yok ve daha fazla CPU.",
+            "pitch": "En çok ihtiyacı olan sunucular için: Premium donanım, hiçbir yerde reklam yok ve daha fazla CPU.",
             "term": "{tokens}, krediyle {credits}",
             "termTokens": "{tokens}",
-            "needsPlus": "{name} için önce {app} {plus} gerekir.",
-            "extendHint": "Süresi bitmeden tekrar satın alırsanız kalan süreye eklenir.",
             "notSold": "Şu anda satışta değil."
           },
+          "extendHint": "Süresi bitmeden tekrar satın alırsanız kalan süreye eklenir.",
           "days": "{days} gün",
           "duration": {
             "day": "bir gün",
             "days": "{count} gün",
             "week": "bir hafta",
             "twoWeeks": "iki hafta",
-            "weeks": "{count} hafta"
+            "weeks": "{count} hafta",
+            "month": "bir ay"
           },
           "cost": {
             "tokens": "{cost} jeton",
@@ -2923,14 +2924,16 @@
           "perks": {
             "plusLocations": "{name} lokasyonları",
             "priority": "Bir node meşgulken başlatma sırasında öncelik",
-            "noGameAds": "Minecraft sunucularınızda oyun içi reklam yok",
+            "noBannerAds": "Reklam yok: banner, açılır pencere veya oyun içi reklam yok",
             "burst": "Her sunucu, node'unda yer varken +%{cpu} CPU'ya kadar burst yapabilir",
             "neoPlus": "%{percent} daha fazla neo (yapay zeka) kullanımı",
             "devbox": "Sunucunuzda VS Code: {cpu} vCPU, {memory} RAM, {disk} disk",
-            "everythingInPlus": "{name} kapsamındaki her şey",
-            "premiumLocations": "Premium lokasyonlar",
+            "panelAccess": "Panel Erişimi dahil",
+            "fasterFiles": "Daha hızlı arşivleme, arşivden çıkarma ve yedekleme",
+            "fastestFiles": "En hızlı arşivleme, arşivden çıkarma ve yedekleme",
+            "premiumLocations": "{plus} ve Premium lokasyonlar",
+            "highestPriority": "Bir node meşgulken başlatma sırasında en yüksek öncelik",
             "noAds": "Hiçbir yerde reklam yok: banner, açılır pencere, başlatma öncesi bekleme ekranı veya oyun içi reklam yok",
-            "frontOfQueue": "Başlatma sırasının en önü, {name} üyelerinin de önünde",
             "neoPlusplus": "Toplamda %{percent} daha fazla neo (yapay zeka) kullanımı",
             "devboxPlusplus": "Daha büyük bir VS Code devbox'ı: {cpu} vCPU, {memory} RAM, {disk} disk"
           },
@@ -2942,9 +2945,12 @@
               "queue": "Meşgul bir node'da başlatma sırası",
               "gameAds": "Oyun içi reklamlar (Minecraft)",
               "panelAds": "Paneldeki reklamlar",
+              "waitingRoom": "Başlatma öncesi bekleme ekranı",
               "cpu": "CPU",
+              "files": "Arşivler ve yedekler",
               "ai": "neo (yapay zeka) kullanımı",
-              "devbox": "Sunucunuzda VS Code"
+              "devbox": "Sunucunuzda VS Code",
+              "panelAccess": "Panel erişimi"
             },
             "cells": {
               "locationsFree": "Ücretsiz",
@@ -2959,24 +2965,34 @@
               "no": "Hayır",
               "cpu": "Kotanız",
               "cpuBurst": "Kotanız, +%{cpu} burst",
+              "filesFree": "Standart",
+              "filesPlus": "Daha hızlı",
+              "filesPlusplus": "En hızlı",
               "aiFree": "Standart",
               "percent": "+%{percent}",
-              "devbox": "{cpu} vCPU, {memory} RAM, {disk} disk"
+              "devbox": "{cpu} vCPU, {memory} RAM, {disk} disk",
+              "panelAccessFree": "Jetonla ödenir",
+              "included": "Dahil"
             }
           },
           "faq": {
             "heading": "Sorular",
-            "once": {
-              "question": "{plus} bir abonelik mi?",
-              "answer": "Hayır. {plus} için bir kez ödeme yaparsınız ve kalıcı olarak sizin olur. Yalnızca {plusplus} belirli bir süre geçerlidir ve hiçbir şey kendiliğinden yenilenmez."
+            "renew": {
+              "question": "Üyelik kendiliğinden yenilenir mi?",
+              "answer": "Hayır. {plus} ve {plusplus}, satın aldığınız gün sayısı kadar geçerlidir ve hiçbir şey kendiliğinden yenilenmez. Biri sona ermeden tekrar satın alırsanız kalan süreye eklenir. {plusplus}, {plus} kapsamındaki her şeyi içerir; bu yüzden ikisine birden asla ihtiyacınız olmaz."
             },
             "expiry": {
-              "question": "{plusplus} sona erdiğinde ne olur?",
-              "answer": "{plus} sizde kalır. Premium lokasyonlardaki sunucular başka bir lokasyona taşınır ve sunucularınız yalnızca {plus} kapsamında izin verilen kadar burst yapabilir. İkisini de korumak için {plusplus} sona ermeden tekrar satın alın."
+              "question": "Üyelik sona erdiğinde ne olur?",
+              "answer": "Üyeliğin açtığı lokasyonlardaki sunucular hâlâ kullanabileceğiniz bir lokasyona taşınır ve sunucularınız yalnızca geriye kalanın izin verdiği kadar burst yapabilir. Her şeyi korumak için sona ermeden tekrar satın alın."
+            },
+            "idle": {
+              "question": "Kimse kullanmadığında sunucularım yine de durdurulur mu?",
+              "answer": "Evet. Üyelik bunu değiştirmez: her sunucu gibi, kimsenin kullanmadığı bir sunucu bir süre sonra durdurulur, ardından uyku moduna alınır. Sayfasından yeniden başlatabilirsiniz.",
+              "answerDelete": "Evet. Üyelik bunu değiştirmez: her sunucu gibi, kimsenin kullanmadığı bir sunucu bir süre sonra durdurulur, ardından uyku moduna alınır ve uzun süre uyku modunda kalırsa silinir. O zamana kadar sayfasından yeniden başlatabilirsiniz."
             },
             "tokens": {
               "question": "Nasıl jeton edinirim?",
-              "answer": "Kenar çubuğundaki Jetonlar sayfasında, sponsorlu bağlantıları tamamlayarak."
+              "answer": "Kenar çubuğundaki Jetonlar sayfasında, bir anket doldurarak veya sponsorlu bağlantıları tamamlayarak."
             },
             "credits": {
               "question": "Krediyle ödeyebilir miyim?",
@@ -2985,7 +3001,7 @@
           },
           "modal": {
             "title": "Üyelik Satın Al",
-            "plus": "**{name}** için **{cost}** jeton harcansın mı? Kalıcı olarak sizin olur.",
+            "plus": "**{days} günlük** **{name}** için **{cost}** jeton harcansın mı?",
             "plusplus": {
               "tokens": "**{days} günlük** **{name}** için **{cost}** jeton harcansın mı?",
               "credits": "**{days} günlük** **{name}** için **{cost}** kredi harcansın mı?"
@@ -2993,7 +3009,7 @@
             "confirm": "Satın Al"
           },
           "toast": {
-            "plus": "Artık {name} üyesisiniz.",
+            "plus": "{name} satın alındı.",
             "plusplus": "{name} satın alındı."
           }
         },
@@ -3190,15 +3206,15 @@
         },
         "panelAccess": {
           "title": "Panel Erişimi",
-          "subtitle": "Panel ayda {tokens} token tutar. Üyelikler ve yöneticiler asla ödemez.",
-          "heading": "{days} gün için {tokens} token",
+          "subtitle": "Panel ayda {tokens} jeton tutar. Üyelikler ve yöneticiler asla ödemez.",
+          "heading": "{days} gün için {tokens} jeton",
           "active": "{date} tarihine kadar ödendi.",
           "inactive": "Ödeme yapana kadar panel kilitli.",
           "exempt": "Panel için asla ödeme yapmazsınız.",
           "exemptNotice": "Üyeliğiniz paneli kapsıyor.",
           "disabled": "Panel şu anda ücretsiz.",
-          "buy": "{tokens} token öde",
-          "earn": "Token kazan",
+          "buy": "{tokens} jeton öde",
+          "earn": "Jeton kazan",
           "toast": {
             "bought": "Panel {days} gün boyunca sizin.",
             "failed": "Ödeme gerçekleşmedi."
@@ -5954,7 +5970,7 @@
           },
           "plusOffer": {
             "heading": "{app} {name} ile öne geçin",
-            "body": "{name} tek seferlik {cost} jetondur ve kalıcı olarak sizin olur: tüm sunucularınız için bu sırada öncelik, {name} lokasyonları ve oyun içi reklam yok.",
+            "body": "{name} ayda {cost} jetondur: tüm sunucularınız için bu sırada öncelik, {name} lokasyonları ve bekleme ekranı dışında reklam yok.",
             "button": "{name} Al"
           },
           "move": {

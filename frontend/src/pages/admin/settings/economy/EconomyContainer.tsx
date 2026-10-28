@@ -4,9 +4,12 @@ import { zod4Resolver } from 'mantine-form-zod-resolver';
 import { useState } from 'react';
 import { z } from 'zod';
 import updateEconomySettings from '@/api/admin/settings/updateEconomySettings.ts';
+import CopyOnClick from '@/elements/CopyOnClick.tsx';
 import AdminSubContentContainer from '@/elements/containers/AdminSubContentContainer.tsx';
 import { type FieldDef, FormEngine } from '@/elements/form-engine/index.ts';
 import Group from '@/elements/layout/Group.tsx';
+import Stack from '@/elements/layout/Stack.tsx';
+import Code from '@/elements/typography/Code.tsx';
 import Text from '@/elements/typography/Text.tsx';
 import { adminSettingsEconomySchema } from '@/lib/schemas/admin/settings.ts';
 import { liveValidation } from '@/plugins/form/liveValidation.ts';
@@ -14,6 +17,7 @@ import { useFormDraft } from '@/plugins/form/useFormDraft.ts';
 import { useHydrateForm } from '@/plugins/form/useHydrateForm.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useAdminStore } from '@/stores/admin.tsx';
+import { useGlobalStore } from '@/stores/global.ts';
 import SettingsSaveButton from '../SettingsSaveButton.tsx';
 import { useSettingsSection } from '../useSettingsSection.ts';
 
@@ -86,12 +90,17 @@ const partFields: Record<EconomyPart, (keyof EconomyValues)[]> = {
     'adfocusReward',
     'adfocusDailyCap',
     'adfocusMinSeconds',
+    'cpxResearchEnabled',
+    'cpxResearchAppId',
+    'cpxResearchSecret',
+    'cpxResearchDailyCap',
   ],
   memberships: [
     'membershipEnabled',
     'plusName',
     'plusplusName',
     'plusTokens',
+    'plusDays',
     'plusplusTokens',
     'plusplusTokenDays',
     'plusplusCredits',
@@ -111,6 +120,10 @@ export default function EconomyContainer({ part }: { part: EconomyPart }) {
   const { t } = useTranslations();
   const economy = useAdminStore((state) => state.economy);
   const page = 'pages.admin.settings.tabs.economy.page.form';
+  // plugged.host: what CPX Research calls once a survey is done or taken back, with its placeholders
+  // (shared/src/earn.rs CpxPostback)
+  const appUrl = useGlobalStore((state) => state.settings.app.url);
+  const cpxResearchPostback = `${appUrl.replace(/\/+$/, '')}/api/earn/cpx-research?status={status}&trans_id={trans_id}&user_id={user_id}&amount_local={amount_local}&type={type}&ip_click={ip_click}&hash={secure_hash}`;
   const [stored, setStored] = useState(() => ({
     linkvertiseToken: economy.linkvertiseToken !== null,
     vyloApiKey: economy.vyloApiKey !== null,
@@ -118,6 +131,7 @@ export default function EconomyContainer({ part }: { part: EconomyPart }) {
     shrinkearnApiKey: economy.shrinkearnApiKey !== null,
     shrinkmeApiKey: economy.shrinkmeApiKey !== null,
     adfocusApiKey: economy.adfocusApiKey !== null,
+    cpxResearchSecret: economy.cpxResearchSecret !== null,
   }));
 
   const form = useForm<EconomyValues>({
@@ -129,6 +143,7 @@ export default function EconomyContainer({ part }: { part: EconomyPart }) {
       shrinkearnApiKey: '',
       shrinkmeApiKey: '',
       adfocusApiKey: '',
+      cpxResearchSecret: '',
     },
     ...liveValidation,
     validate: zod4Resolver(adminSettingsEconomySchema),
@@ -143,6 +158,7 @@ export default function EconomyContainer({ part }: { part: EconomyPart }) {
     shrinkearnApiKey: '',
     shrinkmeApiKey: '',
     adfocusApiKey: '',
+    cpxResearchSecret: '',
   }));
   useFormDraft(form, `economy.${part}`);
 
@@ -168,6 +184,7 @@ export default function EconomyContainer({ part }: { part: EconomyPart }) {
           shrinkearnApiKey: stored.shrinkearnApiKey || !!values.shrinkearnApiKey,
           shrinkmeApiKey: stored.shrinkmeApiKey || !!values.shrinkmeApiKey,
           adfocusApiKey: stored.adfocusApiKey || !!values.adfocusApiKey,
+          cpxResearchSecret: stored.cpxResearchSecret || !!values.cpxResearchSecret,
         })),
       ),
     successMessage: t('pages.admin.settings.tabs.economy.page.toast.updated', {}),
@@ -343,6 +360,60 @@ export default function EconomyContainer({ part }: { part: EconomyPart }) {
       ),
 
       { type: 'divider', name: 'earnDivider', label: t(`${page}.earnSection`, {}), when: tokens },
+      // plugged.host: CPX Research's survey wall, first like on the Tokens page
+      {
+        type: 'switch',
+        name: 'cpxResearchEnabled',
+        label: t(`${page}.cpxResearchEnabled`, {}),
+        description: t(`${page}.cpxResearchEnabledDescription`, {}),
+        when: tokens,
+      },
+      {
+        type: 'text',
+        name: 'cpxResearchAppId',
+        label: t(`${page}.cpxResearchAppId`, {}),
+        when: (values) => values.tokensEnabled && values.cpxResearchEnabled,
+      },
+      {
+        type: 'password',
+        name: 'cpxResearchSecret',
+        label: t(`${page}.cpxResearchSecret`, {}),
+        description: secret(stored.cpxResearchSecret),
+        props: { autoComplete: 'new-password' },
+        when: (values) => values.tokensEnabled && values.cpxResearchEnabled,
+      },
+      number(
+        'cpxResearchDailyCap',
+        t(`${page}.cpxResearchDailyCap`, {}),
+        t(`${page}.cpxResearchDailyCapDescription`, {}),
+        0,
+        1000,
+        (values) => values.tokensEnabled && values.cpxResearchEnabled,
+      ),
+      {
+        type: 'custom',
+        name: 'cpxResearchPostback',
+        colSpan: 'full',
+        when: (values) => values.tokensEnabled && values.cpxResearchEnabled,
+        render: () => (
+          <Stack gap='xs'>
+            <Text size='sm' fw={500}>
+              {t(`${page}.cpxResearchPostback`, {})}
+            </Text>
+            <CopyOnClick content={cpxResearchPostback} className='w-full text-start'>
+              <Code block dir='ltr' className='break-all whitespace-pre-wrap'>
+                {cpxResearchPostback}
+              </Code>
+            </CopyOnClick>
+            <Text size='sm' c='dimmed'>
+              {t(`${page}.cpxResearchPostbackDescription`, {})}
+            </Text>
+            <Text size='sm' c='dimmed'>
+              {t(`${page}.cpxResearchRewards`, {})}
+            </Text>
+          </Stack>
+        ),
+      },
       {
         type: 'switch',
         name: 'linkvertiseEnabled',
@@ -589,6 +660,7 @@ export default function EconomyContainer({ part }: { part: EconomyPart }) {
         when: membership,
       },
       number('plusTokens', t(`${page}.plusTokens`, {}), null, 0, 100_000, membership),
+      number('plusDays', t(`${page}.plusDays`, {}), null, 1, 365, membership),
       number('plusplusTokens', t(`${page}.plusplusTokens`, {}), null, 0, 100_000, membership),
       number('plusplusTokenDays', t(`${page}.plusplusTokenDays`, {}), null, 1, 365, membership),
       number(

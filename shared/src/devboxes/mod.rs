@@ -524,7 +524,7 @@ fn tier_of(
 ) -> Option<Tier> {
     if membership.has_plusplus(now) {
         Some(Tier::Premium)
-    } else if membership.has_plus() || !members_only {
+    } else if membership.has_plus(now) || !members_only {
         Some(Tier::Standard)
     } else {
         None
@@ -843,12 +843,13 @@ mod tests {
         let none = crate::economy::Membership::default();
         let plus = crate::economy::Membership {
             plus_since: Some(now),
+            plus_until: Some(now + chrono::Duration::days(30)),
             ..Default::default()
         };
         let plusplus = crate::economy::Membership {
-            plus_since: Some(now),
             plusplus_until: Some(now + chrono::Duration::days(3)),
             plusplus_purchases: 1,
+            ..plus.clone()
         };
 
         assert_eq!(tier_of(&none, now, true), None);

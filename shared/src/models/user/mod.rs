@@ -160,7 +160,7 @@ impl BaseModel for User {
                 compact_str::format_compact!("{prefix}panel_access_until"),
             ),
             (
-                "EXISTS (SELECT 1 FROM user_memberships WHERE user_memberships.user_uuid = users.uuid AND user_memberships.plus_since IS NOT NULL)",
+                "EXISTS (SELECT 1 FROM user_memberships WHERE user_memberships.user_uuid = users.uuid AND user_memberships.plus_until > NOW())",
                 compact_str::format_compact!("{prefix}has_plus"),
             ),
             (

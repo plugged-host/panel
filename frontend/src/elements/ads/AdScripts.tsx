@@ -28,10 +28,12 @@ function load(src: string, zone?: string) {
  * full page load.
  */
 export default function AdScripts({ area, kind }: { area: AdArea; kind: 'page' | 'room' | 'none' }) {
-  const { settings, account, shown } = useAds(area);
+  const { settings, account, shown, pageShown } = useAds(area);
 
   useEffect(() => {
     if (!shown || kind === 'none') return;
+    // the first membership: no popups or page scripts, not even in the waiting room
+    if (!pageShown) return;
 
     if (kind === 'room') {
       if (settings.roomSocialBar && settings.socialBarScript) load(settings.socialBarScript);
@@ -52,7 +54,7 @@ export default function AdScripts({ area, kind }: { area: AdArea; kind: 'page' |
     ) {
       load(vignette.src, vignette.zone);
     }
-  }, [shown, kind, settings, account?.audience]);
+  }, [shown, pageShown, kind, settings, account?.audience]);
 
   return null;
 }

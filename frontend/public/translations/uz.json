@@ -888,7 +888,8 @@
           "store": "Resurslar doʻkoni",
           "plus": "Aʼzolik",
           "plusplus": "Aʼzolik",
-          "earn": "Homiylik havolasi",
+          "earn": "Ishlab olindi",
+          "earnReversal": "Qaytarib olindi",
           "limbo": "Server tiklandi",
           "limboRefund": "Tiklash uchun pul qaytarildi",
           "subdomain": "Subdomen",
@@ -1050,7 +1051,7 @@
           },
           "membershipEnded": {
             "title": "{membership} tugadi",
-            "body": "Premium joylashuvlardagi serverlar boshqa joylashuvga koʻchirilmoqda: {servers}. Jarayonni har bir serverning Koʻchirish sahifasida kuzating."
+            "body": "Bu aʼzolik ochib bergan joylashuvlardagi serverlar boshqa joylashuvga koʻchirilmoqda: {servers}. Jarayonni har bir serverning Koʻchirish sahifasida kuzating."
           },
           "failoverDone": {
             "title": "Server tiklandi",
@@ -2844,11 +2845,12 @@
           "title": "Jetonlar",
           "subheading": "Jeton ishlab oling va ular nimaga sarflanganini koʻring",
           "balance": "{count} jeton",
-          "explainer": "Homiylik havolalarini yakunlab jeton ishlab oling. Ular bilan {app} {plus}, uyqu rejimidagi serverni uygʻotish va subdomenlar uchun toʻlanadi.",
+          "explainer": "Soʻrovnomadan oʻtib yoki homiylik havolalarini yakunlab jeton ishlab oling. Ular bilan {app} {plus}, uyqu rejimidagi serverni uygʻotish va subdomenlar uchun toʻlanadi.",
           "saved": "Keyingi jeton uchun {amount} jeton yigʻildi",
           "decays": "Bugun har bir havola biroz kamroq beradi (birinchisi {full} bergan).",
           "none": "Hozir jeton ishlab olishning hech qanday usuli sozlanmagan.",
           "provider": {
+            "cpx_research": "CPX Research",
             "linkvertise": "Linkvertise",
             "vylo": "Vylo",
             "cuty": "Cuty",
@@ -2861,6 +2863,11 @@
           "capped": "Ertaga qayting",
           "linkUnavailable": "Hozir mavjud emas",
           "earnWith": "{provider} orqali ishlab olish",
+          "takeSurvey": "Soʻrovnomadan oʻtish",
+          "surveyReward": "Har bir soʻrovnoma koʻrsatilgan miqdorni beradi",
+          "surveyConfirm": "Jetonlar {provider} soʻrovnomani tasdiqlagach keladi, odatda bir necha daqiqada.",
+          "surveyCapOne": "Kuniga bitta soʻrovnoma uchun toʻlanadi. Siz mos kelmaganingiz uchun erta tugagan soʻrovnoma kichik bonus berishi mumkin va hisobga olinmaydi.",
+          "surveyCap": "Kuniga {cap} ta soʻrovnoma uchun toʻlanadi. Siz mos kelmaganingiz uchun erta tugagan soʻrovnoma kichik bonus berishi mumkin va hisobga olinmaydi.",
           "scriptBlocked": "Homiylik havolasini yuklab boʻlmadi. Uni kontent bloklovchi toʻxtatayotgan boʻlishi mumkin.",
           "history": "Soʻnggi faollik",
           "redemption": {
@@ -2879,37 +2886,31 @@
         "membership": {
           "title": "Aʼzolik",
           "pageTitle": "{app} {name}",
-          "subtitle": "Yaxshiroq joylashuvlar, navbatda kutish yoʻq va oʻyiningizda reklama yoʻq. Bir marta sotib olinadi, butunlay sizniki boʻladi.",
+          "subtitle": "Yaxshiroq joylashuvlar, navbatda kutish yoʻq va kamroq reklama. Jetonlar bilan oyma-oy toʻlanadi; hech narsa oʻz-oʻzidan yangilanmaydi.",
           "unavailable": "{name} hozircha sotuvda yoʻq.",
-          "plusplusActive": {
+          "active": {
             "heading": "{name} faol",
             "body": "Amal qilish muddati: {until}."
           },
-          "owned": {
-            "heading": "Sizda {app} {name} bor",
-            "body": "{name} joylashuvlari, ishga tushirish navbatida ustuvorlik va oʻyin ichida reklama yoʻqligi butunlay sizniki. {plusplus} bularning ustiga yana koʻproq imkoniyat qoʻshadi."
-          },
           "plus": {
-            "pitch": "Aksariyat serverlarga kerak boʻlgan hamma narsa — bir marta toʻlanadi, qayta toʻlov yoʻq.",
-            "term": "Bir marta, butunlay",
-            "get": "{name} aʼzoligini olish",
-            "owned": "Sotib olingan"
+            "pitch": "Aksariyat serverlarga kerak boʻlgan hamma narsa — oyma-oy.",
+            "get": "{name} aʼzoligini olish"
           },
           "plusplus": {
-            "pitch": "Eng koʻp resurs talab qiladigan serverlar uchun qoʻshimcha: Premium uskunalar, hech qayerda reklama yoʻq va koʻproq CPU.",
+            "pitch": "Eng koʻp resurs talab qiladigan serverlar uchun: Premium uskunalar, hech qayerda reklama yoʻq va koʻproq CPU.",
             "term": "{tokens}, kreditga esa {credits}",
             "termTokens": "{tokens}",
-            "needsPlus": "{name} uchun avval {app} {plus} kerak.",
-            "extendHint": "Muddat tugashidan oldin yana sotib olsangiz, qolgan vaqtga qoʻshiladi.",
             "notSold": "Hozir sotuvda yoʻq."
           },
+          "extendHint": "Muddat tugashidan oldin yana sotib olsangiz, qolgan vaqtga qoʻshiladi.",
           "days": "{days} kun",
           "duration": {
             "day": "bir kun",
             "days": "{count} kun",
             "week": "bir hafta",
             "twoWeeks": "ikki hafta",
-            "weeks": "{count} hafta"
+            "weeks": "{count} hafta",
+            "month": "bir oy"
           },
           "cost": {
             "tokens": "{cost} jeton",
@@ -2920,14 +2921,16 @@
           "perks": {
             "plusLocations": "{name} joylashuvlari",
             "priority": "Tugun band boʻlganda ishga tushirish navbatida ustuvorlik",
-            "noGameAds": "Minecraft serverlaringizda oʻyin ichida reklama yoʻq",
+            "noBannerAds": "Reklama yoʻq: na bannerlar, na qalqib chiquvchi oynalar, na oʻyin ichidagi reklamalar",
             "burst": "Tugunda joy boʻlganda har bir server +{cpu}% CPUgacha burst qiladi",
             "neoPlus": "neo (AI) sarfi {percent}% koʻproq",
             "devbox": "Serveringizda VS Code: {cpu} vCPU, {memory} RAM, {disk} disk",
-            "everythingInPlus": "{name} aʼzoligidagi hamma narsa",
-            "premiumLocations": "Premium joylashuvlar",
+            "panelAccess": "Panelga kirish narxga kiritilgan",
+            "fasterFiles": "Tezroq arxivlash, arxivdan chiqarish va zaxira nusxalash",
+            "fastestFiles": "Eng tez arxivlash, arxivdan chiqarish va zaxira nusxalash",
+            "premiumLocations": "{plus} va Premium joylashuvlar",
+            "highestPriority": "Tugun band boʻlganda ishga tushirish navbatida eng yuqori ustuvorlik",
             "noAds": "Hech qayerda reklama yoʻq: na bannerlar, na qalqib chiquvchi oynalar, na ishga tushirish oldidan kutish ekrani, na oʻyin ichidagi reklamalar",
-            "frontOfQueue": "Ishga tushirish navbatining eng boshi, {name} aʼzolaridan ham oldinda",
             "neoPlusplus": "Jami {percent}% koʻproq neo (AI) sarfi",
             "devboxPlusplus": "Kattaroq VS Code devbox: {cpu} vCPU, {memory} RAM, {disk} disk"
           },
@@ -2939,9 +2942,12 @@
               "queue": "Band tugunda ishga tushirish navbati",
               "gameAds": "Oʻyin ichidagi reklamalar (Minecraft)",
               "panelAds": "Paneldagi reklamalar",
+              "waitingRoom": "Ishga tushirish oldidan kutish ekrani",
               "cpu": "CPU",
+              "files": "Arxivlar va zaxira nusxalar",
               "ai": "neo (AI) sarfi",
-              "devbox": "Serveringizda VS Code"
+              "devbox": "Serveringizda VS Code",
+              "panelAccess": "Panelga kirish"
             },
             "cells": {
               "locationsFree": "Bepul",
@@ -2956,24 +2962,34 @@
               "no": "Yoʻq",
               "cpu": "Kvotangiz",
               "cpuBurst": "Kvotangiz, +{cpu}% burst",
+              "filesFree": "Standart",
+              "filesPlus": "Tezroq",
+              "filesPlusplus": "Eng tez",
               "aiFree": "Standart",
               "percent": "+{percent}%",
-              "devbox": "{cpu} vCPU, {memory} RAM, {disk} disk"
+              "devbox": "{cpu} vCPU, {memory} RAM, {disk} disk",
+              "panelAccessFree": "Jetonlar bilan toʻlanadi",
+              "included": "Kiritilgan"
             }
           },
           "faq": {
             "heading": "Savollar",
-            "once": {
-              "question": "{plus} obunami?",
-              "answer": "Yoʻq. {plus} uchun bir marta toʻlaysiz va u sizda qoladi. Faqat {plusplus} maʼlum muddatga amal qiladi va hech narsa oʻz-oʻzidan yangilanmaydi."
+            "renew": {
+              "question": "Aʼzolik oʻz-oʻzidan yangilanadimi?",
+              "answer": "Yoʻq. {plus} va {plusplus} har biri siz sotib olgan kunlar davomida amal qiladi va hech narsa oʻz-oʻzidan yangilanmaydi. Muddat tugashidan oldin yana sotib olsangiz, qolgan vaqtga qoʻshiladi. {plusplus} tarkibida {plus} beradigan hamma narsa bor, shuning uchun ikkalasini birga olishingiz hech qachon shart emas."
             },
             "expiry": {
-              "question": "{plusplus} tugaganda nima boʻladi?",
-              "answer": "{plus} sizda qoladi. Premium joylashuvlardagi serverlar boshqa joylashuvga koʻchiriladi, serverlaringiz esa faqat {plus} ruxsat bergan darajada burst qiladi. Ikkalasini saqlab qolish uchun {plusplus} muddati tugashidan oldin uni yana sotib oling."
+              "question": "Aʼzolik tugaganda nima boʻladi?",
+              "answer": "U ochib bergan joylashuvlardagi serverlar siz hali foydalana oladigan joylashuvga koʻchiriladi, serverlaringiz esa faqat qolgan imkoniyatlar ruxsat bergan darajada burst qiladi. Hammasini saqlab qolish uchun muddati tugashidan oldin yana sotib oling."
+            },
+            "idle": {
+              "question": "Hech kim foydalanmaganda serverlarim baribir toʻxtatiladimi?",
+              "answer": "Ha. Aʼzolik buni oʻzgartirmaydi: har qanday server kabi, hech kim foydalanmayotgan server bir muddatdan keyin toʻxtatiladi, soʻng uyqu rejimiga oʻtkaziladi. Uni oʻz sahifasidan qayta ishga tushirishingiz mumkin.",
+              "answerDelete": "Ha. Aʼzolik buni oʻzgartirmaydi: har qanday server kabi, hech kim foydalanmayotgan server bir muddatdan keyin toʻxtatiladi, soʻng uyqu rejimiga oʻtkaziladi va uzoq vaqt uyqu rejimida qolsa, oʻchiriladi. Shu paytgacha uni oʻz sahifasidan qayta ishga tushirishingiz mumkin."
             },
             "tokens": {
               "question": "Jetonlarni qanday olaman?",
-              "answer": "Yon paneldagi Jetonlar sahifasida, homiylik havolalarini yakunlab."
+              "answer": "Yon paneldagi Jetonlar sahifasida, soʻrovnomadan oʻtib yoki homiylik havolalarini yakunlab."
             },
             "credits": {
               "question": "Kredit bilan toʻlasam boʻladimi?",
@@ -2982,7 +2998,7 @@
           },
           "modal": {
             "title": "Aʼzolik sotib olish",
-            "plus": "**{name}** uchun **{cost}** jeton sarflansinmi? U butunlay sizniki boʻladi.",
+            "plus": "**{days} kunlik** **{name}** uchun **{cost}** jeton sarflansinmi?",
             "plusplus": {
               "tokens": "**{days} kunlik** **{name}** uchun **{cost}** jeton sarflansinmi?",
               "credits": "**{days} kunlik** **{name}** uchun **{cost}** kredit sarflansinmi?"
@@ -2990,7 +3006,7 @@
             "confirm": "Sotib olish"
           },
           "toast": {
-            "plus": "Endi sizda {name} bor.",
+            "plus": "{name} sotib olindi.",
             "plusplus": "{name} sotib olindi."
           }
         },
@@ -3187,18 +3203,18 @@
         },
         "panelAccess": {
           "title": "Panelga kirish",
-          "subtitle": "Panel oyiga {tokens} token turadi. A'zoliklar va administratorlar hech qachon to'lamaydi.",
-          "heading": "{days} kun uchun {tokens} token",
-          "active": "{date} gacha to'langan.",
-          "inactive": "To'lamaguningizcha panel qulflangan.",
-          "exempt": "Panel uchun hech qachon to'lamaysiz.",
-          "exemptNotice": "A'zoligingiz panelni qoplaydi.",
+          "subtitle": "Panel oyiga {tokens} jeton turadi. Aʼzoliklar va administratorlar hech qachon toʻlamaydi.",
+          "heading": "{days} kun uchun {tokens} jeton",
+          "active": "{date} gacha toʻlangan.",
+          "inactive": "Toʻlamaguningizcha panel qulflangan.",
+          "exempt": "Panel uchun hech qachon toʻlamaysiz.",
+          "exemptNotice": "Aʼzoligingiz panelni qoplaydi.",
           "disabled": "Panel hozir bepul.",
-          "buy": "{tokens} token to'lash",
-          "earn": "Token ishlash",
+          "buy": "{tokens} jeton toʻlash",
+          "earn": "Jeton ishlab olish",
           "toast": {
             "bought": "Panel {days} kun sizniki.",
-            "failed": "To'lov amalga oshmadi."
+            "failed": "Toʻlov amalga oshmadi."
           }
         }
       },
@@ -5951,7 +5967,7 @@
           },
           "plusOffer": {
             "heading": "{app} {name} bilan navbatdan oʻting",
-            "body": "{name} narxi bir marta toʻlanadigan {cost} jeton va u butunlay sizniki boʻladi: barcha serverlaringiz uchun bu navbatda ustuvorlik, {name} joylashuvlari va oʻyin ichida reklama yoʻq.",
+            "body": "{name} narxi oyiga {cost} jeton: barcha serverlaringiz uchun bu navbatda ustuvorlik, {name} joylashuvlari va kutish ekranidan boshqa reklama yoʻq.",
             "button": "{name} aʼzoligini olish"
           },
           "move": {

@@ -1780,7 +1780,7 @@ async fn application_data(
     .await?;
     let membership = match economy::membership(&state.database, application.user_uuid).await {
         Ok(membership) if membership.has_plusplus(now.naive_utc()) => "second membership",
-        Ok(membership) if membership.has_plus() => "first membership",
+        Ok(membership) if membership.has_plus(now.naive_utc()) => "first membership",
         _ => "none",
     };
     let days = |at: chrono::DateTime<chrono::Utc>| (now - at).num_days().max(0);

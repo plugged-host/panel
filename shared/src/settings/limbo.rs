@@ -24,7 +24,8 @@ pub struct AppSettingsLimbo {
     pub cost_early: i32,
     pub cost_late: i32,
     pub cost_window_hours: i32,
-    /// Servers of accounts with a membership are never stopped or parked.
+    /// Servers of accounts with a membership are never stopped or parked. Off by default: an
+    /// idle server is stopped, parked and deleted whoever owns it.
     pub exempt_members: bool,
     /// Days a server may stay parked before it is deleted (0: never).
     pub delete_after_days: i32,
@@ -40,7 +41,7 @@ impl Default for AppSettingsLimbo {
             cost_early: 5,
             cost_late: 10,
             cost_window_hours: 72,
-            exempt_members: true,
+            exempt_members: false,
             delete_after_days: 0,
         }
     }

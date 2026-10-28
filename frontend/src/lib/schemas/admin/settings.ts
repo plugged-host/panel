@@ -887,6 +887,7 @@ export const adminSettingsEconomySchema = z.object({
   plusName: z.string().trim().min(1).max(32),
   plusplusName: z.string().trim().min(1).max(32),
   plusTokens: z.number().int().min(0).max(100_000),
+  plusDays: z.number().int().min(1).max(365),
   plusplusTokens: z.number().int().min(0).max(100_000),
   plusplusTokenDays: z.number().int().min(1).max(365),
   plusplusCredits: z.number().int().min(0).max(1_000_000),
@@ -959,6 +960,18 @@ export const adminSettingsEconomySchema = z.object({
   adfocusReward: z.number().min(0.01).max(1000), // plugged.host: up to 2 decimals
   adfocusDailyCap: z.number().int().min(0).max(1000),
   adfocusMinSeconds: z.number().int().min(0).max(600),
+  // plugged.host: CPX Research's survey wall (shared/src/earn.rs)
+  cpxResearchEnabled: z.boolean(),
+  cpxResearchAppId: z.preprocess(
+    nullableString,
+    z
+      .string()
+      .regex(/^[0-9]+$/)
+      .max(20)
+      .nullable(),
+  ),
+  cpxResearchSecret: z.string().max(512).nullable(),
+  cpxResearchDailyCap: z.number().int().min(0).max(1000),
 });
 
 // plugged.host: the welcome tour (shared/src/settings/tour.rs, docs/features/welcome-tour.md)

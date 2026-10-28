@@ -1,6 +1,6 @@
 // plugged.host: tokens, laid out like the Pelican panel's Tokens page: the balance, the ways to earn
-// more through sponsored links, and the recent activity. The first way's button is the page's one
-// filled button, any further one is gray (docs/features/economy.md).
+// more through a survey wall and sponsored links, and the recent activity. The first way's button is
+// the page's one filled button, any further one is gray (docs/features/economy.md).
 import { Button as MantineButton } from '@mantine/core';
 import { useQueryClient } from '@tanstack/react-query';
 import { ReactNode, useEffect, useRef, useState } from 'react';
@@ -67,19 +67,33 @@ function useFullScriptLink(provider: Provider, enabled: boolean) {
   return { url, failed, blocked };
 }
 
-/** A static link: opens a claim and goes to the provider. */
+/**
+ * A static link: opens a claim and goes to the provider. A survey wall opens in a new tab instead, so
+ * this page is still here when the user comes back; its tokens arrive with the provider's postback.
+ */
 function EarnButton({ provider, filled, fullWidth }: { provider: Provider; filled: boolean; fullWidth?: boolean }) {
   const { t } = useTranslations();
   const { addToast } = useToast();
   const [loading, setLoading] = useState(false);
 
   const go = () => {
+    // opened during the click: a tab opened once the link is back would count as a popup. Should the
+    // browser block it anyway, the wall opens in this tab.
+    const tab = provider.survey ? window.open('', '_blank') : null;
+    if (tab) tab.opener = null;
+
     setLoading(true);
     startEarn(provider.provider)
       .then((earn) => {
-        window.location.href = earn.url;
+        if (tab) {
+          tab.location.href = earn.url;
+          setLoading(false);
+        } else {
+          window.location.href = earn.url;
+        }
       })
       .catch((error) => {
+        tab?.close();
         addToast(t(`${page}.redemption.${earnFailure(error)}`, {}), 'warning');
         setLoading(false);
       });
@@ -87,7 +101,9 @@ function EarnButton({ provider, filled, fullWidth }: { provider: Provider; fille
 
   return (
     <Button variant={filled ? 'filled' : 'default'} fullWidth={fullWidth} loading={loading} onClick={go}>
-      {t(`${page}.earnWith`, { provider: t(`${page}.provider.${provider.provider}`, {}) })}
+      {provider.survey
+        ? t(`${page}.takeSurvey`, {})
+        : t(`${page}.earnWith`, { provider: t(`${page}.provider.${provider.provider}`, {}) })}
     </Button>
   );
 }
@@ -134,13 +150,15 @@ function EarnRow({ provider, first }: { provider: Provider; first: boolean }) {
       <div className='flex min-w-0 flex-col gap-0.5'>
         <span className='theme-eco-title'>{label}</span>
         <span className='theme-eco-muted'>
-          {t(`${page}.reward`, {
-            count: new Intl.NumberFormat(intlLocale(language), { maximumFractionDigits: 2 }).format(
-              provider.nextReward,
-            ),
-          })}
+          {provider.survey
+            ? t(`${page}.surveyReward`, {})
+            : t(`${page}.reward`, {
+                count: new Intl.NumberFormat(intlLocale(language), { maximumFractionDigits: 2 }).format(
+                  provider.nextReward,
+                ),
+              })}
         </span>
-        {provider.nextReward < provider.reward && (
+        {!provider.survey && provider.nextReward < provider.reward && (
           <span className='theme-earn-small'>
             {t(`${page}.decays`, {
               full: new Intl.NumberFormat(intlLocale(language), { maximumFractionDigits: 2 }).format(provider.reward),
@@ -150,6 +168,13 @@ function EarnRow({ provider, first }: { provider: Provider; first: boolean }) {
         {provider.dailyCap > 0 && (
           <span className='theme-earn-small'>
             {t(`${page}.used`, { used: provider.grantedToday, cap: provider.dailyCap })}
+          </span>
+        )}
+        {provider.survey && (
+          <span className='theme-earn-small'>
+            {t(`${page}.surveyConfirm`, { provider: label })}
+            {provider.dailyCap === 1 && ` ${t(`${page}.surveyCapOne`, {})}`}
+            {provider.dailyCap > 1 && ` ${t(`${page}.surveyCap`, { cap: provider.dailyCap })}`}
           </span>
         )}
         {fullScript.blocked && <span className='theme-eco-small'>{t(`${page}.scriptBlocked`, {})}</span>}
@@ -177,6 +202,23 @@ export default function DashboardTokens() {
     queryFn: getTokens,
     enabled: !redeeming,
   });
+
+  // A survey pays once its provider confirms it, usually while the user is back on this page from
+  // the survey's tab: look again each time the page is shown again.
+  const offersSurvey = tokens.data?.providers.some((provider) => provider.survey) ?? false;
+  useEffect(() => {
+    if (!offersSurvey) return;
+
+    const refresh = () => {
+      if (document.visibilityState !== 'visible') return;
+
+      queryClient.invalidateQueries({ queryKey: queryKeys.user.tokens() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.user.balance() });
+    };
+
+    document.addEventListener('visibilitychange', refresh);
+    return () => document.removeEventListener('visibilitychange', refresh);
+  }, [offersSurvey]);
 
   // back from a sponsored link: settle the claim once, say how it went, then drop the parameters
   // from the address

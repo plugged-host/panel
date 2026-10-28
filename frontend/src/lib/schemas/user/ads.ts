@@ -11,6 +11,6 @@ export const adBannerSchema = z.object({
 });
 
 export const accountAdsSchema = z.object({
-  audience: z.enum(['none', 'member', 'everyone']),
+  audience: z.enum(['none', 'room', 'member', 'everyone']),
   banners: z.array(adBannerSchema),
 });

@@ -91,9 +91,15 @@ export const userEconomySchema = z.object({
   plusName: z.string(),
   plusplusName: z.string(),
   plusSince: z.coerce.date().nullable(),
+  plusUntil: z.coerce.date().nullable(),
   plusplusUntil: z.coerce.date().nullable(),
   priority: z.number(),
   plusCost: z.number(),
+  plusDays: z.number(),
+  panelAccess: z.boolean(),
+  waitingRoom: z.boolean(),
+  idleStop: z.boolean(),
+  idleDelete: z.boolean(),
   plusplusOffers: z.array(
     z.object({
       pay: economyPaySchema,
@@ -115,7 +121,15 @@ export const userEconomySchema = z.object({
     .nullable(),
 });
 
-export const earnProviderSchema = z.enum(['linkvertise', 'vylo', 'cuty', 'shrinkearn', 'shrinkme', 'adfocus']);
+export const earnProviderSchema = z.enum([
+  'cpx_research',
+  'linkvertise',
+  'vylo',
+  'cuty',
+  'shrinkearn',
+  'shrinkme',
+  'adfocus',
+]);
 
 export const panelAccessSchema = z.object({
   enabled: z.boolean(),
@@ -141,6 +155,9 @@ export const userTokensSchema = z.object({
       nextReward: z.number(),
       dailyCap: z.number(),
       grantedToday: z.number(),
+      // plugged.host: a survey wall (CPX Research): pays what each survey shows (reward 0), opens in a
+      // new tab, the tokens come with its postback
+      survey: z.boolean().default(false),
       fullScript: z.boolean(),
       publisher: z.number().nullable(),
       whitelist: z.array(z.string()),

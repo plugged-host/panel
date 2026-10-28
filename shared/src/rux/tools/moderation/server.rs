@@ -1,6 +1,6 @@
 //! plugged.host: the moderation tools about the server itself: channel locks and slowmode,
-//! roles (giving them is for admins; looking at one for moderators too) and an overview of the
-//! channels, roles and what rux keeps per server.
+//! roles (giving them is for admins; looking at one, and who has it, for moderators too) and an
+//! overview of the channels, roles and what rux keeps per server.
 
 use super::{
     super::{Tool, ToolError, ToolResult, boolean, required, schema, string},
@@ -12,8 +12,9 @@ use super::{
 use crate::rux::{
     access::{self, Level},
     context::Context,
+    discord::{DiscordError, member_name},
     models::{Case, ModeratorRole},
-    resolver, time,
+    resolver, text, time,
 };
 use serde_json::{Map, Value, json};
 
@@ -241,6 +242,207 @@ impl Tool for RoleInfo {
     }
 }
 
+/// Members `role_members` looks through at most (Discord's pages of [`MEMBERS_PAGE`], by user
+/// id).
+pub const MEMBERS_SCANNED: usize = 10_000;
+/// One page of the member list.
+const MEMBERS_PAGE: usize = 1000;
+/// Members `role_members` names at most.
+pub const MEMBERS_LISTED: usize = 100;
+/// The characters its names take up at most, so its answer is never cut (the model sees 6000 of
+/// a tool's output).
+const LISTED_CHARS: usize = 4500;
+
+/// What the model is told when Discord keeps the member list from the bot.
+pub fn members_intent(bot: &str) -> String {
+    format!(
+        "Discord does not let {bot} list the server's members: the bot needs the Server Members intent. An admin turns on Server Members Intent for the bot in the Discord Developer Portal (Bot, Privileged Gateway Intents); then ask again. lookup_member still works for one member."
+    )
+}
+
+/// A member `role_members` names.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Holder {
+    pub id: String,
+    /// Their nickname, else display name, else username.
+    pub name: String,
+    pub username: String,
+    pub bot: bool,
+}
+
+impl Holder {
+    /// A member of Discord's member list, when they have the role (`role_id`; the server's own
+    /// id is @everyone, which everyone has).
+    pub fn of(member: &Value, role_id: &str, guild_id: &str) -> Option<Self> {
+        let id = member["user"]["id"].as_str().filter(|id| !id.is_empty())?;
+        let has_role = role_id == guild_id
+            || member["roles"]
+                .as_array()
+                .is_some_and(|roles| roles.iter().any(|role| role.as_str() == Some(role_id)));
+        if !has_role {
+            return None;
+        }
+
+        Some(Self {
+            id: id.to_string(),
+            name: text::name(&member_name(member), 32),
+            username: text::name(member["user"]["username"].as_str().unwrap_or_default(), 32),
+            bot: member["user"]["bot"].as_bool() == Some(true),
+        })
+    }
+
+    /// "Ann (ann) <@id>"; "ann <@id>" when both names are the same; " (bot)" after a bot.
+    pub fn line(&self) -> String {
+        let same = self.username.is_empty() || self.name.eq_ignore_ascii_case(&self.username);
+        let names = if same {
+            self.name.clone()
+        } else {
+            format!("{} ({})", self.name, self.username)
+        };
+
+        format!(
+            "{names} <@{}>{}",
+            self.id,
+            if self.bot { " (bot)" } else { "" }
+        )
+    }
+}
+
+/// The members to name, sorted by name (case does not count; then username and id): at most
+/// `max` of them, within `max_chars` together. Answers their lines and how many are left out.
+pub fn named(mut holders: Vec<Holder>, max: usize, max_chars: usize) -> (Vec<String>, usize) {
+    holders.sort_by_cached_key(|holder| {
+        (
+            holder.name.to_lowercase(),
+            holder.username.to_lowercase(),
+            holder.id.parse::<u64>().unwrap_or(u64::MAX),
+        )
+    });
+
+    let mut lines: Vec<String> = Vec::new();
+    let mut chars = 0;
+    for holder in &holders {
+        let line = holder.line();
+        // the quotes and the comma around it in the answer's JSON
+        let length = line.chars().count() + 3;
+        if lines.len() >= max || chars + length > max_chars {
+            break;
+        }
+        chars += length;
+        lines.push(line);
+    }
+    let left_out = holders.len() - lines.len();
+
+    (lines, left_out)
+}
+
+/// What `role_members` found.
+struct Scan {
+    holders: Vec<Holder>,
+    /// Members looked through.
+    scanned: usize,
+    /// The server has more members than were looked through.
+    more: bool,
+}
+
+/// The server's members who have the role (`role_id`; the server's id: everyone), through the
+/// member list page by page, up to [`MEMBERS_SCANNED`] members.
+async fn scan(context: &Context, role_id: &str) -> Result<Scan, DiscordError> {
+    let mut holders = Vec::new();
+    let mut scanned = 0;
+    let mut after: Option<String> = None;
+
+    loop {
+        let page = context
+            .rest
+            .members_page(&context.guild_id, after.as_deref(), MEMBERS_PAGE as u32)
+            .await?;
+        scanned += page.len();
+        holders.extend(
+            page.iter()
+                .filter_map(|member| Holder::of(member, role_id, &context.guild_id)),
+        );
+
+        let last = page
+            .last()
+            .and_then(|member| member["user"]["id"].as_str())
+            .map(str::to_string);
+        // the page was full: there can be more after its last member
+        let full = page.len() >= MEMBERS_PAGE && last.is_some();
+        if !full || scanned >= MEMBERS_SCANNED {
+            return Ok(Scan {
+                holders,
+                scanned,
+                more: full,
+            });
+        }
+        after = last;
+    }
+}
+
+pub struct RoleMembers;
+
+#[async_trait::async_trait]
+impl Tool for RoleMembers {
+    fn name(&self) -> &'static str {
+        "role_members"
+    }
+
+    fn description(&self, _context: &Context) -> String {
+        format!(
+            "Who has a role: how many members, and up to {MEMBERS_LISTED} of them by name (display name, username, mention), sorted by name. Looks through up to {MEMBERS_SCANNED} members; needs the bot's Server Members intent."
+        )
+    }
+
+    fn level(&self) -> Level {
+        Level::Moderator
+    }
+
+    fn parameters(&self) -> Value {
+        schema(
+            json!({
+                "role": { "type": "string", "description": "The role: name, <@&mention> or id." },
+            }),
+            &["role"],
+        )
+    }
+
+    async fn execute(&self, context: &Context, arguments: &Value) -> Result<ToolResult, ToolError> {
+        let role = resolver::role(
+            &context.rest,
+            &context.guild_id,
+            &required(arguments, "role")?,
+        )
+        .await?;
+        let id = role["id"].as_str().unwrap_or_default();
+        let everyone = id == context.guild_id;
+
+        let found = match scan(context, id).await {
+            Ok(found) => found,
+            Err(err) if err.needs_members_intent() => {
+                return Err(ToolError::Invalid(members_intent(
+                    &context.config.settings.name,
+                )));
+            }
+            Err(err) => return Err(err.into()),
+        };
+        let count = found.holders.len();
+        let (listed, left_out) = named(found.holders, MEMBERS_LISTED, LISTED_CHARS);
+
+        Ok(ToolResult::json(&without_nulls(json!({
+            "role": if everyone { "@everyone".to_string() } else { format!("<@&{id}>") },
+            "name": role["name"],
+            "members": if found.more { json!(format!("at least {count}")) } else { json!(count) },
+            "listed_by_name": listed,
+            "not_listed": (left_out > 0).then(|| format!("{left_out} more")),
+            "note": found.more.then(|| format!(
+                "Only the first {} members (the oldest Discord accounts) were looked through; the server has more, so more may have the role.",
+                found.scanned
+            )),
+        }))))
+    }
+}
+
 /// The channels `server_overview` lists, by category (the categories in their order, then the
 /// channels in theirs): "#name kind id".
 pub fn channels_by_category(channels: &[Value]) -> Map<String, Value> {
@@ -388,6 +590,134 @@ impl Tool for ServerOverview {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    const GUILD: &str = "100000000000000001";
+    const ROLE: &str = "100000000000000008";
+
+    fn member(id: &str, username: &str, nick: Option<&str>, roles: &[&str]) -> Value {
+        json!({
+            "user": { "id": id, "username": username, "global_name": null },
+            "nick": nick,
+            "roles": roles,
+        })
+    }
+
+    fn holder(id: &str, name: &str, username: &str) -> Holder {
+        Holder {
+            id: id.into(),
+            name: name.into(),
+            username: username.into(),
+            bot: false,
+        }
+    }
+
+    #[test]
+    fn holders_are_the_members_with_the_role() {
+        let ann = member("100000000000000006", "ann", Some("Ann\n<3"), &[ROLE]);
+        assert_eq!(
+            Holder::of(&ann, ROLE, GUILD),
+            Some(Holder {
+                id: "100000000000000006".into(),
+                name: "Ann ‹3".into(),
+                username: "ann".into(),
+                bot: false,
+            })
+        );
+
+        let bob = member("100000000000000007", "bob", None, &["100000000000000009"]);
+        assert_eq!(Holder::of(&bob, ROLE, GUILD), None);
+        // everyone has @everyone (Discord leaves it out of the roles)
+        assert!(Holder::of(&bob, GUILD, GUILD).is_some());
+        // no user, no holder
+        assert_eq!(Holder::of(&json!({"roles": [ROLE]}), ROLE, GUILD), None);
+
+        let mut bot = member("100000000000000010", "mee6", None, &[ROLE]);
+        bot["user"]["bot"] = json!(true);
+        assert!(Holder::of(&bot, ROLE, GUILD).unwrap().bot);
+    }
+
+    #[test]
+    fn holders_read_as_one_line_each() {
+        assert_eq!(
+            holder("100000000000000006", "Ann", "ann_99").line(),
+            "Ann (ann_99) <@100000000000000006>"
+        );
+        // the same name twice is said once
+        assert_eq!(
+            holder("100000000000000006", "Ann", "ann").line(),
+            "Ann <@100000000000000006>"
+        );
+        let mut bot = holder("100000000000000010", "mee6", "mee6");
+        bot.bot = true;
+        assert_eq!(bot.line(), "mee6 <@100000000000000010> (bot)");
+    }
+
+    #[test]
+    fn holders_are_sorted_by_name_and_capped() {
+        let holders = vec![
+            holder("100000000000000003", "carl", "carl"),
+            holder("100000000000000001", "Ann", "ann"),
+            holder("100000000000000004", "bob", "zed"),
+            holder("100000000000000002", "Bob", "bob"),
+        ];
+
+        let (lines, left_out) = named(holders.clone(), 100, 4500);
+        assert_eq!(
+            lines,
+            vec![
+                "Ann <@100000000000000001>",
+                "Bob <@100000000000000002>",
+                "bob (zed) <@100000000000000004>",
+                "carl <@100000000000000003>",
+            ]
+        );
+        assert_eq!(left_out, 0);
+
+        // at most `max`
+        let (lines, left_out) = named(holders.clone(), 2, 4500);
+        assert_eq!(lines.len(), 2);
+        assert_eq!(left_out, 2);
+
+        // and within the characters: "Ann <@…>" is 25, plus 3 for its JSON
+        let (lines, left_out) = named(holders, 100, 56);
+        assert_eq!(
+            lines,
+            vec!["Ann <@100000000000000001>", "Bob <@100000000000000002>"]
+        );
+        assert_eq!(left_out, 2);
+
+        assert_eq!(named(Vec::new(), 100, 4500), (Vec::new(), 0));
+    }
+
+    #[test]
+    fn the_intent_is_explained() {
+        let said = members_intent("rux");
+        assert!(said.starts_with("Discord does not let rux list the server's members"));
+        assert!(said.contains("Server Members Intent"));
+        assert!(said.contains("Developer Portal"));
+    }
+
+    #[test]
+    fn a_full_answer_fits_what_the_model_sees() {
+        let holders: Vec<Holder> = (0..150)
+            .map(|n| {
+                holder(
+                    &format!("1000000000000001{n:02}"),
+                    &"N".repeat(32),
+                    &"u".repeat(32),
+                )
+            })
+            .collect();
+        let (lines, left_out) = named(holders, MEMBERS_LISTED, LISTED_CHARS);
+        assert_eq!(lines.len() + left_out, 150);
+        assert!(lines.len() < MEMBERS_LISTED);
+        let answer = serde_json::to_string(&lines).unwrap();
+        assert!(
+            answer.chars().count() <= LISTED_CHARS + 2,
+            "{}",
+            answer.len()
+        );
+    }
 
     #[test]
     fn channels_are_listed_by_category() {

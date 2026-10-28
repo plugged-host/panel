@@ -281,13 +281,19 @@ pub async fn allowance_cut(
 
 /// The second membership ran out and these servers are moving off the premium locations
 /// (`economy::settle_lapse`).
-pub async fn membership_ended(state: &crate::State, user_uuid: uuid::Uuid, servers: &[String]) {
+pub async fn membership_ended(
+    state: &crate::State,
+    user_uuid: uuid::Uuid,
+    second: bool,
+    servers: &[String],
+) {
     if servers.is_empty() {
         return;
     }
 
     let membership = match state.settings.get().await {
-        Ok(settings) => settings.economy.plusplus_name.to_string(),
+        Ok(settings) if second => settings.economy.plusplus_name.to_string(),
+        Ok(settings) => settings.economy.plus_name.to_string(),
         Err(err) => {
             tracing::warn!(user = %user_uuid, "failed to read the membership's name: {err:#}");
             return;

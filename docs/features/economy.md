@@ -5,23 +5,36 @@ Two currencies (`shared/src/economy.rs`, `shared/src/earn.rs`, `shared/src/prici
 - **Credits** buy CPU, memory and disk in the **Resource Store**, for good, and the second
   membership. Without noprofit.space they are the panel's own; with it they are the account's
   noprofit.space credits and the store is noprofit.space's.
-- **Tokens** are earned through sponsored links (Linkvertise, Vylo, Cuty, ShrinkEarn, ShrinkMe and
-  AdFoc.us) and buy the memberships and the panel itself. They are always the panel's own.
+- **Tokens** are earned through a survey wall (CPX Research) and sponsored links (Linkvertise, Vylo,
+  Cuty, ShrinkEarn, ShrinkMe and AdFoc.us) and buy the memberships and the panel itself. They are
+  always the panel's own.
 
 Two memberships, always the panel's own. Their names are settings (plugged.host calls them Plus and
-PlusPlus); in code, tables and routes they are `plus` and `plusplus`:
+Premium; Premium was called PlusPlus until 3.0.4); in code, tables and routes they are `plus` and
+`plusplus`. Both are bought for some days at a time (plugged.host: a month), buying again adds to
+the time left, and nothing renews by itself. Neither needs the other: the second gives everything
+the first does.
 
 | | First (`plus`) | Second (`plusplus`) |
 |---|---|---|
-| Bought with | tokens, once, kept for good | tokens or credits, for some days; needs the first; buying again adds to the time left |
-| Location tier it opens | `plus` | `premium` (and `plus`) |
+| Bought with | tokens (`plus_tokens` for `plus_days`) | tokens, or credits when `plusplus_credits` is above 0 |
+| Location tier it opens | `plus` | `premium` and `plus` |
 | Start queue priority | 1 | 2 |
 | Burst cores on every server | 1 | 2 (the total, not 1 + 2) |
+| Ads ([ads.md](ads.md#who-sees-ads), while Fewer Ads for Members is on) | only the waiting room before a start: no banners, popups or in-game ads | none, and no waiting room |
+| Archives, unpacking and backups | faster (more threads on the node, [wings.md](../wings.md)) | faster still |
+| Panel access | included | included |
+| Idle servers ([limbo.md](limbo.md)) | stopped, parked and deleted like everyone's (Spare Members off) | the same |
 
 A location's tier is set on the location ([node-telemetry.md](node-telemetry.md)); a tier the
 economy does not know stays closed to players (`server_creation::tier_unlocked`). Admins place
-servers anywhere. The start queue, ads and limbo use the memberships when they arrive (later
-batches of this phase).
+servers anywhere.
+
+Until 3.0.4 the first membership was bought once and kept for good (`plus_since` only). The
+`monthly_plus_data` migration gave every such account 14 more days (`plus_until`), reset the
+membership prices to the new defaults (the first 15 tokens for 30 days, the second 30 tokens for
+30 days and not for credits), renamed a second membership still called PlusPlus to Premium, and
+turned Spare Members off.
 
 ## Burst cores
 
@@ -41,6 +54,27 @@ the store and its price curve; Admin › Nodes and the allowance count the paid 
 - Upstream's CFS burst (`docker.cfs_burst`) and startup boost are separate and stay as they are.
 - The server card, the console's CPU card and the CPU graph show "paid + burst"
   (`limits.burst_cpu` on the server).
+
+### Faster archives and backups
+
+Archiving, unpacking and backups run in Wings on the node, outside the server's container, so the
+server's CPU limit never applied to them; the node's thread counts did. The Wings fork reads the
+`build.cpu_burst` the panel already sends for burst cores and gives a member's server
+`1 + cpu_burst / 100` times those counts, up to the node's cores ([wings.md](../wings.md)). With
+the node defaults (2 threads to archive, 4 to unpack, 4 per backup):
+
+| | Free | Plus (1 burst core) | Premium (2) |
+|---|---|---|---|
+| Archive (zip, tar, 7z) | 2 | 4 | 6 |
+| Unpack, Wings-side backups | 4 | 8 | 8 on an 8-core node, 12 on 16 cores |
+| restic backups: files read at once | 2, at a lower CPU priority | 4 | 6 |
+
+Nothing to set in the panel: it follows the burst cores and changes with them on the next sync.
+The lower priority only matters while the node is busy, so members' backups go first; on a quiet
+node a free server's backup is as fast as before. Separately, for every server, a ZIP entry of
+64 MiB or more (a world database, a big log) is now deflated on all of the archive's threads
+instead of one, which is what made big zips slow. A node turns all of it off with
+`api.burst_operations: false` (the big-entry change stays).
 
 ## The Resource Store
 
@@ -116,7 +150,15 @@ transactions, only when there are any). Static links also get a gray button in t
 way back from a link ends in a toast with the result. **Daily tokens** (a setting, 0 by default) are
 given once a day, the first time the account looks after midnight UTC.
 
-Earning works with claims (`user_token_claims`):
+The survey wall, when it is set up, is the first row, so its button is the filled one: it pays the
+most. Its row says it "Pays what each survey shows", today's finished surveys against the cap ("0 of
+1 today"), that the tokens arrive once CPX Research confirms the survey (usually within minutes) and
+that one survey a day pays while a screen-out pays a small bonus and does not count. "Take a survey"
+opens the wall in a new tab (in the same tab when the browser blocks it); the Tokens page and the
+sidebar's balance load again each time the page is shown again, so the tokens show up when the user
+comes back ([CPX Research](#cpx-research)).
+
+Earning through a link works with claims (`user_token_claims`):
 
 1. **Earn** opens a claim: a 64-character nonce bound to the account, and returns where to go. The
    provider sends the player back to `/account/tokens?claim=<nonce>&…` with its proof.
@@ -145,6 +187,7 @@ Opening claims is throttled per account and provider (3 × the daily cap per hou
 
 | Provider | How it goes | How the proof is checked |
 |---|---|---|
+| CPX Research (a survey wall, not a link) | **Earn** answers the wall, `https://offers.cpx-research.com/index.php?app_id=<id>&ext_user_id=<the user's uuid>&secure_hash=<md5("<uuid>-<secure hash>")>&username=&email=&subid_1=&subid_2=` (no username or email is sent), and opens no claim (`nonce` is empty), throttled like a claim. No Tokens per Link, no Less per Further Link: each survey pays what the wall shows | CPX's postback, server to server, signed with `md5("<trans_id>-<secure hash>")` ([below](#cpx-research)) |
 | Linkvertise, link | The settings' Linkvertise link, with `{return}` or `{return_b64}` replaced by the way back | Linkvertise's anti-bypass API with the API token |
 | Linkvertise, Full Script | With a publisher id the Tokens page loads `linkvertise.js`, which turns the page's own earn link (`…&lvr=1`, matching the whitelist) into a Linkvertise link. The claim is opened when the page loads and reused on reloads | The same API |
 | Vylo | A short link made for every trip through Vylo's API, to the way back plus `vt=<proof>` | The proof is an HMAC of the nonce with the panel's key, so only a trip through the link has it; a trip faster than **Shortest Trip** does not count |
@@ -154,24 +197,87 @@ Opening claims is throttled per account and provider (3 × the daily cap per hou
 The page's `script-src` allows `https://publisher.linkvertise.com` only while Linkvertise is on with
 a publisher id and a token (`backend/src/lib.rs`).
 
+### CPX Research
+
+A survey wall (`earn::survey_postback`, `GET /api/earn/cpx-research`). CPX works out what each
+survey pays in tokens from the app's **Currency Factor** and shows it on the wall; when a survey is
+done or taken back, CPX's servers call the panel's postback URL. Set up in CPX's publisher
+dashboard, on the app's page:
+
+- **Postback Settings**: the URL Admin › Settings › Economy › Tokens shows (click to copy):
+
+  ```text
+  https://panel.example.com/api/earn/cpx-research?status={status}&trans_id={trans_id}&user_id={user_id}&amount_local={amount_local}&type={type}&ip_click={ip_click}&hash={secure_hash}
+  ```
+
+  The postback names the account (`user_id`, the wall's `ext_user_id`), so no claim is needed.
+  `secure_hash` for `hash` and `ext_user_id` for `user_id` are read too. CPX's servers must reach
+  the panel: a proxy, CDN or firewall in front of it must let `/api/earn/cpx-research` through
+  (CPX's dashboard lists the addresses its postbacks come from).
+- **Reward Settings**: the currency's name, Token (plural Tokens), and the Currency Factor, the
+  tokens a dollar of the publisher's earnings is worth. That decides what a survey pays; the panel
+  pays `amount_local` as CPX sends it.
+
+What the panel does with a postback:
+
+1. **Refused** (403, logged as a warning) while tokens or CPX Research are off or not set up (on,
+   App ID and Secure Hash), or when `hash` is not `md5("<trans_id>-<secure hash>")` (compared in
+   constant time). CPX signs only the transaction id, so everything else in it is trusted only once
+   per transaction.
+2. **`status=1`** (credited): `amount_local` in hundredths, rounded down (`earn::survey_amount`, at
+   most 10 000 tokens a postback). Inside one transaction with the user row locked (`FOR UPDATE`),
+   so two postbacks at once cannot both take the day's last survey, it is kept in
+   `user_token_claims` (provider `cpx_research`, `token_hash` = the transaction id's hash, `ip` =
+   `ip_click`) and paid like a link: the whole tokens now, the rest saved on the account
+   (`users.token_fraction`), in the ledger as `earn:cpx_research` ("Earned with CPX Research"). The
+   unique index on `(provider, token_hash)` makes a repeated postback pay nothing.
+   - **The daily cap** (**Surveys per Day**, 1 by default; days start at midnight UTC) counts only
+     finished surveys. A granted claim keeps CPX's `type` in `reason` (`complete`, `out` or
+     `bonus`), and the cap counts granted `complete` claims of the day. `out` (a qualified
+     screen-out's small bonus) and `bonus` (a rating's, say) are paid and never use up the day, so a
+     screen-out does not lock the user out. A `type` that is missing or that CPX does not document
+     counts as `complete`, so the cap holds whatever the postback URL sends.
+   - A `complete` over the cap is kept as `rejected` with reason `daily_cap` and pays nothing; an
+     amount of 0 or one that is not a number is kept as `rejected` (`no_amount`). Both are
+     answered as handled.
+3. **`status=2`** (reversed, for fraud found later, say): the transaction's claim becomes
+   `reversed`, and the whole tokens it paid are taken back, never more than the balance (what was
+   spent stays spent; `earn::survey_taken_back`), in the ledger as `earn_reversal` ("Reversed: CPX
+   Research"); `tokens_earned` goes down by what it paid. The part of a token it added to the saved
+   part stays. A reversed survey no longer counts toward its day. A transaction never credited is
+   kept as `reversed` (reason `before_credit`), so its credit coming late pays nothing.
+4. Everything else it signed is answered `200` with the body `1`: a repeated postback, a reversal
+   of something that paid nothing, an unknown user (logged as a warning), another `status`. A
+   database error, or a credit that came in while its reversal was being kept, answers `500`, so
+   CPX may send it again.
+
+A grant is logged in the account's activity as `account:tokens.earn` (`provider`, `amount`, `type`),
+at `ip_click`.
+
 ## Memberships
 
-Account › Membership is laid out like the Pelican panel's Plus page: the two memberships side by
-side (pitch, price, term, what each gives, the buy buttons), a table of what each adds over the free
-tier (locations, start queue, in-game ads, panel ads, CPU, neo usage, the devbox while devboxes are
-on), and the questions people ask before buying. The second membership's term reads like Pelican's
-("a week, or credits for two weeks"), from the two offers' days. Buying locks the membership row;
-the tokens or credits and the membership change together or not at all. With noprofit.space,
-credits for the second membership are taken by noprofit.space (`/credits/spend`) with an
-idempotency key per purchase, so a retry after a failure is not charged twice.
+Account › Membership is laid out like the Pelican panel's Plus page: a note while one runs ("Premium
+is active, it runs until …"), the two memberships side by side (pitch, price, term, what each
+gives, a buy button per offer: "30 days · 15 tokens"), a table of what each adds over the free tier
+(locations, start queue, in-game ads, panel ads, the waiting room while it is on, CPU, archives and
+backups, neo usage, the devbox while devboxes are on, panel access while it costs tokens), and the
+questions people ask before buying (one says idle servers still stop, while limbo spares no
+members). Terms read like Pelican's ("a month", "a week, or credits for two weeks"), from the
+offers' days. The first button is filled until the account has a membership, then the second's.
+Buying locks the membership row; the tokens or credits and the membership change together or not
+at all. With noprofit.space, credits for the second membership are taken by noprofit.space
+(`/credits/spend`) with an idempotency key per purchase, so a retry after a failure is not charged
+twice.
 
-When the second membership runs out, the `settle_memberships` task (every minute):
+When a membership runs out, the `settle_memberships` task (every minute):
 
-1. queues an admin move of every server on a `premium` location to a location the owner may use
-   and that takes servers: the same country first, then `plus` locations, then the fastest
-   ([transfers.md](transfers.md));
-2. counts the lapse as settled once no server is left on a premium location; until then it comes
-   back, so a full location is tried again. Buying again before that stops it.
+1. works out the location tiers the account lost (`lost_tiers`: `premium` once the second ran out,
+   `plus` too once neither runs) and queues an admin move of every server on such a location to a
+   location the owner may use and that takes servers: the same country first, then `plus`
+   locations while the first still runs, then the fastest ([transfers.md](transfers.md));
+2. counts the lapse as settled (`plus_settled`, `plusplus_settled`) once no server is left on a lost
+   location; until then it comes back, so a full location is tried again. Buying again before that
+   stops it. The owner gets `membershipEnded` naming the membership.
 
 ## The sidebar
 
@@ -186,7 +292,7 @@ membership change. Suspended users don't see it.
 
 Admin › Users › a user › Economy (`users.economy`): credits, tokens, what was earned, both
 memberships, what the panel's store sold, and both histories. Add or take away credits and tokens
-with a reason the user sees, give or take the first membership, set or end the second. Admin
+with a reason the user sees, set the end of either membership or end it now. Admin
 activity `user:economy`. With noprofit.space connected a credit change is sent to the user's account
 there (type `admin`, the reason as its description; [noprofit.md](../noprofit.md#what-changes-while-it-is-connected)),
 and the credit history is the changes made here that noprofit.space applied. That needs its account
@@ -214,17 +320,18 @@ next request sees the new date.
 |---|---|---|
 | `GET /api/client/account/credits` | `economy.read` | `{store}`: `source` (`panel`/`noprofit`), `available`, `credits`, `catalog: [{resource, step, total, limit, soft_limit, offers: [{steps, amount, price, full_price}]}]`, `discount` (`{percent, name, ends}` while a sale runs, else `null`), `transactions`, `has_plan`, `usage: [{resource, used, limit}]` (the meters), `rewards_url` (noprofit.space's Discord page or `null`), `perks: [{id: discord_link\|discord_join, gain, url} \| {id: discord_earn, per_invite, per_boost, url} \| {id: store, price, amount}]` |
 | `POST /api/client/account/credits/store` | `economy.purchase` | `{resource, steps (1–50), price}` → `{store}`; 409 when the price changed or the balance is short, 422 when noprofit.space refused |
-| `GET /api/client/account/tokens` | `economy.read` | `{tokens}`: balance, earned, `claim_minutes`, `providers: [{provider, reward, daily_cap, granted_today, full_script, publisher, whitelist}]`, `transactions` |
-| `POST /api/client/account/tokens/earn` | `economy.earn` | `{provider}` → `{earn: {url, nonce}}`; 409 capped, 429 throttled, 502 the provider made no link |
+| `GET /api/client/account/tokens` | `economy.read` | `{tokens}`: balance, earned, `claim_minutes`, `providers: [{provider, reward, next_reward, daily_cap, granted_today, survey, full_script, publisher, whitelist}]` (`survey`: CPX Research, `reward` 0, `granted_today` its finished surveys), `transactions` |
+| `POST /api/client/account/tokens/earn` | `economy.earn` | `{provider}` → `{earn: {url, nonce}}` (`cpx_research`: the wall, `nonce` empty); 409 capped, 429 throttled, 502 the provider made no link |
 | `POST /api/client/account/tokens/redeem` | `economy.earn` | `{claim, params}` → `{redemption: {status, amount, provider}}`, status `granted`, `settled`, `no_claim`, `expired`, `no_token`, `replay`, `capped`, `invalid` |
 | `GET /api/client/account/balance` | `economy.read` | `{balance}`: `credits` and `tokens` (`null` when off), `allowance` (the create page's) |
-| `GET /api/client/account/membership` | `economy.read` | `{economy}`: balances, both memberships, their prices, the burst cores of each and the account's now, the queue priority |
-| `POST /api/client/account/membership/plus` | `economy.purchase` | `{economy}`; 409 owned or short |
-| `POST /api/client/account/membership/plusplus` | `economy.purchase` | `{pay: tokens\|credits}` → `{economy}`; 403 without the first membership |
+| `GET /api/client/account/membership` | `economy.read` | `{economy}`: balances, both memberships (`plus_until`, `plusplus_until` while they run), their prices and days, the burst cores of each and the account's now, the queue priority, `panel_access`, `waiting_room`, `idle_stop`, `idle_delete` (what the page's table and questions say) |
+| `POST /api/client/account/membership/plus` | `economy.purchase` | `{economy}`, `plus_days` more; 409 short |
+| `POST /api/client/account/membership/plusplus` | `economy.purchase` | `{pay: tokens\|credits}` → `{economy}`; 409 short or not for sale that way |
 | `GET /api/client/account/panel-access` | `economy.read` | `{panel_access}`: `enabled`, `required`, `exempt`, `tokens`, `days`, `until` |
 | `POST /api/client/account/panel-access` | `economy.purchase` | `{panel_access}` after charging the tokens; 409 short |
 | `GET /api/admin/users/{user}/economy` | `users.economy` | The user's economy and both histories |
-| `PUT /api/admin/users/{user}/economy` | `users.economy` | `{credits?, tokens?, reason?, plus?, plusplus_until?}` (`null` ends it now) |
+| `PUT /api/admin/users/{user}/economy` | `users.economy` | `{credits?, tokens?, reason?, plus_until?, plusplus_until?}` (`null` ends it now) |
+| `GET /api/earn/cpx-research` | none (public; signed by CPX, [CPX Research](#cpx-research)) | CPX Research's postback: `status`, `trans_id`, `user_id`, `amount_local`, `type`, `ip_click`, `hash` → `200` `1` when handled, `403` off, not set up or a wrong hash |
 
 User activity: `account:store.purchase`, `account:membership.plus`, `account:membership.plusplus`,
 `account:tokens.earn`.
@@ -237,15 +344,16 @@ User activity: `account:store.purchase`, `account:membership.plus`, `account:mem
 | `users.tokens`, `tokens_earned`, `tokens_daily_granted` | Tokens, all earned so far, the day the daily tokens were given |
 | `users.panel_access_until` | When the paid panel access runs out (empty: never paid) |
 | `user_credit_transactions`, `user_token_transactions` | The ledgers: amount, balance after, type, description, data |
-| `user_token_claims` | Earn trips: nonce, provider, proof hash, status, reason, amount |
-| `user_memberships` | `plus_since`, `plusplus_until`, purchases and `plusplus_settled` of the last lapse |
+| `user_token_claims` | Earn trips: nonce, provider, proof hash, status, reason, amount. CPX Research's postbacks too: the transaction id's hash as the proof, a random nonce nobody uses, status `granted`, `rejected` or `reversed`, `reason` the survey's `type` (`complete`, `out`, `bonus`) or why it was not paid |
+| `user_memberships` | `plus_since` (first bought), `plus_until`, `plusplus_until`, the purchases of each and `plus_settled`, `plusplus_settled` of the last lapses |
 | `users.burst_cores` | The burst cores the account's servers get now (kept by `sync_burst`) |
 
 ## Settings
 
 Admin › Settings › Economy, in three tabs: Resource Store (credits, starting credits, prices),
-Tokens (daily tokens, panel access, Linkvertise, Vylo, Cuty, ShrinkEarn, ShrinkMe, AdFoc.us) and
-Memberships.
+Tokens (daily tokens, panel access, CPX Research, Linkvertise, Vylo, Cuty, ShrinkEarn, ShrinkMe,
+AdFoc.us) and Memberships. CPX Research's part shows the postback URL to paste into CPX (built from
+the panel's application URL, click to copy) and what to set in CPX's Reward Settings.
 A tab saves only its own fields.
 
 | Field | Key | Default |
@@ -256,16 +364,17 @@ A tab saves only its own fields.
 | Daily Tokens | `economy::daily_tokens` | 0 |
 | Panel access: on, tokens, days | `economy::panel_access_{enabled,tokens,days}` | on, 5, 30 |
 | Memberships | `economy::membership_enabled` | on |
-| Names | `economy::plus_name`, `plusplus_name` | Plus, PlusPlus |
-| First membership: tokens | `economy::plus_tokens` | 25 |
-| Second: tokens and days | `economy::plusplus_tokens`, `plusplus_token_days` | 10, 7 |
-| Second: credits (0 = not for credits) and days | `economy::plusplus_credits`, `plusplus_credit_days` | 150, 14 |
+| Names | `economy::plus_name`, `plusplus_name` | Plus, Premium |
+| First membership: tokens and days | `economy::plus_tokens`, `plus_days` | 15, 30 |
+| Second: tokens and days | `economy::plusplus_tokens`, `plusplus_token_days` | 30, 30 |
+| Second: credits (0 = not for credits) and days | `economy::plusplus_credits`, `plusplus_credit_days` | 0, 30 |
 | Burst cores: first, second (the total) | `economy::plus_burst_cores`, `plusplus_burst_cores` (0 to 16) | 1, 2 |
 | Store steps and prices | `economy::{cpu,memory,disk}_{step,price}` | 50 % / 100, 1024 MiB / 150, 5120 MiB / 75 |
 | Store limits | `economy::limit_{cpu,memory,disk}` | 600 %, 24576 MiB, 102400 MiB |
 | Curve | `economy::price_floor`, `soft_limit`, `soft_multiplier`, `doubling` | 50 %, 125 %, 4 ×, 5 % |
 | Sale: discount, starts, ends, name | `economy::store_discount` (0 to 100), `store_discount_starts`, `store_discount_ends` (RFC 3339, empty: open), `store_discount_name` | 0, –, –, – |
 | Minutes to Finish a Link | `economy::claim_minutes` | 30 |
+| CPX Research: on, App ID (digits), Secure Hash (encrypted), Surveys per Day (finished surveys, 0 = no cap) | `economy::cpx_research_{enabled,app_id,secret,daily_cap}` | off, –, –, 1 |
 | Linkvertise | `economy::linkvertise_{enabled,token (encrypted),publisher,whitelist,link,reward,daily_cap}` | off, –, –, `lvr=`, –, 1, 5 |
 | Vylo | `economy::vylo_{enabled,api_key (encrypted),reward,daily_cap,min_seconds}` | off, –, 1, 5, 10 |
 | Cuty | `economy::cuty_{enabled,api_key (encrypted),reward,daily_cap,min_seconds}` | off, –, 1, 5, 10 |
@@ -296,13 +405,32 @@ four routes of the accounts app ([noprofit.md](../noprofit.md#wire-format)): `/s
 - Resource Store: "Unlock more resources (1)" is closed; open it, reload: still open. Its row says
   what 1 GiB of memory costs and "Open store" scrolls to the resources. Each meter's solid part
   follows the servers' use; a server bigger than the limit turns the row red.
-- Admin: add 30 tokens. Membership: buy the first one; a `plus` location opens on the create and
-  transfer pages. Buy the second with tokens: it runs for 7 days, a `premium` location opens; the
-  CPU allowance stays the same (the second membership adds burst cores, not allowance).
+- Admin: add 60 tokens. Membership: buy the first one: "Plus is active, it runs until" a date 30
+  days out, a `plus` location opens on the create and transfer pages; buy it again: the date moves
+  30 days further. As another user, buy only the second: it runs for 30 days, `premium` and `plus`
+  locations open, its servers burst +200 %; the CPU allowance stays the same (memberships add
+  burst cores, not allowance). With ads on and Fewer Ads for Members on, a first-membership
+  account sees no banners on any page and no popups, and still waits in the waiting room before a
+  start; a second-membership account sees nothing.
 - Admin › Economy › End the second membership now: within a minute, a server on a premium location
-  starts moving (its Transfer tab).
+  starts moving (its Transfer tab). End the first one now on an account with a server on a plus
+  location and no second membership: that server moves to a free location, and the account gets
+  "Plus has ended".
+- After the 3.0.4 migration: an account that had Plus for good shows "Plus is active" until 14
+  days after the release; the Memberships tab shows 15 tokens / 30 days and 30 tokens / 30 days,
+  credits 0, the second named Premium.
 - Linkvertise, Vylo, Cuty, ShrinkEarn, ShrinkMe or AdFoc.us set up with real keys: Earn with …, finish the
   link, come back: a toast "Added: +1 tokens"; reloading the page that came back does not add more.
+- CPX Research: Admin › Settings › Economy › Tokens › turn it on, enter the App ID and the Secure
+  Hash, save; click the postback URL (copied) and paste it into the app's Postback Settings at CPX,
+  name the currency Token/Tokens in its Reward Settings. The Tokens page lists CPX Research first
+  with the filled "Take a survey", "Pays what each survey shows" and "0 of 1 today". The button opens
+  the wall in a new tab, signed for the account. With CPX's "Test postback" (or a hand-made request
+  with `hash` = `md5("<trans_id>-<secure hash>")`): `status=1&type=complete&amount_local=12.5` adds
+  12 tokens and saves 0.5, the row says "1 of 1 today" and "Come back tomorrow" once the Tokens tab
+  is shown again; the same request again adds nothing; another `complete` the same day is kept as
+  `daily_cap` and pays nothing; `type=out` still pays. `status=2` with the first `trans_id` takes the
+  12 tokens back ("Reversed: CPX Research"), down to 0 at most. A wrong `hash` answers 403.
 - Panel access: as a user without a membership, open a server page: it lands on Account › Panel
   Access; the Tokens page still opens. Pay: the server page opens and the sidebar shows the new
   date. A Plus account never sees the paywall.

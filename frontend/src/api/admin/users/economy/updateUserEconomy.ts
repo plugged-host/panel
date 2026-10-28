@@ -8,8 +8,8 @@ export interface UserEconomyChange {
   credits?: number;
   tokens?: number;
   reason?: string;
-  plus?: boolean;
   // null ends it now
+  plusUntil?: Date | null;
   plusplusUntil?: Date | null;
 }
 
@@ -18,7 +18,7 @@ export default async (userUuid: string, change: UserEconomyChange): Promise<z.in
     credits: change.credits,
     tokens: change.tokens,
     reason: change.reason,
-    plus: change.plus,
+    ...(change.plusUntil !== undefined ? { plus_until: change.plusUntil ? change.plusUntil.toISOString() : null } : {}),
     ...(change.plusplusUntil !== undefined
       ? { plusplus_until: change.plusplusUntil ? change.plusplusUntil.toISOString() : null }
       : {}),

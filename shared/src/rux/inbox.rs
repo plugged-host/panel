@@ -151,6 +151,19 @@ pub fn accept(message: &Value, me: &Me, config: &Config) -> Option<NewOrder> {
     if !mentions.is_empty() {
         meta.insert("mentions".into(), Value::Array(mentions));
     }
+    // the author's roles come with a server message: the prompt names them without a lookup
+    if guild_id.is_some()
+        && let Some(roles) = message["member"]["roles"].as_array()
+    {
+        meta.insert(
+            "author_roles".into(),
+            roles
+                .iter()
+                .filter(|role| role.as_str().is_some_and(crate::discord::is_snowflake))
+                .cloned()
+                .collect(),
+        );
+    }
     if !images.is_empty() {
         meta.insert(
             "images".into(),
@@ -334,6 +347,31 @@ mod tests {
         let mut elsewhere = message("hey rux");
         elsewhere["guild_id"] = json!(OTHER_GUILD);
         assert!(accept(&elsewhere, &me(), &config).is_none());
+    }
+
+    #[test]
+    fn the_authors_roles_come_along() {
+        let config = config();
+        let mut with_roles = message("hey rux, who am i");
+        with_roles["member"]["roles"] = json!(["100000000000000009", "../x", 7]);
+        let order = accept(&with_roles, &me(), &config).unwrap();
+        assert_eq!(
+            order.meta.unwrap()["author_roles"],
+            json!(["100000000000000009"])
+        );
+
+        // no roles is something to know too
+        let mut none = message("hey rux");
+        none["member"]["roles"] = json!([]);
+        assert_eq!(
+            accept(&none, &me(), &config).unwrap().meta.unwrap()["author_roles"],
+            json!([])
+        );
+
+        // a DM has no member
+        let mut dm = with_roles.clone();
+        dm.as_object_mut().unwrap().remove("guild_id");
+        assert!(accept(&dm, &me(), &config).unwrap().meta.is_none());
     }
 
     #[test]

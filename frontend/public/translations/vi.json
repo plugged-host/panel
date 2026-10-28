@@ -888,7 +888,8 @@
           "store": "Cửa Hàng Tài Nguyên",
           "plus": "Hội viên",
           "plusplus": "Hội viên",
-          "earn": "Liên kết tài trợ",
+          "earn": "Kiếm được",
+          "earnReversal": "Đã thu hồi",
           "limbo": "Đã khôi phục máy chủ",
           "limboRefund": "Hoàn lại phí khôi phục",
           "subdomain": "Tên miền phụ",
@@ -1050,7 +1051,7 @@
           },
           "membershipEnded": {
             "title": "{membership} đã kết thúc",
-            "body": "Các máy chủ ở vị trí Premium đang được chuyển sang vị trí khác: {servers}. Theo dõi trên trang Chuyển Máy Chủ của từng máy chủ."
+            "body": "Các máy chủ ở vị trí mà gói hội viên này mở đang được chuyển sang vị trí khác: {servers}. Theo dõi trên trang Chuyển Máy Chủ của từng máy chủ."
           },
           "failoverDone": {
             "title": "Đã khôi phục máy chủ",
@@ -2847,11 +2848,12 @@
           "title": "Token",
           "subheading": "Kiếm token và xem token đã được dùng vào đâu",
           "balance": "{count} token",
-          "explainer": "Kiếm token bằng cách hoàn thành liên kết tài trợ. Token dùng để trả cho {app} {plus}, đánh thức máy chủ đang ngủ đông và tên miền phụ.",
+          "explainer": "Kiếm token bằng cách làm khảo sát hoặc hoàn thành liên kết tài trợ. Token dùng để trả cho {app} {plus}, đánh thức máy chủ đang ngủ đông và tên miền phụ.",
           "saved": "Đã tích lũy {amount} token cho token tiếp theo",
           "decays": "Mỗi liên kết hôm nay trả ít hơn một chút (liên kết đầu tiên trả {full}).",
           "none": "Hiện chưa có cách kiếm token nào được thiết lập.",
           "provider": {
+            "cpx_research": "CPX Research",
             "linkvertise": "Linkvertise",
             "vylo": "Vylo",
             "cuty": "Cuty",
@@ -2864,6 +2866,11 @@
           "capped": "Hãy quay lại vào ngày mai",
           "linkUnavailable": "Hiện không khả dụng",
           "earnWith": "Kiếm qua {provider}",
+          "takeSurvey": "Làm khảo sát",
+          "surveyReward": "Trả theo mức mỗi khảo sát hiển thị",
+          "surveyConfirm": "Token sẽ được cộng khi {provider} xác nhận khảo sát, thường trong vài phút.",
+          "surveyCapOne": "Mỗi ngày chỉ một khảo sát được trả thưởng. Khảo sát kết thúc sớm vì bạn không phù hợp có thể trả một khoản thưởng nhỏ và không được tính.",
+          "surveyCap": "Mỗi ngày {cap} khảo sát được trả thưởng. Khảo sát kết thúc sớm vì bạn không phù hợp có thể trả một khoản thưởng nhỏ và không được tính.",
           "scriptBlocked": "Không tải được liên kết tài trợ. Có thể một trình chặn nội dung đang chặn nó.",
           "history": "Hoạt động gần đây",
           "redemption": {
@@ -2882,37 +2889,31 @@
         "membership": {
           "title": "Hội Viên",
           "pageTitle": "{app} {name}",
-          "subtitle": "Vị trí tốt hơn, không phải xếp hàng chờ và không có quảng cáo trong game. Mua một lần, dùng mãi mãi.",
+          "subtitle": "Vị trí tốt hơn, không phải xếp hàng chờ và ít quảng cáo hơn. Trả theo tháng bằng token; không có gì tự động gia hạn.",
           "unavailable": "{name} hiện chưa được bán.",
-          "plusplusActive": {
+          "active": {
             "heading": "{name} đang hoạt động",
             "body": "Có hiệu lực đến {until}."
           },
-          "owned": {
-            "heading": "Bạn đã có {app} {name}",
-            "body": "Các vị trí {name}, ưu tiên trong hàng chờ khởi động và không có quảng cáo trong game là của bạn mãi mãi. {plusplus} còn bổ sung thêm nữa."
-          },
           "plus": {
-            "pitch": "Mọi thứ mà hầu hết máy chủ cần, mua một lần, không cần gia hạn.",
-            "term": "Một lần, dùng mãi mãi",
-            "get": "Nhận {name}",
-            "owned": "Đã Sở Hữu"
+            "pitch": "Mọi thứ mà hầu hết máy chủ cần, theo tháng.",
+            "get": "Nhận {name}"
           },
           "plusplus": {
-            "pitch": "Gói bổ sung cho những máy chủ cần nhiều nhất: phần cứng Premium, không có quảng cáo ở bất cứ đâu và thêm CPU.",
+            "pitch": "Dành cho những máy chủ cần nhiều nhất: phần cứng Premium, không có quảng cáo ở bất cứ đâu và thêm CPU.",
             "term": "{tokens}, hoặc {credits} khi trả bằng credit",
             "termTokens": "{tokens}",
-            "needsPlus": "{name} cần có {app} {plus} trước.",
-            "extendHint": "Mua lại trước khi hết hạn sẽ cộng thêm vào thời gian còn lại.",
             "notSold": "Hiện không bán."
           },
+          "extendHint": "Mua lại trước khi hết hạn sẽ cộng thêm vào thời gian còn lại.",
           "days": "{days} ngày",
           "duration": {
             "day": "một ngày",
             "days": "{count} ngày",
             "week": "một tuần",
             "twoWeeks": "hai tuần",
-            "weeks": "{count} tuần"
+            "weeks": "{count} tuần",
+            "month": "một tháng"
           },
           "cost": {
             "tokens": "{cost} token",
@@ -2923,14 +2924,16 @@
           "perks": {
             "plusLocations": "Các vị trí {name}",
             "priority": "Ưu tiên trong hàng chờ khởi động khi node đang bận",
-            "noGameAds": "Không có quảng cáo trong game trên máy chủ Minecraft của bạn",
+            "noBannerAds": "Không quảng cáo: không banner, popup hay quảng cáo trong game",
             "burst": "Mỗi máy chủ được burst đến +{cpu}% CPU khi node còn dư tài nguyên",
             "neoPlus": "Thêm {percent}% mức sử dụng neo (AI)",
             "devbox": "VS Code trên máy chủ của bạn: {cpu} vCPU, {memory} RAM, {disk} ổ đĩa",
-            "everythingInPlus": "Mọi thứ trong {name}",
-            "premiumLocations": "Các vị trí Premium",
+            "panelAccess": "Đã bao gồm quyền truy cập bảng điều khiển",
+            "fasterFiles": "Nén, giải nén và sao lưu nhanh hơn",
+            "fastestFiles": "Nén, giải nén và sao lưu nhanh nhất",
+            "premiumLocations": "Các vị trí {plus} và Premium",
+            "highestPriority": "Ưu tiên cao nhất trong hàng chờ khởi động khi node đang bận",
             "noAds": "Không có quảng cáo ở bất cứ đâu: không banner, popup, màn hình chờ trước khi khởi động hay quảng cáo trong game",
-            "frontOfQueue": "Đứng đầu hàng chờ khởi động, trước cả {name}",
             "neoPlusplus": "Tổng cộng thêm {percent}% mức sử dụng neo (AI)",
             "devboxPlusplus": "Devbox VS Code lớn hơn: {cpu} vCPU, {memory} RAM, {disk} ổ đĩa"
           },
@@ -2942,9 +2945,12 @@
               "queue": "Hàng chờ khởi động trên node bận",
               "gameAds": "Quảng cáo trong game (Minecraft)",
               "panelAds": "Quảng cáo trong panel",
+              "waitingRoom": "Màn hình chờ trước khi khởi động",
               "cpu": "CPU",
+              "files": "Nén và sao lưu",
               "ai": "Mức sử dụng neo (AI)",
-              "devbox": "VS Code trên máy chủ của bạn"
+              "devbox": "VS Code trên máy chủ của bạn",
+              "panelAccess": "Quyền truy cập bảng điều khiển"
             },
             "cells": {
               "locationsFree": "Miễn phí",
@@ -2959,24 +2965,34 @@
               "no": "Không",
               "cpu": "Hạn mức của bạn",
               "cpuBurst": "Hạn mức của bạn, burst +{cpu}%",
+              "filesFree": "Tiêu chuẩn",
+              "filesPlus": "Nhanh hơn",
+              "filesPlusplus": "Nhanh nhất",
               "aiFree": "Tiêu chuẩn",
               "percent": "+{percent}%",
-              "devbox": "{cpu} vCPU, {memory} RAM, {disk} ổ đĩa"
+              "devbox": "{cpu} vCPU, {memory} RAM, {disk} ổ đĩa",
+              "panelAccessFree": "Trả bằng token",
+              "included": "Đã bao gồm"
             }
           },
           "faq": {
             "heading": "Câu hỏi",
-            "once": {
-              "question": "{plus} có phải là gói đăng ký định kỳ không?",
-              "answer": "Không. Bạn trả cho {plus} một lần và giữ nó mãi mãi. Chỉ {plusplus} có thời hạn nhất định, và không có gì tự động gia hạn."
+            "renew": {
+              "question": "Gói hội viên có tự động gia hạn không?",
+              "answer": "Không. {plus} và {plusplus} đều có hiệu lực theo số ngày bạn mua, và không có gì tự động gia hạn. Mua lại trước khi một gói hết hạn sẽ cộng thêm vào thời gian còn lại. {plusplus} bao gồm mọi thứ {plus} mang lại, nên bạn không bao giờ cần cả hai."
             },
             "expiry": {
-              "question": "Điều gì xảy ra khi {plusplus} hết hạn?",
-              "answer": "Bạn vẫn giữ {plus}. Máy chủ ở các vị trí Premium sẽ được chuyển sang vị trí khác, và máy chủ của bạn chỉ burst trong mức {plus} cho phép. Mua lại {plusplus} trước khi hết hạn để giữ cả hai."
+              "question": "Điều gì xảy ra khi gói hội viên hết hạn?",
+              "answer": "Máy chủ ở các vị trí mà gói đó mở sẽ được chuyển sang vị trí bạn vẫn dùng được, và máy chủ của bạn chỉ burst trong mức phần còn lại cho phép. Mua lại trước khi hết hạn để giữ mọi thứ."
+            },
+            "idle": {
+              "question": "Máy chủ của tôi có còn bị dừng khi không ai dùng không?",
+              "answer": "Có. Gói hội viên không thay đổi điều đó: như mọi máy chủ, máy chủ không ai dùng sẽ bị dừng sau một thời gian, rồi chuyển sang ngủ đông. Bạn có thể khởi động lại từ trang của máy chủ đó.",
+              "answerDelete": "Có. Gói hội viên không thay đổi điều đó: như mọi máy chủ, máy chủ không ai dùng sẽ bị dừng sau một thời gian, rồi chuyển sang ngủ đông, và bị xóa nếu ngủ đông quá lâu. Cho đến lúc đó, bạn có thể khởi động lại từ trang của máy chủ đó."
             },
             "tokens": {
               "question": "Làm sao để nhận token?",
-              "answer": "Trong trang Token ở thanh bên, bằng cách hoàn thành liên kết tài trợ."
+              "answer": "Trong trang Token ở thanh bên, bằng cách làm khảo sát hoặc hoàn thành liên kết tài trợ."
             },
             "credits": {
               "question": "Tôi có thể trả bằng credit không?",
@@ -2985,7 +3001,7 @@
           },
           "modal": {
             "title": "Mua Hội Viên",
-            "plus": "Dùng **{cost}** token để mua **{name}**? Gói này là của bạn mãi mãi.",
+            "plus": "Dùng **{cost}** token để mua **{name}** trong **{days} ngày**?",
             "plusplus": {
               "tokens": "Dùng **{cost}** token để mua **{name}** trong **{days} ngày**?",
               "credits": "Dùng **{cost}** credit để mua **{name}** trong **{days} ngày**?"
@@ -2993,7 +3009,7 @@
             "confirm": "Mua"
           },
           "toast": {
-            "plus": "Bạn đã có {name}.",
+            "plus": "Đã mua {name}.",
             "plusplus": "Đã mua {name}."
           }
         },
@@ -3195,7 +3211,7 @@
           "active": "Đã trả đến {date}.",
           "inactive": "Bảng điều khiển bị khóa cho đến khi bạn trả tiền.",
           "exempt": "Bạn không bao giờ trả tiền cho bảng điều khiển.",
-          "exemptNotice": "Thành viên của bạn bao gồm bảng điều khiển.",
+          "exemptNotice": "Gói hội viên của bạn bao gồm bảng điều khiển.",
           "disabled": "Bảng điều khiển hiện miễn phí.",
           "buy": "Trả {tokens} token",
           "earn": "Kiếm token",
@@ -8925,7 +8941,7 @@
           },
           "plusOffer": {
             "heading": "Vượt lên trước với {app} {name}",
-            "body": "{name} có giá {cost} token, trả một lần, dùng mãi mãi: ưu tiên trong hàng chờ này cho mọi máy chủ của bạn, các vị trí {name} và không có quảng cáo trong game.",
+            "body": "{name} có giá {cost} token mỗi tháng: ưu tiên trong hàng chờ này cho mọi máy chủ của bạn, các vị trí {name} và không có quảng cáo nào ngoài màn hình chờ.",
             "button": "Nhận {name}"
           },
           "move": {

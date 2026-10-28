@@ -1,5 +1,6 @@
 //! plugged.host: rux's moderation tools (looking members up, warnings, timeouts, kicks, bans,
-//! messages, channels, roles, the case log) and their tick (bans that ran out are lifted).
+//! messages, channels, roles and who has them, the case log) and their tick (bans that ran out
+//! are lifted).
 //!
 //! Everything rux does to someone is a case ([`cases`]): who ordered it, on whom, why, on which
 //! server, posted to that server's mod log. Moderators (a rux moderator role) get the moderation
@@ -158,6 +159,7 @@ pub fn tools() -> Vec<Box<dyn Tool>> {
         Box::new(server::ChannelSettings),
         Box::new(server::ManageRole),
         Box::new(server::RoleInfo),
+        Box::new(server::RoleMembers),
         Box::new(messages::SendMessage),
         Box::new(messages::EditMessage),
         Box::new(messages::SendDm),
@@ -207,6 +209,7 @@ mod tests {
                 "purge_messages",
                 "channel_settings",
                 "role_info",
+                "role_members",
                 "server_overview",
                 "clear_warnings",
             ]

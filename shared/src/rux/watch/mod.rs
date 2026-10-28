@@ -9,7 +9,8 @@
 //! their own. Bots, webhooks, system messages and rux itself are skipped there; staff in those
 //! tasks (a member's roles come with the message, so that check needs no lookup), so staff are
 //! never acted on. What acts is the rules tools' ([`crate::rux::tools::rules::enforce`]), as an
-//! order would: the same cases, mod log and notices.
+//! order would: the same cases, mod log and notices. The AI is told each author's roles and the
+//! roles a message pings, by name, from the server's roles the cache keeps ([`judge`]).
 
 mod channels;
 mod judge;

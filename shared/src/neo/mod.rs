@@ -174,7 +174,7 @@ pub async fn plan(
         Ok(membership) if membership.has_plusplus(chrono::Utc::now().naive_utc()) => {
             NeoPlan::Plusplus
         }
-        Ok(membership) if membership.has_plus() => NeoPlan::Plus,
+        Ok(membership) if membership.has_plus(chrono::Utc::now().naive_utc()) => NeoPlan::Plus,
         Ok(_) => NeoPlan::Free,
         Err(err) => {
             tracing::warn!("failed to read a membership for neo: {err:#}");

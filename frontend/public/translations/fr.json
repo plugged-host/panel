@@ -888,7 +888,8 @@
           "store": "Boutique de ressources",
           "plus": "Adhésion",
           "plusplus": "Adhésion",
-          "earn": "Lien sponsorisé",
+          "earn": "Gain",
+          "earnReversal": "Gain annulé",
           "limbo": "Serveur restauré",
           "limboRefund": "Restauration remboursée",
           "subdomain": "Sous-domaine",
@@ -1050,7 +1051,7 @@
           },
           "membershipEnded": {
             "title": "{membership} a pris fin",
-            "body": "Les serveurs sur des emplacements Premium sont transférés vers un autre emplacement : {servers}. Suivez le transfert sur la page Transfert de chaque serveur."
+            "body": "Les serveurs sur des emplacements que cette adhésion ouvrait sont transférés vers un autre emplacement : {servers}. Suivez le transfert sur la page Transfert de chaque serveur."
           },
           "failoverDone": {
             "title": "Serveur rétabli",
@@ -2847,11 +2848,12 @@
           "title": "Jetons",
           "subheading": "Gagnez des jetons et voyez où ils sont passés",
           "balance": "{count} jetons",
-          "explainer": "Gagnez des jetons en complétant des liens sponsorisés. Ils servent à payer {app} {plus}, le réveil d'un serveur en hibernation et les sous-domaines.",
+          "explainer": "Gagnez des jetons en répondant à un sondage ou en complétant des liens sponsorisés. Ils servent à payer {app} {plus}, le réveil d'un serveur en hibernation et les sous-domaines.",
           "saved": "{amount} jetons mis de côté pour votre prochain jeton",
           "decays": "Chaque lien rapporte un peu moins aujourd'hui (le premier a rapporté {full}).",
           "none": "Aucun moyen de gagner des jetons n'est configuré pour le moment.",
           "provider": {
+            "cpx_research": "CPX Research",
             "linkvertise": "Linkvertise",
             "vylo": "Vylo",
             "cuty": "Cuty",
@@ -2864,6 +2866,11 @@
           "capped": "Revenez demain",
           "linkUnavailable": "Indisponible pour le moment",
           "earnWith": "Gagner avec {provider}",
+          "takeSurvey": "Répondre à un sondage",
+          "surveyReward": "Rapporte ce qu'affiche chaque sondage",
+          "surveyConfirm": "Les jetons arrivent dès que {provider} confirme le sondage, en général en quelques minutes.",
+          "surveyCapOne": "Un sondage par jour est payé. Un sondage qui s'arrête tôt parce que vous ne correspondez pas au profil peut rapporter un petit bonus et ne compte pas.",
+          "surveyCap": "{cap} sondages par jour sont payés. Un sondage qui s'arrête tôt parce que vous ne correspondez pas au profil peut rapporter un petit bonus et ne compte pas.",
           "scriptBlocked": "Le lien sponsorisé n'a pas pu se charger. Un bloqueur de contenu l'en empêche peut-être.",
           "history": "Activité récente",
           "redemption": {
@@ -2882,37 +2889,31 @@
         "membership": {
           "title": "Adhésion",
           "pageTitle": "{app} {name}",
-          "subtitle": "De meilleurs emplacements, pas d'attente dans la file et pas de publicité dans votre jeu. Acheté une fois, à vous pour de bon.",
+          "subtitle": "De meilleurs emplacements, pas d'attente dans la file et moins de publicité. Payé au mois en jetons ; rien ne se renouvelle tout seul.",
           "unavailable": "{name} n'est pas en vente pour le moment.",
-          "plusplusActive": {
+          "active": {
             "heading": "{name} est actif",
             "body": "Il est actif jusqu'au {until}."
           },
-          "owned": {
-            "heading": "Vous avez {app} {name}",
-            "body": "Les emplacements {name}, la priorité dans la file de démarrage et l'absence de publicité en jeu sont à vous pour de bon. {plusplus} ajoute encore plus."
-          },
           "plus": {
-            "pitch": "Tout ce dont la plupart des serveurs ont besoin, en une fois, sans renouvellement.",
-            "term": "Une fois, pour de bon",
-            "get": "Obtenir {name}",
-            "owned": "Acquis"
+            "pitch": "Tout ce dont la plupart des serveurs ont besoin, au mois.",
+            "get": "Obtenir {name}"
           },
           "plusplus": {
-            "pitch": "Le complément pour les serveurs les plus exigeants : du matériel Premium, aucune publicité nulle part et plus de CPU.",
+            "pitch": "Pour les serveurs les plus exigeants : du matériel Premium, aucune publicité nulle part et plus de CPU.",
             "term": "{tokens}, ou des crédits pour {credits}",
             "termTokens": "{tokens}",
-            "needsPlus": "{name} nécessite d'abord {app} {plus}.",
-            "extendHint": "Racheter avant la fin ajoute au temps restant.",
             "notSold": "Pas en vente pour le moment."
           },
+          "extendHint": "Racheter avant la fin ajoute au temps restant.",
           "days": "{days} jours",
           "duration": {
             "day": "un jour",
             "days": "{count} jours",
             "week": "une semaine",
             "twoWeeks": "deux semaines",
-            "weeks": "{count} semaines"
+            "weeks": "{count} semaines",
+            "month": "un mois"
           },
           "cost": {
             "tokens": "{cost} jetons",
@@ -2923,14 +2924,16 @@
           "perks": {
             "plusLocations": "Les emplacements {name}",
             "priority": "La priorité dans la file de démarrage quand un nœud est chargé",
-            "noGameAds": "Aucune publicité en jeu sur vos serveurs Minecraft",
+            "noBannerAds": "Aucune publicité : ni bannières, ni popups, ni publicité en jeu",
             "burst": "Chaque serveur peut monter jusqu'à +{cpu}% de CPU en burst tant que son nœud a de la place",
             "neoPlus": "{percent}% d'utilisation de neo (IA) en plus",
             "devbox": "VS Code sur votre serveur : {cpu} vCPU, {memory} de RAM, {disk} de disque",
-            "everythingInPlus": "Tout ce qu'inclut {name}",
-            "premiumLocations": "Les emplacements Premium",
+            "panelAccess": "Accès au panneau inclus",
+            "fasterFiles": "Archives, décompression et sauvegardes plus rapides",
+            "fastestFiles": "Les archives, la décompression et les sauvegardes les plus rapides",
+            "premiumLocations": "Les emplacements {plus} et Premium",
+            "highestPriority": "La priorité la plus haute dans la file de démarrage quand un nœud est chargé",
             "noAds": "Aucune publicité nulle part : ni bannières, ni popups, ni écran d'attente avant un démarrage, ni publicité en jeu",
-            "frontOfQueue": "La tête de la file de démarrage, devant {name}",
             "neoPlusplus": "{percent}% d'utilisation de neo (IA) en plus au total",
             "devboxPlusplus": "Une devbox VS Code plus grande : {cpu} vCPU, {memory} de RAM, {disk} de disque"
           },
@@ -2942,9 +2945,12 @@
               "queue": "File de démarrage sur un nœud chargé",
               "gameAds": "Publicités en jeu (Minecraft)",
               "panelAds": "Publicités dans le panel",
+              "waitingRoom": "Écran d'attente avant un démarrage",
               "cpu": "CPU",
+              "files": "Archives et sauvegardes",
               "ai": "Utilisation de neo (IA)",
-              "devbox": "VS Code sur votre serveur"
+              "devbox": "VS Code sur votre serveur",
+              "panelAccess": "Accès au panneau"
             },
             "cells": {
               "locationsFree": "Gratuits",
@@ -2959,24 +2965,34 @@
               "no": "Non",
               "cpu": "Votre quota",
               "cpuBurst": "Votre quota, avec un burst de +{cpu}%",
+              "filesFree": "Standard",
+              "filesPlus": "Plus rapides",
+              "filesPlusplus": "Les plus rapides",
               "aiFree": "Standard",
               "percent": "+{percent}%",
-              "devbox": "{cpu} vCPU, {memory} de RAM, {disk} de disque"
+              "devbox": "{cpu} vCPU, {memory} de RAM, {disk} de disque",
+              "panelAccessFree": "Payé en jetons",
+              "included": "Inclus"
             }
           },
           "faq": {
             "heading": "Questions",
-            "once": {
-              "question": "{plus} est-il un abonnement ?",
-              "answer": "Non. Vous payez {plus} une seule fois et vous le gardez. Seul {plusplus} dure un temps défini, et rien ne se renouvelle tout seul."
+            "renew": {
+              "question": "Une adhésion se renouvelle-t-elle toute seule ?",
+              "answer": "Non. {plus} et {plusplus} durent chacun le nombre de jours achetés, et rien ne se renouvelle tout seul. Racheter avant la fin ajoute au temps restant. {plusplus} inclut tout ce que donne {plus}, vous n'avez donc jamais besoin des deux."
             },
             "expiry": {
-              "question": "Que se passe-t-il quand {plusplus} se termine ?",
-              "answer": "Vous gardez {plus}. Les serveurs sur des emplacements Premium sont transférés vers un autre emplacement, et le burst de vos serveurs se limite à ce que permet {plus}. Rachetez {plusplus} avant la fin pour garder les deux."
+              "question": "Que se passe-t-il quand une adhésion se termine ?",
+              "answer": "Les serveurs sur des emplacements qu'elle ouvrait sont transférés vers un emplacement que vous pouvez encore utiliser, et le burst de vos serveurs se limite à ce que permet ce qu'il vous reste. Rachetez avant la fin pour tout garder."
+            },
+            "idle": {
+              "question": "Mes serveurs s'arrêtent-ils toujours quand personne ne les utilise ?",
+              "answer": "Oui. Une adhésion n'y change rien : comme tout serveur, un serveur que personne n'utilise est arrêté au bout d'un moment, puis mis en hibernation. Vous pouvez le redémarrer depuis sa page.",
+              "answerDelete": "Oui. Une adhésion n'y change rien : comme tout serveur, un serveur que personne n'utilise est arrêté au bout d'un moment, puis mis en hibernation, et supprimé s'il reste longtemps en hibernation. D'ici là, vous pouvez le redémarrer depuis sa page."
             },
             "tokens": {
               "question": "Comment obtenir des jetons ?",
-              "answer": "Sur la page Jetons dans la barre latérale, en complétant des liens sponsorisés."
+              "answer": "Sur la page Jetons dans la barre latérale, en répondant à un sondage ou en complétant des liens sponsorisés."
             },
             "credits": {
               "question": "Puis-je payer avec des crédits ?",
@@ -2985,7 +3001,7 @@
           },
           "modal": {
             "title": "Acheter une adhésion",
-            "plus": "Dépenser **{cost}** jetons pour **{name}** ? Il est à vous pour de bon.",
+            "plus": "Dépenser **{cost}** jetons pour **{days} jours** de **{name}** ?",
             "plusplus": {
               "tokens": "Dépenser **{cost}** jetons pour **{days} jours** de **{name}** ?",
               "credits": "Dépenser **{cost}** crédits pour **{days} jours** de **{name}** ?"
@@ -2993,7 +3009,7 @@
             "confirm": "Acheter"
           },
           "toast": {
-            "plus": "Vous avez maintenant {name}.",
+            "plus": "{name} acheté.",
             "plusplus": "{name} acheté."
           }
         },
@@ -3190,12 +3206,12 @@
         },
         "panelAccess": {
           "title": "Accès au panneau",
-          "subtitle": "Le panneau coûte {tokens} jetons par mois. Les abonnements et les administrateurs ne paient jamais.",
+          "subtitle": "Le panneau coûte {tokens} jetons par mois. Les membres et les administrateurs ne paient jamais.",
           "heading": "{tokens} jetons pour {days} jours",
           "active": "Payé jusqu'au {date}.",
           "inactive": "Le panneau est verrouillé jusqu'au paiement.",
           "exempt": "Vous ne payez jamais pour le panneau.",
-          "exemptNotice": "Votre abonnement couvre le panneau.",
+          "exemptNotice": "Votre adhésion couvre le panneau.",
           "disabled": "Le panneau est gratuit en ce moment.",
           "buy": "Payer {tokens} jetons",
           "earn": "Gagner des jetons",
@@ -7832,7 +7848,7 @@
           },
           "plusOffer": {
             "heading": "Passez devant avec {app} {name}",
-            "body": "{name} coûte {cost} jetons, une seule fois, et vous appartient pour de bon : la priorité dans cette file pour tous vos serveurs, les emplacements {name} et aucune publicité en jeu.",
+            "body": "{name} coûte {cost} jetons par mois : la priorité dans cette file pour tous vos serveurs, les emplacements {name} et aucune publicité à part l'écran d'attente.",
             "button": "Obtenir {name}"
           },
           "move": {

@@ -20,6 +20,7 @@ use crate::rux::{
     context::Me,
     discord::Rest,
     models::{RULE_COLUMNS, Rule},
+    roles::Names,
     tools::rules::{
         enforce::{self, Hit},
         facts, model,
@@ -197,6 +198,9 @@ async fn check(
     }
 
     let mut facts: Option<Vec<String>> = None;
+    // the server's roles, to name the author's and the pinged ones: the staff check just read
+    // them, so they come from the cache
+    let names = Names::load(&rest, &guild.id).await;
     for rule_id in rule_ids {
         // only the rules of the server the message was written on, still active
         let rule = match super::rule(state, rule_id, &guild.id).await {
@@ -222,9 +226,9 @@ async fn check(
             guild,
             &rule,
             facts.as_deref().unwrap_or_default(),
-            &hit.author_name,
-            hit.content.as_deref().unwrap_or_default(),
+            &hit,
             replied_to.as_deref(),
+            &names,
         );
         let verdict = match judge::ask(state, &prompt, Duration::ZERO).await {
             Asked::Answer(answer) => judge::verdict(&answer),

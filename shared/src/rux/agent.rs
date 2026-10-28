@@ -372,10 +372,12 @@ async fn converse(order: &Message, mut context: Context) -> Result<String, Stop>
     let started = Instant::now();
     let where_ = prompt::where_written(order.is_direct(), &order.channel_id);
     let registry = tools::registry();
+    // the server's roles (from the cache); the prompt goes without them when they cannot be read
+    let mut roles = prompt::role_facts(&context, order).await;
 
     let mut messages = vec![json!({
         "role": "system",
-        "content": prompt::for_context(&context, &where_),
+        "content": prompt::for_context(&context, &where_, roles.as_ref()),
     })];
     messages.extend(history(&state, &context.config, order).await?);
     messages.push(json!({ "role": "user", "content": order_content(&state, order).await }));
@@ -458,9 +460,10 @@ async fn converse(order: &Message, mut context: Context) -> Result<String, Stop>
                             &context.guild_id,
                         )
                         .await;
+                        roles = prompt::role_facts(&context, order).await;
                         messages[0] = json!({
                             "role": "system",
-                            "content": prompt::for_context(&context, &where_),
+                            "content": prompt::for_context(&context, &where_, roles.as_ref()),
                         });
                         definitions = registry.definitions(context.level, &context);
                         Message::finish(

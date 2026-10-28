@@ -688,7 +688,8 @@ const baseTranslations = defineTranslations({
           plus: 'Membership',
           plusplus: 'Membership',
           admin: 'Changed by an admin',
-          earn: 'Sponsored link',
+          earn: 'Earned',
+          earnReversal: 'Reversed', // plugged.host: a survey the provider took back
           limbo: 'Server restored',
           limboRefund: 'Restore refunded',
           subdomain: 'Subdomain',
@@ -858,7 +859,7 @@ const baseTranslations = defineTranslations({
           },
           membershipEnded: {
             title: '{membership} has ended',
-            body: "Servers on premium locations are moving to another location: {servers}. Follow it on each server's Transfer page.",
+            body: "Servers on locations it opened are moving to another location: {servers}. Follow it on each server's Transfer page.",
           },
           failoverDone: {
             title: 'Server recovered',
@@ -2736,11 +2737,12 @@ const baseTranslations = defineTranslations({
           subheading: 'Earn tokens and see where they went',
           balance: '{count} tokens',
           explainer:
-            'Earn tokens by completing sponsored links. They pay for {app} {plus}, waking a hibernated server and subdomains.',
+            'Earn tokens by taking a survey or completing sponsored links. They pay for {app} {plus}, waking a hibernated server and subdomains.',
           saved: '{amount} tokens saved toward your next token',
           decays: 'Each link today pays a little less (the first paid {full}).',
           none: 'No way to earn tokens is set up right now.',
           provider: {
+            cpx_research: 'CPX Research',
             linkvertise: 'Linkvertise',
             vylo: 'Vylo',
             cuty: 'Cuty',
@@ -2753,6 +2755,14 @@ const baseTranslations = defineTranslations({
           capped: 'Come back tomorrow',
           linkUnavailable: 'Unavailable right now',
           earnWith: 'Earn with {provider}',
+          // plugged.host: a survey wall (CPX Research), opened in a new tab
+          takeSurvey: 'Take a survey',
+          surveyReward: 'Pays what each survey shows',
+          surveyConfirm: 'Tokens arrive once {provider} confirms the survey, usually within minutes.',
+          surveyCapOne:
+            'One survey a day pays. A survey that ends early because you don’t fit it may pay a small bonus and does not count.',
+          surveyCap:
+            '{cap} surveys a day pay. A survey that ends early because you don’t fit it may pay a small bonus and does not count.',
           scriptBlocked: 'The sponsored link could not load. A content blocker may be stopping it.',
           history: 'Recent activity',
           redemption: {
@@ -2772,30 +2782,24 @@ const baseTranslations = defineTranslations({
         membership: {
           title: 'Membership',
           pageTitle: '{app} {name}',
-          subtitle: 'Better locations, no waiting in line and no ads in your game. Bought once, yours for good.',
+          subtitle:
+            'Better locations, no waiting in line and fewer ads. Paid by the month with tokens; nothing renews by itself.',
           unavailable: '{name} is not on sale at the moment.',
-          plusplusActive: {
+          active: {
             heading: '{name} is active',
             body: 'It runs until {until}.',
           },
-          owned: {
-            heading: 'You have {app} {name}',
-            body: '{name} locations, priority in the start queue and no in-game ads are yours for good. {plusplus} adds more on top.',
-          },
           plus: {
-            pitch: 'Everything most servers need, once, with no renewals.',
-            term: 'Once, for good',
+            pitch: 'Everything most servers need, by the month.',
             get: 'Get {name}',
-            owned: 'Owned',
           },
           plusplus: {
-            pitch: 'The add-on for servers that need the most: Premium hardware, no ads anywhere and more CPU.',
+            pitch: 'For servers that need the most: Premium hardware, no ads anywhere and more CPU.',
             term: '{tokens}, or credits for {credits}',
             termTokens: '{tokens}',
-            needsPlus: '{name} needs {app} {plus} first.',
-            extendHint: 'Buying again before it ends adds to the time left.',
             notSold: 'Not for sale right now.',
           },
+          extendHint: 'Buying again before it ends adds to the time left.',
           days: '{days} days',
           duration: {
             day: 'a day',
@@ -2803,6 +2807,7 @@ const baseTranslations = defineTranslations({
             week: 'a week',
             twoWeeks: 'two weeks',
             weeks: '{count} weeks',
+            month: 'a month',
           },
           cost: {
             tokens: '{cost} tokens',
@@ -2813,14 +2818,16 @@ const baseTranslations = defineTranslations({
           perks: {
             plusLocations: 'The {name} locations',
             priority: 'Priority in the start queue when a node is busy',
-            noGameAds: 'No in-game ads on your Minecraft servers',
+            noBannerAds: 'No ads: no banners, popups, or in-game ads',
             burst: 'Each server bursts up to +{cpu}% CPU while its node has room',
             neoPlus: '{percent}% more neo (AI) usage',
             devbox: 'VS Code on your server: {cpu} vCPU, {memory} RAM, {disk} disk',
-            everythingInPlus: 'Everything in {name}',
-            premiumLocations: 'The Premium locations',
+            panelAccess: 'Panel Access included',
+            fasterFiles: 'Faster archives, unpacking and backups',
+            fastestFiles: 'The fastest archives, unpacking and backups',
+            premiumLocations: 'The {plus} and Premium locations',
+            highestPriority: 'Highest priority in the start queue when a node is busy',
             noAds: 'No ads anywhere: no banners, popups, waiting screen before a start or in-game ads',
-            frontOfQueue: 'The front of the start queue, ahead of {name}',
             neoPlusplus: '{percent}% more neo (AI) usage in all',
             devboxPlusplus: 'A bigger VS Code devbox: {cpu} vCPU, {memory} RAM, {disk} disk',
           },
@@ -2832,9 +2839,12 @@ const baseTranslations = defineTranslations({
               queue: 'Start queue on a busy node',
               gameAds: 'In-game ads (Minecraft)',
               panelAds: 'Ads in the panel',
+              waitingRoom: 'Waiting screen before a start',
               cpu: 'CPU',
+              files: 'Archives and backups',
               ai: 'neo (AI) usage',
               devbox: 'VS Code on your server',
+              panelAccess: 'Panel access',
             },
             cells: {
               locationsFree: 'Free',
@@ -2849,26 +2859,38 @@ const baseTranslations = defineTranslations({
               no: 'No',
               cpu: 'Your allowance',
               cpuBurst: 'Your allowance, bursting +{cpu}%',
+              filesFree: 'Standard',
+              filesPlus: 'Faster',
+              filesPlusplus: 'Fastest',
               aiFree: 'Standard',
               percent: '+{percent}%',
               devbox: '{cpu} vCPU, {memory} RAM, {disk} disk',
+              panelAccessFree: 'Paid with tokens',
+              included: 'Included',
             },
           },
           faq: {
             heading: 'Questions',
-            once: {
-              question: 'Is {plus} a subscription?',
+            renew: {
+              question: 'Does a membership renew by itself?',
               answer:
-                'No. You pay for {plus} once and keep it. Only {plusplus} runs for a set time, and nothing renews by itself.',
+                'No. {plus} and {plusplus} each run for the days you buy, and nothing renews by itself. Buying again before one ends adds to the time left. {plusplus} includes everything {plus} gives, so you never need both.',
             },
             expiry: {
-              question: 'What happens when {plusplus} ends?',
+              question: 'What happens when a membership ends?',
               answer:
-                'You keep {plus}. Servers on Premium locations move to another location, and your servers burst only as far as {plus} allows. Buy {plusplus} again before it ends to keep both.',
+                'Servers on locations it opened move to one you can still use, and your servers burst only as far as what is left allows. Buy again before it ends to keep everything.',
+            },
+            idle: {
+              question: 'Do my servers still stop when nobody uses them?',
+              answer:
+                'Yes. A membership does not change that: like every server, one nobody uses is stopped after a while, then hibernated. You can start it again from its page.',
+              answerDelete:
+                'Yes. A membership does not change that: like every server, one nobody uses is stopped after a while, then hibernated, and deleted if it stays hibernated for a long time. You can start it again from its page until then.',
             },
             tokens: {
               question: 'How do I get tokens?',
-              answer: 'On the Tokens page in the sidebar, by completing sponsored links.',
+              answer: 'On the Tokens page in the sidebar, by taking a survey or completing sponsored links.',
             },
             credits: {
               question: 'Can I pay with credits?',
@@ -2877,7 +2899,7 @@ const baseTranslations = defineTranslations({
           },
           modal: {
             title: 'Buy Membership',
-            plus: 'Spend **{cost}** tokens on **{name}**? It is yours for good.',
+            plus: 'Spend **{cost}** tokens on **{days} days** of **{name}**?',
             plusplus: {
               tokens: 'Spend **{cost}** tokens on **{days} days** of **{name}**?',
               credits: 'Spend **{cost}** credits on **{days} days** of **{name}**?',
@@ -2885,7 +2907,7 @@ const baseTranslations = defineTranslations({
             confirm: 'Buy',
           },
           toast: {
-            plus: 'You have {name} now.',
+            plus: '{name} bought.',
             plusplus: '{name} bought.',
           },
         },
@@ -4523,7 +4545,7 @@ const baseTranslations = defineTranslations({
                   showServerDescription: "A server's console and its other pages.",
                   memberFree: 'Fewer Ads for Members',
                   memberFreeDescription:
-                    "Accounts with the second membership see no ads; the first membership's ads refresh slower.",
+                    'The second membership sees no ads; the first sees only the waiting room before a start, no banners or popups. Off: members see every ad, refreshing slower.',
                   slots: 'Slots',
                   slotTop: 'Top Banner',
                   slotTopDescription: 'The sponsored top banners (Admin › Sponsored Banners) above every page.',
@@ -4749,7 +4771,8 @@ const baseTranslations = defineTranslations({
                   storeDiscountEnds: 'Ends',
                   storeDiscountEndsDescription: 'Shown in the store. Empty: until the discount is set back to 0.',
                   tokensEnabled: 'Tokens',
-                  tokensEnabledDescription: 'Tokens are earned through sponsored links and buy the memberships.',
+                  tokensEnabledDescription:
+                    'Tokens are earned through surveys and sponsored links and buy the memberships.',
                   dailyTokens: 'Daily Tokens',
                   dailyTokensDescription:
                     'Tokens every account gets once a day, the first time it looks. 0 gives none.',
@@ -4762,12 +4785,13 @@ const baseTranslations = defineTranslations({
                   panelAccessDays: 'Days per Payment',
                   membershipEnabled: 'Memberships',
                   membershipEnabledDescription:
-                    'The first membership is bought once with tokens and opens the locations with the tier “plus”. The second runs for a while, needs the first, and opens the tier “premium”.',
+                    'Both are bought for some days at a time. The first opens the locations with the tier “plus”; the second gives everything the first does, opens the tier “premium” too and needs no first membership.',
                   plusName: 'First Membership’s Name',
                   plusNameDescription: 'What players see, such as Plus.',
                   plusplusName: 'Second Membership’s Name',
-                  plusplusNameDescription: 'What players see, such as PlusPlus.',
+                  plusplusNameDescription: 'What players see, such as Premium.',
                   plusTokens: 'First Membership: Tokens',
+                  plusDays: 'First Membership: Days',
                   plusplusTokens: 'Second Membership: Tokens',
                   plusplusTokenDays: 'Second Membership: Days for Tokens',
                   plusplusCredits: 'Second Membership: Credits',
@@ -4845,6 +4869,19 @@ const baseTranslations = defineTranslations({
                   adfocusEnabledDescription:
                     'Needs the API key from AdFoc.us’s Tools › API page. A short link is made for every trip.',
                   adfocusApiKey: 'AdFoc.us API Key',
+                  cpxResearchEnabled: 'CPX Research',
+                  cpxResearchEnabledDescription:
+                    'A survey wall, first on the Tokens page: each survey pays what CPX Research shows for it, and the tokens arrive with its postback. Needs the App ID and the Secure Hash from the app’s page in CPX Research’s dashboard.',
+                  cpxResearchAppId: 'CPX Research App ID',
+                  cpxResearchSecret: 'CPX Research Secure Hash',
+                  cpxResearchDailyCap: 'Surveys per Day',
+                  cpxResearchDailyCapDescription:
+                    'Finished surveys that pay, per account. Screen-outs and bonuses are paid and do not count. 0 has no limit.',
+                  cpxResearchPostback: 'Postback URL',
+                  cpxResearchPostbackDescription:
+                    'Paste this into the app’s Postback Settings at CPX Research (click to copy). CPX’s servers call it, so a proxy or CDN in front of the panel must let them through.',
+                  cpxResearchRewards:
+                    'In the app’s Reward Settings, name the currency Token (plural Tokens) and set the Currency Factor: the tokens a dollar of your earnings is worth. That is what the wall shows for each survey and what it pays.',
                 },
                 toast: {
                   updated: 'Economy settings saved.',
@@ -5727,7 +5764,7 @@ const baseTranslations = defineTranslations({
                 noprofit: 'Credits and the Resource Store are noprofit.space’s: change credits there.',
                 noprofitSent:
                   'Credits and the Resource Store are noprofit.space’s: a credit change made here is sent to the account there.',
-                plusSince: '{name} since',
+                plusLapsed: '{name} not running; first bought',
                 noPlus: 'No {name}.',
                 plusplusRuns: '{name} runs until',
                 noPlusplus: 'No {name} running ({purchases} bought so far).',
@@ -5739,8 +5776,6 @@ const baseTranslations = defineTranslations({
                 reason: 'Reason',
                 reasonDescription: 'Shown in the user’s history.',
                 memberships: 'Memberships',
-                givePlus: 'Give {name}',
-                takePlus: 'Take {name} Away',
                 plusplusUntil: '{name} Until',
                 setPlusplus: 'Set End',
                 endPlusplus: 'End {name} Now',
@@ -11678,7 +11713,7 @@ const baseTranslations = defineTranslations({
           },
           plusOffer: {
             heading: 'Skip ahead with {app} {name}',
-            body: '{name} is {cost} tokens, once, and yours for good: priority in this line for all your servers, the {name} locations and no in-game ads.',
+            body: '{name} is {cost} tokens a month: priority in this line for all your servers, the {name} locations and no ads but the waiting screen.',
             button: 'Get {name}',
           },
           move: {

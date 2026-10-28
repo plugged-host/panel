@@ -24,7 +24,7 @@
 //!  - [`discord`] (Discord's REST API with rux's token) and [`resolver`] (what an admin wrote,
 //!    made into the Discord object it means).
 //!  - [`models`]: the `rux_*` tables; [`say`] (what rux posts, English and German), [`text`],
-//!    [`time`], [`images`]: helpers.
+//!    [`time`], [`images`], [`roles`] (the server's roles as the prompts name them): helpers.
 //!
 //! [`tick`] does the housekeeping (orders that lost their worker, the tool groups' and the
 //! watch's ticks, old messages), every ten seconds on the primary instance.
@@ -42,6 +42,7 @@ pub mod models;
 pub mod noprofit;
 pub mod prompt;
 pub mod resolver;
+pub mod roles;
 pub mod say;
 pub mod text;
 pub mod time;

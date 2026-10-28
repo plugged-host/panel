@@ -19,7 +19,8 @@ off by default) and looks at servers that are:
 
 - not suspended, without a status (installing, restoring) and not being moved;
 - not owned by an admin;
-- not owned by a member, while Spare Members is on and memberships are on;
+- not owned by a member, while Spare Members is on and memberships are on (off by default since
+  3.0.4: members' idle servers are stopped, parked and deleted like everyone's);
 - not parked already, and not failed to park in the last day.
 
 | Idle for | Running | Does |
@@ -174,7 +175,7 @@ Admin › Settings › Hosting › Limbo (`shared/src/settings/limbo.rs`):
 | Stop After (Hours) | 48 | 1 to 8760 |
 | Park After (Hours) | 72 | 1 to 8760 |
 | Servers per Minute | 3 | 1 to 100 |
-| Spare Members | on | |
+| Spare Members | off | Members' servers are stopped, parked and deleted like everyone's while it is off |
 | Delete After (Days) | 0 (never) | 0 to 3650 |
 | Early Restore (Tokens) | 5 | 0 to 100000 |
 | Late Restore (Tokens) | 10 | 0 to 100000 |

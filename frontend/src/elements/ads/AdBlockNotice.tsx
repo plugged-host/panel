@@ -66,7 +66,7 @@ let detected: boolean | null = null;
 
 /** Whether an ad blocker runs; detected once per page load. */
 export function useAdBlocked(area: AdArea): boolean | null {
-  const { settings, shown } = useAds(area);
+  const { settings, pageShown: shown } = useAds(area);
   const [blocked, setBlocked] = useState<boolean | null>(detected);
 
   useEffect(() => {
@@ -95,7 +95,7 @@ export function useAdBlocked(area: AdArea): boolean | null {
 /** The notice, modal or block the settings ask for, once an ad blocker is found. */
 export default function AdBlockNotice({ area, console: onConsole }: { area: AdArea; console: boolean }) {
   const { t } = useTranslations();
-  const { settings, shown } = useAds(area);
+  const { settings, pageShown: shown } = useAds(area);
   const blocked = useAdBlocked(area);
   const [closed, setClosed] = useState(() => dismissed(DISMISSED, settings?.adblockDismissHours ?? 0));
   const [grace, setGrace] = useState(settings?.adblockGrace ?? 0);

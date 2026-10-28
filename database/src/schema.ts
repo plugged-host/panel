@@ -568,14 +568,23 @@ export const userMembershipsTable = pgTable(
       .references(() => usersTable.uuid, { onDelete: 'cascade' })
       .primaryKey()
       .notNull(),
+    // when the first membership was first bought
     plus_since: timestamp(),
+    // while the first membership runs (bought by the month)
+    plus_until: timestamp(),
+    plus_purchases: integer().default(0).notNull(),
+    // a lapse's servers left the plus locations
+    plus_settled: timestamp(),
     plusplus_until: timestamp(),
     plusplus_purchases: integer().default(0).notNull(),
     // a lapse's servers left the premium locations
     plusplus_settled: timestamp(),
     created: timestamp().defaultNow().notNull(),
   },
-  (cols) => [index('user_memberships_plusplus_until_idx').on(cols.plusplus_until)],
+  (cols) => [
+    index('user_memberships_plus_until_idx').on(cols.plus_until),
+    index('user_memberships_plusplus_until_idx').on(cols.plusplus_until),
+  ],
 );
 
 // plugged.host: the Discord server's members the panel knows of, the invites they brought and the

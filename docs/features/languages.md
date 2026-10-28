@@ -97,7 +97,7 @@ to the default language, as `languages` did.
 
 Each language has one glossary, and every translator and every later string uses it:
 
-- Names stay as they are: plugged.host, Plus, PlusPlus, neo, rux, and the product names an admin
+- Names stay as they are: plugged.host, Plus, Premium, neo, rux, and the product names an admin
   sets (they are settings, not strings).
 - The panel's own terms get one fixed word each: tokens, credits, node, allocation, membership,
   server, backup, egg. Where upstream's file already uses a word, upstream's word wins, since

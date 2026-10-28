@@ -888,7 +888,8 @@
           "store": "Toko Sumber Daya",
           "plus": "Keanggotaan",
           "plusplus": "Keanggotaan",
-          "earn": "Tautan bersponsor",
+          "earn": "Diperoleh",
+          "earnReversal": "Perolehan ditarik kembali",
           "limbo": "Server dipulihkan",
           "limboRefund": "Pengembalian dana pemulihan",
           "subdomain": "Subdomain",
@@ -1050,7 +1051,7 @@
           },
           "membershipEnded": {
             "title": "{membership} telah berakhir",
-            "body": "Server di Lokasi Premium sedang dipindahkan ke lokasi lain: {servers}. Pantau di halaman Pemindahan setiap server."
+            "body": "Server di lokasi yang dibuka oleh keanggotaan ini sedang dipindahkan ke lokasi lain: {servers}. Pantau di halaman Pemindahan setiap server."
           },
           "failoverDone": {
             "title": "Server dipulihkan",
@@ -2844,11 +2845,12 @@
           "title": "Token",
           "subheading": "Dapatkan token dan lihat ke mana token Anda terpakai",
           "balance": "{count} token",
-          "explainer": "Dapatkan token dengan menyelesaikan tautan bersponsor. Token dipakai untuk membayar {app} {plus}, membangunkan server yang dihibernasi, dan subdomain.",
+          "explainer": "Dapatkan token dengan mengisi survei atau menyelesaikan tautan bersponsor. Token dipakai untuk membayar {app} {plus}, membangunkan server yang dihibernasi, dan subdomain.",
           "saved": "{amount} token tersimpan untuk token berikutnya",
           "decays": "Setiap tautan hari ini memberi sedikit lebih sedikit (yang pertama memberi {full}).",
           "none": "Saat ini belum ada cara untuk mendapatkan token.",
           "provider": {
+            "cpx_research": "CPX Research",
             "linkvertise": "Linkvertise",
             "vylo": "Vylo",
             "cuty": "Cuty",
@@ -2861,6 +2863,11 @@
           "capped": "Kembali lagi besok",
           "linkUnavailable": "Sedang tidak tersedia",
           "earnWith": "Dapatkan lewat {provider}",
+          "takeSurvey": "Isi survei",
+          "surveyReward": "Membayar sesuai yang ditampilkan setiap survei",
+          "surveyConfirm": "Token masuk setelah {provider} mengonfirmasi survei, biasanya dalam beberapa menit.",
+          "surveyCapOne": "Hanya satu survei per hari yang dibayar. Survei yang berakhir lebih awal karena Anda tidak sesuai kriterianya mungkin memberi bonus kecil dan tidak dihitung.",
+          "surveyCap": "Hanya {cap} survei per hari yang dibayar. Survei yang berakhir lebih awal karena Anda tidak sesuai kriterianya mungkin memberi bonus kecil dan tidak dihitung.",
           "scriptBlocked": "Tautan bersponsor tidak dapat dimuat. Mungkin diblokir oleh pemblokir konten.",
           "history": "Aktivitas terbaru",
           "redemption": {
@@ -2879,37 +2886,31 @@
         "membership": {
           "title": "Keanggotaan",
           "pageTitle": "{app} {name}",
-          "subtitle": "Lokasi yang lebih baik, tanpa antre, dan tanpa iklan di game Anda. Sekali beli, milik Anda selamanya.",
+          "subtitle": "Lokasi yang lebih baik, tanpa antre, dan lebih sedikit iklan. Dibayar per bulan dengan token; tidak ada yang diperpanjang otomatis.",
           "unavailable": "{name} sedang tidak dijual.",
-          "plusplusActive": {
+          "active": {
             "heading": "{name} aktif",
             "body": "Berlaku hingga {until}."
           },
-          "owned": {
-            "heading": "Anda memiliki {app} {name}",
-            "body": "Lokasi {name}, prioritas di antrean mulai, dan tanpa iklan dalam game menjadi milik Anda selamanya. {plusplus} menambahkan lebih banyak lagi."
-          },
           "plus": {
-            "pitch": "Semua yang dibutuhkan sebagian besar server, sekali bayar, tanpa perpanjangan.",
-            "term": "Sekali bayar, selamanya",
-            "get": "Dapatkan {name}",
-            "owned": "Dimiliki"
+            "pitch": "Semua yang dibutuhkan sebagian besar server, per bulan.",
+            "get": "Dapatkan {name}"
           },
           "plusplus": {
-            "pitch": "Tambahan untuk server yang butuh paling banyak: hardware Premium, tanpa iklan di mana pun, dan CPU lebih banyak.",
+            "pitch": "Untuk server yang butuh paling banyak: hardware Premium, tanpa iklan di mana pun, dan CPU lebih banyak.",
             "term": "{tokens}, atau {credits} dengan kredit",
             "termTokens": "{tokens}",
-            "needsPlus": "{name} memerlukan {app} {plus} terlebih dahulu.",
-            "extendHint": "Membeli lagi sebelum berakhir akan menambah sisa waktunya.",
             "notSold": "Sedang tidak dijual."
           },
+          "extendHint": "Membeli lagi sebelum berakhir akan menambah sisa waktunya.",
           "days": "{days} hari",
           "duration": {
             "day": "sehari",
             "days": "{count} hari",
             "week": "seminggu",
             "twoWeeks": "dua minggu",
-            "weeks": "{count} minggu"
+            "weeks": "{count} minggu",
+            "month": "sebulan"
           },
           "cost": {
             "tokens": "{cost} token",
@@ -2920,14 +2921,16 @@
           "perks": {
             "plusLocations": "Lokasi {name}",
             "priority": "Prioritas di antrean mulai saat node sedang sibuk",
-            "noGameAds": "Tanpa iklan dalam game di server Minecraft Anda",
+            "noBannerAds": "Tanpa iklan: tanpa banner, popup, atau iklan dalam game",
             "burst": "Setiap server dapat burst hingga +{cpu}% CPU selama node-nya masih punya ruang",
             "neoPlus": "Penggunaan neo (AI) {percent}% lebih banyak",
             "devbox": "VS Code di server Anda: {cpu} vCPU, RAM {memory}, disk {disk}",
-            "everythingInPlus": "Semua yang ada di {name}",
-            "premiumLocations": "Lokasi Premium",
+            "panelAccess": "Termasuk Akses Panel",
+            "fasterFiles": "Arsip, ekstraksi, dan cadangan lebih cepat",
+            "fastestFiles": "Arsip, ekstraksi, dan cadangan tercepat",
+            "premiumLocations": "Lokasi {plus} dan Premium",
+            "highestPriority": "Prioritas tertinggi di antrean mulai saat node sedang sibuk",
             "noAds": "Tanpa iklan di mana pun: tanpa banner, popup, layar tunggu sebelum memulai, atau iklan dalam game",
-            "frontOfQueue": "Urutan terdepan di antrean mulai, di depan {name}",
             "neoPlusplus": "Total penggunaan neo (AI) {percent}% lebih banyak",
             "devboxPlusplus": "Devbox VS Code yang lebih besar: {cpu} vCPU, RAM {memory}, disk {disk}"
           },
@@ -2939,9 +2942,12 @@
               "queue": "Antrean mulai di node yang sibuk",
               "gameAds": "Iklan dalam game (Minecraft)",
               "panelAds": "Iklan di panel",
+              "waitingRoom": "Layar tunggu sebelum memulai",
               "cpu": "CPU",
+              "files": "Arsip dan cadangan",
               "ai": "Penggunaan neo (AI)",
-              "devbox": "VS Code di server Anda"
+              "devbox": "VS Code di server Anda",
+              "panelAccess": "Akses panel"
             },
             "cells": {
               "locationsFree": "Gratis",
@@ -2956,24 +2962,34 @@
               "no": "Tidak",
               "cpu": "Kuota Anda",
               "cpuBurst": "Kuota Anda, burst +{cpu}%",
+              "filesFree": "Standar",
+              "filesPlus": "Lebih cepat",
+              "filesPlusplus": "Tercepat",
               "aiFree": "Standar",
               "percent": "+{percent}%",
-              "devbox": "{cpu} vCPU, RAM {memory}, disk {disk}"
+              "devbox": "{cpu} vCPU, RAM {memory}, disk {disk}",
+              "panelAccessFree": "Dibayar dengan token",
+              "included": "Termasuk"
             }
           },
           "faq": {
             "heading": "Pertanyaan",
-            "once": {
-              "question": "Apakah {plus} sebuah langganan?",
-              "answer": "Tidak. Anda membayar {plus} sekali dan memilikinya selamanya. Hanya {plusplus} yang berlaku untuk jangka waktu tertentu, dan tidak ada yang diperpanjang otomatis."
+            "renew": {
+              "question": "Apakah keanggotaan diperpanjang otomatis?",
+              "answer": "Tidak. {plus} dan {plusplus} masing-masing berlaku selama jumlah hari yang Anda beli, dan tidak ada yang diperpanjang otomatis. Membeli lagi sebelum salah satunya berakhir akan menambah sisa waktunya. {plusplus} mencakup semua yang diberikan {plus}, jadi Anda tidak pernah perlu keduanya."
             },
             "expiry": {
-              "question": "Apa yang terjadi saat {plusplus} berakhir?",
-              "answer": "Anda tetap memiliki {plus}. Server di lokasi Premium dipindahkan ke lokasi lain, dan server Anda hanya dapat burst sejauh yang diizinkan {plus}. Beli {plusplus} lagi sebelum berakhir untuk mempertahankan keduanya."
+              "question": "Apa yang terjadi saat keanggotaan berakhir?",
+              "answer": "Server di lokasi yang dibuka oleh keanggotaan itu dipindahkan ke lokasi yang masih bisa Anda gunakan, dan server Anda hanya dapat burst sejauh yang diizinkan oleh yang tersisa. Beli lagi sebelum berakhir untuk mempertahankan semuanya."
+            },
+            "idle": {
+              "question": "Apakah server saya tetap dihentikan saat tidak ada yang memakainya?",
+              "answer": "Ya. Keanggotaan tidak mengubah hal itu: seperti semua server, server yang tidak dipakai siapa pun dihentikan setelah beberapa waktu, lalu dihibernasi. Anda dapat memulainya lagi dari halamannya.",
+              "answerDelete": "Ya. Keanggotaan tidak mengubah hal itu: seperti semua server, server yang tidak dipakai siapa pun dihentikan setelah beberapa waktu, lalu dihibernasi, dan dihapus jika tetap dihibernasi dalam waktu lama. Sampai saat itu, Anda dapat memulainya lagi dari halamannya."
             },
             "tokens": {
               "question": "Bagaimana cara mendapatkan token?",
-              "answer": "Di halaman Token di bilah sisi, dengan menyelesaikan tautan bersponsor."
+              "answer": "Di halaman Token di bilah sisi, dengan mengisi survei atau menyelesaikan tautan bersponsor."
             },
             "credits": {
               "question": "Bisakah saya membayar dengan kredit?",
@@ -2982,7 +2998,7 @@
           },
           "modal": {
             "title": "Beli Keanggotaan",
-            "plus": "Gunakan **{cost}** token untuk **{name}**? Ini menjadi milik Anda selamanya.",
+            "plus": "Gunakan **{cost}** token untuk **{name}** selama **{days} hari**?",
             "plusplus": {
               "tokens": "Gunakan **{cost}** token untuk **{name}** selama **{days} hari**?",
               "credits": "Gunakan **{cost}** kredit untuk **{name}** selama **{days} hari**?"
@@ -2990,7 +3006,7 @@
             "confirm": "Beli"
           },
           "toast": {
-            "plus": "Anda sekarang memiliki {name}.",
+            "plus": "{name} dibeli.",
             "plusplus": "{name} dibeli."
           }
         },
@@ -5951,7 +5967,7 @@
           },
           "plusOffer": {
             "heading": "Lompati antrean dengan {app} {name}",
-            "body": "{name} seharga {cost} token, sekali bayar, dan milik Anda selamanya: prioritas di antrean ini untuk semua server Anda, lokasi {name}, dan tanpa iklan dalam game.",
+            "body": "{name} seharga {cost} token per bulan: prioritas di antrean ini untuk semua server Anda, lokasi {name}, dan tanpa iklan selain layar tunggu.",
             "button": "Dapatkan {name}"
           },
           "move": {

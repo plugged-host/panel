@@ -87,6 +87,12 @@ impl DiscordError {
     pub fn is_not_found(&self) -> bool {
         self.status == 404
     }
+
+    /// Discord refused the server's member list: the bot's Server Members intent is off in the
+    /// Developer Portal (403 "Missing Access", 50001).
+    pub fn needs_members_intent(&self) -> bool {
+        self.status == 403 && self.code == Some(50001)
+    }
 }
 
 /// `reason` as Discord's audit log header takes it.
@@ -569,6 +575,25 @@ impl Rest {
         }))
     }
 
+    /// One page of the server's members, by user id, after `after` (`GET /guilds/{id}/members`,
+    /// up to 1000). Discord answers it only while the bot's Server Members intent is on in the
+    /// Developer Portal (else 403, code 50001: [`DiscordError::needs_members_intent`]); the
+    /// gateway does not have to ask for that intent.
+    pub async fn members_page(
+        &self,
+        guild_id: &str,
+        after: Option<&str>,
+        limit: u32,
+    ) -> Result<Vec<Value>, DiscordError> {
+        let mut query = vec![("limit", limit.clamp(1, 1000).to_string())];
+        if let Some(after) = after {
+            query.push(("after", after.to_string()));
+        }
+
+        self.list(&format!("guilds/{guild_id}/members"), &query)
+            .await
+    }
+
     pub async fn search_members(
         &self,
         guild_id: &str,
@@ -896,6 +921,14 @@ mod tests {
         );
 
         assert!(DiscordError::from_answer(404, &json!({"code": 10008})).is_not_found());
+
+        // the member list without the Server Members intent
+        assert!(
+            DiscordError::from_answer(403, &json!({"code": 50001, "message": "Missing Access"}))
+                .needs_members_intent()
+        );
+        assert!(!DiscordError::from_answer(403, &json!({"code": 50013})).needs_members_intent());
+        assert!(!DiscordError::unreachable("timeout").needs_members_intent());
     }
 
     #[test]

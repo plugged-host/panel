@@ -68,8 +68,10 @@ mod put {
         /// Shown in the user's history.
         #[garde(inner(length(chars, max = 200)))]
         reason: Option<String>,
+        /// When Plus runs out; `null` ends it now.
         #[garde(skip)]
-        plus: Option<bool>,
+        #[serde(default, with = "::serde_with::rust::double_option")]
+        plus_until: Option<Option<chrono::DateTime<chrono::Utc>>>,
         /// `null` ends it now.
         #[garde(skip)]
         #[serde(default, with = "::serde_with::rust::double_option")]
@@ -115,7 +117,7 @@ mod put {
             "credits": data.credits,
             "tokens": data.tokens,
             "reason": data.reason,
-            "plus": data.plus,
+            "plus_until": data.plus_until,
             "plusplus_until": data.plusplus_until,
         });
 
@@ -126,7 +128,7 @@ mod put {
                 credits: data.credits,
                 tokens: data.tokens,
                 reason: data.reason,
-                plus: data.plus,
+                plus_until: data.plus_until,
                 plusplus_until: data.plusplus_until,
             },
         )

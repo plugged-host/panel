@@ -21,6 +21,7 @@ use crate::rux::{
     context::Me,
     discord::Rest,
     models::{RULE_COLUMNS, Rule, WATCH_ITEM_COLUMNS, WatchItem},
+    roles::Names,
     tools::rules::{
         enforce::{self, Hit},
         facts, model, watches,
@@ -507,6 +508,9 @@ async fn check(run: &Run<'_>, guild: &Guild, items: Vec<WatchItem>) -> Flow {
     };
     let guidelines = config.settings.watch_guidelines;
     let facts = facts::lines(state, config, Some(guild)).await;
+    // the server's roles, to name the authors' and the pinged ones: the staff checks just read
+    // them, so they come from the cache
+    let names = Names::load(run.rest, &guild.id).await;
     let prompt_for = |items: &[&WatchItem]| {
         judge::batch_prompt(
             &config.settings.name,
@@ -515,6 +519,7 @@ async fn check(run: &Run<'_>, guild: &Guild, items: Vec<WatchItem>) -> Flow {
             guidelines,
             &facts,
             items,
+            &names,
         )
     };
 

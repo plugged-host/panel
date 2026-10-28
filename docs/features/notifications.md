@@ -34,7 +34,7 @@ open. Reading or deleting notifications is not written to the activity log.
 | `transferFailed` | The owner and whoever asked; nobody for a move an admin started | A move gave up: the server stayed, with the reason when the panel knows it |
 | `admin.transferFailed` | Every admin, and every user whose role has `servers.transfer` | Any move gave up, with the reason or the error |
 | `allowanceCut` | The account | An [allowance cut](allowance-cuts.md) took CPU, memory or disk off its servers: each server with what it gave |
-| `membershipEnded` | The account | The second membership ran out and servers on premium locations are moving ([economy](economy.md)) |
+| `membershipEnded` | The account | A membership ran out and servers on locations it opened are moving ([economy](economy.md)) |
 | `failoverDone` | The owner | A [failover](failover.md) or a drill restored the server on another node: the new address and the time of the backup used |
 | `failoverFailed` | The owner, at most once a day per server, and only when the server had already left its node (before that nothing changed for them) | A failover failed |
 | `modpackInstalled`, `modpackFailed` | Who started it (on Minecraft › Modpacks or through neo) | A modpack install ended ([Minecraft](minecraft.md)) |

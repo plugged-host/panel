@@ -9,6 +9,7 @@ mod announcements;
 pub mod auth;
 pub mod client;
 mod devbox; // plugged.host
+mod earn; // plugged.host
 mod icons;
 mod languages;
 mod noprofit; // plugged.host
@@ -43,6 +44,7 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         )
         .nest("/settings", settings::router(state))
         .nest("/ads", ads::router(state)) // plugged.host: docs/features/ads.md
+        .nest("/earn", earn::router(state)) // plugged.host: docs/features/economy.md
         .nest("/announcements", announcements::router(state))
         .nest("/icons", icons::router(state))
         .nest("/languages", languages::router(state))

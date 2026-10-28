@@ -19,7 +19,8 @@ pub struct AppSettingsAds {
     pub show_account: bool,
     /// Ads on a server's pages.
     pub show_server: bool,
-    /// Accounts with the second membership see no ads; the first one's refresh slower.
+    /// The second membership sees no ads, the first only the waiting room before a start (no
+    /// banners or popups on the pages). Off: members see every ad, refreshing slower.
     pub member_free: bool,
 
     /// The sponsored top banners above every page (as the Pelican panel's ads 2.2.2, no ad zone

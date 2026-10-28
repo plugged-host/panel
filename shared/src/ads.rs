@@ -225,9 +225,13 @@ pub fn zones_to_text(zones: &[Zone]) -> String {
 #[derive(ToSchema, Serialize, Clone, Copy, Debug, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum Audience {
-    /// No ads: ads are off, or the account has the second membership.
+    /// No ads: ads are off, or the account has the second membership (while Fewer Ads for
+    /// Members is on).
     None,
-    /// Ads with the slower refresh: the first membership.
+    /// Only the waiting room before a start, with its own units and no page scripts: the first
+    /// membership while Fewer Ads for Members is on. No banners or popups on the pages.
+    Room,
+    /// Ads with the slower refresh: a membership while Fewer Ads for Members is off.
     Member,
     Everyone,
 }
@@ -246,11 +250,21 @@ pub async fn audience(state: &crate::State, user: &User) -> Result<Audience, any
 
     let membership = crate::economy::membership(&state.database, user.uuid).await?;
 
-    Ok(match membership.priority(chrono::Utc::now().naive_utc()) {
-        2 if member_free => Audience::None,
-        0 => Audience::Everyone,
-        _ => Audience::Member,
-    })
+    Ok(audience_of(
+        membership.priority(chrono::Utc::now().naive_utc()),
+        member_free,
+    ))
+}
+
+/// The audience of an account with start queue priority `priority` (2 the second membership, 1
+/// the first, 0 none).
+fn audience_of(priority: u8, member_free: bool) -> Audience {
+    match (priority, member_free) {
+        (0, _) => Audience::Everyone,
+        (_, false) => Audience::Member,
+        (1, true) => Audience::Room,
+        (_, true) => Audience::None,
+    }
 }
 
 /// The origin pages are served from, for `frame-ancestors`.
@@ -522,7 +536,7 @@ pub async fn send_in_game(state: &crate::State) -> Result<(), anyhow::Error> {
             AND NOT ($1 AND EXISTS (
                 SELECT 1 FROM user_memberships
                 WHERE user_memberships.user_uuid = users.uuid
-                    AND (user_memberships.plus_since IS NOT NULL
+                    AND (user_memberships.plus_until > NOW()
                         OR user_memberships.plusplus_until > NOW())
             ))
             AND MOD(servers.uuid_short::BIGINT - $2, $3) = 0",
@@ -580,6 +594,17 @@ pub async fn send_in_game(state: &crate::State) -> Result<(), anyhow::Error> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn members_see_fewer_ads() {
+        assert_eq!(audience_of(0, true), Audience::Everyone);
+        assert_eq!(audience_of(0, false), Audience::Everyone);
+        // the first membership keeps the waiting room only, the second sees none
+        assert_eq!(audience_of(1, true), Audience::Room);
+        assert_eq!(audience_of(2, true), Audience::None);
+        assert_eq!(audience_of(1, false), Audience::Member);
+        assert_eq!(audience_of(2, false), Audience::Member);
+    }
 
     #[test]
     fn native_container_comes_from_the_script() {

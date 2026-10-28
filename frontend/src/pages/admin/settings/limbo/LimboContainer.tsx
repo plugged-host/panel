@@ -25,7 +25,7 @@ const limboEmptyFormValues: LimboValues = {
   costEarly: 5,
   costLate: 10,
   costWindowHours: 72,
-  exemptMembers: true,
+  exemptMembers: false,
   deleteAfterDays: 0,
 };
 

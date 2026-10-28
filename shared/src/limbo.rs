@@ -949,7 +949,7 @@ async fn candidates(
             AND NOT ($3 AND EXISTS (
                 SELECT 1 FROM user_memberships
                 WHERE user_memberships.user_uuid = users.uuid
-                    AND (user_memberships.plus_since IS NOT NULL
+                    AND (user_memberships.plus_until > NOW()
                         OR user_memberships.plusplus_until > NOW())
             ))
         ORDER BY servers.last_activity

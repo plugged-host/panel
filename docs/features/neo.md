@@ -206,7 +206,7 @@ Admin › Settings › AI › neo is one page in Pelican's order (`frontend/src/
   contacts, the AI providers named to users and "always ask before deleting or killing".
 - **AI providers and limits**: up to 6 model slots (`MAX_PROVIDERS`), added and removed freely. A
   slot has a label and description (the chat's picker), who may pick it (everyone, Plus,
-  PlusPlus), the API format (OpenAI-compatible, Anthropic Messages, Google AI Studio), the model,
+  Premium), the API format (OpenAI-compatible, Anthropic Messages, Google AI Studio), the model,
   the endpoint (public https only), the key, max output tokens, a timeout, a daily token cap,
   whether it sees images, a usage multiplier, and extra headers and request fields as JSON.
   While noprofit.space runs neo (see below), the page says so and the slots are not used.

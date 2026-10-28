@@ -889,7 +889,8 @@
           "plus": "Membership",
           "plusplus": "Membership",
           "admin": "Changed by an admin",
-          "earn": "Sponsored link",
+          "earn": "Earned",
+          "earnReversal": "Reversed",
           "limbo": "Server restored",
           "limboRefund": "Restore refunded",
           "subdomain": "Subdomain",
@@ -1051,7 +1052,7 @@
           },
           "membershipEnded": {
             "title": "{membership} has ended",
-            "body": "Servers on premium locations are moving to another location: {servers}. Follow it on each server's Transfer page."
+            "body": "Servers on locations it opened are moving to another location: {servers}. Follow it on each server's Transfer page."
           },
           "failoverDone": {
             "title": "Server recovered",
@@ -2806,6 +2807,11 @@
             "steep": "Past {soft} every step costs far more than the last."
           },
           "creditsShort": "cr",
+          "sale": {
+            "defaultName": "Sale",
+            "until": "{percent}% off everything in the store until {date}.",
+            "running": "{percent}% off everything in the store."
+          },
           "history": "Credit history",
           "noTransactions": "No credit transactions yet.",
           "modal": {
@@ -2858,20 +2864,29 @@
           "title": "Tokens",
           "subheading": "Earn tokens and see where they went",
           "balance": "{count} tokens",
-          "explainer": "Earn tokens by completing sponsored links. They pay for {app} {plus}, waking a hibernated server and subdomains.",
+          "explainer": "Earn tokens by taking a survey or completing sponsored links. They pay for {app} {plus}, waking a hibernated server and subdomains.",
+          "saved": "{amount} tokens saved toward your next token",
+          "decays": "Each link today pays a little less (the first paid {full}).",
           "none": "No way to earn tokens is set up right now.",
           "provider": {
+            "cpx_research": "CPX Research",
             "linkvertise": "Linkvertise",
             "vylo": "Vylo",
             "cuty": "Cuty",
             "shrinkearn": "ShrinkEarn",
-            "shrinkme": "ShrinkMe"
+            "shrinkme": "ShrinkMe",
+            "adfocus": "AdFoc.us"
           },
           "reward": "{count} tokens per completion",
           "used": "{used} of {cap} today",
           "capped": "Come back tomorrow",
           "linkUnavailable": "Unavailable right now",
           "earnWith": "Earn with {provider}",
+          "takeSurvey": "Take a survey",
+          "surveyReward": "Pays what each survey shows",
+          "surveyConfirm": "Tokens arrive once {provider} confirms the survey, usually within minutes.",
+          "surveyCapOne": "One survey a day pays. A survey that ends early because you don’t fit it may pay a small bonus and does not count.",
+          "surveyCap": "{cap} surveys a day pay. A survey that ends early because you don’t fit it may pay a small bonus and does not count.",
           "scriptBlocked": "The sponsored link could not load. A content blocker may be stopping it.",
           "history": "Recent activity",
           "redemption": {
@@ -2890,37 +2905,31 @@
         "membership": {
           "title": "Membership",
           "pageTitle": "{app} {name}",
-          "subtitle": "Better locations, no waiting in line and no ads in your game. Bought once, yours for good.",
+          "subtitle": "Better locations, no waiting in line and fewer ads. Paid by the month with tokens; nothing renews by itself.",
           "unavailable": "{name} is not on sale at the moment.",
-          "plusplusActive": {
+          "active": {
             "heading": "{name} is active",
             "body": "It runs until {until}."
           },
-          "owned": {
-            "heading": "You have {app} {name}",
-            "body": "{name} locations, priority in the start queue and no in-game ads are yours for good. {plusplus} adds more on top."
-          },
           "plus": {
-            "pitch": "Everything most servers need, once, with no renewals.",
-            "term": "Once, for good",
-            "get": "Get {name}",
-            "owned": "Owned"
+            "pitch": "Everything most servers need, by the month.",
+            "get": "Get {name}"
           },
           "plusplus": {
-            "pitch": "The add-on for servers that need the most: Premium hardware, no ads anywhere and more CPU.",
+            "pitch": "For servers that need the most: Premium hardware, no ads anywhere and more CPU.",
             "term": "{tokens}, or credits for {credits}",
             "termTokens": "{tokens}",
-            "needsPlus": "{name} needs {app} {plus} first.",
-            "extendHint": "Buying again before it ends adds to the time left.",
             "notSold": "Not for sale right now."
           },
+          "extendHint": "Buying again before it ends adds to the time left.",
           "days": "{days} days",
           "duration": {
             "day": "a day",
             "days": "{count} days",
             "week": "a week",
             "twoWeeks": "two weeks",
-            "weeks": "{count} weeks"
+            "weeks": "{count} weeks",
+            "month": "a month"
           },
           "cost": {
             "tokens": "{cost} tokens",
@@ -2931,14 +2940,16 @@
           "perks": {
             "plusLocations": "The {name} locations",
             "priority": "Priority in the start queue when a node is busy",
-            "noGameAds": "No in-game ads on your Minecraft servers",
+            "noBannerAds": "No ads: no banners, popups, or in-game ads",
             "burst": "Each server bursts up to +{cpu}% CPU while its node has room",
             "neoPlus": "{percent}% more neo (AI) usage",
             "devbox": "VS Code on your server: {cpu} vCPU, {memory} RAM, {disk} disk",
-            "everythingInPlus": "Everything in {name}",
-            "premiumLocations": "The Premium locations",
+            "panelAccess": "Panel Access included",
+            "fasterFiles": "Faster archives, unpacking and backups",
+            "fastestFiles": "The fastest archives, unpacking and backups",
+            "premiumLocations": "The {plus} and Premium locations",
+            "highestPriority": "Highest priority in the start queue when a node is busy",
             "noAds": "No ads anywhere: no banners, popups, waiting screen before a start or in-game ads",
-            "frontOfQueue": "The front of the start queue, ahead of {name}",
             "neoPlusplus": "{percent}% more neo (AI) usage in all",
             "devboxPlusplus": "A bigger VS Code devbox: {cpu} vCPU, {memory} RAM, {disk} disk"
           },
@@ -2950,9 +2961,12 @@
               "queue": "Start queue on a busy node",
               "gameAds": "In-game ads (Minecraft)",
               "panelAds": "Ads in the panel",
+              "waitingRoom": "Waiting screen before a start",
               "cpu": "CPU",
+              "files": "Archives and backups",
               "ai": "neo (AI) usage",
-              "devbox": "VS Code on your server"
+              "devbox": "VS Code on your server",
+              "panelAccess": "Panel access"
             },
             "cells": {
               "locationsFree": "Free",
@@ -2967,24 +2981,34 @@
               "no": "No",
               "cpu": "Your allowance",
               "cpuBurst": "Your allowance, bursting +{cpu}%",
+              "filesFree": "Standard",
+              "filesPlus": "Faster",
+              "filesPlusplus": "Fastest",
               "aiFree": "Standard",
               "percent": "+{percent}%",
-              "devbox": "{cpu} vCPU, {memory} RAM, {disk} disk"
+              "devbox": "{cpu} vCPU, {memory} RAM, {disk} disk",
+              "panelAccessFree": "Paid with tokens",
+              "included": "Included"
             }
           },
           "faq": {
             "heading": "Questions",
-            "once": {
-              "question": "Is {plus} a subscription?",
-              "answer": "No. You pay for {plus} once and keep it. Only {plusplus} runs for a set time, and nothing renews by itself."
+            "renew": {
+              "question": "Does a membership renew by itself?",
+              "answer": "No. {plus} and {plusplus} each run for the days you buy, and nothing renews by itself. Buying again before one ends adds to the time left. {plusplus} includes everything {plus} gives, so you never need both."
             },
             "expiry": {
-              "question": "What happens when {plusplus} ends?",
-              "answer": "You keep {plus}. Servers on Premium locations move to another location, and your servers burst only as far as {plus} allows. Buy {plusplus} again before it ends to keep both."
+              "question": "What happens when a membership ends?",
+              "answer": "Servers on locations it opened move to one you can still use, and your servers burst only as far as what is left allows. Buy again before it ends to keep everything."
+            },
+            "idle": {
+              "question": "Do my servers still stop when nobody uses them?",
+              "answer": "Yes. A membership does not change that: like every server, one nobody uses is stopped after a while, then hibernated. You can start it again from its page.",
+              "answerDelete": "Yes. A membership does not change that: like every server, one nobody uses is stopped after a while, then hibernated, and deleted if it stays hibernated for a long time. You can start it again from its page until then."
             },
             "tokens": {
               "question": "How do I get tokens?",
-              "answer": "On the Tokens page in the sidebar, by completing sponsored links."
+              "answer": "On the Tokens page in the sidebar, by taking a survey or completing sponsored links."
             },
             "credits": {
               "question": "Can I pay with credits?",
@@ -2993,7 +3017,7 @@
           },
           "modal": {
             "title": "Buy Membership",
-            "plus": "Spend **{cost}** tokens on **{name}**? It is yours for good.",
+            "plus": "Spend **{cost}** tokens on **{days} days** of **{name}**?",
             "plusplus": {
               "tokens": "Spend **{cost}** tokens on **{days} days** of **{name}**?",
               "credits": "Spend **{cost}** credits on **{days} days** of **{name}**?"
@@ -3001,7 +3025,7 @@
             "confirm": "Buy"
           },
           "toast": {
-            "plus": "You have {name} now.",
+            "plus": "{name} bought.",
             "plusplus": "{name} bought."
           }
         },
@@ -3502,6 +3526,8 @@
                   "ogImageDescription": "Shown in link previews. Must be a PNG or JPEG, not SVG.",
                   "themeColor": "Theme Color",
                   "themeColorDescription": "The panel's accent: buttons, links, active items and focus rings. The swatches are the presets; blue is the theme's own. A light colour is darkened until white text on it stays readable. Also tints the browser UI on mobile and link previews.",
+                  "seasonalTheme": "Theme",
+                  "seasonalThemeDescription": "A seasonal look over the panel: its own colours and a few drawings in the sidebar. Default turns it off and uses the theme colour again.",
                   "indexable": "Allow Search Engine Indexing",
                   "twitterCard": "Twitter Card Type"
                 },
@@ -3509,6 +3535,11 @@
                   "twitterCard": {
                     "summary": "Summary",
                     "summaryLargeImage": "Summary with Large Image"
+                  },
+                  "seasonalTheme": {
+                    "default": "Default",
+                    "halloween": "Halloween",
+                    "christmas": "Christmas"
                   }
                 },
                 "placeholder": {
@@ -4457,7 +4488,7 @@
                   "showServer": "On Server Pages",
                   "showServerDescription": "A server's console and its other pages.",
                   "memberFree": "Fewer Ads for Members",
-                  "memberFreeDescription": "Accounts with the second membership see no ads; the first membership's ads refresh slower.",
+                  "memberFreeDescription": "The second membership sees no ads; the first sees only the waiting room before a start, no banners or popups. Off: members see every ad, refreshing slower.",
                   "slots": "Slots",
                   "slotTop": "Top Banner",
                   "slotTopDescription": "The sponsored top banners (Admin › Sponsored Banners) above every page.",
@@ -4638,8 +4669,17 @@
                   "creditsEnabledDescription": "Credits buy CPU, memory and disk in the Resource Store, and the second membership. With noprofit.space connected they are its credits. Turned off, the store is hidden; balances are kept.",
                   "startingCredits": "Starting Credits",
                   "startingCreditsDescription": "Credits every account gets once, the first time its balance is shown (without noprofit.space).",
+                  "discountSection": "Sale",
+                  "storeDiscount": "Discount (%)",
+                  "storeDiscountDescription": "Taken off every price in the Resource Store while the sale runs, with or without noprofit.space. 0 turns it off.",
+                  "storeDiscountName": "Name",
+                  "storeDiscountNameDescription": "What the store calls the sale, such as Halloween special. Empty: Sale.",
+                  "storeDiscountStarts": "Starts",
+                  "storeDiscountStartsDescription": "In your browser’s time zone. Empty: right away.",
+                  "storeDiscountEnds": "Ends",
+                  "storeDiscountEndsDescription": "Shown in the store. Empty: until the discount is set back to 0.",
                   "tokensEnabled": "Tokens",
-                  "tokensEnabledDescription": "Tokens are earned through sponsored links and buy the memberships.",
+                  "tokensEnabledDescription": "Tokens are earned through surveys and sponsored links and buy the memberships.",
                   "dailyTokens": "Daily Tokens",
                   "dailyTokensDescription": "Tokens every account gets once a day, the first time it looks. 0 gives none.",
                   "panelAccessSection": "Panel Access",
@@ -4649,12 +4689,13 @@
                   "panelAccessTokensDescription": "Memberships and administrators never pay. 0 makes the panel free.",
                   "panelAccessDays": "Days per Payment",
                   "membershipEnabled": "Memberships",
-                  "membershipEnabledDescription": "The first membership is bought once with tokens and opens the locations with the tier “plus”. The second runs for a while, needs the first, and opens the tier “premium”.",
+                  "membershipEnabledDescription": "Both are bought for some days at a time. The first opens the locations with the tier “plus”; the second gives everything the first does, opens the tier “premium” too and needs no first membership.",
                   "plusName": "First Membership’s Name",
                   "plusNameDescription": "What players see, such as Plus.",
                   "plusplusName": "Second Membership’s Name",
-                  "plusplusNameDescription": "What players see, such as PlusPlus.",
+                  "plusplusNameDescription": "What players see, such as Premium.",
                   "plusTokens": "First Membership: Tokens",
+                  "plusDays": "First Membership: Days",
                   "plusplusTokens": "Second Membership: Tokens",
                   "plusplusTokenDays": "Second Membership: Days for Tokens",
                   "plusplusCredits": "Second Membership: Credits",
@@ -4687,6 +4728,10 @@
                   "earnSection": "Earning Tokens",
                   "claimMinutes": "Minutes to Finish a Link",
                   "claimMinutesDescription": "How long a player has to come back from a sponsored link.",
+                  "linkDecayPercent": "Less per Further Link (%)",
+                  "linkDecayPercentDescription": "Advertisers pay less for a person they already showed ads to: each further link a person finishes on the same provider the same day pays this many percent less than the one before. 0 pays every link in full.",
+                  "linkFloorPercent": "Lowest Reward (%)",
+                  "linkFloorPercentDescription": "A link never pays less than this share of its full reward, however many came before it that day.",
                   "linkvertiseEnabled": "Linkvertise",
                   "linkvertiseEnabledDescription": "Needs the anti-bypass API token from Linkvertise’s dashboard.",
                   "linkvertiseToken": "Linkvertise Anti-Bypass Token",
@@ -4712,7 +4757,19 @@
                   "shrinkearnApiKey": "ShrinkEarn API Key",
                   "shrinkmeEnabled": "ShrinkMe",
                   "shrinkmeEnabledDescription": "Needs the API key from ShrinkMe’s dashboard. A short link is made for every trip.",
-                  "shrinkmeApiKey": "ShrinkMe API Key"
+                  "shrinkmeApiKey": "ShrinkMe API Key",
+                  "adfocusEnabled": "AdFoc.us",
+                  "adfocusEnabledDescription": "Needs the API key from AdFoc.us’s Tools › API page. A short link is made for every trip.",
+                  "adfocusApiKey": "AdFoc.us API Key",
+                  "cpxResearchEnabled": "CPX Research",
+                  "cpxResearchEnabledDescription": "A survey wall, first on the Tokens page: each survey pays what CPX Research shows for it, and the tokens arrive with its postback. Needs the App ID and the Secure Hash from the app’s page in CPX Research’s dashboard.",
+                  "cpxResearchAppId": "CPX Research App ID",
+                  "cpxResearchSecret": "CPX Research Secure Hash",
+                  "cpxResearchDailyCap": "Surveys per Day",
+                  "cpxResearchDailyCapDescription": "Finished surveys that pay, per account. Screen-outs and bonuses are paid and do not count. 0 has no limit.",
+                  "cpxResearchPostback": "Postback URL",
+                  "cpxResearchPostbackDescription": "Paste this into the app’s Postback Settings at CPX Research (click to copy). CPX’s servers call it, so a proxy or CDN in front of the panel must let them through.",
+                  "cpxResearchRewards": "In the app’s Reward Settings, name the currency Token (plural Tokens) and set the Currency Factor: the tokens a dollar of your earnings is worth. That is what the wall shows for each survey and what it pays."
                 },
                 "toast": {
                   "updated": "Economy settings saved."
@@ -5546,7 +5603,7 @@
                 "summary": "{credits} credits, {tokens} tokens ({earned} earned).",
                 "noprofit": "Credits and the Resource Store are noprofit.space’s: change credits there.",
                 "noprofitSent": "Credits and the Resource Store are noprofit.space’s: a credit change made here is sent to the account there.",
-                "plusSince": "{name} since",
+                "plusLapsed": "{name} not running; first bought",
                 "noPlus": "No {name}.",
                 "plusplusRuns": "{name} runs until",
                 "noPlusplus": "No {name} running ({purchases} bought so far).",
@@ -5558,8 +5615,6 @@
                 "reason": "Reason",
                 "reasonDescription": "Shown in the user’s history.",
                 "memberships": "Memberships",
-                "givePlus": "Give {name}",
-                "takePlus": "Take {name} Away",
                 "plusplusUntil": "{name} Until",
                 "setPlusplus": "Set End",
                 "endPlusplus": "End {name} Now",
@@ -11127,6 +11182,8 @@
               "button": "Check & apply",
               "applied": "Startup command checked and applied. Restart the server to use it.",
               "refused": "Not applied",
+              "tuneNote": "On a Minecraft server, neo also tunes the command for a smooth game on the least memory and CPU, and keeps your other choices.",
+              "optimized": "Applied with neo's tuning",
               "reasons": {
                 "empty": "Type a command first.",
                 "tooLong": "The command is longer than {detail} characters.",
@@ -11251,7 +11308,7 @@
           },
           "plusOffer": {
             "heading": "Skip ahead with {app} {name}",
-            "body": "{name} is {cost} tokens, once, and yours for good: priority in this line for all your servers, the {name} locations and no in-game ads.",
+            "body": "{name} is {cost} tokens a month: priority in this line for all your servers, the {name} locations and no ads but the waiting screen.",
             "button": "Get {name}"
           },
           "move": {

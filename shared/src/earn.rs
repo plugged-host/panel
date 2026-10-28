@@ -10,6 +10,14 @@
 //! Providers: Linkvertise (a link from its dashboard, or its Full Script on the Tokens page, both
 //! checked with its anti-bypass API) and the shorteners (Vylo, Cuty, ShrinkEarn, ShrinkMe and
 //! AdFoc.us make a short link per trip, back with a proof only the panel can make).
+//!
+//! CPX Research is a survey wall, not a link: no claim and no way back. Its wall opens in a new tab
+//! with the account's uuid signed in it ([`cpx_research_wall`]); each survey pays what the wall
+//! shows (CPX works it out in tokens from the Currency Factor set in its dashboard), told by CPX's
+//! server-to-server postback ([`survey_postback`]), which is signed with the app's secure hash.
+//! A transaction pays once (the same unique index); only finished surveys (`type=complete`) count
+//! toward the daily cap, so a screen-out's small bonus never uses up the day; a reversal
+//! (`status=2`) takes the tokens back, never below 0.
 
 use crate::{
     economy::{Currency, change},
@@ -30,6 +38,12 @@ const CUTY_API: &str = "https://cuty.io/api";
 const SHRINKEARN_API: &str = "https://shrinkearn.com/api";
 const SHRINKME_API: &str = "https://shrinkme.io/api";
 const ADFOCUS_API: &str = "https://adfoc.us/api/";
+const CPX_RESEARCH_WALL: &str = "https://offers.cpx-research.com/index.php";
+/// The most one survey postback pays, in hundredths (10 000 tokens): a Currency Factor set far too
+/// high in CPX's dashboard cannot empty the economy.
+const SURVEY_MOST: i64 = 1_000_000;
+/// The ledger type of tokens a survey wall took back (the grant itself is `earn:<provider>`).
+pub const TYPE_EARN_REVERSAL: &str = "earn_reversal";
 /// The parameter the panel's own shortener proof comes back in.
 const SHORTENER_PROOF: &str = "vt";
 /// The parameter the return URL carries for Linkvertise's Full Script whitelist.
@@ -42,10 +56,14 @@ const CLAIM_PROOF_SEPARATOR: char = '.';
 pub const STATUS_PENDING: &str = "pending";
 pub const STATUS_GRANTED: &str = "granted";
 pub const STATUS_REJECTED: &str = "rejected";
+/// A survey CPX Research reversed after it paid (or before it was ever credited).
+pub const STATUS_REVERSED: &str = "reversed";
 
 #[derive(ToSchema, Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum Provider {
+    /// A survey wall, first on the Tokens page: it pays the most.
+    CpxResearch,
     Linkvertise,
     Vylo,
     Cuty,
@@ -56,7 +74,9 @@ pub enum Provider {
 }
 
 impl Provider {
-    pub const ALL: [Self; 6] = [
+    /// In the Tokens page's order: the first row's button is the page's filled one.
+    pub const ALL: [Self; 7] = [
+        Self::CpxResearch,
         Self::Linkvertise,
         Self::Vylo,
         Self::Cuty,
@@ -67,6 +87,7 @@ impl Provider {
 
     pub fn key(self) -> &'static str {
         match self {
+            Self::CpxResearch => "cpx_research",
             Self::Linkvertise => "linkvertise",
             Self::Vylo => "vylo",
             Self::Cuty => "cuty",
@@ -83,6 +104,7 @@ impl Provider {
     /// The provider's name as players see it.
     pub fn label(self) -> &'static str {
         match self {
+            Self::CpxResearch => "CPX Research",
             Self::Linkvertise => "Linkvertise",
             Self::Vylo => "Vylo",
             Self::Cuty => "Cuty",
@@ -92,10 +114,15 @@ impl Provider {
         }
     }
 
+    /// A survey wall: pays what each survey shows, through its postback, with no claim.
+    pub fn is_survey(self) -> bool {
+        self == Self::CpxResearch
+    }
+
     /// The shortener's API, if it is one.
     fn api(self) -> Option<&'static str> {
         match self {
-            Self::Linkvertise => None,
+            Self::CpxResearch | Self::Linkvertise => None,
             Self::Vylo => Some(VYLO_API),
             Self::Cuty => Some(CUTY_API),
             Self::ShrinkEarn => Some(SHRINKEARN_API),
@@ -163,20 +190,35 @@ pub fn link_reward(full: i64, decay_percent: i32, floor_percent: i32, nth: i64) 
 struct Config {
     provider: Provider,
     enabled: bool,
-    /// Hundredths of a token per link.
+    /// Hundredths of a token per link; 0 for a survey wall, which pays what each survey shows.
     reward: i64,
+    /// A survey wall: finished surveys a day, its bonuses not counted.
     daily_cap: i64,
-    /// Linkvertise: the anti-bypass token. Vylo: the API key.
+    /// Linkvertise: the anti-bypass token. Vylo: the API key. CPX Research: the app's secure hash.
     secret: Option<String>,
     link: Option<String>,
     publisher: Option<i64>,
     whitelist: Vec<String>,
     min_seconds: i64,
+    /// CPX Research's app id.
+    app_id: Option<String>,
 }
 
 impl Config {
     fn of(settings: &crate::settings::economy::AppSettingsEconomy, provider: Provider) -> Self {
         match provider {
+            Provider::CpxResearch => Self {
+                provider,
+                enabled: settings.cpx_research_enabled,
+                reward: 0,
+                daily_cap: settings.cpx_research_daily_cap.max(0) as i64,
+                secret: settings.cpx_research_secret.as_deref().map(str::to_string),
+                link: None,
+                publisher: None,
+                whitelist: Vec::new(),
+                min_seconds: 0,
+                app_id: settings.cpx_research_app_id.as_deref().map(str::to_string),
+            },
             Provider::Linkvertise => Self {
                 provider,
                 enabled: settings.linkvertise_enabled,
@@ -191,6 +233,7 @@ impl Config {
                     .filter(|publisher| *publisher > 0),
                 whitelist: whitelist(settings.linkvertise_whitelist.as_deref()),
                 min_seconds: 0,
+                app_id: None,
             },
             Provider::Vylo => Self {
                 provider,
@@ -202,6 +245,7 @@ impl Config {
                 publisher: None,
                 whitelist: Vec::new(),
                 min_seconds: settings.vylo_min_seconds.max(0) as i64,
+                app_id: None,
             },
             Provider::Cuty => Self {
                 provider,
@@ -213,6 +257,7 @@ impl Config {
                 publisher: None,
                 whitelist: Vec::new(),
                 min_seconds: settings.cuty_min_seconds.max(0) as i64,
+                app_id: None,
             },
             Provider::ShrinkEarn => Self {
                 provider,
@@ -224,6 +269,7 @@ impl Config {
                 publisher: None,
                 whitelist: Vec::new(),
                 min_seconds: settings.shrinkearn_min_seconds.max(0) as i64,
+                app_id: None,
             },
             Provider::ShrinkMe => Self {
                 provider,
@@ -235,6 +281,7 @@ impl Config {
                 publisher: None,
                 whitelist: Vec::new(),
                 min_seconds: settings.shrinkme_min_seconds.max(0) as i64,
+                app_id: None,
             },
             Provider::AdFocus => Self {
                 provider,
@@ -246,6 +293,7 @@ impl Config {
                 publisher: None,
                 whitelist: Vec::new(),
                 min_seconds: settings.adfocus_min_seconds.max(0) as i64,
+                app_id: None,
             },
         }
     }
@@ -260,6 +308,7 @@ impl Config {
         }
 
         match self.provider {
+            Provider::CpxResearch => self.app_id.is_some(),
             Provider::Linkvertise => {
                 self.full_script()
                     || self
@@ -272,8 +321,8 @@ impl Config {
     }
 }
 
-/// The providers the Tokens page offers, with the hundredths of a token a link pays and the daily
-/// cap (0: none).
+/// The providers the Tokens page offers, with the hundredths of a token a link pays (0: a survey
+/// wall, which pays what each survey shows) and the daily cap (0: none).
 /// Nothing while tokens are off.
 pub fn offered(
     settings: &crate::settings::economy::AppSettingsEconomy,
@@ -368,13 +417,16 @@ fn hash_token(token: &str) -> String {
 #[derive(ToSchema, Serialize)]
 pub struct ApiEarnProvider {
     pub provider: Provider,
-    /// Tokens the first link of the day pays, up to 2 decimals.
+    /// Tokens the first link of the day pays, up to 2 decimals (0 for a survey wall).
     pub reward: f64,
     /// Tokens the next link pays: less with each link already done today (`link_reward`).
     pub next_reward: f64,
-    /// 0: no cap.
+    /// 0: no cap. A survey wall: finished surveys a day.
     pub daily_cap: i64,
     pub granted_today: i64,
+    /// A survey wall (CPX Research): each survey pays what the wall shows, once the provider's
+    /// postback confirms it; the link opens in a new tab.
+    pub survey: bool,
     /// Linkvertise's Full Script runs on the page: the link is the return URL, the script turns
     /// it into a Linkvertise link.
     pub full_script: bool,
@@ -394,20 +446,24 @@ pub struct ApiTokens {
     pub transactions: Vec<crate::economy::ApiTransaction>,
 }
 
+/// What today's cap counts: granted claims since midnight UTC; a survey wall's finished surveys
+/// only (their `reason` is the event, [`SurveyEvent::key`]), so its bonuses never use up the day.
 async fn granted_today(
-    database: &crate::database::Database,
+    executor: impl sqlx::PgExecutor<'_>,
     user_uuid: uuid::Uuid,
     provider: Provider,
 ) -> Result<i64, sqlx::Error> {
     sqlx::query_scalar(
         "SELECT COUNT(*) FROM user_token_claims
         WHERE user_uuid = $1 AND provider = $2 AND status = $3
-            AND completed >= date_trunc('day', NOW())",
+            AND completed >= date_trunc('day', NOW())
+            AND ($4::TEXT IS NULL OR reason = $4)",
     )
     .bind(user_uuid)
     .bind(provider.key())
     .bind(STATUS_GRANTED)
-    .fetch_one(database.write())
+    .bind(provider.is_survey().then_some(SurveyEvent::Complete.key()))
+    .fetch_one(executor)
     .await
 }
 
@@ -424,19 +480,24 @@ pub async fn tokens(state: &crate::State, user: &User) -> Result<ApiTokens, anyh
                 continue;
             }
 
-            let today = granted_today(&state.database, user.uuid, provider).await?;
+            let today = granted_today(state.database.write(), user.uuid, provider).await?;
             providers.push(ApiEarnProvider {
                 provider,
                 reward: config.reward as f64 / 100.0,
-                next_reward: link_reward(
-                    config.reward,
-                    economy.link_decay_percent,
-                    economy.link_floor_percent,
-                    today,
-                ) as f64
-                    / 100.0,
+                next_reward: if provider.is_survey() {
+                    0.0
+                } else {
+                    link_reward(
+                        config.reward,
+                        economy.link_decay_percent,
+                        economy.link_floor_percent,
+                        today,
+                    ) as f64
+                        / 100.0
+                },
                 daily_cap: config.daily_cap,
                 granted_today: today,
+                survey: provider.is_survey(),
                 full_script: config.full_script(),
                 publisher: config.publisher.filter(|_| config.full_script()),
                 whitelist: if config.full_script() {
@@ -548,7 +609,7 @@ pub async fn start(
         return Err(EarnError::NotConfigured);
     }
     if config.daily_cap > 0
-        && granted_today(&state.database, user.uuid, provider).await? >= config.daily_cap
+        && granted_today(state.database.write(), user.uuid, provider).await? >= config.daily_cap
     {
         return Err(EarnError::Capped);
     }
@@ -594,6 +655,18 @@ pub async fn start(
         return Err(EarnError::Throttled);
     }
 
+    // a survey wall opens no claim: its postback names the account
+    if provider.is_survey() {
+        return Ok(ApiEarnStart {
+            url: cpx_research_wall(
+                config.app_id.as_deref().unwrap_or_default(),
+                user.uuid,
+                config.secret.as_deref().unwrap_or_default(),
+            ),
+            nonce: String::new(),
+        });
+    }
+
     let nonce = rand::distr::Alphanumeric.sample_string(&mut rand::rng(), 64);
     sqlx::query(
         "INSERT INTO user_token_claims (user_uuid, provider, nonce, status, ip)
@@ -609,6 +682,8 @@ pub async fn start(
 
     let back = return_url(&app_url, provider, &nonce);
     let url = match provider {
+        // answered above, without a claim
+        Provider::CpxResearch => return Err(EarnError::NotConfigured),
         Provider::Linkvertise if config.full_script() => back,
         Provider::Linkvertise => {
             fill_link(config.link.as_deref().unwrap_or_default(), &back, &nonce)
@@ -932,13 +1007,15 @@ pub async fn redeem(
     }
 
     let config = Config::of(&economy, provider);
-    let today = granted_today(&state.database, user.uuid, provider).await?;
+    let today = granted_today(state.database.write(), user.uuid, provider).await?;
     if config.daily_cap > 0 && today >= config.daily_cap {
         reject(&state.database, claim_uuid, "daily_cap").await?;
         return Ok(answer(Redemption::Capped, 0, Some(provider)));
     }
 
     let verified = match provider {
+        // a survey has no way back: its postback pays it (survey_postback)
+        Provider::CpxResearch => false,
         Provider::Linkvertise => match config.secret.as_deref() {
             Some(api_token) => verify_linkvertise(state, api_token, &token).await,
             None => false,
@@ -1063,14 +1140,7 @@ async fn grant(
         user.uuid,
         whole,
         &format!("earn:{}", provider.key()),
-        match provider {
-            Provider::Linkvertise => "Linkvertise",
-            Provider::Vylo => "Vylo",
-            Provider::Cuty => "Cuty",
-            Provider::ShrinkEarn => "ShrinkEarn",
-            Provider::ShrinkMe => "ShrinkMe",
-            Provider::AdFocus => "AdFoc.us",
-        },
+        provider.label(),
         serde_json::json!({ "claim_uuid": claim_uuid }),
     )
     .await?;
@@ -1081,6 +1151,448 @@ async fn grant(
         amount: whole,
         provider: Some(provider),
     })
+}
+
+/// CPX Research's hash: md5 of `<value>-<the app's secure hash>`, in lowercase hex. The wall's link
+/// signs the account (`ext_user_id`), a postback its transaction (`trans_id`).
+pub fn cpx_research_hash(value: &str, secret: &str) -> String {
+    format!("{:x}", md5::compute(format!("{value}-{secret}")))
+}
+
+/// CPX Research's survey wall for an account: its uuid is the `ext_user_id` the postbacks name,
+/// signed, so the wall cannot be opened in another account's name. No username or email is sent.
+pub fn cpx_research_wall(app_id: &str, user_uuid: uuid::Uuid, secret: &str) -> String {
+    let user = user_uuid.to_string();
+
+    format!(
+        "{CPX_RESEARCH_WALL}?app_id={}&ext_user_id={user}&secure_hash={}&username=&email=&subid_1=&subid_2=",
+        urlencoding::encode(app_id),
+        cpx_research_hash(&user, secret)
+    )
+}
+
+/// A CPX Research postback, by the names the postback URL gives CPX's placeholders
+/// (docs/features/economy.md).
+#[derive(Debug, Default, Clone, PartialEq, Eq)]
+pub struct CpxPostback {
+    /// `1`: credited, `2`: reversed (fraud found later, say).
+    pub status: String,
+    pub trans_id: String,
+    /// The wall's `ext_user_id`: the account's uuid.
+    pub user_id: String,
+    /// What it pays, in tokens, as a decimal.
+    pub amount_local: String,
+    /// CPX's `type`: `complete`, `out` or `bonus`.
+    pub kind: String,
+    /// The user's address when they took the survey.
+    pub ip_click: String,
+    /// md5 of `<trans_id>-<the app's secure hash>`.
+    pub hash: String,
+}
+
+impl CpxPostback {
+    /// From the query string. `secure_hash` and `ext_user_id` are read too, for a postback URL
+    /// written by hand.
+    pub fn from_params(params: &HashMap<String, String>) -> Self {
+        let get = |names: &[&str]| {
+            names
+                .iter()
+                .find_map(|name| params.get(*name))
+                .map(|value| value.trim().to_string())
+                .unwrap_or_default()
+        };
+
+        Self {
+            status: get(&["status"]),
+            trans_id: get(&["trans_id"]),
+            user_id: get(&["user_id", "ext_user_id"]),
+            amount_local: get(&["amount_local"]),
+            kind: get(&["type"]),
+            ip_click: get(&["ip_click"]),
+            hash: get(&["hash", "secure_hash"]),
+        }
+    }
+
+    /// Whether CPX Research sent it: only it can hash the transaction id with the app's secure
+    /// hash. Nothing else is signed, which is why a transaction id pays once.
+    pub fn signed(&self, secret: &str) -> bool {
+        !self.trans_id.is_empty()
+            && !secret.is_empty()
+            && constant_time_eq(
+                cpx_research_hash(&self.trans_id, secret).as_bytes(),
+                self.hash.to_ascii_lowercase().as_bytes(),
+            )
+    }
+}
+
+/// What a survey postback pays for (CPX's `type`).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum SurveyEvent {
+    /// A finished survey (`complete`): the only kind the daily cap counts.
+    Complete,
+    /// The small bonus for a qualified screen-out (`out`).
+    ScreenOut,
+    /// Another small bonus (`bonus`, for rating a survey, say).
+    Bonus,
+}
+
+impl SurveyEvent {
+    /// No type, or one CPX does not document, counts as a finished survey, so the cap holds
+    /// whatever the postback URL sends.
+    pub fn from_type(kind: &str) -> Self {
+        match kind.trim().to_ascii_lowercase().as_str() {
+            "out" => Self::ScreenOut,
+            "bonus" => Self::Bonus,
+            _ => Self::Complete,
+        }
+    }
+
+    /// Kept as the claim's `reason`, which the daily cap counts by.
+    pub fn key(self) -> &'static str {
+        match self {
+            Self::Complete => "complete",
+            Self::ScreenOut => "out",
+            Self::Bonus => "bonus",
+        }
+    }
+
+    pub fn counts_toward_cap(self) -> bool {
+        self == Self::Complete
+    }
+}
+
+/// A postback's `amount_local` (tokens as a decimal, `12.5`) in hundredths of a token, rounded
+/// down, at most [`SURVEY_MOST`]; 0 for anything that is not a plain positive decimal.
+pub fn survey_amount(raw: &str) -> i64 {
+    let raw = raw.trim();
+    let (whole, fraction) = raw.split_once(['.', ',']).unwrap_or((raw, ""));
+    if (whole.is_empty() && fraction.is_empty())
+        || !whole.bytes().all(|b| b.is_ascii_digit())
+        || !fraction.bytes().all(|b| b.is_ascii_digit())
+    {
+        return 0;
+    }
+
+    let whole = whole.trim_start_matches('0');
+    if whole.len() > 12 {
+        return SURVEY_MOST;
+    }
+    let whole: i64 = whole.parse().unwrap_or(0);
+    let hundredths = fraction
+        .bytes()
+        .chain(std::iter::repeat(b'0'))
+        .take(2)
+        .fold(0, |sum, digit| sum * 10 + i64::from(digit - b'0'));
+
+    (whole * 100 + hundredths).min(SURVEY_MOST)
+}
+
+/// What the panel made of a survey postback. Everything but `Refused` is answered as handled, so
+/// CPX does not send it again.
+#[derive(Debug, PartialEq, Eq)]
+pub enum PostbackOutcome {
+    /// The survey wall is off or not set up, or the hash does not match.
+    Refused,
+    /// A status the panel does not know, or a transaction id far too long.
+    Ignored,
+    /// No account has the `user_id`.
+    UnknownUser,
+    /// The transaction was handled before.
+    Duplicate,
+    /// Paid: the whole tokens now, the rest saved on the account.
+    Granted {
+        user_uuid: uuid::Uuid,
+        amount: i64,
+        event: SurveyEvent,
+    },
+    /// A finished survey over the day's cap: kept, not paid.
+    Capped { user_uuid: uuid::Uuid },
+    /// It pays nothing (`amount_local` 0 or not a number): kept.
+    NoAmount { user_uuid: uuid::Uuid },
+    /// Reversed: `amount` tokens taken back, never more than the balance.
+    Reversed { user_uuid: uuid::Uuid, amount: i64 },
+    /// A reversal of a transaction that paid nothing or was never credited.
+    NothingToReverse,
+}
+
+/// CPX Research's postback (`GET /api/earn/cpx-research`): pays a survey or takes one back.
+pub async fn survey_postback(
+    state: &crate::State,
+    postback: &CpxPostback,
+) -> Result<PostbackOutcome, anyhow::Error> {
+    let economy = state.settings.get().await?.economy.clone();
+    let config = Config::of(&economy, Provider::CpxResearch);
+    if !economy.tokens_enabled || !config.configured() {
+        tracing::warn!("a cpx research postback came while cpx research is off or not set up");
+        return Ok(PostbackOutcome::Refused);
+    }
+    if !postback.signed(config.secret.as_deref().unwrap_or_default()) {
+        tracing::warn!("a cpx research postback with a wrong hash");
+        return Ok(PostbackOutcome::Refused);
+    }
+    if postback.trans_id.len() > 255 {
+        tracing::warn!("a cpx research postback with a transaction id over 255 characters");
+        return Ok(PostbackOutcome::Ignored);
+    }
+
+    let token_hash = hash_token(&postback.trans_id);
+    let user_uuid = uuid::Uuid::parse_str(&postback.user_id).ok();
+
+    match postback.status.as_str() {
+        "1" => match user_uuid {
+            Some(user_uuid) => {
+                credit_survey(state, &config, user_uuid, postback, &token_hash).await
+            }
+            None => Ok(PostbackOutcome::UnknownUser),
+        },
+        "2" => reverse_survey(state, user_uuid, postback, &token_hash).await,
+        status => {
+            tracing::info!(
+                trans_id = %postback.trans_id,
+                "a cpx research postback with status {status:?}, ignored"
+            );
+            Ok(PostbackOutcome::Ignored)
+        }
+    }
+}
+
+/// `status=1`: counted and paid with the account locked, so two postbacks at once cannot both
+/// take the day's last survey.
+async fn credit_survey(
+    state: &crate::State,
+    config: &Config,
+    user_uuid: uuid::Uuid,
+    postback: &CpxPostback,
+    token_hash: &str,
+) -> Result<PostbackOutcome, anyhow::Error> {
+    let provider = Provider::CpxResearch;
+    let event = SurveyEvent::from_type(&postback.kind);
+    let amount = survey_amount(&postback.amount_local);
+    if amount >= SURVEY_MOST {
+        tracing::warn!(
+            trans_id = %postback.trans_id,
+            "a cpx research survey pays {:?} tokens: paid {} at most, check the currency factor",
+            postback.amount_local,
+            tokens_text(SURVEY_MOST)
+        );
+    }
+
+    let mut transaction = state.database.write().begin().await?;
+
+    let saved: Option<i32> =
+        sqlx::query_scalar("SELECT token_fraction FROM users WHERE uuid = $1 FOR UPDATE")
+            .bind(user_uuid)
+            .fetch_optional(&mut *transaction)
+            .await?;
+    let Some(saved) = saved else {
+        return Ok(PostbackOutcome::UnknownUser);
+    };
+
+    let (status, reason) = if amount <= 0 {
+        (STATUS_REJECTED, "no_amount")
+    } else if event.counts_toward_cap()
+        && config.daily_cap > 0
+        && granted_today(&mut *transaction, user_uuid, provider).await? >= config.daily_cap
+    {
+        (STATUS_REJECTED, "daily_cap")
+    } else {
+        (STATUS_GRANTED, event.key())
+    };
+
+    // the unique index on (provider, token_hash): a repeated postback inserts nothing
+    let nonce = rand::distr::Alphanumeric.sample_string(&mut rand::rng(), 64);
+    let claim_uuid: Option<uuid::Uuid> = sqlx::query_scalar(
+        "INSERT INTO user_token_claims
+            (user_uuid, provider, nonce, token_hash, status, reason, ip, completed)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+        ON CONFLICT DO NOTHING
+        RETURNING uuid",
+    )
+    .bind(user_uuid)
+    .bind(provider.key())
+    .bind(&nonce)
+    .bind(token_hash)
+    .bind(status)
+    .bind(reason)
+    .bind(
+        postback
+            .ip_click
+            .parse::<std::net::IpAddr>()
+            .ok()
+            .map(sqlx::types::ipnetwork::IpNetwork::from),
+    )
+    .fetch_optional(&mut *transaction)
+    .await?;
+    let Some(claim_uuid) = claim_uuid else {
+        return Ok(PostbackOutcome::Duplicate);
+    };
+
+    if status != STATUS_GRANTED {
+        transaction.commit().await?;
+
+        return Ok(if reason == "daily_cap" {
+            PostbackOutcome::Capped { user_uuid }
+        } else {
+            PostbackOutcome::NoAmount { user_uuid }
+        });
+    }
+
+    // the same as a link: the whole tokens now, the rest saved on the account
+    let (whole, rest) = split_reward(saved as i64, amount);
+    sqlx::query("UPDATE users SET token_fraction = $2 WHERE uuid = $1")
+        .bind(user_uuid)
+        .bind(rest as i32)
+        .execute(&mut *transaction)
+        .await?;
+    sqlx::query("UPDATE user_token_claims SET amount = $2 WHERE uuid = $1")
+        .bind(claim_uuid)
+        .bind(whole as i32)
+        .execute(&mut *transaction)
+        .await?;
+    if whole > 0 {
+        change(
+            &mut transaction,
+            Currency::Tokens,
+            user_uuid,
+            whole,
+            &format!("earn:{}", provider.key()),
+            provider.label(),
+            serde_json::json!({
+                "claim_uuid": claim_uuid,
+                "trans_id": postback.trans_id,
+                "type": event.key(),
+            }),
+        )
+        .await?;
+    }
+    transaction.commit().await?;
+
+    Ok(PostbackOutcome::Granted {
+        user_uuid,
+        amount: whole,
+        event,
+    })
+}
+
+/// `status=2`: takes back the whole tokens the transaction paid, never below 0 (what was spent
+/// stays spent); the part of a token it added to the saved part stays. A transaction not seen yet
+/// is kept as reversed, so a credit for it coming late pays nothing.
+async fn reverse_survey(
+    state: &crate::State,
+    user_uuid: Option<uuid::Uuid>,
+    postback: &CpxPostback,
+    token_hash: &str,
+) -> Result<PostbackOutcome, anyhow::Error> {
+    let provider = Provider::CpxResearch;
+    let mut transaction = state.database.write().begin().await?;
+
+    let claim = sqlx::query(
+        "SELECT uuid, user_uuid, status, amount FROM user_token_claims
+        WHERE provider = $1 AND token_hash = $2 FOR UPDATE",
+    )
+    .bind(provider.key())
+    .bind(token_hash)
+    .fetch_optional(&mut *transaction)
+    .await?;
+
+    let Some(claim) = claim else {
+        let owner: Option<uuid::Uuid> = match user_uuid {
+            Some(user_uuid) => {
+                sqlx::query_scalar("SELECT uuid FROM users WHERE uuid = $1")
+                    .bind(user_uuid)
+                    .fetch_optional(&mut *transaction)
+                    .await?
+            }
+            None => None,
+        };
+
+        if let Some(owner) = owner {
+            let nonce = rand::distr::Alphanumeric.sample_string(&mut rand::rng(), 64);
+            let kept = sqlx::query(
+                "INSERT INTO user_token_claims
+                    (user_uuid, provider, nonce, token_hash, status, reason, completed)
+                VALUES ($1, $2, $3, $4, $5, 'before_credit', NOW())
+                ON CONFLICT DO NOTHING",
+            )
+            .bind(owner)
+            .bind(provider.key())
+            .bind(&nonce)
+            .bind(token_hash)
+            .bind(STATUS_REVERSED)
+            .execute(&mut *transaction)
+            .await?
+            .rows_affected();
+            // its credit came in the meantime: an error, so CPX sends the reversal again
+            if kept == 0 {
+                anyhow::bail!("a cpx research transaction was credited while it was reversed");
+            }
+            transaction.commit().await?;
+        }
+
+        tracing::info!(
+            trans_id = %postback.trans_id,
+            "a cpx research reversal of a transaction never credited"
+        );
+        return Ok(PostbackOutcome::NothingToReverse);
+    };
+
+    let claim_uuid: uuid::Uuid = claim.try_get("uuid")?;
+    let owner: uuid::Uuid = claim.try_get("user_uuid")?;
+    if claim.try_get::<String, _>("status")? != STATUS_GRANTED {
+        return Ok(PostbackOutcome::NothingToReverse);
+    }
+    let paid = claim.try_get::<i32, _>("amount")? as i64;
+
+    sqlx::query("UPDATE user_token_claims SET status = $2 WHERE uuid = $1")
+        .bind(claim_uuid)
+        .bind(STATUS_REVERSED)
+        .execute(&mut *transaction)
+        .await?;
+
+    let balance: i64 = sqlx::query_scalar("SELECT tokens FROM users WHERE uuid = $1 FOR UPDATE")
+        .bind(owner)
+        .fetch_optional(&mut *transaction)
+        .await?
+        .unwrap_or(0);
+    let taken = survey_taken_back(paid, balance);
+
+    if paid > 0 {
+        // it was never earned after all
+        sqlx::query(
+            "UPDATE users SET tokens_earned = GREATEST(tokens_earned - $2, 0) WHERE uuid = $1",
+        )
+        .bind(owner)
+        .bind(paid)
+        .execute(&mut *transaction)
+        .await?;
+    }
+    if taken > 0 {
+        change(
+            &mut transaction,
+            Currency::Tokens,
+            owner,
+            -taken,
+            TYPE_EARN_REVERSAL,
+            provider.label(),
+            serde_json::json!({
+                "claim_uuid": claim_uuid,
+                "trans_id": postback.trans_id,
+                "paid": paid,
+            }),
+        )
+        .await?;
+    }
+    transaction.commit().await?;
+
+    Ok(PostbackOutcome::Reversed {
+        user_uuid: owner,
+        amount: taken,
+    })
+}
+
+/// What a reversal takes back: what the survey paid, no more than the balance (never below 0).
+pub fn survey_taken_back(paid: i64, balance: i64) -> i64 {
+    paid.min(balance).max(0)
 }
 
 #[cfg(test)]
@@ -1110,9 +1622,16 @@ mod tests {
         settings.linkvertise_enabled = true;
         settings.linkvertise_token = Some("<secret>".into());
         settings.linkvertise_link = Some("http://link.example.com".into());
+        // CPX Research needs the app id too
+        settings.cpx_research_enabled = true;
+        settings.cpx_research_secret = Some("<secret>".into());
+        assert_eq!(offered(&settings)[0].0, Provider::Vylo);
+
+        settings.cpx_research_app_id = Some("12345".into());
         assert_eq!(
             offered(&settings),
             vec![
+                (Provider::CpxResearch, 0, 1),
                 (Provider::Vylo, 200, 5),
                 (Provider::Cuty, 300, 5),
                 (Provider::ShrinkEarn, 400, 5),
@@ -1301,5 +1820,128 @@ mod tests {
         assert!(constant_time_eq(b"abc", b"abc"));
         assert!(!constant_time_eq(b"abc", b"abd"));
         assert!(!constant_time_eq(b"abc", b"ab"));
+    }
+
+    fn postback(pairs: &[(&str, &str)]) -> CpxPostback {
+        CpxPostback::from_params(
+            &pairs
+                .iter()
+                .map(|(k, v)| (k.to_string(), v.to_string()))
+                .collect::<HashMap<_, _>>(),
+        )
+    }
+
+    #[test]
+    fn cpx_research_is_a_survey_wall_listed_first() {
+        assert_eq!(Provider::ALL[0], Provider::CpxResearch);
+        assert!(Provider::CpxResearch.is_survey());
+        assert!(!Provider::Vylo.is_survey());
+        assert_eq!(
+            Provider::from_key("cpx_research"),
+            Some(Provider::CpxResearch)
+        );
+        assert_eq!(
+            serde_json::to_string(&Provider::CpxResearch).unwrap(),
+            "\"cpx_research\""
+        );
+        assert_eq!(Provider::CpxResearch.label(), "CPX Research");
+    }
+
+    #[test]
+    fn the_survey_wall_is_signed_for_the_account() {
+        // md5("<value>-<secret>"), as CPX Research's docs give it
+        assert_eq!(
+            cpx_research_hash("trans123", "s3cret"),
+            "5a1526dcbffeb8503c67d4e60c139c61"
+        );
+
+        let user = uuid::Uuid::parse_str("123e4567-e89b-12d3-a456-426614174000").unwrap();
+        assert_eq!(
+            cpx_research_wall("12345", user, "s3cret"),
+            "https://offers.cpx-research.com/index.php?app_id=12345\
+            &ext_user_id=123e4567-e89b-12d3-a456-426614174000\
+            &secure_hash=2396b8947423b6312d9e238addcdd5d9\
+            &username=&email=&subid_1=&subid_2="
+        );
+    }
+
+    #[test]
+    fn a_postback_is_signed_by_its_transaction() {
+        let signed = postback(&[
+            ("status", "1"),
+            ("trans_id", "trans123"),
+            ("user_id", "123e4567-e89b-12d3-a456-426614174000"),
+            ("amount_local", "12.5"),
+            ("type", "complete"),
+            ("hash", "5a1526dcbffeb8503c67d4e60c139c61"),
+        ]);
+        assert_eq!(signed.kind, "complete");
+        assert!(signed.signed("s3cret"));
+        assert!(!signed.signed("other"));
+        assert!(!signed.signed(""));
+
+        // the hash names the transaction, nothing else: another one does not match
+        let other = CpxPostback {
+            trans_id: "trans124".into(),
+            ..signed.clone()
+        };
+        assert!(!other.signed("s3cret"));
+
+        // upper-case hex and the hand-written names are read too
+        let by_hand = postback(&[
+            ("trans_id", " trans123 "),
+            ("ext_user_id", "123e4567-e89b-12d3-a456-426614174000"),
+            ("secure_hash", "5A1526DCBFFEB8503C67D4E60C139C61"),
+        ]);
+        assert_eq!(by_hand.user_id, signed.user_id);
+        assert!(by_hand.signed("s3cret"));
+
+        assert!(!postback(&[("hash", "5a1526dcbffeb8503c67d4e60c139c61")]).signed("s3cret"));
+    }
+
+    #[test]
+    fn survey_amounts_are_read_in_hundredths_rounded_down() {
+        assert_eq!(survey_amount("12.5"), 1250);
+        assert_eq!(survey_amount("12"), 1200);
+        assert_eq!(survey_amount("0.05"), 5);
+        assert_eq!(survey_amount("1.999"), 199);
+        assert_eq!(survey_amount("1,25"), 125);
+        assert_eq!(survey_amount(".5"), 50);
+        assert_eq!(survey_amount(" 007.10 "), 710);
+        assert_eq!(survey_amount("0"), 0);
+        assert_eq!(survey_amount("0.001"), 0);
+        assert_eq!(survey_amount("-3"), 0);
+        assert_eq!(survey_amount(""), 0);
+        assert_eq!(survey_amount("."), 0);
+        assert_eq!(survey_amount("1e5"), 0);
+        assert_eq!(survey_amount("1.2.3"), 0);
+        assert_eq!(survey_amount("NaN"), 0);
+        assert_eq!(survey_amount("123456789012345678901234567890"), SURVEY_MOST);
+        assert_eq!(survey_amount("99999"), SURVEY_MOST);
+        assert_eq!(survey_amount("9999.99"), 999_999);
+    }
+
+    #[test]
+    fn only_finished_surveys_count_toward_the_cap() {
+        assert_eq!(SurveyEvent::from_type("complete"), SurveyEvent::Complete);
+        assert_eq!(SurveyEvent::from_type("OUT"), SurveyEvent::ScreenOut);
+        assert_eq!(SurveyEvent::from_type("bonus"), SurveyEvent::Bonus);
+        // none, or one CPX does not document: a finished survey, so the cap still holds
+        assert_eq!(SurveyEvent::from_type(""), SurveyEvent::Complete);
+        assert_eq!(SurveyEvent::from_type("something"), SurveyEvent::Complete);
+
+        assert!(SurveyEvent::Complete.counts_toward_cap());
+        assert!(!SurveyEvent::ScreenOut.counts_toward_cap());
+        assert!(!SurveyEvent::Bonus.counts_toward_cap());
+        assert_eq!(SurveyEvent::ScreenOut.key(), "out");
+    }
+
+    #[test]
+    fn a_reversal_never_takes_the_balance_below_zero() {
+        assert_eq!(survey_taken_back(10, 25), 10);
+        assert_eq!(survey_taken_back(10, 4), 4);
+        assert_eq!(survey_taken_back(10, 0), 0);
+        assert_eq!(survey_taken_back(0, 25), 0);
+        assert_eq!(survey_taken_back(10, -5), 0);
     }
 }

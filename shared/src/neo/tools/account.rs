@@ -174,10 +174,13 @@ impl Tool for AccountOverviewTool {
             lines.push(format!(
                 "{}: {}",
                 names.plus,
-                if membership.has_plus() {
-                    format!("yes ({} locations unlocked)", names.plus)
-                } else {
-                    "no".into()
+                match membership.plus_until {
+                    Some(until) if membership.has_plus(now) => format!(
+                        "yes, until {} UTC ({} locations unlocked)",
+                        until.format("%Y-%m-%d %H:%M"),
+                        names.plus
+                    ),
+                    _ => "no".into(),
                 }
             ));
             lines.push(format!(

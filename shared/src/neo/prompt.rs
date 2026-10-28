@@ -105,7 +105,7 @@ pub struct PlanFacts {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct EarnFacts {
     pub label: String,
-    /// Hundredths of a token per link.
+    /// Hundredths of a token per link; 0: a survey wall, which pays what each survey shows.
     pub reward: i64,
     /// 0: no cap.
     pub daily_cap: i64,
@@ -1260,7 +1260,7 @@ pub fn knowledge_text(facts: &KnowledgeFacts) -> String {
     if tiers {
         let mut needs = Vec::new();
         if facts.plus_locations {
-            needs.push(format!("{plus} locations need {plus}"));
+            needs.push(format!("{plus} locations need {plus} or {plusplus}"));
         }
         if facts.premium_locations {
             needs.push(format!("premium locations need {plusplus}"));
@@ -1397,7 +1397,18 @@ pub fn knowledge_text(facts: &KnowledgeFacts) -> String {
                 .earn
                 .iter()
                 .map(|earn| {
-                    if earn.daily_cap > 0 {
+                    // plugged.host: a survey wall (CPX Research) pays what each survey shows
+                    if earn.reward == 0 && earn.daily_cap > 0 {
+                        format!(
+                            "{} surveys pay what each survey shows, up to {} finished surveys a day (a survey that screens the user out may pay a small bonus and does not count; tokens arrive minutes later, once the survey is confirmed)",
+                            earn.label, earn.daily_cap
+                        )
+                    } else if earn.reward == 0 {
+                        format!(
+                            "{} surveys pay what each survey shows (tokens arrive minutes later, once the survey is confirmed)",
+                            earn.label
+                        )
+                    } else if earn.daily_cap > 0 {
                         format!(
                             "{} {} tokens per link, up to {} links a day",
                             earn.label,
@@ -1414,9 +1425,15 @@ pub fn knowledge_text(facts: &KnowledgeFacts) -> String {
                 })
                 .collect::<Vec<_>>()
                 .join(", ");
+            // plugged.host: surveys too, when a survey wall is offered
+            let from = if facts.earn.iter().any(|earn| earn.reward == 0) {
+                "surveys and sponsored links"
+            } else {
+                "sponsored links"
+            };
             let _ = write!(
                 sentence,
-                "They are earned from sponsored links on the Tokens page (/account/tokens, which also shows the token history; {ways})"
+                "They are earned from {from} on the Tokens page (/account/tokens, which also shows the token history; {ways})"
             );
             if economy.link_decay_percent > 0 {
                 let _ = write!(
@@ -1441,7 +1458,11 @@ pub fn knowledge_text(facts: &KnowledgeFacts) -> String {
         let price = if economy.plus_tokens <= 0 {
             "is free".to_string()
         } else if tokens {
-            format!("costs {} once", count(economy.plus_tokens as i64, "token"))
+            format!(
+                "costs {} for {}, bought again to keep it (buying early adds to the time left; nothing renews by itself)",
+                count(economy.plus_tokens as i64, "token"),
+                plural(economy.plus_days.max(1) as i64, "day")
+            )
         } else {
             "is not for sale right now".to_string()
         };
@@ -1477,15 +1498,24 @@ pub fn knowledge_text(facts: &KnowledgeFacts) -> String {
                 minutes(facts.ads.in_game_interval.max(5) as i64)
             ));
         }
+        if ads && facts.ads.member_free {
+            benefits.push(if room {
+                "no banners or popups in the panel (the ad waiting room before a start stays)"
+                    .to_string()
+            } else {
+                "no banners or popups in the panel".to_string()
+            });
+        }
+        if economy.panel_access_enabled && economy.panel_access_tokens > 0 {
+            benefits.push("the panel's own monthly price included".to_string());
+        }
+        benefits.push("faster archives, unpacking and backups".to_string());
         let benefits = if benefits.is_empty() {
             ".".to_string()
         } else {
             format!(": {}.", join_and(&benefits))
         };
-        item(
-            &mut out,
-            &format!("{plus} {price} and is kept for good{benefits}"),
-        );
+        item(&mut out, &format!("{plus} {price}{benefits}"));
 
         let mut prices = Vec::new();
         if tokens {
@@ -1533,23 +1563,22 @@ pub fn knowledge_text(facts: &KnowledgeFacts) -> String {
         if facts.devboxes.offered {
             benefits.push("bigger devboxes".to_string());
         }
+        benefits.push("the fastest archives, unpacking and backups".to_string());
         if facts.neo.plusplus_percent > 100 {
             benefits.push(format!(
                 "another {}% more neo usage on top of {plus}",
                 facts.neo.plusplus_percent.min(1000) - 100
             ));
         }
-        let lapse = if facts.premium_locations {
-            format!(
-                " When it runs out, servers on premium locations are moved to another location automatically (the same country first, then {plus} locations)."
-            )
+        let lapse = if facts.premium_locations || facts.plus_locations {
+            " When a membership runs out, servers on locations it opened are moved to a location the account can still use automatically (the same country first)."
         } else {
-            String::new()
+            ""
         };
         item(
             &mut out,
             &format!(
-                "{plusplus} needs {plus} and is not permanent: {price}. While it runs: {}.{lapse}",
+                "{plusplus} does not need {plus} (it includes everything {plus} gives): {price}. While it runs: {}.{lapse}",
                 join_and(&benefits)
             ),
         );
@@ -2540,12 +2569,13 @@ mod tests {
             "Each new server gets up to 1 port, no databases, no panel backups and no schedules.",
             "Move Server page (/server/<id>/transfer",
             "can be moved again 24 hours later",
-            "Gold locations need Gold and premium locations need PlusPlus (see below).",
+            "Gold locations need Gold or Premium and premium locations need Premium (see below).",
             "+50% CPU for 100, +1 GB RAM for 150",
             "Limits: 600% CPU / 24 GB RAM; soft limits: 750% CPU / 30 GB RAM.",
             "Linkvertise 1 tokens per link, up to 5 links a day",
-            "Gold costs 25 tokens once and is kept for good: the Gold locations, priority in the start queue",
-            "PlusPlus needs Gold and is not permanent: 10 tokens for 7 days or 150 credits for 14 days",
+            "Gold costs 15 tokens for 30 days, bought again to keep it (buying early adds to the time left; nothing renews by itself): the Gold locations, priority in the start queue",
+            "Premium does not need Gold (it includes everything Gold gives): 30 tokens for 30 days, bought again to keep it",
+            "When a membership runs out, servers on locations it opened are moved",
             "Every start and restart of a non-admin waits at least 10 seconds in a start queue",
             "waits 10 minutes at most",
             "Starting a server shows a short ad waiting room (15-30 s)",
@@ -2671,7 +2701,7 @@ mod tests {
         };
         let knowledge = knowledge_text(&facts);
         assert!(knowledge.contains("quieter node (Move Server, for accounts with a membership)"));
-        assert!(knowledge.contains("Plus costs 25 tokens once and is kept for good"));
+        assert!(knowledge.contains("Plus costs 15 tokens for 30 days"));
         assert!(knowledge.contains("VS Code on their servers"));
         assert!(!knowledge.contains("\nVS Code\n"));
 
@@ -2797,5 +2827,30 @@ mod tests {
             variants: Vec::new(),
         });
         assert_eq!(game_name(&games, egg, "Minecraft Java"), "Minecraft");
+    }
+
+    #[test]
+    fn a_survey_wall_is_described_as_surveys() {
+        let mut facts = example();
+        facts.earn = vec![
+            EarnFacts {
+                label: "CPX Research".to_string(),
+                reward: 0,
+                daily_cap: 1,
+            },
+            EarnFacts {
+                label: "Linkvertise".to_string(),
+                reward: 100,
+                daily_cap: 5,
+            },
+        ];
+        let knowledge = knowledge_text(&facts);
+
+        assert!(knowledge.contains("earned from surveys and sponsored links on the Tokens page"));
+        assert!(knowledge.contains(
+            "CPX Research surveys pay what each survey shows, up to 1 finished surveys a day"
+        ));
+        assert!(!knowledge.contains("CPX Research 0 tokens per link"));
+        assert!(knowledge.contains("Linkvertise 1 tokens per link, up to 5 links a day"));
     }
 }
