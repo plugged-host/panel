@@ -129,6 +129,20 @@ Earning works with claims (`user_token_claims`):
 
 Opening claims is throttled per account and provider (3 × the daily cap per hour, at least 5).
 
+### What a link pays
+
+- **Fractions.** A provider's **Tokens per Link** takes up to 2 decimals (`1.5`). Balances stay whole
+  tokens: each link adds its reward to the account's saved part (`users.token_fraction`, in
+  hundredths) and pays the whole tokens in it, so 1.5 pays 1, 2, 1, 2 … (`earn::split_reward`). The
+  Tokens page shows a saved part ("0.5 tokens saved toward your next token"); a link that pays no
+  whole token yet still counts toward the daily cap.
+- **Less for each further link of the day.** Advertisers pay less for a person they already showed
+  ads to, so the n-th link of the day on one provider pays **Less per Further Link** percent less than
+  the one before (15 by default), never under **Lowest Reward** percent of the full reward (25)
+  (`earn::link_reward`, integer steps rounded once). At 1.5 tokens: 1.5, 1.28, 1.08, 0.92, 0.78, 0.67,
+  0.57, 0.48, 0.41, then 0.38. Days start at midnight UTC, per provider. The Tokens page shows what
+  the next link pays, with a note while it is under the full reward; 0 pays every link in full.
+
 | Provider | How it goes | How the proof is checked |
 |---|---|---|
 | Linkvertise, link | The settings' Linkvertise link, with `{return}` or `{return_b64}` replaced by the way back | Linkvertise's anti-bypass API with the API token |

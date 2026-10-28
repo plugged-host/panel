@@ -113,10 +113,57 @@ impl Provider {
     }
 }
 
+/// A setting's tokens in hundredths (`1.5` -> `150`), at least one hundredth.
+pub fn hundredths(tokens: f64) -> i64 {
+    if tokens.is_finite() {
+        ((tokens * 100.0).round() as i64).max(1)
+    } else {
+        100
+    }
+}
+
+/// Hundredths of a token as text without trailing zeros: `150` -> `1.5`, `200` -> `2`.
+pub fn tokens_text(hundredths: i64) -> compact_str::CompactString {
+    let whole = hundredths / 100;
+    match hundredths % 100 {
+        0 => compact_str::format_compact!("{whole}"),
+        rest if rest % 10 == 0 => compact_str::format_compact!("{whole}.{}", rest / 10),
+        rest => compact_str::format_compact!("{whole}.{rest:02}"),
+    }
+}
+
+/// A link's reward added to what the account had saved: the whole tokens to pay now and the
+/// hundredths saved for the next link (`(50, 150)` -> `(2, 0)`; `(0, 150)` -> `(1, 50)`).
+pub fn split_reward(saved: i64, reward: i64) -> (i64, i64) {
+    let total = saved.max(0) + reward.max(0);
+    (total / 100, total % 100)
+}
+
+/// What the `nth` link of the day on one provider (0: the first) pays, in hundredths: the full
+/// reward, then `decay_percent` less than the one before each time, never under `floor_percent`
+/// of the full reward. Advertisers pay less for a person they already showed their ads to.
+pub fn link_reward(full: i64, decay_percent: i32, floor_percent: i32, nth: i64) -> i64 {
+    let full = full.max(1);
+    let floor = (full * floor_percent.clamp(1, 100) as i64 + 50) / 100;
+    let keep = 100 - decay_percent.clamp(0, 90) as i64;
+
+    // in millionths, so integer steps round once at the end
+    let mut scaled = full * 1_000_000;
+    for _ in 0..nth.clamp(0, 1000) {
+        scaled = scaled * keep / 100;
+        if scaled <= floor * 1_000_000 {
+            break;
+        }
+    }
+
+    ((scaled + 500_000) / 1_000_000).max(floor).max(1)
+}
+
 /// One provider's settings, read once per request.
 struct Config {
     provider: Provider,
     enabled: bool,
+    /// Hundredths of a token per link.
     reward: i64,
     daily_cap: i64,
     /// Linkvertise: the anti-bypass token. Vylo: the API key.
@@ -133,7 +180,7 @@ impl Config {
             Provider::Linkvertise => Self {
                 provider,
                 enabled: settings.linkvertise_enabled,
-                reward: settings.linkvertise_reward.max(1) as i64,
+                reward: hundredths(settings.linkvertise_reward),
                 daily_cap: settings.linkvertise_daily_cap.max(0) as i64,
                 secret: settings.linkvertise_token.as_deref().map(str::to_string),
                 link: settings.linkvertise_link.as_deref().map(str::to_string),
@@ -148,7 +195,7 @@ impl Config {
             Provider::Vylo => Self {
                 provider,
                 enabled: settings.vylo_enabled,
-                reward: settings.vylo_reward.max(1) as i64,
+                reward: hundredths(settings.vylo_reward),
                 daily_cap: settings.vylo_daily_cap.max(0) as i64,
                 secret: settings.vylo_api_key.as_deref().map(str::to_string),
                 link: None,
@@ -159,7 +206,7 @@ impl Config {
             Provider::Cuty => Self {
                 provider,
                 enabled: settings.cuty_enabled,
-                reward: settings.cuty_reward.max(1) as i64,
+                reward: hundredths(settings.cuty_reward),
                 daily_cap: settings.cuty_daily_cap.max(0) as i64,
                 secret: settings.cuty_api_key.as_deref().map(str::to_string),
                 link: None,
@@ -170,7 +217,7 @@ impl Config {
             Provider::ShrinkEarn => Self {
                 provider,
                 enabled: settings.shrinkearn_enabled,
-                reward: settings.shrinkearn_reward.max(1) as i64,
+                reward: hundredths(settings.shrinkearn_reward),
                 daily_cap: settings.shrinkearn_daily_cap.max(0) as i64,
                 secret: settings.shrinkearn_api_key.as_deref().map(str::to_string),
                 link: None,
@@ -181,7 +228,7 @@ impl Config {
             Provider::ShrinkMe => Self {
                 provider,
                 enabled: settings.shrinkme_enabled,
-                reward: settings.shrinkme_reward.max(1) as i64,
+                reward: hundredths(settings.shrinkme_reward),
                 daily_cap: settings.shrinkme_daily_cap.max(0) as i64,
                 secret: settings.shrinkme_api_key.as_deref().map(str::to_string),
                 link: None,
@@ -192,7 +239,7 @@ impl Config {
             Provider::AdFocus => Self {
                 provider,
                 enabled: settings.adfocus_enabled,
-                reward: settings.adfocus_reward.max(1) as i64,
+                reward: hundredths(settings.adfocus_reward),
                 daily_cap: settings.adfocus_daily_cap.max(0) as i64,
                 secret: settings.adfocus_api_key.as_deref().map(str::to_string),
                 link: None,
@@ -225,7 +272,8 @@ impl Config {
     }
 }
 
-/// The providers the Tokens page offers, with the tokens a link pays and the daily cap (0: none).
+/// The providers the Tokens page offers, with the hundredths of a token a link pays and the daily
+/// cap (0: none).
 /// Nothing while tokens are off.
 pub fn offered(
     settings: &crate::settings::economy::AppSettingsEconomy,
@@ -320,7 +368,10 @@ fn hash_token(token: &str) -> String {
 #[derive(ToSchema, Serialize)]
 pub struct ApiEarnProvider {
     pub provider: Provider,
-    pub reward: i64,
+    /// Tokens the first link of the day pays, up to 2 decimals.
+    pub reward: f64,
+    /// Tokens the next link pays: less with each link already done today (`link_reward`).
+    pub next_reward: f64,
     /// 0: no cap.
     pub daily_cap: i64,
     pub granted_today: i64,
@@ -336,6 +387,8 @@ pub struct ApiTokens {
     pub enabled: bool,
     pub tokens: i64,
     pub tokens_earned: i64,
+    /// The part of a token saved toward the next one (fractional link rewards), 0 to 0.99.
+    pub token_fraction: f64,
     pub claim_minutes: i64,
     pub providers: Vec<ApiEarnProvider>,
     pub transactions: Vec<crate::economy::ApiTransaction>,
@@ -371,11 +424,19 @@ pub async fn tokens(state: &crate::State, user: &User) -> Result<ApiTokens, anyh
                 continue;
             }
 
+            let today = granted_today(&state.database, user.uuid, provider).await?;
             providers.push(ApiEarnProvider {
                 provider,
-                reward: config.reward,
+                reward: config.reward as f64 / 100.0,
+                next_reward: link_reward(
+                    config.reward,
+                    economy.link_decay_percent,
+                    economy.link_floor_percent,
+                    today,
+                ) as f64
+                    / 100.0,
                 daily_cap: config.daily_cap,
-                granted_today: granted_today(&state.database, user.uuid, provider).await?,
+                granted_today: today,
                 full_script: config.full_script(),
                 publisher: config.publisher.filter(|_| config.full_script()),
                 whitelist: if config.full_script() {
@@ -391,6 +452,14 @@ pub async fn tokens(state: &crate::State, user: &User) -> Result<ApiTokens, anyh
         enabled: economy.tokens_enabled,
         tokens: summary.tokens,
         tokens_earned: summary.tokens_earned,
+        token_fraction: sqlx::query_scalar::<_, i32>(
+            "SELECT token_fraction FROM users WHERE uuid = $1",
+        )
+        .bind(user.uuid)
+        .fetch_optional(state.database.read())
+        .await?
+        .unwrap_or(0) as f64
+            / 100.0,
         claim_minutes: economy.claim_minutes.max(1) as i64,
         providers,
         transactions: crate::economy::transactions(
@@ -863,9 +932,8 @@ pub async fn redeem(
     }
 
     let config = Config::of(&economy, provider);
-    if config.daily_cap > 0
-        && granted_today(&state.database, user.uuid, provider).await? >= config.daily_cap
-    {
+    let today = granted_today(&state.database, user.uuid, provider).await?;
+    if config.daily_cap > 0 && today >= config.daily_cap {
         reject(&state.database, claim_uuid, "daily_cap").await?;
         return Ok(answer(Redemption::Capped, 0, Some(provider)));
     }
@@ -897,7 +965,12 @@ pub async fn redeem(
         claim_uuid,
         provider,
         &token_hash,
-        config.reward,
+        link_reward(
+            config.reward,
+            economy.link_decay_percent,
+            economy.link_floor_percent,
+            today,
+        ),
     )
     .await
 }
@@ -957,11 +1030,38 @@ async fn grant(
     }
     marked?;
 
+    // a fractional reward (1.5 per link): the whole tokens now, the rest saved on the account
+    let saved: i32 =
+        sqlx::query_scalar("SELECT token_fraction FROM users WHERE uuid = $1 FOR UPDATE")
+            .bind(user.uuid)
+            .fetch_one(&mut *transaction)
+            .await?;
+    let (whole, rest) = split_reward(saved as i64, reward);
+    sqlx::query("UPDATE users SET token_fraction = $2 WHERE uuid = $1")
+        .bind(user.uuid)
+        .bind(rest as i32)
+        .execute(&mut *transaction)
+        .await?;
+    sqlx::query("UPDATE user_token_claims SET amount = $2 WHERE uuid = $1")
+        .bind(claim_uuid)
+        .bind(whole as i32)
+        .execute(&mut *transaction)
+        .await?;
+    if whole == 0 {
+        transaction.commit().await?;
+
+        return Ok(ApiRedeem {
+            status: Redemption::Granted,
+            amount: 0,
+            provider: Some(provider),
+        });
+    }
+
     change(
         &mut transaction,
         Currency::Tokens,
         user.uuid,
-        reward,
+        whole,
         &format!("earn:{}", provider.key()),
         match provider {
             Provider::Linkvertise => "Linkvertise",
@@ -978,7 +1078,7 @@ async fn grant(
 
     Ok(ApiRedeem {
         status: Redemption::Granted,
-        amount: reward,
+        amount: whole,
         provider: Some(provider),
     })
 }
@@ -994,35 +1094,69 @@ mod tests {
 
         settings.vylo_enabled = true;
         settings.vylo_api_key = Some("<secret>".into());
-        settings.vylo_reward = 2;
+        settings.vylo_reward = 2.0;
         settings.cuty_enabled = true;
         settings.cuty_api_key = Some("<secret>".into());
-        settings.cuty_reward = 3;
+        settings.cuty_reward = 3.0;
         settings.shrinkearn_enabled = true;
         settings.shrinkearn_api_key = Some("<secret>".into());
-        settings.shrinkearn_reward = 4;
+        settings.shrinkearn_reward = 4.0;
         settings.shrinkme_enabled = true;
         settings.shrinkme_api_key = Some("<secret>".into());
-        settings.shrinkme_reward = 5;
+        settings.shrinkme_reward = 5.0;
         settings.adfocus_enabled = true;
         settings.adfocus_api_key = Some("<secret>".into());
-        settings.adfocus_reward = 6;
+        settings.adfocus_reward = 6.0;
         settings.linkvertise_enabled = true;
         settings.linkvertise_token = Some("<secret>".into());
         settings.linkvertise_link = Some("http://link.example.com".into());
         assert_eq!(
             offered(&settings),
             vec![
-                (Provider::Vylo, 2, 5),
-                (Provider::Cuty, 3, 5),
-                (Provider::ShrinkEarn, 4, 5),
-                (Provider::ShrinkMe, 5, 5),
-                (Provider::AdFocus, 6, 5),
+                (Provider::Vylo, 200, 5),
+                (Provider::Cuty, 300, 5),
+                (Provider::ShrinkEarn, 400, 5),
+                (Provider::ShrinkMe, 500, 5),
+                (Provider::AdFocus, 600, 5),
             ]
         );
 
         settings.tokens_enabled = false;
         assert!(offered(&settings).is_empty());
+    }
+
+    #[test]
+    fn fractional_rewards_pay_whole_tokens_and_save_the_rest() {
+        assert_eq!(hundredths(1.5), 150);
+        assert_eq!(hundredths(1.0), 100);
+        assert_eq!(hundredths(0.004), 1);
+        assert_eq!(tokens_text(150), "1.5");
+        assert_eq!(tokens_text(200), "2");
+        assert_eq!(tokens_text(125), "1.25");
+        assert_eq!(tokens_text(5), "0.05");
+
+        // 1.5 per link: 1, 2, 1, 2 ...
+        let mut saved = 0;
+        let mut paid = Vec::new();
+        for _ in 0..4 {
+            let (whole, rest) = split_reward(saved, 150);
+            paid.push(whole);
+            saved = rest;
+        }
+        assert_eq!(paid, [1, 2, 1, 2]);
+        assert_eq!(saved, 0);
+        assert_eq!(split_reward(0, 25), (0, 25));
+        assert_eq!(split_reward(75, 25), (1, 0));
+    }
+
+    #[test]
+    fn each_further_link_of_the_day_pays_less() {
+        // 1.5 tokens, 15% less each time, never under 25%
+        let paid: Vec<i64> = (0..12).map(|nth| link_reward(150, 15, 25, nth)).collect();
+        assert_eq!(paid, [150, 128, 108, 92, 78, 67, 57, 48, 41, 38, 38, 38]);
+        assert_eq!(link_reward(150, 0, 25, 9), 150);
+        assert_eq!(link_reward(100, 50, 100, 3), 100);
+        assert_eq!(link_reward(1, 90, 1, 20), 1);
     }
 
     #[test]

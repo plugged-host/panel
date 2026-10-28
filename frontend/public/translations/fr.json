@@ -2848,6 +2848,8 @@
           "subheading": "Gagnez des jetons et voyez où ils sont passés",
           "balance": "{count} jetons",
           "explainer": "Gagnez des jetons en complétant des liens sponsorisés. Ils servent à payer {app} {plus}, le réveil d'un serveur en hibernation et les sous-domaines.",
+          "saved": "{amount} jetons mis de côté pour votre prochain jeton",
+          "decays": "Chaque lien rapporte un peu moins aujourd'hui (le premier a rapporté {full}).",
           "none": "Aucun moyen de gagner des jetons n'est configuré pour le moment.",
           "provider": {
             "linkvertise": "Linkvertise",

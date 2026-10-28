@@ -52,6 +52,8 @@ const partFields: Record<EconomyPart, (keyof EconomyValues)[]> = {
     'panelAccessTokens',
     'panelAccessDays',
     'claimMinutes',
+    'linkDecayPercent',
+    'linkFloorPercent',
     'linkvertiseEnabled',
     'linkvertiseToken',
     'linkvertisePublisher',
@@ -190,6 +192,20 @@ export default function EconomyContainer({ part }: { part: EconomyPart }) {
     ...(when ? { when } : {}),
   });
 
+  // plugged.host: tokens per link, up to 2 decimals (1.5 pays a whole token now and then, the rest is saved)
+  const tokensPerLink = (
+    name: keyof EconomyValues & string,
+    label: string,
+    when?: (values: EconomyValues) => boolean,
+  ): FieldDef<EconomyValues> => ({
+    type: 'number',
+    name,
+    label,
+    required: true,
+    props: { min: 0.01, max: 1000, step: 0.5, decimalScale: 2 },
+    ...(when ? { when } : {}),
+  });
+
   const credits = (values: EconomyValues) => values.creditsEnabled;
   const tokens = (values: EconomyValues) => values.tokensEnabled;
   const membership = (values: EconomyValues) => values.membershipEnabled;
@@ -284,6 +300,22 @@ export default function EconomyContainer({ part }: { part: EconomyPart }) {
       },
       number('dailyTokens', t(`${page}.dailyTokens`, {}), t(`${page}.dailyTokensDescription`, {}), 0, 100, tokens),
       number('claimMinutes', t(`${page}.claimMinutes`, {}), t(`${page}.claimMinutesDescription`, {}), 1, 1440, tokens),
+      number(
+        'linkDecayPercent',
+        t(`${page}.linkDecayPercent`, {}),
+        t(`${page}.linkDecayPercentDescription`, {}),
+        0,
+        90,
+        tokens,
+      ),
+      number(
+        'linkFloorPercent',
+        t(`${page}.linkFloorPercent`, {}),
+        t(`${page}.linkFloorPercentDescription`, {}),
+        1,
+        100,
+        tokens,
+      ),
 
       { type: 'divider', name: 'panelAccessDivider', label: t(`${page}.panelAccessSection`, {}), when: tokens },
       {
@@ -347,12 +379,9 @@ export default function EconomyContainer({ part }: { part: EconomyPart }) {
         description: t(`${page}.linkvertiseLinkDescription`, { returnPlain: '{return}', returnB64: '{return_b64}' }),
         when: (values) => values.tokensEnabled && values.linkvertiseEnabled && !values.linkvertisePublisher,
       },
-      number(
+      tokensPerLink(
         'linkvertiseReward',
         t(`${page}.reward`, {}),
-        null,
-        1,
-        1000,
         (values) => values.tokensEnabled && values.linkvertiseEnabled,
       ),
       number(
@@ -378,14 +407,7 @@ export default function EconomyContainer({ part }: { part: EconomyPart }) {
         props: { autoComplete: 'new-password' },
         when: (values) => values.tokensEnabled && values.vyloEnabled,
       },
-      number(
-        'vyloReward',
-        t(`${page}.reward`, {}),
-        null,
-        1,
-        1000,
-        (values) => values.tokensEnabled && values.vyloEnabled,
-      ),
+      tokensPerLink('vyloReward', t(`${page}.reward`, {}), (values) => values.tokensEnabled && values.vyloEnabled),
       number(
         'vyloDailyCap',
         t(`${page}.dailyCap`, {}),
@@ -417,14 +439,7 @@ export default function EconomyContainer({ part }: { part: EconomyPart }) {
         props: { autoComplete: 'new-password' },
         when: (values) => values.tokensEnabled && values.cutyEnabled,
       },
-      number(
-        'cutyReward',
-        t(`${page}.reward`, {}),
-        null,
-        1,
-        1000,
-        (values) => values.tokensEnabled && values.cutyEnabled,
-      ),
+      tokensPerLink('cutyReward', t(`${page}.reward`, {}), (values) => values.tokensEnabled && values.cutyEnabled),
       number(
         'cutyDailyCap',
         t(`${page}.dailyCap`, {}),
@@ -456,12 +471,9 @@ export default function EconomyContainer({ part }: { part: EconomyPart }) {
         props: { autoComplete: 'new-password' },
         when: (values) => values.tokensEnabled && values.shrinkearnEnabled,
       },
-      number(
+      tokensPerLink(
         'shrinkearnReward',
         t(`${page}.reward`, {}),
-        null,
-        1,
-        1000,
         (values) => values.tokensEnabled && values.shrinkearnEnabled,
       ),
       number(
@@ -495,12 +507,9 @@ export default function EconomyContainer({ part }: { part: EconomyPart }) {
         props: { autoComplete: 'new-password' },
         when: (values) => values.tokensEnabled && values.shrinkmeEnabled,
       },
-      number(
+      tokensPerLink(
         'shrinkmeReward',
         t(`${page}.reward`, {}),
-        null,
-        1,
-        1000,
         (values) => values.tokensEnabled && values.shrinkmeEnabled,
       ),
       number(
@@ -534,12 +543,9 @@ export default function EconomyContainer({ part }: { part: EconomyPart }) {
         props: { autoComplete: 'new-password' },
         when: (values) => values.tokensEnabled && values.adfocusEnabled,
       },
-      number(
+      tokensPerLink(
         'adfocusReward',
         t(`${page}.reward`, {}),
-        null,
-        1,
-        1000,
         (values) => values.tokensEnabled && values.adfocusEnabled,
       ),
       number(

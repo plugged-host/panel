@@ -2845,6 +2845,8 @@
           "subheading": "Jeton ishlab oling va ular nimaga sarflanganini koʻring",
           "balance": "{count} jeton",
           "explainer": "Homiylik havolalarini yakunlab jeton ishlab oling. Ular bilan {app} {plus}, uyqu rejimidagi serverni uygʻotish va subdomenlar uchun toʻlanadi.",
+          "saved": "Keyingi jeton uchun {amount} jeton yigʻildi",
+          "decays": "Bugun har bir havola biroz kamroq beradi (birinchisi {full} bergan).",
           "none": "Hozir jeton ishlab olishning hech qanday usuli sozlanmagan.",
           "provider": {
             "linkvertise": "Linkvertise",

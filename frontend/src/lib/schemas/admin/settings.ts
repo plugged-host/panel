@@ -911,6 +911,9 @@ export const adminSettingsEconomySchema = z.object({
   storeDiscountEnds: z.coerce.date().nullable(),
   storeDiscountName: z.preprocess(nullableString, z.string().max(64).nullable()),
   claimMinutes: z.number().int().min(1).max(1440),
+  // plugged.host: each further link of the day pays less (shared/src/earn.rs link_reward)
+  linkDecayPercent: z.number().int().min(0).max(90),
+  linkFloorPercent: z.number().int().min(1).max(100),
   linkvertiseEnabled: z.boolean(),
   linkvertisePublisher: z.preprocess(
     nullableString,
@@ -929,31 +932,31 @@ export const adminSettingsEconomySchema = z.object({
       .nullable(),
   ),
   linkvertiseToken: z.string().max(512).nullable(),
-  linkvertiseReward: z.number().int().min(1).max(1000),
+  linkvertiseReward: z.number().min(0.01).max(1000), // plugged.host: up to 2 decimals
   linkvertiseDailyCap: z.number().int().min(0).max(1000),
   vyloEnabled: z.boolean(),
   vyloApiKey: z.string().max(512).nullable(),
-  vyloReward: z.number().int().min(1).max(1000),
+  vyloReward: z.number().min(0.01).max(1000), // plugged.host: up to 2 decimals
   vyloDailyCap: z.number().int().min(0).max(1000),
   vyloMinSeconds: z.number().int().min(0).max(600),
   cutyEnabled: z.boolean(),
   cutyApiKey: z.string().max(512).nullable(),
-  cutyReward: z.number().int().min(1).max(1000),
+  cutyReward: z.number().min(0.01).max(1000), // plugged.host: up to 2 decimals
   cutyDailyCap: z.number().int().min(0).max(1000),
   cutyMinSeconds: z.number().int().min(0).max(600),
   shrinkearnEnabled: z.boolean(),
   shrinkearnApiKey: z.string().max(512).nullable(),
-  shrinkearnReward: z.number().int().min(1).max(1000),
+  shrinkearnReward: z.number().min(0.01).max(1000), // plugged.host: up to 2 decimals
   shrinkearnDailyCap: z.number().int().min(0).max(1000),
   shrinkearnMinSeconds: z.number().int().min(0).max(600),
   shrinkmeEnabled: z.boolean(),
   shrinkmeApiKey: z.string().max(512).nullable(),
-  shrinkmeReward: z.number().int().min(1).max(1000),
+  shrinkmeReward: z.number().min(0.01).max(1000), // plugged.host: up to 2 decimals
   shrinkmeDailyCap: z.number().int().min(0).max(1000),
   shrinkmeMinSeconds: z.number().int().min(0).max(600),
   adfocusEnabled: z.boolean(),
   adfocusApiKey: z.string().max(512).nullable(),
-  adfocusReward: z.number().int().min(1).max(1000),
+  adfocusReward: z.number().min(0.01).max(1000), // plugged.host: up to 2 decimals
   adfocusDailyCap: z.number().int().min(0).max(1000),
   adfocusMinSeconds: z.number().int().min(0).max(600),
 });

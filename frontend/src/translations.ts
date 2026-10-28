@@ -2737,6 +2737,8 @@ const baseTranslations = defineTranslations({
           balance: '{count} tokens',
           explainer:
             'Earn tokens by completing sponsored links. They pay for {app} {plus}, waking a hibernated server and subdomains.',
+          saved: '{amount} tokens saved toward your next token',
+          decays: 'Each link today pays a little less (the first paid {full}).',
           none: 'No way to earn tokens is set up right now.',
           provider: {
             linkvertise: 'Linkvertise',
@@ -4800,6 +4802,12 @@ const baseTranslations = defineTranslations({
                   earnSection: 'Earning Tokens',
                   claimMinutes: 'Minutes to Finish a Link',
                   claimMinutesDescription: 'How long a player has to come back from a sponsored link.',
+                  linkDecayPercent: 'Less per Further Link (%)',
+                  linkDecayPercentDescription:
+                    'Advertisers pay less for a person they already showed ads to: each further link a person finishes on the same provider the same day pays this many percent less than the one before. 0 pays every link in full.',
+                  linkFloorPercent: 'Lowest Reward (%)',
+                  linkFloorPercentDescription:
+                    'A link never pays less than this share of its full reward, however many came before it that day.',
                   linkvertiseEnabled: 'Linkvertise',
                   linkvertiseEnabledDescription: 'Needs the anti-bypass API token from Linkvertise’s dashboard.',
                   linkvertiseToken: 'Linkvertise Anti-Bypass Token',

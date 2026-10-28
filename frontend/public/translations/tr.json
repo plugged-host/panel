@@ -2848,6 +2848,8 @@
           "subheading": "Jeton kazanın ve nereye gittiklerini görün",
           "balance": "{count} jeton",
           "explainer": "Sponsorlu bağlantıları tamamlayarak jeton kazanın. Jetonlarla {app} {plus}, uyku modundaki bir sunucuyu uyandırma ve alt alan adları için ödeme yaparsınız.",
+          "saved": "Bir sonraki jeton için {amount} jeton biriktirildi",
+          "decays": "Bugün her bağlantı biraz daha az kazandırır (ilki {full} kazandırdı).",
           "none": "Şu anda jeton kazanmanın bir yolu ayarlanmamış.",
           "provider": {
             "linkvertise": "Linkvertise",

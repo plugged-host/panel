@@ -105,6 +105,7 @@ pub struct PlanFacts {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct EarnFacts {
     pub label: String,
+    /// Hundredths of a token per link.
     pub reward: i64,
     /// 0: no cap.
     pub daily_cap: i64,
@@ -1398,11 +1399,17 @@ pub fn knowledge_text(facts: &KnowledgeFacts) -> String {
                 .map(|earn| {
                     if earn.daily_cap > 0 {
                         format!(
-                            "{} {} per link, up to {} a day",
-                            earn.label, earn.reward, earn.daily_cap
+                            "{} {} tokens per link, up to {} links a day",
+                            earn.label,
+                            crate::earn::tokens_text(earn.reward),
+                            earn.daily_cap
                         )
                     } else {
-                        format!("{} {} per link", earn.label, earn.reward)
+                        format!(
+                            "{} {} tokens per link",
+                            earn.label,
+                            crate::earn::tokens_text(earn.reward)
+                        )
                     }
                 })
                 .collect::<Vec<_>>()
@@ -1411,6 +1418,14 @@ pub fn knowledge_text(facts: &KnowledgeFacts) -> String {
                 sentence,
                 "They are earned from sponsored links on the Tokens page (/account/tokens, which also shows the token history; {ways})"
             );
+            if economy.link_decay_percent > 0 {
+                let _ = write!(
+                    sentence,
+                    "; each further link on the same provider that day pays {}% less than the one before, down to {}% of its full reward (advertisers pay less for a person they already showed their ads to)",
+                    economy.link_decay_percent.clamp(0, 90),
+                    economy.link_floor_percent.clamp(1, 100)
+                );
+            }
         }
         if economy.daily_tokens > 0 {
             let _ = write!(
@@ -2511,7 +2526,7 @@ mod tests {
         facts.recovery.failover_mode = FailoverMode::Auto;
         facts.earn = vec![EarnFacts {
             label: "Linkvertise".to_string(),
-            reward: 1,
+            reward: 100,
             daily_cap: 5,
         }];
         facts.economy.plus_name = "Gold".into();
@@ -2528,7 +2543,7 @@ mod tests {
             "Gold locations need Gold and premium locations need PlusPlus (see below).",
             "+50% CPU for 100, +1 GB RAM for 150",
             "Limits: 600% CPU / 24 GB RAM; soft limits: 750% CPU / 30 GB RAM.",
-            "Linkvertise 1 per link, up to 5 a day",
+            "Linkvertise 1 tokens per link, up to 5 links a day",
             "Gold costs 25 tokens once and is kept for good: the Gold locations, priority in the start queue",
             "PlusPlus needs Gold and is not permanent: 10 tokens for 7 days or 150 credits for 14 days",
             "Every start and restart of a non-admin waits at least 10 seconds in a start queue",

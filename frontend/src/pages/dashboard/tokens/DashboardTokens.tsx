@@ -93,7 +93,7 @@ function EarnButton({ provider, filled, fullWidth }: { provider: Provider; fille
 }
 
 function EarnRow({ provider, first }: { provider: Provider; first: boolean }) {
-  const { t } = useTranslations();
+  const { t, language } = useTranslations();
   const capped = isCapped(provider);
   const fullScript = useFullScriptLink(provider, provider.fullScript && !capped);
   const label = t(`${page}.provider.${provider.provider}`, {});
@@ -133,7 +133,20 @@ function EarnRow({ provider, first }: { provider: Provider; first: boolean }) {
     <div className='theme-earn-row'>
       <div className='flex min-w-0 flex-col gap-0.5'>
         <span className='theme-eco-title'>{label}</span>
-        <span className='theme-eco-muted'>{t(`${page}.reward`, { count: provider.reward })}</span>
+        <span className='theme-eco-muted'>
+          {t(`${page}.reward`, {
+            count: new Intl.NumberFormat(intlLocale(language), { maximumFractionDigits: 2 }).format(
+              provider.nextReward,
+            ),
+          })}
+        </span>
+        {provider.nextReward < provider.reward && (
+          <span className='theme-earn-small'>
+            {t(`${page}.decays`, {
+              full: new Intl.NumberFormat(intlLocale(language), { maximumFractionDigits: 2 }).format(provider.reward),
+            })}
+          </span>
+        )}
         {provider.dailyCap > 0 && (
           <span className='theme-earn-small'>
             {t(`${page}.used`, { used: provider.grantedToday, cap: provider.dailyCap })}
@@ -221,6 +234,15 @@ export default function DashboardTokens() {
                   {t(`${page}.balance`, { count: new Intl.NumberFormat(intlLocale(language)).format(tokens.tokens) })}
                 </span>
                 <p className='theme-eco-muted'>{t(`${page}.explainer`, { app: appName, plus: plusName })}</p>
+                {tokens.tokenFraction > 0 && (
+                  <p className='theme-eco-small'>
+                    {t(`${page}.saved`, {
+                      amount: new Intl.NumberFormat(intlLocale(language), { maximumFractionDigits: 2 }).format(
+                        tokens.tokenFraction,
+                      ),
+                    })}
+                  </p>
+                )}
               </div>
             </section>
 

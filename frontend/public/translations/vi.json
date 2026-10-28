@@ -2848,6 +2848,8 @@
           "subheading": "Kiếm token và xem token đã được dùng vào đâu",
           "balance": "{count} token",
           "explainer": "Kiếm token bằng cách hoàn thành liên kết tài trợ. Token dùng để trả cho {app} {plus}, đánh thức máy chủ đang ngủ đông và tên miền phụ.",
+          "saved": "Đã tích lũy {amount} token cho token tiếp theo",
+          "decays": "Mỗi liên kết hôm nay trả ít hơn một chút (liên kết đầu tiên trả {full}).",
           "none": "Hiện chưa có cách kiếm token nào được thiết lập.",
           "provider": {
             "linkvertise": "Linkvertise",

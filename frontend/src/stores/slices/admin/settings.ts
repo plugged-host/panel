@@ -515,6 +515,8 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
     storeDiscountEnds: null,
     storeDiscountName: null,
     claimMinutes: 30,
+    linkDecayPercent: 15, // plugged.host
+    linkFloorPercent: 25,
     linkvertiseEnabled: false,
     linkvertisePublisher: null,
     linkvertiseWhitelist: null,

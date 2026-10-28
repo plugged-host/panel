@@ -177,6 +177,8 @@ export const usersTable = pgTable(
     tokens: bigint({ mode: 'number' }).default(0).notNull(),
     tokens_earned: bigint({ mode: 'number' }).default(0).notNull(),
     tokens_daily_granted: date({ mode: 'string' }),
+    // plugged.host: the part of a token saved toward the next one, in hundredths (fractional link rewards, shared/src/earn.rs)
+    token_fraction: integer().default(0).notNull(),
     // plugged.host: the memberships' burst cores, kept by the economy
     burst_cores: smallint().default(0).notNull(),
     // plugged.host: paid panel access (shared/src/panel_access.rs): the moment the current month

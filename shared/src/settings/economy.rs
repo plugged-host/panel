@@ -81,6 +81,11 @@ pub struct AppSettingsEconomy {
 
     /// Minutes a player has to come back from a sponsored link.
     pub claim_minutes: i32,
+    /// Each further link a person completes on the same provider the same day pays this many percent
+    /// less than the one before (advertisers pay less for a person they already showed ads to).
+    pub link_decay_percent: i32,
+    /// The lowest a link pays after that decay, in percent of its full reward.
+    pub link_floor_percent: i32,
     pub linkvertise_enabled: bool,
     /// The publisher id for Linkvertise's Full Script mode; without it the link below is used.
     pub linkvertise_publisher: Option<compact_str::CompactString>,
@@ -92,14 +97,15 @@ pub struct AppSettingsEconomy {
     #[serde(serialize_with = "super::noprofit::serialize_secret")]
     #[schema(value_type = Option<String>)]
     pub linkvertise_token: Option<compact_str::CompactString>,
-    pub linkvertise_reward: i32,
+    /// Tokens per link, up to 2 decimals (1.5: a whole token now and then, the rest saved per account).
+    pub linkvertise_reward: f64,
     pub linkvertise_daily_cap: i32,
     pub vylo_enabled: bool,
     /// Stored encrypted.
     #[serde(serialize_with = "super::noprofit::serialize_secret")]
     #[schema(value_type = Option<String>)]
     pub vylo_api_key: Option<compact_str::CompactString>,
-    pub vylo_reward: i32,
+    pub vylo_reward: f64,
     pub vylo_daily_cap: i32,
     /// Seconds a Vylo trip must at least take.
     pub vylo_min_seconds: i32,
@@ -108,7 +114,7 @@ pub struct AppSettingsEconomy {
     #[serde(serialize_with = "super::noprofit::serialize_secret")]
     #[schema(value_type = Option<String>)]
     pub cuty_api_key: Option<compact_str::CompactString>,
-    pub cuty_reward: i32,
+    pub cuty_reward: f64,
     pub cuty_daily_cap: i32,
     /// Seconds a Cuty trip must at least take.
     pub cuty_min_seconds: i32,
@@ -117,7 +123,7 @@ pub struct AppSettingsEconomy {
     #[serde(serialize_with = "super::noprofit::serialize_secret")]
     #[schema(value_type = Option<String>)]
     pub shrinkearn_api_key: Option<compact_str::CompactString>,
-    pub shrinkearn_reward: i32,
+    pub shrinkearn_reward: f64,
     pub shrinkearn_daily_cap: i32,
     /// Seconds a ShrinkEarn trip must at least take.
     pub shrinkearn_min_seconds: i32,
@@ -126,7 +132,7 @@ pub struct AppSettingsEconomy {
     #[serde(serialize_with = "super::noprofit::serialize_secret")]
     #[schema(value_type = Option<String>)]
     pub shrinkme_api_key: Option<compact_str::CompactString>,
-    pub shrinkme_reward: i32,
+    pub shrinkme_reward: f64,
     pub shrinkme_daily_cap: i32,
     /// Seconds a ShrinkMe trip must at least take.
     pub shrinkme_min_seconds: i32,
@@ -135,7 +141,7 @@ pub struct AppSettingsEconomy {
     #[serde(serialize_with = "super::noprofit::serialize_secret")]
     #[schema(value_type = Option<String>)]
     pub adfocus_api_key: Option<compact_str::CompactString>,
-    pub adfocus_reward: i32,
+    pub adfocus_reward: f64,
     pub adfocus_daily_cap: i32,
     /// Seconds an AdFoc.us trip must at least take.
     pub adfocus_min_seconds: i32,
@@ -179,36 +185,38 @@ impl Default for AppSettingsEconomy {
             store_discount_ends: None,
             store_discount_name: None,
             claim_minutes: 30,
+            link_decay_percent: 15,
+            link_floor_percent: 25,
             linkvertise_enabled: false,
             linkvertise_publisher: None,
             linkvertise_whitelist: None,
             linkvertise_link: None,
             linkvertise_token: None,
-            linkvertise_reward: 1,
+            linkvertise_reward: 1.0,
             linkvertise_daily_cap: 5,
             vylo_enabled: false,
             vylo_api_key: None,
-            vylo_reward: 1,
+            vylo_reward: 1.0,
             vylo_daily_cap: 5,
             vylo_min_seconds: 10,
             cuty_enabled: false,
             cuty_api_key: None,
-            cuty_reward: 1,
+            cuty_reward: 1.0,
             cuty_daily_cap: 5,
             cuty_min_seconds: 10,
             shrinkearn_enabled: false,
             shrinkearn_api_key: None,
-            shrinkearn_reward: 1,
+            shrinkearn_reward: 1.0,
             shrinkearn_daily_cap: 5,
             shrinkearn_min_seconds: 10,
             shrinkme_enabled: false,
             shrinkme_api_key: None,
-            shrinkme_reward: 1,
+            shrinkme_reward: 1.0,
             shrinkme_daily_cap: 5,
             shrinkme_min_seconds: 10,
             adfocus_enabled: false,
             adfocus_api_key: None,
-            adfocus_reward: 1,
+            adfocus_reward: 1.0,
             adfocus_daily_cap: 5,
             adfocus_min_seconds: 10,
         }
@@ -330,6 +338,10 @@ pub struct PayloadEconomy {
 
     #[garde(inner(range(min = 1, max = 1440)))]
     claim_minutes: Option<i32>,
+    #[garde(inner(range(min = 0, max = 90)))]
+    link_decay_percent: Option<i32>,
+    #[garde(inner(range(min = 1, max = 100)))]
+    link_floor_percent: Option<i32>,
     #[garde(skip)]
     linkvertise_enabled: Option<bool>,
     #[garde(inner(inner(length(chars, max = 20))))]
@@ -344,8 +356,8 @@ pub struct PayloadEconomy {
     #[garde(inner(inner(length(chars, max = 512))))]
     #[serde(default, with = "::serde_with::rust::double_option")]
     linkvertise_token: Option<Option<compact_str::CompactString>>,
-    #[garde(inner(range(min = 1, max = 1000)))]
-    linkvertise_reward: Option<i32>,
+    #[garde(inner(range(min = 0.01, max = 1000.0)))]
+    linkvertise_reward: Option<f64>,
     #[garde(inner(range(min = 0, max = 1000)))]
     linkvertise_daily_cap: Option<i32>,
     #[garde(skip)]
@@ -353,8 +365,8 @@ pub struct PayloadEconomy {
     #[garde(inner(inner(length(chars, max = 512))))]
     #[serde(default, with = "::serde_with::rust::double_option")]
     vylo_api_key: Option<Option<compact_str::CompactString>>,
-    #[garde(inner(range(min = 1, max = 1000)))]
-    vylo_reward: Option<i32>,
+    #[garde(inner(range(min = 0.01, max = 1000.0)))]
+    vylo_reward: Option<f64>,
     #[garde(inner(range(min = 0, max = 1000)))]
     vylo_daily_cap: Option<i32>,
     #[garde(inner(range(min = 0, max = 600)))]
@@ -364,8 +376,8 @@ pub struct PayloadEconomy {
     #[garde(inner(inner(length(chars, max = 512))))]
     #[serde(default, with = "::serde_with::rust::double_option")]
     cuty_api_key: Option<Option<compact_str::CompactString>>,
-    #[garde(inner(range(min = 1, max = 1000)))]
-    cuty_reward: Option<i32>,
+    #[garde(inner(range(min = 0.01, max = 1000.0)))]
+    cuty_reward: Option<f64>,
     #[garde(inner(range(min = 0, max = 1000)))]
     cuty_daily_cap: Option<i32>,
     #[garde(inner(range(min = 0, max = 600)))]
@@ -375,8 +387,8 @@ pub struct PayloadEconomy {
     #[garde(inner(inner(length(chars, max = 512))))]
     #[serde(default, with = "::serde_with::rust::double_option")]
     shrinkearn_api_key: Option<Option<compact_str::CompactString>>,
-    #[garde(inner(range(min = 1, max = 1000)))]
-    shrinkearn_reward: Option<i32>,
+    #[garde(inner(range(min = 0.01, max = 1000.0)))]
+    shrinkearn_reward: Option<f64>,
     #[garde(inner(range(min = 0, max = 1000)))]
     shrinkearn_daily_cap: Option<i32>,
     #[garde(inner(range(min = 0, max = 600)))]
@@ -386,8 +398,8 @@ pub struct PayloadEconomy {
     #[garde(inner(inner(length(chars, max = 512))))]
     #[serde(default, with = "::serde_with::rust::double_option")]
     shrinkme_api_key: Option<Option<compact_str::CompactString>>,
-    #[garde(inner(range(min = 1, max = 1000)))]
-    shrinkme_reward: Option<i32>,
+    #[garde(inner(range(min = 0.01, max = 1000.0)))]
+    shrinkme_reward: Option<f64>,
     #[garde(inner(range(min = 0, max = 1000)))]
     shrinkme_daily_cap: Option<i32>,
     #[garde(inner(range(min = 0, max = 600)))]
@@ -397,8 +409,8 @@ pub struct PayloadEconomy {
     #[garde(inner(inner(length(chars, max = 512))))]
     #[serde(default, with = "::serde_with::rust::double_option")]
     adfocus_api_key: Option<Option<compact_str::CompactString>>,
-    #[garde(inner(range(min = 1, max = 1000)))]
-    adfocus_reward: Option<i32>,
+    #[garde(inner(range(min = 0.01, max = 1000.0)))]
+    adfocus_reward: Option<f64>,
     #[garde(inner(range(min = 0, max = 1000)))]
     adfocus_daily_cap: Option<i32>,
     #[garde(inner(range(min = 0, max = 600)))]
@@ -466,6 +478,8 @@ impl PayloadEconomy {
             doubling,
             store_discount,
             claim_minutes,
+            link_decay_percent,
+            link_floor_percent,
             linkvertise_enabled,
             linkvertise_reward,
             linkvertise_daily_cap,
@@ -604,25 +618,36 @@ impl SettingsSerializeExt for AppSettingsEconomy {
             ("doubling", self.doubling),
             ("store_discount", self.store_discount),
             ("claim_minutes", self.claim_minutes),
-            ("linkvertise_reward", self.linkvertise_reward),
+            ("link_decay_percent", self.link_decay_percent),
+            ("link_floor_percent", self.link_floor_percent),
             ("linkvertise_daily_cap", self.linkvertise_daily_cap),
-            ("vylo_reward", self.vylo_reward),
             ("vylo_daily_cap", self.vylo_daily_cap),
             ("vylo_min_seconds", self.vylo_min_seconds),
-            ("cuty_reward", self.cuty_reward),
             ("cuty_daily_cap", self.cuty_daily_cap),
             ("cuty_min_seconds", self.cuty_min_seconds),
-            ("shrinkearn_reward", self.shrinkearn_reward),
             ("shrinkearn_daily_cap", self.shrinkearn_daily_cap),
             ("shrinkearn_min_seconds", self.shrinkearn_min_seconds),
-            ("shrinkme_reward", self.shrinkme_reward),
             ("shrinkme_daily_cap", self.shrinkme_daily_cap),
             ("shrinkme_min_seconds", self.shrinkme_min_seconds),
-            ("adfocus_reward", self.adfocus_reward),
             ("adfocus_daily_cap", self.adfocus_daily_cap),
             ("adfocus_min_seconds", self.adfocus_min_seconds),
         ] {
             serializer = serializer.write_raw_setting(key, value.to_compact_string());
+        }
+
+        // plugged.host: tokens per link, up to 2 decimals
+        for (key, value) in [
+            ("linkvertise_reward", self.linkvertise_reward),
+            ("vylo_reward", self.vylo_reward),
+            ("cuty_reward", self.cuty_reward),
+            ("shrinkearn_reward", self.shrinkearn_reward),
+            ("shrinkme_reward", self.shrinkme_reward),
+            ("adfocus_reward", self.adfocus_reward),
+        ] {
+            serializer = serializer.write_raw_setting(
+                key,
+                crate::earn::tokens_text(crate::earn::hundredths(value)),
+            );
         }
 
         for (key, time) in [
@@ -791,6 +816,8 @@ impl SettingsDeserializeExt for AppSettingsEconomyDeserializer {
             store_discount_ends: time!(store_discount_ends),
             store_discount_name: text!(store_discount_name),
             claim_minutes: read!(claim_minutes),
+            link_decay_percent: read!(link_decay_percent),
+            link_floor_percent: read!(link_floor_percent),
             linkvertise_enabled: flag!(linkvertise_enabled),
             linkvertise_publisher: text!(linkvertise_publisher),
             linkvertise_whitelist: text!(linkvertise_whitelist),

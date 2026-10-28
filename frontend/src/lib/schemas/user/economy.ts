@@ -130,11 +130,15 @@ export const userTokensSchema = z.object({
   enabled: z.boolean(),
   tokens: z.number(),
   tokensEarned: z.number(),
+  // plugged.host: the part of a token saved toward the next one (fractional link rewards)
+  tokenFraction: z.number().default(0),
   claimMinutes: z.number(),
   providers: z.array(
     z.object({
       provider: earnProviderSchema,
       reward: z.number(),
+      // plugged.host: what the next link pays today (less with each link done, shared/src/earn.rs)
+      nextReward: z.number(),
       dailyCap: z.number(),
       grantedToday: z.number(),
       fullScript: z.boolean(),

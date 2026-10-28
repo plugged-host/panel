@@ -2845,6 +2845,8 @@
           "subheading": "Dapatkan token dan lihat ke mana token Anda terpakai",
           "balance": "{count} token",
           "explainer": "Dapatkan token dengan menyelesaikan tautan bersponsor. Token dipakai untuk membayar {app} {plus}, membangunkan server yang dihibernasi, dan subdomain.",
+          "saved": "{amount} token tersimpan untuk token berikutnya",
+          "decays": "Setiap tautan hari ini memberi sedikit lebih sedikit (yang pertama memberi {full}).",
           "none": "Saat ini belum ada cara untuk mendapatkan token.",
           "provider": {
             "linkvertise": "Linkvertise",

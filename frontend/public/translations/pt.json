@@ -2845,6 +2845,8 @@
           "subheading": "Ganhe tokens e veja onde eles foram usados",
           "balance": "{count} tokens",
           "explainer": "Ganhe tokens concluindo links patrocinados. Eles pagam o {app} {plus}, a reativação de um servidor hibernado e subdomínios.",
+          "saved": "{amount} tokens guardados para o seu próximo token",
+          "decays": "Cada link hoje rende um pouco menos (o primeiro rendeu {full}).",
           "none": "Nenhuma forma de ganhar tokens está configurada no momento.",
           "provider": {
             "linkvertise": "Linkvertise",
