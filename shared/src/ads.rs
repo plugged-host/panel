@@ -37,6 +37,9 @@ pub struct Zone {
     pub width: i32,
     pub height: i32,
     pub host: CompactString,
+    /// The script the snippet loads: `https://host/<key>/invoke.js` in older Adsterra code,
+    /// `https://host/22/<key>` in newer.
+    pub src: CompactString,
 }
 
 /// A host name: labels of letters, digits and dashes, at least two of them.
@@ -118,31 +121,43 @@ static SNIPPET_WIDTH: LazyLock<regex::Regex> =
     LazyLock::new(|| regex::Regex::new(r#"['"]?width['"]?\s*:\s*(\d+)"#).unwrap());
 static SNIPPET_HEIGHT: LazyLock<regex::Regex> =
     LazyLock::new(|| regex::Regex::new(r#"['"]?height['"]?\s*:\s*(\d+)"#).unwrap());
-static SNIPPET_HOST: LazyLock<regex::Regex> =
-    LazyLock::new(|| regex::Regex::new(r#"//([A-Za-z0-9.-]+)/[A-Za-z0-9]+/invoke\.js"#).unwrap());
+static SNIPPET_SRC: LazyLock<regex::Regex> =
+    LazyLock::new(|| regex::Regex::new(r#"\bsrc\s*=\s*["']([^"']+)["']"#).unwrap());
 
-fn zone(key: &str, width: i32, height: i32, host: Option<&str>) -> Result<Zone, String> {
+/// A zone; `source` is its host or its script URL (left out: [`DEFAULT_HOST`]).
+fn zone(key: &str, width: i32, height: i32, source: Option<&str>) -> Result<Zone, String> {
     if !valid_key(key) {
         return Err(format!("{key} is not an adsterra zone key"));
     }
     if !SIZES.contains(&(width, height)) {
         return Err(format!("{width}x{height} is not an adsterra banner size"));
     }
-    let host = host.unwrap_or(DEFAULT_HOST);
-    if !valid_host(host) {
-        return Err(format!("{host} is not a host name"));
-    }
+    let source = source.unwrap_or(DEFAULT_HOST);
+    let (host, src) = if source.contains('/') {
+        let src =
+            clean_script_url(source).ok_or_else(|| format!("{source} is not a script URL"))?;
+        let host = script_host(&src).ok_or_else(|| format!("{source} is not a script URL"))?;
+        (host, src.into())
+    } else if valid_host(source) {
+        let host = source.to_ascii_lowercase();
+        let src = format!("https://{host}/{key}/invoke.js");
+        (host.into(), src.into())
+    } else {
+        return Err(format!("{source} is not a host name"));
+    };
 
     Ok(Zone {
         key: key.into(),
         width,
         height,
-        host: host.to_ascii_lowercase().into(),
+        host,
+        src,
     })
 }
 
 /// Banner zones from the settings field: Adsterra's snippets as pasted, or one
-/// `key:WIDTHxHEIGHT:host` per line (the host may be left out). A key appears once.
+/// `key:WIDTHxHEIGHT:host` or `key:WIDTHxHEIGHT:script-url` per line (the host may be left out).
+/// A key appears once.
 pub fn parse_zones(text: &str) -> Result<Vec<Zone>, String> {
     let mut zones: Vec<Zone> = Vec::new();
 
@@ -155,18 +170,18 @@ pub fn parse_zones(text: &str) -> Result<Vec<Zone>, String> {
             let height = SNIPPET_HEIGHT
                 .captures(block)
                 .and_then(|c| c[1].parse().ok());
-            let host = SNIPPET_HOST.captures(block).map(|c| c[1].to_string());
+            let src = SNIPPET_SRC.captures(block).map(|c| c[1].to_string());
             let (Some(key), Some(width), Some(height)) = (key, width, height) else {
                 return Err("a pasted snippet has no key, width or height".into());
             };
-            zones.push(zone(&key, width, height, host.as_deref())?);
+            zones.push(zone(&key, width, height, src.as_deref())?);
         }
     } else {
         for (number, line) in text.lines().map(str::trim).enumerate() {
             if line.is_empty() {
                 continue;
             }
-            let mut parts = line.split(':').map(str::trim);
+            let mut parts = line.splitn(3, ':').map(str::trim);
             let (Some(key), Some(size)) = (parts.next(), parts.next()) else {
                 return Err(format!(
                     "line {} is not a zone (key:WIDTHxHEIGHT:host)",
@@ -189,11 +204,19 @@ pub fn parse_zones(text: &str) -> Result<Vec<Zone>, String> {
     Ok(zones)
 }
 
-/// The zones as the settings store them.
+/// The zones as the settings store them: the host alone when the script is the older
+/// `https://host/<key>/invoke.js`, else the script URL.
 pub fn zones_to_text(zones: &[Zone]) -> String {
     zones
         .iter()
-        .map(|zone| format!("{}:{}x{}:{}", zone.key, zone.width, zone.height, zone.host))
+        .map(|zone| {
+            let source = if zone.src == format!("https://{}/{}/invoke.js", zone.host, zone.key) {
+                &zone.host
+            } else {
+                &zone.src
+            };
+            format!("{}:{}x{}:{source}", zone.key, zone.width, zone.height)
+        })
         .collect::<Vec<_>>()
         .join("\n")
 }
@@ -251,11 +274,11 @@ const UNIT_BODY: &str = "</head><body>";
 /// The document of a banner unit: Adsterra's snippet for the zone.
 pub fn banner_html(zone: &Zone) -> String {
     format!(
-        "{UNIT_HEAD}{STORAGE_SHIM}{UNIT_BODY}<script>atOptions={{'key':'{key}','format':'iframe','height':{height},'width':{width},'params':{{}}}};</script><script src=\"https://{host}/{key}/invoke.js\"></script>{REPORT_SCRIPT}</body></html>",
+        "{UNIT_HEAD}{STORAGE_SHIM}{UNIT_BODY}<script>atOptions={{'key':'{key}','format':'iframe','height':{height},'width':{width},'params':{{}}}};</script><script src=\"{src}\"></script>{REPORT_SCRIPT}</body></html>",
         key = zone.key,
         width = zone.width,
         height = zone.height,
-        host = zone.host,
+        src = zone.src,
     )
 }
 
@@ -265,11 +288,16 @@ pub fn native_html(settings: &AppSettingsAds) -> Option<String> {
     let container = if valid_id(&settings.native_container) {
         settings.native_container.to_string()
     } else {
-        // Adsterra's container id is `container-` and the script's file directory
-        format!(
-            "container-{}",
-            src.rsplit('/').nth(1).filter(|id| valid_id(id))?
-        )
+        // Adsterra's container id is `container-` and the script's id: the directory of an older
+        // `…/<id>/invoke.js`, the file of a newer `…/21/<id>`
+        let mut segments = src.rsplit('/');
+        let last = segments.next()?;
+        let id = if last == "invoke.js" {
+            segments.next()?
+        } else {
+            last
+        };
+        format!("container-{}", Some(id).filter(|id| valid_id(id))?)
     };
 
     Some(format!(
@@ -554,6 +582,30 @@ mod tests {
     use super::*;
 
     #[test]
+    fn native_container_comes_from_the_script() {
+        let mut settings = AppSettingsAds::default();
+        for script in [
+            "https://ads.example.org/21/a6adf12cf8b7049e224cbb6ed3aead67",
+            "//ads.example.org/a6adf12cf8b7049e224cbb6ed3aead67/invoke.js",
+        ] {
+            settings.native_script = script.into();
+            assert!(
+                native_html(&settings)
+                    .unwrap()
+                    .contains("<div id=\"container-a6adf12cf8b7049e224cbb6ed3aead67\">"),
+                "{script}"
+            );
+        }
+
+        settings.native_container = "container-own".into();
+        assert!(
+            native_html(&settings)
+                .unwrap()
+                .contains("<div id=\"container-own\">")
+        );
+    }
+
+    #[test]
     fn script_urls_are_cleaned_or_refused() {
         assert_eq!(
             clean_script_url("//pl123.example.com/ab/cd/ef/invoke.js").as_deref(),
@@ -596,7 +648,25 @@ mod tests {
         assert_eq!((zones[0].width, zones[0].height), (468, 60));
         assert_eq!(zones[0].host, "www.example.net");
 
+        let snippet = "<script>\n  atOptions = {\n    'key' : 'c41025814de9a014f37ce3e96eb57e69',\n    'format' : 'iframe',\n    'height' : 90,\n    'width' : 728,\n    'params' : {}\n  };\n</script>\n<script src=\"https://ads.example.org/22/c41025814de9a014f37ce3e96eb57e69\"></script>";
+        let zones = parse_zones(snippet).unwrap();
+        assert_eq!(zones[0].host, "ads.example.org");
+        assert_eq!(
+            zones[0].src,
+            "https://ads.example.org/22/c41025814de9a014f37ce3e96eb57e69"
+        );
+        assert_eq!(
+            zones_to_text(&zones),
+            "c41025814de9a014f37ce3e96eb57e69:728x90:https://ads.example.org/22/c41025814de9a014f37ce3e96eb57e69"
+        );
+        assert_eq!(
+            parse_zones(&zones_to_text(&zones)).unwrap(),
+            zones,
+            "a script URL parses back"
+        );
+
         assert!(parse_zones("abcdef0123456789:100x100").is_err());
+        assert!(parse_zones("abcdef0123456789:728x90:https://example.com/a.js?b").is_err());
         assert!(parse_zones("short:728x90").is_err());
         assert!(parse_zones("abcdef0123456789:728x90:not a host").is_err());
     }
@@ -616,7 +686,7 @@ mod tests {
         let zone = zone("abcdef0123456789", 320, 50, Some("www.example.com")).unwrap();
         let html = banner_html(&zone);
         assert!(html.contains("'key':'abcdef0123456789'"));
-        assert!(html.contains("https://www.example.com/abcdef0123456789/invoke.js"));
+        assert!(html.contains("src=\"https://www.example.com/abcdef0123456789/invoke.js\""));
         assert_eq!(
             origin("https://panel.example.com/x").as_deref(),
             Some("https://panel.example.com")

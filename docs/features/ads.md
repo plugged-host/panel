@@ -165,7 +165,11 @@ on" and the panel's name.
 Admin › Settings › Ads, one tab per part: Placement, Adsterra, Monetag, Waiting Room, Ad Blockers,
 In-Game. Script fields take the URL or the whole snippet as the network shows it; zones take
 Adsterra's Banner snippets or `key:WIDTHxHEIGHT:host` lines (default host
-`www.highperformanceformat.com`). Saving checks everything and says what is wrong.
+`www.highperformanceformat.com`, the script is `https://host/<key>/invoke.js`), or
+`key:WIDTHxHEIGHT:https://host/path` with the snippet's script URL (newer Adsterra code loads
+`https://host/22/<key>`). The native unit writes into `container-<id>`, the id being the
+script's (`https://host/<id>/invoke.js`, or `https://host/21/<id>` in newer code) unless a native
+container is set. Saving checks everything and says what is wrong.
 
 ## Check
 
