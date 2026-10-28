@@ -33,7 +33,7 @@ Migrations run on start (`DATABASE_MIGRATE=true`).
 
 | What | Where |
 |---|---|
-| Source | `/var/www/calagopus` (this repository) |
+| Source | `/var/www/plugged.host/panel` (this repository) |
 | Binary | `/opt/calagopus/current/panel-rs` (→ `releases/<release>`) |
 | Service | `calagopus.service` (this folder), user `calagopus` |
 | Config | `/etc/calagopus/panel.env` (`panel.env.example`) |
