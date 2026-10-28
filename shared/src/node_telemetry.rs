@@ -58,6 +58,7 @@ impl Sample {
         stats: &wings_api::SystemStats,
         servers_running: Option<i32>,
         load1: Option<f32>,
+        data_disk: Option<&wings_api::fork::NodeDiskSpace>,
     ) -> Self {
         Self {
             reachable: true,
@@ -67,8 +68,13 @@ impl Sample {
             cpu_threads: Some(stats.cpu.threads.min(i32::MAX as u64) as i32),
             memory_used: Some(clamp_i64(stats.memory.used)),
             memory_total: Some(clamp_i64(stats.memory.total)),
-            disk_used: Some(clamp_i64(stats.disk.used)),
-            disk_total: Some(clamp_i64(stats.disk.total)),
+            // the fork's figure is the disk holding the servers' files; Wings' own is always `/`
+            disk_used: Some(clamp_i64(
+                data_disk.map_or(stats.disk.used, |disk| disk.used),
+            )),
+            disk_total: Some(clamp_i64(
+                data_disk.map_or(stats.disk.total, |disk| disk.total),
+            )),
             load1,
             servers_running,
         }
@@ -415,12 +421,19 @@ pub async fn probe(
             .await
             .ok()
             .map(|load| load.load[0] as f32);
+        // likewise only on the fork: the disk of the servers' files (a storage box keeps them apart from `/`)
+        let data_disk = client
+            .get_public_resources()
+            .await
+            .ok()
+            .map(|resources| resources.disk);
 
         Ok::<_, anyhow::Error>(Sample::answered(
             response_time,
             &stats.stats,
             servers_running,
             load1,
+            data_disk.as_ref(),
         ))
     })
     .await;

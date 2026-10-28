@@ -4,6 +4,19 @@
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
+/// `GET /api/public/resources`: the disk is the filesystem holding the servers' files, which
+/// Wings' own system stats (always `/`) miss where the data has a disk of its own.
+#[derive(Debug, ToSchema, Deserialize, Serialize, Clone)]
+pub struct NodePublicResources {
+    pub disk: NodeDiskSpace,
+}
+
+#[derive(Debug, ToSchema, Deserialize, Serialize, Clone)]
+pub struct NodeDiskSpace {
+    pub total: u64,
+    pub used: u64,
+}
+
 /// `GET /api/system/load`.
 #[derive(Debug, ToSchema, Deserialize, Serialize, Clone)]
 pub struct NodeLoad {
@@ -129,6 +142,12 @@ impl super::client::WingsClient {
 
     pub async fn get_system_load(&self) -> Result<NodeLoad, super::client::ApiHttpError> {
         self.fork_json("/api/system/load").await
+    }
+
+    pub async fn get_public_resources(
+        &self,
+    ) -> Result<NodePublicResources, super::client::ApiHttpError> {
+        self.fork_json("/api/public/resources").await
     }
 
     /// Takes a few seconds when the node was not asked for a while: it measures CPU use first.
