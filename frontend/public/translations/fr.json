@@ -263,6 +263,22 @@
       "few": "{count} builds",
       "many": "{count} builds",
       "other": "{count} builds"
+    },
+    "friend": {
+      "zero": "{count} ami",
+      "one": "{count} ami",
+      "two": "{count} amis",
+      "few": "{count} amis",
+      "many": "{count} amis",
+      "other": "{count} amis"
+    },
+    "hour": {
+      "zero": "{count} heure",
+      "one": "{count} heure",
+      "two": "{count} heures",
+      "few": "{count} heures",
+      "many": "{count} heures",
+      "other": "{count} heures"
     }
   },
   "translations": {
@@ -898,7 +914,16 @@
           "discordInviteClawback": "Invitation reprise",
           "discordInviteDebt": "Crédits d'invitation dus",
           "discordBoost": "Boost Discord",
-          "partner": "Programme partenaire"
+          "partner": "Programme partenaire",
+          "serverUpgrade": "Amélioration de serveur",
+          "membershipGift": "Cadeau",
+          "membershipGiftReceived": "Cadeau reçu",
+          "streak": "Série quotidienne",
+          "starter": "Premiers pas",
+          "referral": "Parrainage",
+          "dayPass": "Pass journée",
+          "badge": "Badge de profil",
+          "neoExtra": "Plus d'utilisation de neo"
         }
       },
       "chartLegend": {
@@ -1012,7 +1037,11 @@
           "memory": "RAM",
           "disk": "Disque",
           "openStore": "Obtenir plus dans la Boutique de ressources",
-          "openTokens": "Ouvrir la page Jetons"
+          "openTokens": "Ouvrir la page Jetons",
+          "goal": "{tokens} / {cost} pour {name}",
+          "goalReady": "Assez pour {name}",
+          "openMembership": "Ouvrir la page Adhésion",
+          "streak": "Les jetons de série du jour vous attendent"
         }
       },
       "notifications": {
@@ -1025,6 +1054,8 @@
         "delete": "Supprimer la notification",
         "openServer": "Ouvrir le serveur",
         "viewBackups": "Afficher les sauvegardes",
+        "renew": "Renouveler",
+        "viewMembership": "Voir l'adhésion",
         "showMore": "Afficher plus",
         "empty": "Aucune notification",
         "emptyHint": "Revenez plus tard.",
@@ -1052,6 +1083,29 @@
           "membershipEnded": {
             "title": "{membership} a pris fin",
             "body": "Les serveurs sur des emplacements que cette adhésion ouvrait sont transférés vers un autre emplacement : {servers}. Suivez le transfert sur la page Transfert de chaque serveur."
+          },
+          "membershipEndsSoon": {
+            "title": "{membership} se termine bientôt",
+            "body": "Votre adhésion se termine le {date}.",
+            "renews": "Elle se renouvelle automatiquement pour {cost}.",
+            "renewsShort": "Le renouvellement automatique est activé, mais votre solde ne couvre pas encore les {cost}.",
+            "notRenewing": "Elle ne se renouvelle pas toute seule. Le renouvellement coûte {cost}, et votre solde le couvre.",
+            "notRenewingShort": "Elle ne se renouvelle pas toute seule. Le renouvellement coûte {cost}."
+          },
+          "membershipRenewFailed": {
+            "title": "Impossible de renouveler {membership}",
+            "body": "Il manque encore {amount}."
+          },
+          "membershipGifted": {
+            "title": "{from} vous a offert {membership}",
+            "body": "{days} jours de {membership}, ajoutés à votre temps restant.",
+            "until": "Votre adhésion dure maintenant jusqu'au {date}."
+          },
+          "panelAccessEndsSoon": {
+            "title": "L'accès au panneau se termine bientôt",
+            "body": "Votre accès payant au panneau se termine le {date}.",
+            "covered": "Votre solde couvre le prochain paiement de {cost}.",
+            "short": "Payer à nouveau coûte {cost}."
           },
           "failoverDone": {
             "title": "Serveur rétabli",
@@ -1129,6 +1183,10 @@
             "title": "Crédits partenaire reçus",
             "body": "{credits} crédits pour {guild} ce mois-ci."
           },
+          "referralPaid": {
+            "title": "Récompense de parrainage",
+            "body": "Votre ami {username} a gagné ses premiers {threshold} : +{amount}"
+          },
           "partnerCheckFailed": {
             "title": "Vérification partenaire échouée",
             "body": "{guild} ne remplit plus les conditions de partenariat, le paiement de ce mois est donc en attente. Corrigez le problème avant le {until}, sinon le partenariat sera suspendu. La page Partenaires indique ce qui ne va pas."
@@ -1148,6 +1206,19 @@
           "partnerCreditsChanged": {
             "title": "Crédits partenaire modifiés",
             "body": "{guild} gagne maintenant {credits} crédits par mois."
+          },
+          "upgradeEnding": {
+            "title": "{upgrade} se termine bientôt",
+            "body": "{upgrade} sur {server} se termine le {time}.",
+            "renew": "Ajoutez du temps pour {price} sur la page Paramètres du serveur.",
+            "action": "Ajouter du temps"
+          },
+          "serverIdleStopped": {
+            "title": "Serveur arrêté pour inactivité",
+            "body": "{server} a été arrêté car personne ne l'a utilisé pendant {hours} heures.",
+            "park": "Si personne ne l'utilise, il sera mis en hibernation dans environ {hours} heures : sauvegardé et retiré de son nœud jusqu'à sa restauration.",
+            "keepAwake": "Gardez-le éveillé pendant {days} jours · {price}.",
+            "action": "Garder éveillé"
           }
         }
       },
@@ -1517,6 +1588,11 @@
       "ads": {
         "frameTitle": "Publicité",
         "sponsored": "Sponsorisé",
+        "promo": {
+          "skipTheWait": "Obtenir {name}",
+          "goPlus": "Obtenir {name}",
+          "freeTokens": "Gagner des jetons"
+        },
         "adblock": {
           "title": "Bloqueur de publicités détecté",
           "message": "Les publicités de ce panel financent ses serveurs gratuits. Veuillez autoriser les publicités sur ce site, puis recharger la page.",
@@ -1525,6 +1601,34 @@
             "closeIn": "Fermer ({seconds})"
           }
         }
+      },
+      "profileBadge": {
+        "supporter": "Soutien",
+        "earlyBird": "Lève-tôt",
+        "nightOwl": "Oiseau de nuit",
+        "og": "OG",
+        "builder": "Bâtisseur",
+        "explorer": "Explorateur"
+      },
+      "promo": {
+        "title": "Plus d'avantages avec {name}",
+        "price": "{tokens} pour {days} jours",
+        "perks": {
+          "locations": "Les emplacements {name}",
+          "queueFirst": "En tête de la file de démarrage",
+          "queueAhead": "Devant les utilisateurs gratuits dans la file de démarrage",
+          "burst": "Jusqu'à {percent} % de CPU en plus sur chaque serveur",
+          "noAds": "Aucune publicité et pas d'écran d'attente",
+          "fewerAds": "Aucune publicité sur les pages, seulement avant un démarrage",
+          "panelAccess": "Le panneau inclus",
+          "neo": "{percent} % d'utilisation de neo en plus",
+          "fasterBackups": "Sauvegardes et archives plus rapides"
+        },
+        "progressLabel": "Vos jetons",
+        "progress": "{have} sur {cost}",
+        "enough": "Vous en avez assez : obtenez {name} maintenant.",
+        "get": "Obtenir {name}",
+        "notNow": "Pas maintenant"
       },
       "neo": {
         "name": "neo",
@@ -1625,6 +1729,11 @@
         "risk": {
           "destructive": "Difficile à annuler",
           "critical": "Irréversible, ou vous coûte quelque chose"
+        },
+        "extra": {
+          "offer": "Une journée d'utilisation en plus pour {tokens}",
+          "buy": "Acheter",
+          "earn": "Gagner des jetons"
         },
         "notice": {
           "limitedShort": "Vous avez atteint votre limite à court terme de {name}. Elle se réinitialise {time}.",
@@ -2041,6 +2150,9 @@
           "disabled": "La création de serveurs est désactivée.",
           "noPlan": "Votre compte n'a aucune offre permettant de créer des serveurs.",
           "nothingOffered": "Aucun jeu ne peut être déployé pour le moment. Veuillez contacter l'administrateur du panel.",
+          "offers": {
+            "store": "Obtenir plus dans la Boutique de ressources"
+          },
           "details": "Détails",
           "name": "Nom du serveur",
           "randomName": "Générer un nom aléatoire",
@@ -2258,6 +2370,20 @@
               "createBlocked": "Non autorisée",
               "createBlockedUntil": "Non autorisée avant le {date}",
               "details": "Détails"
+            },
+            "badges": {
+              "title": "Badges",
+              "description": "Choisissez un badge à afficher à côté de votre nom : dans la barre latérale, sur les serveurs que vous partagez et dans leur chat. Chacun coûte {tokens} et vous appartient pour de bon.",
+              "descriptionOwned": "Le badge affiché à côté de votre nom : dans la barre latérale, sur les serveurs que vous partagez et dans leur chat.",
+              "buy": "Acheter · {tokens}",
+              "show": "Afficher",
+              "shown": "Affiché",
+              "hide": "N'afficher aucun badge",
+              "balance": "Vous avez {balance}.",
+              "earn": "Gagner des jetons",
+              "toast": {
+                "bought": "Badge acheté."
+              }
             },
             "password": {
               "title": "Mot de passe",
@@ -2873,6 +2999,53 @@
           "surveyCap": "{cap} sondages par jour sont payés. Un sondage qui s'arrête tôt parce que vous ne correspondez pas au profil peut rapporter un petit bonus et ne compte pas.",
           "scriptBlocked": "Le lien sponsorisé n'a pas pu se charger. Un bloqueur de contenu l'en empêche peut-être.",
           "history": "Activité récente",
+          "streak": {
+            "title": "Série quotidienne",
+            "claim": "Récupérer les jetons du jour",
+            "today": "Jour {day} · {tokens}",
+            "tomorrow": "Jour {day} · {tokens} · revenez demain pour {next}",
+            "hint": "À récupérer une fois par jour. Un jour manqué fait repartir la série au jour 1.",
+            "week": "Jours récupérés cette semaine : {claimed} sur 7",
+            "claimed": "+{tokens} pour le jour {day}"
+          },
+          "bonus": {
+            "double": "Jetons doublés sur chaque lien et sondage",
+            "doubleUntil": "Jetons doublés jusqu'au {date}",
+            "more": "+{percent} % de jetons sur chaque lien et sondage",
+            "moreUntil": "+{percent} % de jetons jusqu'au {date}",
+            "survey": "Chaque sondage rapporte {percent} % de plus en ce moment."
+          },
+          "starter": {
+            "title": "Premiers pas",
+            "description": "Chaque tâche ne rapporte qu'une fois. Cette liste disparaît le {date}.",
+            "reward": "+{tokens}",
+            "claim": "Récupérer",
+            "claimed": "Récupéré",
+            "toast": "Ajoutés : +{tokens}",
+            "task": {
+              "discord": "Associez votre compte Discord",
+              "create_server": "Créez un serveur",
+              "start_server": "Démarrez votre serveur",
+              "earn": "Gagnez des jetons une fois avec un lien ou un sondage"
+            },
+            "go": {
+              "discord": "Associer Discord",
+              "create_server": "Créer un serveur",
+              "start_server": "Ouvrir vos serveurs",
+              "earn": "Gagner des jetons"
+            }
+          },
+          "referrals": {
+            "title": "Inviter des amis",
+            "howItWorks": "Quand un ami s'inscrit avec votre lien et gagne ses premiers {threshold}, vous recevez +{reward}.",
+            "link": "Votre lien",
+            "copy": "Copier le lien",
+            "cap": "Récompense limitée à {friends} sur 30 jours ; les autres attendent leur tour.",
+            "none": "Personne ne s'est encore inscrit avec votre lien.",
+            "friends": "Inscrits : {friends}",
+            "progress": "{earned} jetons gagnés sur {threshold}",
+            "paid": "Payé : +{reward}"
+          },
           "redemption": {
             "granted": "Ajoutés : +{amount} jetons",
             "settled": "Celui-ci a déjà été payé",
@@ -2890,10 +3063,14 @@
           "title": "Adhésion",
           "pageTitle": "{app} {name}",
           "subtitle": "De meilleurs emplacements, pas d'attente dans la file et moins de publicité. Payé au mois en jetons ; rien ne se renouvelle tout seul.",
+          "subtitleAutoRenew": "De meilleurs emplacements, pas d'attente dans la file et moins de publicité. Payé au mois en jetons ; le renouvellement n'a lieu que si vous l'activez.",
           "unavailable": "{name} n'est pas en vente pour le moment.",
           "active": {
             "heading": "{name} est actif",
             "body": "Il est actif jusqu'au {until}."
+          },
+          "bundleActive": {
+            "heading": "{plus} est inclus avec votre {name}"
           },
           "plus": {
             "pitch": "Tout ce dont la plupart des serveurs ont besoin, au mois.",
@@ -2921,6 +3098,34 @@
           },
           "balance": "Vous avez {balance} jetons.",
           "earnLink": "Obtenir plus de jetons",
+          "moreToGo": "Il manque {amount}",
+          "sale": {
+            "defaultName": "Promotion",
+            "until": "{percent} % de réduction sur toutes les adhésions jusqu'au {date}.",
+            "running": "{percent} % de réduction sur toutes les adhésions."
+          },
+          "autoRenew": {
+            "label": "Renouveler automatiquement",
+            "description": "À la fin, elle se renouvelle à son prix du moment ({cost} aujourd'hui), si votre solde le couvre.",
+            "on": "{name} se renouvelle désormais automatiquement.",
+            "off": "{name} ne se renouvelle plus automatiquement."
+          },
+          "gift": {
+            "heading": "Offrir à un ami",
+            "text": "Achetez une adhésion pour quelqu'un d'autre avec vos jetons. Elle s'ajoute à son temps restant, et la personne voit qu'elle vient de vous.",
+            "recipient": "Nom d'utilisateur ou e-mail",
+            "membership": "Adhésion",
+            "option": "{name} · {days} jours · {cost}",
+            "submit": "Envoyer le cadeau",
+            "left": "Cadeaux restants aujourd'hui : {count}",
+            "none": "Vous avez envoyé les cadeaux du jour. Revenez demain.",
+            "modal": {
+              "title": "Envoyer un cadeau",
+              "body": "Dépenser **{cost}** jetons pour offrir **{days} jours** de **{name}** à **{recipient}** ?",
+              "confirm": "Envoyer"
+            },
+            "toast": "{name} envoyé à {recipient}."
+          },
           "perks": {
             "plusLocations": "Les emplacements {name}",
             "priority": "La priorité dans la file de démarrage quand un nœud est chargé",
@@ -2935,7 +3140,8 @@
             "highestPriority": "La priorité la plus haute dans la file de démarrage quand un nœud est chargé",
             "noAds": "Aucune publicité nulle part : ni bannières, ni popups, ni écran d'attente avant un démarrage, ni publicité en jeu",
             "neoPlusplus": "{percent}% d'utilisation de neo (IA) en plus au total",
-            "devboxPlusplus": "Une devbox VS Code plus grande : {cpu} vCPU, {memory} de RAM, {disk} de disque"
+            "devboxPlusplus": "Une devbox VS Code plus grande : {cpu} vCPU, {memory} de RAM, {disk} de disque",
+            "bundle": "{name} inclus"
           },
           "compare": {
             "heading": "Ce que vous obtenez",
@@ -2979,7 +3185,8 @@
             "heading": "Questions",
             "renew": {
               "question": "Une adhésion se renouvelle-t-elle toute seule ?",
-              "answer": "Non. {plus} et {plusplus} durent chacun le nombre de jours achetés, et rien ne se renouvelle tout seul. Racheter avant la fin ajoute au temps restant. {plusplus} inclut tout ce que donne {plus}, vous n'avez donc jamais besoin des deux."
+              "answer": "Non. {plus} et {plusplus} durent chacun le nombre de jours achetés, et rien ne se renouvelle tout seul. Racheter avant la fin ajoute au temps restant. {plusplus} inclut tout ce que donne {plus}, vous n'avez donc jamais besoin des deux.",
+              "answerAutoRenew": "Seulement si vous activez « Renouveler automatiquement » pour elle : elle se renouvelle alors à la fin, à son prix du moment, tant que votre solde le couvre, et vous êtes prévenu avant la fin. Racheter avant la fin ajoute au temps restant. {plusplus} inclut tout ce que donne {plus}, vous n'avez donc jamais besoin des deux."
             },
             "expiry": {
               "question": "Que se passe-t-il quand une adhésion se termine ?",
@@ -3218,6 +3425,10 @@
           "toast": {
             "bought": "Le panneau est à vous pour {days} jours.",
             "failed": "Le paiement n'a pas abouti."
+          },
+          "offers": {
+            "membership": "{plus} et {plusplus} incluent le panneau.",
+            "membershipLink": "Obtenir {name} à la place"
           }
         }
       },
@@ -7784,6 +7995,115 @@
             "scheduledHint": "Recevoir un e-mail quand une sauvegarde planifiée de ce serveur se termine ou échoue.",
             "saved": "Paramètres de notification mis à jour"
           },
+          "upgrades": {
+            "title": "Améliorations",
+            "note": "Des extras pour ce serveur, payés avec vos propres jetons. Vous avez {balance}.",
+            "buy": "Acheter · {price}",
+            "add": "Ajouter {duration} · {price}",
+            "runsUntil": "Actif jusqu'au {time}.",
+            "count": "Actifs : {count} sur {max}.",
+            "duration": {
+              "hour": "une heure",
+              "hours": "{count} heures",
+              "day": "un jour",
+              "days": "{count} jours"
+            },
+            "unavailable": {
+              "max": "Ce serveur en a déjà autant d'actifs qu'il peut en avoir.",
+              "nodeBusy": "Indisponible pour le moment : le nœud est chargé.",
+              "nodeUnknown": "Indisponible pour le moment, réessayez dans quelques minutes.",
+              "unlimited": "Ce serveur n'a pas de limite à augmenter.",
+              "parked": "Impossible tant que le serveur est en hibernation."
+            },
+            "kinds": {
+              "keepAwake": {
+                "title": "Garder éveillé",
+                "body": "Pendant {duration}, ce serveur ne sera ni arrêté, ni mis en hibernation, ni supprimé pour inactivité.",
+                "running": "Ce serveur ne sera ni arrêté, ni mis en hibernation, ni supprimé pour inactivité."
+              },
+              "boost": {
+                "title": "Boost",
+                "body": "+{memory} de mémoire et +{cpu} % de CPU en plus de vos limites, pendant {duration}.",
+                "running": "Plus de mémoire et de CPU en plus de vos limites.",
+                "restart": "Redémarrez le serveur pour que le jeu utilise la mémoire supplémentaire."
+              },
+              "extraAllocation": {
+                "title": "Port supplémentaire",
+                "body": "Un port de plus pour ce serveur, pendant {duration}.",
+                "running": "Un port de plus pour ce serveur."
+              },
+              "extraDatabase": {
+                "title": "Base de données supplémentaire",
+                "body": "Une base de données de plus pour ce serveur, pendant {duration}.",
+                "running": "Une base de données de plus pour ce serveur."
+              },
+              "extraBackup": {
+                "title": "Emplacement de sauvegarde supplémentaire",
+                "body": "Une sauvegarde de plus pour ce serveur, pendant {duration}.",
+                "running": "Une sauvegarde de plus pour ce serveur."
+              },
+              "cardColor": {
+                "title": "Couleur de carte",
+                "body": "Une couleur pour la carte de ce serveur dans votre liste de serveurs, pour de bon.",
+                "running": "Affichée dans votre liste de serveurs. La changer est gratuit."
+              }
+            },
+            "confirm": {
+              "price": "Cela coûte {price}. Vous avez {balance}.",
+              "short": "Cela coûte {price} et vous avez {balance}. Gagnez d'abord des jetons.",
+              "earn": "Gagner des jetons"
+            },
+            "color": {
+              "pick": "Choisissez une couleur",
+              "free": "Changer la couleur est gratuit.",
+              "change": "Changer la couleur",
+              "save": "Enregistrer la couleur",
+              "names": {
+                "blue": "Bleu",
+                "cyan": "Cyan",
+                "teal": "Sarcelle",
+                "green": "Vert",
+                "yellow": "Jaune",
+                "orange": "Orange",
+                "red": "Rouge",
+                "pink": "Rose",
+                "grape": "Pourpre",
+                "violet": "Violet"
+              }
+            },
+            "offer": {
+              "extraAllocation": {
+                "title": "Limite de ports atteinte",
+                "body": "Ajoutez un port de plus pendant {duration} · {price}.",
+                "button": "Ajouter un port · {price}"
+              },
+              "extraDatabase": {
+                "title": "Limite de bases de données atteinte",
+                "body": "Ajoutez une base de données de plus pendant {duration} · {price}.",
+                "button": "Ajouter une base de données · {price}"
+              },
+              "extraBackup": {
+                "title": "Limite de sauvegardes atteinte",
+                "body": "Ajoutez un emplacement de sauvegarde de plus pendant {duration} · {price}. Vos sauvegardes restent quand il prend fin.",
+                "button": "Ajouter un emplacement · {price}"
+              },
+              "keepAwake": {
+                "title": "Arrêté car personne ne l'utilisait",
+                "body": "Ce serveur a été arrêté après un moment sans utilisation, et sera mis en hibernation si cela continue. Gardez-le éveillé pendant {duration} · {price}.",
+                "button": "Garder éveillé · {price}"
+              },
+              "keepAwakeParked": {
+                "title": "Gardez-le éveillé",
+                "body": "Tant qu'il est actif, un pass Garder éveillé empêche que ce serveur soit supprimé, et qu'il soit remis en hibernation une fois revenu. {duration} · {price}.",
+                "button": "Garder éveillé · {price}"
+              }
+            },
+            "toast": {
+              "bought": "{title} : actif jusqu'au {time}.",
+              "boughtNoEnd": "{title} : acheté.",
+              "color": "Couleur de carte enregistrée."
+            }
+          },
           "danger": {
             "title": "Zone de danger",
             "note": "Les actions de cette zone sont destructrices et affectent directement le fonctionnement de votre serveur. Assurez-vous d'avoir sauvegardé les données ou fichiers de monde importants avant de continuer.",
@@ -7851,6 +8171,10 @@
             "body": "{name} coûte {cost} jetons par mois : la priorité dans cette file pour tous vos serveurs, les emplacements {name} et aucune publicité à part l'écran d'attente.",
             "button": "Obtenir {name}"
           },
+          "offers": {
+            "premium": "{name} passe en premier dans cette file, devant tout le monde.",
+            "premiumLink": "Voir {name}"
+          },
           "move": {
             "heading": "Transférer vers un nœud plus calme",
             "body": "Nous pouvons transférer ce serveur vers le nœud {node}, qui n'est pas occupé. Vos fichiers suivent.",
@@ -7875,7 +8199,18 @@
           "body": "Les serveurs gratuits sont financés par des publicités comme celles de cette page. Laissez-les visibles jusqu'à {seconds} secondes — la console s'ouvre toute seule, et le serveur démarre déjà pendant que vous attendez.",
           "waitLabel": "Ouverture de la console",
           "seconds": "dans {seconds} s",
-          "ready": "d'un instant à l'autre"
+          "ready": "d'un instant à l'autre",
+          "skip": {
+            "heading": "Passer l'attente",
+            "body": "Un pass permet à chacun de vos démarrages de passer cet écran, sur tous vos serveurs. Vous avez {balance}.",
+            "running": "Votre pass journée est actif jusqu'au {time}.",
+            "button": "{hours} sans attente · {tokens}",
+            "earn": "Gagner des jetons",
+            "premium": "Avec {name}, pas d'attente ici",
+            "toast": {
+              "bought": "Pass journée acheté : plus d'écran d'attente jusqu'au {time}."
+            }
+          }
         },
         "limbo": {
           "title": "Serveur en hibernation",
@@ -8983,6 +9318,7 @@
           "create": {
             "title": "Créer un sous-domaine",
             "depositCaption": "Caution en jetons • Sous-domaine #{number}",
+            "shortCaption": "Caution en jetons • Nom court (3 caractères ou moins)",
             "refundNote": "(remboursable à la suppression)",
             "balance": "Votre solde",
             "name": "Nom",

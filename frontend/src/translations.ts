@@ -1022,7 +1022,7 @@ const baseTranslations = defineTranslations({
           serverIdleStopped: {
             title: 'Server stopped while idle',
             body: '{server} was stopped because nobody used it for {hours} hours.',
-            park: 'Unless someone uses it, it is parked in about {hours} hours: backed up and removed from its node until it is restored.',
+            park: 'Unless someone uses it, it is hibernated in about {hours} hours: backed up and removed from its node until it is restored.',
             keepAwake: 'Keep it awake for {days} days · {price}.',
             action: 'Keep it awake',
           },
@@ -12061,13 +12061,13 @@ const baseTranslations = defineTranslations({
               nodeBusy: 'Not available right now: the node is busy.',
               nodeUnknown: 'Not available right now, try again in a few minutes.',
               unlimited: 'This server has no limit to raise.',
-              parked: 'Not while the server is parked.',
+              parked: 'Not while the server is hibernated.',
             },
             kinds: {
               keepAwake: {
                 title: 'Keep awake',
-                body: "Limbo won't stop, park or delete this server while nobody uses it, for {duration}.",
-                running: "Limbo won't stop, park or delete this server while nobody uses it.",
+                body: "This server won't be stopped, hibernated or deleted for being idle, for {duration}.",
+                running: "This server won't be stopped, hibernated or deleted for being idle.",
               },
               boost: {
                 title: 'Boost',
@@ -12137,12 +12137,12 @@ const baseTranslations = defineTranslations({
               },
               keepAwake: {
                 title: 'Stopped while nobody used it',
-                body: 'Limbo stopped this server after a while without use, and parks it if that goes on. Keep it awake for {duration} · {price}.',
+                body: 'This server was stopped after a while without use, and is hibernated if that goes on. Keep it awake for {duration} · {price}.',
                 button: 'Keep awake · {price}',
               },
               keepAwakeParked: {
                 title: 'Keep it awake',
-                body: 'A keep-awake pass keeps this server from being deleted while it runs, and from being parked again once it is back. {duration} · {price}.',
+                body: 'A keep-awake pass keeps this server from being deleted while it runs, and from being hibernated again once it is back. {duration} · {price}.',
                 button: 'Keep awake · {price}',
               },
             },

@@ -263,6 +263,22 @@
       "few": "{count} build",
       "many": "{count} build",
       "other": "{count} build"
+    },
+    "friend": {
+      "zero": "{count} teman",
+      "one": "{count} teman",
+      "two": "{count} teman",
+      "few": "{count} teman",
+      "many": "{count} teman",
+      "other": "{count} teman"
+    },
+    "hour": {
+      "zero": "{count} jam",
+      "one": "{count} jam",
+      "two": "{count} jam",
+      "few": "{count} jam",
+      "many": "{count} jam",
+      "other": "{count} jam"
     }
   },
   "translations": {
@@ -898,7 +914,16 @@
           "discordInviteClawback": "Undangan ditarik kembali",
           "discordInviteDebt": "Kredit undangan terutang",
           "discordBoost": "Boost Discord",
-          "partner": "Program partner"
+          "partner": "Program partner",
+          "serverUpgrade": "Peningkatan server",
+          "membershipGift": "Hadiah",
+          "membershipGiftReceived": "Hadiah diterima",
+          "streak": "Runtunan harian",
+          "starter": "Langkah awal",
+          "referral": "Referal",
+          "dayPass": "Tiket harian",
+          "badge": "Lencana profil",
+          "neoExtra": "Tambahan penggunaan neo"
         }
       },
       "chartLegend": {
@@ -1012,7 +1037,11 @@
           "memory": "RAM",
           "disk": "Disk",
           "openStore": "Dapatkan lebih banyak di Toko Sumber Daya",
-          "openTokens": "Buka halaman Token"
+          "openTokens": "Buka halaman Token",
+          "goal": "{tokens} / {cost} menuju {name}",
+          "goalReady": "Cukup untuk {name}",
+          "openMembership": "Buka halaman Keanggotaan",
+          "streak": "Token runtunan hari ini sudah menunggu Anda"
         }
       },
       "notifications": {
@@ -1025,6 +1054,8 @@
         "delete": "Hapus notifikasi",
         "openServer": "Buka server",
         "viewBackups": "Lihat cadangan",
+        "renew": "Perpanjang",
+        "viewMembership": "Lihat keanggotaan",
         "showMore": "Tampilkan lebih banyak",
         "empty": "Tidak ada notifikasi",
         "emptyHint": "Silakan periksa kembali nanti.",
@@ -1052,6 +1083,29 @@
           "membershipEnded": {
             "title": "{membership} telah berakhir",
             "body": "Server di lokasi yang dibuka oleh keanggotaan ini sedang dipindahkan ke lokasi lain: {servers}. Pantau di halaman Pemindahan setiap server."
+          },
+          "membershipEndsSoon": {
+            "title": "{membership} segera berakhir",
+            "body": "Berakhir pada {date}.",
+            "renews": "Akan diperpanjang otomatis seharga {cost}.",
+            "renewsShort": "Sudah diatur untuk diperpanjang otomatis, tetapi saldo Anda belum cukup untuk {cost}.",
+            "notRenewing": "Tidak diperpanjang otomatis. Perpanjangan berbiaya {cost}, dan saldo Anda cukup.",
+            "notRenewingShort": "Tidak diperpanjang otomatis. Perpanjangan berbiaya {cost}."
+          },
+          "membershipRenewFailed": {
+            "title": "Tidak dapat memperpanjang {membership}",
+            "body": "Butuh {amount} lagi."
+          },
+          "membershipGifted": {
+            "title": "{from} memberi Anda {membership}",
+            "body": "{days} hari {membership}, ditambahkan ke sisa waktu Anda.",
+            "until": "Sekarang berlaku hingga {date}."
+          },
+          "panelAccessEndsSoon": {
+            "title": "Akses panel segera berakhir",
+            "body": "Akses panel berbayar Anda berakhir pada {date}.",
+            "covered": "Saldo Anda cukup untuk {cost} berikutnya.",
+            "short": "Membayar lagi berbiaya {cost}."
           },
           "failoverDone": {
             "title": "Server dipulihkan",
@@ -1129,6 +1183,10 @@
             "title": "Kredit partner diterima",
             "body": "{credits} kredit untuk {guild} bulan ini."
           },
+          "referralPaid": {
+            "title": "Hadiah referal",
+            "body": "Teman Anda {username} telah mendapatkan {threshold} pertamanya: +{amount}"
+          },
           "partnerCheckFailed": {
             "title": "Pemeriksaan partner gagal",
             "body": "{guild} tidak lagi memenuhi syarat partner, jadi pembayaran bulan ini ditahan. Perbaiki sebelum {until}, atau kemitraan akan ditangguhkan. Halaman Partner menunjukkan apa yang salah."
@@ -1148,6 +1206,19 @@
           "partnerCreditsChanged": {
             "title": "Kredit partner diubah",
             "body": "{guild} sekarang mendapat {credits} kredit per bulan."
+          },
+          "upgradeEnding": {
+            "title": "{upgrade} segera berakhir",
+            "body": "{upgrade} di {server} berakhir pada {time}.",
+            "renew": "Tambah waktunya seharga {price} di halaman Pengaturan server.",
+            "action": "Tambah waktu"
+          },
+          "serverIdleStopped": {
+            "title": "Server dihentikan karena tidak aktif",
+            "body": "{server} dihentikan karena tidak ada yang memakainya selama {hours} jam.",
+            "park": "Jika tidak ada yang memakainya, server akan dihibernasi dalam sekitar {hours} jam: dicadangkan lalu dikeluarkan dari node-nya sampai dipulihkan.",
+            "keepAwake": "Jaga server tetap aktif selama {days} hari · {price}.",
+            "action": "Jaga tetap aktif"
           }
         }
       },
@@ -1517,6 +1588,11 @@
       "ads": {
         "frameTitle": "Iklan",
         "sponsored": "Bersponsor",
+        "promo": {
+          "skipTheWait": "Dapatkan {name}",
+          "goPlus": "Dapatkan {name}",
+          "freeTokens": "Dapatkan token"
+        },
         "adblock": {
           "title": "Pemblokir Iklan Terdeteksi",
           "message": "Iklan di panel ini membiayai server gratisnya. Silakan izinkan iklan di situs ini, lalu muat ulang halaman.",
@@ -1525,6 +1601,34 @@
             "closeIn": "Tutup ({seconds})"
           }
         }
+      },
+      "profileBadge": {
+        "supporter": "Pendukung",
+        "earlyBird": "Si Bangun Pagi",
+        "nightOwl": "Si Begadang",
+        "og": "OG",
+        "builder": "Pembangun",
+        "explorer": "Penjelajah"
+      },
+      "promo": {
+        "title": "Dapatkan lebih banyak dengan {name}",
+        "price": "{tokens} untuk {days} hari",
+        "perks": {
+          "locations": "Lokasi {name}",
+          "queueFirst": "Paling depan di antrean mulai",
+          "queueAhead": "Di depan pengguna gratis di antrean mulai",
+          "burst": "CPU hingga {percent}% lebih banyak di setiap server",
+          "noAds": "Tanpa iklan dan tanpa layar tunggu",
+          "fewerAds": "Tanpa iklan di halaman, hanya sebelum memulai",
+          "panelAccess": "Termasuk panel",
+          "neo": "Penggunaan neo {percent}% lebih banyak",
+          "fasterBackups": "Cadangan dan arsip lebih cepat"
+        },
+        "progressLabel": "Token Anda",
+        "progress": "{have} dari {cost}",
+        "enough": "Token Anda sudah cukup: dapatkan {name} sekarang.",
+        "get": "Dapatkan {name}",
+        "notNow": "Nanti saja"
       },
       "neo": {
         "name": "neo",
@@ -1625,6 +1729,11 @@
         "risk": {
           "destructive": "Sulit dibatalkan",
           "critical": "Tidak dapat dibatalkan, atau ada biayanya"
+        },
+        "extra": {
+          "offer": "Jatah satu hari lagi seharga {tokens}",
+          "buy": "Dapatkan",
+          "earn": "Dapatkan token"
         },
         "notice": {
           "limitedShort": "Anda telah mencapai batas jangka pendek {name}. Batas ini diatur ulang {time}.",
@@ -2041,6 +2150,9 @@
           "disabled": "Pembuatan server dinonaktifkan.",
           "noPlan": "Akun Anda tidak memiliki paket untuk membuat server.",
           "nothingOffered": "Saat ini tidak ada game yang bisa Anda deploy. Silakan hubungi admin panel.",
+          "offers": {
+            "store": "Dapatkan lebih banyak di Toko Sumber Daya"
+          },
           "details": "Detail",
           "name": "Nama Server",
           "randomName": "Buat nama acak",
@@ -2255,6 +2367,20 @@
               "createBlocked": "Tidak diizinkan",
               "createBlockedUntil": "Tidak diizinkan hingga {date}",
               "details": "Detail"
+            },
+            "badges": {
+              "title": "Lencana",
+              "description": "Pilih lencana untuk ditampilkan di samping nama Anda, di bilah sisi, di server yang Anda bagikan, dan di obrolannya. Masing-masing seharga {tokens} dan menjadi milik Anda selamanya.",
+              "descriptionOwned": "Lencana yang ditampilkan di samping nama Anda, di bilah sisi, di server yang Anda bagikan, dan di obrolannya.",
+              "buy": "Beli · {tokens}",
+              "show": "Tampilkan",
+              "shown": "Ditampilkan",
+              "hide": "Jangan tampilkan lencana",
+              "balance": "Anda memiliki {balance}.",
+              "earn": "Dapatkan token",
+              "toast": {
+                "bought": "Lencana dibeli."
+              }
             },
             "password": {
               "title": "Kata Sandi",
@@ -2870,6 +2996,53 @@
           "surveyCap": "Hanya {cap} survei per hari yang dibayar. Survei yang berakhir lebih awal karena Anda tidak sesuai kriterianya mungkin memberi bonus kecil dan tidak dihitung.",
           "scriptBlocked": "Tautan bersponsor tidak dapat dimuat. Mungkin diblokir oleh pemblokir konten.",
           "history": "Aktivitas terbaru",
+          "streak": {
+            "title": "Runtunan harian",
+            "claim": "Klaim token hari ini",
+            "today": "Hari ke-{day} · {tokens}",
+            "tomorrow": "Hari ke-{day} · {tokens} · kembali besok untuk {next}",
+            "hint": "Klaim sekali sehari. Jika terlewat sehari, runtunan dimulai lagi dari hari ke-1.",
+            "week": "{claimed} dari 7 hari minggu ini sudah diklaim",
+            "claimed": "+{tokens} untuk hari ke-{day}"
+          },
+          "bonus": {
+            "double": "Token ganda untuk setiap tautan dan survei",
+            "doubleUntil": "Token ganda hingga {date}",
+            "more": "+{percent}% token untuk setiap tautan dan survei",
+            "moreUntil": "+{percent}% token hingga {date}",
+            "survey": "Setiap survei membayar {percent}% lebih banyak saat ini."
+          },
+          "starter": {
+            "title": "Langkah awal",
+            "description": "Setiap tugas dibayar sekali. Daftar ini hilang pada {date}.",
+            "reward": "+{tokens}",
+            "claim": "Klaim",
+            "claimed": "Diklaim",
+            "toast": "Ditambahkan: +{tokens}",
+            "task": {
+              "discord": "Tautkan akun Discord Anda",
+              "create_server": "Buat server",
+              "start_server": "Mulai server Anda",
+              "earn": "Dapatkan token sekali lewat tautan atau survei"
+            },
+            "go": {
+              "discord": "Tautkan Discord",
+              "create_server": "Buat server",
+              "start_server": "Buka server Anda",
+              "earn": "Dapatkan token"
+            }
+          },
+          "referrals": {
+            "title": "Undang teman",
+            "howItWorks": "Saat teman mendaftar lewat tautan Anda dan mendapatkan {threshold} pertamanya, Anda mendapat +{reward}.",
+            "link": "Tautan Anda",
+            "copy": "Salin tautan",
+            "cap": "Paling banyak {friends} dibayar dalam 30 hari mana pun; sisanya menunggu giliran.",
+            "none": "Belum ada yang mendaftar lewat tautan Anda.",
+            "friends": "{friends} telah mendaftar",
+            "progress": "{earned} dari {threshold} token diperoleh",
+            "paid": "Dibayar +{reward}"
+          },
           "redemption": {
             "granted": "Ditambahkan: +{amount} token",
             "settled": "Yang itu sudah dibayarkan",
@@ -2887,10 +3060,14 @@
           "title": "Keanggotaan",
           "pageTitle": "{app} {name}",
           "subtitle": "Lokasi yang lebih baik, tanpa antre, dan lebih sedikit iklan. Dibayar per bulan dengan token; tidak ada yang diperpanjang otomatis.",
+          "subtitleAutoRenew": "Lokasi yang lebih baik, tanpa antre, dan lebih sedikit iklan. Dibayar per bulan dengan token; hanya diperpanjang otomatis jika Anda mengaktifkannya.",
           "unavailable": "{name} sedang tidak dijual.",
           "active": {
             "heading": "{name} aktif",
             "body": "Berlaku hingga {until}."
+          },
+          "bundleActive": {
+            "heading": "{plus} sudah termasuk dalam {name} Anda"
           },
           "plus": {
             "pitch": "Semua yang dibutuhkan sebagian besar server, per bulan.",
@@ -2918,6 +3095,34 @@
           },
           "balance": "Anda memiliki {balance} token.",
           "earnLink": "Dapatkan lebih banyak token",
+          "moreToGo": "Kurang {amount} lagi",
+          "sale": {
+            "defaultName": "Diskon",
+            "until": "Diskon {percent}% untuk semua keanggotaan hingga {date}.",
+            "running": "Diskon {percent}% untuk semua keanggotaan."
+          },
+          "autoRenew": {
+            "label": "Perpanjang otomatis",
+            "description": "Saat berakhir, keanggotaan diperpanjang dengan harga saat itu ({cost} hari ini), jika saldo Anda cukup.",
+            "on": "{name} sekarang diperpanjang otomatis.",
+            "off": "{name} tidak lagi diperpanjang otomatis."
+          },
+          "gift": {
+            "heading": "Hadiahkan ke teman",
+            "text": "Belikan keanggotaan untuk orang lain dengan token Anda. Waktunya ditambahkan ke sisa waktu mereka, dan mereka melihat bahwa itu dari Anda.",
+            "recipient": "Nama pengguna atau email",
+            "membership": "Keanggotaan",
+            "option": "{name} · {days} hari · {cost}",
+            "submit": "Kirim hadiah",
+            "left": "Sisa hadiah hari ini: {count}",
+            "none": "Anda sudah mengirim hadiah hari ini. Kembali lagi besok.",
+            "modal": {
+              "title": "Kirim Hadiah",
+              "body": "Gunakan **{cost}** token untuk **{name}** selama **{days} hari** bagi **{recipient}**?",
+              "confirm": "Kirim"
+            },
+            "toast": "{name} dikirim ke {recipient}."
+          },
           "perks": {
             "plusLocations": "Lokasi {name}",
             "priority": "Prioritas di antrean mulai saat node sedang sibuk",
@@ -2932,7 +3137,8 @@
             "highestPriority": "Prioritas tertinggi di antrean mulai saat node sedang sibuk",
             "noAds": "Tanpa iklan di mana pun: tanpa banner, popup, layar tunggu sebelum memulai, atau iklan dalam game",
             "neoPlusplus": "Total penggunaan neo (AI) {percent}% lebih banyak",
-            "devboxPlusplus": "Devbox VS Code yang lebih besar: {cpu} vCPU, RAM {memory}, disk {disk}"
+            "devboxPlusplus": "Devbox VS Code yang lebih besar: {cpu} vCPU, RAM {memory}, disk {disk}",
+            "bundle": "Termasuk {name}"
           },
           "compare": {
             "heading": "Yang Anda dapatkan",
@@ -2976,7 +3182,8 @@
             "heading": "Pertanyaan",
             "renew": {
               "question": "Apakah keanggotaan diperpanjang otomatis?",
-              "answer": "Tidak. {plus} dan {plusplus} masing-masing berlaku selama jumlah hari yang Anda beli, dan tidak ada yang diperpanjang otomatis. Membeli lagi sebelum salah satunya berakhir akan menambah sisa waktunya. {plusplus} mencakup semua yang diberikan {plus}, jadi Anda tidak pernah perlu keduanya."
+              "answer": "Tidak. {plus} dan {plusplus} masing-masing berlaku selama jumlah hari yang Anda beli, dan tidak ada yang diperpanjang otomatis. Membeli lagi sebelum salah satunya berakhir akan menambah sisa waktunya. {plusplus} mencakup semua yang diberikan {plus}, jadi Anda tidak pernah perlu keduanya.",
+              "answerAutoRenew": "Hanya jika Anda mengaktifkan Perpanjang otomatis untuknya: keanggotaan akan diperpanjang saat berakhir, dengan harga saat itu, selama saldo Anda cukup, dan Anda diberi tahu sebelum berakhir. Membeli lagi sebelum salah satunya berakhir akan menambah sisa waktunya. {plusplus} mencakup semua yang diberikan {plus}, jadi Anda tidak pernah perlu keduanya."
             },
             "expiry": {
               "question": "Apa yang terjadi saat keanggotaan berakhir?",
@@ -3215,6 +3422,10 @@
           "toast": {
             "bought": "Panel menjadi milik Anda selama {days} hari.",
             "failed": "Pembayaran tidak berhasil."
+          },
+          "offers": {
+            "membership": "{plus} dan {plusplus} sudah termasuk panel.",
+            "membershipLink": "Dapatkan {name} saja"
           }
         }
       },
@@ -5903,6 +6114,115 @@
             "scheduledHint": "Terima email saat cadangan terjadwal untuk server ini selesai atau gagal.",
             "saved": "Pengaturan Notifikasi Diperbarui"
           },
+          "upgrades": {
+            "title": "Peningkatan",
+            "note": "Tambahan untuk server ini, dibayar dengan token Anda sendiri. Anda memiliki {balance}.",
+            "buy": "Beli · {price}",
+            "add": "Tambah {duration} · {price}",
+            "runsUntil": "Berlaku hingga {time}.",
+            "count": "{count} dari {max} aktif.",
+            "duration": {
+              "hour": "satu jam",
+              "hours": "{count} jam",
+              "day": "satu hari",
+              "days": "{count} hari"
+            },
+            "unavailable": {
+              "max": "Server ini sudah mencapai jumlah maksimum yang aktif.",
+              "nodeBusy": "Sedang tidak tersedia: node sedang sibuk.",
+              "nodeUnknown": "Sedang tidak tersedia, coba lagi dalam beberapa menit.",
+              "unlimited": "Server ini tidak punya batas yang bisa dinaikkan.",
+              "parked": "Tidak bisa selagi server dihibernasi."
+            },
+            "kinds": {
+              "keepAwake": {
+                "title": "Jaga tetap aktif",
+                "body": "Selama {duration}, server ini tidak akan dihentikan, dihibernasi, atau dihapus karena tidak aktif.",
+                "running": "Server ini tidak akan dihentikan, dihibernasi, atau dihapus karena tidak aktif."
+              },
+              "boost": {
+                "title": "Boost",
+                "body": "+{memory} memori dan +{cpu}% CPU di atas batas Anda, selama {duration}.",
+                "running": "Tambahan memori dan CPU di atas batas Anda.",
+                "restart": "Mulai ulang server agar game dapat memakai memori tambahan."
+              },
+              "extraAllocation": {
+                "title": "Port tambahan",
+                "body": "Satu port tambahan untuk server ini, selama {duration}.",
+                "running": "Satu port tambahan untuk server ini."
+              },
+              "extraDatabase": {
+                "title": "Database tambahan",
+                "body": "Satu database tambahan untuk server ini, selama {duration}.",
+                "running": "Satu database tambahan untuk server ini."
+              },
+              "extraBackup": {
+                "title": "Slot cadangan tambahan",
+                "body": "Satu cadangan tambahan untuk server ini, selama {duration}.",
+                "running": "Satu cadangan tambahan untuk server ini."
+              },
+              "cardColor": {
+                "title": "Warna kartu",
+                "body": "Warna untuk kartu server ini di daftar server Anda, selamanya.",
+                "running": "Ditampilkan di daftar server Anda. Menggantinya gratis."
+              }
+            },
+            "confirm": {
+              "price": "Biayanya {price}. Anda memiliki {balance}.",
+              "short": "Biayanya {price}, sedangkan Anda memiliki {balance}. Dapatkan token terlebih dahulu.",
+              "earn": "Dapatkan token"
+            },
+            "color": {
+              "pick": "Pilih warna",
+              "free": "Mengganti warna gratis.",
+              "change": "Ganti warna",
+              "save": "Simpan warna",
+              "names": {
+                "blue": "Biru",
+                "cyan": "Sian",
+                "teal": "Hijau toska",
+                "green": "Hijau",
+                "yellow": "Kuning",
+                "orange": "Oranye",
+                "red": "Merah",
+                "pink": "Merah muda",
+                "grape": "Ungu",
+                "violet": "Violet"
+              }
+            },
+            "offer": {
+              "extraAllocation": {
+                "title": "Batas port tercapai",
+                "body": "Tambah satu port lagi selama {duration} · {price}.",
+                "button": "Tambah port · {price}"
+              },
+              "extraDatabase": {
+                "title": "Batas database tercapai",
+                "body": "Tambah satu database lagi selama {duration} · {price}.",
+                "button": "Tambah database · {price}"
+              },
+              "extraBackup": {
+                "title": "Batas cadangan tercapai",
+                "body": "Tambah satu slot cadangan lagi selama {duration} · {price}. Cadangan Anda tetap ada saat masanya berakhir.",
+                "button": "Tambah slot · {price}"
+              },
+              "keepAwake": {
+                "title": "Dihentikan karena tidak ada yang memakainya",
+                "body": "Server ini dihentikan setelah beberapa waktu tidak dipakai, dan akan dihibernasi jika terus begitu. Jaga tetap aktif selama {duration} · {price}.",
+                "button": "Jaga tetap aktif · {price}"
+              },
+              "keepAwakeParked": {
+                "title": "Jaga tetap aktif",
+                "body": "Selama berlaku, Jaga tetap aktif mencegah server ini dihapus, dan mencegahnya dihibernasi lagi setelah kembali. {duration} · {price}.",
+                "button": "Jaga tetap aktif · {price}"
+              }
+            },
+            "toast": {
+              "bought": "{title} berlaku hingga {time}.",
+              "boughtNoEnd": "{title} dibeli.",
+              "color": "Warna kartu disimpan."
+            }
+          },
           "danger": {
             "title": "Zona Berbahaya",
             "note": "Tindakan di area ini bersifat destruktif dan langsung memengaruhi jalannya server Anda. Pastikan Anda telah mencadangkan data penting atau file dunia sebelum melanjutkan.",
@@ -5970,6 +6290,10 @@
             "body": "{name} seharga {cost} token per bulan: prioritas di antrean ini untuk semua server Anda, lokasi {name}, dan tanpa iklan selain layar tunggu.",
             "button": "Dapatkan {name}"
           },
+          "offers": {
+            "premium": "{name} berada paling depan di antrean ini, mendahului semua orang.",
+            "premiumLink": "Lihat {name}"
+          },
           "move": {
             "heading": "Pindahkan ke node yang lebih sepi",
             "body": "Kami dapat memindahkan server ini ke {node}, yang sedang tidak sibuk. File Anda ikut dipindahkan.",
@@ -5994,7 +6318,18 @@
           "body": "Server gratis dibiayai oleh iklan seperti yang ada di halaman ini. Biarkan iklan tetap terlihat hingga {seconds} detik — konsol akan terbuka sendiri, dan server sudah mulai menyala selagi Anda menunggu.",
           "waitLabel": "Membuka konsol",
           "seconds": "dalam {seconds} dtk",
-          "ready": "sebentar lagi"
+          "ready": "sebentar lagi",
+          "skip": {
+            "heading": "Lewati penantian",
+            "body": "Dengan satu tiket, setiap kali Anda memulai server, layar ini dilewati, di semua server Anda. Anda memiliki {balance}.",
+            "running": "Tiket harian Anda berlaku hingga {time}.",
+            "button": "Lewati penantian selama {hours} · {tokens}",
+            "earn": "Dapatkan token",
+            "premium": "{name} melewati layar ini",
+            "toast": {
+              "bought": "Tiket harian dibeli: tanpa layar tunggu hingga {time}."
+            }
+          }
         },
         "limbo": {
           "title": "Server dihibernasi",
@@ -7102,6 +7437,7 @@
           "create": {
             "title": "Buat Subdomain",
             "depositCaption": "Deposit Token • Subdomain #{number}",
+            "shortCaption": "Deposit Token • Nama pendek (3 karakter atau kurang)",
             "refundNote": "(dikembalikan saat dihapus)",
             "balance": "Saldo Anda",
             "name": "Nama",

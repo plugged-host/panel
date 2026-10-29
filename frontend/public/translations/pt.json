@@ -263,6 +263,22 @@
       "few": "{count} builds",
       "many": "{count} builds",
       "other": "{count} builds"
+    },
+    "friend": {
+      "zero": "{count} amigos",
+      "one": "{count} amigo",
+      "two": "{count} amigos",
+      "few": "{count} amigos",
+      "many": "{count} amigos",
+      "other": "{count} amigos"
+    },
+    "hour": {
+      "zero": "{count} horas",
+      "one": "{count} hora",
+      "two": "{count} horas",
+      "few": "{count} horas",
+      "many": "{count} horas",
+      "other": "{count} horas"
     }
   },
   "translations": {
@@ -898,7 +914,16 @@
           "discordInviteClawback": "Estorno de convite",
           "discordInviteDebt": "Créditos de convite devidos",
           "discordBoost": "Impulso no Discord",
-          "partner": "Programa de parceiros"
+          "partner": "Programa de parceiros",
+          "serverUpgrade": "Upgrade de servidor",
+          "membershipGift": "Presente",
+          "membershipGiftReceived": "Presente recebido",
+          "streak": "Sequência diária",
+          "starter": "Primeiros passos",
+          "referral": "Indicação",
+          "dayPass": "Passe de um dia",
+          "badge": "Emblema de perfil",
+          "neoExtra": "Mais uso do neo"
         }
       },
       "chartLegend": {
@@ -1012,7 +1037,11 @@
           "memory": "RAM",
           "disk": "Disco",
           "openStore": "Consiga mais na Loja de Recursos",
-          "openTokens": "Abrir a página Tokens"
+          "openTokens": "Abrir a página Tokens",
+          "goal": "{tokens} / {cost} para o {name}",
+          "goalReady": "Dá para o {name}",
+          "openMembership": "Abrir a página Assinatura",
+          "streak": "Os tokens da sequência de hoje estão esperando por você"
         }
       },
       "notifications": {
@@ -1025,6 +1054,8 @@
         "delete": "Excluir notificação",
         "openServer": "Abrir servidor",
         "viewBackups": "Ver backups",
+        "renew": "Renovar",
+        "viewMembership": "Ver assinatura",
         "showMore": "Mostrar mais",
         "empty": "Sem notificações",
         "emptyHint": "Volte mais tarde.",
@@ -1052,6 +1083,29 @@
           "membershipEnded": {
             "title": "{membership} terminou",
             "body": "Os servidores em localizações liberadas por essa assinatura estão sendo transferidos para outra localização: {servers}. Acompanhe na página Transferência de cada servidor."
+          },
+          "membershipEndsSoon": {
+            "title": "{membership} termina em breve",
+            "body": "Termina em {date}.",
+            "renews": "É renovada automaticamente por {cost}.",
+            "renewsShort": "Está configurada para ser renovada automaticamente, mas seu saldo ainda não cobre os {cost}.",
+            "notRenewing": "Não é renovada automaticamente. Renovar custa {cost}, e seu saldo cobre.",
+            "notRenewingShort": "Não é renovada automaticamente. Renovar custa {cost}."
+          },
+          "membershipRenewFailed": {
+            "title": "Não foi possível renovar {membership}",
+            "body": "Faltam {amount}."
+          },
+          "membershipGifted": {
+            "title": "{from} presenteou você com {membership}",
+            "body": "{days} dias de {membership}, somados ao tempo que você já tem.",
+            "until": "Agora vale até {date}."
+          },
+          "panelAccessEndsSoon": {
+            "title": "O acesso ao painel termina em breve",
+            "body": "Seu acesso pago ao painel termina em {date}.",
+            "covered": "Seu saldo cobre os próximos {cost}.",
+            "short": "Pagar de novo custa {cost}."
           },
           "failoverDone": {
             "title": "Servidor recuperado",
@@ -1129,6 +1183,10 @@
             "title": "Créditos de parceiro recebidos",
             "body": "{credits} créditos por {guild} neste mês."
           },
+          "referralPaid": {
+            "title": "Recompensa de indicação",
+            "body": "Seu amigo {username} ganhou os primeiros {threshold}: +{amount}"
+          },
           "partnerCheckFailed": {
             "title": "Verificação de parceiro falhou",
             "body": "{guild} não cumpre mais os requisitos de parceria, então o pagamento deste mês está em espera. Corrija até {until} ou a parceria será suspensa. A página Parceiros mostra o que está errado."
@@ -1148,6 +1206,19 @@
           "partnerCreditsChanged": {
             "title": "Créditos de parceiro alterados",
             "body": "{guild} agora ganha {credits} créditos por mês."
+          },
+          "upgradeEnding": {
+            "title": "{upgrade} termina em breve",
+            "body": "{upgrade} em {server} termina em {time}.",
+            "renew": "Adicione mais tempo por {price} na página Configurações do servidor.",
+            "action": "Adicionar tempo"
+          },
+          "serverIdleStopped": {
+            "title": "Servidor parado por inatividade",
+            "body": "{server} foi parado porque ninguém o usou por {hours} horas.",
+            "park": "Se ninguém o usar, ele será hibernado em cerca de {hours} horas: é feito um backup dele, e ele é removido do node até ser restaurado.",
+            "keepAwake": "Mantenha-o ativo por {days} dias · {price}.",
+            "action": "Manter ativo"
           }
         }
       },
@@ -1517,6 +1588,11 @@
       "ads": {
         "frameTitle": "Anúncio",
         "sponsored": "Patrocinado",
+        "promo": {
+          "skipTheWait": "Obter o {name}",
+          "goPlus": "Obter o {name}",
+          "freeTokens": "Ganhar tokens"
+        },
         "adblock": {
           "title": "Bloqueador de anúncios detectado",
           "message": "Os anúncios deste painel pagam pelos servidores gratuitos. Por favor, permita anúncios neste site e recarregue a página.",
@@ -1525,6 +1601,34 @@
             "closeIn": "Fechar ({seconds})"
           }
         }
+      },
+      "profileBadge": {
+        "supporter": "Apoiador",
+        "earlyBird": "Madrugador",
+        "nightOwl": "Coruja",
+        "og": "OG",
+        "builder": "Construtor",
+        "explorer": "Explorador"
+      },
+      "promo": {
+        "title": "Tenha mais com o {name}",
+        "price": "{tokens} por {days} dias",
+        "perks": {
+          "locations": "As localizações {name}",
+          "queueFirst": "Primeiro na fila de inicialização",
+          "queueAhead": "À frente dos usuários grátis na fila de inicialização",
+          "burst": "Até {percent}% a mais de CPU em cada servidor",
+          "noAds": "Sem anúncios e sem tela de espera",
+          "fewerAds": "Sem anúncios nas páginas, só antes de iniciar",
+          "panelAccess": "Painel incluído",
+          "neo": "{percent}% a mais de uso do neo",
+          "fasterBackups": "Backups e compactação mais rápidos"
+        },
+        "progressLabel": "Seus tokens",
+        "progress": "{have} de {cost}",
+        "enough": "Você tem o suficiente: obtenha o {name} agora.",
+        "get": "Obter o {name}",
+        "notNow": "Agora não"
       },
       "neo": {
         "name": "neo",
@@ -1625,6 +1729,11 @@
         "risk": {
           "destructive": "Difícil de desfazer",
           "critical": "Não pode ser desfeito ou tem um custo para você"
+        },
+        "extra": {
+          "offer": "Mais um dia de uso por {tokens}",
+          "buy": "Obter",
+          "earn": "Ganhar tokens"
         },
         "notice": {
           "limitedShort": "Você atingiu seu limite de curto prazo do {name}. O limite é renovado {time}.",
@@ -2041,6 +2150,9 @@
           "disabled": "A criação de servidores está desativada.",
           "noPlan": "Sua conta não tem um plano para criar servidores.",
           "nothingOffered": "Não há jogos que você possa implantar no momento. Por favor, entre em contato com o administrador do painel.",
+          "offers": {
+            "store": "Consiga mais na Loja de Recursos"
+          },
           "details": "Detalhes",
           "name": "Nome do servidor",
           "randomName": "Gerar nome aleatório",
@@ -2255,6 +2367,20 @@
               "createBlocked": "Não permitido",
               "createBlockedUntil": "Não permitido até {date}",
               "details": "Detalhes"
+            },
+            "badges": {
+              "title": "Emblemas",
+              "description": "Escolha um emblema para mostrar ao lado do seu nome, na barra lateral, nos servidores que você compartilha e no bate-papo deles. Cada um custa {tokens} e é seu para sempre.",
+              "descriptionOwned": "O emblema mostrado ao lado do seu nome, na barra lateral, nos servidores que você compartilha e no bate-papo deles.",
+              "buy": "Comprar · {tokens}",
+              "show": "Mostrar",
+              "shown": "Em exibição",
+              "hide": "Não mostrar emblema",
+              "balance": "Você tem {balance}.",
+              "earn": "Ganhar tokens",
+              "toast": {
+                "bought": "Emblema comprado."
+              }
             },
             "password": {
               "title": "Senha",
@@ -2870,6 +2996,53 @@
           "surveyCap": "{cap} pesquisas por dia são pagas. Uma pesquisa que termina antes porque você não se encaixa no perfil pode pagar um pequeno bônus e não conta.",
           "scriptBlocked": "Não foi possível carregar o link patrocinado. Um bloqueador de conteúdo pode estar impedindo.",
           "history": "Atividade recente",
+          "streak": {
+            "title": "Sequência diária",
+            "claim": "Resgatar os tokens de hoje",
+            "today": "Dia {day} · {tokens}",
+            "tomorrow": "Dia {day} · {tokens} · volte amanhã para ganhar {next}",
+            "hint": "Resgate uma vez por dia. Se pular um dia, a sequência recomeça no dia 1.",
+            "week": "{claimed} de 7 dias desta semana resgatados",
+            "claimed": "+{tokens} pelo dia {day}"
+          },
+          "bonus": {
+            "double": "Tokens em dobro em cada link e pesquisa",
+            "doubleUntil": "Tokens em dobro até {date}",
+            "more": "+{percent}% de tokens em cada link e pesquisa",
+            "moreUntil": "+{percent}% de tokens até {date}",
+            "survey": "Cada pesquisa paga {percent}% a mais agora."
+          },
+          "starter": {
+            "title": "Primeiros passos",
+            "description": "Cada tarefa paga uma vez. Esta lista some em {date}.",
+            "reward": "+{tokens}",
+            "claim": "Resgatar",
+            "claimed": "Resgatado",
+            "toast": "Adicionados: +{tokens}",
+            "task": {
+              "discord": "Vincule sua conta do Discord",
+              "create_server": "Crie um servidor",
+              "start_server": "Inicie seu servidor",
+              "earn": "Ganhe tokens uma vez com um link ou uma pesquisa"
+            },
+            "go": {
+              "discord": "Vincular Discord",
+              "create_server": "Criar um servidor",
+              "start_server": "Abrir seus servidores",
+              "earn": "Ganhar tokens"
+            }
+          },
+          "referrals": {
+            "title": "Convidar amigos",
+            "howItWorks": "Quando um amigo cria uma conta com seu link e ganha os primeiros {threshold}, você recebe +{reward}.",
+            "link": "Seu link",
+            "copy": "Copiar link",
+            "cap": "No máximo {friends} geram recompensa a cada 30 dias; os demais aguardam a vez.",
+            "none": "Ninguém criou uma conta com seu link ainda.",
+            "friends": "Cadastros: {friends}",
+            "progress": "{earned} de {threshold} tokens ganhos",
+            "paid": "Pago: +{reward}"
+          },
           "redemption": {
             "granted": "Adicionados: +{amount} tokens",
             "settled": "Esse já foi pago",
@@ -2887,10 +3060,14 @@
           "title": "Assinatura",
           "pageTitle": "{app} {name}",
           "subtitle": "Localizações melhores, sem espera na fila e menos anúncios. Pago por mês com tokens; nada é renovado sozinho.",
+          "subtitleAutoRenew": "Localizações melhores, sem espera na fila e menos anúncios. Pago por mês com tokens; só é renovado se você ativar essa opção.",
           "unavailable": "O {name} não está à venda no momento.",
           "active": {
             "heading": "O {name} está ativo",
             "body": "Ele vale até {until}."
+          },
+          "bundleActive": {
+            "heading": "O {plus} está incluído no seu {name}"
           },
           "plus": {
             "pitch": "Tudo o que a maioria dos servidores precisa, por mês.",
@@ -2918,6 +3095,34 @@
           },
           "balance": "Você tem {balance} tokens.",
           "earnLink": "Ganhar mais tokens",
+          "moreToGo": "Faltam {amount}",
+          "sale": {
+            "defaultName": "Promoção",
+            "until": "{percent}% de desconto em todas as assinaturas até {date}.",
+            "running": "{percent}% de desconto em todas as assinaturas."
+          },
+          "autoRenew": {
+            "label": "Renovar automaticamente",
+            "description": "Quando terminar, é renovada pelo preço do momento ({cost} hoje), se o seu saldo cobrir.",
+            "on": "O {name} agora é renovado automaticamente.",
+            "off": "O {name} não é mais renovado automaticamente."
+          },
+          "gift": {
+            "heading": "Presentear um amigo",
+            "text": "Compre uma assinatura para outra pessoa com seus tokens. Ela se soma ao tempo que a pessoa já tem, e ela vê que o presente é seu.",
+            "recipient": "Nome de usuário ou e-mail",
+            "membership": "Assinatura",
+            "option": "{name} · {days} dias · {cost}",
+            "submit": "Enviar presente",
+            "left": "Presentes restantes hoje: {count}",
+            "none": "Você já enviou os presentes de hoje. Volte amanhã.",
+            "modal": {
+              "title": "Enviar presente",
+              "body": "Gastar **{cost}** tokens em **{days} dias** de **{name}** para **{recipient}**?",
+              "confirm": "Enviar"
+            },
+            "toast": "{name} enviado para {recipient}."
+          },
           "perks": {
             "plusLocations": "As localizações {name}",
             "priority": "Prioridade na fila de inicialização quando um node está ocupado",
@@ -2932,7 +3137,8 @@
             "highestPriority": "Prioridade máxima na fila de inicialização quando um node está ocupado",
             "noAds": "Nenhum anúncio em lugar nenhum: sem banners, pop-ups, tela de espera antes de iniciar ou anúncios no jogo",
             "neoPlusplus": "{percent}% a mais de uso do neo (IA) no total",
-            "devboxPlusplus": "Um devbox do VS Code maior: {cpu} vCPU, {memory} de RAM, {disk} de disco"
+            "devboxPlusplus": "Um devbox do VS Code maior: {cpu} vCPU, {memory} de RAM, {disk} de disco",
+            "bundle": "{name} incluído"
           },
           "compare": {
             "heading": "O que você ganha",
@@ -2976,7 +3182,8 @@
             "heading": "Perguntas",
             "renew": {
               "question": "A assinatura é renovada sozinha?",
-              "answer": "Não. O {plus} e o {plusplus} valem pelos dias que você comprar, e nada é renovado sozinho. Comprar de novo antes do fim soma ao tempo restante. O {plusplus} inclui tudo o que o {plus} oferece, então você nunca precisa dos dois."
+              "answer": "Não. O {plus} e o {plusplus} valem pelos dias que você comprar, e nada é renovado sozinho. Comprar de novo antes do fim soma ao tempo restante. O {plusplus} inclui tudo o que o {plus} oferece, então você nunca precisa dos dois.",
+              "answerAutoRenew": "Só se você ativar Renovar automaticamente nela: assim ela é renovada quando termina, pelo preço do momento, enquanto seu saldo cobrir, e você é avisado antes do fim. Comprar de novo antes do fim soma ao tempo restante. O {plusplus} inclui tudo o que o {plus} oferece, então você nunca precisa dos dois."
             },
             "expiry": {
               "question": "O que acontece quando a assinatura termina?",
@@ -3215,6 +3422,10 @@
           "toast": {
             "bought": "O painel é seu por {days} dias.",
             "failed": "O pagamento não foi concluído."
+          },
+          "offers": {
+            "membership": "O {plus} e o {plusplus} incluem o painel.",
+            "membershipLink": "Obter o {name} em vez disso"
           }
         }
       },
@@ -5903,6 +6114,115 @@
             "scheduledHint": "Receba um e-mail quando um backup agendado deste servidor for concluído ou falhar.",
             "saved": "Configurações de notificação atualizadas"
           },
+          "upgrades": {
+            "title": "Upgrades",
+            "note": "Extras para este servidor, pagos com seus próprios tokens. Você tem {balance}.",
+            "buy": "Comprar · {price}",
+            "add": "Adicionar {duration} · {price}",
+            "runsUntil": "Vale até {time}.",
+            "count": "{count} de {max} ativos.",
+            "duration": {
+              "hour": "uma hora",
+              "hours": "{count} horas",
+              "day": "um dia",
+              "days": "{count} dias"
+            },
+            "unavailable": {
+              "max": "Este servidor já tem o máximo permitido em uso.",
+              "nodeBusy": "Indisponível no momento: o node está ocupado.",
+              "nodeUnknown": "Indisponível no momento, tente de novo em alguns minutos.",
+              "unlimited": "Este servidor não tem limite para aumentar.",
+              "parked": "Não enquanto o servidor estiver hibernado."
+            },
+            "kinds": {
+              "keepAwake": {
+                "title": "Manter ativo",
+                "body": "Por {duration}, este servidor não será parado, hibernado nem excluído por inatividade.",
+                "running": "Este servidor não será parado, hibernado nem excluído por inatividade."
+              },
+              "boost": {
+                "title": "Impulso",
+                "body": "+{memory} de memória e +{cpu}% de CPU além dos seus limites, por {duration}.",
+                "running": "Mais memória e CPU além dos seus limites.",
+                "restart": "Reinicie o servidor para o jogo usar a memória extra."
+              },
+              "extraAllocation": {
+                "title": "Porta extra",
+                "body": "Mais uma porta para este servidor, por {duration}.",
+                "running": "Mais uma porta para este servidor."
+              },
+              "extraDatabase": {
+                "title": "Banco de dados extra",
+                "body": "Mais um banco de dados para este servidor, por {duration}.",
+                "running": "Mais um banco de dados para este servidor."
+              },
+              "extraBackup": {
+                "title": "Vaga extra de backup",
+                "body": "Mais um backup para este servidor, por {duration}.",
+                "running": "Mais um backup para este servidor."
+              },
+              "cardColor": {
+                "title": "Cor do card",
+                "body": "Uma cor para o card deste servidor na sua lista de servidores, para sempre.",
+                "running": "Aparece na sua lista de servidores. Trocar é grátis."
+              }
+            },
+            "confirm": {
+              "price": "Custa {price}. Você tem {balance}.",
+              "short": "Custa {price}, e você tem {balance}. Ganhe tokens primeiro.",
+              "earn": "Ganhar tokens"
+            },
+            "color": {
+              "pick": "Escolha uma cor",
+              "free": "Trocar a cor é grátis.",
+              "change": "Trocar cor",
+              "save": "Salvar cor",
+              "names": {
+                "blue": "Azul",
+                "cyan": "Ciano",
+                "teal": "Verde-azulado",
+                "green": "Verde",
+                "yellow": "Amarelo",
+                "orange": "Laranja",
+                "red": "Vermelho",
+                "pink": "Rosa",
+                "grape": "Roxo",
+                "violet": "Violeta"
+              }
+            },
+            "offer": {
+              "extraAllocation": {
+                "title": "Limite de portas atingido",
+                "body": "Adicione mais uma porta por {duration} · {price}.",
+                "button": "Adicionar uma porta · {price}"
+              },
+              "extraDatabase": {
+                "title": "Limite de bancos de dados atingido",
+                "body": "Adicione mais um banco de dados por {duration} · {price}.",
+                "button": "Adicionar um banco de dados · {price}"
+              },
+              "extraBackup": {
+                "title": "Limite de backups atingido",
+                "body": "Adicione mais uma vaga de backup por {duration} · {price}. Seus backups continuam quando ela terminar.",
+                "button": "Adicionar uma vaga · {price}"
+              },
+              "keepAwake": {
+                "title": "Parado porque ninguém o usava",
+                "body": "Este servidor foi parado depois de um tempo sem uso e será hibernado se isso continuar. Mantenha-o ativo por {duration} · {price}.",
+                "button": "Manter ativo · {price}"
+              },
+              "keepAwakeParked": {
+                "title": "Mantenha-o ativo",
+                "body": "Um passe Manter ativo impede que este servidor seja excluído enquanto vale e que seja hibernado de novo depois que voltar. {duration} · {price}.",
+                "button": "Manter ativo · {price}"
+              }
+            },
+            "toast": {
+              "bought": "{title} vale até {time}.",
+              "boughtNoEnd": "Compra concluída: {title}.",
+              "color": "Cor do card salva."
+            }
+          },
           "danger": {
             "title": "Zona de perigo",
             "note": "As ações nesta área são destrutivas e afetam diretamente a execução do seu servidor. Faça backup de todos os dados importantes e arquivos de mundo antes de continuar.",
@@ -5970,6 +6290,10 @@
             "body": "O {name} custa {cost} tokens por mês: prioridade nesta fila para todos os seus servidores, as localizações {name} e nenhum anúncio além da tela de espera.",
             "button": "Obter o {name}"
           },
+          "offers": {
+            "premium": "Com o {name}, você é o primeiro desta fila, à frente de todos.",
+            "premiumLink": "Ver o {name}"
+          },
           "move": {
             "heading": "Transferir para um node mais tranquilo",
             "body": "Podemos transferir este servidor para o node {node}, que não está ocupado. Seus arquivos vão junto.",
@@ -5994,7 +6318,18 @@
           "body": "Os servidores grátis são pagos por anúncios como os desta página. Deixe-os visíveis por até {seconds} segundos — o console abre sozinho, e o servidor já está iniciando enquanto você espera.",
           "waitLabel": "Abrindo o console",
           "seconds": "em {seconds} s",
-          "ready": "a qualquer momento"
+          "ready": "a qualquer momento",
+          "skip": {
+            "heading": "Pule a espera",
+            "body": "Com um passe, todas as suas inicializações pulam esta tela, em todos os seus servidores. Você tem {balance}.",
+            "running": "Seu passe de um dia vale até {time}.",
+            "button": "Pular a espera por {hours} · {tokens}",
+            "earn": "Ganhar tokens",
+            "premium": "O {name} pula esta tela",
+            "toast": {
+              "bought": "Passe de um dia comprado: sem tela de espera até {time}."
+            }
+          }
         },
         "limbo": {
           "title": "Servidor hibernado",
@@ -7102,6 +7437,7 @@
           "create": {
             "title": "Criar subdomínio",
             "depositCaption": "Depósito em tokens • Subdomínio #{number}",
+            "shortCaption": "Depósito em tokens • Nome curto (3 caracteres ou menos)",
             "refundNote": "(reembolsável ao excluir)",
             "balance": "Seu saldo",
             "name": "Nome",

@@ -263,6 +263,22 @@
       "few": "{count} bản build",
       "many": "{count} bản build",
       "other": "{count} bản build"
+    },
+    "friend": {
+      "zero": "{count} người bạn",
+      "one": "{count} người bạn",
+      "two": "{count} người bạn",
+      "few": "{count} người bạn",
+      "many": "{count} người bạn",
+      "other": "{count} người bạn"
+    },
+    "hour": {
+      "zero": "{count} giờ",
+      "one": "{count} giờ",
+      "two": "{count} giờ",
+      "few": "{count} giờ",
+      "many": "{count} giờ",
+      "other": "{count} giờ"
     }
   },
   "translations": {
@@ -898,7 +914,16 @@
           "discordInviteClawback": "Thu hồi thưởng lời mời",
           "discordInviteDebt": "Credit lời mời còn nợ",
           "discordBoost": "Boost Discord",
-          "partner": "Chương trình đối tác"
+          "partner": "Chương trình đối tác",
+          "serverUpgrade": "Nâng cấp máy chủ",
+          "membershipGift": "Quà tặng",
+          "membershipGiftReceived": "Nhận quà tặng",
+          "streak": "Chuỗi hằng ngày",
+          "starter": "Khởi đầu",
+          "referral": "Giới thiệu bạn bè",
+          "dayPass": "Vé 1 ngày",
+          "badge": "Huy hiệu hồ sơ",
+          "neoExtra": "Thêm mức sử dụng neo"
         }
       },
       "chartLegend": {
@@ -1012,7 +1037,11 @@
           "memory": "RAM",
           "disk": "Ổ đĩa",
           "openStore": "Mua thêm tại Cửa Hàng Tài Nguyên",
-          "openTokens": "Mở trang Token"
+          "openTokens": "Mở trang Token",
+          "goal": "{tokens} / {cost} để có {name}",
+          "goalReady": "Đủ để có {name}",
+          "openMembership": "Mở trang Hội Viên",
+          "streak": "Token chuỗi hôm nay đang chờ bạn"
         }
       },
       "notifications": {
@@ -1025,6 +1054,8 @@
         "delete": "Xóa thông báo",
         "openServer": "Mở máy chủ",
         "viewBackups": "Xem bản sao lưu",
+        "renew": "Gia hạn",
+        "viewMembership": "Xem gói hội viên",
         "showMore": "Xem thêm",
         "empty": "Không có thông báo",
         "emptyHint": "Vui lòng kiểm tra lại sau.",
@@ -1052,6 +1083,29 @@
           "membershipEnded": {
             "title": "{membership} đã kết thúc",
             "body": "Các máy chủ ở vị trí mà gói hội viên này mở đang được chuyển sang vị trí khác: {servers}. Theo dõi trên trang Chuyển Máy Chủ của từng máy chủ."
+          },
+          "membershipEndsSoon": {
+            "title": "{membership} sắp hết hạn",
+            "body": "Gói hết hạn vào {date}.",
+            "renews": "Gói sẽ tự động gia hạn với giá {cost}.",
+            "renewsShort": "Gói đã được đặt tự động gia hạn, nhưng số dư của bạn chưa đủ {cost}.",
+            "notRenewing": "Gói không tự động gia hạn. Gia hạn tốn {cost}, và số dư của bạn đủ để trả.",
+            "notRenewingShort": "Gói không tự động gia hạn. Gia hạn tốn {cost}."
+          },
+          "membershipRenewFailed": {
+            "title": "Không thể gia hạn {membership}",
+            "body": "Cần thêm {amount}."
+          },
+          "membershipGifted": {
+            "title": "{from} đã tặng bạn {membership}",
+            "body": "{days} ngày {membership}, được cộng thêm vào thời gian bạn đang có.",
+            "until": "Giờ gói có hiệu lực đến {date}."
+          },
+          "panelAccessEndsSoon": {
+            "title": "Quyền truy cập bảng điều khiển sắp hết hạn",
+            "body": "Quyền truy cập bảng điều khiển đã trả phí của bạn hết hạn vào {date}.",
+            "covered": "Số dư của bạn đủ cho khoản {cost} tiếp theo.",
+            "short": "Thanh toán lần nữa tốn {cost}."
           },
           "failoverDone": {
             "title": "Đã khôi phục máy chủ",
@@ -1129,6 +1183,10 @@
             "title": "Đã nhận credit đối tác",
             "body": "{credits} credit cho {guild} trong tháng này."
           },
+          "referralPaid": {
+            "title": "Thưởng giới thiệu",
+            "body": "Người bạn {username} của bạn đã kiếm được {threshold} đầu tiên: +{amount}"
+          },
           "partnerCheckFailed": {
             "title": "Kiểm tra đối tác không đạt",
             "body": "{guild} không còn đạt yêu cầu đối tác nên khoản thanh toán tháng này đang bị giữ. Hãy khắc phục trước {until}, nếu không quan hệ đối tác sẽ bị tạm ngưng. Trang Đối tác cho biết vấn đề."
@@ -1148,6 +1206,19 @@
           "partnerCreditsChanged": {
             "title": "Credit đối tác đã thay đổi",
             "body": "{guild} giờ nhận {credits} credit mỗi tháng."
+          },
+          "upgradeEnding": {
+            "title": "{upgrade} sắp hết hạn",
+            "body": "{upgrade} trên {server} hết hạn vào {time}.",
+            "renew": "Thêm thời gian với giá {price} trong trang Cài đặt của máy chủ.",
+            "action": "Thêm thời gian"
+          },
+          "serverIdleStopped": {
+            "title": "Máy chủ đã dừng do không hoạt động",
+            "body": "{server} đã bị dừng vì không ai dùng trong {hours} giờ.",
+            "park": "Nếu không ai dùng, máy chủ sẽ chuyển sang ngủ đông sau khoảng {hours} giờ: được sao lưu rồi gỡ khỏi node cho đến khi được khôi phục.",
+            "keepAwake": "Giữ máy chủ hoạt động trong {days} ngày · {price}.",
+            "action": "Giữ hoạt động"
           }
         }
       },
@@ -1517,6 +1588,11 @@
       "ads": {
         "frameTitle": "Quảng cáo",
         "sponsored": "Được Tài Trợ",
+        "promo": {
+          "skipTheWait": "Nhận {name}",
+          "goPlus": "Nhận {name}",
+          "freeTokens": "Kiếm token"
+        },
         "adblock": {
           "title": "Phát Hiện Trình Chặn Quảng Cáo",
           "message": "Quảng cáo trên panel này chi trả cho các máy chủ miễn phí. Vui lòng cho phép quảng cáo trên trang web này, rồi tải lại trang.",
@@ -1525,6 +1601,34 @@
             "closeIn": "Đóng ({seconds})"
           }
         }
+      },
+      "profileBadge": {
+        "supporter": "Người ủng hộ",
+        "earlyBird": "Người dậy sớm",
+        "nightOwl": "Cú đêm",
+        "og": "OG",
+        "builder": "Nhà xây dựng",
+        "explorer": "Nhà thám hiểm"
+      },
+      "promo": {
+        "title": "Nhận nhiều hơn với {name}",
+        "price": "{tokens} cho {days} ngày",
+        "perks": {
+          "locations": "Các vị trí {name}",
+          "queueFirst": "Đứng đầu hàng chờ khởi động",
+          "queueAhead": "Đứng trước người dùng miễn phí trong hàng chờ khởi động",
+          "burst": "Thêm tối đa {percent}% CPU cho mỗi máy chủ",
+          "noAds": "Không quảng cáo và không có màn hình chờ",
+          "fewerAds": "Không quảng cáo trên các trang, chỉ có trước khi khởi động",
+          "panelAccess": "Đã bao gồm bảng điều khiển",
+          "neo": "Thêm {percent}% mức sử dụng neo",
+          "fasterBackups": "Sao lưu và nén nhanh hơn"
+        },
+        "progressLabel": "Token của bạn",
+        "progress": "{have} trên {cost}",
+        "enough": "Bạn đã đủ token: nhận {name} ngay.",
+        "get": "Nhận {name}",
+        "notNow": "Để sau"
       },
       "neo": {
         "name": "neo",
@@ -1625,6 +1729,11 @@
         "risk": {
           "destructive": "Khó hoàn tác",
           "critical": "Không thể hoàn tác, hoặc khiến bạn tốn phí"
+        },
+        "extra": {
+          "offer": "Thêm lượt dùng của một ngày với giá {tokens}",
+          "buy": "Mua",
+          "earn": "Kiếm token"
         },
         "notice": {
           "limitedShort": "Bạn đã đạt giới hạn {name} ngắn hạn. Giới hạn sẽ được đặt lại {time}.",
@@ -2041,6 +2150,9 @@
           "disabled": "Tính năng tạo máy chủ đang bị tắt.",
           "noPlan": "Tài khoản của bạn không có gói nào để tạo máy chủ.",
           "nothingOffered": "Hiện không có game nào bạn có thể triển khai. Vui lòng liên hệ quản trị viên panel.",
+          "offers": {
+            "store": "Mua thêm tại Cửa Hàng Tài Nguyên"
+          },
           "details": "Chi Tiết",
           "name": "Tên Máy Chủ",
           "randomName": "Tạo tên ngẫu nhiên",
@@ -2258,6 +2370,20 @@
               "createBlocked": "Không được phép",
               "createBlockedUntil": "Không được phép cho đến {date}",
               "details": "Chi tiết"
+            },
+            "badges": {
+              "title": "Huy hiệu",
+              "description": "Chọn một huy hiệu để hiển thị cạnh tên của bạn, ở thanh bên, trên các máy chủ bạn chia sẻ và trong cuộc trò chuyện của chúng. Mỗi huy hiệu giá {tokens}, là của bạn mãi mãi.",
+              "descriptionOwned": "Huy hiệu hiển thị cạnh tên của bạn, ở thanh bên, trên các máy chủ bạn chia sẻ và trong cuộc trò chuyện của chúng.",
+              "buy": "Mua · {tokens}",
+              "show": "Hiển thị",
+              "shown": "Đang hiển thị",
+              "hide": "Không hiển thị huy hiệu",
+              "balance": "Bạn có {balance}.",
+              "earn": "Kiếm token",
+              "toast": {
+                "bought": "Đã mua huy hiệu."
+              }
             },
             "password": {
               "title": "Mật khẩu",
@@ -2873,6 +2999,53 @@
           "surveyCap": "Mỗi ngày {cap} khảo sát được trả thưởng. Khảo sát kết thúc sớm vì bạn không phù hợp có thể trả một khoản thưởng nhỏ và không được tính.",
           "scriptBlocked": "Không tải được liên kết tài trợ. Có thể một trình chặn nội dung đang chặn nó.",
           "history": "Hoạt động gần đây",
+          "streak": {
+            "title": "Chuỗi hằng ngày",
+            "claim": "Nhận token hôm nay",
+            "today": "Ngày {day} · {tokens}",
+            "tomorrow": "Ngày {day} · {tokens} · quay lại ngày mai để nhận {next}",
+            "hint": "Nhận mỗi ngày một lần. Bỏ lỡ một ngày, chuỗi sẽ bắt đầu lại từ ngày 1.",
+            "week": "Đã nhận {claimed} trên 7 ngày của tuần này",
+            "claimed": "+{tokens} cho ngày {day}"
+          },
+          "bonus": {
+            "double": "Nhân đôi token cho mọi liên kết và khảo sát",
+            "doubleUntil": "Nhân đôi token đến {date}",
+            "more": "+{percent}% token cho mọi liên kết và khảo sát",
+            "moreUntil": "+{percent}% token đến {date}",
+            "survey": "Hiện mỗi khảo sát trả thêm {percent}%."
+          },
+          "starter": {
+            "title": "Khởi đầu",
+            "description": "Mỗi nhiệm vụ chỉ trả thưởng một lần. Danh sách này sẽ biến mất vào {date}.",
+            "reward": "+{tokens}",
+            "claim": "Nhận",
+            "claimed": "Đã nhận",
+            "toast": "Đã cộng: +{tokens}",
+            "task": {
+              "discord": "Liên kết tài khoản Discord của bạn",
+              "create_server": "Tạo một máy chủ",
+              "start_server": "Khởi động máy chủ của bạn",
+              "earn": "Kiếm token một lần qua liên kết hoặc khảo sát"
+            },
+            "go": {
+              "discord": "Liên kết Discord",
+              "create_server": "Tạo máy chủ",
+              "start_server": "Mở máy chủ của bạn",
+              "earn": "Kiếm token"
+            }
+          },
+          "referrals": {
+            "title": "Mời bạn bè",
+            "howItWorks": "Khi một người bạn đăng ký bằng liên kết của bạn và kiếm được {threshold} đầu tiên, bạn nhận +{reward}.",
+            "link": "Liên kết của bạn",
+            "copy": "Sao chép liên kết",
+            "cap": "Tối đa {friends} được trả thưởng trong 30 ngày bất kỳ; số còn lại chờ đến lượt.",
+            "none": "Chưa có ai đăng ký bằng liên kết của bạn.",
+            "friends": "{friends} đã đăng ký",
+            "progress": "Đã kiếm {earned} trên {threshold} token",
+            "paid": "Đã trả +{reward}"
+          },
           "redemption": {
             "granted": "Đã cộng: +{amount} token",
             "settled": "Lượt này đã được trả thưởng rồi",
@@ -2890,10 +3063,14 @@
           "title": "Hội Viên",
           "pageTitle": "{app} {name}",
           "subtitle": "Vị trí tốt hơn, không phải xếp hàng chờ và ít quảng cáo hơn. Trả theo tháng bằng token; không có gì tự động gia hạn.",
+          "subtitleAutoRenew": "Vị trí tốt hơn, không phải xếp hàng chờ và ít quảng cáo hơn. Trả theo tháng bằng token; chỉ tự động gia hạn nếu bạn bật tùy chọn đó.",
           "unavailable": "{name} hiện chưa được bán.",
           "active": {
             "heading": "{name} đang hoạt động",
             "body": "Có hiệu lực đến {until}."
+          },
+          "bundleActive": {
+            "heading": "{plus} đã được bao gồm trong {name} của bạn"
           },
           "plus": {
             "pitch": "Mọi thứ mà hầu hết máy chủ cần, theo tháng.",
@@ -2921,6 +3098,34 @@
           },
           "balance": "Bạn có {balance} token.",
           "earnLink": "Kiếm thêm token",
+          "moreToGo": "Còn thiếu {amount}",
+          "sale": {
+            "defaultName": "Khuyến mãi",
+            "until": "Giảm {percent}% mọi gói hội viên đến {date}.",
+            "running": "Giảm {percent}% mọi gói hội viên."
+          },
+          "autoRenew": {
+            "label": "Tự động gia hạn",
+            "description": "Khi hết hạn, gói sẽ được gia hạn theo giá lúc đó ({cost} hiện nay), nếu số dư của bạn đủ.",
+            "on": "{name} giờ sẽ tự động gia hạn.",
+            "off": "{name} sẽ không còn tự động gia hạn."
+          },
+          "gift": {
+            "heading": "Tặng cho bạn bè",
+            "text": "Dùng token của bạn để mua gói hội viên cho người khác. Thời gian được cộng thêm vào thời gian họ đang có, và họ sẽ thấy món quà đến từ bạn.",
+            "recipient": "Tên người dùng hoặc email",
+            "membership": "Gói hội viên",
+            "option": "{name} · {days} ngày · {cost}",
+            "submit": "Gửi quà",
+            "left": "Số quà còn lại hôm nay: {count}",
+            "none": "Bạn đã gửi hết quà của hôm nay. Hãy quay lại vào ngày mai.",
+            "modal": {
+              "title": "Gửi Quà",
+              "body": "Dùng **{cost}** token để mua **{name}** trong **{days} ngày** cho **{recipient}**?",
+              "confirm": "Gửi"
+            },
+            "toast": "Đã gửi {name} cho {recipient}."
+          },
           "perks": {
             "plusLocations": "Các vị trí {name}",
             "priority": "Ưu tiên trong hàng chờ khởi động khi node đang bận",
@@ -2935,7 +3140,8 @@
             "highestPriority": "Ưu tiên cao nhất trong hàng chờ khởi động khi node đang bận",
             "noAds": "Không có quảng cáo ở bất cứ đâu: không banner, popup, màn hình chờ trước khi khởi động hay quảng cáo trong game",
             "neoPlusplus": "Tổng cộng thêm {percent}% mức sử dụng neo (AI)",
-            "devboxPlusplus": "Devbox VS Code lớn hơn: {cpu} vCPU, {memory} RAM, {disk} ổ đĩa"
+            "devboxPlusplus": "Devbox VS Code lớn hơn: {cpu} vCPU, {memory} RAM, {disk} ổ đĩa",
+            "bundle": "Đã bao gồm {name}"
           },
           "compare": {
             "heading": "Bạn nhận được gì",
@@ -2979,7 +3185,8 @@
             "heading": "Câu hỏi",
             "renew": {
               "question": "Gói hội viên có tự động gia hạn không?",
-              "answer": "Không. {plus} và {plusplus} đều có hiệu lực theo số ngày bạn mua, và không có gì tự động gia hạn. Mua lại trước khi một gói hết hạn sẽ cộng thêm vào thời gian còn lại. {plusplus} bao gồm mọi thứ {plus} mang lại, nên bạn không bao giờ cần cả hai."
+              "answer": "Không. {plus} và {plusplus} đều có hiệu lực theo số ngày bạn mua, và không có gì tự động gia hạn. Mua lại trước khi một gói hết hạn sẽ cộng thêm vào thời gian còn lại. {plusplus} bao gồm mọi thứ {plus} mang lại, nên bạn không bao giờ cần cả hai.",
+              "answerAutoRenew": "Chỉ khi bạn bật Tự động gia hạn cho gói đó: khi ấy gói sẽ được gia hạn lúc hết hạn, theo giá tại thời điểm đó, miễn là số dư của bạn đủ, và bạn sẽ được báo trước khi gói hết hạn. Mua lại trước khi một gói hết hạn sẽ cộng thêm vào thời gian còn lại. {plusplus} bao gồm mọi thứ {plus} mang lại, nên bạn không bao giờ cần cả hai."
             },
             "expiry": {
               "question": "Điều gì xảy ra khi gói hội viên hết hạn?",
@@ -3218,6 +3425,10 @@
           "toast": {
             "bought": "Bảng điều khiển là của bạn trong {days} ngày.",
             "failed": "Thanh toán không thành công."
+          },
+          "offers": {
+            "membership": "{plus} và {plusplus} đã bao gồm bảng điều khiển.",
+            "membershipLink": "Nhận {name} thay vào đó"
           }
         }
       },
@@ -8877,6 +9088,115 @@
             "scheduledHint": "Nhận email khi một bản sao lưu theo lịch trình của máy chủ này hoàn tất hoặc thất bại.",
             "saved": "Đã Cập Nhật Cài Đặt Thông Báo"
           },
+          "upgrades": {
+            "title": "Nâng cấp",
+            "note": "Tiện ích thêm cho máy chủ này, trả bằng token của chính bạn. Bạn có {balance}.",
+            "buy": "Mua · {price}",
+            "add": "Thêm {duration} · {price}",
+            "runsUntil": "Có hiệu lực đến {time}.",
+            "count": "Đang hoạt động: {count} trên {max}.",
+            "duration": {
+              "hour": "một giờ",
+              "hours": "{count} giờ",
+              "day": "một ngày",
+              "days": "{count} ngày"
+            },
+            "unavailable": {
+              "max": "Máy chủ này đã đạt số lượng tối đa đang hoạt động.",
+              "nodeBusy": "Hiện không khả dụng: node đang bận.",
+              "nodeUnknown": "Hiện không khả dụng, hãy thử lại sau vài phút.",
+              "unlimited": "Máy chủ này không có giới hạn nào để nâng.",
+              "parked": "Không thể khi máy chủ đang ngủ đông."
+            },
+            "kinds": {
+              "keepAwake": {
+                "title": "Giữ hoạt động",
+                "body": "Trong {duration}, máy chủ này sẽ không bị dừng, chuyển sang ngủ đông hay bị xóa do không hoạt động.",
+                "running": "Máy chủ này sẽ không bị dừng, chuyển sang ngủ đông hay bị xóa do không hoạt động."
+              },
+              "boost": {
+                "title": "Tăng cường",
+                "body": "+{memory} bộ nhớ và +{cpu}% CPU ngoài giới hạn của bạn, trong {duration}.",
+                "running": "Thêm bộ nhớ và CPU ngoài giới hạn của bạn.",
+                "restart": "Khởi động lại máy chủ để game dùng được phần bộ nhớ thêm."
+              },
+              "extraAllocation": {
+                "title": "Cổng thêm",
+                "body": "Thêm một cổng cho máy chủ này, trong {duration}.",
+                "running": "Thêm một cổng cho máy chủ này."
+              },
+              "extraDatabase": {
+                "title": "Cơ sở dữ liệu thêm",
+                "body": "Thêm một cơ sở dữ liệu cho máy chủ này, trong {duration}.",
+                "running": "Thêm một cơ sở dữ liệu cho máy chủ này."
+              },
+              "extraBackup": {
+                "title": "Slot sao lưu thêm",
+                "body": "Thêm một bản sao lưu cho máy chủ này, trong {duration}.",
+                "running": "Thêm một bản sao lưu cho máy chủ này."
+              },
+              "cardColor": {
+                "title": "Màu thẻ",
+                "body": "Một màu cho thẻ của máy chủ này trong danh sách máy chủ của bạn, mãi mãi.",
+                "running": "Hiển thị trong danh sách máy chủ của bạn. Đổi màu miễn phí."
+              }
+            },
+            "confirm": {
+              "price": "Giá {price}. Bạn có {balance}.",
+              "short": "Giá {price} và bạn có {balance}. Hãy kiếm token trước.",
+              "earn": "Kiếm token"
+            },
+            "color": {
+              "pick": "Chọn màu",
+              "free": "Đổi màu miễn phí.",
+              "change": "Đổi màu",
+              "save": "Lưu màu",
+              "names": {
+                "blue": "Xanh dương",
+                "cyan": "Xanh lơ",
+                "teal": "Xanh mòng két",
+                "green": "Xanh lá",
+                "yellow": "Vàng",
+                "orange": "Cam",
+                "red": "Đỏ",
+                "pink": "Hồng",
+                "grape": "Tím",
+                "violet": "Tím xanh"
+              }
+            },
+            "offer": {
+              "extraAllocation": {
+                "title": "Đã đạt giới hạn cổng",
+                "body": "Thêm một cổng trong {duration} · {price}.",
+                "button": "Thêm cổng · {price}"
+              },
+              "extraDatabase": {
+                "title": "Đã đạt giới hạn cơ sở dữ liệu",
+                "body": "Thêm một cơ sở dữ liệu trong {duration} · {price}.",
+                "button": "Thêm cơ sở dữ liệu · {price}"
+              },
+              "extraBackup": {
+                "title": "Đã đạt giới hạn sao lưu",
+                "body": "Thêm một slot sao lưu trong {duration} · {price}. Các bản sao lưu của bạn vẫn được giữ khi hết hạn.",
+                "button": "Thêm slot · {price}"
+              },
+              "keepAwake": {
+                "title": "Đã dừng vì không ai dùng",
+                "body": "Máy chủ này đã bị dừng sau một thời gian không được dùng, và sẽ chuyển sang ngủ đông nếu tiếp tục như vậy. Giữ máy chủ hoạt động trong {duration} · {price}.",
+                "button": "Giữ hoạt động · {price}"
+              },
+              "keepAwakeParked": {
+                "title": "Giữ máy chủ hoạt động",
+                "body": "Vé Giữ hoạt động giúp máy chủ này không bị xóa trong thời gian hiệu lực, và không bị chuyển sang ngủ đông lại sau khi trở lại. {duration} · {price}.",
+                "button": "Giữ hoạt động · {price}"
+              }
+            },
+            "toast": {
+              "bought": "{title} có hiệu lực đến {time}.",
+              "boughtNoEnd": "Đã mua {title}.",
+              "color": "Đã lưu màu thẻ."
+            }
+          },
           "danger": {
             "title": "Vùng Nguy Hiểm",
             "note": "Các thao tác trong khu vực này mang tính phá hủy và ảnh hưởng trực tiếp đến hoạt động của máy chủ. Hãy đảm bảo bạn đã sao lưu mọi dữ liệu quan trọng hoặc tệp thế giới trước khi tiếp tục.",
@@ -8944,6 +9264,10 @@
             "body": "{name} có giá {cost} token mỗi tháng: ưu tiên trong hàng chờ này cho mọi máy chủ của bạn, các vị trí {name} và không có quảng cáo nào ngoài màn hình chờ.",
             "button": "Nhận {name}"
           },
+          "offers": {
+            "premium": "{name} được xếp đầu hàng chờ này, trước tất cả mọi người.",
+            "premiumLink": "Xem {name}"
+          },
           "move": {
             "heading": "Chuyển sang node ít bận hơn",
             "body": "Chúng tôi có thể chuyển máy chủ này sang {node}, node này đang không bận. Tệp của bạn sẽ được chuyển theo.",
@@ -8968,7 +9292,18 @@
           "body": "Máy chủ miễn phí được chi trả nhờ quảng cáo như những quảng cáo trên trang này. Hãy để chúng hiển thị tối đa {seconds} giây — bảng điều khiển sẽ tự mở, và máy chủ đã bắt đầu khởi động trong lúc bạn chờ.",
           "waitLabel": "Đang mở bảng điều khiển",
           "seconds": "sau {seconds} giây",
-          "ready": "trong giây lát"
+          "ready": "trong giây lát",
+          "skip": {
+            "heading": "Bỏ qua thời gian chờ",
+            "body": "Một vé giúp mọi lần khởi động của bạn bỏ qua màn hình này, trên tất cả máy chủ của bạn. Bạn có {balance}.",
+            "running": "Vé 1 ngày của bạn có hiệu lực đến {time}.",
+            "button": "Bỏ qua thời gian chờ trong {hours} · {tokens}",
+            "earn": "Kiếm token",
+            "premium": "{name} bỏ qua màn hình này",
+            "toast": {
+              "bought": "Đã mua vé 1 ngày: không có màn hình chờ đến {time}."
+            }
+          }
         },
         "limbo": {
           "title": "Máy chủ đang ngủ đông",
@@ -10076,6 +10411,7 @@
           "create": {
             "title": "Tạo Tên Miền Phụ",
             "depositCaption": "Tiền Cọc Token • Tên Miền Phụ #{number}",
+            "shortCaption": "Tiền Cọc Token • Tên ngắn (tối đa 3 ký tự)",
             "refundNote": "(được hoàn lại khi xóa)",
             "balance": "Số Dư Của Bạn",
             "name": "Tên",

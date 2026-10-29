@@ -263,6 +263,22 @@
       "few": "{count} derleme",
       "many": "{count} derleme",
       "other": "{count} derleme"
+    },
+    "friend": {
+      "zero": "{count} arkadaş",
+      "one": "{count} arkadaş",
+      "two": "{count} arkadaş",
+      "few": "{count} arkadaş",
+      "many": "{count} arkadaş",
+      "other": "{count} arkadaş"
+    },
+    "hour": {
+      "zero": "{count} saat",
+      "one": "{count} saat",
+      "two": "{count} saat",
+      "few": "{count} saat",
+      "many": "{count} saat",
+      "other": "{count} saat"
     }
   },
   "translations": {
@@ -898,7 +914,16 @@
           "discordInviteClawback": "Davet ödülü geri alındı",
           "discordInviteDebt": "Davet kredisi borcu",
           "discordBoost": "Discord takviyesi",
-          "partner": "Ortaklık programı"
+          "partner": "Ortaklık programı",
+          "serverUpgrade": "Sunucu yükseltmesi",
+          "membershipGift": "Hediye",
+          "membershipGiftReceived": "Alınan hediye",
+          "streak": "Günlük seri",
+          "starter": "Başlangıç",
+          "referral": "Arkadaş daveti",
+          "dayPass": "Günlük geçiş",
+          "badge": "Profil rozeti",
+          "neoExtra": "Ek neo kullanımı"
         }
       },
       "chartLegend": {
@@ -1012,7 +1037,11 @@
           "memory": "RAM",
           "disk": "Disk",
           "openStore": "Kaynak Mağazası'ndan daha fazlasını alın",
-          "openTokens": "Jetonlar sayfasını aç"
+          "openTokens": "Jetonlar sayfasını aç",
+          "goal": "{name} için {tokens} / {cost}",
+          "goalReady": "{name} için yeterli",
+          "openMembership": "Üyelik sayfasını aç",
+          "streak": "Bugünkü seri jetonlarınız sizi bekliyor"
         }
       },
       "notifications": {
@@ -1025,6 +1054,8 @@
         "delete": "Bildirimi sil",
         "openServer": "Sunucuyu aç",
         "viewBackups": "Yedekleri görüntüle",
+        "renew": "Yenile",
+        "viewMembership": "Üyeliği görüntüle",
         "showMore": "Daha fazla göster",
         "empty": "Bildirim yok",
         "emptyHint": "Lütfen daha sonra tekrar kontrol edin.",
@@ -1052,6 +1083,29 @@
           "membershipEnded": {
             "title": "{membership} sona erdi",
             "body": "Üyeliğin açtığı konumlardaki sunucular başka bir konuma taşınıyor: {servers}. İlerlemeyi her sunucunun Taşıma sayfasından takip edin."
+          },
+          "membershipEndsSoon": {
+            "title": "{membership} yakında sona eriyor",
+            "body": "{date} tarihinde sona eriyor.",
+            "renews": "{cost} karşılığında kendiliğinden yenilenir.",
+            "renewsShort": "Kendiliğinden yenilenecek şekilde ayarlı, ancak bakiyeniz henüz {cost} tutarını karşılamıyor.",
+            "notRenewing": "Kendiliğinden yenilenmez. Yenilemek {cost} tutar ve bakiyeniz bunu karşılıyor.",
+            "notRenewingShort": "Kendiliğinden yenilenmez. Yenilemek {cost} tutar."
+          },
+          "membershipRenewFailed": {
+            "title": "{membership} yenilenemedi",
+            "body": "{amount} daha gerekiyor."
+          },
+          "membershipGifted": {
+            "title": "{from} size {membership} hediye etti",
+            "body": "{days} günlük {membership}, mevcut sürenize eklendi.",
+            "until": "Artık {date} tarihine kadar geçerli."
+          },
+          "panelAccessEndsSoon": {
+            "title": "Panel erişimi yakında sona eriyor",
+            "body": "Ücretli panel erişiminiz {date} tarihinde sona eriyor.",
+            "covered": "Bakiyeniz sonraki {cost} tutarını karşılıyor.",
+            "short": "Yeniden ödemek {cost} tutar."
           },
           "failoverDone": {
             "title": "Sunucu kurtarıldı",
@@ -1129,6 +1183,10 @@
             "title": "Ortaklık kredileri alındı",
             "body": "Bu ay {guild} için {credits} kredi."
           },
+          "referralPaid": {
+            "title": "Davet ödülü",
+            "body": "Arkadaşınız {username} ilk {threshold} kazandı: +{amount}"
+          },
           "partnerCheckFailed": {
             "title": "Ortaklık kontrolü başarısız",
             "body": "{guild} artık ortaklık koşullarını karşılamıyor, bu yüzden bu ayın ödemesi bekletiliyor. {until} tarihine kadar düzeltin, yoksa ortaklık askıya alınır. Neyin eksik olduğu Ortaklar sayfasında görünür."
@@ -1148,6 +1206,19 @@
           "partnerCreditsChanged": {
             "title": "Ortaklık kredileri değişti",
             "body": "{guild} artık ayda {credits} kredi kazanıyor."
+          },
+          "upgradeEnding": {
+            "title": "{upgrade} yakında sona eriyor",
+            "body": "{server} sunucusundaki {upgrade}, {time} tarihinde sona eriyor.",
+            "renew": "Sunucunun Ayarlar sayfasından {price} karşılığında süre ekleyin.",
+            "action": "Süre ekle"
+          },
+          "serverIdleStopped": {
+            "title": "Sunucu boşta olduğu için durduruldu",
+            "body": "{server}, {hours} saat boyunca kimse kullanmadığı için durduruldu.",
+            "park": "Biri kullanmazsa yaklaşık {hours} saat içinde uyku moduna alınır: yedeklenir ve geri yüklenene kadar node'undan kaldırılır.",
+            "keepAwake": "{days} gün boyunca uyanık tutun · {price}.",
+            "action": "Uyanık tut"
           }
         }
       },
@@ -1517,6 +1588,11 @@
       "ads": {
         "frameTitle": "Reklam",
         "sponsored": "Sponsorlu",
+        "promo": {
+          "skipTheWait": "{name} Al",
+          "goPlus": "{name} Al",
+          "freeTokens": "Jeton kazan"
+        },
         "adblock": {
           "title": "Reklam Engelleyici Algılandı",
           "message": "Bu paneldeki reklamlar ücretsiz sunucuların masraflarını karşılıyor. Lütfen bu sitede reklamlara izin verin, ardından sayfayı yenileyin.",
@@ -1525,6 +1601,34 @@
             "closeIn": "Kapat ({seconds})"
           }
         }
+      },
+      "profileBadge": {
+        "supporter": "Destekçi",
+        "earlyBird": "Erkenci Kuş",
+        "nightOwl": "Gece Kuşu",
+        "og": "OG",
+        "builder": "İnşaatçı",
+        "explorer": "Kaşif"
+      },
+      "promo": {
+        "title": "{name} ile daha fazlasını alın",
+        "price": "{days} gün için {tokens}",
+        "perks": {
+          "locations": "{name} lokasyonları",
+          "queueFirst": "Başlatma sırasında en önde",
+          "queueAhead": "Başlatma sırasında ücretsiz kullanıcıların önünde",
+          "burst": "Her sunucuda %{percent} oranına kadar ek CPU",
+          "noAds": "Reklam yok, bekleme ekranı yok",
+          "fewerAds": "Sayfalarda reklam yok, yalnızca başlatmadan önce",
+          "panelAccess": "Panel dahil",
+          "neo": "%{percent} daha fazla neo kullanımı",
+          "fasterBackups": "Daha hızlı yedekleme ve arşivleme"
+        },
+        "progressLabel": "Jetonlarınız",
+        "progress": "{have} / {cost}",
+        "enough": "Yeterli jetonunuz var: hemen {name} alın.",
+        "get": "{name} Al",
+        "notNow": "Şimdi değil"
       },
       "neo": {
         "name": "neo",
@@ -1625,6 +1729,11 @@
         "risk": {
           "destructive": "Geri alması zor",
           "critical": "Geri alınamaz veya size bir maliyeti olur"
+        },
+        "extra": {
+          "offer": "{tokens} karşılığında bir günlük ek kullanım",
+          "buy": "Al",
+          "earn": "Jeton kazan"
         },
         "notice": {
           "limitedShort": "Kısa süreli {name} sınırınıza ulaştınız. {time} sıfırlanır.",
@@ -2041,6 +2150,9 @@
           "disabled": "Sunucu oluşturma kapalı.",
           "noPlan": "Hesabınızın sunucu oluşturabileceği bir planı yok.",
           "nothingOffered": "Şu anda oluşturabileceğiniz bir oyun yok. Lütfen panel yöneticisiyle iletişime geçin.",
+          "offers": {
+            "store": "Kaynak Mağazası'ndan daha fazlasını alın"
+          },
           "details": "Ayrıntılar",
           "name": "Sunucu Adı",
           "randomName": "Rastgele ad oluştur",
@@ -2258,6 +2370,20 @@
               "createBlocked": "İzin verilmiyor",
               "createBlockedUntil": "{date} tarihine kadar izin verilmiyor",
               "details": "Ayrıntılar"
+            },
+            "badges": {
+              "title": "Rozetler",
+              "description": "Adınızın yanında, kenar çubuğunda, paylaştığınız sunucularda ve onların sohbetinde gösterilecek bir rozet seçin. Her biri {tokens} ve kalıcı olarak sizin olur.",
+              "descriptionOwned": "Adınızın yanında, kenar çubuğunda, paylaştığınız sunucularda ve onların sohbetinde gösterilen rozet.",
+              "buy": "Satın Al · {tokens}",
+              "show": "Göster",
+              "shown": "Gösteriliyor",
+              "hide": "Rozet gösterme",
+              "balance": "Bakiyeniz: {balance}.",
+              "earn": "Jeton kazan",
+              "toast": {
+                "bought": "Rozet satın alındı."
+              }
             },
             "password": {
               "title": "Şifre",
@@ -2873,6 +2999,53 @@
           "surveyCap": "Günde {cap} anket ödeme yapar. Uygun olmadığınız için erken biten bir anket küçük bir bonus verebilir ve sayılmaz.",
           "scriptBlocked": "Sponsorlu bağlantı yüklenemedi. Bir içerik engelleyici buna engel oluyor olabilir.",
           "history": "Son aktiviteler",
+          "streak": {
+            "title": "Günlük seri",
+            "claim": "Bugünkü jetonları al",
+            "today": "{day}. gün · {tokens}",
+            "tomorrow": "{day}. gün · {tokens} · yarın {next} jeton için tekrar gelin",
+            "hint": "Günde bir kez alın. Bir günü kaçırırsanız seri 1. günden yeniden başlar.",
+            "week": "Bu haftanın 7 gününden {claimed} tanesi alındı",
+            "claimed": "{day}. gün için +{tokens}"
+          },
+          "bonus": {
+            "double": "Her bağlantı ve ankette çift jeton",
+            "doubleUntil": "{date} tarihine kadar çift jeton",
+            "more": "Her bağlantı ve ankette +%{percent} jeton",
+            "moreUntil": "{date} tarihine kadar +%{percent} jeton",
+            "survey": "Şu anda her anket %{percent} daha fazla öder."
+          },
+          "starter": {
+            "title": "Başlangıç",
+            "description": "Her görev bir kez ödeme yapar. Bu liste {date} tarihinde kaldırılır.",
+            "reward": "+{tokens}",
+            "claim": "Al",
+            "claimed": "Alındı",
+            "toast": "Eklendi: +{tokens}",
+            "task": {
+              "discord": "Discord hesabınızı bağlayın",
+              "create_server": "Bir sunucu oluşturun",
+              "start_server": "Sunucunuzu başlatın",
+              "earn": "Bir bağlantı veya anketle bir kez jeton kazanın"
+            },
+            "go": {
+              "discord": "Discord'u bağla",
+              "create_server": "Sunucu oluştur",
+              "start_server": "Sunuculara git",
+              "earn": "Jeton kazan"
+            }
+          },
+          "referrals": {
+            "title": "Arkadaş davet et",
+            "howItWorks": "Bir arkadaşınız bağlantınızla kaydolup ilk {threshold} kazandığında +{reward} alırsınız.",
+            "link": "Bağlantınız",
+            "copy": "Bağlantıyı kopyala",
+            "cap": "Herhangi bir 30 günde en fazla {friends} için ödeme yapılır; diğerleri sırasını bekler.",
+            "none": "Henüz kimse bağlantınızla kaydolmadı.",
+            "friends": "{friends} kaydoldu",
+            "progress": "{earned} / {threshold} jeton kazanıldı",
+            "paid": "Ödendi: +{reward}"
+          },
           "redemption": {
             "granted": "Eklendi: +{amount} jeton",
             "settled": "Bunun ödemesi zaten yapıldı",
@@ -2890,10 +3063,14 @@
           "title": "Üyelik",
           "pageTitle": "{app} {name}",
           "subtitle": "Daha iyi lokasyonlar, sırada bekleme yok ve daha az reklam. Jetonla aylık ödenir; hiçbir şey kendiliğinden yenilenmez.",
+          "subtitleAutoRenew": "Daha iyi lokasyonlar, sırada bekleme yok ve daha az reklam. Jetonla aylık ödenir; yalnızca siz açarsanız yenilenir.",
           "unavailable": "{name} şu anda satışta değil.",
           "active": {
             "heading": "{name} etkin",
             "body": "{until} tarihine kadar geçerli."
+          },
+          "bundleActive": {
+            "heading": "{plus}, {name} üyeliğinize dahil"
           },
           "plus": {
             "pitch": "Çoğu sunucunun ihtiyaç duyduğu her şey, aylık olarak.",
@@ -2921,6 +3098,34 @@
           },
           "balance": "{balance} jetonunuz var.",
           "earnLink": "Daha fazla jeton edinin",
+          "moreToGo": "{amount} daha gerekiyor",
+          "sale": {
+            "defaultName": "İndirim",
+            "until": "{date} tarihine kadar tüm üyeliklerde %{percent} indirim.",
+            "running": "Tüm üyeliklerde %{percent} indirim."
+          },
+          "autoRenew": {
+            "label": "Otomatik yenile",
+            "description": "Süresi bittiğinde, bakiyeniz yetiyorsa o anki fiyatından yenilenir (bugün {cost}).",
+            "on": "{name} artık otomatik olarak yenilenecek.",
+            "off": "{name} artık otomatik olarak yenilenmeyecek."
+          },
+          "gift": {
+            "heading": "Bir arkadaşa hediye et",
+            "text": "Jetonlarınızla başka biri için üyelik satın alın. Onun mevcut süresine eklenir ve sizden geldiğini görür.",
+            "recipient": "Kullanıcı adı veya e-posta",
+            "membership": "Üyelik",
+            "option": "{name} · {days} gün · {cost}",
+            "submit": "Hediye gönder",
+            "left": "Bugün kalan hediye: {count}",
+            "none": "Bugünkü hediyelerinizi gönderdiniz. Yarın tekrar gelin.",
+            "modal": {
+              "title": "Hediye Gönder",
+              "body": "**{recipient}** için **{days} günlük** **{name}** hediyesine **{cost}** jeton harcansın mı?",
+              "confirm": "Gönder"
+            },
+            "toast": "{name}, {recipient} kullanıcısına gönderildi."
+          },
           "perks": {
             "plusLocations": "{name} lokasyonları",
             "priority": "Bir node meşgulken başlatma sırasında öncelik",
@@ -2935,7 +3140,8 @@
             "highestPriority": "Bir node meşgulken başlatma sırasında en yüksek öncelik",
             "noAds": "Hiçbir yerde reklam yok: banner, açılır pencere, başlatma öncesi bekleme ekranı veya oyun içi reklam yok",
             "neoPlusplus": "Toplamda %{percent} daha fazla neo (yapay zeka) kullanımı",
-            "devboxPlusplus": "Daha büyük bir VS Code devbox'ı: {cpu} vCPU, {memory} RAM, {disk} disk"
+            "devboxPlusplus": "Daha büyük bir VS Code devbox'ı: {cpu} vCPU, {memory} RAM, {disk} disk",
+            "bundle": "{name} dahil"
           },
           "compare": {
             "heading": "Neler alırsınız",
@@ -2979,7 +3185,8 @@
             "heading": "Sorular",
             "renew": {
               "question": "Üyelik kendiliğinden yenilenir mi?",
-              "answer": "Hayır. {plus} ve {plusplus}, satın aldığınız gün sayısı kadar geçerlidir ve hiçbir şey kendiliğinden yenilenmez. Biri sona ermeden tekrar satın alırsanız kalan süreye eklenir. {plusplus}, {plus} kapsamındaki her şeyi içerir; bu yüzden ikisine birden asla ihtiyacınız olmaz."
+              "answer": "Hayır. {plus} ve {plusplus}, satın aldığınız gün sayısı kadar geçerlidir ve hiçbir şey kendiliğinden yenilenmez. Biri sona ermeden tekrar satın alırsanız kalan süreye eklenir. {plusplus}, {plus} kapsamındaki her şeyi içerir; bu yüzden ikisine birden asla ihtiyacınız olmaz.",
+              "answerAutoRenew": "Yalnızca onun için Otomatik yenile seçeneğini açarsanız: o zaman süresi bittiğinde, bakiyeniz yettiği sürece o anki fiyatından yenilenir ve sona ermeden önce size haber verilir. Biri sona ermeden tekrar satın alırsanız kalan süreye eklenir. {plusplus}, {plus} kapsamındaki her şeyi içerir; bu yüzden ikisine birden asla ihtiyacınız olmaz."
             },
             "expiry": {
               "question": "Üyelik sona erdiğinde ne olur?",
@@ -3218,6 +3425,10 @@
           "toast": {
             "bought": "Panel {days} gün boyunca sizin.",
             "failed": "Ödeme gerçekleşmedi."
+          },
+          "offers": {
+            "membership": "{plus} ve {plusplus} paneli içerir.",
+            "membershipLink": "Bunun yerine {name} al"
           }
         }
       },
@@ -5906,6 +6117,115 @@
             "scheduledHint": "Bu sunucu için zamanlanmış bir yedek tamamlandığında veya başarısız olduğunda e-posta alın.",
             "saved": "Bildirim Ayarları Güncellendi"
           },
+          "upgrades": {
+            "title": "Yükseltmeler",
+            "note": "Bu sunucu için ekstralar, kendi jetonlarınızla ödenir. Bakiyeniz: {balance}.",
+            "buy": "Satın Al · {price}",
+            "add": "{duration} ekle · {price}",
+            "runsUntil": "{time} tarihine kadar geçerli.",
+            "count": "{count} / {max} etkin.",
+            "duration": {
+              "hour": "bir saat",
+              "hours": "{count} saat",
+              "day": "bir gün",
+              "days": "{count} gün"
+            },
+            "unavailable": {
+              "max": "Bu sunucu için izin verilen sayının tamamı zaten etkin.",
+              "nodeBusy": "Şu anda kullanılamıyor: node meşgul.",
+              "nodeUnknown": "Şu anda kullanılamıyor, birkaç dakika sonra tekrar deneyin.",
+              "unlimited": "Bu sunucunun artırılacak bir sınırı yok.",
+              "parked": "Sunucu uyku modundayken kullanılamaz."
+            },
+            "kinds": {
+              "keepAwake": {
+                "title": "Uyanık tut",
+                "body": "{duration} boyunca bu sunucu boşta kaldığı için durdurulmaz, uyku moduna alınmaz veya silinmez.",
+                "running": "Bu sunucu boşta kaldığı için durdurulmaz, uyku moduna alınmaz veya silinmez."
+              },
+              "boost": {
+                "title": "Takviye",
+                "body": "{duration} boyunca sınırlarınızın üzerine +{memory} bellek ve +%{cpu} CPU.",
+                "running": "Sınırlarınızın üzerine daha fazla bellek ve CPU.",
+                "restart": "Oyunun ek belleği kullanabilmesi için sunucuyu yeniden başlatın."
+              },
+              "extraAllocation": {
+                "title": "Ek port",
+                "body": "{duration} boyunca bu sunucu için bir port daha.",
+                "running": "Bu sunucu için bir port daha."
+              },
+              "extraDatabase": {
+                "title": "Ek veritabanı",
+                "body": "{duration} boyunca bu sunucu için bir veritabanı daha.",
+                "running": "Bu sunucu için bir veritabanı daha."
+              },
+              "extraBackup": {
+                "title": "Ek yedek yuvası",
+                "body": "{duration} boyunca bu sunucu için bir yedek daha.",
+                "running": "Bu sunucu için bir yedek daha."
+              },
+              "cardColor": {
+                "title": "Kart rengi",
+                "body": "Sunucu listenizde bu sunucunun kartı için kalıcı bir renk.",
+                "running": "Sunucu listenizde gösterilir. Değiştirmek ücretsizdir."
+              }
+            },
+            "confirm": {
+              "price": "Bunun bedeli {price}. Bakiyeniz: {balance}.",
+              "short": "Bunun bedeli {price}, bakiyeniz ise {balance}. Önce jeton kazanın.",
+              "earn": "Jeton kazan"
+            },
+            "color": {
+              "pick": "Bir renk seçin",
+              "free": "Rengi değiştirmek ücretsizdir.",
+              "change": "Rengi değiştir",
+              "save": "Rengi kaydet",
+              "names": {
+                "blue": "Mavi",
+                "cyan": "Camgöbeği",
+                "teal": "Turkuaz",
+                "green": "Yeşil",
+                "yellow": "Sarı",
+                "orange": "Turuncu",
+                "red": "Kırmızı",
+                "pink": "Pembe",
+                "grape": "Mor",
+                "violet": "Menekşe"
+              }
+            },
+            "offer": {
+              "extraAllocation": {
+                "title": "Port sınırına ulaşıldı",
+                "body": "{duration} boyunca bir port daha ekleyin · {price}.",
+                "button": "Port ekle · {price}"
+              },
+              "extraDatabase": {
+                "title": "Veritabanı sınırına ulaşıldı",
+                "body": "{duration} boyunca bir veritabanı daha ekleyin · {price}.",
+                "button": "Veritabanı ekle · {price}"
+              },
+              "extraBackup": {
+                "title": "Yedek sınırına ulaşıldı",
+                "body": "{duration} boyunca bir yedek yuvası daha ekleyin · {price}. Süresi bittiğinde yedekleriniz silinmez.",
+                "button": "Yuva ekle · {price}"
+              },
+              "keepAwake": {
+                "title": "Kimse kullanmadığı için durduruldu",
+                "body": "Bu sunucu bir süre kullanılmadığı için durduruldu ve bu devam ederse uyku moduna alınacak. {duration} boyunca uyanık tutun · {price}.",
+                "button": "Uyanık tut · {price}"
+              },
+              "keepAwakeParked": {
+                "title": "Uyanık tutun",
+                "body": "Uyanık tutma geçişi, süresi boyunca bu sunucunun silinmesini ve geri geldikten sonra yeniden uyku moduna alınmasını önler. {duration} · {price}.",
+                "button": "Uyanık tut · {price}"
+              }
+            },
+            "toast": {
+              "bought": "{title}, {time} tarihine kadar geçerli.",
+              "boughtNoEnd": "{title} satın alındı.",
+              "color": "Kart rengi kaydedildi."
+            }
+          },
           "danger": {
             "title": "Tehlikeli Bölge",
             "note": "Bu alandaki eylemler yıkıcıdır ve sunucunuzun çalışmasını doğrudan etkiler. Devam etmeden önce kritik verilerinizi veya dünya dosyalarınızı yedeklediğinizden emin olun.",
@@ -5973,6 +6293,10 @@
             "body": "{name} ayda {cost} jetondur: tüm sunucularınız için bu sırada öncelik, {name} lokasyonları ve bekleme ekranı dışında reklam yok.",
             "button": "{name} Al"
           },
+          "offers": {
+            "premium": "{name} ile sunucularınız bu sırada herkesten önce, en başta yer alır.",
+            "premiumLink": "{name} üyeliğini gör"
+          },
           "move": {
             "heading": "Daha sakin bir node'a taşı",
             "body": "Bu sunucuyu meşgul olmayan {node} node'una taşıyabiliriz. Dosyalarınız da birlikte gelir.",
@@ -5997,7 +6321,18 @@
           "body": "Ücretsiz sunucuların masrafı bu sayfadakiler gibi reklamlarla karşılanır. Onları {seconds} saniyeye kadar görünür bırakın — konsol kendiliğinden açılır ve siz beklerken sunucu zaten açılıyor.",
           "waitLabel": "Konsol açılıyor",
           "seconds": "{seconds} sn içinde",
-          "ready": "her an"
+          "ready": "her an",
+          "skip": {
+            "heading": "Beklemeyi atla",
+            "body": "Tek bir geçişle tüm sunucularınızdaki her başlatmada bu ekran atlanır. Bakiyeniz: {balance}.",
+            "running": "Günlük geçişiniz {time} tarihine kadar geçerli.",
+            "button": "{hours} boyunca beklemeyi atla · {tokens}",
+            "earn": "Jeton kazan",
+            "premium": "{name} ile bu ekran atlanır",
+            "toast": {
+              "bought": "Günlük geçiş satın alındı: {time} tarihine kadar bekleme ekranı yok."
+            }
+          }
         },
         "limbo": {
           "title": "Sunucu uyku modunda",
@@ -7105,6 +7440,7 @@
           "create": {
             "title": "Alt Alan Adı Oluştur",
             "depositCaption": "Jeton Depozitosu • Alt Alan Adı #{number}",
+            "shortCaption": "Jeton Depozitosu • Kısa ad (en fazla 3 karakter)",
             "refundNote": "(silindiğinde iade edilir)",
             "balance": "Bakiyeniz",
             "name": "Ad",

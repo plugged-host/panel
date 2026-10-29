@@ -263,6 +263,22 @@
       "few": "{count} Builds",
       "many": "{count} Builds",
       "other": "{count} Builds"
+    },
+    "friend": {
+      "zero": "{count} Freunde",
+      "one": "{count} Freund",
+      "two": "{count} Freunde",
+      "few": "{count} Freunde",
+      "many": "{count} Freunde",
+      "other": "{count} Freunde"
+    },
+    "hour": {
+      "zero": "{count} Stunden",
+      "one": "{count} Stunde",
+      "two": "{count} Stunden",
+      "few": "{count} Stunden",
+      "many": "{count} Stunden",
+      "other": "{count} Stunden"
     }
   },
   "translations": {
@@ -899,7 +915,16 @@
           "discordInviteClawback": "Einladung zurückgeholt",
           "discordInviteDebt": "Geschuldete Einladungs-Credits",
           "discordBoost": "Discord-Boost",
-          "partner": "Partnerprogramm"
+          "partner": "Partnerprogramm",
+          "serverUpgrade": "Server-Upgrade",
+          "membershipGift": "Geschenk",
+          "membershipGiftReceived": "Geschenk erhalten",
+          "streak": "Tägliche Serie",
+          "starter": "Erste Schritte",
+          "referral": "Empfehlung",
+          "dayPass": "Tagespass",
+          "badge": "Profilabzeichen",
+          "neoExtra": "Mehr neo-Nutzung"
         }
       },
       "chartLegend": {
@@ -1013,7 +1038,11 @@
           "memory": "RAM",
           "disk": "Speicher",
           "openStore": "Mehr im Ressourcen-Shop holen",
-          "openTokens": "Tokens-Seite öffnen"
+          "openTokens": "Tokens-Seite öffnen",
+          "goal": "{tokens} / {cost} bis {name}",
+          "goalReady": "Genug für {name}",
+          "openMembership": "Mitgliedschaftsseite öffnen",
+          "streak": "Deine Serien-Tokens für heute warten"
         }
       },
       "notifications": {
@@ -1026,6 +1055,8 @@
         "delete": "Benachrichtigung löschen",
         "openServer": "Server öffnen",
         "viewBackups": "Backups anzeigen",
+        "renew": "Verlängern",
+        "viewMembership": "Mitgliedschaft ansehen",
         "showMore": "Mehr anzeigen",
         "empty": "Keine Benachrichtigungen",
         "emptyHint": "Schau später noch einmal vorbei.",
@@ -1053,6 +1084,29 @@
           "membershipEnded": {
             "title": "{membership} ist abgelaufen",
             "body": "Server auf Standorten, die sie freigeschaltet hat, ziehen an einen anderen Standort um: {servers}. Den Fortschritt siehst du auf der Umzug-Seite des jeweiligen Servers."
+          },
+          "membershipEndsSoon": {
+            "title": "{membership} endet bald",
+            "body": "Deine Mitgliedschaft endet am {date}.",
+            "renews": "Sie verlängert sich automatisch für {cost}.",
+            "renewsShort": "Sie ist auf automatische Verlängerung gestellt, aber dein Guthaben deckt die {cost} noch nicht.",
+            "notRenewing": "Sie verlängert sich nicht von selbst. Die Verlängerung kostet {cost}, und dein Guthaben reicht dafür.",
+            "notRenewingShort": "Sie verlängert sich nicht von selbst. Die Verlängerung kostet {cost}."
+          },
+          "membershipRenewFailed": {
+            "title": "{membership} konnte nicht verlängert werden",
+            "body": "Es fehlen noch {amount}."
+          },
+          "membershipGifted": {
+            "title": "{from} hat dir {membership} geschenkt",
+            "body": "{days} Tage {membership}, zu deiner Restzeit hinzugefügt.",
+            "until": "Deine Mitgliedschaft läuft jetzt bis {date}."
+          },
+          "panelAccessEndsSoon": {
+            "title": "Panel-Zugang endet bald",
+            "body": "Dein bezahlter Panel-Zugang endet am {date}.",
+            "covered": "Dein Guthaben deckt die nächste Zahlung von {cost}.",
+            "short": "Eine erneute Zahlung kostet {cost}."
           },
           "failoverDone": {
             "title": "Server wiederhergestellt",
@@ -1130,6 +1184,10 @@
             "title": "Partner-Credits erhalten",
             "body": "{credits} Credits für {guild} in diesem Monat."
           },
+          "referralPaid": {
+            "title": "Empfehlungsbelohnung",
+            "body": "{username} hat über deinen Link die ersten {threshold} verdient: +{amount}"
+          },
           "partnerCheckFailed": {
             "title": "Partnerprüfung fehlgeschlagen",
             "body": "{guild} erfüllt die Partnerbedingungen nicht mehr, deshalb wartet die Zahlung dieses Monats. Behebe es bis zum {until}, sonst wird die Partnerschaft ausgesetzt. Auf der Seite Partner steht, was fehlt."
@@ -1149,6 +1207,19 @@
           "partnerCreditsChanged": {
             "title": "Partner-Credits geändert",
             "body": "{guild} verdient jetzt {credits} Credits im Monat."
+          },
+          "upgradeEnding": {
+            "title": "{upgrade} endet bald",
+            "body": "{upgrade} auf {server} endet am {time}.",
+            "renew": "Auf der Einstellungsseite des Servers kannst du für {price} Zeit hinzufügen.",
+            "action": "Zeit hinzufügen"
+          },
+          "serverIdleStopped": {
+            "title": "Server im Leerlauf gestoppt",
+            "body": "{server} wurde gestoppt, weil ihn {hours} Stunden lang niemand genutzt hat.",
+            "park": "Nutzt ihn niemand, wird er in etwa {hours} Stunden in den Ruhezustand versetzt: gesichert und von seinem Node entfernt, bis er wiederhergestellt wird.",
+            "keepAwake": "Halte ihn {days} Tage wach · {price}.",
+            "action": "Wach halten"
           },
           "admin": {
             "transferFailed": {
@@ -1533,6 +1604,11 @@
       "ads": {
         "frameTitle": "Werbung",
         "sponsored": "Gesponsert",
+        "promo": {
+          "skipTheWait": "{name} holen",
+          "goPlus": "{name} holen",
+          "freeTokens": "Tokens verdienen"
+        },
         "adblock": {
           "title": "Werbeblocker erkannt",
           "message": "Die Werbung in diesem Panel bezahlt seine kostenlosen Server. Bitte erlaube Werbung auf dieser Seite und lade sie dann neu.",
@@ -1541,6 +1617,34 @@
             "closeIn": "Schließen ({seconds})"
           }
         }
+      },
+      "profileBadge": {
+        "supporter": "Unterstützer",
+        "earlyBird": "Frühaufsteher",
+        "nightOwl": "Nachteule",
+        "og": "OG",
+        "builder": "Baumeister",
+        "explorer": "Entdecker"
+      },
+      "promo": {
+        "title": "Mehr mit {name}",
+        "price": "{tokens} für {days} Tage",
+        "perks": {
+          "locations": "Die {name}-Standorte",
+          "queueFirst": "Ganz vorne in der Start-Warteschlange",
+          "queueAhead": "Vor kostenlosen Nutzern in der Start-Warteschlange",
+          "burst": "Bis zu {percent} % mehr CPU auf jedem Server",
+          "noAds": "Keine Werbung und kein Warteschirm",
+          "fewerAds": "Keine Werbung auf den Seiten, nur vor einem Start",
+          "panelAccess": "Das Panel inklusive",
+          "neo": "{percent} % mehr neo-Nutzung",
+          "fasterBackups": "Schnellere Backups und Archive"
+        },
+        "progressLabel": "Deine Tokens",
+        "progress": "{have} von {cost}",
+        "enough": "Du hast genug: Hol dir {name} jetzt.",
+        "get": "{name} holen",
+        "notNow": "Nicht jetzt"
       },
       "neo": {
         "name": "neo",
@@ -1641,6 +1745,11 @@
         "risk": {
           "destructive": "Schwer rückgängig zu machen",
           "critical": "Nicht rückgängig zu machen oder kostet dich etwas"
+        },
+        "extra": {
+          "offer": "Einen weiteren Tag Nutzung für {tokens}",
+          "buy": "Kaufen",
+          "earn": "Tokens verdienen"
         },
         "notice": {
           "limitedShort": "Du hast dein kurzfristiges Limit für {name} erreicht. Es wird {time} zurückgesetzt.",
@@ -2057,6 +2166,9 @@
           "disabled": "Das Erstellen von Servern ist ausgeschaltet.",
           "noPlan": "Dein Konto hat kein Paket, um Server zu erstellen.",
           "nothingOffered": "Es gibt derzeit keine Spiele, die du erstellen kannst. Bitte wende dich an einen Panel Admin.",
+          "offers": {
+            "store": "Mehr im Ressourcen-Shop holen"
+          },
           "game": "Spiel",
           "software": "Server Software",
           "softwareDescription": "Welche Variante des Spielservers möchtest du nutzen?",
@@ -2274,6 +2386,20 @@
               "createBlocked": "Nicht erlaubt",
               "createBlockedUntil": "Nicht erlaubt bis {date}",
               "details": "Details"
+            },
+            "badges": {
+              "title": "Abzeichen",
+              "description": "Wähle ein Abzeichen, das neben deinem Namen erscheint: in der Seitenleiste, auf Servern, die du teilst, und in deren Chat. Jedes kostet {tokens} und gehört dir für immer.",
+              "descriptionOwned": "Das Abzeichen neben deinem Namen: in der Seitenleiste, auf Servern, die du teilst, und in deren Chat.",
+              "buy": "Kaufen · {tokens}",
+              "show": "Anzeigen",
+              "shown": "Angezeigt",
+              "hide": "Kein Abzeichen anzeigen",
+              "balance": "Du hast {balance}.",
+              "earn": "Tokens verdienen",
+              "toast": {
+                "bought": "Abzeichen gekauft."
+              }
             },
             "password": {
               "title": "Passwort",
@@ -2889,6 +3015,53 @@
           "surveyCap": "{cap} Umfragen am Tag werden bezahlt. Endet eine Umfrage früh, weil du nicht zur Zielgruppe passt, gibt es vielleicht einen kleinen Bonus, und sie zählt nicht.",
           "scriptBlocked": "Der gesponserte Link konnte nicht geladen werden. Vielleicht blockiert ihn ein Werbeblocker.",
           "history": "Letzte Vorgänge",
+          "streak": {
+            "title": "Tägliche Serie",
+            "claim": "Heutige Tokens abholen",
+            "today": "Tag {day} · {tokens}",
+            "tomorrow": "Tag {day} · {tokens} · komm morgen wieder für {next}",
+            "hint": "Einmal am Tag abholen. Lässt du einen Tag aus, beginnt die Serie wieder bei Tag 1.",
+            "week": "{claimed} von 7 Tagen dieser Woche abgeholt",
+            "claimed": "+{tokens} für Tag {day}"
+          },
+          "bonus": {
+            "double": "Doppelte Tokens für jeden Link und jede Umfrage",
+            "doubleUntil": "Doppelte Tokens bis {date}",
+            "more": "+{percent} % Tokens für jeden Link und jede Umfrage",
+            "moreUntil": "+{percent} % Tokens bis {date}",
+            "survey": "Jede Umfrage bringt gerade {percent} % mehr."
+          },
+          "starter": {
+            "title": "Erste Schritte",
+            "description": "Jede Aufgabe wird einmal belohnt. Diese Liste verschwindet am {date}.",
+            "reward": "+{tokens}",
+            "claim": "Abholen",
+            "claimed": "Abgeholt",
+            "toast": "Hinzugefügt: +{tokens}",
+            "task": {
+              "discord": "Verknüpfe dein Discord-Konto",
+              "create_server": "Erstelle einen Server",
+              "start_server": "Starte deinen Server",
+              "earn": "Verdiene einmal Tokens mit einem Link oder einer Umfrage"
+            },
+            "go": {
+              "discord": "Discord verknüpfen",
+              "create_server": "Server erstellen",
+              "start_server": "Deine Server öffnen",
+              "earn": "Tokens verdienen"
+            }
+          },
+          "referrals": {
+            "title": "Freunde einladen",
+            "howItWorks": "Wenn sich ein Freund über deinen Link anmeldet und seine ersten {threshold} verdient, bekommst du +{reward}.",
+            "link": "Dein Link",
+            "copy": "Link kopieren",
+            "cap": "Belohnung für höchstens {friends} pro 30 Tage; die übrigen kommen danach dran.",
+            "none": "Über deinen Link hat sich noch niemand angemeldet.",
+            "friends": "Angemeldet: {friends}",
+            "progress": "{earned} von {threshold} Tokens verdient",
+            "paid": "Ausgezahlt: +{reward}"
+          },
           "redemption": {
             "granted": "Hinzugefügt: +{amount} Tokens",
             "settled": "Das wurde bereits ausgezahlt",
@@ -2906,10 +3079,14 @@
           "title": "Mitgliedschaft",
           "pageTitle": "{app} {name}",
           "subtitle": "Bessere Standorte, kein Warten in der Schlange und weniger Werbung. Monatlich mit Tokens bezahlt; nichts verlängert sich von selbst.",
+          "subtitleAutoRenew": "Bessere Standorte, kein Warten in der Schlange und weniger Werbung. Monatlich mit Tokens bezahlt; sie verlängert sich nur, wenn du das einschaltest.",
           "unavailable": "{name} ist gerade nicht erhältlich.",
           "active": {
             "heading": "{name} ist aktiv",
             "body": "Es läuft bis {until}."
+          },
+          "bundleActive": {
+            "heading": "{plus} ist in deinem {name} enthalten"
           },
           "plus": {
             "pitch": "Alles, was die meisten Server brauchen, monatlich.",
@@ -2937,6 +3114,34 @@
           },
           "balance": "Du hast {balance} Tokens.",
           "earnLink": "Mehr Tokens holen",
+          "moreToGo": "Noch {amount} fehlen",
+          "sale": {
+            "defaultName": "Aktion",
+            "until": "{percent} % Rabatt auf jede Mitgliedschaft bis {date}.",
+            "running": "{percent} % Rabatt auf jede Mitgliedschaft."
+          },
+          "autoRenew": {
+            "label": "Automatisch verlängern",
+            "description": "Zum Ende verlängert sie sich zum dann gültigen Preis (heute {cost}), sofern dein Guthaben reicht.",
+            "on": "{name} verlängert sich jetzt automatisch.",
+            "off": "{name} verlängert sich nicht mehr automatisch."
+          },
+          "gift": {
+            "heading": "Einem Freund schenken",
+            "text": "Kauf mit deinen Tokens eine Mitgliedschaft für jemand anderen. Sie kommt zur Restzeit der Person hinzu, und sie sieht, dass das Geschenk von dir ist.",
+            "recipient": "Benutzername oder E-Mail",
+            "membership": "Mitgliedschaft",
+            "option": "{name} · {days} Tage · {cost}",
+            "submit": "Geschenk senden",
+            "left": "Heute noch mögliche Geschenke: {count}",
+            "none": "Du hast die heutigen Geschenke verschickt. Komm morgen wieder.",
+            "modal": {
+              "title": "Geschenk senden",
+              "body": "**{cost}** Tokens ausgeben, um **{recipient}** **{days} Tage** **{name}** zu schenken?",
+              "confirm": "Senden"
+            },
+            "toast": "{name} an {recipient} gesendet."
+          },
           "perks": {
             "plusLocations": "Die {name}-Standorte",
             "priority": "Vorrang in der Start-Warteschlange, wenn ein Node ausgelastet ist",
@@ -2951,7 +3156,8 @@
             "highestPriority": "Höchster Vorrang in der Start-Warteschlange, wenn ein Node ausgelastet ist",
             "noAds": "Nirgends Werbung: keine Banner, Popups, kein Warteschirm vor dem Start und keine Werbung im Spiel",
             "neoPlusplus": "Insgesamt {percent} % mehr neo-Nutzung (KI)",
-            "devboxPlusplus": "Eine größere VS-Code-Devbox: {cpu} vCPU, {memory} RAM, {disk} Speicher"
+            "devboxPlusplus": "Eine größere VS-Code-Devbox: {cpu} vCPU, {memory} RAM, {disk} Speicher",
+            "bundle": "{name} inklusive"
           },
           "compare": {
             "heading": "Was du bekommst",
@@ -2995,7 +3201,8 @@
             "heading": "Fragen",
             "renew": {
               "question": "Verlängert sich eine Mitgliedschaft von selbst?",
-              "answer": "Nein. {plus} und {plusplus} laufen jeweils für die gekauften Tage, und nichts verlängert sich von selbst. Ein erneuter Kauf vor dem Ende verlängert die Restzeit. {plusplus} enthält alles aus {plus}, du brauchst also nie beides."
+              "answer": "Nein. {plus} und {plusplus} laufen jeweils für die gekauften Tage, und nichts verlängert sich von selbst. Ein erneuter Kauf vor dem Ende verlängert die Restzeit. {plusplus} enthält alles aus {plus}, du brauchst also nie beides.",
+              "answerAutoRenew": "Nur wenn du „Automatisch verlängern“ dafür einschaltest: Dann verlängert sie sich zum Ende, zum dann gültigen Preis, solange dein Guthaben reicht, und du wirst vor dem Ende benachrichtigt. Ein erneuter Kauf vor dem Ende verlängert die Restzeit. {plusplus} enthält alles aus {plus}, du brauchst also nie beides."
             },
             "expiry": {
               "question": "Was passiert, wenn eine Mitgliedschaft endet?",
@@ -3043,6 +3250,10 @@
           "toast": {
             "bought": "Das Panel gehört dir für {days} Tage.",
             "failed": "Die Zahlung ist nicht durchgegangen."
+          },
+          "offers": {
+            "membership": "{plus} und {plusplus} enthalten das Panel.",
+            "membershipLink": "Stattdessen {name} holen"
           }
         },
         "discord": {
@@ -4245,6 +4456,17 @@
                   "creditGranters": "Haupt-Admin (vergibt Credits)",
                   "creditGrantersDescription": "Discord-Benutzer-IDs. Nur sie können rux jemandem Credits geben lassen; leer schaltet es aus.",
                   "creditMaxPerGrant": "Höchstens Credits pro Geschenk",
+                  "tokens": "Tokens und Mitgliedschaften",
+                  "tokensCommand": "/tokens",
+                  "tokensCommandDescription": "Mitglieder, deren Discord mit einem Konto verknüpft ist, sehen ihre Tokens, die heutige Serie und ihre Mitgliedschaft, nur für sie sichtbar.",
+                  "giveawayMaxTokens": "Höchstens Tokens pro Gewinner",
+                  "giveawayMaxTokensDescription": "Für Giveaways von Tokens.",
+                  "giveawayMaxMembershipDays": "Höchstens Mitgliedschaftstage pro Gewinner",
+                  "giveawayMaxMembershipDaysDescription": "Für Giveaways von Tagen einer Mitgliedschaft.",
+                  "announceChannelId": "ID des Ankündigungskanals",
+                  "announceChannelIdDescription": "Auf dem Hauptserver. rux kündigt hier Zeiträume mit doppelten Tokens an; leer: keine Ankündigungen.",
+                  "tokenBonusPosts": "Doppelte Tokens ankündigen",
+                  "tokenBonusPostsDescription": "Postet einmal, wenn ein Zeitraum mit doppelten Tokens (Admin › Einstellungen › Wirtschaft › Tokens) beginnt.",
                   "servers": "Weitere Discord-Server",
                   "serversDescription": "rux kann mit demselben Bot auf weiteren Servern arbeiten (lade ihn auf jeden ein, siehe die Einladungslinks oben). Jeder Server hat eigene Regeln, beobachtete Kanäle, Moderatorrollen, Verwarnungen, Fälle und Giveaways; Admins, der Haupt-Admin und Credits sind überall dieselben. Ein Auftrag auf einem Server wirkt nur auf diesen Server; in einer DM sagt ein Admin oder Moderator rux, welchen Server er meint. Einen Server zu entfernen beendet rux dort.",
                   "server": "Server {number}",
@@ -4471,6 +4693,7 @@
               "room": "Warteraum",
               "adblock": "Werbeblocker",
               "inGame": "Im Spiel",
+              "promos": "Eigenwerbung",
               "page": {
                 "titles": {
                   "placement": "Werbeplatzierung",
@@ -4478,7 +4701,8 @@
                   "monetag": "Monetag",
                   "room": "Start-Warteraum",
                   "adblock": "Werbeblocker",
-                  "inGame": "Nachrichten im Spiel"
+                  "inGame": "Nachrichten im Spiel",
+                  "promos": "Eigenwerbung"
                 },
                 "form": {
                   "enabled": "Werbung anzeigen",
@@ -4566,6 +4790,13 @@
                   "roomPopunderDescription": "Der Popunder aus dem Adsterra-Tab.",
                   "roomInterstitial": "Warteraum-Zone",
                   "roomInterstitialDescription": "Die Warteraum-Zone aus dem Adsterra-Tab.",
+                  "dayPass": "Tagespass",
+                  "dayPassEnabled": "Tagespass verkaufen",
+                  "dayPassEnabledDescription": "Der Warteraum bietet „Warten überspringen“ für Tokens an: Die Starts des Nutzers überspringen eine Zeit lang jeden Warteraum, auf allen seinen Servern.",
+                  "dayPassTokens": "Preis des Tagespasses (Tokens)",
+                  "dayPassTokensDescription": "Was ein Pass kostet.",
+                  "dayPassHours": "Dauer des Tagespasses (Stunden)",
+                  "dayPassHoursDescription": "Wie lange ein Pass Starts den Warteraum überspringen lässt; ein früh gekaufter Pass kommt zur Restzeit hinzu.",
                   "adblockEnabled": "Bitten, Werbung zu erlauben",
                   "adblockEnabledDescription": "Auf Seiten mit Werbung wird ein Besucher mit Werbeblocker gebeten, sie zu erlauben.",
                   "adblockMode": "Wie",
@@ -4590,7 +4821,18 @@
                   "inGameMessage": "Nachricht",
                   "inGameMessageDescription": "Eine Zeile. Leer: „This server is hosted on\" und der Name des Panels.",
                   "inGameInterval": "Alle (Minuten)",
-                  "inGameIntervalDescription": "Wie oft jeder Server sie bekommt."
+                  "inGameIntervalDescription": "Wie oft jeder Server sie bekommt.",
+                  "promoEnabled": "Mitgliedschafts-Popup",
+                  "promoEnabledDescription": "Eine Karte in der Fensterecke für Nutzer ohne Mitgliedschaft, die Werbung sehen: die Mitgliedschaft, die ihren Tokens am nächsten ist, ihre Vorteile und wie weit sie noch entfernt sind. Nie am ersten Tag eines Kontos.",
+                  "promoHours": "Stunden zwischen Popups",
+                  "promoHoursDescription": "Ein Nutzer sieht es höchstens einmal in dieser Zeit, auf allen Geräten zusammen.",
+                  "offersEnabled": "Angebote, wo ein Limit spürbar ist",
+                  "offersEnabledDescription": "Eine Zeile mit Link in der Start-Warteschlange (die zweite Mitgliedschaft kommt zuerst dran), bei Server erstellen, wenn das Kontingent aufgebraucht ist (der Ressourcen-Shop), und auf der Seite Panel-Zugang (die Mitgliedschaften enthalten ihn).",
+                  "promoClips": "Promo-Clips",
+                  "promoVideos": "Promo-Clips in den Werbeplätzen",
+                  "promoVideosDescription": "Die Clips in public/promo/ wechseln sich mit den anderen Einheiten ab, für dasselbe Publikum: ein Video in den Warteräumen, das Poster in den Rechtecken auf Seiten. Der Clip der ersten Mitgliedschaft geht nie an Mitglieder.",
+                  "promoVideoShare": "Anteil der Plätze (%)",
+                  "promoVideoShareDescription": "Wie oft ein Platz statt seiner Einheit einen Clip zeigt; ein Platz ohne andere Einheit zeigt auch einen. 0: nie."
                 },
                 "toast": {
                   "updated": "Werbeeinstellungen aktualisiert."
@@ -4678,6 +4920,11 @@
                   "storeDiscountStartsDescription": "In der Zeitzone deines Browsers. Leer: sofort.",
                   "storeDiscountEnds": "Ende",
                   "storeDiscountEndsDescription": "Wird im Shop angezeigt. Leer: bis der Rabatt wieder auf 0 steht.",
+                  "storeDiscountCovers": "Gilt für",
+                  "storeDiscountCoversDescription": "Wovon der Rabatt abgezogen wird. Mitgliedschaften: Käufe, Geschenke und automatische Verlängerungen, mit einem Banner auf der Mitgliedschaftsseite.",
+                  "storeDiscountCoversStore": "Den Ressourcen-Shop",
+                  "storeDiscountCoversMemberships": "Die Mitgliedschaften",
+                  "storeDiscountCoversBoth": "Beides",
                   "tokensEnabled": "Tokens",
                   "tokensEnabledDescription": "Tokens werden über Umfragen und gesponserte Links verdient und kaufen die Mitgliedschaften.",
                   "dailyTokens": "Tägliche Tokens",
@@ -4688,6 +4935,11 @@
                   "panelAccessTokens": "Tokens pro Monat",
                   "panelAccessTokensDescription": "Mitgliedschaften und Administratoren zahlen nie. 0 macht das Panel kostenlos.",
                   "panelAccessDays": "Tage pro Zahlung",
+                  "badgesSection": "Profilabzeichen",
+                  "badgesEnabled": "Profilabzeichen verkaufen",
+                  "badgesEnabledDescription": "Nutzer kaufen vorgegebene Abzeichen auf ihrer Kontoseite, dauerhaft, und zeigen eines neben ihrem Namen. Gekaufte Abzeichen bleiben sichtbar, wenn das hier aus ist.",
+                  "badgeTokens": "Tokens pro Abzeichen",
+                  "badgeTokensDescription": "Was ein Abzeichen kostet.",
                   "membershipEnabled": "Mitgliedschaften",
                   "membershipEnabledDescription": "Beide werden für einige Tage gekauft. Die erste öffnet die Standorte mit der Stufe „plus“; die zweite gibt alles, was die erste gibt, öffnet auch die Stufe „premium“ und braucht keine erste Mitgliedschaft.",
                   "plusName": "Name der ersten Mitgliedschaft",
@@ -4705,6 +4957,27 @@
                   "plusBurstCoresDescription": "CPU über dem Limit jedes Servers, 100 % pro Kern, genutzt solange der Node sie übrig hat. Außerhalb des Kontingents und des Shops; bezahlte CPU gewinnt, wenn der Node ausgelastet ist.",
                   "plusplusBurstCores": "Zweite Mitgliedschaft: Burst-Kerne",
                   "plusplusBurstCoresDescription": "Die Gesamtzahl, solange sie läuft, nicht zu denen der ersten Mitgliedschaft addiert.",
+                  "renewalsSection": "Verlängerungen und Geschenke",
+                  "endsSoonEnabled": "Hinweis vor dem Ende",
+                  "endsSoonEnabledDescription": "Eine Benachrichtigung, bevor eine Mitgliedschaft oder bezahlter Panel-Zugang endet: wann, ob sie sich von selbst verlängert und ob das Guthaben reicht, mit einem Link zum Verlängern. Eine pro Ende.",
+                  "endsSoonHours": "Stunden vor dem Ende",
+                  "autoRenewEnabled": "Automatische Verlängerung",
+                  "autoRenewEnabledDescription": "Mitglieder können eine Mitgliedschaft zum Ende automatisch verlängern lassen, zum dann gültigen Preis (Aktionen eingeschlossen), solange ihr Guthaben reicht. Für jede Mitgliedschaft aus, bis ihr Mitglied sie einschaltet.",
+                  "giftsEnabled": "Geschenke",
+                  "giftsEnabledDescription": "Konten können mit Tokens eine Mitgliedschaft für ein anderes Konto kaufen, zum normalen oder zum Aktionspreis. Tokens selbst werden nie verschenkt.",
+                  "giftsPerDay": "Geschenke pro Tag",
+                  "giftsPerDayDescription": "Pro Käufer, in den letzten 24 Stunden.",
+                  "bundleSection": "In der zweiten Mitgliedschaft enthalten",
+                  "bundleEnabled": "Eine Mitgliedschaft auf einem anderen Panel einschließen",
+                  "bundleEnabledDescription": "Solange die zweite Mitgliedschaft läuft, gibt das Panel unten dem Konto ebenfalls seine Mitgliedschaft, etwa switched.cloud Plus mit Premium, und umgekehrt schließt seine zweite Mitgliedschaft die erste hier ein (es sendet an /api/memberships/bundle). Jedes Panel informiert das andere innerhalb einer Minute nach jeder Änderung und einmal täglich für jede laufende Mitgliedschaft. Braucht noprofit.space: Beide Panels erkennen das Konto an seinem noprofit.space-Konto.",
+                  "bundleUrl": "Panel-URL",
+                  "bundleUrlDescription": "Wo das andere Panel ist, beginnend mit https://.",
+                  "bundleName": "Name",
+                  "bundleNameDescription": "Was die Mitgliedschaftsseite unter der zweiten Mitgliedschaft auflistet, etwa switched.cloud Plus.",
+                  "bundleSourceName": "Name der zweiten Mitgliedschaft dort",
+                  "bundleSourceNameDescription": "Umgekehrt: die Mitgliedschaft des anderen Panels, die die erste Mitgliedschaft hier einschließt, etwa switched.cloud Premium.",
+                  "bundleSecret": "Gemeinsames Secret",
+                  "bundleSecretDescription": "Mindestens 32 Zeichen, auf dem anderen Panel dasselbe; es signiert jede Anfrage.",
                   "storeSection": "Preise",
                   "storeNote": "Ohne noprofit.space: was ein Schritt kostet und wo die Preise steigen. Mit noprofit.space gelten dessen Shop und Preise.",
                   "cpuStep": "CPU-Schritt (%)",
@@ -4769,10 +5042,78 @@
                   "cpxResearchDailyCapDescription": "Abgeschlossene Umfragen, die bezahlt werden, pro Konto. Screen-outs und Boni werden bezahlt und zählen nicht. 0 hat kein Limit.",
                   "cpxResearchPostback": "Postback-URL",
                   "cpxResearchPostbackDescription": "Trag sie in den Postback Settings der App bei CPX Research ein (Klick zum Kopieren). Die Server von CPX rufen sie auf, ein Proxy oder CDN vor dem Panel muss sie also durchlassen.",
-                  "cpxResearchRewards": "Gib der Währung in den Reward Settings der App den Namen Token (Mehrzahl Tokens) und setz den Currency Factor: wie viele Tokens ein Dollar deiner Einnahmen wert ist. So viel zeigt die Wand für jede Umfrage an und so viel bringt sie."
+                  "cpxResearchRewards": "Gib der Währung in den Reward Settings der App den Namen Token (Mehrzahl Tokens) und setz den Currency Factor: wie viele Tokens ein Dollar deiner Einnahmen wert ist. So viel zeigt die Wand für jede Umfrage an und so viel bringt sie.",
+                  "streakSection": "Tägliche Serie",
+                  "streakEnabled": "Tägliche Serie",
+                  "streakEnabledDescription": "Ein Button oben auf der Tokens-Seite zahlt einmal pro UTC-Tag Tokens aus. Ein verpasster Tag lässt die Serie wieder bei Tag 1 beginnen. Die täglichen Tokens oben sind davon getrennt.",
+                  "streakRewards": "Tokens pro Tag",
+                  "streakRewardsDescription": "Was die Tage 1, 2, 3 … einer Serie bringen, durch Kommas getrennt, mit bis zu 2 Nachkommastellen (1 bis 14 Werte). Der letzte wiederholt sich.",
+                  "bonusSection": "Doppelte Tokens",
+                  "tokenBonusPercent": "Bonus",
+                  "tokenBonusPercentDescription": "Prozent mehr auf jeden gesponserten Link und jede Umfrage, solange er läuft: 100 verdoppelt sie, 0 ist aus. Die Tageslimits bleiben, wie sie sind.",
+                  "tokenBonusName": "Name",
+                  "tokenBonusNameDescription": "Wie die Tokens-Seite ihn nennt, etwa „Halloween-Wochenende“. Leer: ein einfacher Bonus.",
+                  "tokenBonusStarts": "Beginn",
+                  "tokenBonusStartsDescription": "In deiner Zeitzone. Leer: sofort.",
+                  "tokenBonusEnds": "Ende",
+                  "tokenBonusEndsDescription": "In deiner Zeitzone. Leer: bis der Bonus wieder auf 0 steht.",
+                  "starterSection": "Erste Schritte",
+                  "starterEnabled": "Aufgaben für die erste Woche",
+                  "starterEnabledDescription": "Eine Liste auf der Tokens-Seite für neue Konten: Discord verknüpfen (solange Discord an ist), einen Server erstellen, ihn starten, einmal Tokens verdienen. Jede Aufgabe wird einmal belohnt.",
+                  "starterDays": "Angezeigte Tage",
+                  "starterDaysDescription": "Wie viele Tage nach der Registrierung die Liste angezeigt wird. 0 blendet sie aus.",
+                  "starterReward": "Tokens pro Aufgabe",
+                  "referralsSection": "Empfehlungen",
+                  "referralsEnabled": "Empfehlungen",
+                  "referralsEnabledDescription": "Jedes Konto bekommt einen Link. Ein neues Konto, das sich darüber anmeldet, belohnt den Werber, sobald es genug Tokens verdient hat.",
+                  "referralReward": "Tokens pro Freund",
+                  "referralThreshold": "Verdienst des Freundes",
+                  "referralThresholdDescription": "Tokens, die der Freund verdient, bevor der Werber belohnt wird.",
+                  "referralMonthlyCap": "Belohnungen pro Monat",
+                  "referralMonthlyCapDescription": "Belohnte Freunde pro Konto in 30 Tagen. 0 hat kein Limit."
                 },
                 "toast": {
                   "updated": "Wirtschaftseinstellungen gespeichert."
+                }
+              }
+            },
+            "upgrades": {
+              "title": "Server-Upgrades",
+              "page": {
+                "title": "Server-Upgrades",
+                "form": {
+                  "tokens": "Tokens",
+                  "days": "Tage",
+                  "hours": "Stunden",
+                  "max": "Höchstens pro Server",
+                  "maxDescription": "Wie viele gleichzeitig auf einem Server laufen dürfen.",
+                  "keepAwake": "Wach halten",
+                  "keepAwakeEnabled": "Wachhalte-Pässe verkaufen",
+                  "keepAwakeEnabledDescription": "Solange ein Pass läuft, stoppt, parkt oder löscht Limbo den Server nicht wegen Inaktivität. Nur im Verkauf, solange Limbo an ist.",
+                  "boost": "Boost",
+                  "boostEnabled": "Boosts verkaufen",
+                  "boostEnabledDescription": "Arbeitsspeicher und CPU zusätzlich zu den eigenen Limits des Servers, außerhalb des Kontingents. Nur im Verkauf, solange der Node mit dem Boost unter der Grenze bleibt, ab der die Bereitstellung pausiert.",
+                  "boostMemory": "Arbeitsspeicher (MiB)",
+                  "boostCpu": "CPU (%)",
+                  "boostCpuDescription": "100 ist ein Thread.",
+                  "extraAllocation": "Zusätzlicher Port",
+                  "extraAllocationEnabled": "Zusätzliche Ports verkaufen",
+                  "extraDatabase": "Zusätzliche Datenbank",
+                  "extraDatabaseEnabled": "Zusätzliche Datenbanken verkaufen",
+                  "extraBackup": "Zusätzlicher Backup-Platz",
+                  "extraBackupEnabled": "Zusätzliche Backup-Plätze verkaufen",
+                  "extraDescription": "Eins mehr im Limit des Servers, solange es läuft. Danach sinkt das Limit wieder; nichts wird gelöscht.",
+                  "shortSubdomain": "Kurze Subdomain-Namen",
+                  "shortSubdomainEnabled": "Höhere Kaution für kurze Namen",
+                  "shortSubdomainEnabledDescription": "Subdomains mit 3 oder weniger Zeichen kosten mindestens diese Kaution, die beim Löschen wie jede andere erstattet wird.",
+                  "shortSubdomainThree": "3 Zeichen (Tokens)",
+                  "shortSubdomainTwo": "2 Zeichen (Tokens)",
+                  "cardColor": "Kartenfarbe",
+                  "cardColorEnabled": "Kartenfarben verkaufen",
+                  "cardColorEnabledDescription": "Eine Farbe für die Karte des Servers in der Serverliste, einmal pro Server gekauft und kostenlos änderbar."
+                },
+                "toast": {
+                  "updated": "Einstellungen für Server-Upgrades gespeichert."
                 }
               }
             },
@@ -4855,6 +5196,10 @@
                   "longDays": "Langes Fenster (Tage)",
                   "longTokens": "Tokens pro langem Fenster",
                   "tokensDescription": "0: Niemand kann neo nutzen.",
+                  "extraEnabled": "Zusätzliche Nutzung für Tokens verkaufen",
+                  "extraEnabledDescription": "Ist ein Fenster aufgebraucht, bietet der Chat einen weiteren Tag Nutzung an (die Tokens des langen Fensters geteilt durch seine Tage), zusätzlich zu jedem laufenden Fenster, bis es zurückgesetzt wird. Nur solange dieses Panel neo misst und Tokens an sind.",
+                  "extraTokens": "Preis eines weiteren Tages (Tokens)",
+                  "extraTokensDescription": "Wird vom Konto abgezogen, wenn der Nutzer ihn im Chat kauft.",
                   "defaultCooldown": "Pause nach einem Fehler (Sekunden)",
                   "defaultCooldownDescription": "So lange wird ein Modell übersprungen, das fehlgeschlagen ist, ohne zu sagen, wann es wieder geht. Ein abgelehnter Schlüssel wird 10 Minuten übersprungen.",
                   "maxBusyWait": "Längste Wartezeit (Sekunden)",
@@ -5606,8 +5951,14 @@
                 "plusLapsed": "{name} läuft nicht; zuerst gekauft",
                 "noPlus": "Kein {name}.",
                 "plusplusRuns": "{name} läuft bis",
+                "bundlePlusRuns": "{plus} inklusive mit {name} bis",
+                "bundleSetThere": "vom anderen Panel gesetzt",
+                "autoRenew": "verlängert sich automatisch",
                 "noPlusplus": "Kein {name} aktiv (bisher {purchases} gekauft).",
                 "extras": "Im Ressourcen-Shop gekauft: {cpu} % CPU, {memory} Arbeitsspeicher, {disk} Speicherplatz.",
+                "referredBy": "Geworben von {username}.",
+                "notReferred": "Ohne Empfehlungslink registriert.",
+                "referred": "Geworbene Konten: {count} ({paid} belohnt).",
                 "balances": "Guthaben ändern",
                 "addCredits": "Credits hinzufügen",
                 "addTokens": "Tokens hinzufügen",
@@ -11244,6 +11595,115 @@
             "scheduledHint": "Erhalte eine E-Mail, wenn ein geplantes Backup dieses Servers fertig ist oder fehlschlägt.",
             "saved": "Benachrichtigungseinstellungen aktualisiert"
           },
+          "upgrades": {
+            "title": "Upgrades",
+            "note": "Extras für diesen Server, bezahlt mit deinen eigenen Tokens. Du hast {balance}.",
+            "buy": "Kaufen · {price}",
+            "add": "{duration} hinzufügen · {price}",
+            "runsUntil": "Läuft bis {time}.",
+            "count": "{count} von {max} aktiv.",
+            "duration": {
+              "hour": "eine Stunde",
+              "hours": "{count} Stunden",
+              "day": "einen Tag",
+              "days": "{count} Tage"
+            },
+            "unavailable": {
+              "max": "Es laufen bereits so viele, wie dieser Server haben darf.",
+              "nodeBusy": "Gerade nicht verfügbar: Der Node ist ausgelastet.",
+              "nodeUnknown": "Gerade nicht verfügbar, versuch es in ein paar Minuten erneut.",
+              "unlimited": "Dieser Server hat kein Limit, das sich erhöhen ließe.",
+              "parked": "Nicht, solange der Server im Ruhezustand ist."
+            },
+            "kinds": {
+              "keepAwake": {
+                "title": "Wach halten",
+                "body": "Für {duration} wird dieser Server wegen Inaktivität weder gestoppt noch in den Ruhezustand versetzt oder gelöscht.",
+                "running": "Dieser Server wird wegen Inaktivität weder gestoppt noch in den Ruhezustand versetzt oder gelöscht."
+              },
+              "boost": {
+                "title": "Boost",
+                "body": "+{memory} Arbeitsspeicher und +{cpu} % CPU zusätzlich zu deinen Limits, für {duration}.",
+                "running": "Mehr Arbeitsspeicher und CPU zusätzlich zu deinen Limits.",
+                "restart": "Starte den Server neu, damit das Spiel den zusätzlichen Arbeitsspeicher nutzen kann."
+              },
+              "extraAllocation": {
+                "title": "Zusätzlicher Port",
+                "body": "Ein weiterer Port für diesen Server, für {duration}.",
+                "running": "Ein weiterer Port für diesen Server."
+              },
+              "extraDatabase": {
+                "title": "Zusätzliche Datenbank",
+                "body": "Eine weitere Datenbank für diesen Server, für {duration}.",
+                "running": "Eine weitere Datenbank für diesen Server."
+              },
+              "extraBackup": {
+                "title": "Zusätzlicher Backup-Platz",
+                "body": "Ein weiteres Backup für diesen Server, für {duration}.",
+                "running": "Ein weiteres Backup für diesen Server."
+              },
+              "cardColor": {
+                "title": "Kartenfarbe",
+                "body": "Eine Farbe für die Karte dieses Servers in deiner Serverliste, dauerhaft.",
+                "running": "Wird in deiner Serverliste angezeigt. Ändern ist kostenlos."
+              }
+            },
+            "confirm": {
+              "price": "Das kostet {price}. Du hast {balance}.",
+              "short": "Das kostet {price}, und du hast {balance}. Verdiene zuerst Tokens.",
+              "earn": "Tokens verdienen"
+            },
+            "color": {
+              "pick": "Wähle eine Farbe",
+              "free": "Die Farbe zu ändern ist kostenlos.",
+              "change": "Farbe ändern",
+              "save": "Farbe speichern",
+              "names": {
+                "blue": "Blau",
+                "cyan": "Cyan",
+                "teal": "Blaugrün",
+                "green": "Grün",
+                "yellow": "Gelb",
+                "orange": "Orange",
+                "red": "Rot",
+                "pink": "Pink",
+                "grape": "Lila",
+                "violet": "Violett"
+              }
+            },
+            "offer": {
+              "extraAllocation": {
+                "title": "Port-Limit erreicht",
+                "body": "Füge für {duration} einen weiteren Port hinzu · {price}.",
+                "button": "Port hinzufügen · {price}"
+              },
+              "extraDatabase": {
+                "title": "Datenbank-Limit erreicht",
+                "body": "Füge für {duration} eine weitere Datenbank hinzu · {price}.",
+                "button": "Datenbank hinzufügen · {price}"
+              },
+              "extraBackup": {
+                "title": "Backup-Limit erreicht",
+                "body": "Füge für {duration} einen weiteren Backup-Platz hinzu · {price}. Deine Backups bleiben, wenn er endet.",
+                "button": "Platz hinzufügen · {price}"
+              },
+              "keepAwake": {
+                "title": "Gestoppt, weil ihn niemand genutzt hat",
+                "body": "Dieser Server wurde nach einer Weile ohne Nutzung gestoppt und wird in den Ruhezustand versetzt, wenn das so weitergeht. Halte ihn {duration} wach · {price}.",
+                "button": "Wach halten · {price}"
+              },
+              "keepAwakeParked": {
+                "title": "Halte ihn wach",
+                "body": "Solange ein Wachhalte-Pass läuft, wird dieser Server nicht gelöscht und, sobald er zurück ist, nicht wieder in den Ruhezustand versetzt. {duration} · {price}.",
+                "button": "Wach halten · {price}"
+              }
+            },
+            "toast": {
+              "bought": "{title} läuft bis {time}.",
+              "boughtNoEnd": "{title} gekauft.",
+              "color": "Kartenfarbe gespeichert."
+            }
+          },
           "danger": {
             "title": "Gefahrenzone",
             "note": "Aktionen in diesem Bereich sind destruktiv und wirken sich direkt auf deinen laufenden Server aus. Sichere wichtige Daten und Weltdateien, bevor du fortfährst.",
@@ -11311,6 +11771,10 @@
             "body": "{name} kostet {cost} Tokens im Monat: Vorrang in dieser Schlange für alle deine Server, die {name}-Standorte und keine Werbung außer dem Warteschirm.",
             "button": "{name} holen"
           },
+          "offers": {
+            "premium": "{name} kommt in dieser Schlange zuerst dran, vor allen anderen.",
+            "premiumLink": "{name} ansehen"
+          },
           "move": {
             "heading": "Auf einen ruhigeren Node umziehen",
             "body": "Wir können diesen Server auf {node} umziehen, der nicht ausgelastet ist. Deine Dateien kommen mit.",
@@ -11335,7 +11799,18 @@
           "body": "Kostenlose Server werden von Werbung wie der auf dieser Seite bezahlt. Lass sie bis zu {seconds} Sekunden sichtbar — die Konsole öffnet sich von selbst, und der Server startet währenddessen schon.",
           "waitLabel": "Konsole öffnet",
           "seconds": "in {seconds} s",
-          "ready": "jeden Moment"
+          "ready": "jeden Moment",
+          "skip": {
+            "heading": "Warten überspringen",
+            "body": "Mit einem Pass überspringt jeder deiner Starts diesen Bildschirm, auf allen deinen Servern. Du hast {balance}.",
+            "running": "Dein Tagespass läuft bis {time}.",
+            "button": "{hours} ohne Warten · {tokens}",
+            "earn": "Tokens verdienen",
+            "premium": "Mit {name} entfällt das",
+            "toast": {
+              "bought": "Tagespass gekauft: kein Warteschirm bis {time}."
+            }
+          }
         },
         "limbo": {
           "title": "Server im Ruhezustand",
@@ -12443,6 +12918,7 @@
           "create": {
             "title": "Subdomain erstellen",
             "depositCaption": "Token-Kaution • Subdomain #{number}",
+            "shortCaption": "Token-Kaution • Kurzer Name (3 Zeichen oder weniger)",
             "refundNote": "(bei Löschung erstattet)",
             "name": "Name",
             "placeholder": "z. B. play",

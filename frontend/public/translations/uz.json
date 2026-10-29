@@ -263,6 +263,22 @@
       "few": "{count} ta build",
       "many": "{count} ta build",
       "other": "{count} ta build"
+    },
+    "friend": {
+      "zero": "{count} ta doʻst",
+      "one": "{count} ta doʻst",
+      "two": "{count} ta doʻst",
+      "few": "{count} ta doʻst",
+      "many": "{count} ta doʻst",
+      "other": "{count} ta doʻst"
+    },
+    "hour": {
+      "zero": "{count} soat",
+      "one": "{count} soat",
+      "two": "{count} soat",
+      "few": "{count} soat",
+      "many": "{count} soat",
+      "other": "{count} soat"
     }
   },
   "translations": {
@@ -898,7 +914,16 @@
           "discordInviteClawback": "Taklif krediti qaytarib olindi",
           "discordInviteDebt": "Takliflar boʻyicha kredit qarzi",
           "discordBoost": "Discord boost",
-          "partner": "Hamkorlik dasturi"
+          "partner": "Hamkorlik dasturi",
+          "serverUpgrade": "Server yaxshilash",
+          "membershipGift": "Sovgʻa",
+          "membershipGiftReceived": "Sovgʻa olindi",
+          "streak": "Kunlik seriya",
+          "starter": "Ilk qadamlar",
+          "referral": "Referal",
+          "dayPass": "Kunlik chipta",
+          "badge": "Profil nishoni",
+          "neoExtra": "Qoʻshimcha neo sarfi"
         }
       },
       "chartLegend": {
@@ -1012,7 +1037,11 @@
           "memory": "RAM",
           "disk": "Disk",
           "openStore": "Resurslar doʻkonidan koʻproq oling",
-          "openTokens": "Jetonlar sahifasini ochish"
+          "openTokens": "Jetonlar sahifasini ochish",
+          "goal": "{tokens} / {cost} — {name} uchun",
+          "goalReady": "{name} uchun yetarli",
+          "openMembership": "Aʼzolik sahifasini ochish",
+          "streak": "Bugungi seriya jetonlari sizni kutmoqda"
         }
       },
       "notifications": {
@@ -1025,6 +1054,8 @@
         "delete": "Bildirishnomani oʻchirish",
         "openServer": "Serverni ochish",
         "viewBackups": "Zaxira nusxalarni koʻrish",
+        "renew": "Yangilash",
+        "viewMembership": "Aʼzolikni koʻrish",
         "showMore": "Koʻproq koʻrsatish",
         "empty": "Bildirishnomalar yoʻq",
         "emptyHint": "Keyinroq yana tekshirib koʻring.",
@@ -1052,6 +1083,29 @@
           "membershipEnded": {
             "title": "{membership} tugadi",
             "body": "Bu aʼzolik ochib bergan joylashuvlardagi serverlar boshqa joylashuvga koʻchirilmoqda: {servers}. Jarayonni har bir serverning Koʻchirish sahifasida kuzating."
+          },
+          "membershipEndsSoon": {
+            "title": "{membership} tez orada tugaydi",
+            "body": "U {date} da tugaydi.",
+            "renews": "U {cost} evaziga oʻz-oʻzidan yangilanadi.",
+            "renewsShort": "U oʻz-oʻzidan yangilanadigan qilib sozlangan, lekin balansingiz hali {cost} uchun yetarli emas.",
+            "notRenewing": "U oʻz-oʻzidan yangilanmaydi. Yangilash {cost} turadi va balansingiz bunga yetadi.",
+            "notRenewingShort": "U oʻz-oʻzidan yangilanmaydi. Yangilash {cost} turadi."
+          },
+          "membershipRenewFailed": {
+            "title": "{membership} yangilanmadi",
+            "body": "Yana {amount} kerak."
+          },
+          "membershipGifted": {
+            "title": "{from} sizga {membership} sovgʻa qildi",
+            "body": "{days} kunlik {membership} mavjud muddatingizga qoʻshildi.",
+            "until": "Endi u {date} gacha amal qiladi."
+          },
+          "panelAccessEndsSoon": {
+            "title": "Panelga kirish muddati tez orada tugaydi",
+            "body": "Panelga pullik kirish muddatingiz {date} da tugaydi.",
+            "covered": "Balansingiz navbatdagi {cost} toʻlovga yetadi.",
+            "short": "Qayta toʻlash {cost} turadi."
           },
           "failoverDone": {
             "title": "Server tiklandi",
@@ -1129,6 +1183,10 @@
             "title": "Hamkorlik kreditlari olindi",
             "body": "Bu oy {guild} uchun {credits} kredit."
           },
+          "referralPaid": {
+            "title": "Referal mukofoti",
+            "body": "Doʻstingiz {username} ilk {threshold} ishlab oldi: +{amount}"
+          },
           "partnerCheckFailed": {
             "title": "Hamkorlik tekshiruvidan oʻtilmadi",
             "body": "{guild} endi hamkorlik talablariga javob bermaydi, shuning uchun bu oydagi toʻlov kutib turibdi. {until} gacha tuzating, aks holda hamkorlik toʻxtatiladi. Nima notoʻgʻriligi Hamkorlar sahifasida koʻrsatilgan."
@@ -1148,6 +1206,19 @@
           "partnerCreditsChanged": {
             "title": "Hamkorlik kreditlari oʻzgardi",
             "body": "{guild} endi oyiga {credits} kredit oladi."
+          },
+          "upgradeEnding": {
+            "title": "{upgrade} tez orada tugaydi",
+            "body": "{server} serveridagi {upgrade} {time} da tugaydi.",
+            "renew": "Serverning Sozlamalar sahifasida unga {price} evaziga vaqt qoʻshing.",
+            "action": "Vaqt qoʻshish"
+          },
+          "serverIdleStopped": {
+            "title": "Server foydalanilmagani uchun toʻxtatildi",
+            "body": "{server} toʻxtatildi, chunki {hours} soat davomida undan hech kim foydalanmadi.",
+            "park": "Agar kimdir undan foydalanmasa, taxminan {hours} soatdan keyin u uyqu rejimiga oʻtkaziladi: zaxira nusxasi olinadi va tiklanguncha tugunidan olib tashlanadi.",
+            "keepAwake": "Uni {days} kun uygʻoq saqlang · {price}.",
+            "action": "Uygʻoq saqlash"
           }
         }
       },
@@ -1517,6 +1588,11 @@
       "ads": {
         "frameTitle": "Reklama",
         "sponsored": "Homiylik",
+        "promo": {
+          "skipTheWait": "{name} aʼzoligini olish",
+          "goPlus": "{name} aʼzoligini olish",
+          "freeTokens": "Jeton ishlab olish"
+        },
         "adblock": {
           "title": "Reklama bloklovchi aniqlandi",
           "message": "Bu paneldagi reklamalar uning bepul serverlari xarajatlarini qoplaydi. Iltimos, bu saytda reklamaga ruxsat bering, soʻng sahifani qayta yuklang.",
@@ -1525,6 +1601,34 @@
             "closeIn": "Yopish ({seconds})"
           }
         }
+      },
+      "profileBadge": {
+        "supporter": "Tarafdor",
+        "earlyBird": "Erta qush",
+        "nightOwl": "Tungi boyqush",
+        "og": "OG",
+        "builder": "Quruvchi",
+        "explorer": "Kashfiyotchi"
+      },
+      "promo": {
+        "title": "{name} bilan koʻproq imkoniyatlar",
+        "price": "{days} kun uchun {tokens}",
+        "perks": {
+          "locations": "{name} joylashuvlari",
+          "queueFirst": "Ishga tushirish navbatida birinchi oʻrin",
+          "queueAhead": "Ishga tushirish navbatida bepul foydalanuvchilardan oldinda",
+          "burst": "Har bir serverda {percent}% gacha koʻproq CPU",
+          "noAds": "Reklama ham, kutish ekrani ham yoʻq",
+          "fewerAds": "Sahifalarda reklama yoʻq, faqat ishga tushirish oldidan",
+          "panelAccess": "Panel narxga kiritilgan",
+          "neo": "neo sarfi {percent}% koʻproq",
+          "fasterBackups": "Tezroq zaxira nusxalash va arxivlash"
+        },
+        "progressLabel": "Jetonlaringiz",
+        "progress": "{have} / {cost}",
+        "enough": "Jetoningiz yetarli: {name} aʼzoligini hozir oling.",
+        "get": "{name} aʼzoligini olish",
+        "notNow": "Hozir emas"
       },
       "neo": {
         "name": "neo",
@@ -1625,6 +1729,11 @@
         "risk": {
           "destructive": "Ortga qaytarish qiyin",
           "critical": "Ortga qaytarib boʻlmaydi yoki pullik"
+        },
+        "extra": {
+          "offer": "{tokens} evaziga yana bir kunlik sarf",
+          "buy": "Olish",
+          "earn": "Jeton ishlab olish"
         },
         "notice": {
           "limitedShort": "Siz {name} uchun qisqa muddatli limitga yetdingiz. Limit yangilanishi: {time}.",
@@ -2041,6 +2150,9 @@
           "disabled": "Server yaratish oʻchirilgan.",
           "noPlan": "Hisobingizda server yaratish uchun tarif yoʻq.",
           "nothingOffered": "Hozir joylashtira oladigan oʻyinlar yoʻq. Iltimos, panel administratoriga murojaat qiling.",
+          "offers": {
+            "store": "Resurslar doʻkonidan koʻproq oling"
+          },
           "details": "Tafsilotlar",
           "name": "Server nomi",
           "randomName": "Tasodifiy nom yaratish",
@@ -2255,6 +2367,20 @@
               "createBlocked": "Ruxsat etilmagan",
               "createBlockedUntil": "{date} gacha ruxsat etilmagan",
               "details": "Batafsil"
+            },
+            "badges": {
+              "title": "Nishonlar",
+              "description": "Ismingiz yonida, yon panelda, siz ulashgan serverlarda va ularning chatida koʻrinadigan nishonni tanlang. Har biri {tokens}, butunlay sizniki boʻladi.",
+              "descriptionOwned": "Ismingiz yonida, yon panelda, siz ulashgan serverlarda va ularning chatida koʻrinadigan nishon.",
+              "buy": "Sotib olish · {tokens}",
+              "show": "Koʻrsatish",
+              "shown": "Koʻrsatilmoqda",
+              "hide": "Nishonni koʻrsatmaslik",
+              "balance": "Sizda {balance} bor.",
+              "earn": "Jeton ishlab olish",
+              "toast": {
+                "bought": "Nishon sotib olindi."
+              }
             },
             "password": {
               "title": "Parol",
@@ -2870,6 +2996,53 @@
           "surveyCap": "Kuniga {cap} ta soʻrovnoma uchun toʻlanadi. Siz mos kelmaganingiz uchun erta tugagan soʻrovnoma kichik bonus berishi mumkin va hisobga olinmaydi.",
           "scriptBlocked": "Homiylik havolasini yuklab boʻlmadi. Uni kontent bloklovchi toʻxtatayotgan boʻlishi mumkin.",
           "history": "Soʻnggi faollik",
+          "streak": {
+            "title": "Kunlik seriya",
+            "claim": "Bugungi jetonlarni olish",
+            "today": "{day}-kun · {tokens}",
+            "tomorrow": "{day}-kun · {tokens} · {next} uchun ertaga qayting",
+            "hint": "Kuniga bir marta oling. Bir kunni oʻtkazib yuborsangiz, yana 1-kundan boshlanadi.",
+            "week": "Bu haftaning 7 kunidan {claimed} tasi olindi",
+            "claimed": "{day}-kun uchun +{tokens}"
+          },
+          "bonus": {
+            "double": "Har bir havola va soʻrovnomada ikki barobar jeton",
+            "doubleUntil": "{date} gacha ikki barobar jeton",
+            "more": "Har bir havola va soʻrovnomada +{percent}% jeton",
+            "moreUntil": "{date} gacha +{percent}% jeton",
+            "survey": "Hozir har bir soʻrovnoma {percent}% koʻproq beradi."
+          },
+          "starter": {
+            "title": "Ilk qadamlar",
+            "description": "Har bir vazifa uchun bir marta toʻlanadi. Bu roʻyxat {date} da yoʻqoladi.",
+            "reward": "+{tokens}",
+            "claim": "Olish",
+            "claimed": "Olindi",
+            "toast": "Qoʻshildi: +{tokens}",
+            "task": {
+              "discord": "Discord hisobingizni bogʻlang",
+              "create_server": "Server yarating",
+              "start_server": "Serveringizni ishga tushiring",
+              "earn": "Havola yoki soʻrovnoma orqali bir marta jeton ishlab oling"
+            },
+            "go": {
+              "discord": "Discordni bogʻlash",
+              "create_server": "Server yaratish",
+              "start_server": "Serverlaringizni ochish",
+              "earn": "Jeton ishlab olish"
+            }
+          },
+          "referrals": {
+            "title": "Doʻstlarni taklif qiling",
+            "howItWorks": "Doʻstingiz havolangiz orqali roʻyxatdan oʻtib, ilk {threshold} ishlab olganda, siz +{reward} olasiz.",
+            "link": "Havolangiz",
+            "copy": "Havolani nusxalash",
+            "cap": "Har qanday 30 kun ichida koʻpi bilan {friends} uchun toʻlanadi; qolganlari oʻz navbatini kutadi.",
+            "none": "Hali hech kim havolangiz orqali roʻyxatdan oʻtmagan.",
+            "friends": "{friends} roʻyxatdan oʻtdi",
+            "progress": "{earned} / {threshold} jeton ishlab olindi",
+            "paid": "+{reward} toʻlandi"
+          },
           "redemption": {
             "granted": "Qoʻshildi: +{amount} jeton",
             "settled": "Bu allaqachon toʻlab berilgan",
@@ -2887,10 +3060,14 @@
           "title": "Aʼzolik",
           "pageTitle": "{app} {name}",
           "subtitle": "Yaxshiroq joylashuvlar, navbatda kutish yoʻq va kamroq reklama. Jetonlar bilan oyma-oy toʻlanadi; hech narsa oʻz-oʻzidan yangilanmaydi.",
+          "subtitleAutoRenew": "Yaxshiroq joylashuvlar, navbatda kutish yoʻq va kamroq reklama. Jetonlar bilan oyma-oy toʻlanadi; faqat siz yoqsangiz yangilanadi.",
           "unavailable": "{name} hozircha sotuvda yoʻq.",
           "active": {
             "heading": "{name} faol",
             "body": "Amal qilish muddati: {until}."
+          },
+          "bundleActive": {
+            "heading": "{plus} sizning {name} aʼzoligingizga kiritilgan"
           },
           "plus": {
             "pitch": "Aksariyat serverlarga kerak boʻlgan hamma narsa — oyma-oy.",
@@ -2918,6 +3095,34 @@
           },
           "balance": "Sizda {balance} jeton bor.",
           "earnLink": "Koʻproq jeton olish",
+          "moreToGo": "Yana {amount} kerak",
+          "sale": {
+            "defaultName": "Chegirma",
+            "until": "{date} gacha barcha aʼzoliklarga {percent}% chegirma.",
+            "running": "Barcha aʼzoliklarga {percent}% chegirma."
+          },
+          "autoRenew": {
+            "label": "Avtomatik yangilash",
+            "description": "Muddat tugaganda, balansingiz yetsa, u oʻsha paytdagi narxda (bugun {cost}) yangilanadi.",
+            "on": "{name} endi avtomatik yangilanadi.",
+            "off": "{name} endi avtomatik yangilanmaydi."
+          },
+          "gift": {
+            "heading": "Doʻstga sovgʻa qilish",
+            "text": "Jetonlaringiz bilan boshqa birov uchun aʼzolik sotib oling. U uning mavjud muddatiga qoʻshiladi va u sovgʻa sizdan ekanini koʻradi.",
+            "recipient": "Foydalanuvchi nomi yoki e-pochta",
+            "membership": "Aʼzolik",
+            "option": "{name} · {days} kun · {cost}",
+            "submit": "Sovgʻani yuborish",
+            "left": "Bugun qolgan sovgʻalar: {count}",
+            "none": "Bugungi sovgʻalarni yubordingiz. Ertaga qayting.",
+            "modal": {
+              "title": "Sovgʻa yuborish",
+              "body": "**{cost}** jeton evaziga **{recipient}** foydalanuvchisiga **{days} kunlik** **{name}** sovgʻa qilinsinmi?",
+              "confirm": "Yuborish"
+            },
+            "toast": "{name} {recipient} foydalanuvchisiga yuborildi."
+          },
           "perks": {
             "plusLocations": "{name} joylashuvlari",
             "priority": "Tugun band boʻlganda ishga tushirish navbatida ustuvorlik",
@@ -2932,7 +3137,8 @@
             "highestPriority": "Tugun band boʻlganda ishga tushirish navbatida eng yuqori ustuvorlik",
             "noAds": "Hech qayerda reklama yoʻq: na bannerlar, na qalqib chiquvchi oynalar, na ishga tushirish oldidan kutish ekrani, na oʻyin ichidagi reklamalar",
             "neoPlusplus": "Jami {percent}% koʻproq neo (AI) sarfi",
-            "devboxPlusplus": "Kattaroq VS Code devbox: {cpu} vCPU, {memory} RAM, {disk} disk"
+            "devboxPlusplus": "Kattaroq VS Code devbox: {cpu} vCPU, {memory} RAM, {disk} disk",
+            "bundle": "{name} kiritilgan"
           },
           "compare": {
             "heading": "Nimalarga ega boʻlasiz",
@@ -2976,7 +3182,8 @@
             "heading": "Savollar",
             "renew": {
               "question": "Aʼzolik oʻz-oʻzidan yangilanadimi?",
-              "answer": "Yoʻq. {plus} va {plusplus} har biri siz sotib olgan kunlar davomida amal qiladi va hech narsa oʻz-oʻzidan yangilanmaydi. Muddat tugashidan oldin yana sotib olsangiz, qolgan vaqtga qoʻshiladi. {plusplus} tarkibida {plus} beradigan hamma narsa bor, shuning uchun ikkalasini birga olishingiz hech qachon shart emas."
+              "answer": "Yoʻq. {plus} va {plusplus} har biri siz sotib olgan kunlar davomida amal qiladi va hech narsa oʻz-oʻzidan yangilanmaydi. Muddat tugashidan oldin yana sotib olsangiz, qolgan vaqtga qoʻshiladi. {plusplus} tarkibida {plus} beradigan hamma narsa bor, shuning uchun ikkalasini birga olishingiz hech qachon shart emas.",
+              "answerAutoRenew": "Faqat siz unga Avtomatik yangilashni yoqsangiz: shunda u tugash paytida, oʻsha paytdagi narxda, balansingiz yetguncha yangilanadi va tugashidan oldin sizga xabar beriladi. Muddat tugashidan oldin yana sotib olsangiz, qolgan vaqtga qoʻshiladi. {plusplus} tarkibida {plus} beradigan hamma narsa bor, shuning uchun ikkalasini birga olishingiz hech qachon shart emas."
             },
             "expiry": {
               "question": "Aʼzolik tugaganda nima boʻladi?",
@@ -3215,6 +3422,10 @@
           "toast": {
             "bought": "Panel {days} kun sizniki.",
             "failed": "Toʻlov amalga oshmadi."
+          },
+          "offers": {
+            "membership": "{plus} va {plusplus} panelni oʻz ichiga oladi.",
+            "membershipLink": "Buning oʻrniga {name} aʼzoligini olish"
           }
         }
       },
@@ -5903,6 +6114,115 @@
             "scheduledHint": "Bu server uchun rejalashtirilgan zaxira nusxa tugaganda yoki muvaffaqiyatsiz boʻlganda e-pochta xabarini olish.",
             "saved": "Bildirishnoma sozlamalari yangilandi"
           },
+          "upgrades": {
+            "title": "Yaxshilashlar",
+            "note": "Bu server uchun qoʻshimchalar, oʻz jetonlaringiz bilan toʻlanadi. Sizda {balance} bor.",
+            "buy": "Sotib olish · {price}",
+            "add": "{duration} qoʻshish · {price}",
+            "runsUntil": "{time} gacha amal qiladi.",
+            "count": "Faol: {count} / {max}.",
+            "duration": {
+              "hour": "bir soat",
+              "hours": "{count} soat",
+              "day": "bir kun",
+              "days": "{count} kun"
+            },
+            "unavailable": {
+              "max": "Bu server uchun ruxsat etilgan eng koʻp miqdor allaqachon faol.",
+              "nodeBusy": "Hozir mavjud emas: tugun band.",
+              "nodeUnknown": "Hozir mavjud emas, bir necha daqiqadan keyin qayta urinib koʻring.",
+              "unlimited": "Bu serverda oshiriladigan limit yoʻq.",
+              "parked": "Server uyqu rejimida boʻlganda mumkin emas."
+            },
+            "kinds": {
+              "keepAwake": {
+                "title": "Uygʻoq saqlash",
+                "body": "{duration} davomida bu server foydalanilmagani uchun toʻxtatilmaydi, uyqu rejimiga oʻtkazilmaydi va oʻchirilmaydi.",
+                "running": "Bu server foydalanilmagani uchun toʻxtatilmaydi, uyqu rejimiga oʻtkazilmaydi va oʻchirilmaydi."
+              },
+              "boost": {
+                "title": "Boost",
+                "body": "{duration} davomida limitlaringiz ustiga +{memory} xotira va +{cpu}% CPU.",
+                "running": "Limitlaringiz ustiga qoʻshimcha xotira va CPU.",
+                "restart": "Oʻyin qoʻshimcha xotiradan foydalanishi uchun serverni qayta ishga tushiring."
+              },
+              "extraAllocation": {
+                "title": "Qoʻshimcha port",
+                "body": "{duration} davomida bu server uchun yana bitta port.",
+                "running": "Bu server uchun yana bitta port."
+              },
+              "extraDatabase": {
+                "title": "Qoʻshimcha maʼlumotlar bazasi",
+                "body": "{duration} davomida bu server uchun yana bitta maʼlumotlar bazasi.",
+                "running": "Bu server uchun yana bitta maʼlumotlar bazasi."
+              },
+              "extraBackup": {
+                "title": "Qoʻshimcha zaxira nusxa oʻrni",
+                "body": "{duration} davomida bu server uchun yana bitta zaxira nusxa.",
+                "running": "Bu server uchun yana bitta zaxira nusxa."
+              },
+              "cardColor": {
+                "title": "Karta rangi",
+                "body": "Serverlar roʻyxatingizdagi bu server kartasi uchun rang, butunlay sizniki.",
+                "running": "Serverlar roʻyxatingizda koʻrinadi. Uni oʻzgartirish bepul."
+              }
+            },
+            "confirm": {
+              "price": "Bu {price} turadi. Sizda {balance} bor.",
+              "short": "Bu {price} turadi, sizda esa {balance} bor. Avval jeton ishlab oling.",
+              "earn": "Jeton ishlab olish"
+            },
+            "color": {
+              "pick": "Rang tanlang",
+              "free": "Rangni oʻzgartirish bepul.",
+              "change": "Rangni oʻzgartirish",
+              "save": "Rangni saqlash",
+              "names": {
+                "blue": "Koʻk",
+                "cyan": "Havorang",
+                "teal": "Feruzarang",
+                "green": "Yashil",
+                "yellow": "Sariq",
+                "orange": "Toʻq sariq",
+                "red": "Qizil",
+                "pink": "Pushti",
+                "grape": "Binafsha",
+                "violet": "Siyohrang"
+              }
+            },
+            "offer": {
+              "extraAllocation": {
+                "title": "Port limitiga yetildi",
+                "body": "{duration} davomida yana bitta port qoʻshing · {price}.",
+                "button": "Port qoʻshish · {price}"
+              },
+              "extraDatabase": {
+                "title": "Maʼlumotlar bazasi limitiga yetildi",
+                "body": "{duration} davomida yana bitta maʼlumotlar bazasi qoʻshing · {price}.",
+                "button": "Maʼlumotlar bazasi qoʻshish · {price}"
+              },
+              "extraBackup": {
+                "title": "Zaxira nusxalar limitiga yetildi",
+                "body": "{duration} davomida yana bitta zaxira nusxa oʻrnini qoʻshing · {price}. U tugaganda zaxira nusxalaringiz saqlanib qoladi.",
+                "button": "Oʻrin qoʻshish · {price}"
+              },
+              "keepAwake": {
+                "title": "Hech kim foydalanmagani uchun toʻxtatildi",
+                "body": "Bu server bir muddat foydalanilmagandan keyin toʻxtatildi va bu davom etsa, uyqu rejimiga oʻtkaziladi. Uni {duration} davomida uygʻoq saqlang · {price}.",
+                "button": "Uygʻoq saqlash · {price}"
+              },
+              "keepAwakeParked": {
+                "title": "Uygʻoq saqlash",
+                "body": "Uygʻoq saqlash muddati davomida bu server oʻchirilmaydi, qaytgandan keyin esa yana uyqu rejimiga oʻtkazilmaydi. {duration} · {price}.",
+                "button": "Uygʻoq saqlash · {price}"
+              }
+            },
+            "toast": {
+              "bought": "{title} {time} gacha amal qiladi.",
+              "boughtNoEnd": "{title} sotib olindi.",
+              "color": "Karta rangi saqlandi."
+            }
+          },
           "danger": {
             "title": "Xavfli hudud",
             "note": "Bu boʻlimdagi amallar maʼlumotlarni yoʻq qilishi mumkin va serveringiz ishiga bevosita taʼsir qiladi. Davom etishdan oldin muhim maʼlumotlar yoki dunyo fayllarining zaxira nusxasini olganingizga ishonch hosil qiling.",
@@ -5970,6 +6290,10 @@
             "body": "{name} narxi oyiga {cost} jeton: barcha serverlaringiz uchun bu navbatda ustuvorlik, {name} joylashuvlari va kutish ekranidan boshqa reklama yoʻq.",
             "button": "{name} aʼzoligini olish"
           },
+          "offers": {
+            "premium": "{name} bilan bu navbatda hammadan oldin turasiz.",
+            "premiumLink": "{name} haqida"
+          },
           "move": {
             "heading": "Tinchroq tugunga koʻchirish",
             "body": "Biz bu serverni band boʻlmagan {node} tuguniga koʻchira olamiz. Fayllaringiz ham birga koʻchiriladi.",
@@ -5994,7 +6318,18 @@
           "body": "Bepul serverlar shu sahifadagi kabi reklamalar hisobidan ishlaydi. Ularni {seconds} soniyagacha koʻrinib turadigan qilib qoldiring — konsol oʻzi ochiladi, siz kutayotganingizda esa server allaqachon ishga tushmoqda.",
           "waitLabel": "Konsol ochilmoqda",
           "seconds": "{seconds} soniyadan keyin",
-          "ready": "hademay"
+          "ready": "hademay",
+          "skip": {
+            "heading": "Kutishsiz ishga tushirish",
+            "body": "Bitta chipta bilan barcha serverlaringizdagi har bir ishga tushirishingiz bu ekranni chetlab oʻtadi. Sizda {balance} bor.",
+            "running": "Kunlik chiptangiz {time} gacha amal qiladi.",
+            "button": "{hours} kutishsiz · {tokens}",
+            "earn": "Jeton ishlab olish",
+            "premium": "{name} bilan bu ekran boʻlmaydi",
+            "toast": {
+              "bought": "Kunlik chipta sotib olindi: {time} gacha kutish ekrani yoʻq."
+            }
+          }
         },
         "limbo": {
           "title": "Server uyqu rejimida",
@@ -7102,6 +7437,7 @@
           "create": {
             "title": "Subdomen yaratish",
             "depositCaption": "Jeton depoziti • {number}-subdomen",
+            "shortCaption": "Jeton depoziti • Qisqa nom (3 ta belgi yoki kamroq)",
             "refundNote": "(oʻchirilganda qaytariladi)",
             "balance": "Balansingiz",
             "name": "Nomi",
