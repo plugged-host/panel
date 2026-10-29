@@ -978,6 +978,7 @@ mod tests {
             boost_two_role_id: String::new(),
             managed: None,
             managed_bot_token: None,
+            memberships: Default::default(),
         }
     }
 

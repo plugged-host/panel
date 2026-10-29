@@ -7,6 +7,7 @@ import Group from '@/elements/layout/Group.tsx';
 import ConsoleModpackCallout from '@/pages/server/minecraft/content/ConsoleModpackCallout.tsx'; // plugged.host
 import LogCheckBanner from '@/pages/server/minecraft/LogCheckBanner.tsx'; // plugged.host
 import SetupCallout from '@/pages/server/minecraft/setup/SetupCallout.tsx'; // plugged.host
+import IdleStopOffer from '@/pages/server/upgrades/IdleStopOffer.tsx'; // plugged.host
 import { useVisualViewportBottomInset } from '@/plugins/viewport/useVisualViewport.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import ServerOverview from './stats/ServerOverview.tsx'; // plugged.host: instead of ServerDetails
@@ -45,6 +46,8 @@ export default function ServerConsole() {
       <SetupCallout />
       {/* plugged.host: a modpack's install, followed here through the reinstall it causes */}
       <ConsoleModpackCallout />
+      {/* plugged.host: limbo stopped it for being idle: a keep-awake pass (docs/features/server-upgrades.md) */}
+      <IdleStopOffer />
       {/* plugged.host: what Pelican renders at the page's start (PAGE_START), above the title row */}
       <LogCheckBanner />
       <div ref={infobarSentinelRef} />

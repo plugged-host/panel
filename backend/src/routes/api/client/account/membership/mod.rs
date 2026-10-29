@@ -3,6 +3,8 @@
 use super::State;
 use utoipa_axum::{router::OpenApiRouter, routes};
 
+mod auto_renew;
+mod gift;
 mod plus;
 mod plusplus;
 
@@ -45,5 +47,7 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         .routes(routes!(get::route))
         .nest("/plus", plus::router(state))
         .nest("/plusplus", plusplus::router(state))
+        .nest("/auto-renew", auto_renew::router(state))
+        .nest("/gift", gift::router(state))
         .with_state(state.clone())
 }

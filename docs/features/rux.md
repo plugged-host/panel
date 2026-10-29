@@ -1,10 +1,11 @@
 # rux
 
 rux is the panel's moderation and toolbox bot on Discord. Admins have it do things in plain words,
-by DM, @mention or "hey rux": warn, time out, ban, run giveaways of credits, set standing rules,
-watch channels. Members of the roles they make rux moderator roles have it moderate their server.
+by DM, @mention or "hey rux": warn, time out, ban, run giveaways of credits, tokens or membership
+days, set standing rules, watch channels. Members of the roles they make rux moderator roles have it moderate their server.
 rux also checks members' messages by itself: spam without AI, and watched channels and standing
-rules with the AI. In `shared/src/rux/`.
+rules with the AI. Members ask it `/tokens` for their tokens, streak and membership, and it
+announces double-token windows ([Tokens](#tokens)). In `shared/src/rux/`.
 
 rux is the Discord section's **moderation bot**: its switch and token are on Admin › Settings ›
 Accounts › Discord ([discord.md](discord.md)), its own settings on Admin › Settings › Accounts ›
@@ -142,6 +143,10 @@ Admin › Settings › Accounts › rux (`frontend/src/pages/admin/settings/rux/
 - Bot: the name; the main server, time zone, language, orders per minute, steps, history.
 - Giveaways and Moderation: the default giveaway channel and mod log of the main server, the
   giveaway limits, the people who may have rux give credits and the most per gift.
+- Tokens and Memberships (editable while noprofit.space keeps the rest, since tokens and
+  memberships are always the panel's): `/tokens` on or off, the most tokens and membership days a
+  giveaway pays each winner, the announcement channel and whether double-token windows are
+  announced ([Tokens](#tokens)).
 - More Discord Servers: up to nine, each with its id, whose server it is, what that host is, its
   giveaway channel, its mod log and its own sites.
 - Warnings: the two steps of the warning ladder.
@@ -168,6 +173,11 @@ Admin › Settings › Accounts › rux (`frontend/src/pages/admin/settings/rux/
 | Longest Giveaway | 60 days | 1 to 365 |
 | Main Admin (Gives Credits) | none (nobody) | up to 20 Discord user ids |
 | Most Credits per Gift | 10000 | 1 to 1000000 |
+| Most Tokens per Winner (`giveaway_max_tokens`) | 50 | 1 to 100000 |
+| Most Membership Days per Winner (`giveaway_max_membership_days`) | 30 | 1 to 365 |
+| `/tokens` (`tokens_command`) | on | |
+| Announcement Channel ID (`announce_channel_id`) | none (no announcements) | a Discord id on the main server |
+| Announce Double Tokens (`token_bonus_posts`) | on | |
 | More Discord Servers | none | up to 9; each id once, not the main one |
 | Timeout from Warning, Timeout Length | 3, 24h | 0 (off) to 100; up to 28d |
 | Ban from Warning, Ban Length | 5, 24h | 0 (off) to 100; a duration |
@@ -181,7 +191,8 @@ Admin › Settings › Accounts › rux (`frontend/src/pages/admin/settings/rux/
 | Secret of noprofit.space's rux Routes | none (the API secret) | encrypted, at least 32 characters; empty keeps it |
 
 A payload is checked as a whole before anything changes (`PayloadRux::apply`): a bad id, domain,
-zone, language or duration refuses it with the reason (400).
+zone, language or duration refuses it with the reason (400). noprofit.space does not keep the five
+tokens settings, so they stay the panel's while it keeps the rest (`config::overlay`).
 
 ## Tools
 
@@ -191,7 +202,7 @@ moderate); every other tool is for admins only.
 | Group | Tools |
 |---|---|
 | Moderation (`moderation/`) | `lookup_member` M, `warn_member` M, `timeout_member` M, `kick_member` M, `ban_member` M, `unban_user` M, `list_cases` M, `list_bans` M, `set_nickname` M, `clear_warnings` M, `read_messages` M, `delete_messages` M, `purge_messages` M, `channel_settings` M (slowmode, lock), `role_info` M, `role_members` M (who has a role; needs Server Members), `server_overview` M, `manage_role`, `send_message`, `edit_message`, `send_dm` |
-| Giveaways (`giveaways/`) | `create_giveaway`, `list_giveaways` M, `edit_giveaway`, `end_giveaway`, `cancel_giveaway`, `reroll_giveaway` |
+| Giveaways (`giveaways/`) | `create_giveaway` (credits, tokens or membership days), `list_giveaways` M, `edit_giveaway`, `end_giveaway`, `cancel_giveaway`, `reroll_giveaway` |
 | Credits (`credits/`) | `give_credits` |
 | Standing rules (`rules/`) | `add_rule`, `list_rules` M, `edit_rule`, `remove_rule`, `watch_channel`, `set_moderator_role` |
 | Servers (`servers/`) | `switch_server` M (DMs only, with more than one server) |
@@ -234,8 +245,23 @@ giveaways.
 
 ### Giveaways
 
-- The prize is **always credits**: a title can name the occasion but never promise anything else
-  (Plus, tokens, RAM, Nitro, roles…; refused). Without a title it is "500 credits".
+- The prize is **credits** (the default), **tokens** or **days of a membership**: `create_giveaway`'s
+  `prize_kind` is `credits`, `tokens`, `plus_days` or `plusplus_days` and `credits` is the amount
+  per winner in that unit (kept in `rux_giveaways.credits`, the kind in `prize_kind`; an edit
+  changes the amount, never the kind). A title can name the occasion or its own prize ("Plus" on
+  days of the first membership, "tokens" on tokens) but never another one (RAM, Nitro, roles, the
+  other membership…; refused). Without a title it is the prize: "500 credits", "15 tokens", "30 days
+  of Plus" (the membership names are the economy settings'), in rux's language.
+- **Tokens and memberships are always the panel's own** ([economy.md](economy.md)), so the panel
+  pays them in every mode, with or without noprofit.space: to the panel account the winner's Discord
+  is linked to (`discord::user_for_discord_id`: noprofit.space's link while it is connected, else the
+  Discord section's sign-in provider). Tokens go into the ledger (type `rux_giveaway`, "Giveaway on
+  Discord: 15 tokens"); days are added to what is left of the membership, like a purchase but not
+  counted as one (`economy::give_membership_days`), then the burst cores, the start queue and the
+  cached user follow (`economy::membership_changed`). Each entry is paid once (claimed in the same
+  transaction); a winner with no panel account yet waits like an unlinked one. A token giveaway is
+  refused while tokens are off, a membership one while memberships are off; "keep out the winners
+  of the last N giveaways" then counts the panel's own giveaways.
 - The post has an **Enter** button. Entering needs a Discord account linked to an account
   (noprofit.space's while it is connected, else the panel's: the Discord section's sign-in
   provider); someone who is not linked gets a Link button. The answer only they see comes from a
@@ -243,9 +269,9 @@ giveaways.
 - "Keep out the winners of the last N giveaways" (0 to 10): which giveaways those were is fixed
   when it is created (noprofit.space's last giveaways, or the panel's own), so the draw applies the
   rule the admin read back.
-- Limits: the settings' credits per winner, winners and longest giveaway; it ends at least a minute
-  from now. A giveaway is refused while nothing can pay it (credits off on the panel, or
-  noprofit.space connected without its rux routes).
+- Limits: the settings' credits, tokens or membership days per winner, winners and longest
+  giveaway; it ends at least a minute from now. A credit giveaway is refused while nothing can pay
+  it (credits off on the panel, or noprofit.space connected without its rux routes).
 - **The draw**: the `rux` task (every 10 seconds) or `end_giveaway` moves it from `active` to
   `drawing`, so exactly one run draws. Winners are picked at random (the OS-seeded generator) among
   the entries that have not won, are not kept out, are still linked and still in the server. When
@@ -257,7 +283,9 @@ giveaways.
   are paid there once they link again. Without it, each winner's credits go into the panel's own
   ledger (type `rux_giveaway`, "Giveaway on Discord: <prize>"), each entry once; a winner who is not
   linked (any more) waits. Payouts that are still waiting are tried again, less often the more often
-  they failed, for 90 days.
+  they failed, for 90 days. Tokens and membership days are always paid this way, by the panel. The
+  announcement says where the prize is ("The tokens are already in your … account", "Plus is
+  already running on your … account").
 - A draw that died halfway (a restart) goes back to `active` after 10 minutes; the posts' entry
   counts are kept current once a minute.
 
@@ -268,8 +296,9 @@ Credits)** can order it, and at most Most Credits per Gift at once. With noprofi
 through `POST /api/v1/internal/rux/credits` as that admin's noprofit.space account (noprofit.space
 checks they are an admin there); without it, into the panel's ledger (type `admin`, the reason or
 "From <admin> on Discord"). Its key, `rux:grant:calagopus-<hash of the order, server, person and
-amount>`, makes an order that is retried give nothing twice (the answer then says so). rux gives
-nothing but credits: the credit grant and the giveaways are the only tools that give anything.
+amount>`, makes an order that is retried give nothing twice (the answer then says so). The credit
+grant and the giveaways are the only tools that give anything: the grant only credits, a giveaway
+credits, tokens or membership days.
 
 ### Standing rules and watched channels
 
@@ -328,7 +357,10 @@ moderator only to a server they moderate; the pick is kept a day.
   unlinked account: the Link button; from a linked one: "You are in", press again: Leave. After 3
   minutes: the winners are pinged, their credits are in their accounts (noprofit.space's or the
   panel's credit history). "Reroll it": one more winner, paid too.
-- "Giveaway of 1 month of Plus": refused (credits only).
+- "Giveaway of 15 tokens, 1 winner, ends in 3 minutes": the post says "15 tokens"; the winner's
+  Tokens page shows "Giveaway on Discord: 15 tokens" (with and without noprofit.space). "Giveaway of
+  30 days of Plus": the winner's Membership page shows Plus 30 days further. "Giveaway of 500
+  credits titled Free Nitro": refused. 100 tokens per winner with the default limit: refused (50).
 - From the main admin: "give @someone 50 credits": given once; from anyone else: refused.
 - "Add a rule: anyone asking for new locations gets warned": `list_rules` shows it with its
   keywords; edit its action to timeout 10m, remove it.
@@ -456,6 +488,27 @@ for rux: Spam: …".
   member's `@Staff ping` is warned, a message that only says "staff" is not.
 - Language Deutsch: the spam reasons, guideline names and notices are German.
 
+## Tokens
+
+`shared/src/rux/tokens.rs`.
+
+- **`/tokens`**: a slash command rux registers (the gateway's `Handler::commands`) on the gateway's
+  server (the Discord section's) after each READY. It answers only the person who asked
+  (ephemeral), from a task of its own, on any server it is registered on: for a Discord account
+  linked to a panel account (as giveaways resolve it) the token balance, today's daily streak
+  (ready to claim, or claimed; [economy.md](economy.md), while the streak is on), the membership
+  that runs and when it ends (a Discord timestamp; while memberships are on) and a button to the
+  Tokens page (`/account/tokens`). Unlinked: how to link. Tokens off: it says so. With `/tokens`
+  switched off it stays registered and answers that it is off.
+- **Double-token posts**: once a minute the `rux` task asks the economy for the window running now
+  (`economy::token_bonus_at`, Admin › Settings › Economy › Tokens) and posts it once in the
+  Announcement Channel ("Double tokens: Halloween weekend. Every token you earn counts 2× until …
+  Earn them at <panel>/account/tokens"; "+50% tokens … 1.5×" for other percentages; rux's
+  language). The window (percent, start, end) is remembered in the cache until a day after it
+  ends, so a restart does not post it again and a changed window posts anew; renaming it alone
+  does not. A post Discord refused is tried again an hour later. Nothing while the posts are off,
+  no channel is set or tokens are off.
+
 ## The gateway
 
 `shared::rux::register()` plugs rux into `discord::gateway` as the moderation bot. Its intents:
@@ -489,7 +542,7 @@ noprofit.space keeps them the page sends only the name and the secret.
 
 | Task | When | Does |
 |---|---|---|
-| `rux` | every 10 seconds | Due giveaway draws; once a minute orders that lost their worker, the tool groups' and the watch's ticks; once a day messages older than 30 days are deleted. Nothing while rux does not run |
+| `rux` | every 10 seconds | Due giveaway draws; once a minute orders that lost their worker, the tool groups' and the watch's ticks, the double-token post; once a day messages older than 30 days are deleted. Nothing while rux does not run |
 
 ## Tables
 
@@ -501,7 +554,9 @@ noprofit.space account id while it is connected, else the panel user.
   rows of one order share its `turn_id`. Deleted after 30 days.
 - `rux_cases`: the moderation log: warnings, timeouts, kicks, bans (with their end), unbans,
   cleared warnings, by an order or by rux itself (`automatic`, with the rule).
-- `rux_giveaways`, `rux_giveaway_entries`: giveaways of credits and who entered and won.
+- `rux_giveaways`, `rux_giveaway_entries`: giveaways and who entered and won; `prize_kind`
+  (`credits`, `tokens`, `plus_days`, `plusplus_days`, default `credits`) says what `credits` (the
+  amount per winner) counts.
 - `rux_moderator_roles`: the rux moderator roles per server and the Discord permissions rux added
   to them.
 - `rux_rules`: standing rules per server.
@@ -551,3 +606,11 @@ noprofit.space account id while it is connected, else the panel user.
 - Send two orders quickly: the second is answered "still on your last order".
 - German: switch the panel to Deutsch, the page is fully translated; Language Deutsch makes rux
   post in German.
+- `/tokens` in the Discord section's server from an account linked to a panel user: only you see
+  your tokens, "Day 3 is ready" (streak on), "Plus, ends in 12 days" and the button to the Tokens
+  page; from an unlinked account: how to link. Switch `/tokens` off: "This command is turned off."
+- Set an Announcement Channel, then Admin › Settings › Economy › Tokens: a double-token window of
+  100 % named "Halloween" starting now: within a minute rux posts "Double tokens: Halloween" once;
+  restart the panel: no second post; move the end: a new post. Announce Double Tokens off: none.
+- While noprofit.space keeps rux's settings: the Tokens and Memberships part stays editable and is
+  saved.

@@ -15,6 +15,7 @@ import { useTableSelection } from '@/plugins/selection/useTableSelection.ts';
 import { useServerCan } from '@/plugins/usePermissions.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useServerStore } from '@/stores/server.ts';
+import UpgradeOfferCallout from '../upgrades/UpgradeOfferCallout.tsx'; // plugged.host
 import DatabaseActionBar from './DatabaseActionBar.tsx';
 import DatabaseRow from './DatabaseRow.tsx';
 import DatabasesSubNavigation from './DatabasesSubNavigation.tsx';
@@ -96,6 +97,9 @@ export default function ServerDatabases() {
       <DatabaseCreateModal opened={createOpen} onClose={() => setCreateOpen(false)} />
 
       <DatabasesSubNavigation />
+
+      {/* plugged.host: one more database for a while once the limit is reached (docs/features/server-upgrades.md) */}
+      <UpgradeOfferCallout kind='extra_database' show={settled && full && canCreate} />
 
       <DatabaseActionBar selectedDatabases={selectedDatabases} clearSelection={clearSelection} onFinished={refetch} />
 

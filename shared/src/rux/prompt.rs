@@ -282,6 +282,11 @@ pub fn build(facts: &Facts, where_: &str) -> String {
             format!(
                 "- The prize is credits per winner. Entering ALWAYS requires a Discord account linked to {portal}; this is automatic and cannot be turned off. Winners are drawn and paid automatically when it ends."
             ),
+            // plugged.host: tokens and membership days as prizes
+            format!(
+                "- A giveaway can instead pay {app} tokens (prize_kind tokens) or days of a membership (plus_days for {}, plusplus_days for {}); the amount is per winner. Tokens and memberships are always {app}'s own, paid to the winner's {app} account.",
+                config.memberships.plus, config.memberships.plusplus
+            ),
             "- \"don't let anyone who won the last N giveaways join\" → exclude_recent_winners = N.".to_string(),
             format!(
                 "- Default: 1 winner. {}",
@@ -293,8 +298,12 @@ pub fn build(facts: &Facts, where_: &str) -> String {
                 }
             ),
             format!(
-                "- Limits: at most {} credits per winner, {} winners, {} days.",
-                settings.giveaway_max_credits, settings.giveaway_max_winners, settings.giveaway_max_days
+                "- Limits: at most {} credits per winner, {} winners, {} days. Per winner at most {} tokens, or {} days of a membership.",
+                settings.giveaway_max_credits,
+                settings.giveaway_max_winners,
+                settings.giveaway_max_days,
+                settings.giveaway_max_tokens,
+                settings.giveaway_max_membership_days
             ),
             "- \"end it now\" → end_giveaway; \"cancel\" → cancel_giveaway (nobody wins); \"reroll\" → reroll_giveaway; changes → edit_giveaway.".to_string(),
         ]);
@@ -314,7 +323,7 @@ pub fn build(facts: &Facts, where_: &str) -> String {
     }
     if facts.has_any(&["create_giveaway", "give_credits"]) {
         lines.push(format!(
-            "- Credits ({portal} credits) are the only thing {name} ever gives anyone, on every server: with give_credits or as a giveaway's prize. You cannot give, promise or put up as a prize anything else: no tokens, no memberships or other plans, no RAM, CPU, disk or servers, no Nitro, no roles that come with rewards. A giveaway's title names the occasion, never another prize. If someone asks for anything but credits, say {name} can only give credits."
+            "- Credits ({portal} credits) are the only thing {name} ever gives anyone directly (give_credits); a giveaway's prize is credits, {app} tokens or days of a membership, nothing else. You cannot give, promise or put up as a prize anything else: no other plans, no RAM, CPU, disk or servers, no Nitro, no roles that come with rewards. A giveaway's title names the occasion or its own prize, never another prize. If someone asks for anything else, say what {name} can give."
         ));
     }
 
@@ -501,6 +510,7 @@ mod tests {
             boost_two_role_id: String::new(),
             managed: None,
             managed_bot_token: None,
+            memberships: Default::default(),
         }
     }
 

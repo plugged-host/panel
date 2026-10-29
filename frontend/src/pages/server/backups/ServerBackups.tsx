@@ -42,6 +42,7 @@ import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useGlobalStore } from '@/stores/global.ts';
 import { useServerStore } from '@/stores/server.ts';
+import UpgradeOfferCallout from '../upgrades/UpgradeOfferCallout.tsx'; // plugged.host
 import BackupActionBar from './BackupActionBar.tsx';
 import BackupGroupCard from './BackupGroupCard.tsx';
 import BackupGroupItem from './BackupGroupItem.tsx';
@@ -516,6 +517,9 @@ export default function ServerBackups({
       registry={window.extensionContext.extensionRegistry.pages.server.backups.container}
     >
       <BackupsSubNavigation />
+
+      {/* plugged.host: one more backup slot once the limit is reached (docs/features/server-upgrades.md) */}
+      <UpgradeOfferCallout kind='extra_backup' show={canCreateBackup && countKnown && atBackupLimit} />
 
       {body}
     </ServerContentContainer>

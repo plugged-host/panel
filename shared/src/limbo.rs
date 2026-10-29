@@ -22,6 +22,9 @@
 //!    its backups go to the deleted servers' hold like any deleted server's. The limbo page says
 //!    when, and a restore is refused once the time has passed.
 //!
+//! A server with a keep-awake pass running ([`crate::server_upgrades`]) is neither stopped, parked
+//! nor deleted. A stop tells the owner, with what a pass costs.
+//!
 //! At most `max_per_run` stops start per run and `max_per_run` parks run at once; after 3 failed
 //! parks in an hour and none that worked, parking waits for the hour to pass. A server whose park
 //! failed is tried again after a day. Activity clears `stopped`; a start during `parking` cancels
@@ -237,6 +240,12 @@ pub async fn purge_due(state: &crate::State) -> Result<usize, anyhow::Error> {
         WHERE servers.limbo_state = 'parked' AND server_limbo.parked IS NOT NULL
             AND NOT servers.suspended
             AND server_limbo.parked <= NOW() - make_interval(days => $1)
+            AND NOT EXISTS (
+                SELECT 1 FROM server_upgrades
+                WHERE server_upgrades.server_uuid = servers.uuid
+                    AND server_upgrades.kind = 'keep_awake'
+                    AND server_upgrades.ended IS NULL AND server_upgrades.until > NOW()
+            )
         ORDER BY server_limbo.parked
         LIMIT $2
         "#,
@@ -944,13 +953,20 @@ async fn candidates(
             AND NOT EXISTS (
                 SELECT 1 FROM nodes WHERE nodes.uuid = servers.node_uuid AND nodes.role = $4
             )
+            AND NOT EXISTS (
+                SELECT 1 FROM server_upgrades
+                WHERE server_upgrades.server_uuid = servers.uuid
+                    AND server_upgrades.kind = 'keep_awake'
+                    AND server_upgrades.ended IS NULL AND server_upgrades.until > NOW()
+            )
             AND servers.last_activity < NOW() - make_interval(mins => $1)
             AND (server_limbo.failed IS NULL OR server_limbo.failed < NOW() - make_interval(hours => $2))
             AND NOT ($3 AND EXISTS (
                 SELECT 1 FROM user_memberships
                 WHERE user_memberships.user_uuid = users.uuid
                     AND (user_memberships.plus_until > NOW()
-                        OR user_memberships.plusplus_until > NOW())
+                        OR user_memberships.plusplus_until > NOW()
+                        OR user_memberships.bundle_plus_until > NOW())
             ))
         ORDER BY servers.last_activity
         LIMIT 500",
@@ -1006,6 +1022,7 @@ async fn stop(
         serde_json::json!({ "idle_minutes": idle_minutes }),
     )
     .await;
+    crate::server_upgrades::notify_idle_stop(state, server_uuid, idle_minutes).await;
 
     Ok(())
 }

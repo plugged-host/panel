@@ -129,6 +129,8 @@ async fn resolve_user(
     state: &shared::State,
     noprofit: &shared::noprofit::Config,
     snapshot: &Snapshot,
+    cookies: &Cookies,
+    ip: std::net::IpAddr,
 ) -> Result<Result<User, &'static str>, anyhow::Error> {
     if let Some(link) = Link::by_account_id(&state.database, snapshot.account_id).await?
         && let Some(user) = User::by_uuid_optional(&state.database, link.user_uuid).await?
@@ -181,6 +183,8 @@ async fn resolve_user(
         .execute(state.database.write())
         .await?;
     User::invalidate_cached(&state.database, user.uuid).await;
+    // who brought the new account (docs/features/referrals.md)
+    shared::referrals::record(state, user.uuid, cookies, ip).await;
 
     Ok(Ok(user))
 }
@@ -250,7 +254,7 @@ async fn callback_route(
         return fail("noprofit_admins_only");
     }
 
-    let mut user = match resolve_user(&state, &noprofit, &snapshot).await? {
+    let mut user = match resolve_user(&state, &noprofit, &snapshot, &cookies, ip.0).await? {
         Ok(user) => user,
         Err(code) => return fail(code),
     };

@@ -70,8 +70,10 @@ Top to bottom:
   line (or "The node has room again"), with both readings as meters, red over the line.
 - The first two units of the room's ads ([ads.md](ads.md#waiting-room)).
 - **Membership**: members see a receipt ("You have … Plus"); others, with memberships on, the
-  first membership's offer and its price, which leads to the membership page. The second
-  membership is never offered here.
+  first membership's offer and its price ("ahead of everyone without it"), which leads to the
+  membership page. While Offers Where a Limit Is Felt is on ([promos.md](promos.md#offers)), one
+  line under the offer, and under a Plus member's receipt, says "Premium goes first in this line,
+  ahead of everyone." with a link to the membership page; a Premium member sees none.
 - **Move to a quieter node**: with "Offer a Move" and players' moves on, to whoever has
   `settings.transfer` (only to members by default), for a server whose disk limit is under "Largest
   Server" and that is not cooling down from a move. It names the quietest other game node of the
@@ -138,3 +140,5 @@ the wait is judged against), `action` (`start`/`restart`), `status` (`waiting`, 
   quieter node" naming it; Move the server (confirm) opens the Transfer page and the server moves
   there. A server with a disk limit of 3072 MiB or more gets the "too large" line instead.
 - As an admin, Start never queues.
+- As a free user the Plus offer carries the line "Premium goes first in this line" and its link; as
+  a Plus member the line is under the receipt; as Premium, or with the offers off, it is gone.

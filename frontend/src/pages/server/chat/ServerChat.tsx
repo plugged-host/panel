@@ -24,6 +24,7 @@ import Avatar from '@/elements/data-display/Avatar.tsx';
 import ErrorState from '@/elements/feedback/ErrorState.tsx';
 import Spinner from '@/elements/feedback/Spinner.tsx';
 import Tooltip from '@/elements/overlays/Tooltip.tsx';
+import ProfileBadge from '@/elements/ProfileBadge.tsx'; // plugged.host
 import { formatDateTime } from '@/lib/format/time.ts';
 import { intlLocale } from '@/lib/languages.ts';
 import { queryKeys } from '@/lib/queryKeys.ts';
@@ -111,6 +112,7 @@ function Run({
           <span className='theme-chat-name' dir='auto'>
             {name}
           </span>
+          <ProfileBadge badge={run.user?.badge} />
           <ChatTime date={run.created} now={now} locale={locale} />
         </div>
         {run.messages.map((message) => (

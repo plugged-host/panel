@@ -177,6 +177,9 @@ pub struct Server {
     pub suspended: bool,
     pub suspension: Option<suspension::ServerSuspension>, // plugged.host
     pub limbo: Option<crate::limbo::LimboState>,          // plugged.host
+    /// plugged.host: a running boost and the card colour (shared/src/server_upgrades.rs)
+    #[serde(default)]
+    pub upgrades: crate::server_upgrades::ServerUpgrades,
 
     pub name: compact_str::CompactString,
     pub description: Option<compact_str::CompactString>,
@@ -370,6 +373,7 @@ impl BaseModel for Server {
         columns.extend(super::nest::Nest::base_columns(Some("nest_")));
         columns.extend(suspension::base_columns(prefix)); // plugged.host
         columns.extend(crate::limbo::base_columns(prefix)); // plugged.host
+        columns.extend(crate::server_upgrades::base_columns(prefix)); // plugged.host
 
         columns
     }
@@ -422,6 +426,7 @@ impl BaseModel for Server {
             limbo: crate::limbo::LimboState::parse(
                 row.try_get::<Option<&str>, _>(format!("{prefix}limbo_state").as_str())?,
             ), // plugged.host
+            upgrades: crate::server_upgrades::ServerUpgrades::map(prefix, row)?, // plugged.host
             name: row.try_get(compact_str::format_compact!("{prefix}name").as_str())?,
             description: row
                 .try_get(compact_str::format_compact!("{prefix}description").as_str())?,
@@ -2004,16 +2009,24 @@ impl Server {
                         upload: self.bandwidth_upload as u64,
                         download: self.bandwidth_download as u64,
                     },
-                    memory_limit: self.memory,
+                    // plugged.host: a running boost on top (server_upgrades.rs)
+                    memory_limit: crate::server_upgrades::boosted_memory(
+                        self.memory,
+                        self.upgrades.boost_memory,
+                    ),
                     overhead_memory: self.memory_overhead,
                     swap: self.swap,
                     io_weight: self.io_weight.map(|w| w as u32),
                     // plugged.host: the owner's burst cores on top, weighed by the paid CPU alone
+                    // (with a running boost, server_upgrades.rs)
                     cpu_limit: crate::economy::cpu_limit_with_burst(
-                        self.cpu,
+                        crate::server_upgrades::boosted_cpu(self.cpu, self.upgrades.boost_cpu),
                         self.owner.burst_cores,
                     ),
-                    cpu_weight: crate::economy::cpu_weight(self.cpu),
+                    cpu_weight: crate::economy::cpu_weight(crate::server_upgrades::boosted_cpu(
+                        self.cpu,
+                        self.upgrades.boost_cpu,
+                    )),
                     cpu_burst: Some(
                         crate::economy::burst_cpu(self.cpu, self.owner.burst_cores) as u32
                     )
@@ -2300,12 +2313,17 @@ impl super::IntoApiObject for Server {
                 is_transferring: self.destination_node.is_some(),
                 name: self.name,
                 description: self.description,
-                icon,     // plugged.host
-                egg_icon, // plugged.host
+                icon,                                         // plugged.host
+                egg_icon,                                     // plugged.host
+                card_color: self.upgrades.card_color.clone(), // plugged.host
                 limits: ApiServerLimits {
-                    cpu: self.cpu,
+                    // plugged.host: with a running boost (server_upgrades.rs)
+                    cpu: crate::server_upgrades::boosted_cpu(self.cpu, self.upgrades.boost_cpu),
                     burst_cpu: crate::economy::burst_cpu(self.cpu, self.owner.burst_cores), // plugged.host
-                    memory: self.memory,
+                    memory: crate::server_upgrades::boosted_memory(
+                        self.memory,
+                        self.upgrades.boost_memory,
+                    ),
                     swap: self.swap,
                     disk: self.disk,
                     bandwidth: ApiServerBandwidth {
@@ -3496,6 +3514,9 @@ pub struct ApiServer {
     pub icon: Option<String>,
     /// plugged.host: its game's icon from the games catalog, shown when it has none of its own
     pub egg_icon: Option<compact_str::CompactString>,
+    /// plugged.host: the colour of its card in the server list, one of the upgrades' palette
+    /// (shared/src/server_upgrades.rs)
+    pub card_color: Option<compact_str::CompactString>,
 
     #[schema(inline)]
     pub limits: ApiServerLimits,

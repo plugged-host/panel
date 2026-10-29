@@ -34,6 +34,9 @@ pub struct AppSettingsEconomy {
     pub panel_access_tokens: i32,
     /// Days one payment buys.
     pub panel_access_days: i32,
+    /// Profile badges (shared/src/badges.rs): bought for good with `badge_tokens` tokens each.
+    pub badges_enabled: bool,
+    pub badge_tokens: i32,
 
     pub membership_enabled: bool,
     pub plus_name: compact_str::CompactString,
@@ -46,11 +49,31 @@ pub struct AppSettingsEconomy {
     /// Credits PlusPlus costs; 0 does not sell it for credits.
     pub plusplus_credits: i32,
     pub plusplus_credit_days: i32,
+    /// plugged.host: a membership on another panel that comes with the second one
+    /// (shared/src/membership_bundle.rs): on, that panel's URL, what the Membership page calls
+    /// it, and the secret the requests are signed with (stored encrypted). Off by default.
+    pub bundle_enabled: bool,
+    pub bundle_url: compact_str::CompactString,
+    pub bundle_name: compact_str::CompactString,
+    /// The other way round: what the other panel's second membership, which includes Plus here,
+    /// is called (the Membership page names it).
+    pub bundle_source_name: compact_str::CompactString,
+    #[serde(serialize_with = "super::noprofit::serialize_secret")]
+    #[schema(value_type = Option<String>)]
+    pub bundle_secret: Option<compact_str::CompactString>,
     /// Burst cores on each of the account's servers with the first membership: CPU above the
     /// paid limit (100 % per core) a server may use while the node has it to spare.
     pub plus_burst_cores: i32,
     /// The same with the second; the total, not added to the first's.
     pub plusplus_burst_cores: i32,
+    /// A notice before a membership or paid panel access ends, `ends_soon_hours` ahead.
+    pub ends_soon_enabled: bool,
+    pub ends_soon_hours: i32,
+    /// Whether members may have a membership renew by itself (each switches it on per membership).
+    pub auto_renew_enabled: bool,
+    /// Whether members may buy a membership for another account, and how many a day each.
+    pub gifts_enabled: bool,
+    pub gifts_per_day: i32,
 
     /// The Resource Store without noprofit.space: the amount sold at once (CPU %, memory and disk
     /// MiB; 0 does not sell it) and the credits a step costs at the limit.
@@ -79,6 +102,8 @@ pub struct AppSettingsEconomy {
     pub store_discount_ends: Option<chrono::DateTime<chrono::Utc>>,
     /// What the store calls the sale, such as "Halloween special"; empty: a plain "Sale".
     pub store_discount_name: Option<compact_str::CompactString>,
+    /// What the sale covers: the Resource Store, the memberships, or both.
+    pub store_discount_covers: DiscountCovers,
 
     /// Minutes a player has to come back from a sponsored link.
     pub claim_minutes: i32,
@@ -156,6 +181,29 @@ pub struct AppSettingsEconomy {
     pub cpx_research_secret: Option<compact_str::CompactString>,
     /// Finished surveys a day that pay; screen-outs and bonuses do not count. 0: no cap.
     pub cpx_research_daily_cap: i32,
+
+    /// The daily streak (shared/src/streak.rs): what claiming pays on each day of a streak, in
+    /// tokens up to 2 decimals, comma separated; the last one repeats once the list ends.
+    pub streak_enabled: bool,
+    pub streak_rewards: compact_str::CompactString,
+    /// A double-token window: percent more on every link and survey (100 = double, 0: none),
+    /// between the start and the end (either may be empty: open on that side).
+    pub token_bonus_percent: i32,
+    pub token_bonus_name: Option<compact_str::CompactString>,
+    pub token_bonus_starts: Option<chrono::DateTime<chrono::Utc>>,
+    pub token_bonus_ends: Option<chrono::DateTime<chrono::Utc>>,
+    /// First-week tasks (shared/src/starter_tasks.rs): shown for this many days after sign-up
+    /// (0 hides them), each paying `starter_reward` tokens once.
+    pub starter_enabled: bool,
+    pub starter_days: i32,
+    pub starter_reward: i32,
+    /// Referrals (shared/src/referrals.rs): `referral_reward` tokens to whoever brought a new
+    /// account once it earned `referral_threshold` tokens, at most `referral_monthly_cap` paid per
+    /// account in 30 days.
+    pub referrals_enabled: bool,
+    pub referral_reward: i32,
+    pub referral_threshold: i32,
+    pub referral_monthly_cap: i32,
 }
 
 impl Default for AppSettingsEconomy {
@@ -168,6 +216,8 @@ impl Default for AppSettingsEconomy {
             panel_access_enabled: true,
             panel_access_tokens: 5,
             panel_access_days: 30,
+            badges_enabled: true,
+            badge_tokens: 5,
             membership_enabled: true,
             plus_name: "Plus".into(),
             plusplus_name: "Premium".into(),
@@ -177,8 +227,18 @@ impl Default for AppSettingsEconomy {
             plusplus_token_days: 30,
             plusplus_credits: 0,
             plusplus_credit_days: 30,
+            bundle_enabled: false,
+            bundle_url: "https://panel.switched.cloud".into(),
+            bundle_name: "switched.cloud Plus".into(),
+            bundle_source_name: "switched.cloud Premium".into(),
+            bundle_secret: None,
             plus_burst_cores: 1,
             plusplus_burst_cores: 2,
+            ends_soon_enabled: true,
+            ends_soon_hours: 48,
+            auto_renew_enabled: true,
+            gifts_enabled: true,
+            gifts_per_day: 10,
             cpu_step: 50,
             cpu_price: 100,
             memory_step: 1024,
@@ -196,6 +256,7 @@ impl Default for AppSettingsEconomy {
             store_discount_starts: None,
             store_discount_ends: None,
             store_discount_name: None,
+            store_discount_covers: DiscountCovers::Store,
             claim_minutes: 30,
             link_decay_percent: 15,
             link_floor_percent: 25,
@@ -235,14 +296,57 @@ impl Default for AppSettingsEconomy {
             cpx_research_app_id: None,
             cpx_research_secret: None,
             cpx_research_daily_cap: 1,
+            streak_enabled: true,
+            streak_rewards: crate::streak::DEFAULT_REWARDS.into(),
+            token_bonus_percent: 0,
+            token_bonus_name: None,
+            token_bonus_starts: None,
+            token_bonus_ends: None,
+            starter_enabled: true,
+            starter_days: 14,
+            starter_reward: 1,
+            referrals_enabled: true,
+            referral_reward: 5,
+            referral_threshold: 10,
+            referral_monthly_cap: 10,
+        }
+    }
+}
+
+/// What the sale takes its percentage off.
+#[derive(ToSchema, Serialize, Deserialize, Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum DiscountCovers {
+    /// The Resource Store only, as before the choice existed.
+    #[default]
+    Store,
+    /// The memberships only: purchases, gifts and automatic renewals.
+    Memberships,
+    Both,
+}
+
+impl DiscountCovers {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Store => "store",
+            Self::Memberships => "memberships",
+            Self::Both => "both",
+        }
+    }
+
+    fn parse(value: &str) -> Option<Self> {
+        match value {
+            "store" => Some(Self::Store),
+            "memberships" => Some(Self::Memberships),
+            "both" => Some(Self::Both),
+            _ => None,
         }
     }
 }
 
 impl AppSettingsEconomy {
-    /// The percent off the Resource Store's prices at `now`: the discount while its window is
-    /// open, else 0.
-    pub fn store_discount_at(&self, now: chrono::DateTime<chrono::Utc>) -> i64 {
+    /// The sale's percent at `now` while its window is open, else 0, whatever it covers.
+    fn discount_window_at(&self, now: chrono::DateTime<chrono::Utc>) -> i64 {
         let started = self
             .store_discount_starts
             .is_none_or(|starts| now >= starts);
@@ -250,6 +354,37 @@ impl AppSettingsEconomy {
 
         if started && running {
             i64::from(self.store_discount.clamp(0, 100))
+        } else {
+            0
+        }
+    }
+
+    /// The percent off the Resource Store's prices at `now`: the discount while its window is
+    /// open and it covers the store, else 0.
+    pub fn store_discount_at(&self, now: chrono::DateTime<chrono::Utc>) -> i64 {
+        match self.store_discount_covers {
+            DiscountCovers::Store | DiscountCovers::Both => self.discount_window_at(now),
+            DiscountCovers::Memberships => 0,
+        }
+    }
+
+    /// The percent off the memberships' prices at `now` (purchases, gifts, automatic renewals):
+    /// the same sale while it covers the memberships, else 0.
+    pub fn membership_discount_at(&self, now: chrono::DateTime<chrono::Utc>) -> i64 {
+        match self.store_discount_covers {
+            DiscountCovers::Memberships | DiscountCovers::Both => self.discount_window_at(now),
+            DiscountCovers::Store => 0,
+        }
+    }
+
+    /// The percent more every link and survey pays at `now`: the double-token window's while it
+    /// is open and tokens are on, else 0 (shared/src/economy.rs `token_bonus_at`).
+    pub fn token_bonus_at(&self, now: chrono::DateTime<chrono::Utc>) -> i64 {
+        let started = self.token_bonus_starts.is_none_or(|starts| now >= starts);
+        let running = self.token_bonus_ends.is_none_or(|ends| now < ends);
+
+        if self.tokens_enabled && started && running {
+            i64::from(self.token_bonus_percent.clamp(0, 1000))
         } else {
             0
         }
@@ -291,6 +426,10 @@ pub struct PayloadEconomy {
     panel_access_tokens: Option<i32>,
     #[garde(inner(range(min = 1, max = 3650)))]
     panel_access_days: Option<i32>,
+    #[garde(skip)]
+    badges_enabled: Option<bool>,
+    #[garde(inner(range(min = 1, max = 100_000)))]
+    badge_tokens: Option<i32>,
 
     #[garde(skip)]
     membership_enabled: Option<bool>,
@@ -310,10 +449,32 @@ pub struct PayloadEconomy {
     plusplus_credits: Option<i32>,
     #[garde(inner(range(min = 1, max = 365)))]
     plusplus_credit_days: Option<i32>,
+    // plugged.host: the membership bundle (shared/src/membership_bundle.rs)
+    #[garde(skip)]
+    bundle_enabled: Option<bool>,
+    #[garde(inner(length(chars, max = 255)))]
+    bundle_url: Option<compact_str::CompactString>,
+    #[garde(inner(length(chars, min = 1, max = 64)))]
+    bundle_name: Option<compact_str::CompactString>,
+    #[garde(inner(length(chars, min = 1, max = 64)))]
+    bundle_source_name: Option<compact_str::CompactString>,
+    #[garde(inner(inner(length(chars, max = 512))))]
+    #[serde(default, with = "::serde_with::rust::double_option")]
+    bundle_secret: Option<Option<compact_str::CompactString>>,
     #[garde(inner(range(min = 0, max = 16)))]
     plus_burst_cores: Option<i32>,
     #[garde(inner(range(min = 0, max = 16)))]
     plusplus_burst_cores: Option<i32>,
+    #[garde(skip)]
+    ends_soon_enabled: Option<bool>,
+    #[garde(inner(range(min = 1, max = 720)))]
+    ends_soon_hours: Option<i32>,
+    #[garde(skip)]
+    auto_renew_enabled: Option<bool>,
+    #[garde(skip)]
+    gifts_enabled: Option<bool>,
+    #[garde(inner(range(min = 1, max = 1000)))]
+    gifts_per_day: Option<i32>,
 
     #[garde(inner(range(min = 0, max = 10_000)))]
     cpu_step: Option<i32>,
@@ -353,6 +514,8 @@ pub struct PayloadEconomy {
     #[garde(inner(inner(length(chars, max = 64))))]
     #[serde(default, with = "::serde_with::rust::double_option")]
     store_discount_name: Option<Option<compact_str::CompactString>>,
+    #[garde(skip)]
+    store_discount_covers: Option<DiscountCovers>,
 
     #[garde(inner(range(min = 1, max = 1440)))]
     claim_minutes: Option<i32>,
@@ -443,6 +606,38 @@ pub struct PayloadEconomy {
     cpx_research_secret: Option<Option<compact_str::CompactString>>,
     #[garde(inner(range(min = 0, max = 1000)))]
     cpx_research_daily_cap: Option<i32>,
+
+    #[garde(skip)]
+    streak_enabled: Option<bool>,
+    /// Checked by `apply` (`crate::streak::parse_rewards`).
+    #[garde(inner(length(chars, max = 255)))]
+    streak_rewards: Option<compact_str::CompactString>,
+    #[garde(inner(range(min = 0, max = 1000)))]
+    token_bonus_percent: Option<i32>,
+    #[garde(inner(inner(length(chars, max = 64))))]
+    #[serde(default, with = "::serde_with::rust::double_option")]
+    token_bonus_name: Option<Option<compact_str::CompactString>>,
+    /// `null` clears it; absent leaves it alone.
+    #[garde(skip)]
+    #[serde(default, with = "::serde_with::rust::double_option")]
+    token_bonus_starts: Option<Option<chrono::DateTime<chrono::Utc>>>,
+    #[garde(skip)]
+    #[serde(default, with = "::serde_with::rust::double_option")]
+    token_bonus_ends: Option<Option<chrono::DateTime<chrono::Utc>>>,
+    #[garde(skip)]
+    starter_enabled: Option<bool>,
+    #[garde(inner(range(min = 0, max = 365)))]
+    starter_days: Option<i32>,
+    #[garde(inner(range(min = 1, max = 1000)))]
+    starter_reward: Option<i32>,
+    #[garde(skip)]
+    referrals_enabled: Option<bool>,
+    #[garde(inner(range(min = 1, max = 10_000)))]
+    referral_reward: Option<i32>,
+    #[garde(inner(range(min = 1, max = 100_000)))]
+    referral_threshold: Option<i32>,
+    #[garde(inner(range(min = 0, max = 1000)))]
+    referral_monthly_cap: Option<i32>,
 }
 
 /// An optional text field: empty clears it.
@@ -483,6 +678,8 @@ impl PayloadEconomy {
             panel_access_enabled,
             panel_access_tokens,
             panel_access_days,
+            badges_enabled,
+            badge_tokens,
             membership_enabled,
             plus_tokens,
             plus_days,
@@ -492,6 +689,11 @@ impl PayloadEconomy {
             plusplus_credit_days,
             plus_burst_cores,
             plusplus_burst_cores,
+            ends_soon_enabled,
+            ends_soon_hours,
+            auto_renew_enabled,
+            gifts_enabled,
+            gifts_per_day,
             cpu_step,
             cpu_price,
             memory_step,
@@ -506,6 +708,7 @@ impl PayloadEconomy {
             soft_multiplier,
             doubling,
             store_discount,
+            store_discount_covers,
             claim_minutes,
             link_decay_percent,
             link_floor_percent,
@@ -534,6 +737,15 @@ impl PayloadEconomy {
             adfocus_min_seconds,
             cpx_research_enabled,
             cpx_research_daily_cap,
+            streak_enabled,
+            token_bonus_percent,
+            starter_enabled,
+            starter_days,
+            starter_reward,
+            referrals_enabled,
+            referral_reward,
+            referral_threshold,
+            referral_monthly_cap,
         );
 
         if let Some(name) = self.plus_name {
@@ -541,6 +753,33 @@ impl PayloadEconomy {
         }
         if let Some(name) = self.plusplus_name {
             settings.plusplus_name = name.trim().into();
+        }
+
+        // plugged.host: the membership bundle (shared/src/membership_bundle.rs)
+        if let Some(enabled) = self.bundle_enabled {
+            settings.bundle_enabled = enabled;
+        }
+        if let Some(url) = self.bundle_url {
+            let url = url.trim().trim_end_matches('/');
+            if !url.to_ascii_lowercase().starts_with("https://") {
+                return Err("the bundle's panel url must start with https://");
+            }
+            settings.bundle_url = url.into();
+        }
+        if let Some(name) = self.bundle_name {
+            settings.bundle_name = name.trim().into();
+        }
+        if let Some(name) = self.bundle_source_name {
+            settings.bundle_source_name = name.trim().into();
+        }
+        secret(self.bundle_secret, &mut settings.bundle_secret);
+        if settings.bundle_enabled
+            && settings
+                .bundle_secret
+                .as_deref()
+                .is_none_or(|secret| secret.len() < crate::membership_bundle::MIN_SECRET_LENGTH)
+        {
+            return Err("the bundle needs a shared secret of at least 32 characters");
         }
 
         if let Some(starts) = self.store_discount_starts {
@@ -600,6 +839,30 @@ impl PayloadEconomy {
         }
         secret(self.cpx_research_secret, &mut settings.cpx_research_secret);
 
+        // plugged.host: the Tokens page's streak and double-token window
+        if let Some(rewards) = self.streak_rewards {
+            let Some(parsed) = crate::streak::parse_rewards(&rewards) else {
+                return Err(
+                    "the streak rewards must be 1 to 14 amounts from 0.01 to 100, comma separated",
+                );
+            };
+            settings.streak_rewards = crate::streak::rewards_text(&parsed).into();
+        }
+        if let Some(starts) = self.token_bonus_starts {
+            settings.token_bonus_starts = starts;
+        }
+        if let Some(ends) = self.token_bonus_ends {
+            settings.token_bonus_ends = ends;
+        }
+        if let (Some(starts), Some(ends)) = (settings.token_bonus_starts, settings.token_bonus_ends)
+            && ends <= starts
+        {
+            return Err("the token bonus must end after it starts");
+        }
+        if let Some(name) = self.token_bonus_name {
+            settings.token_bonus_name = text(name);
+        }
+
         Ok(())
     }
 }
@@ -630,12 +893,29 @@ impl SettingsSerializeExt for AppSettingsEconomy {
                 "panel_access_days",
                 self.panel_access_days.to_compact_string(),
             )
+            .write_raw_setting("badges_enabled", self.badges_enabled.to_compact_string())
+            .write_raw_setting("badge_tokens", self.badge_tokens.to_compact_string())
             .write_raw_setting(
                 "membership_enabled",
                 self.membership_enabled.to_compact_string(),
             )
             .write_raw_setting("plus_name", &*self.plus_name)
             .write_raw_setting("plusplus_name", &*self.plusplus_name);
+
+        // plugged.host: the membership bundle (shared/src/membership_bundle.rs)
+        serializer = serializer
+            .write_raw_setting("bundle_enabled", self.bundle_enabled.to_compact_string())
+            .write_raw_setting("bundle_url", &*self.bundle_url)
+            .write_raw_setting("bundle_name", &*self.bundle_name)
+            .write_raw_setting("bundle_source_name", &*self.bundle_source_name);
+        serializer = match &self.bundle_secret {
+            Some(secret) => {
+                serializer
+                    .write_raw_encrypted_setting("bundle_secret", secret.clone())
+                    .await?
+            }
+            None => serializer.write_raw_setting("bundle_secret", ""),
+        };
 
         for (key, value) in [
             ("plus_tokens", self.plus_tokens),
@@ -646,6 +926,8 @@ impl SettingsSerializeExt for AppSettingsEconomy {
             ("plusplus_credit_days", self.plusplus_credit_days),
             ("plus_burst_cores", self.plus_burst_cores),
             ("plusplus_burst_cores", self.plusplus_burst_cores),
+            ("ends_soon_hours", self.ends_soon_hours),
+            ("gifts_per_day", self.gifts_per_day),
             ("cpu_step", self.cpu_step),
             ("cpu_price", self.cpu_price),
             ("memory_step", self.memory_step),
@@ -675,6 +957,12 @@ impl SettingsSerializeExt for AppSettingsEconomy {
             ("adfocus_daily_cap", self.adfocus_daily_cap),
             ("adfocus_min_seconds", self.adfocus_min_seconds),
             ("cpx_research_daily_cap", self.cpx_research_daily_cap),
+            ("token_bonus_percent", self.token_bonus_percent),
+            ("starter_days", self.starter_days),
+            ("starter_reward", self.starter_reward),
+            ("referral_reward", self.referral_reward),
+            ("referral_threshold", self.referral_threshold),
+            ("referral_monthly_cap", self.referral_monthly_cap),
         ] {
             serializer = serializer.write_raw_setting(key, value.to_compact_string());
         }
@@ -697,6 +985,8 @@ impl SettingsSerializeExt for AppSettingsEconomy {
         for (key, time) in [
             ("store_discount_starts", self.store_discount_starts),
             ("store_discount_ends", self.store_discount_ends),
+            ("token_bonus_starts", self.token_bonus_starts),
+            ("token_bonus_ends", self.token_bonus_ends),
         ] {
             serializer = serializer.write_raw_setting(
                 key,
@@ -710,6 +1000,16 @@ impl SettingsSerializeExt for AppSettingsEconomy {
                 "store_discount_name",
                 self.store_discount_name.clone().unwrap_or_default(),
             )
+            .write_raw_setting("store_discount_covers", self.store_discount_covers.as_str())
+            .write_raw_setting(
+                "ends_soon_enabled",
+                self.ends_soon_enabled.to_compact_string(),
+            )
+            .write_raw_setting(
+                "auto_renew_enabled",
+                self.auto_renew_enabled.to_compact_string(),
+            )
+            .write_raw_setting("gifts_enabled", self.gifts_enabled.to_compact_string())
             .write_raw_setting(
                 "linkvertise_enabled",
                 self.linkvertise_enabled.to_compact_string(),
@@ -744,6 +1044,18 @@ impl SettingsSerializeExt for AppSettingsEconomy {
             .write_raw_setting(
                 "cpx_research_app_id",
                 self.cpx_research_app_id.clone().unwrap_or_default(),
+            )
+            // plugged.host: the Tokens page's streak, bonus window, tasks and referrals
+            .write_raw_setting("streak_enabled", self.streak_enabled.to_compact_string())
+            .write_raw_setting("streak_rewards", &*self.streak_rewards)
+            .write_raw_setting(
+                "token_bonus_name",
+                self.token_bonus_name.clone().unwrap_or_default(),
+            )
+            .write_raw_setting("starter_enabled", self.starter_enabled.to_compact_string())
+            .write_raw_setting(
+                "referrals_enabled",
+                self.referrals_enabled.to_compact_string(),
             );
 
         for (key, secret) in [
@@ -802,6 +1114,12 @@ impl SettingsDeserializeExt for AppSettingsEconomyDeserializer {
         let cuty_api_key = secrets.pop().flatten();
         let vylo_api_key = secrets.pop().flatten();
         let linkvertise_token = secrets.pop().flatten();
+        // plugged.host: the membership bundle's secret (shared/src/membership_bundle.rs)
+        let bundle_secret = match deserializer.take_raw_setting("bundle_secret") {
+            Some(secret) if secret.is_empty() => None,
+            Some(secret) => Some(deserializer.database.decrypt_base64(secret).await?),
+            None => None,
+        };
 
         macro_rules! read {
             ($field:ident) => {
@@ -843,6 +1161,8 @@ impl SettingsDeserializeExt for AppSettingsEconomyDeserializer {
             panel_access_enabled: flag!(panel_access_enabled),
             panel_access_tokens: read!(panel_access_tokens),
             panel_access_days: read!(panel_access_days),
+            badges_enabled: flag!(badges_enabled),
+            badge_tokens: read!(badge_tokens),
             membership_enabled: flag!(membership_enabled),
             plus_name: text!(plus_name).unwrap_or(defaults.plus_name),
             plusplus_name: text!(plusplus_name).unwrap_or(defaults.plusplus_name),
@@ -852,8 +1172,18 @@ impl SettingsDeserializeExt for AppSettingsEconomyDeserializer {
             plusplus_token_days: read!(plusplus_token_days),
             plusplus_credits: read!(plusplus_credits),
             plusplus_credit_days: read!(plusplus_credit_days),
+            bundle_enabled: flag!(bundle_enabled),
+            bundle_url: text!(bundle_url).unwrap_or(defaults.bundle_url),
+            bundle_name: text!(bundle_name).unwrap_or(defaults.bundle_name),
+            bundle_source_name: text!(bundle_source_name).unwrap_or(defaults.bundle_source_name),
+            bundle_secret: bundle_secret.and_then(|s| s.into_optional()),
             plus_burst_cores: read!(plus_burst_cores),
             plusplus_burst_cores: read!(plusplus_burst_cores),
+            ends_soon_enabled: flag!(ends_soon_enabled),
+            ends_soon_hours: read!(ends_soon_hours),
+            auto_renew_enabled: flag!(auto_renew_enabled),
+            gifts_enabled: flag!(gifts_enabled),
+            gifts_per_day: read!(gifts_per_day),
             cpu_step: read!(cpu_step),
             cpu_price: read!(cpu_price),
             memory_step: read!(memory_step),
@@ -871,6 +1201,10 @@ impl SettingsDeserializeExt for AppSettingsEconomyDeserializer {
             store_discount_starts: time!(store_discount_starts),
             store_discount_ends: time!(store_discount_ends),
             store_discount_name: text!(store_discount_name),
+            store_discount_covers: deserializer
+                .take_raw_setting("store_discount_covers")
+                .and_then(|s| DiscountCovers::parse(&s))
+                .unwrap_or(defaults.store_discount_covers),
             claim_minutes: read!(claim_minutes),
             link_decay_percent: read!(link_decay_percent),
             link_floor_percent: read!(link_floor_percent),
@@ -910,6 +1244,21 @@ impl SettingsDeserializeExt for AppSettingsEconomyDeserializer {
             cpx_research_app_id: text!(cpx_research_app_id),
             cpx_research_secret: cpx_research_secret.and_then(|s| s.into_optional()),
             cpx_research_daily_cap: read!(cpx_research_daily_cap),
+            streak_enabled: flag!(streak_enabled),
+            streak_rewards: text!(streak_rewards)
+                .filter(|rewards| crate::streak::parse_rewards(rewards).is_some())
+                .unwrap_or(defaults.streak_rewards),
+            token_bonus_percent: read!(token_bonus_percent),
+            token_bonus_name: text!(token_bonus_name),
+            token_bonus_starts: time!(token_bonus_starts),
+            token_bonus_ends: time!(token_bonus_ends),
+            starter_enabled: flag!(starter_enabled),
+            starter_days: read!(starter_days),
+            starter_reward: read!(starter_reward),
+            referrals_enabled: flag!(referrals_enabled),
+            referral_reward: read!(referral_reward),
+            referral_threshold: read!(referral_threshold),
+            referral_monthly_cap: read!(referral_monthly_cap),
         }))
     }
 }
@@ -939,6 +1288,30 @@ mod tests {
 
         economy.store_discount = 0;
         assert_eq!(economy.store_discount_at(at(15)), 0);
+    }
+
+    #[test]
+    fn the_sale_covers_what_it_is_set_to() {
+        let mut economy = AppSettingsEconomy {
+            store_discount: 20,
+            ..Default::default()
+        };
+        // today's sales cover the store only
+        assert_eq!(economy.store_discount_at(at(0)), 20);
+        assert_eq!(economy.membership_discount_at(at(0)), 0);
+
+        economy.store_discount_covers = DiscountCovers::Memberships;
+        assert_eq!(economy.store_discount_at(at(0)), 0);
+        assert_eq!(economy.membership_discount_at(at(0)), 20);
+
+        economy.store_discount_covers = DiscountCovers::Both;
+        economy.store_discount_ends = Some(at(5));
+        assert_eq!(economy.store_discount_at(at(0)), 20);
+        assert_eq!(economy.membership_discount_at(at(0)), 20);
+        assert_eq!(economy.membership_discount_at(at(5)), 0);
+
+        assert_eq!(DiscountCovers::parse("both"), Some(DiscountCovers::Both));
+        assert_eq!(DiscountCovers::parse("everything"), None);
     }
 
     #[test]
@@ -988,5 +1361,74 @@ mod tests {
             .apply(&mut economy)
             .unwrap();
         assert_eq!(economy.cpx_research_secret, None);
+    }
+
+    #[test]
+    fn the_membership_bundle_needs_an_https_url_and_a_long_secret() {
+        let payload =
+            |value: serde_json::Value| -> PayloadEconomy { serde_json::from_value(value).unwrap() };
+        let mut economy = AppSettingsEconomy::default();
+        assert!(!economy.bundle_enabled);
+
+        assert!(
+            payload(serde_json::json!({ "bundle_enabled": true }))
+                .apply(&mut economy)
+                .is_err()
+        );
+        assert!(
+            payload(serde_json::json!({ "bundle_url": "http://panel.example.com" }))
+                .apply(&mut AppSettingsEconomy::default())
+                .is_err()
+        );
+
+        let mut economy = AppSettingsEconomy::default();
+        payload(serde_json::json!({
+            "bundle_enabled": true,
+            "bundle_url": " https://panel.example.com/ ",
+            "bundle_secret": "s".repeat(32),
+        }))
+        .apply(&mut economy)
+        .unwrap();
+        assert_eq!(economy.bundle_url, "https://panel.example.com");
+        assert_eq!(
+            economy.bundle_secret.as_deref(),
+            Some("s".repeat(32).as_str())
+        );
+
+        // the form sends the stored secret back empty: it stays
+        payload(serde_json::json!({ "bundle_secret": "" }))
+            .apply(&mut economy)
+            .unwrap();
+        assert!(economy.bundle_secret.is_some());
+    }
+
+    #[test]
+    fn the_token_bonus_runs_only_inside_its_window() {
+        let mut economy = AppSettingsEconomy {
+            token_bonus_percent: 100,
+            ..Default::default()
+        };
+        assert_eq!(economy.token_bonus_at(at(0)), 100);
+
+        economy.token_bonus_starts = Some(at(10));
+        economy.token_bonus_ends = Some(at(20));
+        assert_eq!(economy.token_bonus_at(at(9)), 0);
+        assert_eq!(economy.token_bonus_at(at(10)), 100);
+        assert_eq!(economy.token_bonus_at(at(20)), 0);
+
+        economy.tokens_enabled = false;
+        assert_eq!(economy.token_bonus_at(at(15)), 0);
+
+        let payload =
+            |value: serde_json::Value| -> PayloadEconomy { serde_json::from_value(value).unwrap() };
+        assert!(
+            payload(serde_json::json!({ "streak_rewards": "0.25, 1, x" }))
+                .apply(&mut economy)
+                .is_err()
+        );
+        payload(serde_json::json!({ "streak_rewards": " 0.5 ,1, 1.5 " }))
+            .apply(&mut economy)
+            .unwrap();
+        assert_eq!(economy.streak_rewards, "0.5,1,1.5");
     }
 }

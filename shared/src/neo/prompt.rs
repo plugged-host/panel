@@ -19,6 +19,7 @@ use crate::{
         AppSettings, ads::AppSettingsAds, economy::AppSettingsEconomy, games::AppSettingsGames,
         limbo::AppSettingsLimbo, neo::AppSettingsNeo, queue::AppSettingsQueue,
         recovery::AppSettingsRecovery, recovery::FailoverMode, subdomains::AppSettingsSubdomains,
+        upgrades::AppSettingsUpgrades,
     },
 };
 use std::{fmt::Write as _, sync::LazyLock};
@@ -142,6 +143,9 @@ pub struct NeoFacts {
     pub always_confirm_destructive: bool,
     /// A Discord account nobody linked gets this share of a linked account's limits, in %.
     pub discord_unlinked_percent: i64,
+    /// plugged.host: tokens one more day's worth of usage costs in the chat; 0 while it is not sold
+    /// ([`crate::neo::extra_price`]).
+    pub extra_tokens: i64,
 }
 
 impl From<&AppSettingsNeo> for NeoFacts {
@@ -154,6 +158,7 @@ impl From<&AppSettingsNeo> for NeoFacts {
             plusplus_percent: neo.plusplus_percent as i64,
             always_confirm_destructive: neo.always_confirm_destructive,
             discord_unlinked_percent: crate::neo::usage::unlinked_discord_percent(neo),
+            extra_tokens: 0,
         }
     }
 }
@@ -198,6 +203,8 @@ pub struct KnowledgeFacts {
     pub limbo: AppSettingsLimbo,
     pub subdomains: AppSettingsSubdomains,
     pub recovery: AppSettingsRecovery,
+    /// plugged.host: what users buy for one server with tokens (keep-awake pass, boost).
+    pub upgrades: AppSettingsUpgrades,
 }
 
 impl KnowledgeFacts {
@@ -230,6 +237,7 @@ impl KnowledgeFacts {
             limbo: AppSettingsLimbo::default(),
             subdomains: AppSettingsSubdomains::default(),
             recovery: AppSettingsRecovery::default(),
+            upgrades: AppSettingsUpgrades::default(),
         }
     }
 
@@ -277,6 +285,7 @@ impl KnowledgeFacts {
             browser: settings.devboxes.web_ready(),
         };
         facts.neo = NeoFacts::from(&settings.neo);
+        facts.neo.extra_tokens = crate::neo::extra_price(settings).unwrap_or(0);
         facts.subdomains_active = settings.subdomains.active();
         facts.games = settings.games.clone();
         facts.economy = settings.economy.clone();
@@ -285,6 +294,7 @@ impl KnowledgeFacts {
         facts.limbo = settings.limbo.clone();
         facts.subdomains = settings.subdomains.clone();
         facts.recovery = settings.recovery.clone();
+        facts.upgrades = settings.upgrades.clone();
 
         facts
     }
@@ -440,14 +450,64 @@ pub async fn system(state: &crate::State, facts: &PromptFacts<'_>) -> String {
         facts.user.language.to_string()
     };
 
+    let account = Some(account_state(state, facts.user, &knowledge.economy).await);
+
     system_text(&SystemFacts {
         username: facts.user.username.to_string(),
         language,
         server,
         permissions: facts.permissions.clone(),
         auto_approve: facts.auto_approve,
+        account,
         knowledge,
     })
+}
+
+/// plugged.host: the user's membership and token balance, so neo offers only what they do not
+/// have yet (read per turn, so it goes in "This conversation", after the cached part).
+async fn account_state(
+    state: &crate::State,
+    user: &User,
+    economy: &AppSettingsEconomy,
+) -> AccountState {
+    let now = chrono::Utc::now().naive_utc();
+    let until = |time: chrono::NaiveDateTime| time.format("%Y-%m-%d %H:%M UTC").to_string();
+
+    let membership = if economy.membership_enabled {
+        match crate::economy::membership(&state.database, user.uuid).await {
+            Ok(membership) if membership.has_plusplus(now) => membership
+                .plusplus_until
+                .map(|time| (economy.plusplus_name.trim().to_string(), until(time))),
+            Ok(membership) if membership.has_plus(now) => membership
+                .plus_runs_until() // plugged.host: bought or with the membership bundle
+                .map(|time| (economy.plus_name.trim().to_string(), until(time))),
+            Ok(_) => None,
+            Err(err) => {
+                tracing::warn!("neo's prompt could not read the membership: {err:#}");
+                None
+            }
+        }
+    } else {
+        None
+    };
+
+    let tokens = if economy.tokens_enabled {
+        match sqlx::query_scalar::<_, i64>("SELECT tokens FROM users WHERE uuid = $1")
+            .bind(user.uuid)
+            .fetch_optional(state.database.read())
+            .await
+        {
+            Ok(tokens) => tokens,
+            Err(err) => {
+                tracing::warn!("neo's prompt could not read the token balance: {err:#}");
+                None
+            }
+        }
+    } else {
+        None
+    };
+
+    AccountState { membership, tokens }
 }
 
 /// neo on Discord's system prompt (account support), for a Discord user who may or may not be
@@ -505,6 +565,15 @@ pub struct ServerFacts {
     pub cpu: i64,
 }
 
+/// plugged.host: the user's membership and balance, as "This conversation" gives them.
+#[derive(Clone, Debug, Default)]
+pub struct AccountState {
+    /// The membership that runs (its name) and when it ends; `None`: none.
+    pub membership: Option<(String, String)>,
+    /// The token balance; `None` while tokens are off.
+    pub tokens: Option<i64>,
+}
+
 /// Everything [`system_text`] says.
 pub struct SystemFacts {
     pub knowledge: KnowledgeFacts,
@@ -513,6 +582,8 @@ pub struct SystemFacts {
     pub server: Option<ServerFacts>,
     pub permissions: Vec<String>,
     pub auto_approve: bool,
+    /// plugged.host: `None` when it could not be read (the line is left out).
+    pub account: Option<AccountState>,
 }
 
 /// Everything [`discord_text`] says.
@@ -1584,6 +1655,85 @@ pub fn knowledge_text(facts: &KnowledgeFacts) -> String {
         );
     }
 
+    // plugged.host: what else tokens buy, and when neo brings an offer up (docs/features/neo.md)
+    let mut offers = Vec::new();
+    if memberships {
+        offers.push(format!("{plus} or {plusplus} (/account/membership)"));
+    }
+    if credits {
+        offers.push("the Resource Store (/account/store)".to_string());
+    }
+    let mut options = Vec::new();
+    if tokens && room && facts.ads.day_pass_enabled && facts.ads.day_pass_tokens > 0 {
+        options.push(format!(
+            "a waiting-room day pass ({} for {}: the user's starts skip the ad waiting room on every server; bought inside the waiting room)",
+            count(facts.ads.day_pass_tokens as i64, "token"),
+            plural(facts.ads.day_pass_hours.max(1) as i64, "hour")
+        ));
+        offers.push("the day pass".to_string());
+    }
+    // plugged.host: agent A's per-server upgrades (shared/src/server_upgrades.rs)
+    if tokens
+        && facts.limbo.enabled
+        && facts.upgrades.keep_awake_enabled
+        && facts.upgrades.keep_awake_tokens > 0
+    {
+        options.push(format!(
+            "a keep-awake pass for one server ({} for {}: idle checks neither stop, park nor delete it; offered on the server's console and parked page)",
+            count(facts.upgrades.keep_awake_tokens as i64, "token"),
+            plural(facts.upgrades.keep_awake_days.max(1) as i64, "day")
+        ));
+        offers.push("the keep-awake pass".to_string());
+    }
+    if tokens && facts.upgrades.boost_enabled && facts.upgrades.boost_tokens > 0 {
+        options.push(format!(
+            "a boost for one server ({} for {}: {} MiB more memory and {}% more CPU, sold while its node has room)",
+            count(facts.upgrades.boost_tokens as i64, "token"),
+            plural(facts.upgrades.boost_hours.max(1) as i64, "hour"),
+            facts.upgrades.boost_memory.max(0),
+            facts.upgrades.boost_cpu.max(0)
+        ));
+        offers.push("the boost".to_string());
+    }
+    if tokens && facts.neo.extra_tokens > 0 {
+        options.push(format!(
+            "one more day's worth of neo usage ({}, offered in neo's chat once a limit is reached)",
+            count(facts.neo.extra_tokens, "token")
+        ));
+        offers.push("one more day of neo usage".to_string());
+    }
+    if !options.is_empty() {
+        item(
+            &mut out,
+            &format!("Tokens also buy {}.", join_and(&options)),
+        );
+    }
+    if !offers.is_empty() {
+        let mut topics = Vec::new();
+        if facts.limbo.enabled {
+            topics.push("idle stops".to_string());
+        }
+        if facts.queue.enabled {
+            topics.push("the start queue".to_string());
+        }
+        if room {
+            topics.push("the waiting room".to_string());
+        }
+        if ads {
+            topics.push("ads".to_string());
+        }
+        topics.push("limits".to_string());
+        topics.push("running out of resources".to_string());
+        item(
+            &mut out,
+            &format!(
+                "When the user asks about {}, mention once, with its link, the one matching offer they do not already have ({}); never push it or bring it up again.",
+                join_or(&topics),
+                join_or(&offers)
+            ),
+        );
+    }
+
     // Starting servers
     if facts.queue.enabled || room || facts.limbo.enabled {
         heading(&mut out, "Starting servers and idle servers");
@@ -1962,6 +2112,22 @@ pub fn system_text(facts: &SystemFacts) -> String {
             quoted(&facts.username, MAX_NAME)
         ),
     );
+    // plugged.host: what the user has, so an offer is only one they do not have yet
+    if let Some(account) = &facts.account {
+        let mut parts = Vec::new();
+        if economy.membership_enabled {
+            parts.push(match &account.membership {
+                Some((name, until)) => format!("{name} until {until}"),
+                None => "no membership".to_string(),
+            });
+        }
+        if let Some(tokens) = account.tokens {
+            parts.push(count(tokens, "token"));
+        }
+        if !parts.is_empty() {
+            item(&mut out, &format!("Their account: {}", parts.join(", ")));
+        }
+    }
     match &facts.server {
         Some(server) => {
             item(
@@ -2376,6 +2542,7 @@ mod tests {
             server,
             permissions: vec!["*".to_string()],
             auto_approve: false,
+            account: None,
         }
     }
 
@@ -2469,6 +2636,51 @@ mod tests {
             ..system_facts(example(), None)
         });
         assert_eq!(prompt[..conversation], other[..conversation]);
+    }
+
+    #[test]
+    fn the_account_and_the_offers_are_given_where_they_belong() {
+        let mut facts = example();
+        facts.ads.enabled = true;
+        facts.ads.room_enabled = true;
+        facts.ads.day_pass_enabled = true;
+        facts.ads.day_pass_tokens = 1;
+        facts.ads.day_pass_hours = 24;
+        facts.neo.extra_tokens = 2;
+        let knowledge = knowledge_text(&facts);
+        for said in [
+            "a waiting-room day pass (1 token for 24 hours",
+            "one more day's worth of neo usage (2 tokens",
+            "When the user asks about the waiting room, ads, limits or running out of resources",
+            "Plus or Premium (/account/membership)",
+        ] {
+            assert!(
+                knowledge.contains(said),
+                "missing {said:?} in:\n{knowledge}"
+            );
+        }
+
+        // nothing to buy them with: no offers of tokens
+        facts.economy.tokens_enabled = false;
+        let knowledge = knowledge_text(&facts);
+        assert!(!knowledge.contains("day pass"));
+        assert!(!knowledge.contains("neo usage ("));
+
+        let without = system_text(&system_facts(example(), None));
+        let with = system_text(&SystemFacts {
+            account: Some(AccountState {
+                membership: Some(("Plus".to_string(), "2026-11-28 12:00 UTC".to_string())),
+                tokens: Some(9),
+            }),
+            ..system_facts(example(), None)
+        });
+        let conversation = with.find("This conversation:").unwrap();
+        assert_eq!(with[..conversation], without[..conversation]);
+        assert!(
+            with[conversation..]
+                .contains("Their account: Plus until 2026-11-28 12:00 UTC, 9 tokens")
+        );
+        assert!(!without.contains("Their account"));
     }
 
     #[test]

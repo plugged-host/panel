@@ -5,15 +5,25 @@ import { adminSettingsRuxSchema } from '@/lib/schemas/admin/settings.ts';
 
 type RuxValues = z.infer<typeof adminSettingsRuxSchema>;
 
-// while noprofit.space keeps rux's settings, only what it does not keep is sent
+// while noprofit.space keeps rux's settings, only what it does not keep is sent (the name, the
+// secret and the tokens part)
 export default async (data: RuxValues, managed = false): Promise<void> => {
   // empty keeps the stored secret
   const noprofitSecret = data.noprofitSecret.trim() || undefined;
+  // plugged.host: tokens and memberships are always the panel's, so these are saved either way
+  const tokens = {
+    giveaway_max_tokens: data.giveawayMaxTokens,
+    giveaway_max_membership_days: data.giveawayMaxMembershipDays,
+    tokens_command: data.tokensCommand,
+    announce_channel_id: data.announceChannelId,
+    token_bonus_posts: data.tokenBonusPosts,
+  };
 
   await axiosInstance.put('/api/admin/settings', {
     rux: managed
-      ? { name: data.name, noprofit_secret: noprofitSecret }
+      ? { name: data.name, noprofit_secret: noprofitSecret, ...tokens }
       : {
+          ...tokens,
           name: data.name,
           guild_id: data.guildId,
           giveaway_channel_id: data.giveawayChannelId,

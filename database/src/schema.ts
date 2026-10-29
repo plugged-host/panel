@@ -184,11 +184,33 @@ export const usersTable = pgTable(
     // plugged.host: paid panel access (shared/src/panel_access.rs): the moment the current month
     // runs out, empty for anyone who has never paid
     panel_access_until: timestamp(),
+    // plugged.host: the end of paid panel access its ends-soon notice was sent for
+    panel_access_reminded: timestamp(),
+    // plugged.host: the daily streak (shared/src/streak.rs): the day of the streak last claimed, and when
+    streak_day: integer().default(0).notNull(),
+    streak_claimed: date({ mode: 'string' }),
+    // plugged.host: referrals (shared/src/referrals.rs): the account's code, who brought it, and when
+    // they were paid for it
+    referral_code: varchar({ length: 16 }),
+    referred_by: uuid().references((): PgColumn => usersTable.uuid, { onDelete: 'set null' }),
+    referral_paid: timestamp(),
+    // plugged.host: the waiting room's day pass (shared/src/waiting_room.rs): starts skip every room until then
+    day_pass_until: timestamp(),
+    // plugged.host: when the membership popup was last shown (shared/src/promos.rs)
+    promo_shown: timestamp(),
+    // plugged.host: profile badges (shared/src/badges.rs): the ones bought, and the one shown
+    badges: varchar({ length: 32 }).array().default([]).notNull(),
+    badge: varchar({ length: 32 }),
     created: timestamp().defaultNow().notNull(),
   },
   (cols) => [
     index('users_role_uuid_idx').on(cols.role_uuid),
     index('users_created_idx').on(cols.created),
+    // plugged.host: referrals (shared/src/referrals.rs)
+    uniqueIndex('users_referral_code_idx').on(cols.referral_code),
+    index('users_referred_by_idx').on(cols.referred_by),
+    // plugged.host: paid panel access ending soon (shared/src/panel_access.rs remind_ending)
+    index('users_panel_access_until_idx').on(cols.panel_access_until),
     uniqueIndex('users_external_id_idx').on(cols.external_id),
     uniqueIndex('users_username_idx').on(sql`lower(${cols.username})`),
     uniqueIndex('users_email_idx').on(sql`lower(${cols.email})`),
@@ -579,6 +601,21 @@ export const userMembershipsTable = pgTable(
     plusplus_purchases: integer().default(0).notNull(),
     // a lapse's servers left the premium locations
     plusplus_settled: timestamp(),
+    // the second membership's end the membership bundle's other panel last confirmed, and when
+    // (shared/src/membership_bundle.rs); empty: never sent
+    bundle_synced_until: timestamp(),
+    bundle_synced: timestamp(),
+    // Plus that comes with the other panel's second membership, until then (set by that panel)
+    bundle_plus_until: timestamp(),
+    // each membership renews by itself while on (opt-in, off by default)
+    plus_auto_renew: boolean().default(false).notNull(),
+    plusplus_auto_renew: boolean().default(false).notNull(),
+    // the end each ends-soon notice was sent for, so one goes out per end
+    plus_reminded: timestamp(),
+    plusplus_reminded: timestamp(),
+    // the end an automatic renewal failed for (balance short), so it is told once
+    plus_renew_failed: timestamp(),
+    plusplus_renew_failed: timestamp(),
     created: timestamp().defaultNow().notNull(),
   },
   (cols) => [
@@ -586,6 +623,14 @@ export const userMembershipsTable = pgTable(
     index('user_memberships_plusplus_until_idx').on(cols.plusplus_until),
   ],
 );
+
+// plugged.host: Plus from the membership bundle's other panel for noprofit.space accounts that
+// have no user here yet, applied once one is linked (shared/src/membership_bundle.rs)
+export const pendingMembershipBundlesTable = pgTable('pending_membership_bundles', {
+  account_id: bigint({ mode: 'number' }).primaryKey().notNull(),
+  plus_until: timestamp().notNull(),
+  created: timestamp().defaultNow().notNull(),
+});
 
 // plugged.host: the Discord server's members the panel knows of, the invites they brought and the
 // boost levels paid (shared/src/discord, docs/features/discord.md)
@@ -1651,6 +1696,11 @@ export const serversTable = pgTable(
     backup_limit: integer().default(0).notNull(),
     schedule_limit: integer().default(0).notNull(),
     subdomain_limit: integer(), // plugged.host: empty uses the subdomains settings' default
+    // plugged.host: a running boost's memory (MiB) and CPU (%) on top of the paid limits, and the
+    // colour of its card in the server list (shared/src/server_upgrades.rs)
+    boost_memory: bigint({ mode: 'number' }).default(0).notNull(),
+    boost_cpu: integer().default(0).notNull(),
+    card_color: varchar({ length: 16 }),
     created: timestamp().defaultNow().notNull(),
   },
   (cols) => [
@@ -1899,6 +1949,33 @@ export const serverLimboTable = pgTable('server_limbo', {
   home_node_uuid: uuid().references(() => nodesTable.uuid, { onDelete: 'set null' }),
   home_ports: integer().array().default([]).notNull(),
 });
+
+// plugged.host: what users bought with tokens for one server (shared/src/server_upgrades.rs,
+// docs/features/server-upgrades.md): a keep-awake pass, a boost, an extra port, database or backup
+// slot (`amount` added to the server's limit while it runs), a card colour (no end). `tokens` is all
+// it was paid with its renewals; `reminded_until` the end its ends-soon notification was sent for.
+export const serverUpgradesTable = pgTable(
+  'server_upgrades',
+  {
+    uuid: uuid().default(sql`gen_random_uuid()`).primaryKey().notNull(),
+    server_uuid: uuid()
+      .references(() => serversTable.uuid, { onDelete: 'cascade' })
+      .notNull(),
+    user_uuid: uuid().references(() => usersTable.uuid, { onDelete: 'set null' }),
+    kind: varchar({ length: 32 }).notNull(),
+    amount: integer().default(1).notNull(),
+    tokens: integer().default(0).notNull(),
+    data: jsonb().default({}).notNull(),
+    until: timestamp(),
+    reminded_until: timestamp(),
+    ended: timestamp(),
+    created: timestamp().defaultNow().notNull(),
+  },
+  (cols) => [
+    index('server_upgrades_server_uuid_kind_idx').on(cols.server_uuid, cols.kind),
+    index('server_upgrades_until_idx').on(cols.until).where(sql`ended IS NULL`),
+  ],
+);
 
 // plugged.host: one user's start waiting room for one server, and the pass it leaves
 // (shared/src/waiting_room.rs)
@@ -2480,6 +2557,8 @@ export const neoUsageWindowsTable = pgTable(
     started: timestamp().defaultNow().notNull(),
     resets: timestamp().defaultNow().notNull(),
     tokens_used: bigint({ mode: 'number' }).default(0).notNull(),
+    // usage bought with tokens on top of the window's limit, until it resets (docs/features/neo.md)
+    bonus_tokens: bigint({ mode: 'number' }).default(0).notNull(),
   },
   (cols) => [
     uniqueIndex('neo_usage_windows_user_uuid_kind_idx')
@@ -2641,8 +2720,10 @@ export const ruxGiveawaysTable = pgTable(
     channel_id: varchar({ length: 32 }).notNull(),
     message_id: varchar({ length: 32 }),
     prize: varchar({ length: 120 * UTF8_MAX_SCALAR_SIZE }).notNull(),
-    // per winner
+    // per winner: credits, tokens or days, by prize_kind
     credits: bigint({ mode: 'number' }).notNull(),
+    // credits, tokens, plus_days, plusplus_days (tokens and memberships are always the panel's)
+    prize_kind: varchar({ length: 16 }).default('credits').notNull(),
     winners_count: smallint().default(1).notNull(),
     ends: timestamp().notNull(),
     // the winners of the last this many giveaways may not enter

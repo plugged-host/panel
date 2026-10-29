@@ -57,6 +57,9 @@ pub enum SubdomainError {
     /// (docs/features/discord.md).
     DiscordLink,
     DiscordMember,
+    /// plugged.host: a rename to a short name, which takes a bigger deposit than the subdomain's
+    /// (docs/features/server-upgrades.md)
+    ShortRename(i32),
     Cloudflare(String),
     Database(anyhow::Error),
 }
@@ -100,6 +103,9 @@ impl SubdomainError {
             Self::DiscordMember => {
                 "the server's owner must join the Discord server for subdomains".into()
             }
+            Self::ShortRename(cost) => format!(
+                "a name this short takes a deposit of {cost} tokens, add it as a new subdomain"
+            ),
             Self::Cloudflare(message) => format!("Cloudflare: {message}"),
             Self::Database(err) => format!("{err:#}"),
         }
@@ -385,6 +391,8 @@ struct Context {
     app_name: String,
     tokens_enabled: bool,
     settings: crate::settings::subdomains::AppSettingsSubdomains,
+    /// plugged.host: the short names' deposits (shared/src/server_upgrades.rs)
+    upgrades: crate::settings::upgrades::AppSettingsUpgrades,
 }
 
 async fn context(state: &crate::State) -> Result<Context, SubdomainError> {
@@ -403,6 +411,7 @@ async fn context(state: &crate::State) -> Result<Context, SubdomainError> {
         app_name: settings.app.name.to_string(),
         tokens_enabled: settings.economy.tokens_enabled,
         settings: settings.subdomains.clone(),
+        upgrades: settings.upgrades.clone(),
     })
 }
 
@@ -521,6 +530,10 @@ pub struct ApiOverview {
     pub unavailable: Option<Unavailable>,
     /// Tokens the next subdomain costs (0 while tokens are off).
     pub next_cost: i32,
+    /// plugged.host: the least deposit a name of 2 and of 3 characters takes (0: no more than
+    /// any name), shown before the user confirms (docs/features/server-upgrades.md)
+    pub short_two: i32,
+    pub short_three: i32,
     /// The owner's tokens, shown to the owner only.
     pub balance: Option<i64>,
 }
@@ -534,6 +547,7 @@ pub async fn overview(
     let active = settings.subdomains.active();
     let subdomains_settings = settings.subdomains.clone();
     let tokens_enabled = settings.economy.tokens_enabled;
+    let upgrades = settings.upgrades.clone(); // plugged.host
     drop(settings);
 
     let service = Service::of_egg(&server.egg);
@@ -576,6 +590,16 @@ pub async fn overview(
     Ok(ApiOverview {
         next_cost: if tokens_enabled {
             subdomains_settings.cost(subdomains.len() as i64)
+        } else {
+            0
+        },
+        short_two: if tokens_enabled {
+            crate::server_upgrades::short_length_deposit(&upgrades, 2)
+        } else {
+            0
+        },
+        short_three: if tokens_enabled {
+            crate::server_upgrades::short_length_deposit(&upgrades, 3)
         } else {
             0
         },
@@ -850,8 +874,16 @@ pub async fn create(
     }
 
     let fqdn = format!("{name}.{domain_name}");
+    // plugged.host: a short name takes at least its own deposit (docs/features/server-upgrades.md)
     let cost = if context.tokens_enabled {
-        context.settings.cost(existing).max(0)
+        context
+            .settings
+            .cost(existing)
+            .max(crate::server_upgrades::short_name_deposit(
+                &context.upgrades,
+                &name,
+            ))
+            .max(0)
     } else {
         0
     };
@@ -956,6 +988,11 @@ pub async fn update(
         }
         if records::blocked(&name, &context.settings.blocked_names) {
             return Err(SubdomainError::Blocked);
+        }
+        // plugged.host: a short name's bigger deposit is paid by adding it, not by a rename
+        let short = crate::server_upgrades::short_name_deposit(&context.upgrades, &name);
+        if context.tokens_enabled && short > subdomain.token_cost {
+            return Err(SubdomainError::ShortRename(short));
         }
 
         match sqlx::query("UPDATE server_subdomains SET name = $2 WHERE uuid = $1")

@@ -91,6 +91,24 @@ pub struct AppSettingsAds {
     pub room_social_bar: bool,
     pub room_popunder: bool,
     pub room_interstitial: bool,
+    /// The day pass sold in the room: `day_pass_tokens` let the account's starts past every room
+    /// for `day_pass_hours` (shared/src/waiting_room.rs).
+    pub day_pass_enabled: bool,
+    pub day_pass_tokens: i32,
+    pub day_pass_hours: i32,
+
+    /// The membership popup for accounts without one that see ads, at most once per `promo_hours`
+    /// (docs/features/promos.md).
+    pub promo_enabled: bool,
+    pub promo_hours: i32,
+    /// One line with a link where a limit is felt: the start queue, a full allowance, the panel
+    /// access paywall.
+    pub offers_enabled: bool,
+    /// The house promo clips (`frontend/public/promo/`) as one more creative in the ad slots, to
+    /// the same audience: a slot shows one instead of its unit `promo_video_share` percent of the
+    /// time, and when nothing else fills it.
+    pub promo_videos: bool,
+    pub promo_video_share: i32,
 
     /// The ad-block notice: `notice`, `modal` or `block`.
     pub adblock_enabled: bool,
@@ -155,6 +173,14 @@ impl Default for AppSettingsAds {
             room_social_bar: true,
             room_popunder: true,
             room_interstitial: true,
+            day_pass_enabled: true,
+            day_pass_tokens: 1,
+            day_pass_hours: 24,
+            promo_enabled: true,
+            promo_hours: 24,
+            offers_enabled: true,
+            promo_videos: true,
+            promo_video_share: 25,
             adblock_enabled: false,
             adblock_mode: "notice".into(),
             adblock_grace: 4,
@@ -290,6 +316,22 @@ pub struct PayloadAds {
     room_popunder: Option<bool>,
     #[garde(skip)]
     room_interstitial: Option<bool>,
+    #[garde(skip)]
+    day_pass_enabled: Option<bool>,
+    #[garde(inner(range(min = 1, max = 1000)))]
+    day_pass_tokens: Option<i32>,
+    #[garde(inner(range(min = 1, max = 720)))]
+    day_pass_hours: Option<i32>,
+    #[garde(skip)]
+    promo_enabled: Option<bool>,
+    #[garde(inner(range(min = 1, max = 720)))]
+    promo_hours: Option<i32>,
+    #[garde(skip)]
+    offers_enabled: Option<bool>,
+    #[garde(skip)]
+    promo_videos: Option<bool>,
+    #[garde(inner(range(min = 0, max = 100)))]
+    promo_video_share: Option<i32>,
 
     #[garde(skip)]
     adblock_enabled: Option<bool>,
@@ -366,6 +408,14 @@ impl PayloadAds {
             room_social_bar,
             room_popunder,
             room_interstitial,
+            day_pass_enabled,
+            day_pass_tokens,
+            day_pass_hours,
+            promo_enabled,
+            promo_hours,
+            offers_enabled,
+            promo_videos,
+            promo_video_share,
             adblock_enabled,
             adblock_grace,
             adblock_dismiss_hours,
@@ -540,6 +590,14 @@ impl SettingsSerializeExt for AppSettingsAds {
             room_social_bar,
             room_popunder,
             room_interstitial,
+            day_pass_enabled,
+            day_pass_tokens,
+            day_pass_hours,
+            promo_enabled,
+            promo_hours,
+            offers_enabled,
+            promo_videos,
+            promo_video_share,
             adblock_enabled,
             adblock_mode,
             adblock_grace,
@@ -616,6 +674,14 @@ impl SettingsDeserializeExt for AppSettingsAdsDeserializer {
             room_social_bar,
             room_popunder,
             room_interstitial,
+            day_pass_enabled,
+            day_pass_tokens,
+            day_pass_hours,
+            promo_enabled,
+            promo_hours,
+            offers_enabled,
+            promo_videos,
+            promo_video_share,
             adblock_enabled,
             adblock_mode,
             adblock_grace,

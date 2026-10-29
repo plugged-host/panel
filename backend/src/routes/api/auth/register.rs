@@ -129,6 +129,9 @@ mod post {
             }
         };
 
+        // plugged.host: who brought the new account (docs/features/referrals.md)
+        shared::referrals::record(&state, user.uuid, &cookies, ip.0).await;
+
         if user.admin {
             sqlx::query!(
                 "UPDATE users

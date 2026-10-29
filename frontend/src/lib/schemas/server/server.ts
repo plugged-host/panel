@@ -84,6 +84,7 @@ export const serverSchema = z.looseObject({
   description: z.string().nullable(),
   icon: z.string().nullable().default(null), // plugged.host: its own icon
   eggIcon: z.string().nullable().default(null), // plugged.host: its game's, shown without one
+  cardColor: z.string().nullable().default(null), // plugged.host: its card's colour (docs/features/server-upgrades.md)
   limits: z.lazy(() => serverLimitsSchema),
   featureLimits: z.lazy(() => adminServerFeatureLimitsSchema),
   startup: z.string(),

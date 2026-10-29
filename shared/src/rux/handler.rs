@@ -5,10 +5,10 @@
 //! a message that is an order is stored ([`super::inbox`]) and carried out by its own task
 //! ([`super::agent::spawn`]); every message of a server rux works on then goes to the watch
 //! ([`super::watch::on_message`], which queues or spawns its checks); a giveaway's button goes to
-//! the giveaways, which answer it at once. Events of servers rux is in but does not work on are
-//! dropped.
+//! the giveaways, which answer it at once; `/tokens` goes to [`super::tokens`]. Events of servers
+//! rux is in but does not work on are dropped.
 
-use super::{agent, context::Me, inbox, tools, watch};
+use super::{agent, context::Me, inbox, tokens, tools, watch};
 use crate::discord::gateway::{self, Bot, Handler, INTENT_GUILDS, Session};
 use serde_json::Value;
 use std::sync::{Arc, LazyLock};
@@ -37,6 +37,11 @@ struct Rux;
 impl Handler for Rux {
     fn intents(&self) -> u64 {
         INTENTS
+    }
+
+    // plugged.host: `/tokens` (shared/src/rux/tokens.rs), on the gateway's server
+    fn commands(&self) -> Vec<Value> {
+        vec![tokens::command()]
     }
 
     async fn event(
@@ -101,12 +106,20 @@ async fn on_interaction(
     let custom_id = interaction["data"]["custom_id"]
         .as_str()
         .unwrap_or_default();
-    if !custom_id.starts_with(tools::giveaways::BUTTON_PREFIX) {
+    let command = interaction["type"].as_i64() == Some(2)
+        && interaction["data"]["name"].as_str() == Some(tokens::COMMAND);
+    if !command && !custom_id.starts_with(tools::giveaways::BUTTON_PREFIX) {
         return Ok(());
     }
     let Some((config, rest)) = super::running(state).await? else {
         return Ok(());
     };
+    // `/tokens` is about the account, not the server: it is registered on the gateway's server,
+    // which need not be one rux moderates
+    if command {
+        tokens::on_command(state, &config, &rest, interaction);
+        return Ok(());
+    }
     if let Some(guild_id) = interaction["guild_id"].as_str()
         && !config.serves(Some(guild_id))
     {

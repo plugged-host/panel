@@ -79,7 +79,17 @@ settings do not give; noprofit.space is named only while it is connected.
      permissions on it (the owner's `*` reads "all (server owner)") and the approval mode.
 
   Everything before "This conversation" changes only with the settings and the account's
-  noprofit.space plan, so providers that cache prompt prefixes reuse it between turns.
+  noprofit.space plan, so providers that cache prompt prefixes reuse it between turns. "This
+  conversation" also gives the account's membership (or "no membership") with its end and the
+  token balance (`prompt::account_state`, read every turn), so neo only offers what the user does
+  not have yet.
+- **Offers** (`knowledge_text`): the knowledge lists what else tokens buy while it is sold (the
+  waiting-room day pass, a server's keep-awake pass and boost ([server upgrades](server-upgrades.md)),
+  one more day of neo usage, each with its price and page), and one short rule: when the user asks
+  about idle stops, the start queue, the waiting room, ads, limits or running out of resources
+  (only the topics whose feature is on), neo mentions the one matching offer once, with its link (a
+  membership, the Resource Store, the day pass, the keep-awake pass, the boost, extra neo usage),
+  and never pushes it. Tokens never turn into credits, so neo never offers that.
 - **What neo knows** (`prompt::knowledge`, part of both prompts): accounts and support, creating
   servers and the allowance, locations, credits, tokens and memberships, starting and idle servers,
   backups, the Minecraft log check, subdomains, FiveM, Minecraft and VS Code. Each comes from its
@@ -197,6 +207,56 @@ its code: `limited_short`, `limited_long`, `limited_model`, `limited_images` (wi
 `unlinked` (noprofit.space does not know the account), `refused` (the provider's content filter).
 Retry continues the same request once the cause is gone.
 
+## Extra usage for tokens
+
+When `limited_short` or `limited_long` ends the chat, the notice offers "One more day's worth for
+2 tokens" with **Get it** (`ExtraOffer` in `elements/neo/NeoRow.tsx`): it buys, then tries the
+turn again. A refused purchase says why in a toast; a 409 (too few tokens, the price or the limit
+moved) adds an "Earn tokens" link to the Tokens page.
+
+- **What a day is**: the long window's limit at the account's share (memberships raise it) divided
+  by its days (`usage::day_worth`; with the defaults 15,000,000 / 7 = 2,142,857 tokens of usage).
+- **What it does**: every active window gets that much room on top of what it has used now
+  (`neo_usage_windows.bonus_tokens += max(0, used − (limit + bonus)) + day`, `usage::bonus_after`),
+  so a turn that overshot the limit does not eat it. The bonus is added to the window's limit in
+  the usage bars and the limit check (`usage::with_bonus`) and goes back to 0 when the window
+  resets (`charge`).
+- **When it is sold** (`neo::extra_price`): Sell Extra Usage for Tokens on, tokens on, neo metered
+  by the panel (not while noprofit.space runs neo: its windows are noprofit.space's), and only
+  while one of the person's windows refuses turns (else 409 "you have not reached your limit").
+- **Money**: one transaction locks the user row and the windows, takes the tokens (ledger type
+  `neo_extra`, "neo: one more day") and writes the bonuses; a short balance changes nothing (409).
+  The chat sends the price it showed; a price that moved answers 409 with the new one. User
+  activity `account:neo.extra` (`cost`, `usage`).
+
+| Route | Permission | Does |
+|---|---|---|
+| `POST /api/client/account/neo/extra` | `neo.chat` and `economy.purchase` | `{tokens}` (the price seen) → `{tokens, limits}`; 403 off, 409 not sold, not limited, price moved or short |
+
+The chat's `GET` answers `extra: {tokens, available}` (`available`: a window refuses turns now)
+while it is sold to the person, else `null`.
+
+Settings (Admin › Settings › AI › neo › Usage Limits):
+
+| Setting | Key | Default |
+|---|---|---|
+| Sell Extra Usage for Tokens | `neo::extra_enabled` | on |
+| Price of One More Day (Tokens) | `neo::extra_tokens` (1 to 1000) | 2 |
+
+Check:
+
+- With the short window at 1,000 tokens, chat until "You have reached your short-term neo limit":
+  the notice shows "One more day's worth for 2 tokens" and **Get it**. With 2 tokens or more, Get
+  it: the balance drops by 2, the token history shows "neo: one more day", the usage bars show the
+  higher limit and the answer comes. With fewer: a toast "your balance is too low" and "Earn
+  tokens".
+- `POST /api/client/account/neo/extra` while no window is full: 409 "you have not reached your
+  limit"; with `{"tokens": 1}` while the price is 2: 409 with the new price.
+- After the window resets, its limit is the plain one again.
+- Sell Extra Usage for Tokens off, or noprofit.space running neo: no offer under the notice.
+- Prompt: ask neo "why does my server wait in a queue?" with the start queue on and no membership:
+  the answer mentions the membership once, with `/account/membership`.
+
 ## Settings
 
 Admin › Settings › AI › neo is one page in Pelican's order (`frontend/src/pages/admin/settings/neo/`):
@@ -211,7 +271,8 @@ Admin › Settings › AI › neo is one page in Pelican's order (`frontend/src/
   whether it sees images, a usage multiplier, and extra headers and request fields as JSON.
   While noprofit.space runs neo (see below), the page says so and the slots are not used.
 - **Usage limits**: the gateway switch, the memberships' percentages, the share for Discord
-  accounts nobody linked, the short and long token windows, and the failover timings (cooldown
+  accounts nobody linked, the short and long token windows, extra usage sold for tokens
+  ([above](#extra-usage-for-tokens)), and the failover timings (cooldown
   after a failure, longest wait before an outage, time budget per turn, concurrent calls, the
   tool support check).
 
@@ -314,6 +375,7 @@ The chat routes are the same for the account (`/api/client/account/neo`) and a s
 | `GET /conversations`, `GET`/`DELETE /conversations/{conversation}`, `POST /conversations/{conversation}/open` | History |
 
 Account only (`backend/src/routes/api/client/account/neo/mod.rs`): `PATCH /preferences`,
-`GET /usage` (windows and the models the person may pick), `GET /images/{image}`, and `DELETE /`
+`GET /usage` (windows and the models the person may pick), `POST /extra` (one more day's worth of
+usage, [above](#extra-usage-for-tokens)), `GET /images/{image}`, and `DELETE /`
 (every chat of the account; logged as `account:neo.delete-chats`). Changing the switches is logged
 as `account:neo.preferences`.

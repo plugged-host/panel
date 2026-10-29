@@ -307,6 +307,14 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
     roomSocialBar: true,
     roomPopunder: true,
     roomInterstitial: true,
+    dayPassEnabled: true,
+    dayPassTokens: 1,
+    dayPassHours: 24,
+    promoEnabled: true,
+    promoHours: 24,
+    offersEnabled: true,
+    promoVideos: true,
+    promoVideoShare: 25,
     adblockEnabled: false,
     adblockMode: 'notice',
     adblockGrace: 4,
@@ -366,6 +374,11 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
     giveawayMaxCredits: 10_000,
     giveawayMaxWinners: 25,
     giveawayMaxDays: 60,
+    giveawayMaxTokens: 50,
+    giveawayMaxMembershipDays: 30,
+    tokensCommand: true,
+    announceChannelId: '',
+    tokenBonusPosts: true,
     creditGranters: [],
     creditMaxPerGrant: 10_000,
     warnTimeoutAt: 3,
@@ -429,6 +442,8 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
     longDays: 7,
     longTokens: 15_000_000,
     discordUnlinkedPercent: 50,
+    extraEnabled: true,
+    extraTokens: 2,
     defaultCooldown: 60,
     maxBusyWait: 60,
     deadline: 80,
@@ -446,6 +461,34 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
     costWindowHours: 72,
     exemptMembers: true,
     deleteAfterDays: 0,
+  },
+  // plugged.host: docs/features/server-upgrades.md
+  upgrades: {
+    keepAwakeEnabled: true,
+    keepAwakeTokens: 3,
+    keepAwakeDays: 7,
+    boostEnabled: true,
+    boostTokens: 3,
+    boostHours: 24,
+    boostMemory: 2048,
+    boostCpu: 100,
+    extraAllocationEnabled: true,
+    extraAllocationTokens: 2,
+    extraAllocationDays: 30,
+    extraAllocationMax: 3,
+    extraDatabaseEnabled: true,
+    extraDatabaseTokens: 2,
+    extraDatabaseDays: 30,
+    extraDatabaseMax: 3,
+    extraBackupEnabled: true,
+    extraBackupTokens: 2,
+    extraBackupDays: 30,
+    extraBackupMax: 3,
+    shortSubdomainEnabled: true,
+    shortSubdomainThree: 15,
+    shortSubdomainTwo: 30,
+    cardColorEnabled: true,
+    cardColorTokens: 2,
   },
   tour: {
     enabled: false,
@@ -487,6 +530,8 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
     panelAccessEnabled: true,
     panelAccessTokens: 5,
     panelAccessDays: 30,
+    badgesEnabled: true,
+    badgeTokens: 5,
     membershipEnabled: true,
     plusName: 'Plus',
     plusplusName: 'Premium',
@@ -496,8 +541,18 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
     plusplusTokenDays: 30,
     plusplusCredits: 0,
     plusplusCreditDays: 30,
+    bundleEnabled: false,
+    bundleUrl: 'https://panel.switched.cloud',
+    bundleName: 'switched.cloud Plus',
+    bundleSourceName: 'switched.cloud Premium',
+    bundleSecret: null,
     plusBurstCores: 1,
     plusplusBurstCores: 2,
+    endsSoonEnabled: true,
+    endsSoonHours: 48,
+    autoRenewEnabled: true,
+    giftsEnabled: true,
+    giftsPerDay: 10,
     cpuStep: 50,
     cpuPrice: 100,
     memoryStep: 1024,
@@ -515,6 +570,7 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
     storeDiscountStarts: null,
     storeDiscountEnds: null,
     storeDiscountName: null,
+    storeDiscountCovers: 'store',
     claimMinutes: 30,
     linkDecayPercent: 15, // plugged.host
     linkFloorPercent: 25,
@@ -554,6 +610,20 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
     cpxResearchAppId: null,
     cpxResearchSecret: null,
     cpxResearchDailyCap: 1,
+    // plugged.host: the Tokens page's streak, double tokens, first-week tasks and referrals
+    streakEnabled: true,
+    streakRewards: '0.25,0.25,0.5,0.5,0.75,0.75,1',
+    tokenBonusPercent: 0,
+    tokenBonusName: null,
+    tokenBonusStarts: null,
+    tokenBonusEnds: null,
+    starterEnabled: true,
+    starterDays: 14,
+    starterReward: 1,
+    referralsEnabled: true,
+    referralReward: 5,
+    referralThreshold: 10,
+    referralMonthlyCap: 10,
   },
   // plugged.host: neo on Discord
   neoDiscord: {
@@ -595,6 +665,7 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
       economy: value.economy, // plugged.host
       queue: value.queue, // plugged.host
       limbo: value.limbo, // plugged.host
+      upgrades: value.upgrades, // plugged.host
       ads: value.ads, // plugged.host
       subdomains: value.subdomains, // plugged.host
       discord: value.discord, // plugged.host
@@ -628,6 +699,7 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
       ...(value.economy ? { economy: { ...state.economy, ...value.economy } } : {}), // plugged.host
       ...(value.queue ? { queue: { ...state.queue, ...value.queue } } : {}), // plugged.host
       ...(value.limbo ? { limbo: { ...state.limbo, ...value.limbo } } : {}), // plugged.host
+      ...(value.upgrades ? { upgrades: { ...state.upgrades, ...value.upgrades } } : {}), // plugged.host
       ...(value.ads ? { ads: { ...state.ads, ...value.ads } } : {}), // plugged.host
       ...(value.subdomains ? { subdomains: { ...state.subdomains, ...value.subdomains } } : {}), // plugged.host
       ...(value.discord ? { discord: { ...state.discord, ...value.discord } } : {}), // plugged.host

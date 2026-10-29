@@ -158,6 +158,9 @@ function CreateServerForm({ options }: { options: Options }) {
   const queryClient = useQueryClient();
 
   const { allowance } = options;
+  // plugged.host: the offers where a limit is felt (docs/features/promos.md#offers)
+  const offers = useGlobalStore((state) => !!state.settings.ads?.offers);
+  const creditsEnabled = useGlobalStore((state) => !!state.settings.economy?.creditsEnabled);
   const remaining = {
     cpu: left(allowance.limit.cpu, allowance.used.cpu),
     memory: left(allowance.limit.memory, allowance.used.memory),
@@ -269,6 +272,20 @@ function CreateServerForm({ options }: { options: Options }) {
 
     return null;
   })();
+
+  // plugged.host: the allowance is what stops the deploy (a resource used up, or the size over what
+  // is left): one line to the Resource Store, while credits are on. More servers are not for sale.
+  const allowanceFull =
+    allowance.hasPlan &&
+    !tooMany &&
+    (Object.values(remaining).some((value) => value !== null && value <= 0) ||
+      (isAmount(cpu) &&
+        isAmount(memory) &&
+        isAmount(disk) &&
+        (!fits(allowance.limit.cpu, allowance.used.cpu, cpu) ||
+          !fits(allowance.limit.memory, allowance.used.memory, memory) ||
+          !fits(allowance.limit.disk, allowance.used.disk, disk))));
+  const storeOffer = offers && creditsEnabled && allowanceFull;
 
   // Filament's danger notification: the title, then why
   const notifyFailed = (message: ReactNode) =>
@@ -511,6 +528,11 @@ function CreateServerForm({ options }: { options: Options }) {
 
         <div className='theme-deploy'>
           {reason && <span className='theme-deploy-reason'>{reason}</span>}
+          {storeOffer && (
+            <Link to='/account/store' className='theme-eco-link text-sm'>
+              {t(`${page}.offers.store`, {})}
+            </Link>
+          )}
           <Button
             disabled={!!reason}
             leftSection={loading ? <Loader size={16} color='currentColor' /> : undefined}

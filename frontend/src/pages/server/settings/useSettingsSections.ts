@@ -16,6 +16,7 @@ export const SETTINGS_SECTIONS = [
   'general',
   'sftp',
   'resources',
+  'upgrades', // docs/features/server-upgrades.md
   'version',
   'behaviour',
   'notifications',

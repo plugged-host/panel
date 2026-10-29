@@ -43,10 +43,26 @@ const SIZES: Record<AdSlotKind, [number, number][] | null> = {
   room: null,
 };
 
+/** A house promo clip (`public/promo/index.json`, docs/features/promos.md#promo-clips). */
+export interface PromoClip {
+  name: string;
+  cta: string;
+  href: string;
+}
+
+/** The promo clips a page may show, how often a slot shows one instead of its unit (percent), and the visit's seed. */
+export interface PromoRotation {
+  clips: PromoClip[];
+  share: number;
+  seed: string;
+}
+
 export type AdUnit =
   | { type: 'zone'; id: string; zone: AdZone; width: number; height: number }
   | { type: 'banner'; id: string; banner: AdBanner; width: number; height: number }
-  | { type: 'native'; id: string };
+  | { type: 'native'; id: string }
+  // the clip as a video (16:9, its button over its foot) or, where a video does not fit, its poster
+  | { type: 'promo'; id: string; clip: PromoClip; video: boolean; width: number; height: number };
 
 export interface AdSlotState {
   id: number;
@@ -66,22 +82,26 @@ export function bannerSlotSize(width: number, height: number): [number, number] 
   return null;
 }
 
-/**
- * A copy shuffled by `seed` (the page's path), so banners of one size take turns from page to page
- * while every slot of a page sees the same order.
- */
-export function shuffled<T>(items: T[], seed: string): T[] {
-  // FNV-1a for the seed, then mulberry32
+/** Numbers in [0, 1) that only depend on `seed`: FNV-1a for the seed, then mulberry32. */
+function seeded(seed: string): () => number {
   let state = 0x811c9dc5;
   for (let i = 0; i < seed.length; i++) {
     state = Math.imul(state ^ seed.charCodeAt(i), 0x01000193);
   }
-  const random = () => {
+  return () => {
     state = (state + 0x6d2b79f5) | 0;
     let t = Math.imul(state ^ (state >>> 15), 1 | state);
     t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
+}
+
+/**
+ * A copy shuffled by `seed` (the page's path), so banners of one size take turns from page to page
+ * while every slot of a page sees the same order.
+ */
+export function shuffled<T>(items: T[], seed: string): T[] {
+  const random = seeded(seed);
 
   const copy = [...items];
   for (let i = copy.length - 1; i > 0; i--) {
@@ -96,11 +116,32 @@ export function adAreaOf(pathname: string): 'account' | 'server' {
   return pathname.startsWith('/server/') ? 'server' : 'account';
 }
 
+/** plugged.host: the slots a promo clip may take: the waiting rooms' (as a video) and the page rectangle (its poster). */
+const PROMO_SLOTS: ReadonlySet<AdSlotKind> = new Set<AdSlotKind>(['room', 'page']);
+const PROMO_VIDEO_MIN = 280;
+const PROMO_VIDEO_MAX = 640;
+
+/** A clip fitted to a slot: a 16:9 video in a waiting room slot wide enough, else its poster at 300×250; null when neither fits. */
+export function promoUnit(slot: AdSlotState, clip: PromoClip): AdUnit | null {
+  const id = `promo:${clip.name}`;
+  if (slot.kind === 'room' && slot.width >= PROMO_VIDEO_MIN) {
+    const width = Math.min(slot.width, PROMO_VIDEO_MAX);
+    return { type: 'promo', id, clip, video: true, width, height: Math.round((width * 9) / 16) };
+  }
+  if (PROMO_SLOTS.has(slot.kind) && slot.width >= 300) {
+    return { type: 'promo', id, clip, video: false, width: 300, height: 250 };
+  }
+  return null;
+}
+
 /**
  * Gives each slot of a page at most one unit, no unit twice: slots pick by rank (then in the order
  * they appeared), each the widest unit of its sizes that fits; a sponsored banner goes before a
  * zone of its size, and a "top" banner takes the top slot. The server tools strip and the page
- * slots fill at most `maxUnits` together (`max_units_per_page`).
+ * slots fill at most `maxUnits` together (`max_units_per_page`). plugged.host: with `promo`, a
+ * waiting room or page slot shows a promo clip instead of its unit `share` percent of the time
+ * (rolled per slot from the visit's seed, so it holds while the page stays), and when nothing
+ * else fills it; each clip once per page.
  */
 export function allocate(
   slots: AdSlotState[],
@@ -108,6 +149,7 @@ export function allocate(
   banners: AdBanner[],
   native: boolean,
   maxUnits: number,
+  promo?: PromoRotation,
 ): Map<number, AdUnit> {
   const units: AdUnit[] = [];
   for (const banner of banners) {
@@ -158,10 +200,29 @@ export function allocate(
     const unit = units.find(
       (unit) =>
         unit.type !== 'native' &&
+        unit.type !== 'promo' &&
         !used.has(unit.id) &&
         unit.width <= slot.width &&
         (sizes === null || sizes.some(([width, height]) => width === unit.width && height === unit.height)),
     );
+
+    // plugged.host: a promo clip in its share of the rotation, or as the fill
+    if (
+      promo &&
+      promo.share > 0 &&
+      PROMO_SLOTS.has(slot.kind) &&
+      (!unit || seeded(`${promo.seed}:${slot.id}`)() * 100 < promo.share)
+    ) {
+      const clip = promo.clips.find((clip) => !used.has(`promo:${clip.name}`));
+      const promoted = clip ? promoUnit(slot, clip) : null;
+      if (promoted) {
+        used.add(promoted.id);
+        result.set(slot.id, promoted);
+        if (CAPPED.has(slot.kind)) capped++;
+        continue;
+      }
+    }
+
     if (unit) {
       used.add(unit.id);
       result.set(slot.id, unit);

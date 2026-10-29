@@ -43,6 +43,12 @@ size are shuffled by the page's path, so they take turns from page to page.
 The top and foot slots are not on the waiting pages or on a parked server's page. A slot that gets
 nothing takes no room.
 
+The house promo clips (`frontend/public/promo/`) are one more creative in the rotation: a waiting
+room slot or a page rectangle shows one instead of its unit **Share of the Slots** percent of the
+time (25), and gets one when nothing else fills it; a video in the waiting rooms, the poster in the
+page rectangles, never to someone without ads ([promos.md](promos.md#promo-clips)). A waiting page
+with no zone or banner at all keeps one slot for a clip.
+
 As the Pelican panel's ads 2.2.2 (2026-10-25, back to its 2026-10-22 layout), the top slot shows no
 ad zone (only a live sponsored top banner) and the foot has no 300×250. The server pages strip and
 the page rectangles together fill at most **Units per Page** (`max_units_per_page`, 2 by default,
@@ -131,14 +137,34 @@ not reach Wings on the click is sent again then.
 
 The page is laid out like the Pelican panel's ad gate, without the sidebar: a status card ("These
 ads are paying for your server", counting down to `room_max_seconds` every second, re-seeded from
-the poll), then the room's ads ("What the Rooms Show" on the tab) in two parts, and no buttons:
-there is no way to buy past the room. While the countdown runs, the back button and the panel's
+the poll), the way past the room ([below](#day-pass)), then the room's ads ("What the Rooms Show"
+on the tab) in two parts. While the countdown runs, the back button and the panel's
 own links stay on the page and the browser asks before a reload or close (`useHoldPage`); a page
 with no room to wait in goes to the console.
 
 On both waiting pages (this one and the start queue) the ads come in two parts, each with one
 "Sponsored" caption (hidden while no unit shows) and two columns from 1024 px: the first two room
 slots under the status card, the other slots and then the native unit further down.
+
+### Day pass
+
+The room sells the way past it: **Day Pass Price** tokens (1) let every start of the account skip
+every room, on all its servers, for **Day Pass Length** hours (24), `users.day_pass_until`; a pass
+bought while one runs adds to what is left. Under the status card, a "Skip the wait" card says how
+many tokens the user has and offers "Skip the wait for 24 hours · 1 token" (the page's filled
+button; "Earn tokens" in a new tab while the balance is short), and, while memberships are on with
+Fewer Ads for Members and the user lacks it, "Premium skips this", to Account › Membership in a new
+tab (the room holds its page). Buying lets the user through at once: the room counts as ready while
+a pass runs. While a pass runs the card says until when.
+
+- Sold while ads, the room, the pass and tokens are on. The gate checks the pass right after the
+  server's size line, before the free pass of the last room.
+- `POST /api/client/account/day-pass` (`economy.purchase`) `{price}` (the price shown) →
+  `{day_pass: {tokens, hours, balance, until}}`; 409 short or the price moved, 403 off. It locks the
+  user row and writes the tokens, the ledger row (`day_pass`, "Waiting room day pass") and the end
+  together. User activity `account:day-pass`.
+- `GET .../waiting-room` adds `day_pass` (`tokens`, `hours`, `balance`, `until`, or `null` while it
+  is not sold) and `premium` (the second membership's name, or `null`).
 
 ## Ad blockers
 
@@ -165,8 +191,10 @@ on" and the panel's name.
 
 ## Settings
 
-Admin › Settings › Ads, one tab per part: Placement, Adsterra, Monetag, Waiting Room, Ad Blockers,
-In-Game. Script fields take the URL or the whole snippet as the network shows it; zones take
+Admin › Settings › Ads, one tab per part: Placement, Adsterra, Monetag, Waiting Room (with the day
+pass: Sell a Day Pass `day_pass_enabled` on, Day Pass Price `day_pass_tokens` 1 to 1000, default 1,
+Day Pass Length `day_pass_hours` 1 to 720, default 24), Ad Blockers, In-Game, Promotions (the
+membership popup, the offers and the promo clips, [promos.md](promos.md#settings)). Script fields take the URL or the whole snippet as the network shows it; zones take
 Adsterra's Banner snippets or `key:WIDTHxHEIGHT:host` lines (default host
 `www.highperformanceformat.com`, the script is `https://host/<key>/invoke.js`), or
 `key:WIDTHxHEIGHT:https://host/path` with the snippet's script URL (newer Adsterra code loads
@@ -187,5 +215,10 @@ container is set. Saving checks everything and says what is wrong.
 - Waiting room on, lines 0: a start opens the room, the server starts at once, the room lets you
   through after 15 seconds once it runs; the next start within 10 minutes goes straight to the
   console.
+- Day pass: with 3 tokens, start a server and press "Skip the wait for 24 hours · 1 token" in the
+  room: the toast names the end, the console opens at once and the balance shows 2; a start of
+  another server skips the room for 24 hours. With 0 tokens the button is "Earn tokens". As a Plus
+  member the card also says "Premium skips this". Sell a Day Pass off: no card (Premium's line
+  stays while it applies).
 - An ad blocker: the notice (or dialog) appears; not on the console.
 - In-game on, interval 5: a running Minecraft server of a non-member gets the line in chat.

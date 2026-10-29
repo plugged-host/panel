@@ -122,6 +122,13 @@ export default function SidebarBalance() {
 
   const number = new Intl.NumberFormat(intlLocale(language));
 
+  // plugged.host: tokens toward the cheapest membership the account does not have (none with the
+  // second membership, or with memberships off)
+  const goal =
+    balance.tokens !== null && balance.membershipGoal && economy?.membershipEnabled
+      ? { ...balance.membershipGoal, tokens: balance.tokens }
+      : null;
+
   return (
     <div className='theme-balance'>
       {rows.length > 0 && (
@@ -149,7 +156,7 @@ export default function SidebarBalance() {
       )}
 
       {pills.length > 0 && (
-        <div className='theme-balance-pills'>
+        <div className={classNames('theme-balance-pills', goal && 'theme-balance-pills-goal')}>
           {pills.map((pill) => (
             <Part
               key={pill.key}
@@ -161,8 +168,36 @@ export default function SidebarBalance() {
               className='theme-balance-item'
             >
               <BalanceAmount text={tItem(pill.key, pill.value ?? 0)} value={number.format(pill.value ?? 0)} />
+              {/* plugged.host: today's streak tokens wait on the Tokens page (docs/features/economy.md#daily-streak) */}
+              {pill.key === 'token' && balance.streakClaimable && (
+                <span className='theme-balance-dot' role='img' aria-label={t('elements.sidebar.balance.streak', {})} />
+              )}
             </Part>
           ))}
+
+          {goal && (
+            <Part
+              to='/account/membership'
+              title={t('elements.sidebar.balance.openMembership', {})}
+              className='theme-balance-goal'
+            >
+              <div className='theme-balance-goal-text'>
+                {goal.tokens >= goal.cost
+                  ? t('elements.sidebar.balance.goalReady', { name: goal.name })
+                  : t('elements.sidebar.balance.goal', {
+                      tokens: number.format(goal.tokens),
+                      cost: number.format(goal.cost),
+                      name: goal.name,
+                    })}
+              </div>
+              <div className='theme-balance-track' aria-hidden='true'>
+                <div
+                  className='theme-balance-bar'
+                  style={{ width: `${Math.min(100, Math.round((goal.tokens / goal.cost) * 100))}%` }}
+                />
+              </div>
+            </Part>
+          )}
         </div>
       )}
     </div>

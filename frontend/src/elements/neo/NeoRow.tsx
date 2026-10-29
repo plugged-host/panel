@@ -16,13 +16,17 @@ import {
   faTriangleExclamation,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { useState } from 'react';
+import { Link } from 'react-router';
+import { getHttpStatus, httpErrorToHuman } from '@/api/axios.ts';
 import Button from '@/elements/buttons/Button.tsx';
 import NeoImage from '@/elements/neo/NeoImage.tsx';
 import NeoMarkdown from '@/elements/neo/NeoMarkdown.tsx';
 import type { NeoConversation, NeoMessage } from '@/lib/schemas/user/neo.ts';
 import { useNeoText } from '@/plugins/useNeo.ts';
+import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
-import { approveNeoCall, denyNeoCall, NeoPlace, retryNeoTurn } from '@/stores/neo.ts';
+import { approveNeoCall, buyNeoExtraAndRetry, denyNeoCall, NeoPlace, retryNeoTurn, useNeoChat } from '@/stores/neo.ts';
 
 type ToolStatus = NonNullable<NeoMessage['status']>;
 
@@ -149,6 +153,37 @@ function noticeIcon(code: string | null) {
   return faTriangleExclamation;
 }
 
+// plugged.host: one more day's worth of usage for tokens, under the limit notice that ended the chat
+function ExtraOffer({ place, tokens }: { place: NeoPlace; tokens: number }) {
+  const { t, tItem } = useTranslations();
+  const { addToast } = useToast();
+  const [buying, setBuying] = useState(false);
+  const [short, setShort] = useState(false);
+
+  const buy = () => {
+    setBuying(true);
+    buyNeoExtraAndRetry(place, tokens)
+      .catch((error) => {
+        // 409: the balance is short (or the price or the limit moved); the way to more tokens
+        setShort(getHttpStatus(error) === 409);
+        addToast(httpErrorToHuman(error), 'error');
+      })
+      .finally(() => setBuying(false));
+  };
+
+  return (
+    <>
+      <span>{t('elements.neo.extra.offer', { tokens: tItem('token', tokens) })}</span>
+      <div className='theme-neo-row'>
+        <Button size='sm' variant='default' loading={buying} onClick={buy}>
+          {t('elements.neo.extra.buy', {})}
+        </Button>
+        {short && <Link to='/account/tokens'>{t('elements.neo.extra.earn', {})}</Link>}
+      </div>
+    </>
+  );
+}
+
 function Notice({
   message,
   place,
@@ -161,12 +196,16 @@ function Notice({
 }) {
   const { t } = useTranslations();
   const text = useNeoText();
+  // plugged.host: extra usage for tokens, under a window's limit while it is sold
+  const extra = useNeoChat(place.key, (chat) => chat.info?.extra ?? null);
+  const offerExtra = retry && !!extra && (message.code === 'limited_short' || message.code === 'limited_long');
 
   return (
     <div className='theme-neo-notice' role='status'>
       <FontAwesomeIcon icon={noticeIcon(message.code)} />
       <div className='theme-neo-notice-body'>
         <span>{text.notice(message.code, message.params)}</span>
+        {offerExtra && extra && <ExtraOffer place={place} tokens={extra.tokens} />}
         {retry && (
           <Button size='sm' variant='default' onClick={() => void retryNeoTurn(place)}>
             {t('elements.neo.button.retry', {})}

@@ -43,6 +43,8 @@ const baseTranslations = defineTranslations({
     credit: defineEnglishItem('credit', 'credits'),
     player: defineEnglishItem('player', 'players'),
     build: defineEnglishItem('build', 'builds'),
+    friend: defineEnglishItem('friend', 'friends'), // plugged.host: referrals
+    hour: defineEnglishItem('hour', 'hours'), // plugged.host: the waiting room's day pass
   },
   translations: {
     common: {
@@ -700,6 +702,19 @@ const baseTranslations = defineTranslations({
           discordBoost: 'Discord boost',
           // plugged.host: the partner program's monthly credits (docs/features/partners.md)
           partner: 'Partner program',
+          // plugged.host: docs/features/server-upgrades.md
+          serverUpgrade: 'Server upgrade',
+          // plugged.host: a membership bought for someone else, and one received
+          membershipGift: 'Gift',
+          membershipGiftReceived: 'Gift received',
+          // plugged.host: the Tokens page's streak, first-week tasks and referrals
+          streak: 'Daily streak',
+          starter: 'Getting started',
+          referral: 'Referral',
+          // plugged.host: docs/features/promos.md, ads.md#day-pass, neo.md
+          dayPass: 'Day pass',
+          badge: 'Profile badge',
+          neoExtra: 'More neo usage',
         },
       },
       chartLegend: {
@@ -819,6 +834,12 @@ const baseTranslations = defineTranslations({
           disk: 'Disk',
           openStore: 'Get more in the Resource Store',
           openTokens: 'Open the Tokens page',
+          // plugged.host: tokens toward the cheapest membership the account does not have
+          goal: '{tokens} / {cost} to {name}',
+          goalReady: 'Enough for {name}',
+          openMembership: 'Open the Membership page',
+          // plugged.host: the daily streak waits to be claimed
+          streak: 'Today’s streak tokens are waiting',
         },
       },
       // plugged.host: the notification inbox, the Pelican panel's bell (elements/notifications,
@@ -833,6 +854,9 @@ const baseTranslations = defineTranslations({
         delete: 'Delete notification',
         openServer: 'Open server',
         viewBackups: 'View backups',
+        // plugged.host: a notification about the account, not a server (memberships, panel access)
+        renew: 'Renew',
+        viewMembership: 'View membership',
         showMore: 'Show more',
         empty: 'No notifications',
         emptyHint: 'Please check again later.',
@@ -860,6 +884,30 @@ const baseTranslations = defineTranslations({
           membershipEnded: {
             title: '{membership} has ended',
             body: "Servers on locations it opened are moving to another location: {servers}. Follow it on each server's Transfer page.",
+          },
+          // plugged.host: docs/features/economy.md#ends-soon-notices
+          membershipEndsSoon: {
+            title: '{membership} ends soon',
+            body: 'It ends on {date}.',
+            renews: 'It renews by itself for {cost}.',
+            renewsShort: 'It is set to renew by itself, but your balance does not cover the {cost} yet.',
+            notRenewing: 'It does not renew by itself. Renewing costs {cost}, and your balance covers it.',
+            notRenewingShort: 'It does not renew by itself. Renewing costs {cost}.',
+          },
+          membershipRenewFailed: {
+            title: 'Couldn’t renew {membership}',
+            body: '{amount} more needed.',
+          },
+          membershipGifted: {
+            title: '{from} gave you {membership}',
+            body: '{days} days of {membership}, added to the time you have.',
+            until: 'It now runs until {date}.',
+          },
+          panelAccessEndsSoon: {
+            title: 'Panel access ends soon',
+            body: 'Your paid panel access ends on {date}.',
+            covered: 'Your balance covers the next {cost}.',
+            short: 'Paying again costs {cost}.',
           },
           failoverDone: {
             title: 'Server recovered',
@@ -939,6 +987,11 @@ const baseTranslations = defineTranslations({
             title: 'Partner credits received',
             body: '{credits} credits for {guild} this month.',
           },
+          // plugged.host: docs/features/referrals.md
+          referralPaid: {
+            title: 'Referral reward',
+            body: 'Your friend {username} earned their first {threshold}: +{amount}',
+          },
           partnerCheckFailed: {
             title: 'Partner check failed',
             body: '{guild} no longer meets the partner requirements, so this month’s payment is on hold. Fix it by {until} or the partnership is suspended. The Partners page shows what is wrong.',
@@ -958,6 +1011,20 @@ const baseTranslations = defineTranslations({
           partnerCreditsChanged: {
             title: 'Partner credits changed',
             body: '{guild} now earns {credits} credits a month.',
+          },
+          // plugged.host: docs/features/server-upgrades.md
+          upgradeEnding: {
+            title: '{upgrade} ends soon',
+            body: '{upgrade} on {server} ends on {time}.',
+            renew: "Add time to it for {price} on the server's Settings page.",
+            action: 'Add time',
+          },
+          serverIdleStopped: {
+            title: 'Server stopped while idle',
+            body: '{server} was stopped because nobody used it for {hours} hours.',
+            park: 'Unless someone uses it, it is parked in about {hours} hours: backed up and removed from its node until it is restored.',
+            keepAwake: 'Keep it awake for {days} days · {price}.',
+            action: 'Keep it awake',
           },
           admin: {
             transferFailed: {
@@ -1352,6 +1419,12 @@ const baseTranslations = defineTranslations({
       ads: {
         frameTitle: 'Advertisement',
         sponsored: 'Sponsored',
+        // the house promo clips' buttons (docs/features/promos.md#promo-clips)
+        promo: {
+          skipTheWait: 'Get {name}',
+          goPlus: 'Get {name}',
+          freeTokens: 'Earn tokens',
+        },
         adblock: {
           title: 'Ad Blocker Found',
           message:
@@ -1361,6 +1434,36 @@ const baseTranslations = defineTranslations({
             closeIn: 'Close ({seconds})',
           },
         },
+      },
+      // plugged.host: profile badges' labels (shared/src/badges.rs)
+      profileBadge: {
+        supporter: 'Supporter',
+        earlyBird: 'Early Bird',
+        nightOwl: 'Night Owl',
+        og: 'OG',
+        builder: 'Builder',
+        explorer: 'Explorer',
+      },
+      // plugged.host: the membership popup (docs/features/promos.md#the-popup)
+      promo: {
+        title: 'Get more with {name}',
+        price: '{tokens} for {days} days',
+        perks: {
+          locations: 'The {name} locations',
+          queueFirst: 'First in the start queue',
+          queueAhead: 'Ahead of free users in the start queue',
+          burst: 'Up to {percent}% more CPU on every server',
+          noAds: 'No ads and no waiting room',
+          fewerAds: 'No ads on the pages, only before a start',
+          panelAccess: 'The panel included',
+          neo: '{percent}% more neo usage',
+          fasterBackups: 'Faster backups and archives',
+        },
+        progressLabel: 'Your tokens',
+        progress: '{have} of {cost}',
+        enough: 'You have enough: get {name} now.',
+        get: 'Get {name}',
+        notNow: 'Not now',
       },
       // plugged.host: neo's chat (elements/neo/, docs/features/neo.md), in the Pelican panel's words
       neo: {
@@ -1463,6 +1566,12 @@ const baseTranslations = defineTranslations({
         risk: {
           destructive: 'Hard to undo',
           critical: 'Cannot be undone, or costs you something',
+        },
+        // plugged.host: one more day's worth of usage for tokens, under a limit notice
+        extra: {
+          offer: "One more day's worth for {tokens}",
+          buy: 'Get it',
+          earn: 'Earn tokens',
         },
         notice: {
           limitedShort: 'You have reached your short-term {name} limit. It resets {time}.',
@@ -1899,6 +2008,10 @@ const baseTranslations = defineTranslations({
           disabled: 'Creating servers is turned off.',
           noPlan: 'Your account has no plan to create servers with.',
           nothingOffered: 'There are no games you can deploy right now. Please contact the panel admin.',
+          // plugged.host: docs/features/promos.md#offers
+          offers: {
+            store: 'Get more in the Resource Store',
+          },
           details: 'Details',
           name: 'Server Name',
           randomName: 'Generate random name',
@@ -2126,6 +2239,23 @@ const baseTranslations = defineTranslations({
               createBlocked: 'Not allowed',
               createBlockedUntil: 'Not allowed until {date}',
               details: 'Details',
+            },
+            // plugged.host: profile badges (docs/features/promos.md#profile-badges)
+            badges: {
+              title: 'Badges',
+              description:
+                'Pick a badge to show next to your name, in the sidebar, on servers you share and in their chat. Each is {tokens}, yours for good.',
+              descriptionOwned:
+                'The badge shown next to your name, in the sidebar, on servers you share and in their chat.',
+              buy: 'Buy · {tokens}',
+              show: 'Show',
+              shown: 'Shown',
+              hide: 'Show no badge',
+              balance: 'You have {balance}.',
+              earn: 'Earn tokens',
+              toast: {
+                bought: 'Badge bought.',
+              },
             },
             password: {
               title: 'Password',
@@ -2765,6 +2895,57 @@ const baseTranslations = defineTranslations({
             '{cap} surveys a day pay. A survey that ends early because you don’t fit it may pay a small bonus and does not count.',
           scriptBlocked: 'The sponsored link could not load. A content blocker may be stopping it.',
           history: 'Recent activity',
+          // plugged.host: the daily streak (docs/features/economy.md#daily-streak)
+          streak: {
+            title: 'Daily streak',
+            claim: 'Claim today’s tokens',
+            today: 'Day {day} · {tokens}',
+            tomorrow: 'Day {day} · {tokens} · come back tomorrow for {next}',
+            hint: 'Claim once a day. Missing a day starts again at day 1.',
+            week: '{claimed} of this week’s 7 days claimed',
+            claimed: '+{tokens} for day {day}',
+          },
+          // plugged.host: a double-token window
+          bonus: {
+            double: 'Double tokens on every link and survey',
+            doubleUntil: 'Double tokens until {date}',
+            more: '+{percent}% tokens on every link and survey',
+            moreUntil: '+{percent}% tokens until {date}',
+            survey: 'Every survey pays {percent}% more right now.',
+          },
+          // plugged.host: the first-week tasks
+          starter: {
+            title: 'Getting started',
+            description: 'Each task pays once. This list goes away on {date}.',
+            reward: '+{tokens}',
+            claim: 'Claim',
+            claimed: 'Claimed',
+            toast: 'Added: +{tokens}',
+            task: {
+              discord: 'Link your Discord account',
+              create_server: 'Create a server',
+              start_server: 'Start your server',
+              earn: 'Earn tokens once with a link or a survey',
+            },
+            go: {
+              discord: 'Link Discord',
+              create_server: 'Create a server',
+              start_server: 'Open your servers',
+              earn: 'Earn tokens',
+            },
+          },
+          // plugged.host: referrals (docs/features/referrals.md)
+          referrals: {
+            title: 'Invite friends',
+            howItWorks: 'When a friend signs up with your link and earns their first {threshold}, you get +{reward}.',
+            link: 'Your link',
+            copy: 'Copy link',
+            cap: 'At most {friends} pay in any 30 days; the rest wait their turn.',
+            none: 'Nobody has signed up with your link yet.',
+            friends: '{friends} signed up',
+            progress: '{earned} of {threshold} tokens earned',
+            paid: 'Paid +{reward}',
+          },
           redemption: {
             granted: 'Added: +{amount} tokens',
             settled: 'That one has already been paid out',
@@ -2784,10 +2965,15 @@ const baseTranslations = defineTranslations({
           pageTitle: '{app} {name}',
           subtitle:
             'Better locations, no waiting in line and fewer ads. Paid by the month with tokens; nothing renews by itself.',
+          subtitleAutoRenew:
+            'Better locations, no waiting in line and fewer ads. Paid by the month with tokens; it renews only if you switch that on.',
           unavailable: '{name} is not on sale at the moment.',
           active: {
             heading: '{name} is active',
             body: 'It runs until {until}.',
+          },
+          bundleActive: {
+            heading: '{plus} is included with your {name}',
           },
           plus: {
             pitch: 'Everything most servers need, by the month.',
@@ -2815,6 +3001,35 @@ const baseTranslations = defineTranslations({
           },
           balance: 'You have {balance} tokens.',
           earnLink: 'Get more tokens',
+          // plugged.host: an offer the balance does not cover yet leads to the Tokens page
+          moreToGo: '{amount} more to go',
+          sale: {
+            defaultName: 'Sale',
+            until: '{percent}% off every membership until {date}.',
+            running: '{percent}% off every membership.',
+          },
+          autoRenew: {
+            label: 'Renew automatically',
+            description: 'As it ends, it renews at its price then ({cost} today), if your balance covers it.',
+            on: '{name} renews automatically now.',
+            off: '{name} no longer renews automatically.',
+          },
+          gift: {
+            heading: 'Gift to a friend',
+            text: 'Buy a membership for someone else with your tokens. It adds to the time they have, and they see it is from you.',
+            recipient: 'Username or email',
+            membership: 'Membership',
+            option: '{name} · {days} days · {cost}',
+            submit: 'Send gift',
+            left: 'Gifts left today: {count}',
+            none: 'You have sent today’s gifts. Come back tomorrow.',
+            modal: {
+              title: 'Send Gift',
+              body: 'Spend **{cost}** tokens on **{days} days** of **{name}** for **{recipient}**?',
+              confirm: 'Send',
+            },
+            toast: '{name} sent to {recipient}.',
+          },
           perks: {
             plusLocations: 'The {name} locations',
             priority: 'Priority in the start queue when a node is busy',
@@ -2830,6 +3045,7 @@ const baseTranslations = defineTranslations({
             noAds: 'No ads anywhere: no banners, popups, waiting screen before a start or in-game ads',
             neoPlusplus: '{percent}% more neo (AI) usage in all',
             devboxPlusplus: 'A bigger VS Code devbox: {cpu} vCPU, {memory} RAM, {disk} disk',
+            bundle: '{name} included',
           },
           compare: {
             heading: 'What you get',
@@ -2875,6 +3091,8 @@ const baseTranslations = defineTranslations({
               question: 'Does a membership renew by itself?',
               answer:
                 'No. {plus} and {plusplus} each run for the days you buy, and nothing renews by itself. Buying again before one ends adds to the time left. {plusplus} includes everything {plus} gives, so you never need both.',
+              answerAutoRenew:
+                'Only if you switch on Renew automatically for it: then it renews as it ends, at its price at the time, while your balance covers it, and you hear before it ends. Buying again before one ends adds to the time left. {plusplus} includes everything {plus} gives, so you never need both.',
             },
             expiry: {
               question: 'What happens when a membership ends?',
@@ -2926,6 +3144,11 @@ const baseTranslations = defineTranslations({
           toast: {
             bought: 'The panel is yours for {days} days.',
             failed: 'The payment did not go through.',
+          },
+          // plugged.host: docs/features/promos.md#offers
+          offers: {
+            membership: '{plus} and {plusplus} include the panel.',
+            membershipLink: 'Get {name} instead',
           },
         },
         // plugged.host: docs/features/discord.md
@@ -4254,6 +4477,20 @@ const baseTranslations = defineTranslations({
                   creditGrantersDescription:
                     'Discord user IDs. Only they can have rux give someone credits; empty turns it off.',
                   creditMaxPerGrant: 'Most Credits per Gift',
+                  tokens: 'Tokens and Memberships',
+                  tokensCommand: '/tokens',
+                  tokensCommandDescription:
+                    "Members whose Discord is linked to an account see their tokens, today's streak and their membership, only for them.",
+                  giveawayMaxTokens: 'Most Tokens per Winner',
+                  giveawayMaxTokensDescription: 'For giveaways of tokens.',
+                  giveawayMaxMembershipDays: 'Most Membership Days per Winner',
+                  giveawayMaxMembershipDaysDescription: 'For giveaways of days of a membership.',
+                  announceChannelId: 'Announcement Channel ID',
+                  announceChannelIdDescription:
+                    'On the main server. rux announces double-token windows here; empty: no announcements.',
+                  tokenBonusPosts: 'Announce Double Tokens',
+                  tokenBonusPostsDescription:
+                    'Posts once when a double-token window (Admin › Settings › Economy › Tokens) starts.',
                   servers: 'More Discord Servers',
                   serversDescription:
                     'rux can work on more servers with the same bot (invite it to each, see the invite links above). Each server has its own rules, watched channels, moderator roles, warnings, cases and giveaways; admins, the main admin and credits are the same everywhere. An order in a server acts on that server only; in a DM, an admin or moderator tells rux which server they mean. Removing a server stops rux there.',
@@ -4526,6 +4763,7 @@ const baseTranslations = defineTranslations({
               room: 'Waiting Room',
               adblock: 'Ad Blockers',
               inGame: 'In-Game',
+              promos: 'Promotions',
               page: {
                 titles: {
                   placement: 'Ad Placement',
@@ -4534,6 +4772,7 @@ const baseTranslations = defineTranslations({
                   room: 'Start Waiting Room',
                   adblock: 'Ad Blockers',
                   inGame: 'In-Game Messages',
+                  promos: 'Promotions',
                 },
                 form: {
                   enabled: 'Show Ads',
@@ -4638,6 +4877,16 @@ const baseTranslations = defineTranslations({
                   roomPopunderDescription: 'The Popunder from the Adsterra tab.',
                   roomInterstitial: 'Waiting Room Zone',
                   roomInterstitialDescription: 'The waiting room zone from the Adsterra tab.',
+                  // plugged.host: docs/features/ads.md#day-pass
+                  dayPass: 'Day Pass',
+                  dayPassEnabled: 'Sell a Day Pass',
+                  dayPassEnabledDescription:
+                    'The room offers "Skip the wait" for tokens: the user\'s starts skip every room, on all their servers, for a while.',
+                  dayPassTokens: 'Day Pass Price (Tokens)',
+                  dayPassTokensDescription: 'What one pass costs.',
+                  dayPassHours: 'Day Pass Length (Hours)',
+                  dayPassHoursDescription:
+                    'How long one pass lets starts skip the room; a pass bought early adds to what is left.',
                   adblockEnabled: 'Ask to Allow Ads',
                   adblockEnabledDescription: 'On pages with ads, a visitor with an ad blocker is asked to allow them.',
                   adblockMode: 'How',
@@ -4666,6 +4915,22 @@ const baseTranslations = defineTranslations({
                   inGameMessageDescription: 'One line. Empty: "This server is hosted on" and the panel\'s name.',
                   inGameInterval: 'Every (Minutes)',
                   inGameIntervalDescription: 'How often each server gets it.',
+                  // plugged.host: docs/features/promos.md
+                  promoEnabled: 'Membership Popup',
+                  promoEnabledDescription:
+                    "A card at the window's corner for users without a membership who see ads: the membership closest to their tokens, its perks and how far they are. Never on an account's first day.",
+                  promoHours: 'Hours Between Popups',
+                  promoHoursDescription: 'A user sees it at most once in this time, on any device.',
+                  offersEnabled: 'Offers Where a Limit Is Felt',
+                  offersEnabledDescription:
+                    'One line with a link on the start queue (the second membership goes first), on Create Server when the allowance is used up (the Resource Store) and on the Panel Access page (the memberships include it).',
+                  promoClips: 'Promo Clips',
+                  promoVideos: 'Promo Clips in the Ad Slots',
+                  promoVideosDescription:
+                    "The clips in public/promo/ take turns with the other units, to the same audience: a video in the waiting rooms, the poster in the page rectangles. The first membership's clip never goes to members.",
+                  promoVideoShare: 'Share of the Slots (%)',
+                  promoVideoShareDescription:
+                    'How often a slot shows a clip instead of its unit; a slot with nothing else shows one too. 0: never.',
                 },
                 toast: {
                   updated: 'Ad settings updated.',
@@ -4762,7 +5027,7 @@ const baseTranslations = defineTranslations({
                   discountSection: 'Sale',
                   storeDiscount: 'Discount (%)',
                   storeDiscountDescription:
-                    'Taken off every price in the Resource Store while the sale runs, with or without noprofit.space. 0 turns it off.',
+                    'Taken off every price the sale covers while it runs, with or without noprofit.space. 0 turns it off.',
                   storeDiscountName: 'Name',
                   storeDiscountNameDescription:
                     'What the store calls the sale, such as Halloween special. Empty: Sale.',
@@ -4770,6 +5035,12 @@ const baseTranslations = defineTranslations({
                   storeDiscountStartsDescription: 'In your browser’s time zone. Empty: right away.',
                   storeDiscountEnds: 'Ends',
                   storeDiscountEndsDescription: 'Shown in the store. Empty: until the discount is set back to 0.',
+                  storeDiscountCovers: 'Covers',
+                  storeDiscountCoversDescription:
+                    'What the discount is taken off. Memberships: purchases, gifts and automatic renewals, with a banner on the Membership page.',
+                  storeDiscountCoversStore: 'The Resource Store',
+                  storeDiscountCoversMemberships: 'The memberships',
+                  storeDiscountCoversBoth: 'Both',
                   tokensEnabled: 'Tokens',
                   tokensEnabledDescription:
                     'Tokens are earned through surveys and sponsored links and buy the memberships.',
@@ -4783,6 +5054,13 @@ const baseTranslations = defineTranslations({
                   panelAccessTokens: 'Tokens per Month',
                   panelAccessTokensDescription: 'Memberships and administrators never pay. 0 makes the panel free.',
                   panelAccessDays: 'Days per Payment',
+                  // plugged.host: docs/features/promos.md#profile-badges
+                  badgesSection: 'Profile Badges',
+                  badgesEnabled: 'Sell Profile Badges',
+                  badgesEnabledDescription:
+                    'Users buy preset badges on their account page, for good, and show one next to their name. Bought badges stay shown when this is off.',
+                  badgeTokens: 'Tokens per Badge',
+                  badgeTokensDescription: 'What one badge costs.',
                   membershipEnabled: 'Memberships',
                   membershipEnabledDescription:
                     'Both are bought for some days at a time. The first opens the locations with the tier “plus”; the second gives everything the first does, opens the tier “premium” too and needs no first membership.',
@@ -4802,6 +5080,34 @@ const baseTranslations = defineTranslations({
                     'CPU above each server’s limit, 100% per core, used while the node has it to spare. Outside the allowance and the store; paid CPU wins when the node is busy.',
                   plusplusBurstCores: 'Second Membership: Burst Cores',
                   plusplusBurstCoresDescription: 'The total while it runs, not added to the first membership’s.',
+                  renewalsSection: 'Renewals and Gifts',
+                  endsSoonEnabled: 'Ends-Soon Notice',
+                  endsSoonEnabledDescription:
+                    'A notification before a membership or paid panel access ends: when, whether it renews by itself and whether the balance covers it, with a Renew link. One per end.',
+                  endsSoonHours: 'Hours Before the End',
+                  autoRenewEnabled: 'Auto-Renew',
+                  autoRenewEnabledDescription:
+                    'Members may have a membership renew by itself as it ends, at its price then (a sale included), while their balance covers it. Off for each membership until its member switches it on.',
+                  giftsEnabled: 'Gifts',
+                  giftsEnabledDescription:
+                    'Accounts may buy a membership for another account with tokens, at its normal or sale price. Tokens themselves are never given.',
+                  giftsPerDay: 'Gifts per Day',
+                  giftsPerDayDescription: 'Per buyer, over the last 24 hours.',
+                  bundleSection: 'Included With the Second Membership',
+                  bundleEnabled: 'Include a Membership on Another Panel',
+                  bundleEnabledDescription:
+                    'While the second membership runs, the panel below gives the account its membership too, such as switched.cloud Plus with Premium, and the other way round its second membership includes the first one here (it posts to /api/memberships/bundle). Each panel tells the other within a minute of every change and once a day for every membership that runs. Needs noprofit.space: both panels know the account by its noprofit.space account.',
+                  bundleUrl: 'Panel URL',
+                  bundleUrlDescription: 'Where the other panel is, starting with https://.',
+                  bundleName: 'Name',
+                  bundleNameDescription:
+                    'What the Membership page lists under the second membership, such as switched.cloud Plus.',
+                  bundleSourceName: 'Their Second Membership’s Name',
+                  bundleSourceNameDescription:
+                    'The other way round: the other panel’s membership that includes the first membership here, such as switched.cloud Premium.',
+                  bundleSecret: 'Shared Secret',
+                  bundleSecretDescription:
+                    'At least 32 characters, the same on the other panel; it signs every request.',
                   storeSection: 'Prices',
                   storeNote:
                     'Without noprofit.space: what a step costs and where prices climb. With noprofit.space its store and prices are used.',
@@ -4882,9 +5188,90 @@ const baseTranslations = defineTranslations({
                     'Paste this into the app’s Postback Settings at CPX Research (click to copy). CPX’s servers call it, so a proxy or CDN in front of the panel must let them through.',
                   cpxResearchRewards:
                     'In the app’s Reward Settings, name the currency Token (plural Tokens) and set the Currency Factor: the tokens a dollar of your earnings is worth. That is what the wall shows for each survey and what it pays.',
+                  // plugged.host: the Tokens page's streak, double tokens, first-week tasks, referrals
+                  streakSection: 'Daily Streak',
+                  streakEnabled: 'Daily Streak',
+                  streakEnabledDescription:
+                    'A button at the top of the Tokens page pays tokens once a UTC day. A missed day starts the streak again at day 1. Daily Tokens above are separate.',
+                  streakRewards: 'Tokens per Day',
+                  streakRewardsDescription:
+                    'What days 1, 2, 3 … of a streak pay, comma separated, up to 2 decimals (1 to 14 values). The last one repeats.',
+                  bonusSection: 'Double Tokens',
+                  tokenBonusPercent: 'Bonus',
+                  tokenBonusPercentDescription:
+                    'Percent more on every sponsored link and survey while it runs: 100 doubles them, 0 is off. Daily caps stay as they are.',
+                  tokenBonusName: 'Name',
+                  tokenBonusNameDescription:
+                    'What the Tokens page calls it, such as “Halloween weekend”. Empty: a plain bonus.',
+                  tokenBonusStarts: 'Starts',
+                  tokenBonusStartsDescription: 'In your time zone. Empty: right away.',
+                  tokenBonusEnds: 'Ends',
+                  tokenBonusEndsDescription: 'In your time zone. Empty: until the bonus is set back to 0.',
+                  starterSection: 'Getting Started',
+                  starterEnabled: 'First-Week Tasks',
+                  starterEnabledDescription:
+                    'A list on the Tokens page for new accounts: link Discord (while Discord is on), create a server, start it, earn tokens once. Each pays once.',
+                  starterDays: 'Days Shown',
+                  starterDaysDescription: 'Days after sign-up the list is shown. 0 hides it.',
+                  starterReward: 'Tokens per Task',
+                  referralsSection: 'Referrals',
+                  referralsEnabled: 'Referrals',
+                  referralsEnabledDescription:
+                    'Every account gets a link. A new account that signs up with it pays its referrer once it has earned enough tokens.',
+                  referralReward: 'Tokens per Friend',
+                  referralThreshold: 'Friend Earns',
+                  referralThresholdDescription: 'Tokens the friend earns before the referrer is paid.',
+                  referralMonthlyCap: 'Paid per Month',
+                  referralMonthlyCapDescription: 'Friends paid per account in any 30 days. 0 has no limit.',
                 },
                 toast: {
                   updated: 'Economy settings saved.',
+                },
+              },
+            },
+            // plugged.host: docs/features/server-upgrades.md
+            upgrades: {
+              title: 'Server Upgrades',
+              page: {
+                title: 'Server Upgrades',
+                form: {
+                  tokens: 'Tokens',
+                  days: 'Days',
+                  hours: 'Hours',
+                  max: 'At Most per Server',
+                  maxDescription: 'How many may run at once on one server.',
+                  keepAwake: 'Keep Awake',
+                  keepAwakeEnabled: 'Sell Keep-Awake Passes',
+                  keepAwakeEnabledDescription:
+                    'While a pass runs, limbo does not stop, park or delete the server for being idle. Only sold while limbo is on.',
+                  boost: 'Boost',
+                  boostEnabled: 'Sell Boosts',
+                  boostEnabledDescription:
+                    "Memory and CPU on top of the server's own limits, outside the allowance. Only sold while the node stays under the deployment pause line with the boost.",
+                  boostMemory: 'Memory (MiB)',
+                  boostCpu: 'CPU (%)',
+                  boostCpuDescription: '100 is one thread.',
+                  extraAllocation: 'Extra Port',
+                  extraAllocationEnabled: 'Sell Extra Ports',
+                  extraDatabase: 'Extra Database',
+                  extraDatabaseEnabled: 'Sell Extra Databases',
+                  extraBackup: 'Extra Backup Slot',
+                  extraBackupEnabled: 'Sell Extra Backup Slots',
+                  extraDescription:
+                    "One more of the server's limit while it runs. When it ends the limit goes back down; nothing is deleted.",
+                  shortSubdomain: 'Short Subdomain Names',
+                  shortSubdomainEnabled: 'Bigger Deposit for Short Names',
+                  shortSubdomainEnabledDescription:
+                    'Subdomains of 3 characters or fewer take at least this deposit, refunded on deletion like any other.',
+                  shortSubdomainThree: '3 Characters (Tokens)',
+                  shortSubdomainTwo: '2 Characters (Tokens)',
+                  cardColor: 'Card Colour',
+                  cardColorEnabled: 'Sell Card Colours',
+                  cardColorEnabledDescription:
+                    "A colour for the server's card in the server list, bought once per server and changed for free.",
+                },
+                toast: {
+                  updated: 'Server upgrade settings saved.',
                 },
               },
             },
@@ -4988,6 +5375,11 @@ const baseTranslations = defineTranslations({
                   longDays: 'Long Window (Days)',
                   longTokens: 'Tokens per Long Window',
                   tokensDescription: '0: nobody can use neo.',
+                  extraEnabled: 'Sell Extra Usage for Tokens',
+                  extraEnabledDescription:
+                    "Once a window is used up, the chat offers one more day's worth (the long window's tokens divided by its days) on top of every running window, until it resets. Only while this panel meters neo and tokens are on.",
+                  extraTokens: 'Price of One More Day (Tokens)',
+                  extraTokensDescription: 'Taken from the account when the user buys it in the chat.',
                   defaultCooldown: 'Cooldown After a Failure (Seconds)',
                   defaultCooldownDescription:
                     'How long a model that failed without saying when to try again is skipped. A rejected key is skipped for 10 minutes.',
@@ -5767,8 +6159,15 @@ const baseTranslations = defineTranslations({
                 plusLapsed: '{name} not running; first bought',
                 noPlus: 'No {name}.',
                 plusplusRuns: '{name} runs until',
+                bundlePlusRuns: '{plus} included with their {name} until',
+                bundleSetThere: 'set by that panel',
+                autoRenew: 'renews automatically',
                 noPlusplus: 'No {name} running ({purchases} bought so far).',
                 extras: 'Bought in the Resource Store: {cpu}% CPU, {memory} memory, {disk} disk.',
+                // plugged.host: referrals (docs/features/referrals.md)
+                referredBy: 'Brought by {username}.',
+                notReferred: 'Signed up without a referral link.',
+                referred: 'Accounts brought: {count} ({paid} paid for).',
                 balances: 'Change Balances',
                 addCredits: 'Add Credits',
                 addTokens: 'Add Tokens',
@@ -11643,6 +12042,116 @@ const baseTranslations = defineTranslations({
             scheduledHint: 'Receive an email when a scheduled backup for this server completes or fails.',
             saved: 'Notification Settings Updated',
           },
+          // plugged.host: docs/features/server-upgrades.md
+          upgrades: {
+            title: 'Upgrades',
+            note: 'Extras for this server, paid with your own tokens. You have {balance}.',
+            buy: 'Buy · {price}',
+            add: 'Add {duration} · {price}',
+            runsUntil: 'Runs until {time}.',
+            count: '{count} of {max} running.',
+            duration: {
+              hour: 'an hour',
+              hours: '{count} hours',
+              day: 'a day',
+              days: '{count} days',
+            },
+            unavailable: {
+              max: 'As many as this server may have are running.',
+              nodeBusy: 'Not available right now: the node is busy.',
+              nodeUnknown: 'Not available right now, try again in a few minutes.',
+              unlimited: 'This server has no limit to raise.',
+              parked: 'Not while the server is parked.',
+            },
+            kinds: {
+              keepAwake: {
+                title: 'Keep awake',
+                body: "Limbo won't stop, park or delete this server while nobody uses it, for {duration}.",
+                running: "Limbo won't stop, park or delete this server while nobody uses it.",
+              },
+              boost: {
+                title: 'Boost',
+                body: '+{memory} memory and +{cpu}% CPU on top of your limits, for {duration}.',
+                running: 'More memory and CPU on top of your limits.',
+                restart: 'Restart the server to let the game use the extra memory.',
+              },
+              extraAllocation: {
+                title: 'Extra port',
+                body: 'One more port for this server, for {duration}.',
+                running: 'One more port for this server.',
+              },
+              extraDatabase: {
+                title: 'Extra database',
+                body: 'One more database for this server, for {duration}.',
+                running: 'One more database for this server.',
+              },
+              extraBackup: {
+                title: 'Extra backup slot',
+                body: 'One more backup for this server, for {duration}.',
+                running: 'One more backup for this server.',
+              },
+              cardColor: {
+                title: 'Card colour',
+                body: "A colour for this server's card in your server list, for good.",
+                running: 'Shown on your server list. Changing it is free.',
+              },
+            },
+            confirm: {
+              price: 'This costs {price}. You have {balance}.',
+              short: 'This costs {price} and you have {balance}. Earn tokens first.',
+              earn: 'Earn tokens',
+            },
+            color: {
+              pick: 'Pick a colour',
+              free: 'Changing the colour is free.',
+              change: 'Change colour',
+              save: 'Save colour',
+              names: {
+                blue: 'Blue',
+                cyan: 'Cyan',
+                teal: 'Teal',
+                green: 'Green',
+                yellow: 'Yellow',
+                orange: 'Orange',
+                red: 'Red',
+                pink: 'Pink',
+                grape: 'Purple',
+                violet: 'Violet',
+              },
+            },
+            offer: {
+              extraAllocation: {
+                title: 'Port limit reached',
+                body: 'Add one more port for {duration} · {price}.',
+                button: 'Add a port · {price}',
+              },
+              extraDatabase: {
+                title: 'Database limit reached',
+                body: 'Add one more database for {duration} · {price}.',
+                button: 'Add a database · {price}',
+              },
+              extraBackup: {
+                title: 'Backup limit reached',
+                body: 'Add one more backup slot for {duration} · {price}. Your backups stay when it ends.',
+                button: 'Add a slot · {price}',
+              },
+              keepAwake: {
+                title: 'Stopped while nobody used it',
+                body: 'Limbo stopped this server after a while without use, and parks it if that goes on. Keep it awake for {duration} · {price}.',
+                button: 'Keep awake · {price}',
+              },
+              keepAwakeParked: {
+                title: 'Keep it awake',
+                body: 'A keep-awake pass keeps this server from being deleted while it runs, and from being parked again once it is back. {duration} · {price}.',
+                button: 'Keep awake · {price}',
+              },
+            },
+            toast: {
+              bought: '{title} runs until {time}.',
+              boughtNoEnd: '{title} bought.',
+              color: 'Card colour saved.',
+            },
+          },
           danger: {
             title: 'Danger Zone',
             note: 'Actions in this area are destructive and directly affect your server runtime. Ensure you have backed up any critical data or world files before proceeding.',
@@ -11716,6 +12225,11 @@ const baseTranslations = defineTranslations({
             body: '{name} is {cost} tokens a month: priority in this line for all your servers, the {name} locations and no ads but the waiting screen.',
             button: 'Get {name}',
           },
+          // plugged.host: docs/features/promos.md#offers
+          offers: {
+            premium: '{name} goes first in this line, ahead of everyone.',
+            premiumLink: 'See {name}',
+          },
           move: {
             heading: 'Move to a quieter node',
             body: 'We can move this server to {node}, which is not busy. Your files come with it.',
@@ -11743,6 +12257,18 @@ const baseTranslations = defineTranslations({
           waitLabel: 'Opening the console',
           seconds: 'in {seconds} s',
           ready: 'any moment now',
+          // plugged.host: the day pass sold in the room (docs/features/ads.md#day-pass)
+          skip: {
+            heading: 'Skip the wait',
+            body: 'One pass lets every start of yours skip this screen, on all your servers. You have {balance}.',
+            running: 'Your day pass runs until {time}.',
+            button: 'Skip the wait for {hours} · {tokens}',
+            earn: 'Earn tokens',
+            premium: '{name} skips this',
+            toast: {
+              bought: 'Day pass bought: no waiting room until {time}.',
+            },
+          },
         },
         // plugged.host
         limbo: {
@@ -12929,6 +13455,7 @@ const baseTranslations = defineTranslations({
           create: {
             title: 'Create Subdomain',
             depositCaption: 'Token Deposit • Subdomain #{number}',
+            shortCaption: 'Token Deposit • Short name (3 characters or fewer)', // plugged.host
             refundNote: '(refundable on deletion)',
             balance: 'Your Balance',
             name: 'Name',

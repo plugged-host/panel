@@ -234,6 +234,10 @@ pub struct AppSettingsNeo {
     pub long_tokens: i64,
     /// A Discord account nobody linked gets windows of its own at this share of the limits.
     pub discord_unlinked_percent: i32,
+    /// plugged.host: one more day's worth of usage for tokens, sold in the chat once a window
+    /// refuses turns (shared/src/neo/usage.rs `buy_extra`), and what it costs.
+    pub extra_enabled: bool,
+    pub extra_tokens: i32,
     /// Seconds a provider that failed without saying how long is skipped.
     pub default_cooldown: i32,
     /// Every provider down for longer than this (seconds) is an outage, not a wait.
@@ -270,6 +274,8 @@ impl Default for AppSettingsNeo {
             long_days: 7,
             long_tokens: 15_000_000,
             discord_unlinked_percent: 50,
+            extra_enabled: true,
+            extra_tokens: 2,
             default_cooldown: 60,
             max_busy_wait: 60,
             deadline: 80,
@@ -406,6 +412,10 @@ pub struct PayloadNeo {
     long_tokens: Option<i64>,
     #[garde(inner(range(min = 0, max = 100)))]
     discord_unlinked_percent: Option<i32>,
+    #[garde(skip)]
+    extra_enabled: Option<bool>,
+    #[garde(inner(range(min = 1, max = 1000)))]
+    extra_tokens: Option<i32>,
     #[garde(inner(range(min = 1, max = 3600)))]
     default_cooldown: Option<i32>,
     #[garde(inner(range(min = 1, max = 600)))]
@@ -664,6 +674,8 @@ impl PayloadNeo {
             long_days,
             long_tokens,
             discord_unlinked_percent,
+            extra_enabled,
+            extra_tokens,
             default_cooldown,
             max_busy_wait,
             deadline,
@@ -744,6 +756,8 @@ impl SettingsSerializeExt for AppSettingsNeo {
                 "discord_unlinked_percent",
                 self.discord_unlinked_percent.to_compact_string(),
             )
+            .write_raw_setting("extra_enabled", self.extra_enabled.to_compact_string())
+            .write_raw_setting("extra_tokens", self.extra_tokens.to_compact_string())
             .write_raw_setting(
                 "default_cooldown",
                 self.default_cooldown.to_compact_string(),
@@ -820,6 +834,8 @@ impl SettingsDeserializeExt for AppSettingsNeoDeserializer {
             long_days: read!(long_days),
             long_tokens: read!(long_tokens),
             discord_unlinked_percent: read!(discord_unlinked_percent),
+            extra_enabled: read!(extra_enabled),
+            extra_tokens: read!(extra_tokens),
             default_cooldown: read!(default_cooldown),
             max_busy_wait: read!(max_busy_wait),
             deadline: read!(deadline),
@@ -876,6 +892,8 @@ mod tests {
             long_days: None,
             long_tokens: None,
             discord_unlinked_percent: None,
+            extra_enabled: None,
+            extra_tokens: None,
             default_cooldown: None,
             max_busy_wait: None,
             deadline: None,

@@ -45,6 +45,7 @@ mod startup;
 mod subdomains; // plugged.host
 mod subusers;
 mod transfer;
+mod upgrades; // plugged.host
 mod waiting_room; // plugged.host
 // plugged.host: the private network removed (docs/upstream.md)
 // mod tunnel;
@@ -133,6 +134,9 @@ pub async fn auth(
         "/api/client/servers/{server}/power",
         "/api/client/servers/{server}/activity",
         "/api/client/servers/{server}/chat",
+        // plugged.host: a keep-awake pass keeps a parked server from being deleted
+        // (docs/features/server-upgrades.md)
+        "/api/client/servers/{server}/upgrades",
     ];
     if let Some(limbo) = server.limbo
         && limbo.away()
@@ -221,6 +225,7 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         .nest("/neo", super::super::account::neo::chat::router(state)) // plugged.host
         .nest("/subusers", subusers::router(state))
         .nest("/transfer", transfer::router(state)) // plugged.host
+        .nest("/upgrades", upgrades::router(state)) // plugged.host
         .nest("/backups", backups::router(state))
         .nest("/allocations", allocations::router(state))
         // .nest("/firewall", firewall::router(state))

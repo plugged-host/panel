@@ -537,6 +537,12 @@ export const adminSettingsRuxSchema = z.object({
   giveawayMaxCredits: z.number().int().min(1).max(1_000_000),
   giveawayMaxWinners: z.number().int().min(1).max(500),
   giveawayMaxDays: z.number().int().min(1).max(365),
+  // plugged.host: tokens and memberships on Discord (/tokens, prizes, double-token posts)
+  giveawayMaxTokens: z.number().int().min(1).max(100_000),
+  giveawayMaxMembershipDays: z.number().int().min(1).max(365),
+  tokensCommand: z.boolean(),
+  announceChannelId: discordId,
+  tokenBonusPosts: z.boolean(),
   creditGranters: z.array(z.string().regex(/^\d{15,20}$/)).max(20),
   creditMaxPerGrant: z.number().int().min(1).max(1_000_000),
   warnTimeoutAt: z.number().int().min(0).max(100),
@@ -582,6 +588,7 @@ export const adminSettingsRuxStoreSchema = adminSettingsRuxSchema.extend({
   creditGranters: z.array(z.string()),
   warnTimeout: z.string(),
   warnBan: z.string(),
+  announceChannelId: z.string(),
   noprofitSecret: z.string().nullable(),
 });
 
@@ -708,6 +715,9 @@ export const adminSettingsNeoSchema = z.object({
   plusPercent: z.number().int().min(100).max(1000),
   plusplusPercent: z.number().int().min(100).max(1000),
   discordUnlinkedPercent: z.number().int().min(0).max(100),
+  // plugged.host: one more day's worth of usage for tokens
+  extraEnabled: z.boolean(),
+  extraTokens: z.number().int().min(1).max(1000),
   shortHours: z.number().int().min(1).max(168),
   shortTokens: z.number().int().min(0),
   longDays: z.number().int().min(1).max(90),
@@ -760,6 +770,8 @@ export const adminSettingsNeoStoreSchema = z.object({
   longDays: z.number(),
   longTokens: z.number(),
   discordUnlinkedPercent: z.number(),
+  extraEnabled: z.boolean(),
+  extraTokens: z.number(),
   defaultCooldown: z.number(),
   maxBusyWait: z.number(),
   deadline: z.number(),
@@ -797,6 +809,36 @@ export const adminSettingsQueueSchema = z.object({
   moveOffer: z.boolean(),
   moveRequiresMembership: z.boolean(),
   moveMaxDisk: z.number().int().min(0).max(1048576),
+});
+
+// plugged.host: what users buy with tokens for one server (shared/src/settings/upgrades.rs,
+// docs/features/server-upgrades.md)
+export const adminSettingsUpgradesSchema = z.object({
+  keepAwakeEnabled: z.boolean(),
+  keepAwakeTokens: z.number().int().min(0).max(100000),
+  keepAwakeDays: z.number().int().min(1).max(365),
+  boostEnabled: z.boolean(),
+  boostTokens: z.number().int().min(0).max(100000),
+  boostHours: z.number().int().min(1).max(720),
+  boostMemory: z.number().int().min(0).max(1048576),
+  boostCpu: z.number().int().min(0).max(6400),
+  extraAllocationEnabled: z.boolean(),
+  extraAllocationTokens: z.number().int().min(0).max(100000),
+  extraAllocationDays: z.number().int().min(1).max(365),
+  extraAllocationMax: z.number().int().min(1).max(50),
+  extraDatabaseEnabled: z.boolean(),
+  extraDatabaseTokens: z.number().int().min(0).max(100000),
+  extraDatabaseDays: z.number().int().min(1).max(365),
+  extraDatabaseMax: z.number().int().min(1).max(50),
+  extraBackupEnabled: z.boolean(),
+  extraBackupTokens: z.number().int().min(0).max(100000),
+  extraBackupDays: z.number().int().min(1).max(365),
+  extraBackupMax: z.number().int().min(1).max(50),
+  shortSubdomainEnabled: z.boolean(),
+  shortSubdomainThree: z.number().int().min(0).max(1000000),
+  shortSubdomainTwo: z.number().int().min(0).max(1000000),
+  cardColorEnabled: z.boolean(),
+  cardColorTokens: z.number().int().min(0).max(100000),
 });
 
 // plugged.host: idle servers stopped and parked (shared/src/settings/limbo.rs, docs/features/limbo.md)
@@ -854,6 +896,15 @@ export const adminSettingsAdsSchema = z.object({
   roomSocialBar: z.boolean(),
   roomPopunder: z.boolean(),
   roomInterstitial: z.boolean(),
+  // the room's day pass, the membership popup, the offers and the promo clips (docs/features/promos.md)
+  dayPassEnabled: z.boolean().default(true),
+  dayPassTokens: z.number().int().min(1).max(1000).default(1),
+  dayPassHours: z.number().int().min(1).max(720).default(24),
+  promoEnabled: z.boolean().default(true),
+  promoHours: z.number().int().min(1).max(720).default(24),
+  offersEnabled: z.boolean().default(true),
+  promoVideos: z.boolean().default(true),
+  promoVideoShare: z.number().int().min(0).max(100).default(25),
   adblockEnabled: z.boolean(),
   adblockMode: z.enum(['notice', 'modal', 'block']),
   adblockGrace: z.number().int().min(0).max(60),
@@ -883,6 +934,9 @@ export const adminSettingsEconomySchema = z.object({
   panelAccessEnabled: z.boolean(),
   panelAccessTokens: z.number().int().min(0).max(100_000),
   panelAccessDays: z.number().int().min(1).max(3650),
+  // plugged.host: profile badges (docs/features/promos.md#profile-badges)
+  badgesEnabled: z.boolean().default(true),
+  badgeTokens: z.number().int().min(1).max(100_000).default(5),
   membershipEnabled: z.boolean(),
   plusName: z.string().trim().min(1).max(32),
   plusplusName: z.string().trim().min(1).max(32),
@@ -892,8 +946,21 @@ export const adminSettingsEconomySchema = z.object({
   plusplusTokenDays: z.number().int().min(1).max(365),
   plusplusCredits: z.number().int().min(0).max(1_000_000),
   plusplusCreditDays: z.number().int().min(1).max(365),
+  // plugged.host: the membership bundle (shared/src/membership_bundle.rs)
+  bundleEnabled: z.boolean(),
+  bundleUrl: z.url({ protocol: /^https$/ }).max(255),
+  bundleName: z.string().trim().min(1).max(64),
+  bundleSourceName: z.string().trim().min(1).max(64),
+  // empty keeps the stored one; a new one has at least 32 characters
+  bundleSecret: z.union([z.literal(''), z.string().min(32).max(512)]).nullable(),
   plusBurstCores: z.number().int().min(0).max(16),
   plusplusBurstCores: z.number().int().min(0).max(16),
+  // plugged.host: ends-soon notices, auto-renew, gifts (docs/features/economy.md#memberships)
+  endsSoonEnabled: z.boolean(),
+  endsSoonHours: z.number().int().min(1).max(720),
+  autoRenewEnabled: z.boolean(),
+  giftsEnabled: z.boolean(),
+  giftsPerDay: z.number().int().min(1).max(1000),
   cpuStep: z.number().int().min(0).max(10_000),
   cpuPrice: z.number().int().min(0).max(1_000_000),
   memoryStep: z.number().int().min(0).max(1_048_576),
@@ -911,6 +978,7 @@ export const adminSettingsEconomySchema = z.object({
   storeDiscountStarts: z.coerce.date().nullable(),
   storeDiscountEnds: z.coerce.date().nullable(),
   storeDiscountName: z.preprocess(nullableString, z.string().max(64).nullable()),
+  storeDiscountCovers: z.enum(['store', 'memberships', 'both']), // plugged.host: what the sale is taken off
   claimMinutes: z.number().int().min(1).max(1440),
   // plugged.host: each further link of the day pays less (shared/src/earn.rs link_reward)
   linkDecayPercent: z.number().int().min(0).max(90),
@@ -972,6 +1040,25 @@ export const adminSettingsEconomySchema = z.object({
   ),
   cpxResearchSecret: z.string().max(512).nullable(),
   cpxResearchDailyCap: z.number().int().min(0).max(1000),
+  // plugged.host: the Tokens page's streak, double tokens, first-week tasks and referrals
+  // (shared/src/settings/economy.rs, docs/features/economy.md)
+  streakEnabled: z.boolean(),
+  streakRewards: z
+    .string()
+    .trim()
+    .max(255)
+    .regex(/^\s*\d+(\.\d{1,2})?\s*(,\s*\d+(\.\d{1,2})?\s*){0,13}$/),
+  tokenBonusPercent: z.number().int().min(0).max(1000),
+  tokenBonusName: z.preprocess(nullableString, z.string().max(64).nullable()),
+  tokenBonusStarts: z.coerce.date().nullable(),
+  tokenBonusEnds: z.coerce.date().nullable(),
+  starterEnabled: z.boolean(),
+  starterDays: z.number().int().min(0).max(365),
+  starterReward: z.number().int().min(1).max(1000),
+  referralsEnabled: z.boolean(),
+  referralReward: z.number().int().min(1).max(10_000),
+  referralThreshold: z.number().int().min(1).max(100_000),
+  referralMonthlyCap: z.number().int().min(0).max(1000),
 });
 
 // plugged.host: the welcome tour (shared/src/settings/tour.rs, docs/features/welcome-tour.md)
@@ -1047,6 +1134,7 @@ export const adminSettingsSchema = z.object({
   economy: adminSettingsEconomySchema, // plugged.host
   queue: adminSettingsQueueSchema, // plugged.host
   limbo: adminSettingsLimboSchema, // plugged.host
+  upgrades: adminSettingsUpgradesSchema, // plugged.host
   ads: adminSettingsAdsSchema, // plugged.host
   subdomains: adminSettingsSubdomainsStoreSchema, // plugged.host
   discord: adminSettingsDiscordStoreSchema, // plugged.host

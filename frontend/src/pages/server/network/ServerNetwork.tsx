@@ -17,6 +17,7 @@ import { useServerCan } from '@/plugins/usePermissions.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useServerStore } from '@/stores/server.ts';
+import UpgradeOfferCallout from '../upgrades/UpgradeOfferCallout.tsx'; // plugged.host
 import AllocationActionBar from './AllocationActionBar.tsx';
 import AllocationRow from './AllocationRow.tsx';
 import ServerFirewall from './firewall/ServerFirewall.tsx';
@@ -30,6 +31,7 @@ export default function ServerNetwork() {
   const canReadAllocations = useServerCan('allocations.read');
   const canReadFirewall = useServerCan('firewall.read');
   const canDelete = useServerCan('allocations.delete');
+  const canCreate = useServerCan('allocations.create'); // plugged.host
 
   const {
     data: allocations,
@@ -104,6 +106,12 @@ export default function ServerNetwork() {
       registry={window.extensionContext.extensionRegistry.pages.server.network.container}
     >
       <NetworkSubNavigation />
+
+      {/* plugged.host: one more port for a while once the limit is reached (docs/features/server-upgrades.md) */}
+      <UpgradeOfferCallout
+        kind='extra_allocation'
+        show={canCreate && !!allocations && allocations.total >= server.featureLimits.allocations}
+      />
 
       <AllocationActionBar
         selectedAllocations={selectedAllocations}

@@ -3,6 +3,7 @@ use utoipa_axum::{router::OpenApiRouter, routes};
 
 mod post {
     use axum::http::StatusCode;
+    use garde::Validate;
     use serde::{Deserialize, Serialize};
     use shared::{
         ApiError, GetState,
@@ -15,9 +16,15 @@ mod post {
     };
     use utoipa::ToSchema;
 
-    #[derive(ToSchema, Deserialize)]
+    #[derive(ToSchema, Validate, Deserialize)]
     pub struct Payload {
+        #[garde(skip)]
         pay: Pay,
+        /// The price the user was shown (409 when it moved, as in the store);
+        /// absent: what it costs now.
+        #[garde(inner(range(min = 0)))]
+        #[serde(default)]
+        price: Option<i64>,
     }
 
     #[derive(ToSchema, Serialize)]
@@ -38,9 +45,16 @@ mod post {
         activity_logger: GetUserActivityLogger,
         shared::Payload(data): shared::Payload<Payload>,
     ) -> ApiResponseResult {
+        if let Err(errors) = shared::utils::validate_data(&data) {
+            return ApiResponse::new_serialized(ApiError::new_strings_value(errors))
+                .with_status(StatusCode::BAD_REQUEST)
+                .ok();
+        }
+
         permissions.has_user_permission("economy.purchase")?;
 
-        let economy = match shared::economy::buy_plusplus(&state, &user, data.pay).await {
+        let economy = match shared::economy::buy_plusplus(&state, &user, data.pay, data.price).await
+        {
             Ok(economy) => economy,
             Err(EconomyError::Other(err)) => return Err(err.into()),
             Err(err) => {

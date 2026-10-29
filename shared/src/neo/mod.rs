@@ -244,6 +244,68 @@ pub async fn usage(state: &crate::State, user_uuid: uuid::Uuid) -> Option<UsageI
     }
 }
 
+/// One more day's worth of usage for tokens, as the chat offers it once a window refuses turns
+/// ([`usage::buy_extra`]).
+#[derive(ToSchema, Serialize, Clone, Debug)]
+pub struct ApiNeoExtra {
+    /// What it costs in tokens.
+    pub tokens: i64,
+    /// Whether it can be bought now: one of the person's windows refuses turns.
+    pub available: bool,
+}
+
+/// The price of one more day's worth, while it is sold: switched on, tokens on, and neo metered
+/// by the panel (noprofit.space keeps its own windows).
+pub fn extra_price(settings: &crate::settings::AppSettings) -> Option<i64> {
+    (settings.neo.extra_enabled
+        && settings.neo.extra_tokens > 0
+        && settings.economy.tokens_enabled
+        && settings.neo.gateway_enabled
+        && on_noprofit(settings).is_none())
+    .then_some(settings.neo.extra_tokens as i64)
+}
+
+/// What the chat offers this person; `None` while nothing is sold.
+pub async fn extra(state: &crate::State, user_uuid: uuid::Uuid) -> Option<ApiNeoExtra> {
+    let settings = state.settings.get().await.ok()?;
+    let tokens = extra_price(&settings)?;
+    let plan = plan(state, &settings, user_uuid).await;
+    let subject = usage::Subject::user(user_uuid, settings.neo.usage_percent(plan));
+    let neo = settings.neo.clone();
+    drop(settings);
+
+    let available = match usage::snapshot(&state.database, &neo, &subject).await {
+        Ok(limits) => usage::blocking_window(&limits).is_some(),
+        Err(err) => {
+            tracing::warn!("failed to read neo's windows: {err:#}");
+            false
+        }
+    };
+
+    Some(ApiNeoExtra { tokens, available })
+}
+
+/// Buys one more day's worth for a panel user; `seen` is the price the chat showed.
+pub async fn buy_extra(
+    state: &crate::State,
+    user_uuid: uuid::Uuid,
+    seen: Option<i64>,
+) -> Result<usage::ExtraBought, usage::ExtraError> {
+    let settings = state.settings.get().await?;
+    if !settings.neo.extra_enabled {
+        return Err(usage::ExtraError::Disabled);
+    }
+    let Some(cost) = extra_price(&settings) else {
+        return Err(usage::ExtraError::Unavailable);
+    };
+    let plan = plan(state, &settings, user_uuid).await;
+    let subject = usage::Subject::user(user_uuid, settings.neo.usage_percent(plan));
+    let neo = settings.neo.clone();
+    drop(settings);
+
+    usage::buy_extra(&state.database, &neo, &subject, cost, seen).await
+}
+
 /// Reads a gateway answer's usage part (`limits`, `mode`, `models`, `default_model`).
 fn usage_from(data: &Value) -> UsageInfo {
     UsageInfo {

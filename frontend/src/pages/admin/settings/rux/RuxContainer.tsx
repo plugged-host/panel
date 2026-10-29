@@ -46,6 +46,11 @@ const ruxEmptyFormValues: RuxValues = {
   giveawayMaxCredits: 10_000,
   giveawayMaxWinners: 25,
   giveawayMaxDays: 60,
+  giveawayMaxTokens: 50,
+  giveawayMaxMembershipDays: 30,
+  tokensCommand: true,
+  announceChannelId: '',
+  tokenBonusPosts: true,
   creditGranters: [],
   creditMaxPerGrant: 10_000,
   warnTimeoutAt: 3,
@@ -335,6 +340,27 @@ export default function RuxContainer() {
     },
   ];
 
+  // plugged.host: tokens and memberships are always the panel's, so these stay editable while
+  // noprofit.space keeps the rest
+  const tokens: FieldDef<RuxValues>[] = [
+    { type: 'divider', name: 'tokensDivider', label: t(`${page}.form.tokens`, {}) },
+    {
+      type: 'switch',
+      name: 'tokensCommand',
+      label: t(`${page}.form.tokensCommand`, {}),
+      description: t(`${page}.form.tokensCommandDescription`, {}),
+    },
+    number('giveawayMaxTokens', 1, 100_000, t(`${page}.form.giveawayMaxTokensDescription`, {})),
+    number('giveawayMaxMembershipDays', 1, 365, t(`${page}.form.giveawayMaxMembershipDaysDescription`, {})),
+    text('announceChannelId', t(`${page}.form.announceChannelIdDescription`, {})),
+    {
+      type: 'switch',
+      name: 'tokenBonusPosts',
+      label: t(`${page}.form.tokenBonusPosts`, {}),
+      description: t(`${page}.form.tokenBonusPostsDescription`, {}),
+    },
+  ];
+
   // noprofit.space's rux routes: only while it is connected
   const tail: FieldDef<RuxValues>[] = status?.noprofitConnected
     ? [
@@ -381,10 +407,10 @@ export default function RuxContainer() {
               <fieldset disabled className='contents'>
                 <FormEngine form={shown} fields={body} />
               </fieldset>
-              {tail.length > 0 && <FormEngine form={form} fields={tail} />}
+              <FormEngine form={form} fields={[...tokens, ...tail]} />
             </Stack>
           ) : (
-            <FormEngine form={form} fields={[...head, ...body, ...tail]} />
+            <FormEngine form={form} fields={[...head, ...body, ...tokens, ...tail]} />
           )}
 
           <Group mt='md'>

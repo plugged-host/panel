@@ -1691,6 +1691,40 @@ strong {
   color: var(--theme-text-muted);
 }
 
+/* plugged.host: today's streak tokens wait on the Tokens page (docs/features/economy.md#daily-streak) */
+.theme-balance-dot {
+  flex-shrink: 0;
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 9999px;
+  background-color: var(--theme-accent-bright);
+}
+
+/* plugged.host: tokens toward the cheapest membership the account does not have, a line under the
+ * balances in the same box ("9 / 15 to Plus" over the usage rows' thin bar) */
+.theme-balance-pills-goal {
+  flex-wrap: wrap;
+  row-gap: 0.5rem;
+}
+
+.theme-balance-goal {
+  display: flex;
+  flex-basis: 100%;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.6875rem;
+  line-height: 1rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--theme-text-muted);
+}
+
+.theme-balance-goal.theme-balance-linked {
+  margin: -0.25rem -0.375rem;
+  padding: 0.25rem 0.375rem;
+  border-radius: 0.5rem;
+  text-decoration: none;
+}
+
 /* =============================================================================
  * plugged.host: stat blocks (elements/data-display/StatCard), the Pelican console's
  * "fi-small-stat-block" on Theme v2's card: label "text-gray-400 font-medium", value
@@ -2119,6 +2153,101 @@ strong {
 
 .theme-server-status-bar[data-color="primary"] {
   background-color: var(--theme-accent);
+}
+
+/* plugged.host: the colour a server's card was given (docs/features/server-upgrades.md): a thin line
+   along the card's top edge, between its rounded corners; Mantine's palette at shade 5. */
+.theme-server-card[data-card-color] {
+  position: relative;
+}
+
+.theme-server-card[data-card-color]::before {
+  content: "";
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 1.25rem;
+  block-size: 2px;
+  border-end-start-radius: 2px;
+  border-end-end-radius: 2px;
+  background-color: var(--theme-card-color);
+}
+
+[data-card-color="blue"] {
+  --theme-card-color: var(--mantine-color-blue-5);
+}
+
+[data-card-color="cyan"] {
+  --theme-card-color: var(--mantine-color-cyan-5);
+}
+
+[data-card-color="teal"] {
+  --theme-card-color: var(--mantine-color-teal-5);
+}
+
+[data-card-color="green"] {
+  --theme-card-color: var(--mantine-color-green-5);
+}
+
+[data-card-color="yellow"] {
+  --theme-card-color: var(--mantine-color-yellow-5);
+}
+
+[data-card-color="orange"] {
+  --theme-card-color: var(--mantine-color-orange-5);
+}
+
+[data-card-color="red"] {
+  --theme-card-color: var(--mantine-color-red-5);
+}
+
+[data-card-color="pink"] {
+  --theme-card-color: var(--mantine-color-pink-5);
+}
+
+[data-card-color="grape"] {
+  --theme-card-color: var(--mantine-color-grape-5);
+}
+
+[data-card-color="violet"] {
+  --theme-card-color: var(--mantine-color-violet-5);
+}
+
+/* The picker's swatches (CardColorModal.tsx) and the dot on the Upgrades row. */
+.theme-card-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.theme-card-swatch {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 2rem;
+  block-size: 2rem;
+  border-radius: 9999px;
+  background-color: var(--theme-card-color);
+  color: #fff;
+}
+
+.theme-card-swatch[aria-pressed="true"] {
+  outline: 2px solid var(--theme-text);
+  outline-offset: 2px;
+}
+
+.theme-card-swatch:focus-visible {
+  outline: 2px solid var(--theme-accent-bright);
+  outline-offset: 2px;
+}
+
+.theme-card-swatch-dot {
+  display: inline-block;
+  inline-size: 0.625rem;
+  block-size: 0.625rem;
+  margin-inline-end: 0.5rem;
+  border-radius: 9999px;
+  background-color: var(--theme-card-color);
+  vertical-align: baseline;
 }
 
 .theme-server-head {
@@ -3137,6 +3266,55 @@ strong {
   border-radius: 0.5rem;
 }
 
+/* plugged.host: a house promo clip in a slot (elements/ads/PromoClip.tsx, docs/features/promos.md):
+   the video at 16:9 with its button over its foot, or its poster cropped to the slot's size */
+.theme-ad-promo-video {
+  position: relative;
+  overflow: hidden;
+  border-radius: 0.5rem;
+  background-color: var(--theme-bg-bottom);
+}
+
+.theme-ad-promo-video video {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+.theme-ad-promo-cta {
+  position: absolute;
+  inset-inline: 0.75rem;
+  inset-block-end: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.25rem;
+  padding-inline: 1rem;
+  border-radius: 0.5rem;
+  background-color: var(--theme-accent);
+  color: var(--theme-text);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.theme-ad-promo-cta:hover {
+  background-color: var(--theme-accent-hover);
+}
+
+@media (min-width: 640px) {
+  .theme-ad-promo-cta {
+    inset-inline: auto 0.75rem;
+  }
+}
+
+.theme-ad-sponsored img.theme-ad-promo-poster {
+  aspect-ratio: 6 / 5;
+  object-fit: cover;
+}
+
 /* =============================================================================
  * plugged.host: the economy pages' surfaces, the Pelican panel's store partial (".ph-eco-*"),
  * and its Plus page (".ph-plus-*"): plan cards side by side, the comparison table, the questions.
@@ -3371,6 +3549,32 @@ strong {
   font-size: 0.75rem;
   font-variant-numeric: tabular-nums;
   line-height: 1.125rem;
+}
+
+/* plugged.host: the daily streak's week on the Tokens page, a dot per day: claimed ones in the accent,
+   today's (while it waits) ringed (docs/features/economy.md#daily-streak). */
+.theme-streak-dots {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding-block: 0.25rem;
+}
+
+.theme-streak-dot {
+  display: block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background-color: var(--theme-raise-2);
+}
+
+.theme-streak-dot-done {
+  background-color: var(--theme-accent-bright);
+}
+
+.theme-streak-dot-today {
+  outline: 1px solid var(--theme-accent-bright);
+  outline-offset: 1px;
 }
 
 /* Filament's collapsible section: the heading and an arrow on one bar, the content under a
@@ -7918,6 +8122,191 @@ span.theme-neo-image {
   to {
     rotate: 360deg;
   }
+}
+
+/* =============================================================================
+ * plugged.host: the membership popup (elements/PromoPopup.tsx, docs/features/promos.md): the modal
+ * surface and its elevation, at the window's end corner above neo's launcher, a sheet along the
+ * foot on phones. It springs up and fades in, its perks follow one by one, the token bar fills.
+ * Flat: no gradient, glow or blur.
+ * ============================================================================= */
+.theme-promo {
+  --theme-promo-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: fixed;
+  inset-inline-end: 1.25rem;
+  inset-block-end: 1.25rem;
+  z-index: 160;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 22rem;
+  max-width: calc(100vw - 2.5rem);
+  padding: 1.25rem;
+  border: 1px solid var(--theme-hairline);
+  border-radius: 1rem;
+  background-color: var(--theme-modal);
+  color: var(--theme-text);
+  box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.5);
+  animation: theme-promo-in 520ms var(--theme-promo-spring) both;
+}
+
+/* neo's launcher holds the corner: the card sits above it */
+:root:has(.theme-neo-launcher) .theme-promo {
+  inset-block-end: calc(4.75rem + env(safe-area-inset-bottom));
+}
+
+.theme-promo[data-closing] {
+  animation: theme-promo-out 200ms ease-in both;
+}
+
+.theme-promo-perks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.theme-promo-perks li {
+  position: relative;
+  padding-inline-start: 1.25rem;
+  color: var(--theme-text-nav);
+  font-size: 0.875rem;
+  line-height: 1.375rem;
+  animation: theme-promo-perk 360ms ease-out both;
+  animation-delay: calc(220ms + var(--i, 0) * 90ms);
+}
+
+/* the list's marker: a small accent dot, like the sidebar's unread dot */
+.theme-promo-perks li::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0.25rem;
+  inset-block-start: 0.5625rem;
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 9999px;
+  background-color: var(--theme-accent-bright);
+}
+
+.theme-promo-progress-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.theme-promo-count {
+  color: var(--theme-text);
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.theme-promo-track {
+  height: 0.375rem;
+  overflow: hidden;
+  border-radius: 9999px;
+  background-color: var(--theme-raise);
+}
+
+.theme-promo-fill {
+  width: var(--p, 0%);
+  height: 100%;
+  border-radius: 9999px;
+  background-color: var(--theme-accent-bright);
+  animation: theme-promo-fill 900ms cubic-bezier(0.2, 0, 0, 1) 300ms both;
+}
+
+.theme-promo-enough {
+  margin: 0;
+  color: var(--theme-accent-bright);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.theme-promo-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+@keyframes theme-promo-in {
+  from {
+    opacity: 0;
+    transform: translateY(1.5rem) scale(0.98);
+  }
+}
+
+@keyframes theme-promo-out {
+  to {
+    opacity: 0;
+    transform: translateY(0.75rem);
+  }
+}
+
+@keyframes theme-promo-perk {
+  from {
+    opacity: 0;
+    transform: translateY(0.375rem);
+  }
+}
+
+@keyframes theme-promo-fill {
+  from {
+    width: 0;
+  }
+}
+
+/* phones: a sheet along the window's foot, over neo's launcher */
+@media (max-width: 40em) {
+  .theme-promo,
+  :root:has(.theme-neo-launcher) .theme-promo {
+    inset-inline: 0;
+    inset-block-end: 0;
+    width: auto;
+    max-width: none;
+    padding-block-end: calc(1.25rem + env(safe-area-inset-bottom));
+    border-width: 1px 0 0;
+    border-radius: 1rem 1rem 0 0;
+  }
+
+  .theme-promo-actions > * {
+    flex: 1 1 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-promo,
+  .theme-promo[data-closing],
+  .theme-promo-perks li,
+  .theme-promo-fill {
+    animation: none;
+  }
+}
+
+/* plugged.host: profile badges on the account page (pages/dashboard/account/BadgesContainer.tsx):
+   one row per badge, the badge at the start and its action at the end, hairlines between */
+.theme-badge-rows {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.theme-badge-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 2.5rem;
+}
+
+.theme-badge-row + .theme-badge-row {
+  border-block-start: 1px solid var(--theme-hairline);
 }
 
 /* =============================================================================

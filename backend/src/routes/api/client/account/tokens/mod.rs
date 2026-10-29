@@ -5,6 +5,9 @@ use utoipa_axum::{router::OpenApiRouter, routes};
 
 mod earn;
 mod redeem;
+mod referrals;
+mod streak;
+mod tasks;
 
 mod get {
     use serde::Serialize;
@@ -45,5 +48,8 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         .routes(routes!(get::route))
         .nest("/earn", earn::router(state))
         .nest("/redeem", redeem::router(state))
+        .nest("/streak", streak::router(state))
+        .nest("/tasks", tasks::router(state))
+        .nest("/referrals", referrals::router(state))
         .with_state(state.clone())
 }

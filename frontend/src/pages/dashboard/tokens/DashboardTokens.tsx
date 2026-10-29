@@ -1,6 +1,8 @@
 // plugged.host: tokens, laid out like the Pelican panel's Tokens page: the balance, the ways to earn
 // more through a survey wall and sponsored links, and the recent activity. The first way's button is
-// the page's one filled button, any further one is gray (docs/features/economy.md).
+// the page's one filled button, any further one is gray (docs/features/economy.md). Around them: a
+// double-token window's banner, the daily streak under the balance (its claim button is then the
+// filled one), the first-week tasks and the referral link.
 import { Button as MantineButton } from '@mantine/core';
 import { useQueryClient } from '@tanstack/react-query';
 import { ReactNode, useEffect, useRef, useState } from 'react';
@@ -15,6 +17,7 @@ import AccountContentContainer from '@/elements/containers/AccountContentContain
 import Badge from '@/elements/data-display/Badge.tsx';
 import TitleCard from '@/elements/data-display/TitleCard.tsx';
 import TransactionRows from '@/elements/economy/TransactionRows.tsx';
+import Alert from '@/elements/feedback/Alert.tsx';
 import ResourceView from '@/elements/ResourceView.tsx';
 import { intlLocale } from '@/lib/languages.ts';
 import { armFullScript } from '@/lib/linkvertise.ts';
@@ -24,8 +27,12 @@ import { useResource } from '@/plugins/resource/useResource.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useGlobalStore } from '@/stores/global.ts';
+import StarterTasks from './StarterTasks.tsx';
+import TokenReferrals from './TokenReferrals.tsx';
+import TokenStreak from './TokenStreak.tsx';
 
 type Provider = z.infer<typeof userTokensSchema>['providers'][number];
+type TokenBonus = NonNullable<z.infer<typeof userTokensSchema>['bonus']>;
 
 const page = 'pages.account.tokens';
 
@@ -108,7 +115,7 @@ function EarnButton({ provider, filled, fullWidth }: { provider: Provider; fille
   );
 }
 
-function EarnRow({ provider, first }: { provider: Provider; first: boolean }) {
+function EarnRow({ provider, first, bonus }: { provider: Provider; first: boolean; bonus: number }) {
   const { t, language } = useTranslations();
   const capped = isCapped(provider);
   const fullScript = useFullScriptLink(provider, provider.fullScript && !capped);
@@ -170,6 +177,9 @@ function EarnRow({ provider, first }: { provider: Provider; first: boolean }) {
             {t(`${page}.used`, { used: provider.grantedToday, cap: provider.dailyCap })}
           </span>
         )}
+        {provider.survey && bonus > 0 && (
+          <span className='theme-earn-small'>{t(`${page}.bonus.survey`, { percent: bonus })}</span>
+        )}
         {provider.survey && (
           <span className='theme-earn-small'>
             {t(`${page}.surveyConfirm`, { provider: label })}
@@ -182,6 +192,33 @@ function EarnRow({ provider, first }: { provider: Provider; first: boolean }) {
 
       <div className='theme-earn-action'>{action}</div>
     </div>
+  );
+}
+
+// plugged.host: a double-token window, in the accent like the store's sale: "Double tokens until Sun 22:00"
+function BonusBanner({ bonus }: { bonus: TokenBonus }) {
+  const { t, language } = useTranslations();
+
+  // within the week its weekday and time say enough
+  const soon = bonus.ends !== null && bonus.ends.getTime() - Date.now() < 6 * 24 * 60 * 60 * 1000;
+  const until = bonus.ends
+    ? new Intl.DateTimeFormat(
+        intlLocale(language),
+        soon ? { weekday: 'short', hour: '2-digit', minute: '2-digit' } : { dateStyle: 'medium', timeStyle: 'short' },
+      ).format(bonus.ends)
+    : null;
+  const double = bonus.percent === 100;
+
+  const text = until
+    ? t(double ? `${page}.bonus.doubleUntil` : `${page}.bonus.moreUntil`, { percent: bonus.percent, date: until })
+    : t(double ? `${page}.bonus.double` : `${page}.bonus.more`, { percent: bonus.percent });
+
+  return bonus.name ? (
+    <Alert color='blue' title={bonus.name}>
+      {text}
+    </Alert>
+  ) : (
+    <Alert color='blue' title={text} />
   );
 }
 
@@ -270,35 +307,54 @@ export default function DashboardTokens() {
       <ResourceView resource={tokens}>
         {(tokens) => (
           <div className='flex flex-col gap-6'>
+            {tokens.bonus && <BonusBanner bonus={tokens.bonus} />}
+
             <section className='theme-eco-card'>
-              <div className='flex flex-col gap-1'>
-                <span className='theme-eco-value'>
-                  {t(`${page}.balance`, { count: new Intl.NumberFormat(intlLocale(language)).format(tokens.tokens) })}
-                </span>
-                <p className='theme-eco-muted'>{t(`${page}.explainer`, { app: appName, plus: plusName })}</p>
-                {tokens.tokenFraction > 0 && (
-                  <p className='theme-eco-small'>
-                    {t(`${page}.saved`, {
-                      amount: new Intl.NumberFormat(intlLocale(language), { maximumFractionDigits: 2 }).format(
-                        tokens.tokenFraction,
-                      ),
-                    })}
-                  </p>
-                )}
+              <div className='theme-earn-rows flex flex-col'>
+                <div className='theme-earn-row'>
+                  <div className='flex flex-col gap-1'>
+                    <span className='theme-eco-value'>
+                      {t(`${page}.balance`, {
+                        count: new Intl.NumberFormat(intlLocale(language)).format(tokens.tokens),
+                      })}
+                    </span>
+                    <p className='theme-eco-muted'>{t(`${page}.explainer`, { app: appName, plus: plusName })}</p>
+                    {tokens.tokenFraction > 0 && (
+                      <p className='theme-eco-small'>
+                        {t(`${page}.saved`, {
+                          amount: new Intl.NumberFormat(intlLocale(language), { maximumFractionDigits: 2 }).format(
+                            tokens.tokenFraction,
+                          ),
+                        })}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                {/* plugged.host: the daily streak; its claim button is the page's filled one while it waits */}
+                {tokens.streak && <TokenStreak streak={tokens.streak} />}
               </div>
             </section>
 
-            <section className='theme-eco-card'>
+            {tokens.starter && <StarterTasks starter={tokens.starter} />}
+
+            <section id='earn' className='theme-eco-card'>
               {tokens.providers.length === 0 ? (
                 <p className='theme-eco-muted'>{t(`${page}.none`, {})}</p>
               ) : (
                 <div className='theme-earn-rows flex flex-col'>
                   {tokens.providers.map((provider, index) => (
-                    <EarnRow key={provider.provider} provider={provider} first={index === 0} />
+                    <EarnRow
+                      key={provider.provider}
+                      provider={provider}
+                      first={index === 0 && !tokens.streak?.claimable}
+                      bonus={tokens.bonus?.percent ?? 0}
+                    />
                   ))}
                 </div>
               )}
             </section>
+
+            {tokens.referrals && <TokenReferrals />}
 
             {tokens.transactions.length > 0 && (
               <TitleCard title={t(`${page}.history`, {})}>

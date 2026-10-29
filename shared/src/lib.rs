@@ -24,6 +24,7 @@ pub mod allocations; // plugged.host
 pub mod allowance; // plugged.host
 pub mod allowance_cuts; // plugged.host
 pub mod backup_notifications; // plugged.host
+pub mod badges; // plugged.host
 pub mod cache;
 pub mod cap;
 pub mod captcha;
@@ -49,6 +50,7 @@ pub mod ignore_list;
 pub mod jwt;
 pub mod limbo; // plugged.host
 pub mod mail;
+pub mod membership_bundle; // plugged.host
 pub mod minecraft; // plugged.host
 pub mod models;
 pub mod neo; // plugged.host
@@ -65,7 +67,9 @@ pub mod payload;
 pub mod permissions;
 pub mod prelude;
 pub mod pricing; // plugged.host
+pub mod promos; // plugged.host
 pub mod redact; // plugged.host
+pub mod referrals; // plugged.host
 pub mod response;
 pub mod retry;
 pub mod rux; // plugged.host
@@ -73,14 +77,17 @@ pub mod server_creation; // plugged.host
 pub mod server_resize; // plugged.host
 pub mod server_software; // plugged.host
 pub mod server_transfers; // plugged.host
+pub mod server_upgrades; // plugged.host
 pub mod settings;
 pub mod standing; // plugged.host
 pub mod start_gates; // plugged.host
 pub mod start_queue; // plugged.host
+pub mod starter_tasks; // plugged.host
 pub mod startup_command; // plugged.host
 pub mod startup_preview; // plugged.host
 pub mod status; // plugged.host
 pub mod storage;
+pub mod streak; // plugged.host
 pub mod stuck_installs; // plugged.host
 pub mod subdomains; // plugged.host
 pub mod telemetry;

@@ -14,3 +14,10 @@ export const accountAdsSchema = z.object({
   audience: z.enum(['none', 'room', 'member', 'everyone']),
   banners: z.array(adBannerSchema),
 });
+
+// the house promo clips, `public/promo/index.json` (docs/features/promos.md#promo-clips)
+export const promoClipSchema = z.object({
+  name: z.string().regex(/^[a-z0-9-]{1,64}$/),
+  cta: z.string().max(64),
+  href: z.string().startsWith('/'),
+});

@@ -3,6 +3,7 @@ import {
   faAt,
   faBan,
   faBoxArchive, // plugged.host
+  faBullhorn, // plugged.host
   faCar, // plugged.host
   faCircleQuestion, // plugged.host
   faCircleUp,
@@ -85,6 +86,7 @@ import StorageContainer from './storage/StorageContainer.tsx';
 import SubdomainsContainer from './subdomains/SubdomainsContainer.tsx'; // plugged.host
 import TourContainer from './tour/TourContainer.tsx'; // plugged.host
 import UpdatesContainer from './updates/UpdatesContainer.tsx';
+import UpgradesContainer from './upgrades/UpgradesContainer.tsx'; // plugged.host
 import UserContainer from './user/UserContainer.tsx';
 import WebauthnContainer from './webauthn/WebauthnContainer.tsx';
 
@@ -345,6 +347,13 @@ export const settingsGroups: SettingsGroup[] = [
         path: '/partners',
         element: <PartnersContainer />,
       },
+      // plugged.host: what users buy for one server (docs/features/server-upgrades.md)
+      {
+        name: t('pages.admin.settings.tabs.upgrades.title', {}),
+        icon: faCircleUp,
+        path: '/upgrades',
+        element: <UpgradesContainer />,
+      },
     ],
   },
   {
@@ -387,6 +396,13 @@ export const settingsGroups: SettingsGroup[] = [
         icon: faGamepad,
         path: '/in-game',
         element: <AdsContainer part='inGame' />,
+      },
+      // plugged.host: the membership popup, the offers and the promo clips (docs/features/promos.md)
+      {
+        name: t('pages.admin.settings.tabs.ads.promos', {}),
+        icon: faBullhorn,
+        path: '/promotions',
+        element: <AdsContainer part='promos' />,
       },
     ],
   },

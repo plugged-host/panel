@@ -25,6 +25,8 @@ interface NotificationText {
   details: ReactNode[];
   /** Where its server link goes and what it says, when not the server's console ("Open server"). */
   serverPage?: { path: string; label: string };
+  /** plugged.host: a panel page it links to when it is about the account, not a server ("Renew"). */
+  page?: { path: string; label: string };
 }
 
 /** The `pages.server.transfer.reasons` a finished move can name (`server_transfers::reason_key`). */
@@ -36,6 +38,21 @@ const text = (value: unknown): string =>
   typeof value === 'string' ? value : typeof value === 'number' ? String(value) : '';
 const count = (value: unknown): number => (typeof value === 'number' && Number.isFinite(value) ? value : 0);
 
+/** plugged.host: the upgrades an ends-soon notification can name (docs/features/server-upgrades.md). */
+const UPGRADE_KINDS = {
+  keep_awake: 'keepAwake',
+  boost: 'boost',
+  extra_allocation: 'extraAllocation',
+  extra_database: 'extraDatabase',
+  extra_backup: 'extraBackup',
+} as const;
+
+function upgradeName({ t }: Translations, value: unknown): string {
+  const kind = (Object.keys(UPGRADE_KINDS) as (keyof typeof UPGRADE_KINDS)[]).find((known) => known === value);
+
+  return kind ? t(`pages.server.settings.upgrades.kinds.${UPGRADE_KINDS[kind]}.title`, {}) : '';
+}
+
 function transferReason({ t }: Translations, value: unknown): string {
   const reason = TRANSFER_REASONS.find((known) => known === value);
 
@@ -44,7 +61,7 @@ function transferReason({ t }: Translations, value: unknown): string {
 
 /** Draws a notification's text from its kind and data, in the reader's language. */
 export function notificationText(translations: Translations, notification: Notification): NotificationText {
-  const { t, tReact, language } = translations;
+  const { t, tReact, tItem, language } = translations;
   const data = record(notification.data);
   const server = text(data.server);
   const location = text(data.location);
@@ -142,6 +159,65 @@ export function notificationText(translations: Translations, notification: Notif
         }),
         details: [],
       };
+    // plugged.host: memberships and panel access ending, renewing, given (docs/features/economy.md)
+    case 'membershipEndsSoon': {
+      const cost = tItem(data.currency === 'credits' ? 'credit' : 'token', count(data.cost));
+      const renews = data.auto_renew === true || data.autoRenew === true;
+      const covered = data.covered === true;
+
+      return {
+        title: t('elements.notifications.kinds.membershipEndsSoon.title', { membership: text(data.membership) }),
+        body: t('elements.notifications.kinds.membershipEndsSoon.body', { date: formatDateTime(text(data.until)) }),
+        details: [
+          renews
+            ? covered
+              ? t('elements.notifications.kinds.membershipEndsSoon.renews', { cost })
+              : t('elements.notifications.kinds.membershipEndsSoon.renewsShort', { cost })
+            : covered
+              ? t('elements.notifications.kinds.membershipEndsSoon.notRenewing', { cost })
+              : t('elements.notifications.kinds.membershipEndsSoon.notRenewingShort', { cost }),
+        ],
+        page: { path: '/account/membership', label: t('elements.notifications.renew', {}) },
+      };
+    }
+    case 'membershipRenewFailed':
+      return {
+        title: t('elements.notifications.kinds.membershipRenewFailed.title', { membership: text(data.membership) }),
+        body: t('elements.notifications.kinds.membershipRenewFailed.body', {
+          amount: tItem(data.currency === 'credits' ? 'credit' : 'token', count(data.missing)),
+        }),
+        details: [],
+        page: { path: '/account/membership', label: t('elements.notifications.renew', {}) },
+      };
+    case 'membershipGifted':
+      return {
+        title: t('elements.notifications.kinds.membershipGifted.title', {
+          from: text(data.from),
+          membership: text(data.membership),
+        }),
+        body: t('elements.notifications.kinds.membershipGifted.body', {
+          days: count(data.days),
+          membership: text(data.membership),
+        }),
+        details: text(data.until)
+          ? [t('elements.notifications.kinds.membershipGifted.until', { date: formatDateTime(text(data.until)) })]
+          : [],
+        page: { path: '/account/membership', label: t('elements.notifications.viewMembership', {}) },
+      };
+    case 'panelAccessEndsSoon': {
+      const cost = tItem('token', count(data.cost));
+
+      return {
+        title: t('elements.notifications.kinds.panelAccessEndsSoon.title', {}),
+        body: t('elements.notifications.kinds.panelAccessEndsSoon.body', { date: formatDateTime(text(data.until)) }),
+        details: [
+          data.covered === true
+            ? t('elements.notifications.kinds.panelAccessEndsSoon.covered', { cost })
+            : t('elements.notifications.kinds.panelAccessEndsSoon.short', { cost }),
+        ],
+        page: { path: '/account/panel-access', label: t('elements.notifications.renew', {}) },
+      };
+    }
     case 'failoverDone': {
       const drill = data.drill === true;
       const backup = text(data.backup);
@@ -266,6 +342,17 @@ export function notificationText(translations: Translations, notification: Notif
         body: t('elements.notifications.kinds.partnerRevoked.body', { guild }),
         details: because(data.reason),
       };
+    // plugged.host: docs/features/referrals.md
+    case 'referralPaid':
+      return {
+        title: t('elements.notifications.kinds.referralPaid.title', {}),
+        body: t('elements.notifications.kinds.referralPaid.body', {
+          username: text(data.username),
+          threshold: tItem('token', count(data.threshold)),
+          amount: tItem('token', count(data.amount)),
+        }),
+        details: [],
+      };
     case 'partnerPaid':
       return {
         title: t('elements.notifications.kinds.partnerPaid.title', {}),
@@ -314,6 +401,52 @@ export function notificationText(translations: Translations, notification: Notif
         body: t('elements.notifications.kinds.admin.partnerSuspended.body', { guild }),
         details: [],
       };
+    // plugged.host: server upgrades (docs/features/server-upgrades.md); renewing and the keep-awake pass are
+    // bought on the server's Settings › Upgrades
+    case 'upgradeEnding': {
+      const upgrade = upgradeName(translations, data.upgrade);
+      const tokens = typeof data.tokens === 'number' ? data.tokens : null;
+
+      return {
+        title: t('elements.notifications.kinds.upgradeEnding.title', { upgrade }),
+        body: t('elements.notifications.kinds.upgradeEnding.body', {
+          upgrade,
+          server,
+          time: text(data.until) ? formatDateTime(text(data.until)) : '',
+        }),
+        details:
+          tokens !== null
+            ? [t('elements.notifications.kinds.upgradeEnding.renew', { price: translations.tItem('token', tokens) })]
+            : [],
+        serverPage:
+          tokens !== null
+            ? { path: '/settings#upgrades', label: t('elements.notifications.kinds.upgradeEnding.action', {}) }
+            : undefined,
+      };
+    }
+    case 'serverIdleStopped': {
+      const tokens = typeof data.tokens === 'number' ? data.tokens : null;
+
+      return {
+        title: t('elements.notifications.kinds.serverIdleStopped.title', {}),
+        body: t('elements.notifications.kinds.serverIdleStopped.body', { server, hours: count(data.hours) }),
+        details: [
+          t('elements.notifications.kinds.serverIdleStopped.park', { hours: Math.max(1, count(data.park)) }),
+          ...(tokens !== null
+            ? [
+                t('elements.notifications.kinds.serverIdleStopped.keepAwake', {
+                  days: count(data.days),
+                  price: translations.tItem('token', tokens),
+                }),
+              ]
+            : []),
+        ],
+        serverPage:
+          tokens !== null
+            ? { path: '/settings#upgrades', label: t('elements.notifications.kinds.serverIdleStopped.action', {}) }
+            : undefined,
+      };
+    }
     default:
       // a kind this panel does not know yet (sent by a newer backend): its server's name, if any
       return { title: t('elements.notifications.unknown', {}), body: server || null, details: [] };
@@ -330,7 +463,7 @@ interface Props {
 export default function NotificationRow({ notification, onOpenServer, onMarkRead, onDelete }: Props) {
   const translations = useTranslations();
   const { t } = translations;
-  const { title, body, details, serverPage } = notificationText(translations, notification);
+  const { title, body, details, serverPage, page } = notificationText(translations, notification);
   const unread = notification.read === null;
   const deleteLabel = t('elements.notifications.delete', {});
 
@@ -354,8 +487,14 @@ export default function NotificationRow({ notification, onOpenServer, onMarkRead
         </p>
       ))}
 
-      {(notification.server || unread) && (
+      {(notification.server || page || unread) && (
         <div className='theme-notification-actions'>
+          {/* plugged.host: a panel page, for one about the account (it marks it read like Open server) */}
+          {page && (
+            <Link to={page.path} className='theme-notification-action' onClick={() => onOpenServer(notification)}>
+              {page.label}
+            </Link>
+          )}
           {notification.server && (
             <Link
               to={`/server/${notification.server.uuidShort}${serverPage?.path ?? ''}`}

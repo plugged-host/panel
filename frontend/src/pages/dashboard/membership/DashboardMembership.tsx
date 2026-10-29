@@ -1,24 +1,35 @@
 // plugged.host: the memberships, laid out like the Pelican panel's Plus page: the two plans side
 // by side (each bought by the month, neither needing the other), what each adds over the free
 // tier, and the questions people ask before buying (docs/features/economy.md).
+// An offer the balance does not cover says how much is missing and leads to the Tokens page; a
+// membership that runs can renew by itself; a membership can be bought for someone else; a sale
+// that covers the memberships shows a banner and struck-through prices, as in the store.
 import { useQueryClient } from '@tanstack/react-query';
-import { Fragment, ReactNode, useState } from 'react';
-import { Link } from 'react-router';
+import { FormEvent, Fragment, ReactNode, useState } from 'react';
+import { Link, useNavigate } from 'react-router';
 import { z } from 'zod';
+import { getHttpStatus, httpErrorToHuman } from '@/api/axios.ts';
 import buyPlus from '@/api/me/economy/buyPlus.ts';
 import buyPlusPlus from '@/api/me/economy/buyPlusPlus.ts';
 import getMembership from '@/api/me/economy/getMembership.ts';
+import giftMembership from '@/api/me/economy/giftMembership.ts';
+import setMembershipAutoRenew from '@/api/me/economy/setMembershipAutoRenew.ts';
 import Button from '@/elements/buttons/Button.tsx';
 import AccountContentContainer from '@/elements/containers/AccountContentContainer.tsx';
+import Alert from '@/elements/feedback/Alert.tsx';
 import Notification from '@/elements/feedback/Notification.tsx';
+import Select from '@/elements/input/Select.tsx';
+import Switch from '@/elements/input/Switch.tsx';
+import TextInput from '@/elements/input/TextInput.tsx';
 import Stack from '@/elements/layout/Stack.tsx';
 import ConfirmationModal from '@/elements/modals/ConfirmationModal.tsx';
 import ResourceView from '@/elements/ResourceView.tsx';
 import { bytesToString, mbToBytes } from '@/lib/format/size.ts';
 import { formatDateTime } from '@/lib/format/time.ts';
+import { intlLocale } from '@/lib/languages.ts';
 import { queryKeys } from '@/lib/queryKeys.ts';
 import { to } from '@/lib/routes.ts';
-import { userEconomySchema } from '@/lib/schemas/user/economy.ts';
+import { membershipKindSchema, userEconomySchema } from '@/lib/schemas/user/economy.ts';
 import { useResource } from '@/plugins/resource/useResource.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
@@ -26,6 +37,7 @@ import { useGlobalStore } from '@/stores/global.ts';
 
 type Economy = z.infer<typeof userEconomySchema>;
 type Offer = Economy['plusplusOffers'][number];
+type MembershipKind = z.infer<typeof membershipKindSchema>;
 type DevboxSize = NonNullable<Economy['devbox']>['standard'];
 
 const page = 'pages.account.membership';
@@ -40,6 +52,7 @@ function PlanCard({
   name,
   pitch,
   price,
+  was,
   term,
   perks,
   children,
@@ -47,6 +60,8 @@ function PlanCard({
   name: string;
   pitch: string;
   price: string;
+  /** The price without the sale, struck through in front of it while one runs. */
+  was?: string;
   term?: string;
   perks: string[];
   children: ReactNode;
@@ -59,7 +74,14 @@ function PlanCard({
       </div>
 
       <div className='flex flex-col gap-0.5'>
-        <span className='theme-plus-price'>{price}</span>
+        <span className='theme-plus-price'>
+          {was && (
+            <s className='theme-eco-was' aria-hidden='true'>
+              {was}
+            </s>
+          )}
+          {price}
+        </span>
         {term && <span className='theme-eco-small'>{term}</span>}
       </div>
 
@@ -77,9 +99,10 @@ function PlanCard({
 }
 
 export default function DashboardMembership() {
-  const { t } = useTranslations();
+  const { t, tItem, language } = useTranslations();
   const { addToast } = useToast();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const appName = useGlobalStore((state) => state.settings.app.name);
   const names = useGlobalStore((state) => state.settings.economy);
 
@@ -88,7 +111,28 @@ export default function DashboardMembership() {
     queryFn: getMembership,
   });
 
-  const [buying, setBuying] = useState<{ kind: 'plus' } | { kind: 'plusplus'; offer: Offer } | null>(null);
+  const [buying, setBuying] = useState<{ kind: 'plus'; price: number } | { kind: 'plusplus'; offer: Offer } | null>(
+    null,
+  );
+  const [switching, setSwitching] = useState(false);
+  const [giftTo, setGiftTo] = useState('');
+  const [giftKind, setGiftKind] = useState<MembershipKind>('plus');
+  const [gifting, setGifting] = useState<{
+    recipient: string;
+    kind: MembershipKind;
+    name: string;
+    price: number;
+    days: number;
+  } | null>(null);
+
+  // a price that moved since the page was drawn (a sale started or ended) buys nothing: show the new ones
+  const priceMoved = (error: unknown) => {
+    if (getHttpStatus(error) === 409) {
+      membership.invalidate();
+      setBuying(null);
+      setGifting(null);
+    }
+  };
 
   const done = (economy: Economy) => {
     queryClient.setQueryData(queryKeys.user.membership(), economy);
@@ -103,21 +147,56 @@ export default function DashboardMembership() {
   const doBuy = async () => {
     if (!buying) return;
 
-    if (buying.kind === 'plus') {
-      const economy = await buyPlus();
-      addToast(t(`${page}.toast.plus`, { name: economy.plusName }), 'success');
-      done(economy);
-    } else {
-      const economy = await buyPlusPlus(buying.offer.pay);
-      addToast(t(`${page}.toast.plusplus`, { name: economy.plusplusName }), 'success');
-      done(economy);
+    try {
+      if (buying.kind === 'plus') {
+        const economy = await buyPlus(buying.price);
+        addToast(t(`${page}.toast.plus`, { name: economy.plusName }), 'success');
+        done(economy);
+      } else {
+        const economy = await buyPlusPlus(buying.offer.pay, buying.offer.cost);
+        addToast(t(`${page}.toast.plusplus`, { name: economy.plusplusName }), 'success');
+        done(economy);
+      }
+    } catch (error) {
+      priceMoved(error);
+      throw error;
+    }
+  };
+
+  const doGift = async () => {
+    if (!gifting) return;
+
+    try {
+      const economy = await giftMembership(gifting.recipient, gifting.kind, gifting.price);
+      addToast(t(`${page}.gift.toast`, { name: gifting.name, recipient: gifting.recipient }), 'success');
+      queryClient.setQueryData(queryKeys.user.membership(), economy);
+      queryClient.invalidateQueries({ queryKey: queryKeys.user.tokens() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.user.balance() });
+      setGifting(null);
+      setGiftTo('');
+    } catch (error) {
+      priceMoved(error);
+      throw error;
+    }
+  };
+
+  const toggleAutoRenew = async (kind: MembershipKind, name: string, enabled: boolean) => {
+    setSwitching(true);
+    try {
+      const economy = await setMembershipAutoRenew(kind, enabled);
+      queryClient.setQueryData(queryKeys.user.membership(), economy);
+      addToast(t(enabled ? `${page}.autoRenew.on` : `${page}.autoRenew.off`, { name }), 'success');
+    } catch (error) {
+      addToast(httpErrorToHuman(error), 'error');
+    } finally {
+      setSwitching(false);
     }
   };
 
   return (
     <AccountContentContainer
       title={names ? t(`${page}.pageTitle`, { app: appName, name: names.plusName }) : t(`${page}.title`, {})}
-      subtitle={t(`${page}.subtitle`, {})}
+      subtitle={membership.data?.autoRenewEnabled ? t(`${page}.subtitleAutoRenew`, {}) : t(`${page}.subtitle`, {})}
     >
       <ResourceView resource={membership}>
         {(economy) => {
@@ -149,7 +228,8 @@ export default function DashboardMembership() {
                 : undefined;
           const balanceOf = (pay: Offer['pay']) => (pay === 'tokens' ? economy.tokens : economy.credits);
           // one filled button: Plus to start with, then the second membership
-          const plusFilled = !hasPlus && !hasPlusplus;
+          // (plugged.host: Plus that comes with the bundle's other panel counts as having Plus)
+          const plusFilled = !hasPlus && !hasPlusplus && !economy.bundlePlusUntil;
           const plusShort = economy.tokens < economy.plusCost;
           const plusplusShort =
             economy.plusplusOffers.length > 0 &&
@@ -248,6 +328,16 @@ export default function DashboardMembership() {
             });
           }
 
+          // plugged.host: the membership the second one includes on another panel (shared/src/membership_bundle.rs)
+          if (economy.bundleName) {
+            rows.push({
+              label: economy.bundleName,
+              free: t(`${page}.compare.cells.no`, {}),
+              plus: t(`${page}.compare.cells.no`, {}),
+              plusplus: t(`${page}.compare.cells.included`, {}),
+            });
+          }
+
           const plusPerks = [
             t(`${page}.perks.plusLocations`, { name: economy.plusName }),
             t(`${page}.perks.priority`, {}),
@@ -287,11 +377,17 @@ export default function DashboardMembership() {
           if (economy.panelAccess) {
             plusplusPerks.push(t(`${page}.perks.panelAccess`, {}));
           }
+          // plugged.host: the membership bundle (shared/src/membership_bundle.rs)
+          if (economy.bundleName) {
+            plusplusPerks.push(t(`${page}.perks.bundle`, { name: economy.bundleName }));
+          }
 
           const faq: { question: string; answer: string }[] = [
             {
               question: t(`${page}.faq.renew.question`, {}),
-              answer: t(`${page}.faq.renew.answer`, { plus: economy.plusName, plusplus: economy.plusplusName }),
+              answer: economy.autoRenewEnabled
+                ? t(`${page}.faq.renew.answerAutoRenew`, { plus: economy.plusName, plusplus: economy.plusplusName })
+                : t(`${page}.faq.renew.answer`, { plus: economy.plusName, plusplus: economy.plusplusName }),
             },
             { question: t(`${page}.faq.expiry.question`, {}), answer: t(`${page}.faq.expiry.answer`, {}) },
           ];
@@ -322,6 +418,94 @@ export default function DashboardMembership() {
             </p>
           );
 
+          const costText = (pay: Offer['pay'], cost: number) =>
+            t(`${page}.cost.${pay}`, { cost: cost.toLocaleString() });
+          // An offer's button buys it; while the balance is short it says how much is missing and
+          // leads to where it is earned instead of sitting there disabled.
+          const offerButton = (
+            key: string,
+            offer: { pay: Offer['pay']; cost: number; fullCost: number; days: number },
+            filled: boolean,
+            onBuy: () => void,
+            disabled = false,
+          ) => {
+            const missing = offer.cost - balanceOf(offer.pay);
+
+            return (
+              <Button
+                key={key}
+                className='theme-plus-offer w-full'
+                variant={filled ? 'filled' : 'default'}
+                disabled={disabled}
+                onClick={
+                  missing > 0
+                    ? () => navigate(offer.pay === 'tokens' ? to('/tokens', '/account') : to('/store', '/account'))
+                    : onBuy
+                }
+              >
+                <span className='font-semibold'>{t(`${page}.days`, { days: offer.days })}</span>
+                <span className='theme-plus-offer-cost'>
+                  {missing > 0 ? (
+                    t(`${page}.moreToGo`, { amount: tItem(offer.pay === 'tokens' ? 'token' : 'credit', missing) })
+                  ) : (
+                    <>
+                      {offer.fullCost > offer.cost && (
+                        <s className='theme-eco-was' aria-hidden='true'>
+                          {offer.fullCost.toLocaleString()}
+                        </s>
+                      )}
+                      {costText(offer.pay, offer.cost)}
+                    </>
+                  )}
+                </span>
+              </Button>
+            );
+          };
+
+          // a membership that runs may renew by itself: tokens first, the second with credits when
+          // only credits buy it (shared/src/economy.rs renewal_pay)
+          const plusplusRenewal = tokensOffer ?? creditsOffer;
+          const autoRenewSwitch = (kind: MembershipKind, name: string, checked: boolean, cost: string) => (
+            <Switch
+              label={t(`${page}.autoRenew.label`, {})}
+              description={t(`${page}.autoRenew.description`, { cost })}
+              checked={checked}
+              disabled={switching}
+              onChange={(event) => toggleAutoRenew(kind, name, event.currentTarget.checked)}
+            />
+          );
+
+          // gifts: either membership, with tokens, at its (sale) price
+          const giftOffers = [
+            ...(economy.tokensEnabled
+              ? [{ kind: 'plus' as const, name: economy.plusName, cost: economy.plusCost, days: economy.plusDays }]
+              : []),
+            ...(tokensOffer
+              ? [
+                  {
+                    kind: 'plusplus' as const,
+                    name: economy.plusplusName,
+                    cost: tokensOffer.cost,
+                    days: tokensOffer.days,
+                  },
+                ]
+              : []),
+          ];
+          const giftOffer = giftOffers.find((offer) => offer.kind === giftKind) ?? giftOffers[0];
+          const giftMissing = giftOffer ? giftOffer.cost - economy.tokens : 0;
+          const sendGift = (event: FormEvent) => {
+            event.preventDefault();
+            if (!giftOffer || !giftTo.trim()) return;
+
+            setGifting({
+              recipient: giftTo.trim(),
+              kind: giftOffer.kind,
+              name: giftOffer.name,
+              price: giftOffer.cost,
+              days: giftOffer.days,
+            });
+          };
+
           return (
             <Stack gap='lg'>
               <ConfirmationModal
@@ -336,7 +520,7 @@ export default function DashboardMembership() {
                   t(`${page}.modal.plus`, {
                     name: economy.plusName,
                     days: economy.plusDays,
-                    cost: economy.plusCost.toLocaleString(),
+                    cost: buying.price.toLocaleString(),
                   }).md()}
                 {buying?.kind === 'plusplus' &&
                   t(`${page}.modal.plusplus.${buying.offer.pay}`, {
@@ -346,10 +530,41 @@ export default function DashboardMembership() {
                   }).md()}
               </ConfirmationModal>
 
+              <ConfirmationModal
+                opened={!!gifting}
+                onClose={() => setGifting(null)}
+                title={t(`${page}.gift.modal.title`, {})}
+                confirm={t(`${page}.gift.modal.confirm`, {})}
+                confirmColor='blue'
+                onConfirmed={doGift}
+              >
+                {gifting &&
+                  t(`${page}.gift.modal.body`, {
+                    name: gifting.name,
+                    days: gifting.days,
+                    cost: gifting.price.toLocaleString(),
+                    recipient: gifting.recipient,
+                  }).md()}
+              </ConfirmationModal>
+
               {!economy.membershipEnabled ? (
                 <p className='theme-eco-muted'>{t(`${page}.unavailable`, { name: economy.plusName })}</p>
               ) : (
                 <>
+                  {economy.discount && (
+                    <Alert color='blue' title={economy.discount.name ?? t(`${page}.sale.defaultName`, {})}>
+                      {economy.discount.ends
+                        ? t(`${page}.sale.until`, {
+                            percent: economy.discount.percent,
+                            date: new Intl.DateTimeFormat(intlLocale(language), {
+                              dateStyle: 'medium',
+                              timeStyle: 'short',
+                            }).format(economy.discount.ends),
+                          })
+                        : t(`${page}.sale.running`, { percent: economy.discount.percent })}
+                    </Alert>
+                  )}
+
                   {activeUntil && (
                     <Notification
                       className='theme-callout'
@@ -362,58 +577,73 @@ export default function DashboardMembership() {
                     </Notification>
                   )}
 
+                  {/* plugged.host: Plus with the other panel's second membership (membership_bundle.rs) */}
+                  {economy.bundlePlusUntil && !hasPlusplus && (
+                    <Notification
+                      className='theme-callout'
+                      color='green'
+                      title={t(`${page}.bundleActive.heading`, {
+                        plus: economy.plusName,
+                        name: economy.bundleSourceName,
+                      })}
+                    >
+                      {t(`${page}.active.body`, { until: formatDateTime(economy.bundlePlusUntil) })}
+                    </Notification>
+                  )}
+
                   <div className='theme-plus-plans'>
                     <PlanCard
                       name={t(`${page}.pageTitle`, { app: appName, name: economy.plusName })}
                       pitch={t(`${page}.plus.pitch`, {})}
-                      price={t(`${page}.cost.tokens`, { cost: economy.plusCost.toLocaleString() })}
+                      price={costText('tokens', economy.plusCost)}
+                      was={economy.plusFullCost > economy.plusCost ? economy.plusFullCost.toLocaleString() : undefined}
                       term={duration(economy.plusDays)}
                       perks={plusPerks}
                     >
-                      <Button
-                        className='theme-plus-offer w-full'
-                        variant={plusFilled ? 'filled' : 'default'}
-                        disabled={!economy.tokensEnabled || plusShort}
-                        onClick={() => setBuying({ kind: 'plus' })}
-                      >
-                        <span className='font-semibold'>{t(`${page}.days`, { days: economy.plusDays })}</span>
-                        <span className='theme-plus-offer-cost'>
-                          {t(`${page}.cost.tokens`, { cost: economy.plusCost.toLocaleString() })}
-                        </span>
-                      </Button>
+                      {offerButton(
+                        'tokens',
+                        {
+                          pay: 'tokens',
+                          cost: economy.plusCost,
+                          fullCost: economy.plusFullCost,
+                          days: economy.plusDays,
+                        },
+                        plusFilled,
+                        () => setBuying({ kind: 'plus', price: economy.plusCost }),
+                        !economy.tokensEnabled,
+                      )}
 
                       {plusShort ? earnMore : <p className='theme-eco-small'>{t(`${page}.extendHint`, {})}</p>}
+
+                      {economy.autoRenewEnabled &&
+                        hasPlus &&
+                        autoRenewSwitch(
+                          'plus',
+                          economy.plusName,
+                          economy.plusAutoRenew,
+                          costText('tokens', economy.plusCost),
+                        )}
                     </PlanCard>
 
                     <PlanCard
                       name={t(`${page}.pageTitle`, { app: appName, name: economy.plusplusName })}
                       pitch={t(`${page}.plusplus.pitch`, {})}
                       price={
-                        pricedOffer
-                          ? t(`${page}.cost.${pricedOffer.pay}`, { cost: pricedOffer.cost.toLocaleString() })
-                          : t(`${page}.plusplus.notSold`, {})
+                        pricedOffer ? costText(pricedOffer.pay, pricedOffer.cost) : t(`${page}.plusplus.notSold`, {})
+                      }
+                      was={
+                        pricedOffer && pricedOffer.fullCost > pricedOffer.cost
+                          ? pricedOffer.fullCost.toLocaleString()
+                          : undefined
                       }
                       term={plusplusTerm}
                       perks={plusplusPerks}
                     >
-                      {economy.plusplusOffers.map((offer) => {
-                        const credits = offer.pay === 'credits';
-
-                        return (
-                          <Button
-                            key={offer.pay}
-                            className='theme-plus-offer w-full'
-                            variant={!credits && !plusFilled ? 'filled' : 'default'}
-                            disabled={balanceOf(offer.pay) < offer.cost}
-                            onClick={() => setBuying({ kind: 'plusplus', offer })}
-                          >
-                            <span className='font-semibold'>{t(`${page}.days`, { days: offer.days })}</span>
-                            <span className='theme-plus-offer-cost'>
-                              {t(`${page}.cost.${offer.pay}`, { cost: offer.cost.toLocaleString() })}
-                            </span>
-                          </Button>
-                        );
-                      })}
+                      {economy.plusplusOffers.map((offer) =>
+                        offerButton(offer.pay, offer, offer.pay !== 'credits' && !plusFilled, () =>
+                          setBuying({ kind: 'plusplus', offer }),
+                        ),
+                      )}
 
                       {economy.plusplusOffers.length === 0 ? (
                         <p className='theme-eco-small'>{t(`${page}.plusplus.notSold`, {})}</p>
@@ -422,8 +652,77 @@ export default function DashboardMembership() {
                       ) : (
                         <p className='theme-eco-small'>{t(`${page}.extendHint`, {})}</p>
                       )}
+
+                      {economy.autoRenewEnabled &&
+                        hasPlusplus &&
+                        plusplusRenewal &&
+                        autoRenewSwitch(
+                          'plusplus',
+                          economy.plusplusName,
+                          economy.plusplusAutoRenew,
+                          costText(plusplusRenewal.pay, plusplusRenewal.cost),
+                        )}
                     </PlanCard>
                   </div>
+
+                  {economy.giftsEnabled && giftOffer && (
+                    <section className='flex flex-col gap-3'>
+                      <div className='flex flex-col gap-1'>
+                        <h3 className='theme-eco-heading'>{t(`${page}.gift.heading`, {})}</h3>
+                        <p className='theme-eco-muted'>{t(`${page}.gift.text`, {})}</p>
+                      </div>
+
+                      <form className='flex flex-col gap-3' onSubmit={sendGift}>
+                        <div className='grid gap-3 sm:grid-cols-2'>
+                          <TextInput
+                            label={t(`${page}.gift.recipient`, {})}
+                            value={giftTo}
+                            maxLength={255}
+                            autoComplete='off'
+                            onChange={(event) => setGiftTo(event.currentTarget.value)}
+                          />
+                          <Select
+                            label={t(`${page}.gift.membership`, {})}
+                            data={giftOffers.map((offer) => ({
+                              value: offer.kind,
+                              label: t(`${page}.gift.option`, {
+                                name: offer.name,
+                                days: offer.days,
+                                cost: costText('tokens', offer.cost),
+                              }),
+                            }))}
+                            value={giftOffer.kind}
+                            onChange={(value) => {
+                              const kind = membershipKindSchema.safeParse(value);
+                              if (kind.success) setGiftKind(kind.data);
+                            }}
+                          />
+                        </div>
+
+                        <div className='flex flex-col items-start gap-2'>
+                          <Button
+                            type='submit'
+                            variant='default'
+                            disabled={!giftTo.trim() || economy.giftsLeft <= 0 || giftMissing > 0}
+                          >
+                            {t(`${page}.gift.submit`, {})}
+                          </Button>
+
+                          <p className='theme-eco-small'>
+                            {economy.giftsLeft <= 0 ? (
+                              t(`${page}.gift.none`, {})
+                            ) : giftMissing > 0 ? (
+                              <Link to={to('/tokens', '/account')} className='theme-eco-link'>
+                                {t(`${page}.moreToGo`, { amount: tItem('token', giftMissing) })}
+                              </Link>
+                            ) : (
+                              t(`${page}.gift.left`, { count: economy.giftsLeft })
+                            )}
+                          </p>
+                        </div>
+                      </form>
+                    </section>
+                  )}
 
                   <section className='flex flex-col gap-3'>
                     <h3 className='theme-eco-heading'>{t(`${page}.compare.heading`, {})}</h3>

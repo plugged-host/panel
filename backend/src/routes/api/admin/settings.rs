@@ -489,6 +489,10 @@ mod put {
         #[schema(inline)]
         #[garde(dive)]
         partners: Option<shared::settings::partners::PayloadPartners>,
+        // plugged.host: docs/features/server-upgrades.md
+        #[schema(inline)]
+        #[garde(dive)]
+        upgrades: Option<shared::settings::upgrades::PayloadUpgrades>,
         #[schema(inline)]
         #[garde(dive)]
         updates: Option<PayloadUpdates>,
@@ -1119,6 +1123,10 @@ mod put {
             return ApiResponse::error(error)
                 .with_status(StatusCode::BAD_REQUEST)
                 .ok();
+        }
+        // plugged.host: server upgrades
+        if let Some(upgrades) = data.upgrades {
+            upgrades.apply(&mut settings.upgrades);
         }
 
         if !settings.app.password_login_enabled {

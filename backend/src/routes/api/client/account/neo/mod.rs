@@ -182,6 +182,84 @@ mod usage {
     }
 }
 
+// plugged.host: one more day's worth of usage for tokens, once a window refuses turns
+mod extra {
+    pub mod post {
+        use axum::http::StatusCode;
+        use garde::Validate;
+        use serde::{Deserialize, Serialize};
+        use shared::{
+            ApiError, GetState,
+            models::{
+                user::{GetPermissionManager, GetUser},
+                user_activity::GetUserActivityLogger,
+            },
+            neo::{Limits, usage::ExtraError},
+            response::{ApiResponse, ApiResponseResult},
+        };
+        use utoipa::ToSchema;
+
+        #[derive(ToSchema, Validate, Deserialize)]
+        pub struct Payload {
+            /// The price the chat showed; a price that moved since answers 409.
+            #[garde(skip)]
+            tokens: Option<i64>,
+        }
+
+        #[derive(ToSchema, Serialize)]
+        struct Response {
+            /// Tokens it cost.
+            tokens: i64,
+            /// The windows as they are now, with the bought usage on top of their limits.
+            #[schema(value_type = Object)]
+            limits: Limits,
+        }
+
+        /// Buys one more day's worth of usage while one of the person's windows refuses turns.
+        #[utoipa::path(post, path = "/", responses(
+            (status = OK, body = inline(Response)),
+            (status = UNAUTHORIZED, body = ApiError),
+            (status = FORBIDDEN, body = ApiError),
+            (status = CONFLICT, body = ApiError),
+        ), request_body = inline(Payload))]
+        pub async fn route(
+            state: GetState,
+            permissions: GetPermissionManager,
+            user: GetUser,
+            activity_logger: GetUserActivityLogger,
+            shared::Payload(data): shared::Payload<Payload>,
+        ) -> ApiResponseResult {
+            permissions.has_user_permission("neo.chat")?;
+            permissions.has_user_permission("economy.purchase")?;
+
+            let bought = match shared::neo::buy_extra(&state, user.uuid, data.tokens).await {
+                Ok(bought) => bought,
+                Err(ExtraError::Other(err)) => return Err(err.into()),
+                Err(err) => {
+                    return ApiResponse::error(err.message())
+                        .with_status(
+                            StatusCode::from_u16(err.status()).unwrap_or(StatusCode::BAD_REQUEST),
+                        )
+                        .ok();
+                }
+            };
+
+            activity_logger
+                .log(
+                    "account:neo.extra",
+                    serde_json::json!({ "cost": bought.cost, "usage": bought.day }),
+                )
+                .await;
+
+            ApiResponse::new_serialized(Response {
+                tokens: bought.cost,
+                limits: bought.limits,
+            })
+            .ok()
+        }
+    }
+}
+
 mod images {
     pub mod _image_ {
         pub mod get {
@@ -238,6 +316,13 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
             "/usage",
             OpenApiRouter::new()
                 .routes(routes!(usage::get::route))
+                .with_state(state.clone()),
+        )
+        // plugged.host: extra usage for tokens (docs/features/neo.md)
+        .nest(
+            "/extra",
+            OpenApiRouter::new()
+                .routes(routes!(extra::post::route))
                 .with_state(state.clone()),
         )
         .nest(

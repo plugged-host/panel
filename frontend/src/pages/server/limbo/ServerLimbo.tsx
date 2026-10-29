@@ -22,6 +22,7 @@ import { usePowerAction } from '@/plugins/server/usePowerAction.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useServerStore } from '@/stores/server.ts';
+import UpgradeOfferCallout from '../upgrades/UpgradeOfferCallout.tsx'; // plugged.host
 
 type Limbo = z.infer<typeof serverLimboSchema>;
 
@@ -97,6 +98,10 @@ function Parked({
           )}
         </section>
       )}
+
+      {/* a keep-awake pass keeps it from being deleted, and from being parked again once it is back
+          (docs/features/server-upgrades.md) */}
+      <UpgradeOfferCallout kind='keep_awake' text='keepAwakeParked' show className='' />
     </div>
   );
 }

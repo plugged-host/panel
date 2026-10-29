@@ -48,6 +48,7 @@ pub mod status; // plugged.host
 pub mod subdomains; // plugged.host
 pub mod tour; // plugged.host
 pub mod updates;
+pub mod upgrades; // plugged.host
 pub mod user;
 pub mod webauthn;
 
@@ -480,6 +481,9 @@ pub struct AppSettings {
     // plugged.host: the partner program (docs/features/partners.md)
     #[schema(inline)]
     pub partners: partners::AppSettingsPartners,
+    // plugged.host: what users buy for one server with tokens (docs/features/server-upgrades.md)
+    #[schema(inline)]
+    pub upgrades: upgrades::AppSettingsUpgrades,
     #[schema(inline)]
     pub updates: updates::AppSettingsUpdates,
 
@@ -804,6 +808,8 @@ impl SettingsSerializeExt for AppSettings {
             .nest("neo_discord", &self.neo_discord) // plugged.host
             .await?
             .nest("partners", &self.partners) // plugged.host
+            .await?
+            .nest("upgrades", &self.upgrades) // plugged.host
             .await?
             .nest("updates", &self.updates)
             .await?;
@@ -1140,6 +1146,9 @@ impl SettingsDeserializeExt for AppSettingsDeserializer {
                 .await?,
             partners: deserializer // plugged.host
                 .nest("partners", &partners::AppSettingsPartnersDeserializer)
+                .await?,
+            upgrades: deserializer // plugged.host
+                .nest("upgrades", &upgrades::AppSettingsUpgradesDeserializer)
                 .await?,
             updates: deserializer
                 .nest("updates", &updates::AppSettingsUpdatesDeserializer)

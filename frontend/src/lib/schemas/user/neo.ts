@@ -70,6 +70,14 @@ export const neoSchema = z.object({
   retentionDays: z.number(),
   // noprofit.space runs neo: the usage windows are noprofit.space's
   onNoprofit: z.boolean(),
+  // one more day's worth of usage for tokens, offered once a window refuses turns; null: not sold
+  extra: z
+    .object({
+      tokens: z.number(),
+      available: z.boolean(),
+    })
+    .nullable()
+    .optional(),
 });
 
 // What the chat does next (agent.rs StepResult): continue and busy step again.

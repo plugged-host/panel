@@ -57,6 +57,8 @@ pub struct User {
     pub has_plus: bool, // plugged.host: shared/src/panel_access.rs
     #[serde(default)]
     pub has_plusplus: bool, // plugged.host: shared/src/panel_access.rs
+    #[serde(default)]
+    pub badge: Option<compact_str::CompactString>, // plugged.host: shared/src/badges.rs
 
     pub created: chrono::NaiveDateTime,
 
@@ -160,13 +162,16 @@ impl BaseModel for User {
                 compact_str::format_compact!("{prefix}panel_access_until"),
             ),
             (
-                "EXISTS (SELECT 1 FROM user_memberships WHERE user_memberships.user_uuid = users.uuid AND user_memberships.plus_until > NOW())",
+                // plugged.host: Plus bought or with the membership bundle (shared/src/membership_bundle.rs)
+                "EXISTS (SELECT 1 FROM user_memberships WHERE user_memberships.user_uuid = users.uuid AND (user_memberships.plus_until > NOW() OR user_memberships.bundle_plus_until > NOW()))",
                 compact_str::format_compact!("{prefix}has_plus"),
             ),
             (
                 "EXISTS (SELECT 1 FROM user_memberships WHERE user_memberships.user_uuid = users.uuid AND user_memberships.plusplus_until > NOW())",
                 compact_str::format_compact!("{prefix}has_plusplus"),
             ),
+            // plugged.host: the profile badge shown (shared/src/badges.rs)
+            ("users.badge", compact_str::format_compact!("{prefix}badge")),
             (
                 "users.created",
                 compact_str::format_compact!("{prefix}created"),
@@ -230,6 +235,7 @@ impl BaseModel for User {
             has_plus: row.try_get(compact_str::format_compact!("{prefix}has_plus").as_str())?, // plugged.host
             has_plusplus: row
                 .try_get(compact_str::format_compact!("{prefix}has_plusplus").as_str())?, // plugged.host
+            badge: row.try_get(compact_str::format_compact!("{prefix}badge").as_str())?, // plugged.host
             created: row.try_get(compact_str::format_compact!("{prefix}created").as_str())?,
             extension_data: Self::map_extensions(prefix, row)?,
         })
@@ -948,6 +954,7 @@ impl User {
                 password_login_disabled: self.password_login_disabled,
                 language: self.language,
                 has_password: self.has_password,
+                badge: self.badge.filter(|badge| crate::badges::known(badge)), // plugged.host
                 created: self.created.and_utc(),
             },
             api_object,
@@ -979,6 +986,7 @@ impl IntoApiObject for User {
                     .as_ref()
                     .map(|a| storage_url_retriever.get_url(a)),
                 totp_enabled: self.totp_enabled,
+                badge: self.badge.filter(|badge| crate::badges::known(badge)), // plugged.host
                 created: self.created.and_utc(),
             },
             api_object,
@@ -1540,6 +1548,9 @@ pub struct ApiUser {
 
     pub totp_enabled: bool,
 
+    /// plugged.host: the profile badge shown next to the name (shared/src/badges.rs).
+    pub badge: Option<compact_str::CompactString>,
+
     pub created: chrono::DateTime<chrono::Utc>,
 }
 
@@ -1549,6 +1560,9 @@ pub struct ApiUser {
 #[derive(ToSchema, Serialize)]
 #[schema(title = "FullUser")]
 pub struct ApiFullUser {
+    /// plugged.host: the profile badge shown next to the name (shared/src/badges.rs).
+    pub badge: Option<compact_str::CompactString>,
+
     pub uuid: uuid::Uuid,
 
     pub username: compact_str::CompactString,

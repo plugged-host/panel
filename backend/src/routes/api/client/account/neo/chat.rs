@@ -134,6 +134,9 @@ mod get {
         /// noprofit.space runs neo, so its usage windows are noprofit.space's (shared with its
         /// other services).
         on_noprofit: bool,
+        /// plugged.host: one more day's worth of usage for tokens, offered once a window refuses
+        /// turns; `None` while it is not sold to this person.
+        extra: Option<shared::neo::ApiNeoExtra>,
     }
 
     #[derive(ToSchema, Serialize)]
@@ -168,6 +171,12 @@ mod get {
         let retention_days = settings.neo.retention_days.max(1);
         let on_noprofit = shared::neo::on_noprofit(&settings).is_some();
         drop(settings);
+        // plugged.host: extra usage for tokens
+        let extra = if permissions.has_user_permission("economy.purchase").is_ok() {
+            shared::neo::extra(&state, user.uuid).await
+        } else {
+            None
+        };
 
         ApiResponse::new_serialized(Response {
             neo: ApiNeo {
@@ -182,6 +191,7 @@ mod get {
                 max_images: MAX_IMAGES,
                 retention_days,
                 on_noprofit,
+                extra,
             },
         })
         .ok()

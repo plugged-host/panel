@@ -1,7 +1,9 @@
-//! plugged.host: where what rux gives (credits, nothing else) is paid. While noprofit.space is
-//! connected, its rux routes pay (the credits live there); without it, the panel's own credits
-//! ([`crate::economy`]), when credits are on. Also who is linked (only linked accounts can enter
-//! a giveaway or get credits) and who won the last giveaways.
+//! plugged.host: where the credits rux gives are paid. While noprofit.space is connected, its rux
+//! routes pay (the credits live there); without it, the panel's own credits
+//! ([`crate::economy`]), when credits are on. Giveaways of tokens or membership days are always
+//! paid by the panel ([`Payer::Panel`]), since tokens and memberships are always its own. Also
+//! who is linked (only linked accounts can enter a giveaway or get credits) and who won the last
+//! giveaways.
 
 use super::super::ToolError;
 use crate::rux::noprofit::{Client, Unavailable, parse_accounts};

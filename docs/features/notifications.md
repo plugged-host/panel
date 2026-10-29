@@ -18,7 +18,9 @@ The row opens a panel at the end of the window: the newest notification first, 2
 new address, why a move failed, an error), and:
 
 - **Open server** (**View backups** for a backup), when it is about a server that still exists:
-  marks it read and opens the server (its Backups page).
+  marks it read and opens the server (its Backups page). One about the account instead (a
+  membership or panel access ending, a gift) has a link to its page (**Renew**, **View
+  membership**), which marks it read the same way.
 - **Mark as read**, while it is unread.
 - the **×** at its top, which deletes it.
 
@@ -35,6 +37,10 @@ open. Reading or deleting notifications is not written to the activity log.
 | `admin.transferFailed` | Every admin, and every user whose role has `servers.transfer` | Any move gave up, with the reason or the error |
 | `allowanceCut` | The account | An [allowance cut](allowance-cuts.md) took CPU, memory or disk off its servers: each server with what it gave |
 | `membershipEnded` | The account | A membership ran out and servers on locations it opened are moving ([economy](economy.md)) |
+| `membershipEndsSoon` | The account, once per end | A membership ends within the ends-soon hours (48): the date, whether it renews by itself, whether the balance covers it; **Renew** opens the Membership page ([economy](economy.md#ends-soon-notices)) |
+| `membershipRenewFailed` | The account, once per end | A membership switched to renew by itself could not: how many tokens (or credits) were missing ([economy](economy.md#auto-renew)) |
+| `membershipGifted` | The recipient | Someone bought them a membership: who (username), which, how many days and the new end; **View membership** ([economy](economy.md#gifts)) |
+| `panelAccessEndsSoon` | The account, once per end | Paid panel access ends within the ends-soon hours: the date and whether the tokens cover the next payment; **Renew** opens Account › Panel Access ([economy](economy.md#panel-access)) |
 | `failoverDone` | The owner | A [failover](failover.md) or a drill restored the server on another node: the new address and the time of the backup used |
 | `failoverFailed` | The owner, at most once a day per server, and only when the server had already left its node (before that nothing changed for them) | A failover failed |
 | `modpackInstalled`, `modpackFailed` | Who started it (on Minecraft › Modpacks or through neo) | A modpack install ended ([Minecraft](minecraft.md)) |
@@ -42,12 +48,15 @@ open. Reading or deleting notifications is not written to the activity log.
 | `worldImported`, `worldImportFailed` | Who started it | An uploaded world archive became the loaded world, or could not ([Minecraft](minecraft.md)) |
 | `partnerApproved`, `partnerRejected`, `partnerRevoked` | The applicant | An admin decided on their [partner](partners.md) application or ended the partnership (with the credits a month, or the reason) |
 | `partnerPaid` | The partner | A month's partner credits were paid |
+| `referralPaid` | The referrer | A friend who signed up with their link earned the threshold: the tokens paid ([referrals](referrals.md)) |
 | `partnerCheckFailed`, `partnerSuspended` | The partner | The monthly check failed: the month is held until a date; past it the partnership is suspended |
 | `partnerPaused`, `partnerResumed`, `partnerCreditsChanged` | The partner | An admin paused (with the reason) or resumed the payments, or changed the credits a month; a passing check that lifts a suspension sends `partnerResumed` too |
 | `admin.partnerApplication`, `admin.partnerSuspended` | Every admin, and every user whose role has `partners.manage` | A new partner application; a partnership suspended after its grace period |
 | `serverInstalled`, `serverInstallFailed` | The owner | An install or a reinstall ended (upstream's `InstallCompleted`; also the reinstall of a modpack install or a software switch, as on the Pelican panel, which had a second text for a reinstall). A failover's or limbo's restore sends none |
 | `subuserAdded` | The person added | They were made a subuser of a server |
 | `subuserRemoved` | The person removed | They are not a subuser of the server any more (no **Open server**) |
+| `upgradeEnding` | Whoever bought it (the owner once they have no access to the server) | A keep-awake pass or an extra port, database or backup slot ends within 48 hours, once per end date, with what adding time costs and **Add time** to Settings › Upgrades ([server upgrades](server-upgrades.md)) |
+| `serverIdleStopped` | The owner | [Limbo](limbo.md) stopped the server for being idle: how long, when it will be parked, and while one is sold what a keep-awake pass costs, with **Keep it awake** |
 | `backupCompleted`, `backupFailed` | Whoever asked for that backup's mail on the server's Settings › Notifications ([server settings](server-settings.md)) | A backup made by hand or by a schedule ended |
 
 The last four rows are the Pelican panel's own (upstream Pelican's listeners), which it sent both

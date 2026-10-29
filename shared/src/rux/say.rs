@@ -43,7 +43,7 @@ pub const CORE: Strings = &[
 ];
 
 /// Every table, in lookup order.
-fn tables() -> [Strings; 7] {
+fn tables() -> [Strings; 8] {
     [
         CORE,
         super::tools::moderation::STRINGS,
@@ -52,6 +52,7 @@ fn tables() -> [Strings; 7] {
         super::tools::credits::STRINGS,
         super::tools::servers::STRINGS,
         super::watch::STRINGS,
+        super::tokens::STRINGS, // plugged.host: /tokens and the double-token posts
     ]
 }
 

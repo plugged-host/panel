@@ -91,20 +91,25 @@ impl Tool for CreateGiveaway {
 
     fn description(&self, context: &Context) -> String {
         format!(
-            "Start a credit giveaway on this server: posts it with an Enter button. The prize is always credits, nothing else. Entering always requires a Discord account linked to {} (automatic). At the end {} draws the winners and pays them automatically.",
-            context.config.portal, context.config.settings.name
+            "Start a giveaway on this server: posts it with an Enter button. The prize is credits (default), {app} tokens, or days of {plus} or {plusplus} (prize_kind), nothing else. Entering always requires a Discord account linked to {} (automatic). At the end {} draws the winners and pays them automatically.",
+            context.config.portal,
+            context.config.settings.name,
+            app = context.config.app_name,
+            plus = context.config.memberships.plus,
+            plusplus = context.config.memberships.plusplus,
         )
     }
 
     fn parameters(&self) -> Value {
         schema(
             json!({
-                "credits": { "type": "integer", "description": "Credits each winner gets." },
+                "prize_kind": { "type": "string", "enum": ["credits", "tokens", "plus_days", "plusplus_days"], "description": "What each winner gets: credits (default), tokens, or days of the first (plus_days) or second (plusplus_days) membership." },
+                "credits": { "type": "integer", "description": "The amount each winner gets, in the prize_kind's unit: credits, tokens or days." },
                 "ends_at": { "type": "string", "description": "When it ends: \"YYYY-MM-DD HH:MM\" in rux's time zone, or a duration from now like \"2h\" or \"3d\"." },
                 "winners": { "type": "integer", "description": "How many winners. Default 1." },
                 "channel": { "type": "string", "description": "Channel to post in (#name, <#id> or id). Leave out to use the default giveaway channel." },
                 "exclude_recent_winners": { "type": "integer", "description": "Keep out everyone who won one of the last N giveaways. 0 = nobody kept out." },
-                "title": { "type": "string", "description": "Optional headline naming the occasion, e.g. \"Halloween giveaway\"; never another prize (no Plus, tokens, RAM, Nitro or roles). Default: \"<credits> credits\"." },
+                "title": { "type": "string", "description": "Optional headline naming the occasion, e.g. \"Halloween giveaway\"; never a prize other than its own (no RAM, Nitro or roles; tokens or the membership only when that is the prize). Default: the prize, like \"500 credits\" or \"30 days of Plus\"." },
             }),
             &["credits", "ends_at"],
         )
@@ -121,6 +126,7 @@ impl Tool for CreateGiveaway {
         let giveaway = service::create(
             context,
             service::NewGiveaway {
+                kind: string(arguments, "prize_kind").unwrap_or_else(|| "credits".into()),
                 credits,
                 ends_at: required(arguments, "ends_at")?,
                 winners: int(arguments, "winners").unwrap_or(1),
@@ -212,7 +218,7 @@ impl Tool for EditGiveaway {
     }
 
     fn description(&self, _context: &Context) -> String {
-        "Change a running giveaway: end time, credits per winner, number of winners or headline. Its message updates.".into()
+        "Change a running giveaway: end time, the amount per winner (in its prize's unit: credits, tokens or days), number of winners or headline. The prize kind stays. Its message updates.".into()
     }
 
     fn parameters(&self) -> Value {
@@ -220,7 +226,7 @@ impl Tool for EditGiveaway {
             json!({
                 "giveaway_id": id_property(),
                 "ends_at": { "type": "string", "description": "New end: \"YYYY-MM-DD HH:MM\" in rux's time zone, or a duration from now." },
-                "credits": { "type": "integer", "description": "New credits per winner." },
+                "credits": { "type": "integer", "description": "New amount per winner, in the giveaway's prize unit (credits, tokens or days)." },
                 "winners": { "type": "integer", "description": "New number of winners." },
                 "title": { "type": "string", "description": "New headline." },
             }),
@@ -317,7 +323,7 @@ impl Tool for RerollGiveaway {
     }
 
     fn description(&self, _context: &Context) -> String {
-        "Draw extra winners for an ended giveaway among the entries that have not won. They are paid too; earlier winners keep their credits.".into()
+        "Draw extra winners for an ended giveaway among the entries that have not won. They are paid too; earlier winners keep their prize.".into()
     }
 
     fn parameters(&self) -> Value {

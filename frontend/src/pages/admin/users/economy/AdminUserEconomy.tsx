@@ -188,6 +188,7 @@ export default function AdminUserEconomy({ user }: { user: z.infer<typeof adminF
                   <>
                     {t(`${page}.plusplusRuns`, { name: economy.plusName })}{' '}
                     <FormattedTimestamp timestamp={economy.plusUntil} />
+                    {economy.plusAutoRenew && <> · {t(`${page}.autoRenew`, {})}</>}
                   </>
                 ) : economy.plusSince ? (
                   <>
@@ -198,11 +199,19 @@ export default function AdminUserEconomy({ user }: { user: z.infer<typeof adminF
                   t(`${page}.noPlus`, { name: economy.plusName })
                 )}
               </Text>
+              {/* plugged.host: Plus with the membership bundle's other panel, read-only (membership_bundle.rs) */}
+              {economy.bundlePlusUntil && (
+                <Text size='sm' c='dimmed'>
+                  {t(`${page}.bundlePlusRuns`, { plus: economy.plusName, name: economy.bundleSourceName })}{' '}
+                  <FormattedTimestamp timestamp={economy.bundlePlusUntil} /> · {t(`${page}.bundleSetThere`, {})}
+                </Text>
+              )}
               <Text size='sm' c='dimmed'>
                 {economy.plusplusUntil ? (
                   <>
                     {t(`${page}.plusplusRuns`, { name: economy.plusplusName })}{' '}
                     <FormattedTimestamp timestamp={economy.plusplusUntil} />
+                    {economy.plusplusAutoRenew && <> · {t(`${page}.autoRenew`, {})}</>}
                   </>
                 ) : (
                   t(`${page}.noPlusplus`, { name: economy.plusplusName, purchases: economy.plusplusPurchases })
@@ -215,6 +224,15 @@ export default function AdminUserEconomy({ user }: { user: z.infer<typeof adminF
                     memory: bytesToString(mbToBytes(economy.extras.memory)),
                     disk: bytesToString(mbToBytes(economy.extras.disk)),
                   })}
+                </Text>
+              )}
+              {/* plugged.host: who brought the account and how many it brought (docs/features/referrals.md) */}
+              {economy.referrals && (
+                <Text size='sm' c='dimmed'>
+                  {economy.referrals.referredBy
+                    ? t(`${page}.referredBy`, { username: economy.referrals.referredBy.username })
+                    : t(`${page}.notReferred`, {})}{' '}
+                  {t(`${page}.referred`, { count: economy.referrals.referred, paid: economy.referrals.paid })}
                 </Text>
               )}
             </Stack>

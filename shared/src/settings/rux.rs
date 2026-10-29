@@ -54,6 +54,16 @@ pub struct AppSettingsRux {
     pub giveaway_max_credits: i64,
     pub giveaway_max_winners: i32,
     pub giveaway_max_days: i32,
+    /// The most a giveaway pays each winner in tokens, and in days of a membership (tokens and
+    /// memberships are always the panel's own).
+    pub giveaway_max_tokens: i64,
+    pub giveaway_max_membership_days: i32,
+    /// `/tokens`: a linked member's tokens, streak and membership, only for them.
+    pub tokens_command: bool,
+    /// The main server's channel rux announces in (a double-token window starting); empty: none.
+    pub announce_channel_id: CompactString,
+    /// Announce each double-token window once when it starts.
+    pub token_bonus_posts: bool,
     /// Discord ids of the people who may have rux give credits; empty turns it off.
     pub credit_granters: Vec<CompactString>,
     pub credit_max_per_grant: i64,
@@ -102,6 +112,11 @@ impl Default for AppSettingsRux {
             giveaway_max_credits: 10_000,
             giveaway_max_winners: 25,
             giveaway_max_days: 60,
+            giveaway_max_tokens: 50,
+            giveaway_max_membership_days: 30,
+            tokens_command: true,
+            announce_channel_id: CompactString::default(),
+            token_bonus_posts: true,
             credit_granters: Vec::new(),
             credit_max_per_grant: 10_000,
             warn_timeout_at: 3,
@@ -233,6 +248,16 @@ pub struct PayloadRux {
     giveaway_max_winners: Option<i32>,
     #[garde(inner(range(min = 1, max = 365)))]
     giveaway_max_days: Option<i32>,
+    #[garde(inner(range(min = 1, max = 100_000)))]
+    giveaway_max_tokens: Option<i64>,
+    #[garde(inner(range(min = 1, max = 365)))]
+    giveaway_max_membership_days: Option<i32>,
+    #[garde(skip)]
+    tokens_command: Option<bool>,
+    #[garde(inner(length(chars, max = 20)))]
+    announce_channel_id: Option<CompactString>,
+    #[garde(skip)]
+    token_bonus_posts: Option<bool>,
     #[garde(inner(length(max = 20), inner(length(chars, max = 20))))]
     credit_granters: Option<Vec<CompactString>>,
     #[garde(inner(range(min = 1, max = 1_000_000)))]
@@ -370,6 +395,8 @@ impl PayloadRux {
         let guild_id = snowflake("the main server id", self.guild_id)?;
         let giveaway_channel_id = snowflake("the giveaway channel id", self.giveaway_channel_id)?;
         let mod_log_channel_id = snowflake("the mod log channel id", self.mod_log_channel_id)?;
+        let announce_channel_id =
+            snowflake("the announcement channel id", self.announce_channel_id)?;
         let trusted_domains = domains(self.trusted_domains)?;
 
         let main = guild_id
@@ -489,6 +516,10 @@ impl PayloadRux {
             giveaway_max_credits,
             giveaway_max_winners,
             giveaway_max_days,
+            giveaway_max_tokens,
+            giveaway_max_membership_days,
+            tokens_command,
+            token_bonus_posts,
             credit_max_per_grant,
             warn_timeout_at,
             warn_ban_at,
@@ -517,6 +548,7 @@ impl PayloadRux {
             guild_id,
             giveaway_channel_id,
             mod_log_channel_id,
+            announce_channel_id,
             trusted_domains,
             servers,
             timezone,
@@ -569,6 +601,20 @@ impl SettingsSerializeExt for AppSettingsRux {
             .write_raw_setting(
                 "giveaway_max_days",
                 self.giveaway_max_days.to_compact_string(),
+            )
+            .write_raw_setting(
+                "giveaway_max_tokens",
+                self.giveaway_max_tokens.to_compact_string(),
+            )
+            .write_raw_setting(
+                "giveaway_max_membership_days",
+                self.giveaway_max_membership_days.to_compact_string(),
+            )
+            .write_raw_setting("tokens_command", self.tokens_command.to_compact_string())
+            .write_raw_setting("announce_channel_id", &*self.announce_channel_id)
+            .write_raw_setting(
+                "token_bonus_posts",
+                self.token_bonus_posts.to_compact_string(),
             )
             .write_serde_setting("credit_granters", &self.credit_granters)?
             .write_raw_setting(
@@ -673,6 +719,11 @@ impl SettingsDeserializeExt for AppSettingsRuxDeserializer {
             giveaway_max_credits: read!(giveaway_max_credits),
             giveaway_max_winners: read!(giveaway_max_winners),
             giveaway_max_days: read!(giveaway_max_days),
+            giveaway_max_tokens: read!(giveaway_max_tokens),
+            giveaway_max_membership_days: read!(giveaway_max_membership_days),
+            tokens_command: read!(tokens_command),
+            announce_channel_id: text!(announce_channel_id),
+            token_bonus_posts: read!(token_bonus_posts),
             credit_granters: json!(credit_granters),
             credit_max_per_grant: read!(credit_max_per_grant),
             warn_timeout_at: read!(warn_timeout_at),
@@ -716,6 +767,11 @@ mod tests {
             giveaway_max_credits: None,
             giveaway_max_winners: None,
             giveaway_max_days: None,
+            giveaway_max_tokens: None,
+            giveaway_max_membership_days: None,
+            tokens_command: None,
+            announce_channel_id: None,
+            token_bonus_posts: None,
             credit_granters: None,
             credit_max_per_grant: None,
             warn_timeout_at: None,

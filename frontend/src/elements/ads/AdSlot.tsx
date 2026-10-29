@@ -2,10 +2,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router';
 import { type AdSlotKind, type AdUnit, adAreaOf, allocate, shuffled, unitFrameUrl, unitSandbox } from '@/lib/ads.ts';
-import { useAds } from '@/plugins/useAds.ts';
+import { useAds, usePromoRotation } from '@/plugins/useAds.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useAdSlotsStore } from '@/stores/adSlots.ts';
 import AdFrame from './AdFrame.tsx';
+import PromoClip from './PromoClip.tsx'; // plugged.host
 
 let nextSlotId = 1;
 
@@ -14,6 +15,7 @@ function useAdUnits(): Map<number, AdUnit> {
   const { pathname } = useLocation();
   const { settings, account, shown } = useAds(adAreaOf(pathname));
   const slots = useAdSlotsStore((state) => state.slots);
+  const promo = usePromoRotation(pathname); // plugged.host: the house promo clips
 
   // banners of one size take turns from page to page
   const banners = useMemo(() => shuffled(account?.banners ?? [], pathname), [account?.banners, pathname]);
@@ -21,9 +23,9 @@ function useAdUnits(): Map<number, AdUnit> {
   return useMemo(
     () =>
       shown
-        ? allocate([...slots.values()], settings.zones, banners, settings.native, settings.maxUnitsPerPage)
+        ? allocate([...slots.values()], settings.zones, banners, settings.native, settings.maxUnitsPerPage, promo)
         : new Map<number, AdUnit>(),
-    [shown, slots, settings?.zones, settings?.native, settings?.maxUnitsPerPage, banners],
+    [shown, slots, settings?.zones, settings?.native, settings?.maxUnitsPerPage, banners, promo],
   );
 }
 
@@ -85,6 +87,8 @@ function Slot({ kind, labelled = true }: { kind: AdSlotKind; labelled?: boolean 
     <div ref={box} className='theme-ad-slot' data-empty={unit ? undefined : ''}>
       {unit?.type === 'banner' ? (
         <SponsoredBanner unit={unit} labelled={labelled} />
+      ) : unit?.type === 'promo' ? (
+        <PromoClip unit={unit} labelled={labelled} />
       ) : unit ? (
         <AdFrame
           src={unitFrameUrl(settings.frameOrigin, unit)}
@@ -110,14 +114,12 @@ export function AdStack({ part }: { part: 'above' | 'below' }) {
   const { t } = useTranslations();
   const { pathname } = useLocation();
   const { settings, account, shown } = useAds(adAreaOf(pathname));
+  const promo = usePromoRotation(pathname); // plugged.host
   if (!shown) return null;
 
-  const slots = settings.roomBanner
-    ? Math.min(
-        6,
-        settings.zones.length + (account?.banners.filter((banner) => banner.placement === 'slot').length ?? 0),
-      )
-    : 0;
+  const units = settings.zones.length + (account?.banners.filter((banner) => banner.placement === 'slot').length ?? 0);
+  // plugged.host: with nothing else to show, one slot for a promo clip
+  const slots = settings.roomBanner ? Math.min(6, units > 0 ? units : promo && promo.share > 0 ? 1 : 0) : 0;
   const room = part === 'above' ? Math.min(slots, ROOM_SLOTS_ABOVE) : Math.max(0, slots - ROOM_SLOTS_ABOVE);
   const native = part === 'below' && settings.roomNative;
   if (room === 0 && !native) return null;

@@ -35,6 +35,7 @@ const partFields: Record<EconomyPart, (keyof EconomyValues)[]> = {
     'storeDiscountStarts',
     'storeDiscountEnds',
     'storeDiscountName',
+    'storeDiscountCovers',
     'cpuStep',
     'cpuPrice',
     'limitCpu',
@@ -55,6 +56,8 @@ const partFields: Record<EconomyPart, (keyof EconomyValues)[]> = {
     'panelAccessEnabled',
     'panelAccessTokens',
     'panelAccessDays',
+    'badgesEnabled',
+    'badgeTokens',
     'claimMinutes',
     'linkDecayPercent',
     'linkFloorPercent',
@@ -94,6 +97,20 @@ const partFields: Record<EconomyPart, (keyof EconomyValues)[]> = {
     'cpxResearchAppId',
     'cpxResearchSecret',
     'cpxResearchDailyCap',
+    // plugged.host: the Tokens page's streak, double tokens, first-week tasks and referrals
+    'streakEnabled',
+    'streakRewards',
+    'tokenBonusPercent',
+    'tokenBonusName',
+    'tokenBonusStarts',
+    'tokenBonusEnds',
+    'starterEnabled',
+    'starterDays',
+    'starterReward',
+    'referralsEnabled',
+    'referralReward',
+    'referralThreshold',
+    'referralMonthlyCap',
   ],
   memberships: [
     'membershipEnabled',
@@ -105,8 +122,18 @@ const partFields: Record<EconomyPart, (keyof EconomyValues)[]> = {
     'plusplusTokenDays',
     'plusplusCredits',
     'plusplusCreditDays',
+    'bundleEnabled',
+    'bundleUrl',
+    'bundleName',
+    'bundleSourceName',
+    'bundleSecret',
     'plusBurstCores',
     'plusplusBurstCores',
+    'endsSoonEnabled',
+    'endsSoonHours',
+    'autoRenewEnabled',
+    'giftsEnabled',
+    'giftsPerDay',
   ],
 };
 
@@ -132,6 +159,7 @@ export default function EconomyContainer({ part }: { part: EconomyPart }) {
     shrinkmeApiKey: economy.shrinkmeApiKey !== null,
     adfocusApiKey: economy.adfocusApiKey !== null,
     cpxResearchSecret: economy.cpxResearchSecret !== null,
+    bundleSecret: economy.bundleSecret !== null,
   }));
 
   const form = useForm<EconomyValues>({
@@ -144,6 +172,7 @@ export default function EconomyContainer({ part }: { part: EconomyPart }) {
       shrinkmeApiKey: '',
       adfocusApiKey: '',
       cpxResearchSecret: '',
+      bundleSecret: '',
     },
     ...liveValidation,
     validate: zod4Resolver(adminSettingsEconomySchema),
@@ -159,6 +188,7 @@ export default function EconomyContainer({ part }: { part: EconomyPart }) {
     shrinkmeApiKey: '',
     adfocusApiKey: '',
     cpxResearchSecret: '',
+    bundleSecret: '',
   }));
   useFormDraft(form, `economy.${part}`);
 
@@ -185,6 +215,7 @@ export default function EconomyContainer({ part }: { part: EconomyPart }) {
           shrinkmeApiKey: stored.shrinkmeApiKey || !!values.shrinkmeApiKey,
           adfocusApiKey: stored.adfocusApiKey || !!values.adfocusApiKey,
           cpxResearchSecret: stored.cpxResearchSecret || !!values.cpxResearchSecret,
+          bundleSecret: stored.bundleSecret || !!values.bundleSecret,
         })),
       ),
     successMessage: t('pages.admin.settings.tabs.economy.page.toast.updated', {}),
@@ -226,6 +257,8 @@ export default function EconomyContainer({ part }: { part: EconomyPart }) {
   const credits = (values: EconomyValues) => values.creditsEnabled;
   const tokens = (values: EconomyValues) => values.tokensEnabled;
   const membership = (values: EconomyValues) => values.membershipEnabled;
+  // plugged.host: the sale may cover the memberships too, so it shows while either is on
+  const sale = (values: EconomyValues) => values.creditsEnabled || values.membershipEnabled;
 
   const fields: Record<EconomyPart, FieldDef<EconomyValues>[]> = {
     store: [
@@ -244,21 +277,27 @@ export default function EconomyContainer({ part }: { part: EconomyPart }) {
         credits,
       ),
       // a sale on every price, with or without noprofit.space, between its start and its end
-      { type: 'divider', name: 'discountDivider', label: t(`${page}.discountSection`, {}), when: credits },
-      number(
-        'storeDiscount',
-        t(`${page}.storeDiscount`, {}),
-        t(`${page}.storeDiscountDescription`, {}),
-        0,
-        100,
-        credits,
-      ),
+      { type: 'divider', name: 'discountDivider', label: t(`${page}.discountSection`, {}), when: sale },
+      number('storeDiscount', t(`${page}.storeDiscount`, {}), t(`${page}.storeDiscountDescription`, {}), 0, 100, sale),
+      // plugged.host: the store, the memberships or both (docs/features/economy.md#sales)
+      {
+        type: 'select',
+        name: 'storeDiscountCovers',
+        label: t(`${page}.storeDiscountCovers`, {}),
+        description: t(`${page}.storeDiscountCoversDescription`, {}),
+        options: [
+          { value: 'store', label: t(`${page}.storeDiscountCoversStore`, {}) },
+          { value: 'memberships', label: t(`${page}.storeDiscountCoversMemberships`, {}) },
+          { value: 'both', label: t(`${page}.storeDiscountCoversBoth`, {}) },
+        ],
+        when: sale,
+      },
       {
         type: 'text',
         name: 'storeDiscountName',
         label: t(`${page}.storeDiscountName`, {}),
         description: t(`${page}.storeDiscountNameDescription`, {}),
-        when: credits,
+        when: sale,
       },
       {
         type: 'date',
@@ -266,7 +305,7 @@ export default function EconomyContainer({ part }: { part: EconomyPart }) {
         label: t(`${page}.storeDiscountStarts`, {}),
         description: t(`${page}.storeDiscountStartsDescription`, {}),
         props: { clearable: true },
-        when: credits,
+        when: sale,
       },
       {
         type: 'date',
@@ -274,7 +313,7 @@ export default function EconomyContainer({ part }: { part: EconomyPart }) {
         label: t(`${page}.storeDiscountEnds`, {}),
         description: t(`${page}.storeDiscountEndsDescription`, {}),
         props: { clearable: true },
-        when: credits,
+        when: sale,
       },
       { type: 'divider', name: 'storeDivider', label: t(`${page}.storeSection`, {}), when: credits },
       {
@@ -357,6 +396,24 @@ export default function EconomyContainer({ part }: { part: EconomyPart }) {
         1,
         3650,
         (values) => values.tokensEnabled && values.panelAccessEnabled,
+      ),
+
+      // plugged.host: profile badges (docs/features/promos.md#profile-badges)
+      { type: 'divider', name: 'badgesDivider', label: t(`${page}.badgesSection`, {}), when: tokens },
+      {
+        type: 'switch',
+        name: 'badgesEnabled',
+        label: t(`${page}.badgesEnabled`, {}),
+        description: t(`${page}.badgesEnabledDescription`, {}),
+        when: tokens,
+      },
+      number(
+        'badgeTokens',
+        t(`${page}.badgeTokens`, {}),
+        t(`${page}.badgeTokensDescription`, {}),
+        1,
+        100_000,
+        (values) => values.tokensEnabled && values.badgesEnabled,
       ),
 
       { type: 'divider', name: 'earnDivider', label: t(`${page}.earnSection`, {}), when: tokens },
@@ -635,6 +692,118 @@ export default function EconomyContainer({ part }: { part: EconomyPart }) {
         600,
         (values) => values.tokensEnabled && values.adfocusEnabled,
       ),
+
+      // plugged.host: the daily streak (shared/src/streak.rs)
+      { type: 'divider', name: 'streakDivider', label: t(`${page}.streakSection`, {}), when: tokens },
+      {
+        type: 'switch',
+        name: 'streakEnabled',
+        label: t(`${page}.streakEnabled`, {}),
+        description: t(`${page}.streakEnabledDescription`, {}),
+        when: tokens,
+      },
+      {
+        type: 'text',
+        name: 'streakRewards',
+        label: t(`${page}.streakRewards`, {}),
+        description: t(`${page}.streakRewardsDescription`, {}),
+        required: true,
+        when: (values) => values.tokensEnabled && values.streakEnabled,
+      },
+
+      // plugged.host: a double-token window, like the store's sale (shared/src/economy.rs token_bonus_at)
+      { type: 'divider', name: 'bonusDivider', label: t(`${page}.bonusSection`, {}), when: tokens },
+      number(
+        'tokenBonusPercent',
+        t(`${page}.tokenBonusPercent`, {}),
+        t(`${page}.tokenBonusPercentDescription`, {}),
+        0,
+        1000,
+        tokens,
+      ),
+      {
+        type: 'text',
+        name: 'tokenBonusName',
+        label: t(`${page}.tokenBonusName`, {}),
+        description: t(`${page}.tokenBonusNameDescription`, {}),
+        when: tokens,
+      },
+      {
+        type: 'date',
+        name: 'tokenBonusStarts',
+        label: t(`${page}.tokenBonusStarts`, {}),
+        description: t(`${page}.tokenBonusStartsDescription`, {}),
+        props: { clearable: true },
+        when: tokens,
+      },
+      {
+        type: 'date',
+        name: 'tokenBonusEnds',
+        label: t(`${page}.tokenBonusEnds`, {}),
+        description: t(`${page}.tokenBonusEndsDescription`, {}),
+        props: { clearable: true },
+        when: tokens,
+      },
+
+      // plugged.host: the first-week tasks (shared/src/starter_tasks.rs)
+      { type: 'divider', name: 'starterDivider', label: t(`${page}.starterSection`, {}), when: tokens },
+      {
+        type: 'switch',
+        name: 'starterEnabled',
+        label: t(`${page}.starterEnabled`, {}),
+        description: t(`${page}.starterEnabledDescription`, {}),
+        when: tokens,
+      },
+      number(
+        'starterDays',
+        t(`${page}.starterDays`, {}),
+        t(`${page}.starterDaysDescription`, {}),
+        0,
+        365,
+        (values) => values.tokensEnabled && values.starterEnabled,
+      ),
+      number(
+        'starterReward',
+        t(`${page}.starterReward`, {}),
+        null,
+        1,
+        1000,
+        (values) => values.tokensEnabled && values.starterEnabled,
+      ),
+
+      // plugged.host: referrals (shared/src/referrals.rs, docs/features/referrals.md)
+      { type: 'divider', name: 'referralsDivider', label: t(`${page}.referralsSection`, {}), when: tokens },
+      {
+        type: 'switch',
+        name: 'referralsEnabled',
+        label: t(`${page}.referralsEnabled`, {}),
+        description: t(`${page}.referralsEnabledDescription`, {}),
+        when: tokens,
+      },
+      number(
+        'referralReward',
+        t(`${page}.referralReward`, {}),
+        null,
+        1,
+        10_000,
+        (values) => values.tokensEnabled && values.referralsEnabled,
+      ),
+      number(
+        'referralThreshold',
+        t(`${page}.referralThreshold`, {}),
+        t(`${page}.referralThresholdDescription`, {}),
+        1,
+        100_000,
+        (values) => values.tokensEnabled && values.referralsEnabled,
+      ),
+      number(
+        'referralMonthlyCap',
+        t(`${page}.referralMonthlyCap`, {}),
+        t(`${page}.referralMonthlyCapDescription`, {}),
+        0,
+        1000,
+        (values) => values.tokensEnabled && values.referralsEnabled,
+      ),
     ],
     memberships: [
       {
@@ -688,6 +857,87 @@ export default function EconomyContainer({ part }: { part: EconomyPart }) {
         16,
         membership,
       ),
+      // plugged.host: ends-soon notices, auto-renew and gifts (docs/features/economy.md#memberships)
+      { type: 'divider', name: 'renewalsDivider', label: t(`${page}.renewalsSection`, {}), when: membership },
+      {
+        type: 'switch',
+        name: 'endsSoonEnabled',
+        label: t(`${page}.endsSoonEnabled`, {}),
+        description: t(`${page}.endsSoonEnabledDescription`, {}),
+        when: membership,
+      },
+      number(
+        'endsSoonHours',
+        t(`${page}.endsSoonHours`, {}),
+        null,
+        1,
+        720,
+        (values) => values.membershipEnabled && values.endsSoonEnabled,
+      ),
+      {
+        type: 'switch',
+        name: 'autoRenewEnabled',
+        label: t(`${page}.autoRenewEnabled`, {}),
+        description: t(`${page}.autoRenewEnabledDescription`, {}),
+        when: membership,
+      },
+      {
+        type: 'switch',
+        name: 'giftsEnabled',
+        label: t(`${page}.giftsEnabled`, {}),
+        description: t(`${page}.giftsEnabledDescription`, {}),
+        when: membership,
+      },
+      number(
+        'giftsPerDay',
+        t(`${page}.giftsPerDay`, {}),
+        t(`${page}.giftsPerDayDescription`, {}),
+        1,
+        1000,
+        (values) => values.membershipEnabled && values.giftsEnabled,
+      ),
+      // plugged.host: a membership on another panel that comes with the second one
+      // (shared/src/membership_bundle.rs)
+      { type: 'divider', name: 'bundleDivider', label: t(`${page}.bundleSection`, {}), when: membership },
+      {
+        type: 'switch',
+        name: 'bundleEnabled',
+        label: t(`${page}.bundleEnabled`, {}),
+        description: t(`${page}.bundleEnabledDescription`, {}),
+        when: membership,
+      },
+      {
+        type: 'text',
+        name: 'bundleUrl',
+        label: t(`${page}.bundleUrl`, {}),
+        description: t(`${page}.bundleUrlDescription`, {}),
+        required: true,
+        when: (values) => values.membershipEnabled && values.bundleEnabled,
+      },
+      {
+        type: 'text',
+        name: 'bundleName',
+        label: t(`${page}.bundleName`, {}),
+        description: t(`${page}.bundleNameDescription`, {}),
+        required: true,
+        when: (values) => values.membershipEnabled && values.bundleEnabled,
+      },
+      {
+        type: 'text',
+        name: 'bundleSourceName',
+        label: t(`${page}.bundleSourceName`, {}),
+        description: t(`${page}.bundleSourceNameDescription`, {}),
+        required: true,
+        when: (values) => values.membershipEnabled && values.bundleEnabled,
+      },
+      {
+        type: 'password',
+        name: 'bundleSecret',
+        label: t(`${page}.bundleSecret`, {}),
+        description: `${secret(stored.bundleSecret)} ${t(`${page}.bundleSecretDescription`, {})}`,
+        props: { autoComplete: 'new-password' },
+        when: (values) => values.membershipEnabled && values.bundleEnabled,
+      },
     ],
   };
 

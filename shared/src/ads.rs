@@ -401,6 +401,12 @@ pub struct ApiAdsSettings {
     pub room_social_bar: bool,
     pub room_popunder: bool,
     pub room_interstitial: bool,
+    /// One line with a link where a limit is felt (docs/features/promos.md).
+    pub offers: bool,
+    /// The house promo clips as a creative in the slots, and the share of the time a slot shows
+    /// one instead of its unit (docs/features/promos.md#promo-clips).
+    pub promo_videos: bool,
+    pub promo_video_share: i32,
     pub adblock_enabled: bool,
     pub adblock_mode: CompactString,
     pub adblock_grace: i32,
@@ -475,6 +481,9 @@ impl ApiAdsSettings {
             room_social_bar: settings.room_social_bar,
             room_popunder: settings.room_popunder,
             room_interstitial: settings.room_interstitial,
+            offers: settings.offers_enabled,
+            promo_videos: on && settings.promo_videos,
+            promo_video_share: settings.promo_video_share.clamp(0, 100),
             adblock_enabled: on && settings.adblock_enabled,
             adblock_mode: settings.adblock_mode.clone(),
             adblock_grace: settings.adblock_grace,
@@ -537,7 +546,8 @@ pub async fn send_in_game(state: &crate::State) -> Result<(), anyhow::Error> {
                 SELECT 1 FROM user_memberships
                 WHERE user_memberships.user_uuid = users.uuid
                     AND (user_memberships.plus_until > NOW()
-                        OR user_memberships.plusplus_until > NOW())
+                        OR user_memberships.plusplus_until > NOW()
+                        OR user_memberships.bundle_plus_until > NOW())
             ))
             AND MOD(servers.uuid_short::BIGINT - $2, $3) = 0",
     )

@@ -367,6 +367,7 @@ mod tests {
             panel_access_until: None, // plugged.host
             has_plus: false,          // plugged.host
             has_plusplus: false,      // plugged.host
+            badge: None,              // plugged.host
             created: chrono::NaiveDateTime::default(),
             extension_data: Vec::new(),
         }

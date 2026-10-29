@@ -81,6 +81,10 @@ export const adsSettingsSchema = z.object({
   roomSocialBar: z.boolean(),
   roomPopunder: z.boolean(),
   roomInterstitial: z.boolean(),
+  // plugged.host: the offers where a limit is felt, and the house promo clips in the slots (docs/features/promos.md)
+  offers: z.boolean().default(false),
+  promoVideos: z.boolean().default(false),
+  promoVideoShare: z.number().default(0),
   adblockEnabled: z.boolean(),
   adblockMode: z.enum(['notice', 'modal', 'block']),
   adblockGrace: z.number(),

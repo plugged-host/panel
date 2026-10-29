@@ -4,6 +4,7 @@
 import { create } from 'zustand';
 import { getHttpStatus, httpErrorToHuman } from '@/api/axios.ts';
 import approveNeo from '@/api/me/neo/approveNeo.ts';
+import buyNeoExtra from '@/api/me/neo/buyNeoExtra.ts';
 import cancelNeo from '@/api/me/neo/cancelNeo.ts';
 import deleteNeoChats from '@/api/me/neo/deleteNeoChats.ts';
 import deleteNeoConversation from '@/api/me/neo/deleteNeoConversation.ts';
@@ -474,6 +475,15 @@ export function denyNeoCall(place: NeoPlace, message: string) {
 
 export function retryNeoTurn(place: NeoPlace) {
   return run(place, () => retryNeo(place.serverUuid));
+}
+
+/**
+ * Buys one more day's worth of usage at the price shown, then tries the turn again. A refused
+ * purchase throws (the caller says why) and tries nothing.
+ */
+export async function buyNeoExtraAndRetry(place: NeoPlace, tokens: number) {
+  await buyNeoExtra(tokens);
+  return retryNeoTurn(place);
 }
 
 async function swapConversation(place: NeoPlace, load: () => Promise<NeoConversation>) {

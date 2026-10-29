@@ -22,5 +22,8 @@ export const serverSubdomainsSchema = z.object({
   // discord_link / discord_member: the Discord settings' gate (docs/features/discord.md)
   unavailable: z.enum(['off', 'unsupported', 'no_domains', 'no_address', 'discord_link', 'discord_member']).nullable(),
   nextCost: z.number(),
+  // the least deposit a name of 2 and of 3 characters takes (docs/features/server-upgrades.md)
+  shortTwo: z.number().default(0),
+  shortThree: z.number().default(0),
   balance: z.number().nullable(),
 });

@@ -13,6 +13,7 @@ like every other server page.
 | SFTP Information | `#sftp` | `files.sftp` | always |
 | Resources | `#resources` | `settings.resize` | Admin › Settings › Hosting › Games › "Players Resize Servers" is on, or the viewer is an admin |
 | Limits | `#resources` | any of Settings' | in Resources' place for whoever cannot resize ([below](#server-information)) |
+| Upgrades | `#upgrades` | `settings.upgrades` | tokens are on and something is sold or runs: a keep-awake pass, a boost, extra slots, the card colour ([server-upgrades.md](server-upgrades.md)) |
 | Version | `#version` | `settings.software` | the server's egg is a game in the catalog with at least two software choices, or a Minecraft egg with a version variable |
 | Behaviour | `#behaviour` | `settings.auto-kill`, `.auto-start`, `.timezone` or `.trash` | Calagopus' own auto-start, timezone, auto-kill and trash settings as one form ([below](#behaviour)); the trash only where Admin › Settings lets servers change it |
 | Notifications | `#notifications` | `backups.read` | always |

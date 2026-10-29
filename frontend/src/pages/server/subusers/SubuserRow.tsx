@@ -9,6 +9,7 @@ import Avatar from '@/elements/data-display/Avatar.tsx';
 import { TableData, TableRow, TableSelectionCell } from '@/elements/data-display/Table.tsx';
 import ConfirmationModal from '@/elements/modals/ConfirmationModal.tsx';
 import ContextMenu, { ContextMenuToggle } from '@/elements/overlays/ContextMenu.tsx';
+import ProfileBadge from '@/elements/ProfileBadge.tsx'; // plugged.host
 import { queryKeys } from '@/lib/queryKeys.ts';
 import { serverSubuserSchema } from '@/lib/schemas/server/subusers.ts';
 import { useServerCan } from '@/plugins/usePermissions.ts';
@@ -103,7 +104,13 @@ const SubuserRow = forwardRef<HTMLTableRowElement, SubuserRowProps>(function Sub
               </div>
             </TableData>
 
-            <TableData>{subuser.user.username}</TableData>
+            <TableData>
+              {/* plugged.host: the profile badge (docs/features/promos.md#profile-badges) */}
+              <span className='inline-flex items-center gap-2'>
+                {subuser.user.username}
+                <ProfileBadge badge={subuser.user.badge} />
+              </span>
+            </TableData>
 
             <TableData>
               {subuser.user.totpEnabled ? (

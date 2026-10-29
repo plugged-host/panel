@@ -174,7 +174,8 @@ impl Tool for AccountOverviewTool {
             lines.push(format!(
                 "{}: {}",
                 names.plus,
-                match membership.plus_until {
+                match membership.plus_runs_until() {
+                    // plugged.host: bought or with the membership bundle
                     Some(until) if membership.has_plus(now) => format!(
                         "yes, until {} UTC ({} locations unlocked)",
                         until.format("%Y-%m-%d %H:%M"),

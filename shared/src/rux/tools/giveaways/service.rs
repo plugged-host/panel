@@ -1,4 +1,4 @@
-//! plugged.host: credit giveaways on Discord.
+//! plugged.host: giveaways on Discord, of credits, tokens or days of a membership.
 //!
 //! Entering always needs a Discord account linked to an account ([`payouts::linked`]). A
 //! giveaway can also keep out the winners of the last N giveaways; which giveaways those were is
@@ -12,8 +12,10 @@
 //! back to `active` and is tried again a minute later.
 //!
 //! A giveaway belongs to the server it was posted on: only that server's members can enter and
-//! win it. Its prize is always credits; its title names the occasion and can never promise
-//! anything else ([`credits_only_title`]), because credits are all rux gives.
+//! win it. Its prize is credits, tokens or days of a membership ([`prize_kind`]); its title names
+//! the occasion or its own prize and can never promise anything else ([`prize_title`]). Tokens
+//! and memberships are always the panel's own, so the panel pays them in every mode, to the panel
+//! account the winner's Discord is linked to (a winner without one waits, like an unlinked one).
 
 use super::super::{
     ToolError,
@@ -24,7 +26,7 @@ use crate::rux::{
     config::Config,
     context::Context,
     discord::Rest,
-    models::{GIVEAWAY_COLUMNS, Giveaway, giveaway_status as status},
+    models::{GIVEAWAY_COLUMNS, Giveaway, giveaway_status as status, prize_kind},
     noprofit::Unavailable,
     resolver, say, text, time,
 };
@@ -59,13 +61,33 @@ pub fn payout_key(giveaway_id: i64, draw: i16) -> String {
     }
 }
 
-/// A giveaway's title, refused when it promises a prize other than credits.
+/// A credit giveaway's title, refused when it promises another prize.
 pub fn credits_only_title(title: &str) -> Result<String, ToolError> {
+    prize_title(prize_kind::CREDITS, title)
+}
+
+/// Whether a word the title matched names the giveaway's own prize ("tokens" on a token
+/// giveaway, "Plus" on days of the first membership).
+fn names_own_prize(kind: &str, word: &str) -> bool {
+    let word = word.to_ascii_lowercase();
+    match kind {
+        prize_kind::TOKENS => word == "token" || word == "tokens",
+        prize_kind::PLUS_DAYS => word == "plus",
+        prize_kind::PLUSPLUS_DAYS => word == "premium" || word == "plusplus",
+        _ => false,
+    }
+}
+
+/// A giveaway's title, refused when it promises a prize other than its own.
+pub fn prize_title(kind: &str, title: &str) -> Result<String, ToolError> {
     let title = title.trim();
 
-    if let Some(found) = OTHER_PRIZES.find(title) {
+    if let Some(found) = OTHER_PRIZES
+        .find_iter(title)
+        .find(|found| !names_own_prize(kind, found.as_str()))
+    {
         return Err(ToolError::Invalid(format!(
-            "A giveaway's prize is always credits, and rux can give nothing else, so the title cannot promise \"{}\". Use a title that names the occasion (or none) and say it is credits.",
+            "A giveaway's prize is what its prize_kind says ({kind}) and nothing else, so the title cannot promise \"{}\". Use a title that names the occasion (or none).",
             found.as_str()
         )));
     }
@@ -73,12 +95,48 @@ pub fn credits_only_title(title: &str) -> Result<String, ToolError> {
     Ok(title.to_string())
 }
 
-/// The title a giveaway gets when it is given none: "500 credits".
-pub fn auto_title(config: &Config, credits: i64) -> String {
-    config.say(
-        "giveaway.prize_one",
-        &[("credits", &thousands(credits, config.locale()))],
-    )
+/// The prize for one winner, "500 credits", "15 tokens", "30 days of Plus" (`each`: "… for each
+/// winner").
+pub fn prize_label(config: &Config, kind: &str, amount: i64, each: bool) -> String {
+    let locale = config.locale();
+    match kind {
+        prize_kind::TOKENS => say::say_count(
+            locale,
+            if each {
+                "giveaway.prize_tokens_each"
+            } else {
+                "giveaway.prize_tokens_one"
+            },
+            amount,
+            &[],
+        ),
+        prize_kind::PLUS_DAYS | prize_kind::PLUSPLUS_DAYS => say::say_count(
+            locale,
+            if each {
+                "giveaway.prize_days_each"
+            } else {
+                "giveaway.prize_days_one"
+            },
+            amount,
+            &[(
+                "membership",
+                config.memberships.of(kind == prize_kind::PLUSPLUS_DAYS),
+            )],
+        ),
+        _ => config.say(
+            if each {
+                "giveaway.prize_each"
+            } else {
+                "giveaway.prize_one"
+            },
+            &[("credits", &thousands(amount, locale))],
+        ),
+    }
+}
+
+/// The title a giveaway gets when it is given none: "500 credits", "15 tokens".
+pub fn auto_title(config: &Config, kind: &str, amount: i64) -> String {
+    prize_label(config, kind, amount, false)
 }
 
 fn now() -> NaiveDateTime {
@@ -162,6 +220,8 @@ impl Giveaway {
 
 /// What a new giveaway is.
 pub struct NewGiveaway {
+    /// A [`prize_kind`]; `credits` holds its amount per winner.
+    pub kind: String,
     pub credits: i64,
     pub ends_at: String,
     pub winners: i64,
@@ -172,20 +232,29 @@ pub struct NewGiveaway {
 
 fn validate(
     config: &Config,
+    kind: &str,
     credits: i64,
     winners: i64,
     ends: DateTime<chrono_tz::Tz>,
     now: DateTime<chrono_tz::Tz>,
 ) -> Result<(), ToolError> {
     let settings = &config.settings;
-    let max_credits = settings.giveaway_max_credits.max(1);
     let max_winners = i64::from(settings.giveaway_max_winners.max(1));
     let max_days = i64::from(settings.giveaway_max_days.max(1));
     let zone = config.tz();
 
-    if !(1..=max_credits).contains(&credits) {
+    // plugged.host: each prize kind has its own limit
+    let (max_amount, what) = match kind {
+        prize_kind::TOKENS => (settings.giveaway_max_tokens.max(1), "Tokens"),
+        prize_kind::PLUS_DAYS | prize_kind::PLUSPLUS_DAYS => (
+            i64::from(settings.giveaway_max_membership_days.max(1)),
+            "Membership days",
+        ),
+        _ => (settings.giveaway_max_credits.max(1), "Credits"),
+    };
+    if !(1..=max_amount).contains(&credits) {
         return Err(ToolError::Invalid(format!(
-            "Credits per winner must be between 1 and {max_credits} (the limit set in rux's settings)."
+            "{what} per winner must be between 1 and {max_amount} (the limit set in rux's settings)."
         )));
     }
     if !(1..=max_winners).contains(&winners) {
@@ -215,8 +284,15 @@ pub async fn create(context: &Context, input: NewGiveaway) -> Result<Giveaway, T
     let config = &context.config;
     let now = config.now();
     let ends = time::parse(&input.ends_at, now).map_err(ToolError::Invalid)?;
-    validate(config, input.credits, input.winners, ends, now)?;
-    let title = credits_only_title(input.title.as_deref().unwrap_or_default())?;
+    let kind = input.kind.trim().to_ascii_lowercase();
+    if !prize_kind::ALL.contains(&kind.as_str()) {
+        return Err(ToolError::Invalid(format!(
+            "prize_kind must be one of {}.",
+            prize_kind::ALL.join(", ")
+        )));
+    }
+    validate(config, &kind, input.credits, input.winners, ends, now)?;
+    let title = prize_title(&kind, input.title.as_deref().unwrap_or_default())?;
     if !(0..=MAX_EXCLUDE_RECENT).contains(&input.exclude_recent) {
         return Err(ToolError::Invalid(format!(
             "exclude_recent_winners must be between 0 and {MAX_EXCLUDE_RECENT}."
@@ -236,7 +312,13 @@ pub async fn create(context: &Context, input: NewGiveaway) -> Result<Giveaway, T
         resolver::postable_channel(&context.rest, &context.guild_id, &channel_input).await?;
     let channel_id = channel["id"].as_str().unwrap_or_default().to_string();
 
-    let payer = payouts::payer(&context.state).await?;
+    // credits are paid where they live; tokens and memberships always by the panel
+    let payer = if prize_kind::panel_only(&kind) {
+        panel_prize_available(&context.state, &kind).await?;
+        Payer::Panel
+    } else {
+        payouts::payer(&context.state).await?
+    };
 
     // fixed now: "the last 2 giveaways" means the last 2 at the moment the admin asked
     let mut excluded = Value::Null;
@@ -270,15 +352,15 @@ pub async fn create(context: &Context, input: NewGiveaway) -> Result<Giveaway, T
     }
 
     let prize = if title.is_empty() {
-        auto_title(config, input.credits)
+        auto_title(config, &kind, input.credits)
     } else {
         title
     };
     let giveaway = sqlx::query_as::<_, Giveaway>(sqlx::AssertSqlSafe(format!(
         "INSERT INTO rux_giveaways
-            (guild_id, channel_id, prize, credits, winners_count, ends, exclude_recent, excluded, status,
+            (guild_id, channel_id, prize, credits, prize_kind, winners_count, ends, exclude_recent, excluded, status,
              created_by_discord_id, created_by_account_id, created_by_user_uuid)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'active', $9, $10, $11)
+        VALUES ($1, $2, $3, $4, $12, $5, $6, $7, $8, 'active', $9, $10, $11)
         RETURNING {GIVEAWAY_COLUMNS}"
     )))
     .bind(&context.guild_id)
@@ -292,6 +374,7 @@ pub async fn create(context: &Context, input: NewGiveaway) -> Result<Giveaway, T
     .bind(&context.actor_discord_id)
     .bind(context.actor_account_id)
     .bind(context.actor_user_uuid)
+    .bind(&kind)
     .fetch_one(context.state.database.write())
     .await?;
 
@@ -347,13 +430,14 @@ pub async fn update(
         Some(ends_at) => time::parse(ends_at, local_now).map_err(ToolError::Invalid)?,
         None => giveaway.ends.and_utc().with_timezone(&config.tz()),
     };
-    validate(config, credits, winners, ends, local_now)?;
+    let kind = giveaway.prize_kind.as_str();
+    validate(config, kind, credits, winners, ends, local_now)?;
 
-    let title = credits_only_title(changes.title.as_deref().unwrap_or_default())?;
+    let title = prize_title(kind, changes.title.as_deref().unwrap_or_default())?;
     let prize = if !title.is_empty() {
         title
-    } else if giveaway.prize == auto_title(config, giveaway.credits) {
-        auto_title(config, credits)
+    } else if giveaway.prize == auto_title(config, kind, giveaway.credits) {
+        auto_title(config, kind, credits)
     } else {
         giveaway.prize.clone()
     };
@@ -715,7 +799,12 @@ async fn pay(state: &crate::State, giveaway: &Giveaway, draw: i16) -> Result<(),
         return Ok(());
     }
 
-    let payer = payouts::payer(state).await.map_err(|err| err.to_string())?;
+    // tokens and memberships are always the panel's own
+    let payer = if prize_kind::panel_only(&giveaway.prize_kind) {
+        Payer::Panel
+    } else {
+        payouts::payer(state).await.map_err(|err| err.to_string())?
+    };
     let panel = matches!(payer, Payer::Panel);
     let reference = match payer {
         Payer::Noprofit(client) => {
@@ -797,8 +886,8 @@ async fn pay(state: &crate::State, giveaway: &Giveaway, draw: i16) -> Result<(),
     Ok(())
 }
 
-/// Pays one winner into the panel's own credits, once: the entry is claimed in the same
-/// transaction. A winner who is not linked (any more) stays pending.
+/// Pays one winner on the panel (its own credits, tokens or a membership's days), once: the entry
+/// is claimed in the same transaction. A winner who is not linked (any more) stays pending.
 async fn pay_on_panel(
     state: &crate::State,
     giveaway: &Giveaway,
@@ -820,7 +909,7 @@ async fn pay_on_panel(
         return Ok(());
     };
 
-    let result: Result<(), sqlx::Error> = async {
+    let result: Result<bool, sqlx::Error> = async {
         let mut transaction = state.database.write().begin().await?;
         let claimed = sqlx::query(
             "UPDATE rux_giveaway_entries SET payout = 'paid', updated = NOW()
@@ -831,33 +920,90 @@ async fn pay_on_panel(
         .await?
         .rows_affected();
         if claimed == 0 {
-            return Ok(());
+            return Ok(false);
         }
 
-        let paid = crate::economy::change(
-            &mut transaction,
-            crate::economy::Currency::Credits,
-            user_uuid,
-            giveaway.credits,
-            "rux_giveaway",
-            &format!("Giveaway on Discord: {}", giveaway.prize),
-            json!({
-                "giveaway": giveaway.id,
-                "draw": draw,
-                "key": payout_key(giveaway.id, draw),
-                "discord_id": discord_id,
-            }),
-        )
-        .await?;
-        if paid.is_some() {
-            transaction.commit().await?;
+        let data = json!({
+            "giveaway": giveaway.id,
+            "draw": draw,
+            "key": payout_key(giveaway.id, draw),
+            "discord_id": discord_id,
+            "prize_kind": giveaway.prize_kind,
+        });
+        let description = format!("Giveaway on Discord: {}", giveaway.prize);
+
+        // plugged.host: tokens and membership days are paid like the credits, once per entry
+        match giveaway.prize_kind.as_str() {
+            prize_kind::PLUS_DAYS | prize_kind::PLUSPLUS_DAYS => {
+                crate::economy::give_membership_days(
+                    &mut transaction,
+                    user_uuid,
+                    giveaway.prize_kind == prize_kind::PLUSPLUS_DAYS,
+                    giveaway.credits,
+                )
+                .await?;
+                transaction.commit().await?;
+                return Ok::<bool, sqlx::Error>(true);
+            }
+            kind => {
+                let currency = if kind == prize_kind::TOKENS {
+                    crate::economy::Currency::Tokens
+                } else {
+                    crate::economy::Currency::Credits
+                };
+                let paid = crate::economy::change(
+                    &mut transaction,
+                    currency,
+                    user_uuid,
+                    giveaway.credits,
+                    "rux_giveaway",
+                    &description,
+                    data,
+                )
+                .await?;
+                if paid.is_some() {
+                    transaction.commit().await?;
+                }
+            }
         }
 
-        Ok::<(), sqlx::Error>(())
+        Ok::<bool, sqlx::Error>(false)
     }
     .await;
 
-    result.map_err(|err| err.to_string())
+    match result {
+        Ok(membership) => {
+            if membership {
+                crate::economy::membership_changed(state, user_uuid).await;
+            }
+            Ok(())
+        }
+        Err(err) => Err(err.to_string()),
+    }
+}
+
+/// Whether the panel can pay a prize of this kind now: tokens need tokens on, days the
+/// memberships on.
+async fn panel_prize_available(state: &crate::State, kind: &str) -> Result<(), ToolError> {
+    let (tokens, memberships) = {
+        let settings = state.settings.get().await?;
+        (
+            settings.economy.tokens_enabled,
+            settings.economy.membership_enabled,
+        )
+    };
+
+    match kind {
+        prize_kind::TOKENS if !tokens => Err(ToolError::invalid(
+            "Tokens are turned off on this panel, so no tokens can be given. Tell an admin.",
+        )),
+        prize_kind::PLUS_DAYS | prize_kind::PLUSPLUS_DAYS if !memberships => {
+            Err(ToolError::invalid(
+                "Memberships are turned off on this panel, so no membership days can be given. Tell an admin.",
+            ))
+        }
+        _ => Ok(()),
+    }
 }
 
 /// Pays the draws that are still waiting: noprofit.space was down at the draw, or (the panel
@@ -988,12 +1134,12 @@ pub fn render_payload(
     winners: &[String],
 ) -> Value {
     let locale = config.locale();
-    let credits = thousands(giveaway.credits, locale);
-    let prize_line = if giveaway.winners_count > 1 {
-        config.say("giveaway.prize_each", &[("credits", &credits)])
-    } else {
-        config.say("giveaway.prize_one", &[("credits", &credits)])
-    };
+    let prize_line = prize_label(
+        config,
+        &giveaway.prize_kind,
+        giveaway.credits,
+        giveaway.winners_count > 1,
+    );
 
     let mut rules = vec![format!("- {}", config.say("giveaway.rule_link", &[]))];
     if giveaway.exclude_recent > 0 {
@@ -1066,12 +1212,14 @@ pub fn render_payload(
         ),
     };
 
-    let description =
-        if giveaway.prize != auto_title(config, giveaway.credits) || giveaway.winners_count > 1 {
-            format!("{prize_line}\n\n{body}")
-        } else {
-            body
-        };
+    let description = if giveaway.prize
+        != auto_title(config, &giveaway.prize_kind, giveaway.credits)
+        || giveaway.winners_count > 1
+    {
+        format!("{prize_line}\n\n{body}")
+    } else {
+        body
+    };
     let mut embed = json!({
         "title": text::cut(&giveaway.prize, 256, ""),
         "description": description,
@@ -1139,12 +1287,27 @@ async fn announce(
                 &[("winners", &mentions), ("prize", &giveaway.prize)],
             ),
             config.say(
-                if all_paid {
-                    "giveaway.announce_paid"
-                } else {
-                    "giveaway.announce_pending"
+                match (giveaway.prize_kind.as_str(), all_paid) {
+                    (prize_kind::TOKENS, true) => "giveaway.announce_paid_tokens",
+                    (prize_kind::TOKENS, false) => "giveaway.announce_pending_tokens",
+                    (prize_kind::PLUS_DAYS | prize_kind::PLUSPLUS_DAYS, true) => {
+                        "giveaway.announce_paid_days"
+                    }
+                    (prize_kind::PLUS_DAYS | prize_kind::PLUSPLUS_DAYS, false) => {
+                        "giveaway.announce_pending_days"
+                    }
+                    (_, true) => "giveaway.announce_paid",
+                    (_, false) => "giveaway.announce_pending",
                 },
-                &[],
+                &[
+                    ("app", &config.app_name),
+                    (
+                        "membership",
+                        config
+                            .memberships
+                            .of(giveaway.prize_kind == prize_kind::PLUSPLUS_DAYS),
+                    ),
+                ],
             )
         )
     };
@@ -1216,7 +1379,8 @@ pub async fn summary(
         "id": giveaway.id,
         "status": giveaway.status,
         "prize": giveaway.prize,
-        "credits_per_winner": giveaway.credits,
+        "prize_kind": giveaway.prize_kind,
+        "per_winner": prize_label(config, &giveaway.prize_kind, giveaway.credits, false),
         "winners_wanted": giveaway.winners_count,
         "channel": format!("<#{}>", giveaway.channel_id),
         "ends_at": time::human(giveaway.ends.and_utc(), zone),
@@ -1256,6 +1420,7 @@ pub(crate) mod tests {
             boost_two_role_id: String::new(),
             managed: None,
             managed_bot_token: None,
+            memberships: Default::default(),
         }
     }
 
@@ -1271,6 +1436,7 @@ pub(crate) mod tests {
             message_id: Some("100000000000000005".into()),
             prize: "500 credits".into(),
             credits: 500,
+            prize_kind: prize_kind::CREDITS.into(),
             winners_count: 1,
             ends: at,
             exclude_recent: 0,
@@ -1329,6 +1495,41 @@ pub(crate) mod tests {
         // a word that only contains one is fine
         assert!(credits_only_title("Programmers' party").is_ok());
         assert!(credits_only_title("Surplus week").is_ok());
+    }
+
+    #[test]
+    fn titles_may_name_their_own_prize() {
+        assert!(prize_title(prize_kind::TOKENS, "500 tokens party").is_ok());
+        assert!(prize_title(prize_kind::TOKENS, "Plus week").is_err());
+        assert!(prize_title(prize_kind::PLUS_DAYS, "A month of Plus").is_ok());
+        assert!(prize_title(prize_kind::PLUS_DAYS, "Premium").is_err());
+        assert!(prize_title(prize_kind::PLUSPLUS_DAYS, "Premium week").is_ok());
+        assert!(prize_title(prize_kind::PLUSPLUS_DAYS, "8 GB RAM").is_err());
+        assert!(prize_title(prize_kind::CREDITS, "500 tokens").is_err());
+    }
+
+    #[test]
+    fn prizes_are_named_by_kind() {
+        let en = config("en");
+        assert_eq!(
+            prize_label(&en, prize_kind::CREDITS, 500, false),
+            "500 credits"
+        );
+        assert_eq!(prize_label(&en, prize_kind::TOKENS, 1, false), "1 token");
+        assert_eq!(
+            prize_label(&en, prize_kind::TOKENS, 15, true),
+            "15 tokens for each winner"
+        );
+        assert_eq!(
+            prize_label(&en, prize_kind::PLUS_DAYS, 30, false),
+            "30 days of Plus"
+        );
+        assert_eq!(
+            prize_label(&config("de"), prize_kind::PLUSPLUS_DAYS, 1, false),
+            "1 Tag Premium"
+        );
+        assert!(prize_kind::panel_only(prize_kind::TOKENS));
+        assert!(!prize_kind::panel_only(prize_kind::CREDITS));
     }
 
     #[test]

@@ -291,7 +291,22 @@ pub mod giveaway_status {
     pub const PAYOUT_FAILED: &str = "failed";
 }
 
-/// `rux_giveaways`: a giveaway of credits.
+/// What a giveaway pays each winner. Credits go where the credits live (noprofit.space's rux
+/// routes while it is connected); tokens and the memberships are always the panel's own.
+pub mod prize_kind {
+    pub const CREDITS: &str = "credits";
+    pub const TOKENS: &str = "tokens";
+    pub const PLUS_DAYS: &str = "plus_days";
+    pub const PLUSPLUS_DAYS: &str = "plusplus_days";
+    pub const ALL: [&str; 4] = [CREDITS, TOKENS, PLUS_DAYS, PLUSPLUS_DAYS];
+
+    /// Paid by the panel itself whatever is connected.
+    pub fn panel_only(kind: &str) -> bool {
+        kind != CREDITS
+    }
+}
+
+/// `rux_giveaways`: a giveaway of credits, tokens or membership days.
 #[derive(Debug, Clone, Serialize, sqlx::FromRow)]
 pub struct Giveaway {
     pub id: i64,
@@ -299,7 +314,10 @@ pub struct Giveaway {
     pub channel_id: String,
     pub message_id: Option<String>,
     pub prize: String,
+    /// What each winner gets: credits, tokens or days, by [`Self::prize_kind`].
     pub credits: i64,
+    /// `credits`, `tokens`, `plus_days` or `plusplus_days` ([`prize_kind`]).
+    pub prize_kind: String,
     pub winners_count: i16,
     pub ends: chrono::NaiveDateTime,
     pub exclude_recent: i16,
@@ -319,7 +337,7 @@ pub struct Giveaway {
     pub updated: chrono::NaiveDateTime,
 }
 
-pub const GIVEAWAY_COLUMNS: &str = "id, guild_id, channel_id, message_id, prize, credits, winners_count, ends, exclude_recent, excluded, status, created_by_discord_id, created_by_account_id, created_by_user_uuid, ended, payout_status, payout_attempts, payout_error, payout_reference, rerolls, rendered_entries, created, updated";
+pub const GIVEAWAY_COLUMNS: &str = "id, guild_id, channel_id, message_id, prize, credits, prize_kind, winners_count, ends, exclude_recent, excluded, status, created_by_discord_id, created_by_account_id, created_by_user_uuid, ended, payout_status, payout_attempts, payout_error, payout_reference, rerolls, rendered_entries, created, updated";
 
 /// `rux_giveaway_entries`: someone in a giveaway.
 #[derive(Debug, Clone, Serialize, sqlx::FromRow)]

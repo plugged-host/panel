@@ -23,12 +23,24 @@ const typeKeys = {
   discord_invite_debt: 'discordInviteDebt',
   discord_boost: 'discordBoost',
   partner: 'partner', // plugged.host: docs/features/partners.md
+  server_upgrade: 'serverUpgrade', // plugged.host: docs/features/server-upgrades.md
+  // plugged.host: a membership bought for someone else, and the same seen by them
+  membership_gift: 'membershipGift',
+  membership_gift_received: 'membershipGiftReceived',
+  // plugged.host: the Tokens page's streak and referrals (docs/features/economy.md)
+  streak: 'streak',
+  referral: 'referral',
+  // plugged.host: the waiting room's day pass, profile badges, neo's extra usage (docs/features/promos.md)
+  day_pass: 'dayPass',
+  badge: 'badge',
+  neo_extra: 'neoExtra',
 } as const;
 
-export type TypeKey = (typeof typeKeys)[keyof typeof typeKeys] | 'earn';
+export type TypeKey = (typeof typeKeys)[keyof typeof typeKeys] | 'earn' | 'starter';
 
 export function typeKey(type: string): TypeKey | null {
   if (type.startsWith('earn:')) return 'earn';
+  if (type.startsWith('starter:')) return 'starter'; // plugged.host: a first-week task
 
   return type in typeKeys ? typeKeys[type as keyof typeof typeKeys] : null;
 }

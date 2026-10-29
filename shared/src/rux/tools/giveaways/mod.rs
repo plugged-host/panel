@@ -1,8 +1,8 @@
-//! plugged.host: rux's giveaways of credits (create, list, edit, end, cancel, reroll), their
-//! Enter buttons and their tick (draws, payouts).
+//! plugged.host: rux's giveaways (create, list, edit, end, cancel, reroll), their Enter buttons
+//! and their tick (draws, payouts).
 //!
-//! The prize is always credits, paid to accounts linked to Discord ([`service`]); the post's
-//! buttons are answered in [`entries`]; the tools are in [`tools`].
+//! The prize is credits, tokens or days of a membership, paid to accounts linked to Discord
+//! ([`service`]); the post's buttons are answered in [`entries`]; the tools are in [`tools`].
 
 pub mod entries;
 pub mod service;
@@ -24,6 +24,27 @@ pub const STRINGS: Strings = &[
         ":credits Credits für jeden Gewinner",
     ),
     ("giveaway.prize_one", ":credits credits", ":credits Credits"),
+    // plugged.host: tokens and membership days as prizes
+    (
+        "giveaway.prize_tokens_one",
+        "1 token|:count tokens",
+        "1 Token|:count Tokens",
+    ),
+    (
+        "giveaway.prize_tokens_each",
+        "1 token for each winner|:count tokens for each winner",
+        "1 Token für jeden Gewinner|:count Tokens für jeden Gewinner",
+    ),
+    (
+        "giveaway.prize_days_one",
+        "1 day of :membership|:count days of :membership",
+        "1 Tag :membership|:count Tage :membership",
+    ),
+    (
+        "giveaway.prize_days_each",
+        "1 day of :membership for each winner|:count days of :membership for each winner",
+        "1 Tag :membership für jeden Gewinner|:count Tage :membership für jeden Gewinner",
+    ),
     (
         "giveaway.open_body",
         "Press **Enter** to join. Ends :relative (:absolute).",
@@ -73,6 +94,26 @@ pub const STRINGS: Strings = &[
         "giveaway.announce_pending",
         "Credits are on their way to your :portal account.",
         "Die Credits sind auf dem Weg zu deinem :portal-Konto.",
+    ),
+    (
+        "giveaway.announce_paid_tokens",
+        "The tokens are already in your :app account.",
+        "Die Tokens sind schon auf deinem :app-Konto.",
+    ),
+    (
+        "giveaway.announce_pending_tokens",
+        "The tokens are on their way to your :app account.",
+        "Die Tokens sind auf dem Weg zu deinem :app-Konto.",
+    ),
+    (
+        "giveaway.announce_paid_days",
+        ":membership is already running on your :app account.",
+        ":membership läuft schon auf deinem :app-Konto.",
+    ),
+    (
+        "giveaway.announce_pending_days",
+        ":membership is on its way to your :app account.",
+        ":membership ist auf dem Weg zu deinem :app-Konto.",
     ),
     (
         "giveaway.announce_none",

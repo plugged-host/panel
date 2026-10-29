@@ -1197,6 +1197,11 @@ pub(crate) static BASE_SERVER_PERMISSIONS: LazyLock<IndexMap<&'static str, Permi
                             "Allows deleting the server, when the panel lets players delete their servers.",
                         ),
                         ("transfer", "Allows moving the server to another location."),
+                        // plugged.host: docs/features/server-upgrades.md
+                        (
+                            "upgrades",
+                            "Allows buying upgrades for the server with their own tokens: a keep-awake pass, a boost, extra ports, databases and backup slots, a card colour.",
+                        ),
                     ]),
                 },
             ),

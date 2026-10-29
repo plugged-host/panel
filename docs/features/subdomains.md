@@ -62,6 +62,11 @@ removed again, the row is deleted and the tokens come back. A failed rename keep
   the player, by an admin, with its domain, or with the server. Transactions `subdomain` and
   `subdomain_refund`. A subuser with `subdomains.create` spends the owner's tokens; only the owner
   sees the balance.
+- **Short names** take a bigger deposit ([server-upgrades.md](server-upgrades.md#short-subdomain-names)):
+  the deposit is the larger of the tier and `upgrades::short_subdomain_three` (15) for a name of 3
+  characters, `short_subdomain_two` (30) for 2, while Admin › Settings › Economy › Server Upgrades
+  has it on. The create form's deposit follows the name as it is typed. A rename to a short name
+  that takes more than the subdomain's deposit is refused (400): add it as a new subdomain.
 - Names are 2 to 63 lowercase letters, digits and hyphens. A list of names is built in (`www`,
   `panel`, `mail`, `node*`, `ns*` and others, `records::BUILT_IN_BLOCKED`); Blocked Names adds more,
   with `*` matching anything.
@@ -114,7 +119,7 @@ the Pelican plugin's Filament table:
 
 | Route | Permission | Does |
 |---|---|---|
-| `GET /api/client/servers/{server}/subdomains` | `subdomains.read` | `{subdomains, limit, domains, service, address, unavailable, next_cost, balance}`; `unavailable` is `off`, `unsupported`, `no_domains`, `no_address`, `discord_link`, `discord_member` or `null`; `balance` only for the owner while tokens are on |
+| `GET /api/client/servers/{server}/subdomains` | `subdomains.read` | `{subdomains, limit, domains, service, address, unavailable, next_cost, short_two, short_three, balance}` (`short_*`: the least deposit of a 2 and a 3 character name, 0 while tokens or short-name deposits are off); `unavailable` is `off`, `unsupported`, `no_domains`, `no_address`, `discord_link`, `discord_member` or `null`; `balance` only for the owner while tokens are on |
 | `POST /api/client/servers/{server}/subdomains` | `subdomains.create` | `{name, domain_uuid?}`: 400 bad or blocked name, unknown domain or too few tokens; 409 taken, limit reached, or another record of the name exists; 502 Cloudflare refused |
 | `PATCH /api/client/servers/{server}/subdomains/{subdomain}` | `subdomains.update` | `{name?}`: renames, or without a name writes the records again |
 | `DELETE /api/client/servers/{server}/subdomains/{subdomain}` | `subdomains.delete` | `{refunded}` |

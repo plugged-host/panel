@@ -36,6 +36,7 @@ type SettingsStoreKey =
   | 'economy' // plugged.host
   | 'queue' // plugged.host
   | 'limbo' // plugged.host
+  | 'upgrades' // plugged.host
   | 'ads' // plugged.host
   | 'subdomains' // plugged.host
   | 'discord' // plugged.host

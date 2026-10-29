@@ -74,6 +74,16 @@ export const userStoreSchema = z.object({
 
 export const economyPaySchema = z.enum(['tokens', 'credits']);
 
+// plugged.host: one of the two memberships, as routes name them (shared/src/economy.rs MembershipKind)
+export const membershipKindSchema = z.enum(['plus', 'plusplus']);
+
+// the Resource Store's sale while it covers the memberships (shared/src/economy.rs ApiDiscount)
+const membershipDiscountSchema = z.object({
+  percent: z.number(),
+  name: z.string().nullable(),
+  ends: z.coerce.date().nullable(),
+});
+
 const devboxSizeSchema = z.object({
   cpu: z.number(),
   memory: z.number(),
@@ -95,6 +105,8 @@ export const userEconomySchema = z.object({
   plusplusUntil: z.coerce.date().nullable(),
   priority: z.number(),
   plusCost: z.number(),
+  // plugged.host: without the membership sale; plusCost when none runs
+  plusFullCost: z.number(),
   plusDays: z.number(),
   panelAccess: z.boolean(),
   waitingRoom: z.boolean(),
@@ -104,9 +116,18 @@ export const userEconomySchema = z.object({
     z.object({
       pay: economyPaySchema,
       cost: z.number(),
+      fullCost: z.number(), // plugged.host: without the membership sale
       days: z.number(),
     }),
   ),
+  // plugged.host: the sale while it covers the memberships, automatic renewal, gifts
+  // (docs/features/economy.md#memberships)
+  discount: membershipDiscountSchema.nullable(),
+  autoRenewEnabled: z.boolean(),
+  plusAutoRenew: z.boolean(),
+  plusplusAutoRenew: z.boolean(),
+  giftsEnabled: z.boolean(),
+  giftsLeft: z.number(),
   plusBurstCores: z.number(),
   plusplusBurstCores: z.number(),
   burstCores: z.number(),
@@ -119,6 +140,12 @@ export const userEconomySchema = z.object({
       premium: devboxSizeSchema,
     })
     .nullable(),
+  // plugged.host: what the second membership includes on another panel, while the bundle runs
+  // (shared/src/membership_bundle.rs)
+  bundleName: z.string().nullable(),
+  // Plus that comes with the other panel's second membership, while it runs, and that membership's name
+  bundlePlusUntil: z.coerce.date().nullable(),
+  bundleSourceName: z.string(),
 });
 
 export const earnProviderSchema = z.enum([
@@ -138,6 +165,60 @@ export const panelAccessSchema = z.object({
   tokens: z.number(),
   days: z.number(),
   until: z.coerce.date().nullable(),
+});
+
+// plugged.host: the Tokens page's streak, double-token window, first-week tasks and referrals
+// (shared/src/{streak,starter_tasks,referrals}.rs, docs/features/economy.md)
+export const tokenBonusSchema = z.object({
+  percent: z.number(),
+  name: z.string().nullable(),
+  starts: z.coerce.date().nullable(),
+  ends: z.coerce.date().nullable(),
+});
+
+export const tokenStreakSchema = z.object({
+  day: z.number(),
+  reward: z.number(),
+  nextReward: z.number(),
+  claimable: z.boolean(),
+});
+
+export const starterTaskSchema = z.enum(['discord', 'create_server', 'start_server', 'earn']);
+
+export const tokenStarterSchema = z.object({
+  reward: z.number(),
+  ends: z.coerce.date(),
+  tasks: z.array(
+    z.object({
+      task: starterTaskSchema,
+      done: z.boolean(),
+      claimed: z.boolean(),
+    }),
+  ),
+});
+
+export const streakClaimSchema = z.object({
+  day: z.number(),
+  reward: z.number(),
+  amount: z.number(),
+  streak: tokenStreakSchema,
+});
+
+export const userReferralsSchema = z.object({
+  code: z.string(),
+  url: z.string(),
+  reward: z.number(),
+  threshold: z.number(),
+  monthlyCap: z.number(),
+  paidThisMonth: z.number(),
+  total: z.number(),
+  friends: z.array(
+    z.object({
+      username: z.string(),
+      tokensEarned: z.number(),
+      paid: z.coerce.date().nullable(),
+    }),
+  ),
 });
 
 export const userTokensSchema = z.object({
@@ -164,6 +245,11 @@ export const userTokensSchema = z.object({
     }),
   ),
   transactions: z.array(economyTransactionSchema),
+  // plugged.host: the double-token window, streak, first-week tasks; referrals has its own route
+  bonus: tokenBonusSchema.nullable().default(null),
+  streak: tokenStreakSchema.nullable().default(null),
+  starter: tokenStarterSchema.nullable().default(null),
+  referrals: z.boolean().default(false),
 });
 
 export const earnStartSchema = z.object({
@@ -188,6 +274,15 @@ export const adminUserEconomySchema = userEconomySchema.extend({
   plusplusPurchases: z.number(),
   creditTransactions: z.array(economyTransactionSchema),
   tokenTransactions: z.array(economyTransactionSchema),
+  // plugged.host: who brought the account and how many it brought (docs/features/referrals.md)
+  referrals: z
+    .object({
+      referredBy: z.object({ uuid: z.string(), username: z.string() }).nullable(),
+      referred: z.number(),
+      paid: z.number(),
+    })
+    .nullable()
+    .default(null),
 });
 
 // the sidebar's card (shared/src/economy.rs ApiBalance)
@@ -195,4 +290,15 @@ export const userBalanceSchema = z.object({
   credits: z.number().nullable(),
   tokens: z.number().nullable(),
   allowance: serverCreateAllowanceSchema,
+  // plugged.host: today's streak tokens wait on the Tokens page (shared/src/streak.rs)
+  streakClaimable: z.boolean().default(false),
+  // plugged.host: the cheapest membership not had, which the tokens row counts toward
+  membershipGoal: z
+    .object({
+      membership: membershipKindSchema,
+      name: z.string(),
+      cost: z.number(),
+    })
+    .nullable()
+    .default(null),
 });

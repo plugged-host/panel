@@ -27,6 +27,7 @@ import SeasonalDecor from '@/elements/navigation/SeasonalDecor.tsx'; // plugged.
 import SidebarGroup from '@/elements/navigation/SidebarGroup.tsx'; // plugged.host
 import ContextMenu, { ContextMenuItem } from '@/elements/overlays/ContextMenu.tsx';
 import Drawer from '@/elements/overlays/Drawer.tsx';
+import ProfileBadge from '@/elements/ProfileBadge.tsx'; // plugged.host
 import { useLogoutConfirmation } from '@/elements/useLogoutConfirmation.tsx';
 import { isAdmin } from '@/lib/auth/permissions.ts';
 import { useCustomIcon } from '@/lib/icons.ts';
@@ -418,6 +419,7 @@ function Footer() {
           >
             <Avatar size={32} className='select-none shrink-0' src={user.avatar} name={user.username} />
             <span className='theme-sidebar-user-name'>{displayName}</span>
+            <ProfileBadge badge={user.badge} className='shrink-0' /> {/* plugged.host */}
             <FontAwesomeIcon icon={faChevronUp} className='theme-sidebar-user-chevron' />
           </button>
         )}

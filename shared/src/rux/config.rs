@@ -55,6 +55,30 @@ pub struct Managed {
     pub saved_by: Option<String>,
 }
 
+/// plugged.host: the memberships' names (the economy settings'), as giveaways and `/tokens` name
+/// them.
+#[derive(Clone, Debug, Serialize, ToSchema)]
+pub struct MembershipNames {
+    pub plus: String,
+    pub plusplus: String,
+}
+
+impl Default for MembershipNames {
+    fn default() -> Self {
+        Self {
+            plus: "Plus".into(),
+            plusplus: "Premium".into(),
+        }
+    }
+}
+
+impl MembershipNames {
+    /// The name a giveaway's prize kind gives days of.
+    pub fn of(&self, plusplus: bool) -> &str {
+        if plusplus { &self.plusplus } else { &self.plus }
+    }
+}
+
 /// Everything rux runs on, for one message or one tick.
 #[derive(Clone, Serialize, ToSchema)]
 pub struct Config {
@@ -79,6 +103,9 @@ pub struct Config {
     /// section's moderation token; this is only for a lead who wants noprofit.space's).
     #[serde(skip)]
     pub managed_bot_token: Option<String>,
+    /// plugged.host: the memberships' names.
+    #[serde(skip)]
+    pub memberships: MembershipNames,
 }
 
 // by hand, so the bot token never reaches a log
@@ -409,6 +436,12 @@ struct AppSettingsRuxJson {
     giveaway_max_credits: i64,
     giveaway_max_winners: i32,
     giveaway_max_days: i32,
+    // plugged.host: what noprofit.space does not keep stays the panel's
+    giveaway_max_tokens: i64,
+    giveaway_max_membership_days: i32,
+    tokens_command: bool,
+    announce_channel_id: CompactString,
+    token_bonus_posts: bool,
     credit_granters: Vec<CompactString>,
     credit_max_per_grant: i64,
     warn_timeout_at: i32,
@@ -435,6 +468,8 @@ impl AppSettingsRuxJson {
         self.giveaway_max_credits = self.giveaway_max_credits.clamp(1, 1_000_000);
         self.giveaway_max_winners = self.giveaway_max_winners.clamp(1, 500);
         self.giveaway_max_days = self.giveaway_max_days.clamp(1, 365);
+        self.giveaway_max_tokens = self.giveaway_max_tokens.clamp(1, 100_000);
+        self.giveaway_max_membership_days = self.giveaway_max_membership_days.clamp(1, 365);
         self.credit_max_per_grant = self.credit_max_per_grant.clamp(1, 1_000_000);
         self.warn_timeout_at = self.warn_timeout_at.clamp(0, 100);
         self.warn_ban_at = self.warn_ban_at.clamp(0, 100);
@@ -484,6 +519,11 @@ impl AppSettingsRuxJson {
             giveaway_max_credits: self.giveaway_max_credits,
             giveaway_max_winners: self.giveaway_max_winners,
             giveaway_max_days: self.giveaway_max_days,
+            giveaway_max_tokens: self.giveaway_max_tokens,
+            giveaway_max_membership_days: self.giveaway_max_membership_days,
+            tokens_command: self.tokens_command,
+            announce_channel_id: self.announce_channel_id,
+            token_bonus_posts: self.token_bonus_posts,
             credit_granters: self.credit_granters,
             credit_max_per_grant: self.credit_max_per_grant,
             warn_timeout_at: self.warn_timeout_at,
@@ -519,7 +559,15 @@ pub fn portal_name(accounts_url: &str) -> Option<String> {
 
 /// The settings rux runs on now.
 pub async fn load(state: &crate::State) -> Result<Arc<Config>, anyhow::Error> {
-    let (mut settings, discord_guild_id, boost_two_role_id, app_name, app_url, noprofit) = {
+    let (
+        mut settings,
+        discord_guild_id,
+        boost_two_role_id,
+        app_name,
+        app_url,
+        noprofit,
+        memberships,
+    ) = {
         let all = state.settings.get().await?;
         (
             all.rux.clone(),
@@ -528,6 +576,11 @@ pub async fn load(state: &crate::State) -> Result<Arc<Config>, anyhow::Error> {
             all.app.name.to_string(),
             all.app.url.trim_end_matches('/').to_string(),
             all.noprofit.config(),
+            // plugged.host: the memberships' names, for giveaways and /tokens
+            MembershipNames {
+                plus: all.economy.plus_name.to_string(),
+                plusplus: all.economy.plusplus_name.to_string(),
+            },
         )
     };
 
@@ -573,6 +626,7 @@ pub async fn load(state: &crate::State) -> Result<Arc<Config>, anyhow::Error> {
         boost_two_role_id,
         managed,
         managed_bot_token,
+        memberships,
     }))
 }
 

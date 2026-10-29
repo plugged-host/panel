@@ -27,6 +27,8 @@ export const neoEmptyFormValues: NeoValues = {
   plusPercent: 125,
   plusplusPercent: 125,
   discordUnlinkedPercent: 50,
+  extraEnabled: true,
+  extraTokens: 2,
   shortHours: 5,
   shortTokens: 3_000_000,
   longDays: 7,

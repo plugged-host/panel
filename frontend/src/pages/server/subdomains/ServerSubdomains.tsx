@@ -177,6 +177,9 @@ function SubdomainModal({
   }, [opened]);
 
   const trimmed = name.trim().toLowerCase();
+  // plugged.host: a name of 3 characters or fewer takes a bigger deposit (docs/features/server-upgrades.md)
+  const shortCost = trimmed.length === 2 ? overview.shortTwo : trimmed.length === 3 ? overview.shortThree : 0;
+  const cost = Math.max(overview.nextCost, shortCost);
   const domainName = editing ? editing.domain : (overview.domains.find((choice) => choice.uuid === domain)?.name ?? '');
 
   const submit = (e: FormEvent) => {
@@ -190,10 +193,8 @@ function SubdomainModal({
       setError(t(`${base}.create.nameFormat`, {}));
       return;
     }
-    if (!editing && overview.nextCost > 0 && overview.balance !== null && overview.balance < overview.nextCost) {
-      setError(
-        t(`${base}.create.insufficient`, { cost: tItem('token', overview.nextCost), balance: overview.balance }),
-      );
+    if (!editing && cost > 0 && overview.balance !== null && overview.balance < cost) {
+      setError(t(`${base}.create.insufficient`, { cost: tItem('token', cost), balance: overview.balance }));
       return;
     }
 
@@ -234,9 +235,11 @@ function SubdomainModal({
               <div className='theme-sub-deposit-top'>
                 <div>
                   <span className='theme-sub-deposit-caption'>
-                    {t(`${base}.create.depositCaption`, { number: overview.subdomains.length + 1 })}
+                    {shortCost > overview.nextCost
+                      ? t(`${base}.create.shortCaption`, {})
+                      : t(`${base}.create.depositCaption`, { number: overview.subdomains.length + 1 })}
                   </span>
-                  <DepositAmount cost={overview.nextCost} />
+                  <DepositAmount cost={cost} />
                 </div>
                 {/* Only the owner sees their balance; a subuser sees the price alone. */}
                 {overview.balance !== null && (

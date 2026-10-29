@@ -238,6 +238,7 @@ export default function ServerItem({
               to={to ?? `/server/${server.uuidShort}`}
               className='theme-server-card'
               data-selected={isSelected || undefined}
+              data-card-color={server.cardColor ?? undefined} // plugged.host: docs/features/server-upgrades.md
               onClick={(e) => {
                 if (sKeyPressedRef?.current) {
                   e.preventDefault();

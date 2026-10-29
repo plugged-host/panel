@@ -125,7 +125,10 @@ when it is on. It is laid out like the Pelican panel's create page, one section 
   only while all three are its own.
 - **The EULA** (Minecraft), ticked by default.
 - The deploy row: why it cannot be deployed yet (the allowance or server limit, the game, the
-  location, the name, the EULA) and "Deploy server". The same button sits in the header as the
+  location, the name, the EULA) and "Deploy server". When the allowance is what stops it (a
+  resource used up, or the size over what is left, not the server count) and credits are on, a
+  link "Get more in the Resource Store" sits beside the reason, while Offers Where a Limit Is Felt
+  is on ([promos.md](promos.md#offers)). The same button sits in the header as the
   secondary action, with the reason as its tooltip; Ctrl/Cmd+S deploys too. A refused create shows
   "Could not create server" with the reason. It opens the new server's console.
 
@@ -164,6 +167,8 @@ The allowance comes from the games settings, the same for every account. Nothing
   limit.", and a create through the API is refused with "not enough memory left in your account".
 - Type a size no node of a location has room for: after half a second that location says "No
   capacity for the selected resources".
+- With the memory allowance used up: "Get more in the Resource Store" beside the reason, leading
+  to Account › Resource Store; at the server limit, or with credits or the offers off, no link.
 - Pause every node of a location (Admin › Nodes): the location shows "Full".
 - Admin › Settings › Hosting › Games: give a game an icon link; its card shows the picture, without
   one a gamepad.

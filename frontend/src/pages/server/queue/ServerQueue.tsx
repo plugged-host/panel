@@ -56,6 +56,7 @@ function Waiting({ queue, refetch }: { queue: Queue; refetch: () => void }) {
   const server = useServerStore((state) => state.server);
   const appName = useGlobalStore((state) => state.settings.app.name);
   const economy = useGlobalStore((state) => state.settings.economy);
+  const offers = useGlobalStore((state) => !!state.settings.ads?.offers); // plugged.host
 
   const [confirmingMove, setConfirmingMove] = useState(false);
   const [leaving, setLeaving] = useState(false);
@@ -65,6 +66,25 @@ function Waiting({ queue, refetch }: { queue: Queue; refetch: () => void }) {
   const consolePath = `/server/${server.uuidShort}`;
   const plusName = economy?.plusName ?? '';
   const plusplusName = economy?.plusplusName ?? '';
+
+  // plugged.host: the second membership goes first; one line for whoever does not have it
+  // (docs/features/promos.md#offers)
+  const premiumLine =
+    offers && economy?.membershipEnabled && queue.priority < 2 ? (
+      <p className='theme-eco-small'>
+        {t(`${page}.offers.premium`, { name: plusplusName })}{' '}
+        <a
+          className='theme-eco-link'
+          href='/account/membership'
+          onClick={(event) => {
+            event.preventDefault();
+            leavePage('/account/membership');
+          }}
+        >
+          {t(`${page}.offers.premiumLink`, { name: plusplusName })}
+        </a>
+      </p>
+    ) : null;
 
   // giving the place up: back to the console without starting anything
   const doLeave = () => {
@@ -163,6 +183,7 @@ function Waiting({ queue, refetch }: { queue: Queue; refetch: () => void }) {
           {queue.priority >= 2
             ? t(`${page}.priority.plusplus.body`, { name: plusplusName, plus: plusName })
             : t(`${page}.priority.plus.body`, { name: plusName })}
+          {premiumLine}
         </Notification>
       ) : queue.membershipOffer ? (
         <section className='theme-eco-card'>
@@ -170,6 +191,7 @@ function Waiting({ queue, refetch }: { queue: Queue; refetch: () => void }) {
             <div className='flex min-w-0 flex-col gap-1'>
               <h3 className='theme-eco-heading'>{t(`${page}.plusOffer.heading`, { app: appName, name: plusName })}</h3>
               <p className='theme-row-body'>{t(`${page}.plusOffer.body`, { name: plusName, cost: queue.plusCost })}</p>
+              {premiumLine}
             </div>
             <div className='theme-row-action'>
               <Button className='w-full' onClick={() => leavePage('/account/membership')}>

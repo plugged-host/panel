@@ -231,6 +231,23 @@ export default function NeoContainer() {
     number('shortTokens', t(`${page}.form.shortTokens`, {}), t(`${page}.form.tokensDescription`, {}), 0),
     number('longDays', t(`${page}.form.longDays`, {}), undefined, 1, 90),
     number('longTokens', t(`${page}.form.longTokens`, {}), t(`${page}.form.tokensDescription`, {}), 0),
+    // plugged.host: one more day's worth of usage for tokens, sold once a window refuses turns
+    {
+      type: 'switch',
+      name: 'extraEnabled',
+      label: t(`${page}.form.extraEnabled`, {}),
+      description: t(`${page}.form.extraEnabledDescription`, {}),
+      colSpan: 'full',
+    },
+    {
+      type: 'number',
+      name: 'extraTokens',
+      label: t(`${page}.form.extraTokens`, {}),
+      description: t(`${page}.form.extraTokensDescription`, {}),
+      required: true,
+      props: { min: 1, max: 1000 },
+      when: (values) => values.extraEnabled,
+    },
     number(
       'defaultCooldown',
       t(`${page}.form.defaultCooldown`, {}),

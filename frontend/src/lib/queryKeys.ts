@@ -283,6 +283,8 @@ const server = (serverUuid: string) => ({
       ['server', serverUuid, 'settings', 'software', 'versions', { variant }] as const,
     usage: () => ['server', serverUuid, 'settings', 'usage'] as const,
     notifications: () => ['server', serverUuid, 'settings', 'notifications'] as const,
+    // plugged.host: docs/features/server-upgrades.md
+    upgrades: () => ['server', serverUuid, 'settings', 'upgrades'] as const,
     // the startup command with its values filled in; refetched when what goes into it changes
     startupPreview: (inputs: object) => ['server', serverUuid, 'settings', 'startup-preview', inputs] as const,
   },
@@ -455,6 +457,7 @@ const user = {
   // plugged.host: the economy (docs/features/economy.md)
   store: () => ['user', 'store'] as const,
   tokens: () => ['user', 'tokens'] as const,
+  referrals: () => ['user', 'referrals'] as const, // plugged.host: docs/features/referrals.md
   membership: () => ['user', 'membership'] as const,
   panelAccess: () => ['user', 'panel-access'] as const, // plugged.host
   balance: () => ['user', 'balance'] as const,

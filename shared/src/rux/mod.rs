@@ -25,6 +25,8 @@
 //!    made into the Discord object it means).
 //!  - [`models`]: the `rux_*` tables; [`say`] (what rux posts, English and German), [`text`],
 //!    [`time`], [`images`], [`roles`] (the server's roles as the prompts name them): helpers.
+//!  - [`tokens`]: `/tokens` (a linked member's tokens, streak and membership) and the post that
+//!    announces a double-token window.
 //!
 //! [`tick`] does the housekeeping (orders that lost their worker, the tool groups' and the
 //! watch's ticks, old messages), every ten seconds on the primary instance.
@@ -46,6 +48,7 @@ pub mod roles;
 pub mod say;
 pub mod text;
 pub mod time;
+pub mod tokens;
 pub mod tools;
 pub mod watch;
 
@@ -191,6 +194,9 @@ pub async fn tick(state: &crate::State) -> Result<(), anyhow::Error> {
     if let Err(err) = watch::tick(state, &config, &rest).await {
         tracing::warn!("rux: the watch's tick failed: {err:#}");
     }
+    if let Err(err) = tokens::announce_bonus(state, &config, &rest).await {
+        tracing::warn!("rux: the double-token post failed: {err:#}");
+    }
 
     // once a day (the limiter lets one run through per day)
     if state
@@ -296,6 +302,7 @@ mod tests {
             boost_two_role_id: String::new(),
             managed: None,
             managed_bot_token: None,
+            memberships: Default::default(),
         }
     }
 

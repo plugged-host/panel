@@ -166,6 +166,17 @@ pub fn split_reward(saved: i64, reward: i64) -> (i64, i64) {
     (total / 100, total % 100)
 }
 
+/// plugged.host: a reward in hundredths with a double-token window's `percent` more (100: double),
+/// rounded half up, before it is split into whole tokens and the saved part
+/// ([`crate::economy::token_bonus_at`]).
+pub fn boosted(reward: i64, percent: i64) -> i64 {
+    if percent <= 0 {
+        return reward;
+    }
+
+    (reward * (100 + percent) + 50) / 100
+}
+
 /// What the `nth` link of the day on one provider (0: the first) pays, in hundredths: the full
 /// reward, then `decay_percent` less than the one before each time, never under `floor_percent`
 /// of the full reward. Advertisers pay less for a person they already showed their ads to.
@@ -444,6 +455,14 @@ pub struct ApiTokens {
     pub claim_minutes: i64,
     pub providers: Vec<ApiEarnProvider>,
     pub transactions: Vec<crate::economy::ApiTransaction>,
+    /// plugged.host: the double-token window while it runs; the providers' rewards include it.
+    pub bonus: Option<crate::economy::ApiTokenBonus>,
+    /// The daily streak (`None`: off).
+    pub streak: Option<crate::streak::ApiStreak>,
+    /// The first-week tasks (`None`: off, the days passed or all claimed).
+    pub starter: Option<crate::starter_tasks::ApiStarter>,
+    /// Referrals are on: the page asks `/tokens/referrals` for its section.
+    pub referrals: bool,
 }
 
 /// What today's cap counts: granted claims since midnight UTC; a survey wall's finished surveys
@@ -471,6 +490,9 @@ async fn granted_today(
 pub async fn tokens(state: &crate::State, user: &User) -> Result<ApiTokens, anyhow::Error> {
     let economy = state.settings.get().await?.economy.clone();
     let summary = crate::economy::summary(state, user).await?;
+    // plugged.host: a double-token window raises what every row shows
+    let bonus = crate::economy::token_bonus_at(&economy, chrono::Utc::now());
+    let percent = bonus.as_ref().map_or(0, |bonus| bonus.percent);
 
     let mut providers = Vec::new();
     if economy.tokens_enabled {
@@ -483,15 +505,18 @@ pub async fn tokens(state: &crate::State, user: &User) -> Result<ApiTokens, anyh
             let today = granted_today(state.database.write(), user.uuid, provider).await?;
             providers.push(ApiEarnProvider {
                 provider,
-                reward: config.reward as f64 / 100.0,
+                reward: boosted(config.reward, percent) as f64 / 100.0,
                 next_reward: if provider.is_survey() {
                     0.0
                 } else {
-                    link_reward(
-                        config.reward,
-                        economy.link_decay_percent,
-                        economy.link_floor_percent,
-                        today,
+                    boosted(
+                        link_reward(
+                            config.reward,
+                            economy.link_decay_percent,
+                            economy.link_floor_percent,
+                            today,
+                        ),
+                        percent,
                     ) as f64
                         / 100.0
                 },
@@ -530,6 +555,10 @@ pub async fn tokens(state: &crate::State, user: &User) -> Result<ApiTokens, anyh
             crate::economy::HISTORY,
         )
         .await?,
+        streak: crate::streak::status(state, &economy, user.uuid).await?,
+        starter: crate::starter_tasks::status(state, &economy, user).await?,
+        referrals: crate::referrals::offered(&economy),
+        bonus,
     })
 }
 
@@ -1036,18 +1065,25 @@ pub async fn redeem(
         return Ok(answer(Redemption::Invalid, 0, Some(provider)));
     }
 
+    // plugged.host: a double-token window pays its percent more, before the split
+    let bonus = economy.token_bonus_at(chrono::Utc::now());
+
     grant(
         state,
         user,
         claim_uuid,
         provider,
         &token_hash,
-        link_reward(
-            config.reward,
-            economy.link_decay_percent,
-            economy.link_floor_percent,
-            today,
+        boosted(
+            link_reward(
+                config.reward,
+                economy.link_decay_percent,
+                economy.link_floor_percent,
+                today,
+            ),
+            bonus,
         ),
+        bonus,
     )
     .await
 }
@@ -1063,6 +1099,7 @@ async fn grant(
     provider: Provider,
     token_hash: &str,
     reward: i64,
+    bonus: i64,
 ) -> Result<ApiRedeem, EarnError> {
     let mut transaction = state.database.write().begin().await?;
 
@@ -1141,7 +1178,11 @@ async fn grant(
         whole,
         &format!("earn:{}", provider.key()),
         provider.label(),
-        serde_json::json!({ "claim_uuid": claim_uuid }),
+        serde_json::json!({
+            "claim_uuid": claim_uuid,
+            // plugged.host: the double-token window's percent, while one ran
+            "bonus": (bonus > 0).then_some(bonus),
+        }),
     )
     .await?;
     transaction.commit().await?;
@@ -1376,6 +1417,13 @@ async fn credit_survey(
             tokens_text(SURVEY_MOST)
         );
     }
+    // plugged.host: a double-token window pays its percent more, before the split
+    let bonus = state
+        .settings
+        .get()
+        .await?
+        .economy
+        .token_bonus_at(chrono::Utc::now());
 
     let mut transaction = state.database.write().begin().await?;
 
@@ -1438,7 +1486,7 @@ async fn credit_survey(
     }
 
     // the same as a link: the whole tokens now, the rest saved on the account
-    let (whole, rest) = split_reward(saved as i64, amount);
+    let (whole, rest) = split_reward(saved as i64, boosted(amount, bonus));
     sqlx::query("UPDATE users SET token_fraction = $2 WHERE uuid = $1")
         .bind(user_uuid)
         .bind(rest as i32)
@@ -1461,6 +1509,7 @@ async fn credit_survey(
                 "claim_uuid": claim_uuid,
                 "trans_id": postback.trans_id,
                 "type": event.key(),
+                "bonus": (bonus > 0).then_some(bonus),
             }),
         )
         .await?;
@@ -1943,5 +1992,16 @@ mod tests {
         assert_eq!(survey_taken_back(10, 0), 0);
         assert_eq!(survey_taken_back(0, 25), 0);
         assert_eq!(survey_taken_back(10, -5), 0);
+    }
+
+    #[test]
+    fn a_token_bonus_raises_the_reward_before_the_split() {
+        assert_eq!(boosted(150, 0), 150);
+        assert_eq!(boosted(150, 100), 300);
+        assert_eq!(boosted(128, 50), 192);
+        assert_eq!(boosted(25, 10), 28);
+        assert_eq!(boosted(1250, -5), 1250);
+        // 1.5 doubled pays 3 whole tokens
+        assert_eq!(split_reward(0, boosted(150, 100)), (3, 0));
     }
 }

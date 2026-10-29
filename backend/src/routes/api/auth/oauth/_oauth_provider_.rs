@@ -519,6 +519,7 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
 
                         apply_oauth_provider_mappings(&state, &oauth_provider, user.uuid, &token, &info).await;
                         import_oauth_avatar(&state, &oauth_provider, &user, &info.info);
+                        shared::referrals::record(&state, user.uuid, &cookies, ip.0).await; // plugged.host: docs/features/referrals.md
 
                         let key = UserSession::create(
                             &state,

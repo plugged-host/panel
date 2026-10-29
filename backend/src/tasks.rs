@@ -982,12 +982,38 @@ pub async fn define_background_tasks(
             async |state| shared::ads::send_in_game(&state).await,
         )
         .await;
-    // plugged.host: PlusPlus that ran out (shared::economy)
+    // plugged.host: memberships renewing by themselves, ending soon and running out (shared::economy)
     background_task_builder
         .add_cron_task(
             "settle_memberships",
             croner::Cron::from_str("15 * * * * *").unwrap(),
             async |state| shared::economy::settle_memberships(&state).await,
+        )
+        .await;
+    // plugged.host: server upgrades that ran out ended (limits back, boosts synced), ends-soon
+    // notifications (shared::server_upgrades)
+    background_task_builder
+        .add_cron_task(
+            "settle_upgrades",
+            croner::Cron::from_str("25 * * * * *").unwrap(),
+            async |state| shared::server_upgrades::settle(&state).await,
+        )
+        .await;
+    // plugged.host: referrers of friends who earned the threshold (shared::referrals)
+    background_task_builder
+        .add_cron_task(
+            "pay_referrals",
+            croner::Cron::from_str("25 * * * * *").unwrap(),
+            async |state| shared::referrals::pay(&state).await,
+        )
+        .await;
+    // plugged.host: the second membership's end sent to the panel whose membership comes with it
+    // (shared::membership_bundle; a no-op until it is set up)
+    background_task_builder
+        .add_cron_task(
+            "sync_membership_bundle",
+            croner::Cron::from_str("25 * * * * *").unwrap(),
+            async |state| shared::membership_bundle::sync(&state).await,
         )
         .await;
     // plugged.host: neo's chats past their retention (shared::neo::conversations)

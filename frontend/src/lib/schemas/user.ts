@@ -25,6 +25,8 @@ export const userSchema = z.looseObject({
   username: z.string(),
   avatar: z.string().nullable(),
   totpEnabled: z.boolean(),
+  // plugged.host: the profile badge shown (docs/features/promos.md#profile-badges)
+  badge: z.string().nullish(),
   created: z.coerce.date(),
 });
 

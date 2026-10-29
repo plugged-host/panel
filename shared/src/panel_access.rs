@@ -154,3 +154,64 @@ pub async fn buy(state: &State, user: &User) -> Result<ApiPanelAccess, EconomyEr
 }
 
 pub const TYPE_PANEL_ACCESS: &str = "panel_access";
+
+/// Tells each account whose paid access ends within `hours`, once per end, when it ends and
+/// whether its tokens cover the next payment (the `settle_memberships` task, with the memberships'
+/// ends-soon notices). Administrators, and accounts whose membership runs past the end, are not
+/// told: they do not pay.
+pub async fn remind_ending(
+    state: &State,
+    economy: &crate::settings::economy::AppSettingsEconomy,
+    hours: i32,
+) -> Result<(), anyhow::Error> {
+    if !economy.panel_access_enabled || economy.panel_access_tokens <= 0 || !economy.tokens_enabled
+    {
+        return Ok(());
+    }
+    let cost = economy.panel_access_tokens as i64;
+
+    let due: Vec<(uuid::Uuid, chrono::NaiveDateTime)> = sqlx::query_as(
+        "SELECT uuid, panel_access_until FROM users
+        WHERE panel_access_until > NOW()
+            AND panel_access_until <= NOW() + make_interval(hours => $1)
+            AND panel_access_reminded IS DISTINCT FROM panel_access_until
+            AND NOT admin AND NOT suspended
+        ORDER BY panel_access_until
+        LIMIT 100",
+    )
+    .bind(hours)
+    .fetch_all(state.database.write())
+    .await?;
+
+    for (user_uuid, until) in due {
+        // marked first, so it goes out once even when sending it fails
+        let marked = sqlx::query(
+            "UPDATE users SET panel_access_reminded = panel_access_until
+            WHERE uuid = $1 AND panel_access_until = $2",
+        )
+        .bind(user_uuid)
+        .bind(until)
+        .execute(state.database.write())
+        .await?
+        .rows_affected();
+        if marked == 0 {
+            continue;
+        }
+
+        if crate::economy::membership(&state.database, user_uuid)
+            .await?
+            .is_member(until)
+        {
+            continue;
+        }
+
+        let tokens: i64 = sqlx::query_scalar("SELECT tokens FROM users WHERE uuid = $1")
+            .bind(user_uuid)
+            .fetch_one(state.database.write())
+            .await?;
+        crate::notifications::panel_access_ends_soon(state, user_uuid, until, cost, tokens >= cost)
+            .await;
+    }
+
+    Ok(())
+}

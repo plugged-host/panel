@@ -41,6 +41,17 @@ pub const TYPE_STORE: &str = "resource_purchase";
 pub const TYPE_PLUS: &str = "plus";
 pub const TYPE_PLUSPLUS: &str = "plusplus";
 pub const TYPE_ADMIN: &str = "admin";
+/// A membership bought for another account (the buyer's row), and the same seen by the account
+/// that got it (a row of 0 tokens).
+pub const TYPE_GIFT: &str = "membership_gift";
+pub const TYPE_GIFT_RECEIVED: &str = "membership_gift_received";
+
+/// An automatic renewal happens in the last minutes before a membership ends, or this long after
+/// its end when the task could not run then.
+const RENEW_BEFORE_MINUTES: i32 = 10;
+const RENEW_AFTER_MINUTES: i32 = 60;
+/// Looking up who a gift goes to, per account and hour (successful gifts have their daily limit).
+const GIFT_LOOKUPS_PER_HOUR: u64 = 30;
 
 /// Transactions shown on a page.
 pub const HISTORY: i64 = 10;
@@ -82,6 +93,101 @@ pub enum Source {
     Noprofit,
 }
 
+/// One of the two memberships (`plus`, `plusplus`), as routes and settings name them.
+#[derive(ToSchema, Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum MembershipKind {
+    Plus,
+    Plusplus,
+}
+
+impl MembershipKind {
+    /// The column prefix in `user_memberships`.
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Plus => "plus",
+            Self::Plusplus => "plusplus",
+        }
+    }
+
+    /// The name users see (a setting).
+    pub fn name(self, economy: &crate::settings::economy::AppSettingsEconomy) -> &str {
+        match self {
+            Self::Plus => economy.plus_name.as_str(),
+            Self::Plusplus => economy.plusplus_name.as_str(),
+        }
+    }
+
+    fn ledger_type(self) -> &'static str {
+        match self {
+            Self::Plus => TYPE_PLUS,
+            Self::Plusplus => TYPE_PLUSPLUS,
+        }
+    }
+}
+
+/// A membership as it is sold now: `cost` is `full_cost` with the membership sale taken off.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct MembershipOffer {
+    pub cost: i64,
+    pub full_cost: i64,
+    pub days: i64,
+}
+
+/// What `kind` costs paid with `pay`, with `percent` off (the sale while it covers the
+/// memberships, [`crate::settings::economy::AppSettingsEconomy::membership_discount_at`]);
+/// `None` when it is not sold that way (the first only for tokens, the second for credits only
+/// while it has a credit price, a currency turned off).
+pub fn membership_offer(
+    economy: &crate::settings::economy::AppSettingsEconomy,
+    kind: MembershipKind,
+    pay: Pay,
+    percent: i64,
+) -> Option<MembershipOffer> {
+    let (full_cost, days) = match (kind, pay) {
+        (MembershipKind::Plus, Pay::Tokens)
+            if economy.tokens_enabled || economy.plus_tokens <= 0 =>
+        {
+            (
+                economy.plus_tokens.max(0) as i64,
+                economy.plus_days.max(1) as i64,
+            )
+        }
+        (MembershipKind::Plusplus, Pay::Tokens) if economy.tokens_enabled => (
+            economy.plusplus_tokens.max(0) as i64,
+            economy.plusplus_token_days.max(1) as i64,
+        ),
+        (MembershipKind::Plusplus, Pay::Credits)
+            if economy.credits_enabled && economy.plusplus_credits > 0 =>
+        {
+            (
+                economy.plusplus_credits as i64,
+                economy.plusplus_credit_days.max(1) as i64,
+            )
+        }
+        _ => return None,
+    };
+
+    Some(MembershipOffer {
+        cost: discounted(full_cost, percent),
+        full_cost,
+        days,
+    })
+}
+
+/// How a membership renews by itself: with tokens, or the second with credits when only credits
+/// buy it.
+fn renewal_pay(
+    economy: &crate::settings::economy::AppSettingsEconomy,
+    kind: MembershipKind,
+) -> Pay {
+    if membership_offer(economy, kind, Pay::Tokens, 0).is_some() {
+        Pay::Tokens
+    } else {
+        Pay::Credits
+    }
+}
+
 #[derive(Clone, Debug, Default)]
 pub struct Membership {
     /// When Plus was first bought.
@@ -90,13 +196,30 @@ pub struct Membership {
     pub plus_purchases: i32,
     pub plusplus_until: Option<chrono::NaiveDateTime>,
     pub plusplus_purchases: i32,
+    /// plugged.host: each membership renews by itself while on (opt-in).
+    pub plus_auto_renew: bool,
+    pub plusplus_auto_renew: bool,
+    /// plugged.host: Plus that comes with the second membership of the bundle's other panel, until
+    /// then (set by that panel, crate::membership_bundle).
+    pub bundle_plus_until: Option<chrono::NaiveDateTime>,
 }
 
 impl Membership {
-    /// Plus runs (bought by the month). PlusPlus gives everything Plus does: ask [`Self::is_member`]
+    /// Plus runs: bought (by the month) or with the other panel's second membership
+    /// ([`Self::bundle_active`]). PlusPlus gives everything Plus does: ask [`Self::is_member`]
     /// for "any membership".
     pub fn has_plus(&self, now: chrono::NaiveDateTime) -> bool {
-        self.plus_until.is_some_and(|until| until > now)
+        self.plus_until.is_some_and(|until| until > now) || self.bundle_active(now)
+    }
+
+    /// plugged.host: Plus comes with the membership bundle's other panel now.
+    pub fn bundle_active(&self, now: chrono::NaiveDateTime) -> bool {
+        self.bundle_plus_until.is_some_and(|until| until > now)
+    }
+
+    /// plugged.host: until when Plus runs, bought or with the bundle: the later end.
+    pub fn plus_runs_until(&self) -> Option<chrono::NaiveDateTime> {
+        self.plus_until.max(self.bundle_plus_until)
     }
 
     pub fn has_plusplus(&self, now: chrono::NaiveDateTime) -> bool {
@@ -161,6 +284,22 @@ impl Membership {
     ) -> chrono::NaiveDateTime {
         extend(self.plus_until, now, days)
     }
+
+    /// When `kind` runs out (or ran out).
+    pub fn until(&self, kind: MembershipKind) -> Option<chrono::NaiveDateTime> {
+        match kind {
+            MembershipKind::Plus => self.plus_until,
+            MembershipKind::Plusplus => self.plusplus_until,
+        }
+    }
+
+    /// Whether `kind` renews by itself (the account's switch).
+    pub fn auto_renew(&self, kind: MembershipKind) -> bool {
+        match kind {
+            MembershipKind::Plus => self.plus_auto_renew,
+            MembershipKind::Plusplus => self.plusplus_auto_renew,
+        }
+    }
 }
 
 /// `days` more from what is left of `until`, or from now when it ran out.
@@ -173,8 +312,10 @@ fn extend(
 }
 
 /// The columns [`Membership::from_row`] reads.
-const MEMBERSHIP_COLUMNS: &str =
-    "plus_since, plus_until, plus_purchases, plusplus_until, plusplus_purchases";
+const MEMBERSHIP_COLUMNS: &str = concat!(
+    "plus_since, plus_until, plus_purchases, plusplus_until, plusplus_purchases, ",
+    "plus_auto_renew, plusplus_auto_renew, bundle_plus_until"
+);
 
 impl Membership {
     fn from_row(row: &sqlx::postgres::PgRow) -> Result<Self, sqlx::Error> {
@@ -184,6 +325,9 @@ impl Membership {
             plus_purchases: row.try_get("plus_purchases")?,
             plusplus_until: row.try_get("plusplus_until")?,
             plusplus_purchases: row.try_get("plusplus_purchases")?,
+            plus_auto_renew: row.try_get("plus_auto_renew")?,
+            plusplus_auto_renew: row.try_get("plusplus_auto_renew")?,
+            bundle_plus_until: row.try_get("bundle_plus_until")?,
         })
     }
 }
@@ -243,7 +387,7 @@ pub async fn sync_burst(
 
     let rows = sqlx::query(
         "SELECT users.uuid, users.burst_cores, user_memberships.plus_until,
-            user_memberships.plusplus_until
+            user_memberships.plusplus_until, user_memberships.bundle_plus_until
         FROM users
         LEFT JOIN user_memberships ON user_memberships.user_uuid = users.uuid
         WHERE ($1::uuid IS NULL OR users.uuid = $1)
@@ -259,6 +403,7 @@ pub async fn sync_burst(
         let cores = Membership {
             plus_until: row.try_get("plus_until")?,
             plusplus_until: row.try_get("plusplus_until")?,
+            bundle_plus_until: row.try_get("bundle_plus_until")?, // plugged.host: the bundle's Plus
             ..Default::default()
         }
         .burst_cores(&economy, now);
@@ -553,7 +698,10 @@ async fn grant_starting_credits(
 #[derive(ToSchema, Serialize, Clone, Debug)]
 pub struct ApiPlusPlusOffer {
     pub pay: Pay,
+    /// What it costs now, the membership sale applied.
     pub cost: i64,
+    /// What it costs without the sale; `cost` when none runs.
+    pub full_cost: i64,
     pub days: i64,
 }
 
@@ -577,10 +725,22 @@ pub struct ApiEconomy {
     pub plusplus_until: Option<chrono::DateTime<chrono::Utc>>,
     /// The start queue's priority: 2 PlusPlus, 1 Plus, 0 none.
     pub priority: u8,
-    /// Tokens Plus costs for `plus_days` days.
+    /// Tokens Plus costs for `plus_days` days, the membership sale applied.
     pub plus_cost: i64,
+    /// Without the sale; `plus_cost` when none runs.
+    pub plus_full_cost: i64,
     pub plus_days: i64,
     pub plusplus_offers: Vec<ApiPlusPlusOffer>,
+    /// The sale the membership prices are on, while one covers them.
+    pub discount: Option<ApiDiscount>,
+    /// Whether accounts may have a membership renew by itself, and whether each of this
+    /// account's does.
+    pub auto_renew_enabled: bool,
+    pub plus_auto_renew: bool,
+    pub plusplus_auto_renew: bool,
+    /// Whether memberships can be bought for another account, and how many more today.
+    pub gifts_enabled: bool,
+    pub gifts_left: i64,
     /// Whether the panel costs tokens for accounts without a membership (both memberships
     /// include it).
     pub panel_access: bool,
@@ -602,6 +762,13 @@ pub struct ApiEconomy {
     pub neo_plusplus_percent: Option<i64>,
     /// The devbox each membership gets, while devboxes are offered.
     pub devbox: Option<ApiMembershipDevbox>,
+    /// What the second membership includes on another panel (its name, such as "switched.cloud
+    /// Plus"), while the membership bundle runs (crate::membership_bundle).
+    pub bundle_name: Option<compact_str::CompactString>,
+    /// While Plus comes with the bundle's other panel (its second membership): until when, and
+    /// what that membership is called (such as "switched.cloud Premium").
+    pub bundle_plus_until: Option<chrono::DateTime<chrono::Utc>>,
+    pub bundle_source_name: compact_str::CompactString,
 }
 
 /// A devbox's resources: CPU in % of one thread, memory and disk in MiB.
@@ -681,25 +848,47 @@ pub async fn summary(state: &crate::State, user: &User) -> Result<ApiEconomy, an
     };
 
     let membership = membership(&state.database, user.uuid).await?;
-    let now = chrono::Utc::now().naive_utc();
+    let now_utc = chrono::Utc::now();
+    let now = now_utc.naive_utc();
 
-    let mut plusplus_offers = Vec::with_capacity(2);
-    if economy.tokens_enabled {
-        plusplus_offers.push(ApiPlusPlusOffer {
-            pay: Pay::Tokens,
-            cost: economy.plusplus_tokens.max(0) as i64,
-            days: economy.plusplus_token_days.max(1) as i64,
+    // the membership sale, while it covers the memberships
+    let discount = ApiDiscount::memberships_at(&economy, now_utc);
+    let percent = ApiDiscount::percent(discount.as_ref());
+    let plusplus_offers = [Pay::Tokens, Pay::Credits]
+        .into_iter()
+        .filter_map(|pay| {
+            membership_offer(&economy, MembershipKind::Plusplus, pay, percent).map(|offer| {
+                ApiPlusPlusOffer {
+                    pay,
+                    cost: offer.cost,
+                    full_cost: offer.full_cost,
+                    days: offer.days,
+                }
+            })
+        })
+        .collect();
+    let plus_offer = membership_offer(&economy, MembershipKind::Plus, Pay::Tokens, percent)
+        .unwrap_or(MembershipOffer {
+            cost: economy.plus_tokens.max(0) as i64,
+            full_cost: economy.plus_tokens.max(0) as i64,
+            days: economy.plus_days.max(1) as i64,
         });
-    }
-    if economy.credits_enabled && economy.plusplus_credits > 0 {
-        plusplus_offers.push(ApiPlusPlusOffer {
-            pay: Pay::Credits,
-            cost: economy.plusplus_credits as i64,
-            days: economy.plusplus_credit_days.max(1) as i64,
-        });
-    }
+    let gifts_enabled = economy.gifts_enabled && economy.tokens_enabled;
+    let gifts_left = if gifts_enabled {
+        let given = gifts_today(state.database.read(), user.uuid).await?;
+        (economy.gifts_per_day.max(1) as i64 - given).max(0)
+    } else {
+        0
+    };
 
     let burst_cores = membership.burst_cores(&economy, now) as i64;
+    let bundle_name =
+        crate::membership_bundle::offered(&economy, connected).then(|| economy.bundle_name.clone());
+    let bundle_plus_until = membership
+        .bundle_plus_until
+        .filter(|_| membership.bundle_active(now))
+        .map(|until| until.and_utc());
+    let bundle_source_name = economy.bundle_source_name.clone();
 
     Ok(ApiEconomy {
         source: if connected {
@@ -716,18 +905,26 @@ pub async fn summary(state: &crate::State, user: &User) -> Result<ApiEconomy, an
         plus_name: economy.plus_name,
         plusplus_name: economy.plusplus_name,
         plus_since: membership.plus_since.map(|since| since.and_utc()),
+        // plugged.host: Plus bought, not the bundle's (that is `bundle_plus_until`)
         plus_until: membership
             .plus_until
-            .filter(|_| membership.has_plus(now))
+            .filter(|until| *until > now)
             .map(|until| until.and_utc()),
         plusplus_until: membership
             .plusplus_until
             .filter(|_| membership.has_plusplus(now))
             .map(|until| until.and_utc()),
         priority: membership.priority(now),
-        plus_cost: economy.plus_tokens.max(0) as i64,
-        plus_days: economy.plus_days.max(1) as i64,
+        plus_cost: plus_offer.cost,
+        plus_full_cost: plus_offer.full_cost,
+        plus_days: plus_offer.days,
         plusplus_offers,
+        discount,
+        auto_renew_enabled: economy.auto_renew_enabled,
+        plus_auto_renew: membership.plus_auto_renew,
+        plusplus_auto_renew: membership.plusplus_auto_renew,
+        gifts_enabled,
+        gifts_left,
         panel_access: economy.panel_access_enabled,
         waiting_room,
         idle_stop,
@@ -738,6 +935,9 @@ pub async fn summary(state: &crate::State, user: &User) -> Result<ApiEconomy, an
         neo_plus_percent: neo_percents.map(|(plus, _)| plus),
         neo_plusplus_percent: neo_percents.map(|(_, plusplus)| plusplus),
         devbox,
+        bundle_name,
+        bundle_plus_until,
+        bundle_source_name,
     })
 }
 
@@ -749,6 +949,49 @@ pub struct ApiBalance {
     /// `None` while tokens are turned off.
     pub tokens: Option<i64>,
     pub allowance: crate::allowance::Allowance,
+    /// The cheapest membership the account does not have, which the tokens row shows progress
+    /// toward; `None` with the second membership (it gives everything) or memberships off.
+    pub membership_goal: Option<ApiMembershipGoal>,
+    /// plugged.host: today's streak tokens wait to be claimed on the Tokens page (shared/src/streak.rs).
+    pub streak_claimable: bool,
+}
+
+/// A membership the sidebar counts tokens toward.
+#[derive(ToSchema, Serialize, Clone, Debug, PartialEq, Eq)]
+pub struct ApiMembershipGoal {
+    pub membership: MembershipKind,
+    pub name: compact_str::CompactString,
+    /// Tokens it costs now, the membership sale applied.
+    pub cost: i64,
+}
+
+/// The cheapest membership bought with tokens that the account does not have: none while the
+/// second runs (it gives everything the first does), and only one that costs something.
+pub fn membership_goal(
+    economy: &crate::settings::economy::AppSettingsEconomy,
+    membership: &Membership,
+    now: chrono::DateTime<chrono::Utc>,
+) -> Option<ApiMembershipGoal> {
+    let naive = now.naive_utc();
+    if !economy.membership_enabled || membership.has_plusplus(naive) {
+        return None;
+    }
+    let percent = economy.membership_discount_at(now);
+
+    [MembershipKind::Plus, MembershipKind::Plusplus]
+        .into_iter()
+        .filter(|kind| *kind == MembershipKind::Plusplus || !membership.has_plus(naive))
+        .filter_map(|kind| {
+            membership_offer(economy, kind, Pay::Tokens, percent)
+                .filter(|offer| offer.cost > 0)
+                .map(|offer| (kind, offer.cost))
+        })
+        .min_by_key(|(_, cost)| *cost)
+        .map(|(kind, cost)| ApiMembershipGoal {
+            membership: kind,
+            name: kind.name(economy).into(),
+            cost,
+        })
 }
 
 /// What the sidebar shows; reads only (no daily tokens given), since it is asked every minute.
@@ -760,6 +1003,17 @@ pub async fn balance(state: &crate::State, user: &User) -> Result<ApiBalance, an
             settings.economy.tokens_enabled,
             settings.noprofit.connected(),
         )
+    };
+    // plugged.host: progress toward a membership, in the tokens row
+    let economy = state.settings.get().await?.economy.clone();
+    let membership_goal = if tokens_enabled && economy.membership_enabled {
+        membership_goal(
+            &economy,
+            &membership(&state.database, user.uuid).await?,
+            chrono::Utc::now(),
+        )
+    } else {
+        None
     };
 
     let (local_credits, tokens, _) = balances(&state.database, user.uuid).await?;
@@ -775,6 +1029,8 @@ pub async fn balance(state: &crate::State, user: &User) -> Result<ApiBalance, an
         credits: credits_enabled.then_some(credits),
         tokens: tokens_enabled.then_some(tokens),
         allowance: crate::allowance::for_user(state, user.uuid).await?,
+        membership_goal,
+        streak_claimable: crate::streak::claimable(state, user.uuid).await?,
     })
 }
 
@@ -792,6 +1048,14 @@ pub enum EconomyError {
     /// noprofit.space refused, with its reason.
     Refused(String),
     BadRequest(&'static str),
+    /// A membership's price moved since the user saw it (a sale started or ended).
+    PriceMoved,
+    /// Too many tries (gifts a day, recipients looked up an hour).
+    Throttled,
+    /// A gift's recipient: no account has that username or email.
+    NoRecipient,
+    /// Refused as things stand, with the reason (claimed already, a task not done yet).
+    Conflict(String),
     Other(anyhow::Error),
 }
 
@@ -806,6 +1070,10 @@ impl EconomyError {
             Self::Refused(reason) if reason.is_empty() => "the purchase was refused".into(),
             Self::Refused(reason) => reason.clone(),
             Self::BadRequest(reason) => (*reason).into(),
+            Self::PriceMoved => "the price changed, look at the new one".into(),
+            Self::Throttled => "too many tries, try again later".into(),
+            Self::NoRecipient => "no account has that username or email".into(),
+            Self::Conflict(reason) => reason.clone(),
             Self::Other(err) => format!("{err:#}"),
         }
     }
@@ -813,9 +1081,16 @@ impl EconomyError {
     pub fn status(&self) -> u16 {
         match self {
             Self::Disabled => 403,
-            Self::Unavailable | Self::Short | Self::Owned | Self::PriceChanged(_) => 409,
+            Self::Unavailable
+            | Self::Short
+            | Self::Owned
+            | Self::PriceChanged(_)
+            | Self::PriceMoved => 409,
             Self::Refused(_) => 422,
             Self::BadRequest(_) => 400,
+            Self::Throttled => 429,
+            Self::NoRecipient => 404,
+            Self::Conflict(_) => 409,
             Self::Other(_) => 500,
         }
     }
@@ -890,9 +1165,56 @@ impl ApiDiscount {
         })
     }
 
+    /// The same sale on the memberships, while it covers them.
+    pub fn memberships_at(
+        economy: &crate::settings::economy::AppSettingsEconomy,
+        now: chrono::DateTime<chrono::Utc>,
+    ) -> Option<Self> {
+        let percent = economy.membership_discount_at(now);
+
+        (percent > 0).then(|| Self {
+            percent,
+            name: economy
+                .store_discount_name
+                .as_ref()
+                .map(ToString::to_string),
+            ends: economy.store_discount_ends,
+        })
+    }
+
     fn percent(discount: Option<&Self>) -> i64 {
         discount.map_or(0, |discount| discount.percent)
     }
+}
+
+/// plugged.host: a double-token window: every sponsored link and survey pays `percent` more while
+/// it runs (Admin › Settings › Economy › Tokens; docs/features/economy.md#double-tokens).
+#[derive(ToSchema, Serialize, Clone, Debug, PartialEq, Eq)]
+pub struct ApiTokenBonus {
+    /// 100: double.
+    pub percent: i64,
+    /// What it is called, such as "Halloween weekend"; `None`: a plain bonus.
+    pub name: Option<String>,
+    /// When it started; `None`: open on that side.
+    pub starts: Option<chrono::DateTime<chrono::Utc>>,
+    /// When it ends; `None`: when an admin ends it.
+    pub ends: Option<chrono::DateTime<chrono::Utc>>,
+}
+
+/// The double-token window running at `now`, if one is (`None` while tokens are off). What the
+/// links and surveys pay goes through [`crate::earn::boosted`] with its percent.
+pub fn token_bonus_at(
+    economy: &crate::settings::economy::AppSettingsEconomy,
+    now: chrono::DateTime<chrono::Utc>,
+) -> Option<ApiTokenBonus> {
+    let percent = economy.token_bonus_at(now);
+
+    (percent > 0).then(|| ApiTokenBonus {
+        percent,
+        name: economy.token_bonus_name.as_ref().map(ToString::to_string),
+        starts: economy.token_bonus_starts,
+        ends: economy.token_bonus_ends,
+    })
 }
 
 /// A resource's meter: what the account's servers use against its limit.
@@ -1399,62 +1721,72 @@ async fn locked_membership(
     Membership::from_row(&row)
 }
 
-/// Buys (or extends) Plus with tokens: the tokens and Plus change together or not at all. Bought
-/// time adds to what is left, so buying early loses nothing.
-pub async fn buy_plus(state: &crate::State, user: &User) -> Result<ApiEconomy, EconomyError> {
-    let economy = state.settings.get().await?.economy.clone();
-    if !economy.membership_enabled {
-        return Err(EconomyError::Disabled);
-    }
-    let cost = economy.plus_tokens.max(0) as i64;
-    let days = economy.plus_days.max(1) as i64;
-    if cost > 0 && !economy.tokens_enabled {
-        return Err(EconomyError::Unavailable);
-    }
-
-    let mut transaction = state.database.write().begin().await?;
-    let membership = locked_membership(&mut transaction, user.uuid).await?;
-
-    if cost > 0
-        && change(
-            &mut transaction,
-            Currency::Tokens,
-            user.uuid,
-            -cost,
-            TYPE_PLUS,
-            &format!("{} ({days} days)", economy.plus_name),
-            serde_json::json!({ "days": days }),
-        )
-        .await?
-        .is_none()
-    {
-        return Err(EconomyError::Short);
-    }
-
-    sqlx::query(
-        "UPDATE user_memberships
-        SET plus_since = COALESCE(plus_since, NOW()), plus_until = $2,
-            plus_purchases = plus_purchases + 1
-        WHERE user_uuid = $1",
-    )
-    .bind(user.uuid)
-    .bind(membership.plus_extended_until(chrono::Utc::now().naive_utc(), days))
-    .execute(&mut *transaction)
-    .await?;
-    transaction.commit().await?;
-    sync_burst_now(state, user.uuid).await;
-    User::invalidate_cached(&state.database, user.uuid).await;
-
-    Ok(summary(state, user).await?)
+/// Why a membership is bought, which the ledger and the checks follow.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Why {
+    /// The account buys it for itself.
+    Purchase,
+    /// It renews by itself as it runs out: only while still switched on and still ending at
+    /// `until` (not bought or renewed meanwhile).
+    Renewal { until: chrono::NaiveDateTime },
+    /// Bought for another account, within the buyer's gifts a day.
+    Gift,
 }
 
-/// Buys (or extends) PlusPlus with tokens or credits. It gives everything Plus does, so it needs
-/// no Plus. Bought time adds to what is left, so buying early loses nothing.
-pub async fn buy_plusplus(
+/// Memberships the account bought for others in the last 24 hours (the gifts' daily limit).
+async fn gifts_today(
+    executor: impl sqlx::PgExecutor<'_>,
+    user_uuid: uuid::Uuid,
+) -> Result<i64, sqlx::Error> {
+    sqlx::query_scalar(
+        "SELECT COUNT(*) FROM user_token_transactions
+        WHERE user_uuid = $1 AND type = $2 AND created > NOW() - INTERVAL '1 day'",
+    )
+    .bind(user_uuid)
+    .bind(TYPE_GIFT)
+    .fetch_one(executor)
+    .await
+}
+
+/// The balance a membership is paid from: the tokens, or the credits (noprofit.space's while it
+/// is connected).
+async fn balance_in(
     state: &crate::State,
-    user: &User,
+    user_uuid: uuid::Uuid,
     pay: Pay,
-) -> Result<ApiEconomy, EconomyError> {
+) -> Result<i64, anyhow::Error> {
+    let (credits, tokens, _) = balances(&state.database, user_uuid).await?;
+    if pay == Pay::Tokens {
+        return Ok(tokens);
+    }
+
+    let connected = state.settings.get().await?.noprofit.connected();
+    if connected {
+        Ok(
+            crate::noprofit::Link::by_user_uuid(&state.database, user_uuid)
+                .await?
+                .map_or(0, |link| link.credits),
+        )
+    } else {
+        Ok(credits)
+    }
+}
+
+/// Buys (or extends) `kind` for `recipient`, paid by `payer` with `pay`, at the price it has now
+/// (the membership sale applied). The balance, the ledger and the membership change together or
+/// not at all, with the membership row locked; bought time adds to what is left, so buying early
+/// loses nothing. `price` is the price the user saw: one that moved buys nothing (409). With
+/// noprofit.space, credits are taken by noprofit.space (`/credits/spend`) with an idempotency key
+/// per purchase, so a retry after a failure is not charged twice.
+async fn buy_membership(
+    state: &crate::State,
+    payer: &User,
+    recipient: &User,
+    kind: MembershipKind,
+    pay: Pay,
+    price: Option<i64>,
+    why: Why,
+) -> Result<MembershipOffer, EconomyError> {
     let (economy, noprofit) = {
         let settings = state.settings.get().await?;
         (settings.economy.clone(), settings.noprofit.config())
@@ -1463,51 +1795,93 @@ pub async fn buy_plusplus(
         return Err(EconomyError::Disabled);
     }
 
-    let (cost, days) = match pay {
-        Pay::Tokens if economy.tokens_enabled => (
-            economy.plusplus_tokens.max(0) as i64,
-            economy.plusplus_token_days.max(1) as i64,
+    let percent = economy.membership_discount_at(chrono::Utc::now());
+    let offer = membership_offer(&economy, kind, pay, percent).ok_or(EconomyError::Unavailable)?;
+    // a price shown before a sale started or ended has moved
+    if price.is_some_and(|price| price != offer.cost) {
+        return Err(EconomyError::PriceMoved);
+    }
+
+    let name = kind.name(&economy).to_string();
+    let days = offer.days;
+    let (ledger_type, description) = match why {
+        Why::Purchase => (kind.ledger_type(), format!("{name} ({days} days)")),
+        Why::Renewal { .. } => (
+            kind.ledger_type(),
+            format!("{name} ({days} days), renewed automatically"),
         ),
-        Pay::Credits if economy.credits_enabled && economy.plusplus_credits > 0 => (
-            economy.plusplus_credits as i64,
-            economy.plusplus_credit_days.max(1) as i64,
+        Why::Gift => (
+            TYPE_GIFT,
+            format!("{name} ({days} days) for {}", recipient.username),
         ),
-        _ => return Err(EconomyError::Unavailable),
     };
+    let data = serde_json::json!({
+        "days": days,
+        "pay": pay,
+        "membership": kind,
+        "cost": offer.cost,
+        "full_cost": offer.full_cost,
+        "discount": percent,
+        "automatic": matches!(why, Why::Renewal { .. }),
+        "to": (why == Why::Gift).then_some(recipient.uuid),
+    });
 
     let mut transaction = state.database.write().begin().await?;
-    let membership = locked_membership(&mut transaction, user.uuid).await?;
+    let membership = locked_membership(&mut transaction, recipient.uuid).await?;
 
-    let description = format!("{} ({days} days)", economy.plusplus_name);
-    let data = serde_json::json!({ "days": days, "pay": pay });
+    if let Why::Renewal { until } = why
+        && (!membership.auto_renew(kind) || membership.until(kind) != Some(until))
+    {
+        // switched off, bought or renewed meanwhile
+        return Err(EconomyError::Owned);
+    }
+    if why == Why::Gift {
+        // The buyer's row, so two gifts at once cannot both pass the day's limit. NO KEY UPDATE,
+        // like the balance change after it, so the ledger rows of a gift going the other way at
+        // the same time (which only need the key) never wait on it.
+        sqlx::query("SELECT 1 FROM users WHERE uuid = $1 FOR NO KEY UPDATE")
+            .bind(payer.uuid)
+            .execute(&mut *transaction)
+            .await?;
+        if gifts_today(&mut *transaction, payer.uuid).await? >= economy.gifts_per_day.max(1) as i64
+        {
+            return Err(EconomyError::Throttled);
+        }
+    }
+
     let mut spent_on_noprofit = false;
-
-    if cost > 0 {
+    if offer.cost > 0 || why == Why::Gift {
         match (pay, noprofit) {
             (Pay::Credits, Some(noprofit)) => {
-                let link = crate::noprofit::Link::by_user_uuid(&state.database, user.uuid)
+                let link = crate::noprofit::Link::by_user_uuid(&state.database, payer.uuid)
                     .await?
                     .ok_or(EconomyError::Unavailable)?;
                 // The same purchase sent again (the panel failed after noprofit.space took the
                 // credits) is not charged twice.
+                let purchases = match kind {
+                    MembershipKind::Plus => membership.plus_purchases,
+                    MembershipKind::Plusplus => membership.plusplus_purchases,
+                };
                 let key = format!(
-                    "calagopus:plusplus:{}:{}:{cost}",
-                    user.uuid,
-                    membership.plusplus_purchases + 1
+                    "calagopus:{}:{}:{}:{}",
+                    kind.as_str(),
+                    payer.uuid,
+                    purchases + 1,
+                    offer.cost
                 );
 
                 let spent = noprofit
                     .spend_credits(
                         &state.client,
                         link.account_id,
-                        cost,
-                        TYPE_PLUSPLUS,
+                        offer.cost,
+                        ledger_type,
                         &description,
                         &key,
                     )
                     .await
                     .map_err(|err| {
-                        tracing::warn!(user = %user.uuid, "noprofit.space did not take the credits for PlusPlus: {err:#}");
+                        tracing::warn!(user = %payer.uuid, "noprofit.space did not take the credits for a membership: {err:#}");
                         EconomyError::Unavailable
                     })?;
                 if spent.is_none() {
@@ -1524,9 +1898,9 @@ pub async fn buy_plusplus(
                 if change(
                     &mut transaction,
                     currency,
-                    user.uuid,
-                    -cost,
-                    TYPE_PLUSPLUS,
+                    payer.uuid,
+                    -offer.cost,
+                    ledger_type,
                     &description,
                     data,
                 )
@@ -1540,24 +1914,299 @@ pub async fn buy_plusplus(
     }
 
     let now = chrono::Utc::now().naive_utc();
-    sqlx::query(
-        "UPDATE user_memberships
-        SET plusplus_until = $2, plusplus_purchases = plusplus_purchases + 1
-        WHERE user_uuid = $1",
-    )
-    .bind(user.uuid)
-    .bind(membership.extended_until(now, days))
-    .execute(&mut *transaction)
-    .await?;
-    transaction.commit().await?;
-    sync_burst_now(state, user.uuid).await;
-    User::invalidate_cached(&state.database, user.uuid).await;
+    let (extend_sql, until) = match kind {
+        MembershipKind::Plus => (
+            "UPDATE user_memberships
+            SET plus_since = COALESCE(plus_since, NOW()), plus_until = $2,
+                plus_purchases = plus_purchases + 1
+            WHERE user_uuid = $1",
+            membership.plus_extended_until(now, days),
+        ),
+        MembershipKind::Plusplus => (
+            "UPDATE user_memberships
+            SET plusplus_until = $2, plusplus_purchases = plusplus_purchases + 1
+            WHERE user_uuid = $1",
+            membership.extended_until(now, days),
+        ),
+    };
+    sqlx::query(extend_sql)
+        .bind(recipient.uuid)
+        .bind(until)
+        .execute(&mut *transaction)
+        .await?;
 
-    if spent_on_noprofit && let Err(err) = crate::noprofit::refresh_user(state, user.uuid).await {
-        tracing::warn!(user = %user.uuid, "failed to pull the account after PlusPlus: {err:#}");
+    if why == Why::Gift {
+        // the account that got it sees it in its token history too, as a row of 0 tokens
+        let received = format!("{name} ({days} days) from {}", payer.username);
+        sqlx::query(
+            "INSERT INTO user_token_transactions
+                (user_uuid, amount, balance_after, type, description, data)
+            SELECT uuid, 0, tokens, $2, $3, $4 FROM users WHERE uuid = $1",
+        )
+        .bind(recipient.uuid)
+        .bind(TYPE_GIFT_RECEIVED)
+        .bind(truncate(&received, 255))
+        .bind(serde_json::json!({ "days": days, "membership": kind, "from": payer.uuid }))
+        .execute(&mut *transaction)
+        .await?;
+    }
+    transaction.commit().await?;
+    sync_burst_now(state, recipient.uuid).await;
+    User::invalidate_cached(&state.database, recipient.uuid).await;
+
+    if spent_on_noprofit && let Err(err) = crate::noprofit::refresh_user(state, payer.uuid).await {
+        tracing::warn!(user = %payer.uuid, "failed to pull the account after a membership: {err:#}");
     }
 
+    Ok(offer)
+}
+
+/// Buys (or extends) Plus with tokens. `price` is the price the user saw (`None`: what it costs
+/// now).
+pub async fn buy_plus(
+    state: &crate::State,
+    user: &User,
+    price: Option<i64>,
+) -> Result<ApiEconomy, EconomyError> {
+    buy_membership(
+        state,
+        user,
+        user,
+        MembershipKind::Plus,
+        Pay::Tokens,
+        price,
+        Why::Purchase,
+    )
+    .await?;
+
     Ok(summary(state, user).await?)
+}
+
+/// Buys (or extends) PlusPlus with tokens or credits. It gives everything Plus does, so it needs
+/// no Plus.
+pub async fn buy_plusplus(
+    state: &crate::State,
+    user: &User,
+    pay: Pay,
+    price: Option<i64>,
+) -> Result<ApiEconomy, EconomyError> {
+    buy_membership(
+        state,
+        user,
+        user,
+        MembershipKind::Plusplus,
+        pay,
+        price,
+        Why::Purchase,
+    )
+    .await?;
+
+    Ok(summary(state, user).await?)
+}
+
+/// A membership bought for another account.
+pub struct GiftSent {
+    pub recipient: User,
+    pub offer: MembershipOffer,
+    /// The buyer's economy after it.
+    pub economy: ApiEconomy,
+}
+
+/// Buys `kind` with tokens, at its normal (sale) price, for the account whose username or email
+/// is exactly `to` (not the buyer's own): its membership is extended like after a purchase, it
+/// hears who sent it, and both accounts get a ledger row and an activity entry. Only memberships
+/// are given this way, never tokens. The day's gifts are limited per buyer, and so are lookups of
+/// who a gift is for; the balance is checked before anyone is looked up, so an account that
+/// cannot pay learns nothing about who exists.
+pub async fn gift_membership(
+    state: &crate::State,
+    user: &User,
+    to: &str,
+    kind: MembershipKind,
+    price: Option<i64>,
+) -> Result<GiftSent, EconomyError> {
+    let economy = state.settings.get().await?.economy.clone();
+    if !economy.membership_enabled || !economy.gifts_enabled {
+        return Err(EconomyError::Disabled);
+    }
+
+    let percent = economy.membership_discount_at(chrono::Utc::now());
+    let offer =
+        membership_offer(&economy, kind, Pay::Tokens, percent).ok_or(EconomyError::Unavailable)?;
+    if price.is_some_and(|price| price != offer.cost) {
+        return Err(EconomyError::PriceMoved);
+    }
+    if balances(&state.database, user.uuid).await?.1 < offer.cost {
+        return Err(EconomyError::Short);
+    }
+    if gifts_today(state.database.read(), user.uuid).await? >= economy.gifts_per_day.max(1) as i64 {
+        return Err(EconomyError::Throttled);
+    }
+    if state
+        .cache
+        .ratelimit(
+            "economy::gift",
+            GIFT_LOOKUPS_PER_HOUR,
+            3600,
+            user.uuid.to_string(),
+        )
+        .await
+        .is_err()
+    {
+        return Err(EconomyError::Throttled);
+    }
+
+    let to = to.trim();
+    if to.is_empty() {
+        return Err(EconomyError::BadRequest(
+            "enter the username or email of who it is for",
+        ));
+    }
+    let mut recipient = User::by_username(&state.database, to).await?;
+    if recipient.is_none() && to.contains('@') {
+        recipient = User::by_email(&state.database, to).await?;
+    }
+    let Some(recipient) = recipient.filter(|recipient| !recipient.suspended) else {
+        return Err(EconomyError::NoRecipient);
+    };
+    if recipient.uuid == user.uuid {
+        return Err(EconomyError::BadRequest(
+            "a gift is for someone else, buy it for yourself instead",
+        ));
+    }
+
+    // charged at the price checked above
+    let offer = buy_membership(
+        state,
+        user,
+        &recipient,
+        kind,
+        Pay::Tokens,
+        Some(offer.cost),
+        Why::Gift,
+    )
+    .await?;
+
+    let until = membership(&state.database, recipient.uuid)
+        .await?
+        .until(kind);
+    crate::notifications::membership_gifted(
+        state,
+        recipient.uuid,
+        kind.name(&economy),
+        offer.days,
+        &user.username,
+        until,
+    )
+    .await;
+
+    {
+        use crate::models::{
+            CreatableModel,
+            user_activity::{CreateUserActivityOptions, UserActivity},
+        };
+
+        // the buyer's entry is the route's; this is the one of the account that got it
+        let options = CreateUserActivityOptions {
+            user_uuid: recipient.uuid,
+            impersonator_uuid: None,
+            api_key_uuid: None,
+            event: "account:membership.gifted".into(),
+            ip: None,
+            data: serde_json::json!({
+                "membership": kind,
+                "days": offer.days,
+                "from": user.username,
+            }),
+            created: None,
+        };
+        if let Err(err) = UserActivity::create(state, options).await {
+            tracing::warn!(user = %recipient.uuid, "failed to log a gift in the activity: {err:#?}");
+        }
+    }
+
+    Ok(GiftSent {
+        recipient,
+        offer,
+        economy: summary(state, user).await?,
+    })
+}
+
+/// Switches the account's automatic renewal of `kind` on or off. On needs the membership running
+/// and clears a failed renewal, so the next minutes try again.
+pub async fn set_auto_renew(
+    state: &crate::State,
+    user: &User,
+    kind: MembershipKind,
+    enabled: bool,
+) -> Result<ApiEconomy, EconomyError> {
+    let economy = state.settings.get().await?.economy.clone();
+    if enabled {
+        if !economy.membership_enabled || !economy.auto_renew_enabled {
+            return Err(EconomyError::Disabled);
+        }
+
+        let now = chrono::Utc::now().naive_utc();
+        if !membership(&state.database, user.uuid)
+            .await?
+            .until(kind)
+            .is_some_and(|until| until > now)
+        {
+            return Err(EconomyError::BadRequest("the membership is not running"));
+        }
+    }
+
+    let column = kind.as_str();
+    sqlx::query(sqlx::AssertSqlSafe(format!(
+        "UPDATE user_memberships SET {column}_auto_renew = $2, {column}_renew_failed = NULL
+        WHERE user_uuid = $1"
+    )))
+    .bind(user.uuid)
+    .bind(enabled)
+    .execute(state.database.write())
+    .await?;
+
+    Ok(summary(state, user).await?)
+}
+
+/// Days of a membership given away (rux's giveaways, shared/src/rux/tools/giveaways), in the
+/// caller's transaction: they add to what is left, like a purchase, without counting as one.
+/// Call [`membership_changed`] once the transaction is committed.
+pub async fn give_membership_days(
+    transaction: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+    user_uuid: uuid::Uuid,
+    plusplus: bool,
+    days: i64,
+) -> Result<(), sqlx::Error> {
+    let membership = locked_membership(transaction, user_uuid).await?;
+    let now = chrono::Utc::now().naive_utc();
+
+    if plusplus {
+        sqlx::query("UPDATE user_memberships SET plusplus_until = $2 WHERE user_uuid = $1")
+            .bind(user_uuid)
+            .bind(membership.extended_until(now, days))
+            .execute(&mut **transaction)
+            .await?;
+    } else {
+        sqlx::query(
+            "UPDATE user_memberships
+            SET plus_since = COALESCE(plus_since, NOW()), plus_until = $2
+            WHERE user_uuid = $1",
+        )
+        .bind(user_uuid)
+        .bind(membership.plus_extended_until(now, days))
+        .execute(&mut **transaction)
+        .await?;
+    }
+
+    Ok(())
+}
+
+/// What follows a membership change made outside this module ([`give_membership_days`]): the
+/// burst cores, the start queue and the cached user.
+pub async fn membership_changed(state: &crate::State, user_uuid: uuid::Uuid) {
+    sync_burst_now(state, user_uuid).await;
+    User::invalidate_cached(&state.database, user_uuid).await;
 }
 
 /// What an admin sees of a user's economy.
@@ -1575,6 +2224,8 @@ pub struct ApiAdminEconomy {
     pub plusplus_purchases: i32,
     pub credit_transactions: Vec<ApiTransaction>,
     pub token_transactions: Vec<ApiTransaction>,
+    /// plugged.host: who brought the account and how many it brought (docs/features/referrals.md).
+    pub referrals: crate::referrals::ApiAdminReferrals,
 }
 
 pub async fn admin_view(
@@ -1613,6 +2264,7 @@ pub async fn admin_view(
             .plusplus_purchases,
         credit_transactions,
         token_transactions: transactions(&state.database, Currency::Tokens, user.uuid, 20).await?,
+        referrals: crate::referrals::admin_view(&state.database, user.uuid).await?,
     })
 }
 
@@ -1802,19 +2454,231 @@ pub fn destination_order(
     )
 }
 
+/// Renews every membership switched to renew by itself that ends in the next minutes (or ended a
+/// little while ago, when the task could not run then), at the price it has now (the sale
+/// applied), paid like a purchase. When the balance is short the owner hears so once per end, and
+/// the lapse takes its course.
+async fn renew_memberships(state: &crate::State) -> Result<(), anyhow::Error> {
+    let economy = state.settings.get().await?.economy.clone();
+    if !economy.membership_enabled || !economy.auto_renew_enabled {
+        return Ok(());
+    }
+
+    for kind in [MembershipKind::Plusplus, MembershipKind::Plus] {
+        let column = kind.as_str();
+        let due: Vec<(uuid::Uuid, chrono::NaiveDateTime)> =
+            sqlx::query_as(sqlx::AssertSqlSafe(format!(
+                "SELECT user_uuid, {column}_until FROM user_memberships
+                WHERE {column}_auto_renew AND {column}_until IS NOT NULL
+                    AND {column}_until <= NOW() + make_interval(mins => $1)
+                    AND {column}_until > NOW() - make_interval(mins => $2)
+                    AND {column}_renew_failed IS DISTINCT FROM {column}_until
+                ORDER BY {column}_until
+                LIMIT 50"
+            )))
+            .bind(RENEW_BEFORE_MINUTES)
+            .bind(RENEW_AFTER_MINUTES)
+            .fetch_all(state.database.write())
+            .await?;
+
+        for (user_uuid, until) in due {
+            if let Err(err) = renew(state, &economy, user_uuid, kind, until).await {
+                tracing::warn!(user = %user_uuid, membership = column, "failed to renew a membership: {err:#}");
+            }
+        }
+    }
+
+    Ok(())
+}
+
+async fn renew(
+    state: &crate::State,
+    economy: &crate::settings::economy::AppSettingsEconomy,
+    user_uuid: uuid::Uuid,
+    kind: MembershipKind,
+    until: chrono::NaiveDateTime,
+) -> Result<(), anyhow::Error> {
+    // plugged.host: Plus bought is not renewed while the bundle's Plus covers its end (the
+    // account loses nothing; crate::membership_bundle)
+    if kind == MembershipKind::Plus
+        && membership(&state.database, user_uuid)
+            .await?
+            .bundle_active(until)
+    {
+        return Ok(());
+    }
+
+    let pay = renewal_pay(economy, kind);
+    let user = User::by_uuid_optional(&state.database, user_uuid).await?;
+
+    // a suspended account is not charged; it is marked like a short one, without a notice
+    let failed = match user.as_ref().filter(|user| !user.suspended) {
+        Some(user) => {
+            match buy_membership(state, user, user, kind, pay, None, Why::Renewal { until }).await {
+                Ok(offer) => {
+                    tracing::info!(user = %user_uuid, membership = kind.as_str(), cost = offer.cost, "renewed a membership automatically");
+                    return Ok(());
+                }
+                // switched off, bought or renewed meanwhile
+                Err(EconomyError::Owned) => return Ok(()),
+                Err(EconomyError::Other(err)) => return Err(err),
+                Err(err) => Some(err),
+            }
+        }
+        None => None,
+    };
+
+    // tried once per end
+    let column = kind.as_str();
+    let marked = sqlx::query(sqlx::AssertSqlSafe(format!(
+        "UPDATE user_memberships SET {column}_renew_failed = {column}_until
+        WHERE user_uuid = $1 AND {column}_until = $2"
+    )))
+    .bind(user_uuid)
+    .bind(until)
+    .execute(state.database.write())
+    .await?
+    .rows_affected();
+
+    if marked > 0 && matches!(failed, Some(EconomyError::Short)) {
+        let percent = economy.membership_discount_at(chrono::Utc::now());
+        let cost = membership_offer(economy, kind, pay, percent).map_or(0, |offer| offer.cost);
+        let missing = (cost - balance_in(state, user_uuid, pay).await?).max(1);
+
+        crate::notifications::membership_renew_failed(
+            state,
+            user_uuid,
+            kind.name(economy),
+            missing,
+            pay,
+            until,
+        )
+        .await;
+    } else if let Some(err) = failed {
+        tracing::info!(user = %user_uuid, membership = column, "a membership did not renew: {}", err.message());
+    }
+
+    Ok(())
+}
+
+/// Tells each account, once per end, that a membership ends within the notice's hours: when,
+/// whether it renews by itself and whether the balance covers it; then the same for paid panel
+/// access ([`crate::panel_access::remind_ending`]).
+async fn remind_ending(state: &crate::State) -> Result<(), anyhow::Error> {
+    let economy = state.settings.get().await?.economy.clone();
+    if !economy.ends_soon_enabled {
+        return Ok(());
+    }
+    let hours = economy.ends_soon_hours.clamp(1, 720);
+
+    if economy.membership_enabled {
+        for kind in [MembershipKind::Plus, MembershipKind::Plusplus] {
+            let column = kind.as_str();
+            let due: Vec<(uuid::Uuid, chrono::NaiveDateTime)> =
+                sqlx::query_as(sqlx::AssertSqlSafe(format!(
+                    "SELECT user_uuid, {column}_until FROM user_memberships
+                    WHERE {column}_until > NOW()
+                        AND {column}_until <= NOW() + make_interval(hours => $1)
+                        AND {column}_reminded IS DISTINCT FROM {column}_until
+                    ORDER BY {column}_until
+                    LIMIT 100"
+                )))
+                .bind(hours)
+                .fetch_all(state.database.write())
+                .await?;
+
+            for (user_uuid, until) in due {
+                if let Err(err) = remind_membership(state, &economy, user_uuid, kind, until).await {
+                    tracing::warn!(user = %user_uuid, membership = column, "failed to send an ends-soon notice: {err:#}");
+                }
+            }
+        }
+    }
+
+    crate::panel_access::remind_ending(state, &economy, hours).await
+}
+
+async fn remind_membership(
+    state: &crate::State,
+    economy: &crate::settings::economy::AppSettingsEconomy,
+    user_uuid: uuid::Uuid,
+    kind: MembershipKind,
+    until: chrono::NaiveDateTime,
+) -> Result<(), anyhow::Error> {
+    // marked first, so it goes out once even when sending it fails
+    let column = kind.as_str();
+    let marked = sqlx::query(sqlx::AssertSqlSafe(format!(
+        "UPDATE user_memberships SET {column}_reminded = {column}_until
+        WHERE user_uuid = $1 AND {column}_until = $2"
+    )))
+    .bind(user_uuid)
+    .bind(until)
+    .execute(state.database.write())
+    .await?
+    .rows_affected();
+    if marked == 0 {
+        return Ok(());
+    }
+
+    let membership = membership(&state.database, user_uuid).await?;
+    // the second runs past the first's end: the first ending changes nothing
+    if kind == MembershipKind::Plus && membership.has_plusplus(until) {
+        return Ok(());
+    }
+    // plugged.host: so does the bundle's Plus running past it (crate::membership_bundle)
+    if kind == MembershipKind::Plus && membership.bundle_active(until) {
+        return Ok(());
+    }
+
+    let pay = renewal_pay(economy, kind);
+    let percent = economy.membership_discount_at(chrono::Utc::now());
+    let Some(offer) = membership_offer(economy, kind, pay, percent) else {
+        // not for sale any more: nothing to renew
+        return Ok(());
+    };
+    let covered = balance_in(state, user_uuid, pay).await? >= offer.cost;
+
+    crate::notifications::membership_ends_soon(
+        state,
+        user_uuid,
+        kind.name(economy),
+        until,
+        economy.auto_renew_enabled && membership.auto_renew(kind),
+        covered,
+        offer.cost,
+        pay,
+    )
+    .await;
+
+    Ok(())
+}
+
 /// Carries out every membership that ran out: every server on a location the owner may no longer
 /// use (`premium` once PlusPlus ran out, `plus` once both did) moves to another location the
 /// owner may use (an admin move, a few at a time). A lapse is settled once no such server is
 /// left; until then the task comes back, so a full location is tried again. Buying again before
 /// that stops it. Then every account's burst cores are brought in line ([`sync_burst`]).
+///
+/// First, memberships switched to renew by itself renew as they run out ([`renew_memberships`]),
+/// so a renewed one never lapses, and ends-soon notices go out ([`remind_ending`]).
 pub async fn settle_memberships(state: &crate::State) -> Result<(), anyhow::Error> {
+    if let Err(err) = renew_memberships(state).await {
+        tracing::warn!("failed to renew memberships: {err:#}");
+    }
+    if let Err(err) = remind_ending(state).await {
+        tracing::warn!("failed to send ends-soon notices: {err:#}");
+    }
+
     let due = sqlx::query(
         "SELECT user_uuid FROM user_memberships
         WHERE (plusplus_until IS NOT NULL AND plusplus_until <= NOW()
                 AND (plusplus_settled IS NULL OR plusplus_settled < plusplus_until))
             OR (plus_until IS NOT NULL AND plus_until <= NOW()
                 AND (plus_settled IS NULL OR plus_settled < plus_until))
-        ORDER BY LEAST(plusplus_until, plus_until)
+            -- plugged.host: the bundle's Plus ending is a lapse of Plus too (crate::membership_bundle)
+            OR (bundle_plus_until IS NOT NULL AND bundle_plus_until <= NOW()
+                AND (plus_settled IS NULL OR plus_settled < bundle_plus_until))
+        ORDER BY LEAST(plusplus_until, plus_until, bundle_plus_until)
         LIMIT 50",
     )
     .fetch_all(state.database.write())
@@ -1878,7 +2742,8 @@ async fn settle_lapse(state: &crate::State, user_uuid: uuid::Uuid) -> Result<(),
             "UPDATE user_memberships
             SET plusplus_settled = CASE WHEN plusplus_until <= NOW() THEN NOW()
                     ELSE plusplus_settled END,
-                plus_settled = CASE WHEN plus_until <= NOW() THEN NOW() ELSE plus_settled END
+                plus_settled = CASE WHEN plus_until <= NOW() OR bundle_plus_until <= NOW()
+                    THEN NOW() ELSE plus_settled END
             WHERE user_uuid = $1",
         )
         .bind(user_uuid)
@@ -2060,6 +2925,7 @@ mod tests {
             plus_purchases: 1,
             plusplus_until: Some(at(48)),
             plusplus_purchases: 1,
+            ..Default::default()
         };
         let lapsed = Membership {
             plus_until: Some(at(-24)),
@@ -2283,5 +3149,83 @@ mod tests {
     fn descriptions_are_cut_on_characters() {
         assert_eq!(truncate("äöü", 2), "äö");
         assert_eq!(truncate("abc", 10), "abc");
+    }
+
+    #[test]
+    fn membership_offers_follow_the_currencies_and_the_sale() {
+        let mut economy = crate::settings::economy::AppSettingsEconomy {
+            plus_tokens: 15,
+            plusplus_tokens: 30,
+            plusplus_credits: 0,
+            ..Default::default()
+        };
+
+        let plus = membership_offer(&economy, MembershipKind::Plus, Pay::Tokens, 0).unwrap();
+        assert_eq!((plus.cost, plus.full_cost, plus.days), (15, 15, 30));
+        // the first is never sold for credits, the second only with a credit price
+        assert!(membership_offer(&economy, MembershipKind::Plus, Pay::Credits, 0).is_none());
+        assert!(membership_offer(&economy, MembershipKind::Plusplus, Pay::Credits, 0).is_none());
+
+        // 25 % off, rounded half up like the store: 15 → 11, 30 → 23
+        let plus = membership_offer(&economy, MembershipKind::Plus, Pay::Tokens, 25).unwrap();
+        assert_eq!((plus.cost, plus.full_cost), (11, 15));
+        let plusplus =
+            membership_offer(&economy, MembershipKind::Plusplus, Pay::Tokens, 25).unwrap();
+        assert_eq!((plusplus.cost, plusplus.full_cost), (23, 30));
+
+        economy.plusplus_credits = 400;
+        let credits =
+            membership_offer(&economy, MembershipKind::Plusplus, Pay::Credits, 50).unwrap();
+        assert_eq!(credits.cost, 200);
+        assert_eq!(renewal_pay(&economy, MembershipKind::Plusplus), Pay::Tokens);
+
+        // tokens off: the second renews with credits, the first is not sold
+        economy.tokens_enabled = false;
+        assert!(membership_offer(&economy, MembershipKind::Plus, Pay::Tokens, 0).is_none());
+        assert_eq!(
+            renewal_pay(&economy, MembershipKind::Plusplus),
+            Pay::Credits
+        );
+    }
+
+    #[test]
+    fn the_goal_is_the_cheapest_membership_not_had() {
+        let economy = crate::settings::economy::AppSettingsEconomy {
+            plus_tokens: 15,
+            plusplus_tokens: 30,
+            ..Default::default()
+        };
+        let now = at(0).and_utc();
+        let goal = |membership: &Membership| {
+            membership_goal(&economy, membership, now).map(|goal| (goal.membership, goal.cost))
+        };
+
+        assert_eq!(
+            goal(&Membership::default()),
+            Some((MembershipKind::Plus, 15))
+        );
+        let plus = Membership {
+            plus_until: Some(at(24)),
+            ..Default::default()
+        };
+        assert_eq!(goal(&plus), Some((MembershipKind::Plusplus, 30)));
+        // the second gives everything the first does
+        let plusplus = Membership {
+            plusplus_until: Some(at(24)),
+            ..Default::default()
+        };
+        assert_eq!(goal(&plusplus), None);
+        // a lapsed first counts as not had
+        let lapsed = Membership {
+            plus_until: Some(at(-1)),
+            ..Default::default()
+        };
+        assert_eq!(goal(&lapsed), Some((MembershipKind::Plus, 15)));
+
+        let off = crate::settings::economy::AppSettingsEconomy {
+            membership_enabled: false,
+            ..economy.clone()
+        };
+        assert_eq!(membership_goal(&off, &Membership::default(), now), None);
     }
 }

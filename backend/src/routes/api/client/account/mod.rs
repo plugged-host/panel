@@ -6,9 +6,11 @@ mod ads; // plugged.host
 mod api_keys;
 mod avatar;
 mod backups; // plugged.host
+mod badges; // plugged.host
 mod balance; // plugged.host
 mod command_snippets;
 mod credits; // plugged.host
+mod day_pass; // plugged.host
 mod devboxes; // plugged.host
 mod discord; // plugged.host
 mod email;
@@ -22,6 +24,7 @@ mod panel_access; // plugged.host
 mod partners; // plugged.host
 mod password;
 mod password_login;
+mod promo; // plugged.host
 mod security_keys;
 mod sessions;
 mod settings;
@@ -215,5 +218,8 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         .nest("/notifications", notifications::router(state)) // plugged.host
         .nest("/standing", standing::router(state)) // plugged.host
         .nest("/partners", partners::router(state)) // plugged.host
+        .nest("/day-pass", day_pass::router(state)) // plugged.host
+        .nest("/promo", promo::router(state)) // plugged.host
+        .nest("/badges", badges::router(state)) // plugged.host
         .with_state(state.clone())
 }

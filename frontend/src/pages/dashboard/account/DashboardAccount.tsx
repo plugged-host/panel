@@ -16,6 +16,7 @@ import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import AccountContainer from './AccountContainer.tsx';
 import AvatarContainer from './AvatarContainer.tsx';
+import BadgesContainer from './BadgesContainer.tsx'; // plugged.host
 import EmailContainer from './EmailContainer.tsx';
 import NoprofitContainer from './NoprofitContainer.tsx';
 import PasswordContainer from './PasswordContainer.tsx';
@@ -131,6 +132,8 @@ export default function DashboardAccount() {
         <AccountContainer requireTwoFactorActivation={requireTwoFactorActivation} />
         <PreferencesContainer requireTwoFactorActivation={requireTwoFactorActivation} />
         <AvatarContainer requireTwoFactorActivation={requireTwoFactorActivation} />
+        {/* plugged.host: profile badges (docs/features/promos.md#profile-badges) */}
+        <BadgesContainer />
 
         <ExtensionSlot
           components={

@@ -21,11 +21,13 @@ off by default) and looks at servers that are:
 - not owned by an admin;
 - not owned by a member, while Spare Members is on and memberships are on (off by default since
   3.0.4: members' idle servers are stopped, parked and deleted like everyone's);
-- not parked already, and not failed to park in the last day.
+- not parked already, and not failed to park in the last day;
+- not kept awake: a keep-awake pass bought for the server ([server-upgrades.md](server-upgrades.md))
+  that still runs.
 
 | Idle for | Running | Does |
 |---|---|---|
-| `stop_minutes` (2880, two days) | yes | Stops it (`stopped`, `server:limbo.stop`) |
+| `stop_minutes` (2880, two days) | yes | Stops it (`stopped`, `server:limbo.stop`) and tells the owner (`serverIdleStopped`: when it will be parked, and what a keep-awake pass costs while one is sold) |
 | `park_minutes` (4320, three days) | no | Parks it (below) |
 
 The windows are minutes so a test panel can park a server within the hour; until 2026-10-24 they
@@ -100,7 +102,7 @@ The server list shows Being Parked, Parked and Being Restored instead of the usa
 ## Deleted after a while
 
 With **Delete After (Days)** above 0, a server `parked` for that many days (from
-`server_limbo.parked`) is deleted with its files by `limbo::purge_due`, which the `settle_limbo`
+`server_limbo.parked`) and without a running keep-awake pass is deleted with its files by `limbo::purge_due`, which the `settle_limbo`
 task runs every minute (20 per run, also with limbo off). Its backups, the final one included, go to
 the deleted servers' hold like any deleted server's ([backups page](backups-page.md)), so the owner
 can still download the newest until the hold ends. The limbo page says when the server will be
@@ -201,6 +203,15 @@ Admin › Settings › Hosting › Limbo (`shared/src/settings/limbo.rs`):
 - The limbo node needs the Wings fork like any node (it sends the files on a restore).
 - An import starts every server's idle clock (`last_activity`) at the import, so a server the
   Pelican panel had stopped is parked `park_minutes` after the import at the earliest.
+
+## Keep awake
+
+A keep-awake pass ([server-upgrades.md](server-upgrades.md), 3 tokens for 7 days by default, sold
+only while limbo is on) keeps the server from being stopped, parked or deleted as idle while it
+runs. The console of a server limbo stopped offers one while the server is off, the stop's
+notification names its price with a link to Settings › Upgrades, and a parked server's limbo page
+offers one too (it keeps the server from being deleted and from being parked again once it is
+back; `/upgrades` is reachable while the server is parked).
 
 ## Check
 

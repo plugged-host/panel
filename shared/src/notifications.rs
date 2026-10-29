@@ -31,6 +31,15 @@ pub const ADMIN_TRANSFER_FAILED: &str = "admin.transferFailed";
 pub const ALLOWANCE_CUT: &str = "allowanceCut";
 /// The second membership ran out and servers left the premium locations.
 pub const MEMBERSHIP_ENDED: &str = "membershipEnded";
+/// A membership ends within the ends-soon notice's hours (`economy::remind_ending`): when, whether
+/// it renews by itself and whether the balance covers it.
+pub const MEMBERSHIP_ENDS_SOON: &str = "membershipEndsSoon";
+/// A membership switched to renew by itself could not: the balance was short by `missing`.
+pub const MEMBERSHIP_RENEW_FAILED: &str = "membershipRenewFailed";
+/// Someone bought the person a membership (`from`, their username).
+pub const MEMBERSHIP_GIFTED: &str = "membershipGifted";
+/// Paid panel access ends within the ends-soon notice's hours (`panel_access::remind_ending`).
+pub const PANEL_ACCESS_ENDS_SOON: &str = "panelAccessEndsSoon";
 /// A failover (or a drill) restored the server on another node.
 pub const FAILOVER_DONE: &str = "failoverDone";
 /// A failover moved the server and then could not restore it.
@@ -69,6 +78,15 @@ pub const PARTNER_CREDITS_CHANGED: &str = "partnerCreditsChanged";
 /// For admins: a new partner application, a partnership suspended.
 pub const ADMIN_PARTNER_APPLICATION: &str = "admin.partnerApplication";
 pub const ADMIN_PARTNER_SUSPENDED: &str = "admin.partnerSuspended";
+/// Server upgrades (shared/src/server_upgrades.rs, docs/features/server-upgrades.md): a keep-awake
+/// pass or an extra slot ends within 48 hours (`upgrade`, `until`, `tokens` to renew or null).
+pub const UPGRADE_ENDING: &str = "upgradeEnding";
+/// Limbo stopped the server for being idle (`hours` idle, `park` hours until it is parked; `tokens`
+/// and `days` of a keep-awake pass while one is sold).
+pub const SERVER_IDLE_STOPPED: &str = "serverIdleStopped";
+/// A friend the account brought earned the referral threshold: `amount` tokens paid
+/// (shared/src/referrals.rs, docs/features/referrals.md).
+pub const REFERRAL_PAID: &str = "referralPaid";
 
 /// Read notifications are deleted after this many days (the `delete_old_activity` task).
 pub const KEEP_READ_DAYS: i64 = 90;
@@ -306,6 +324,105 @@ pub async fn membership_ended(
         None,
         MEMBERSHIP_ENDED,
         json!({ "membership": membership, "servers": servers }),
+    )
+    .await;
+}
+
+/// A membership ends soon (`economy::remind_ending`): `membership` is its name, `cost` what it
+/// costs now in `currency`, `covered` whether the balance pays it.
+#[allow(clippy::too_many_arguments)]
+pub async fn membership_ends_soon(
+    state: &crate::State,
+    user_uuid: uuid::Uuid,
+    membership: &str,
+    until: chrono::NaiveDateTime,
+    auto_renew: bool,
+    covered: bool,
+    cost: i64,
+    currency: crate::economy::Pay,
+) {
+    send(
+        state,
+        user_uuid,
+        None,
+        MEMBERSHIP_ENDS_SOON,
+        json!({
+            "membership": membership,
+            "until": until.and_utc(),
+            "auto_renew": auto_renew,
+            "covered": covered,
+            "cost": cost,
+            "currency": currency,
+        }),
+    )
+    .await;
+}
+
+/// A membership switched to renew by itself could not (`economy::renew`): `missing` more of
+/// `currency` would have paid it.
+pub async fn membership_renew_failed(
+    state: &crate::State,
+    user_uuid: uuid::Uuid,
+    membership: &str,
+    missing: i64,
+    currency: crate::economy::Pay,
+    until: chrono::NaiveDateTime,
+) {
+    send(
+        state,
+        user_uuid,
+        None,
+        MEMBERSHIP_RENEW_FAILED,
+        json!({
+            "membership": membership,
+            "missing": missing,
+            "currency": currency,
+            "until": until.and_utc(),
+        }),
+    )
+    .await;
+}
+
+/// Someone (`from`, their username) bought the person `days` of a membership
+/// (`economy::gift_membership`); it now runs `until`.
+pub async fn membership_gifted(
+    state: &crate::State,
+    user_uuid: uuid::Uuid,
+    membership: &str,
+    days: i64,
+    from: &str,
+    until: Option<chrono::NaiveDateTime>,
+) {
+    send(
+        state,
+        user_uuid,
+        None,
+        MEMBERSHIP_GIFTED,
+        json!({
+            "membership": membership,
+            "days": days,
+            "from": from,
+            "until": until.map(|until| until.and_utc()),
+        }),
+    )
+    .await;
+}
+
+/// Paid panel access ends soon (`panel_access::remind_ending`): `cost` tokens pay the next
+/// period, `covered` whether the balance does.
+pub async fn panel_access_ends_soon(
+    state: &crate::State,
+    user_uuid: uuid::Uuid,
+    until: chrono::NaiveDateTime,
+    cost: i64,
+    covered: bool,
+) {
+    send(
+        state,
+        user_uuid,
+        None,
+        PANEL_ACCESS_ENDS_SOON,
+        json!({ "until": until.and_utc(), "cost": cost, "covered": covered }),
     )
     .await;
 }
@@ -656,6 +773,10 @@ mod tests {
             ADMIN_TRANSFER_FAILED,
             ALLOWANCE_CUT,
             MEMBERSHIP_ENDED,
+            MEMBERSHIP_ENDS_SOON,
+            MEMBERSHIP_RENEW_FAILED,
+            MEMBERSHIP_GIFTED,
+            PANEL_ACCESS_ENDS_SOON,
             FAILOVER_DONE,
             FAILOVER_FAILED,
             MODPACK_INSTALLED,

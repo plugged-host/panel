@@ -6,9 +6,14 @@
 //! `room_min_seconds` passed, or after `room_max_seconds` whatever the server does. Only when the
 //! click's power action did not reach Wings is it sent again on the way out. Leaving a room opens a
 //! pass: the same user starts the same server without a room for `room_pass_minutes`.
+//!
+//! The room sells a **day pass**: `day_pass_tokens` tokens let every start of the account past the
+//! rooms for `day_pass_hours` (`users.day_pass_until`), bought inside the room
+//! (docs/features/ads.md#day-pass).
 
 use crate::{
     ads::Audience,
+    economy::{Currency, EconomyError},
     models::{
         CreatableModel,
         server::Server,
@@ -20,6 +25,9 @@ use crate::{
 use serde::Serialize;
 use sqlx::Row;
 use utoipa::ToSchema;
+
+/// The ledger type of a day pass.
+pub const TYPE_DAY_PASS: &str = "day_pass";
 
 /// A limit over the line: 0 (unlimited) always is, and a line of 0 takes every server.
 pub fn over(limit: i64, line: i64) -> bool {
@@ -200,6 +208,14 @@ impl StartGate for RoomGate {
             return Ok(Decision::Pass);
         }
 
+        // a day pass bought in a room
+        if day_pass_until(&state.database, user.uuid)
+            .await?
+            .is_some_and(|until| until > chrono::Utc::now().naive_utc())
+        {
+            return Ok(Decision::Pass);
+        }
+
         // the pass from the last room
         if let Some(room) = room(&state.database, server.uuid, user.uuid).await?
             && room.released.is_some_and(|released| {
@@ -268,6 +284,171 @@ pub struct ApiWaitingRoom {
     pub running: bool,
     /// The room may let the user through now.
     pub ready: bool,
+    /// The day pass on sale in the room; `None` while it is not sold.
+    pub day_pass: Option<ApiDayPass>,
+    /// The second membership's name while it skips the room (memberships on, Fewer Ads for
+    /// Members on) and the user does not have it.
+    pub premium: Option<compact_str::CompactString>,
+}
+
+/// The day pass as the room offers it.
+#[derive(ToSchema, Serialize, Clone, Debug)]
+pub struct ApiDayPass {
+    /// Tokens it costs.
+    pub tokens: i64,
+    /// Hours it runs.
+    pub hours: i64,
+    /// The user's tokens now.
+    pub balance: i64,
+    /// While one runs, its end.
+    pub until: Option<chrono::DateTime<chrono::Utc>>,
+}
+
+/// When the account's day pass runs out; `None` when it never bought one.
+pub async fn day_pass_until(
+    database: &crate::database::Database,
+    user_uuid: uuid::Uuid,
+) -> Result<Option<chrono::NaiveDateTime>, sqlx::Error> {
+    Ok(sqlx::query_scalar::<_, Option<chrono::NaiveDateTime>>(
+        "SELECT day_pass_until FROM users WHERE uuid = $1",
+    )
+    .bind(user_uuid)
+    .fetch_optional(database.write())
+    .await?
+    .flatten())
+}
+
+/// The price and length of the day pass, while it is sold (on, tokens on, the room on).
+fn day_pass_terms(settings: &crate::settings::AppSettings) -> Option<(i64, i64)> {
+    (settings.ads.enabled
+        && settings.ads.room_enabled
+        && settings.ads.day_pass_enabled
+        && settings.economy.tokens_enabled)
+        .then(|| {
+            (
+                settings.ads.day_pass_tokens.max(1) as i64,
+                settings.ads.day_pass_hours.max(1) as i64,
+            )
+        })
+}
+
+/// The end of a pass of `hours` bought at `now`: added to what is left of a running one.
+pub fn day_pass_extended(
+    until: Option<chrono::NaiveDateTime>,
+    now: chrono::NaiveDateTime,
+    hours: i64,
+) -> chrono::NaiveDateTime {
+    until.filter(|until| *until > now).unwrap_or(now) + chrono::Duration::hours(hours.max(1))
+}
+
+/// Buys a day pass with tokens: the user row locked, the tokens, the ledger row and the new end
+/// written together. `price` is the price the user saw; a moved price buys nothing.
+pub async fn buy_day_pass(
+    state: &crate::State,
+    user: &User,
+    price: Option<i64>,
+) -> Result<ApiDayPass, EconomyError> {
+    let terms = {
+        let settings = state.settings.get().await?;
+        if !settings.ads.day_pass_enabled {
+            return Err(EconomyError::Disabled);
+        }
+        day_pass_terms(&settings)
+    };
+    let Some((cost, hours)) = terms else {
+        return Err(EconomyError::Unavailable);
+    };
+    if price.is_some_and(|price| price != cost) {
+        return Err(EconomyError::PriceMoved);
+    }
+
+    let now = chrono::Utc::now().naive_utc();
+    let mut transaction = state.database.write().begin().await?;
+    let current: Option<Option<chrono::NaiveDateTime>> =
+        sqlx::query_scalar("SELECT day_pass_until FROM users WHERE uuid = $1 FOR UPDATE")
+            .bind(user.uuid)
+            .fetch_optional(&mut *transaction)
+            .await?;
+    let Some(current) = current else {
+        return Err(EconomyError::Other(anyhow::anyhow!("account not found")));
+    };
+    let until = day_pass_extended(current, now, hours);
+
+    let Some(balance) = crate::economy::change(
+        &mut transaction,
+        Currency::Tokens,
+        user.uuid,
+        -cost,
+        TYPE_DAY_PASS,
+        "Waiting room day pass",
+        serde_json::json!({ "hours": hours }),
+    )
+    .await?
+    else {
+        return Err(EconomyError::Short);
+    };
+
+    sqlx::query("UPDATE users SET day_pass_until = $2 WHERE uuid = $1")
+        .bind(user.uuid)
+        .bind(until)
+        .execute(&mut *transaction)
+        .await?;
+    transaction.commit().await?;
+
+    Ok(ApiDayPass {
+        tokens: cost,
+        hours,
+        balance,
+        until: Some(until.and_utc()),
+    })
+}
+
+/// What the room offers next to its ads: the day pass and the second membership; and the end of
+/// a running day pass.
+async fn offers(
+    state: &crate::State,
+    user: &User,
+) -> Result<
+    (
+        Option<ApiDayPass>,
+        Option<compact_str::CompactString>,
+        Option<chrono::NaiveDateTime>,
+    ),
+    anyhow::Error,
+> {
+    let (terms, premium) = {
+        let settings = state.settings.get().await?;
+        let premium =
+            (settings.economy.membership_enabled && settings.ads.member_free && !user.has_plusplus)
+                .then(|| settings.economy.plusplus_name.clone());
+
+        (day_pass_terms(&settings), premium)
+    };
+
+    let row = sqlx::query("SELECT tokens, day_pass_until FROM users WHERE uuid = $1")
+        .bind(user.uuid)
+        .fetch_optional(state.database.write())
+        .await?;
+    let (balance, until) = match row {
+        Some(row) => (
+            row.try_get::<i64, _>("tokens")?,
+            row.try_get::<Option<chrono::NaiveDateTime>, _>("day_pass_until")?,
+        ),
+        None => (0, None),
+    };
+    let now = chrono::Utc::now().naive_utc();
+    let until = until.filter(|until| *until > now);
+
+    Ok((
+        terms.map(|(tokens, hours)| ApiDayPass {
+            tokens,
+            hours,
+            balance,
+            until: until.map(|until| until.and_utc()),
+        }),
+        premium,
+        until,
+    ))
 }
 
 pub async fn view(
@@ -279,6 +460,8 @@ pub async fn view(
     let (min_seconds, max_seconds) = (settings.ads.room_min_seconds, settings.ads.room_max_seconds);
     drop(settings);
 
+    let (day_pass, premium, pass_until) = offers(state, user).await?;
+
     let now = chrono::Utc::now().naive_utc();
     let Some(room) = room(&state.database, server.uuid, user.uuid).await? else {
         return Ok(ApiWaitingRoom {
@@ -288,6 +471,8 @@ pub async fn view(
             max_seconds,
             running: false,
             ready: false,
+            day_pass,
+            premium,
         });
     };
     let elapsed = (now - room.opened).num_seconds().max(0);
@@ -304,6 +489,8 @@ pub async fn view(
             max_seconds,
             running: false,
             ready: false,
+            day_pass,
+            premium,
         });
     }
 
@@ -318,7 +505,10 @@ pub async fn view(
         min_seconds,
         max_seconds,
         running,
-        ready: ready(elapsed, running, min_seconds, max_seconds),
+        // a day pass bought while waiting lets the user through at once
+        ready: ready(elapsed, running, min_seconds, max_seconds) || pass_until.is_some(),
+        day_pass,
+        premium,
     })
 }
 
@@ -421,6 +611,26 @@ mod tests {
         assert!(ready(15, true, 15, 30));
         assert!(!ready(20, false, 15, 30));
         assert!(ready(30, false, 15, 30));
+    }
+
+    #[test]
+    fn a_day_pass_adds_to_what_is_left() {
+        let now = chrono::NaiveDate::from_ymd_opt(2026, 10, 29)
+            .unwrap()
+            .and_hms_opt(12, 0, 0)
+            .unwrap();
+        assert_eq!(
+            day_pass_extended(None, now, 24),
+            now + chrono::Duration::hours(24)
+        );
+        assert_eq!(
+            day_pass_extended(Some(now - chrono::Duration::hours(1)), now, 24),
+            now + chrono::Duration::hours(24)
+        );
+        assert_eq!(
+            day_pass_extended(Some(now + chrono::Duration::hours(5)), now, 24),
+            now + chrono::Duration::hours(29)
+        );
     }
 
     #[test]

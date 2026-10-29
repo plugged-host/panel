@@ -17,7 +17,7 @@ import { useSettingsSection } from '../useSettingsSection.ts';
 
 type AdsValues = z.infer<typeof adminSettingsAdsSchema>;
 
-export type AdsPart = 'placement' | 'adsterra' | 'monetag' | 'room' | 'adblock' | 'inGame';
+export type AdsPart = 'placement' | 'adsterra' | 'monetag' | 'room' | 'adblock' | 'inGame' | 'promos';
 
 // What each tab edits. A tab saves the whole section: its own fields over what is stored, so an
 // unsaved edit in another tab is neither sent nor lost.
@@ -69,6 +69,9 @@ const partFields: Record<AdsPart, (keyof AdsValues)[]> = {
     'roomSocialBar',
     'roomPopunder',
     'roomInterstitial',
+    'dayPassEnabled',
+    'dayPassTokens',
+    'dayPassHours',
   ],
   adblock: [
     'adblockEnabled',
@@ -80,6 +83,8 @@ const partFields: Record<AdsPart, (keyof AdsValues)[]> = {
     'adblockMessage',
   ],
   inGame: ['inGameEnabled', 'inGameMessage', 'inGameInterval'],
+  // plugged.host: docs/features/promos.md
+  promos: ['promoEnabled', 'promoHours', 'offersEnabled', 'promoVideos', 'promoVideoShare'],
 };
 
 export default function AdsContainer({ part }: { part: AdsPart }) {
@@ -226,6 +231,10 @@ export default function AdsContainer({ part }: { part: AdsPart }) {
       toggle('roomSocialBar'),
       toggle('roomPopunder'),
       toggle('roomInterstitial'),
+      { type: 'divider', name: 'dayPassDivider', label: t(`${fieldKey}.dayPass`, {}) },
+      toggle('dayPassEnabled', room),
+      number('dayPassTokens', 1, 1000, (values) => values.roomEnabled && values.dayPassEnabled),
+      number('dayPassHours', 1, 720, (values) => values.roomEnabled && values.dayPassEnabled),
     ],
     adblock: [
       toggle('adblockEnabled'),
@@ -256,6 +265,14 @@ export default function AdsContainer({ part }: { part: AdsPart }) {
       },
     ],
     inGame: [toggle('inGameEnabled'), text('inGameMessage', inGame), number('inGameInterval', 5, 1440, inGame)],
+    promos: [
+      toggle('promoEnabled'),
+      number('promoHours', 1, 720, (values) => values.promoEnabled),
+      toggle('offersEnabled'),
+      { type: 'divider', name: 'promoVideosDivider', label: t(`${fieldKey}.promoClips`, {}) },
+      toggle('promoVideos'),
+      number('promoVideoShare', 0, 100, (values) => values.promoVideos),
+    ],
   };
 
   return (

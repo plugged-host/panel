@@ -6,6 +6,10 @@
 //! its start plus its length. The limit is checked before a turn and charged after it, so one
 //! turn may overshoot. A Discord account nobody linked has windows of its own at the settings'
 //! share of the limits.
+//!
+//! plugged.host: once a window refuses turns, a person may buy one more day's worth of usage with
+//! tokens ([`buy_extra`]): it is kept on each active window as `bonus_tokens`, on top of its
+//! limit, until the window resets.
 
 use crate::settings::neo::AppSettingsNeo;
 use serde::{Deserialize, Serialize};
@@ -131,6 +135,32 @@ fn iso(time: chrono::NaiveDateTime) -> String {
         .to_rfc3339_opts(chrono::SecondsFormat::Secs, true)
 }
 
+/// A window with the usage bought for it on top of its limit (only while it is active: a closed
+/// window starts again without it).
+pub fn with_bonus(mut window: Window, bonus: i64) -> Window {
+    if window.active && bonus > 0 {
+        window.limit += bonus;
+        window.percent = if window.limit > 0 {
+            (window.used * 100 / window.limit).min(100)
+        } else {
+            100
+        };
+    }
+
+    window
+}
+
+/// One day's worth of usage: the weekly limit (at the subject's share) spread over its days.
+pub fn day_worth(settings: &AppSettingsNeo, subject: &Subject) -> i64 {
+    limit(settings, LONG, subject) / settings.long_days.max(1) as i64
+}
+
+/// A window's bonus after one more day's worth is bought: the day on top of what is used now, so
+/// a turn that overshot the limit does not eat into it.
+pub fn bonus_after(limit: i64, bonus: i64, used: i64, day: i64) -> i64 {
+    bonus + (used - (limit + bonus)).max(0) + day.max(0)
+}
+
 /// The window that refuses new turns, if any (the weekly one first).
 pub fn blocking_window(limits: &Limits) -> Option<String> {
     [LONG, SHORT].into_iter().find_map(|kind| {
@@ -151,30 +181,49 @@ pub async fn snapshot(
     subject: &Subject,
 ) -> Result<Limits, sqlx::Error> {
     let rows = sqlx::query(sqlx::AssertSqlSafe(format!(
-        "SELECT kind, started, resets, tokens_used FROM neo_usage_windows WHERE {SUBJECT}"
+        "SELECT kind, started, resets, tokens_used, bonus_tokens FROM neo_usage_windows WHERE {SUBJECT}"
     )))
     .bind(subject.user_uuid)
     .bind(&subject.discord_id)
     .fetch_all(database.write())
     .await?;
 
-    let now = chrono::Utc::now().naive_utc();
+    Ok(limits_of(
+        settings,
+        subject,
+        &rows,
+        chrono::Utc::now().naive_utc(),
+    ))
+}
+
+/// The windows from their rows (`kind`, `started`, `resets`, `tokens_used`, `bonus_tokens`).
+fn limits_of(
+    settings: &AppSettingsNeo,
+    subject: &Subject,
+    rows: &[sqlx::postgres::PgRow],
+    now: chrono::NaiveDateTime,
+) -> Limits {
     let mut limits = Limits::new();
     for kind in [SHORT, LONG] {
-        let row = rows
-            .iter()
-            .find(|row| row.get::<String, _>("kind") == kind)
-            .map(|row| {
+        let row = rows.iter().find(|row| row.get::<String, _>("kind") == kind);
+        let window = describe(
+            settings,
+            kind,
+            subject,
+            row.map(|row| {
                 (
                     row.get::<chrono::NaiveDateTime, _>("started"),
                     row.get::<chrono::NaiveDateTime, _>("resets"),
                     row.get::<i64, _>("tokens_used"),
                 )
-            });
-        limits.insert(kind.into(), describe(settings, kind, subject, row, now));
+            }),
+            now,
+        );
+        let bonus = row.map_or(0, |row| row.get::<i64, _>("bonus_tokens"));
+        limits.insert(kind.into(), with_bonus(window, bonus));
     }
 
-    Ok(limits)
+    limits
 }
 
 /// What one turn did, for the ledger.
@@ -238,7 +287,8 @@ pub async fn charge(
             }
             Some(row) if row.get::<chrono::NaiveDateTime, _>("resets") <= now => {
                 sqlx::query(
-                    "UPDATE neo_usage_windows SET started = $2, resets = $3, tokens_used = $4
+                    "UPDATE neo_usage_windows SET started = $2, resets = $3, tokens_used = $4,
+                        bonus_tokens = 0
                     WHERE uuid = $1",
                 )
                 .bind(row.get::<uuid::Uuid, _>("uuid"))
@@ -262,6 +312,148 @@ pub async fn charge(
 
     insert_event(&mut *transaction, subject, tokens, "ok", event).await?;
     transaction.commit().await
+}
+
+/// The token ledger's type for usage bought in the chat.
+pub const TYPE_NEO_EXTRA: &str = "neo_extra";
+
+/// Why one more day's worth could not be bought.
+#[derive(Debug)]
+pub enum ExtraError {
+    /// Turned off in the settings.
+    Disabled,
+    /// Not sold right now: tokens off, noprofit.space runs neo, or the limits leave no day.
+    Unavailable,
+    /// No window refuses turns, so there is nothing to raise.
+    NotLimited,
+    /// The price moved since the person saw it: the price now.
+    PriceChanged(i64),
+    /// The balance is short.
+    Short,
+    Other(anyhow::Error),
+}
+
+impl ExtraError {
+    pub fn message(&self) -> String {
+        match self {
+            Self::Disabled => "this is turned off".into(),
+            Self::Unavailable => "this is not available".into(),
+            Self::NotLimited => "you have not reached your limit".into(),
+            Self::PriceChanged(price) => format!("the price changed, it is {price} tokens now"),
+            Self::Short => "your balance is too low".into(),
+            Self::Other(err) => format!("{err:#}"),
+        }
+    }
+
+    pub fn status(&self) -> u16 {
+        match self {
+            Self::Disabled => 403,
+            Self::Other(_) => 500,
+            _ => 409,
+        }
+    }
+}
+
+impl From<sqlx::Error> for ExtraError {
+    fn from(err: sqlx::Error) -> Self {
+        Self::Other(err.into())
+    }
+}
+
+impl From<anyhow::Error> for ExtraError {
+    fn from(err: anyhow::Error) -> Self {
+        Self::Other(err)
+    }
+}
+
+/// What a purchase did: the tokens it cost, the usage it added per active window, and the windows
+/// as they are now.
+#[derive(Debug, Clone)]
+pub struct ExtraBought {
+    pub cost: i64,
+    pub day: i64,
+    pub limits: Limits,
+}
+
+/// Buys one more day's worth of usage for a panel user whose windows refuse turns: the tokens and
+/// every active window's bonus change in one transaction, with the user row and the windows
+/// locked. `seen` is the price the chat showed.
+pub async fn buy_extra(
+    database: &crate::database::Database,
+    settings: &AppSettingsNeo,
+    subject: &Subject,
+    cost: i64,
+    seen: Option<i64>,
+) -> Result<ExtraBought, ExtraError> {
+    let Some(user_uuid) = subject.user_uuid else {
+        return Err(ExtraError::Unavailable);
+    };
+    if seen.is_some_and(|seen| seen != cost) {
+        return Err(ExtraError::PriceChanged(cost));
+    }
+    let day = day_worth(settings, subject);
+    if day <= 0 || cost <= 0 {
+        return Err(ExtraError::Unavailable);
+    }
+
+    let mut transaction = database.write().begin().await?;
+    sqlx::query("SELECT 1 FROM users WHERE uuid = $1 FOR UPDATE")
+        .bind(user_uuid)
+        .execute(&mut *transaction)
+        .await?;
+    let rows = sqlx::query(sqlx::AssertSqlSafe(format!(
+        "SELECT uuid, kind, started, resets, tokens_used, bonus_tokens FROM neo_usage_windows
+        WHERE {SUBJECT} FOR UPDATE"
+    )))
+    .bind(subject.user_uuid)
+    .bind(&subject.discord_id)
+    .fetch_all(&mut *transaction)
+    .await?;
+
+    let now = chrono::Utc::now().naive_utc();
+    let Some(blocking) = blocking_window(&limits_of(settings, subject, &rows, now)) else {
+        return Err(ExtraError::NotLimited);
+    };
+
+    if crate::economy::change(
+        &mut transaction,
+        crate::economy::Currency::Tokens,
+        user_uuid,
+        -cost,
+        TYPE_NEO_EXTRA,
+        "neo: one more day",
+        serde_json::json!({ "window": blocking, "usage": day }),
+    )
+    .await?
+    .is_none()
+    {
+        return Err(ExtraError::Short);
+    }
+
+    for row in rows
+        .iter()
+        .filter(|row| row.get::<chrono::NaiveDateTime, _>("resets") > now)
+    {
+        let kind: String = row.get("kind");
+        let bonus = bonus_after(
+            limit(settings, &kind, subject),
+            row.get("bonus_tokens"),
+            row.get("tokens_used"),
+            day,
+        );
+        sqlx::query("UPDATE neo_usage_windows SET bonus_tokens = $2 WHERE uuid = $1")
+            .bind(row.get::<uuid::Uuid, _>("uuid"))
+            .bind(bonus)
+            .execute(&mut *transaction)
+            .await?;
+    }
+    transaction.commit().await?;
+
+    Ok(ExtraBought {
+        cost,
+        day,
+        limits: snapshot(database, settings, subject).await?,
+    })
 }
 
 /// Records a failed turn (or a provider test): nothing is charged, no window opens.
@@ -361,6 +553,38 @@ mod tests {
         let closed = describe(&settings, SHORT, &plus, Some((at(10), at(15), 9)), at(15));
         assert!(!closed.active);
         assert_eq!(closed.used, 0);
+    }
+
+    #[test]
+    fn a_bought_day_is_headroom_from_where_the_window_stands() {
+        let settings = AppSettingsNeo::default();
+        let free = Subject::user(uuid::Uuid::nil(), 100);
+        // 15 000 000 a week over 7 days
+        assert_eq!(day_worth(&settings, &free), 2_142_857);
+
+        // a turn overshot the limit by 20: the day comes on top of what is used
+        assert_eq!(bonus_after(100, 0, 120, 30), 50);
+        // at the limit, or bought again
+        assert_eq!(bonus_after(100, 0, 100, 30), 30);
+        assert_eq!(bonus_after(100, 30, 130, 30), 60);
+        // a window under its limit keeps its room and gets the day too
+        assert_eq!(bonus_after(100, 0, 40, 30), 30);
+
+        let window = describe(
+            &settings,
+            SHORT,
+            &free,
+            Some((at(10), at(15), 3_000_000)),
+            at(12),
+        );
+        let raised = with_bonus(window.clone(), 1_000_000);
+        assert_eq!(raised.limit, 4_000_000);
+        assert_eq!(raised.percent, 75);
+        assert!(blocking_window(&Limits::from([(SHORT.to_string(), raised)])).is_none());
+
+        // a closed window starts again without the bonus
+        let closed = describe(&settings, SHORT, &free, Some((at(10), at(15), 9)), at(16));
+        assert_eq!(with_bonus(closed, 1_000_000).limit, 3_000_000);
     }
 
     #[test]
