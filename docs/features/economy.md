@@ -21,7 +21,8 @@ Neither needs the other: the second gives everything the first does.
 | Location tier it opens | `plus` | `premium` and `plus` |
 | Start queue priority | 1 | 2 |
 | Burst cores on every server | 1 | 2 (the total, not 1 + 2) |
-| Ads ([ads.md](ads.md#who-sees-ads), while Fewer Ads for Members is on) | only the waiting room before a start: no banners, popups or in-game ads | none, and no waiting room |
+| Panel ads ([ads.md](ads.md#who-sees-ads), while Fewer Ads for Members is on) | only the waiting room before a start: no banners or popups | none, and no waiting room |
+| In-game messages ([ads.md](ads.md#in-game-messages), since 3.0.6) | get them, like free accounts | none |
 | Archives, unpacking and backups | faster (more threads on the node, [wings.md](../wings.md)) | faster still |
 | Panel access | included | included |
 | Idle servers ([limbo.md](limbo.md)) | stopped, parked and deleted like everyone's (Spare Members off) | the same |
@@ -318,8 +319,9 @@ line, and the friends who signed up with it. [referrals.md](referrals.md) has th
 Account › Membership is laid out like the Pelican panel's Plus page: a note while one runs ("Premium
 is active, it runs until …"), the two memberships side by side (pitch, price, term, what each
 gives, a buy button per offer: "30 days · 15 tokens"), a table of what each adds over the free tier
-(locations, start queue, in-game ads, panel ads, the waiting room while it is on, CPU, archives and
-backups, neo usage, the devbox while devboxes are on, panel access while it costs tokens), and the
+(locations, start queue, in-game ads while they are on, panel ads while a membership takes them away,
+the waiting room while it is on, CPU, archives and backups, neo usage, the devbox while devboxes are
+on, panel access while it costs tokens), and the
 questions people ask before buying (one says idle servers still stop, while limbo spares no
 members). Terms read like Pelican's ("a month", "a week, or credits for two weeks"), from the
 offers' days. The first button is filled until the account has a membership, then the second's.

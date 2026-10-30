@@ -1244,7 +1244,7 @@
             "bullets": {
               "home": "{label} — server Anda. Anda sedang berada di sini.",
               "store": "{label} — tambahan CPU, memori, dan disk dengan kredit Anda.",
-              "plus": "{label} — lokasi yang lebih baik, prioritas di antrean mulai, dan tanpa iklan dalam game.",
+              "plus": "{label} — lokasi yang lebih baik dan prioritas di antrean mulai.",
               "tokens": "{label} — dapatkan token dan lihat ke mana token Anda terpakai.",
               "backups": "{label} — unduh cadangan dari server mana pun milik Anda.",
               "account": "{label} — pengaturan profil, kunci, sesi, dan aktivitas Anda."
@@ -3059,8 +3059,8 @@
         "membership": {
           "title": "Keanggotaan",
           "pageTitle": "{app} {name}",
-          "subtitle": "Lokasi yang lebih baik, tanpa antre, dan lebih sedikit iklan. Dibayar per bulan dengan token; tidak ada yang diperpanjang otomatis.",
-          "subtitleAutoRenew": "Lokasi yang lebih baik, tanpa antre, dan lebih sedikit iklan. Dibayar per bulan dengan token; hanya diperpanjang otomatis jika Anda mengaktifkannya.",
+          "subtitle": "Lokasi yang lebih baik dan tanpa antre. Dibayar per bulan dengan token; tidak ada yang diperpanjang otomatis.",
+          "subtitleAutoRenew": "Lokasi yang lebih baik dan tanpa antre. Dibayar per bulan dengan token; hanya diperpanjang otomatis jika Anda mengaktifkannya.",
           "unavailable": "{name} sedang tidak dijual.",
           "active": {
             "heading": "{name} aktif",
@@ -3074,7 +3074,7 @@
             "get": "Dapatkan {name}"
           },
           "plusplus": {
-            "pitch": "Untuk server yang butuh paling banyak: hardware Premium, tanpa iklan di mana pun, dan CPU lebih banyak.",
+            "pitch": "Untuk server yang butuh paling banyak: hardware Premium dan CPU lebih banyak.",
             "term": "{tokens}, atau {credits} dengan kredit",
             "termTokens": "{tokens}",
             "notSold": "Sedang tidak dijual."
@@ -3126,7 +3126,7 @@
           "perks": {
             "plusLocations": "Lokasi {name}",
             "priority": "Prioritas di antrean mulai saat node sedang sibuk",
-            "noBannerAds": "Tanpa iklan: tanpa banner, popup, atau iklan dalam game",
+            "noBannerAds": "Tanpa banner atau popup di panel",
             "burst": "Setiap server dapat burst hingga +{cpu}% CPU selama node-nya masih punya ruang",
             "neoPlus": "Penggunaan neo (AI) {percent}% lebih banyak",
             "devbox": "VS Code di server Anda: {cpu} vCPU, RAM {memory}, disk {disk}",
@@ -3136,6 +3136,7 @@
             "premiumLocations": "Lokasi {plus} dan Premium",
             "highestPriority": "Prioritas tertinggi di antrean mulai saat node sedang sibuk",
             "noAds": "Tanpa iklan di mana pun: tanpa banner, popup, layar tunggu sebelum memulai, atau iklan dalam game",
+            "noGameAds": "Tanpa iklan dalam game",
             "neoPlusplus": "Total penggunaan neo (AI) {percent}% lebih banyak",
             "devboxPlusplus": "Devbox VS Code yang lebih besar: {cpu} vCPU, RAM {memory}, disk {disk}",
             "bundle": "Termasuk {name}"
@@ -6287,7 +6288,7 @@
           },
           "plusOffer": {
             "heading": "Lompati antrean dengan {app} {name}",
-            "body": "{name} seharga {cost} token per bulan: prioritas di antrean ini untuk semua server Anda, lokasi {name}, dan tanpa iklan selain layar tunggu.",
+            "body": "{name} seharga {cost} token per bulan: prioritas di antrean ini untuk semua server Anda dan lokasi {name}.",
             "button": "Dapatkan {name}"
           },
           "offers": {

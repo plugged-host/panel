@@ -124,7 +124,8 @@ pub struct AppSettingsAds {
     /// Replaces the default text.
     pub adblock_message: CompactString,
 
-    /// A `say` to running Minecraft servers of accounts without a membership.
+    /// A `say` to running Minecraft servers of accounts without the second membership. Its own
+    /// switch: it runs while `enabled` is off too.
     pub in_game_enabled: bool,
     pub in_game_message: CompactString,
     pub in_game_interval: i32,

@@ -747,6 +747,11 @@ pub struct ApiEconomy {
     /// Whether a start may wait in the ad-funded waiting room: Plus keeps it, PlusPlus does not
     /// (while Fewer Ads for Members is on).
     pub waiting_room: bool,
+    /// Whether accounts without a membership see ads in the panel that a membership takes away
+    /// (ads on, on the dashboard or server pages, Fewer Ads for Members on).
+    pub panel_ads: bool,
+    /// Whether Minecraft servers get the in-game message: Plus too, PlusPlus not.
+    pub game_ads: bool,
     /// Whether idle servers of members are stopped and parked too (limbo on, members not
     /// spared), and deleted after a while parked.
     pub idle_stop: bool,
@@ -790,9 +795,15 @@ pub struct ApiMembershipDevbox {
 
 /// The account's economy. Gives the daily tokens and the starting credits when they are due.
 pub async fn summary(state: &crate::State, user: &User) -> Result<ApiEconomy, anyhow::Error> {
-    let (economy, connected, neo_percents, devbox, waiting_room, idle_stop, idle_delete) = {
+    let (economy, connected, neo_percents, devbox, waiting_room, ads, idle_stop, idle_delete) = {
         let settings = state.settings.get().await?;
         let waiting_room = settings.ads.enabled && settings.ads.room_enabled;
+        let ads = (
+            settings.ads.enabled
+                && (settings.ads.show_account || settings.ads.show_server)
+                && settings.ads.member_free,
+            settings.ads.in_game_enabled,
+        );
         let idle_stop = settings.limbo.enabled
             && !(settings.limbo.exempt_members && settings.economy.membership_enabled);
         let idle_delete = idle_stop && settings.limbo.delete_after_days > 0;
@@ -828,6 +839,7 @@ pub async fn summary(state: &crate::State, user: &User) -> Result<ApiEconomy, an
             neo_percents,
             devbox,
             waiting_room,
+            ads,
             idle_stop,
             idle_delete,
         )
@@ -927,6 +939,8 @@ pub async fn summary(state: &crate::State, user: &User) -> Result<ApiEconomy, an
         gifts_left,
         panel_access: economy.panel_access_enabled,
         waiting_room,
+        panel_ads: ads.0,
+        game_ads: ads.1,
         idle_stop,
         idle_delete,
         plus_burst_cores: economy.plus_burst_cores.max(0) as i64,

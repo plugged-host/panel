@@ -1244,7 +1244,7 @@
             "bullets": {
               "home": "{label} — vos serveurs. Vous y êtes en ce moment.",
               "store": "{label} — plus de CPU, de mémoire et de disque contre vos crédits.",
-              "plus": "{label} — de meilleurs emplacements, la priorité dans la file de démarrage et aucune publicité en jeu.",
+              "plus": "{label} — de meilleurs emplacements et la priorité dans la file de démarrage.",
               "tokens": "{label} — gagnez des jetons et voyez où ils sont passés.",
               "backups": "{label} — téléchargez une sauvegarde de n'importe lequel de vos serveurs.",
               "account": "{label} — vos paramètres de profil, clés, sessions et activité."
@@ -3062,8 +3062,8 @@
         "membership": {
           "title": "Adhésion",
           "pageTitle": "{app} {name}",
-          "subtitle": "De meilleurs emplacements, pas d'attente dans la file et moins de publicité. Payé au mois en jetons ; rien ne se renouvelle tout seul.",
-          "subtitleAutoRenew": "De meilleurs emplacements, pas d'attente dans la file et moins de publicité. Payé au mois en jetons ; le renouvellement n'a lieu que si vous l'activez.",
+          "subtitle": "De meilleurs emplacements et pas d'attente dans la file. Payé au mois en jetons ; rien ne se renouvelle tout seul.",
+          "subtitleAutoRenew": "De meilleurs emplacements et pas d'attente dans la file. Payé au mois en jetons ; le renouvellement n'a lieu que si vous l'activez.",
           "unavailable": "{name} n'est pas en vente pour le moment.",
           "active": {
             "heading": "{name} est actif",
@@ -3077,7 +3077,7 @@
             "get": "Obtenir {name}"
           },
           "plusplus": {
-            "pitch": "Pour les serveurs les plus exigeants : du matériel Premium, aucune publicité nulle part et plus de CPU.",
+            "pitch": "Pour les serveurs les plus exigeants : du matériel Premium et plus de CPU.",
             "term": "{tokens}, ou des crédits pour {credits}",
             "termTokens": "{tokens}",
             "notSold": "Pas en vente pour le moment."
@@ -3129,7 +3129,7 @@
           "perks": {
             "plusLocations": "Les emplacements {name}",
             "priority": "La priorité dans la file de démarrage quand un nœud est chargé",
-            "noBannerAds": "Aucune publicité : ni bannières, ni popups, ni publicité en jeu",
+            "noBannerAds": "Ni bannières ni popups dans le panel",
             "burst": "Chaque serveur peut monter jusqu'à +{cpu}% de CPU en burst tant que son nœud a de la place",
             "neoPlus": "{percent}% d'utilisation de neo (IA) en plus",
             "devbox": "VS Code sur votre serveur : {cpu} vCPU, {memory} de RAM, {disk} de disque",
@@ -3139,6 +3139,7 @@
             "premiumLocations": "Les emplacements {plus} et Premium",
             "highestPriority": "La priorité la plus haute dans la file de démarrage quand un nœud est chargé",
             "noAds": "Aucune publicité nulle part : ni bannières, ni popups, ni écran d'attente avant un démarrage, ni publicité en jeu",
+            "noGameAds": "Aucune publicité en jeu",
             "neoPlusplus": "{percent}% d'utilisation de neo (IA) en plus au total",
             "devboxPlusplus": "Une devbox VS Code plus grande : {cpu} vCPU, {memory} de RAM, {disk} de disque",
             "bundle": "{name} inclus"
@@ -8168,7 +8169,7 @@
           },
           "plusOffer": {
             "heading": "Passez devant avec {app} {name}",
-            "body": "{name} coûte {cost} jetons par mois : la priorité dans cette file pour tous vos serveurs, les emplacements {name} et aucune publicité à part l'écran d'attente.",
+            "body": "{name} coûte {cost} jetons par mois : la priorité dans cette file pour tous vos serveurs et les emplacements {name}.",
             "button": "Obtenir {name}"
           },
           "offers": {

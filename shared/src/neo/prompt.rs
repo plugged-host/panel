@@ -1562,13 +1562,6 @@ pub fn knowledge_text(facts: &KnowledgeFacts) -> String {
         if facts.limbo.enabled && facts.limbo.exempt_members {
             benefits.push("its servers are never stopped or parked for being idle".to_string());
         }
-        if ads && facts.ads.in_game_enabled && facts.minecraft {
-            benefits.push(format!(
-                "no in-game ads (Minecraft servers of accounts without a membership get a short \"{}\" chat message about every {})",
-                in_game_message(facts),
-                minutes(facts.ads.in_game_interval.max(5) as i64)
-            ));
-        }
         if ads && facts.ads.member_free {
             benefits.push(if room {
                 "no banners or popups in the panel (the ad waiting room before a start stays)"
@@ -1621,6 +1614,14 @@ pub fn knowledge_text(facts: &KnowledgeFacts) -> String {
             } else {
                 "no panel ads".to_string()
             });
+        }
+        // plugged.host: the in-game message has its own switch and skips only this membership
+        if facts.ads.in_game_enabled && facts.minecraft {
+            benefits.push(format!(
+                "no in-game ads (Minecraft servers of accounts without {plusplus}, {plus} included, get a short \"{}\" chat message about every {})",
+                in_game_message(facts),
+                minutes(facts.ads.in_game_interval.max(5) as i64)
+            ));
         }
         if facts.queue.enabled {
             benefits.push(format!("the front of the start queue (ahead of {plus})"));

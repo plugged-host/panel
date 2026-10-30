@@ -1244,7 +1244,7 @@
             "bullets": {
               "home": "{label} — seus servidores. Você está nesta página agora.",
               "store": "{label} — mais CPU, memória e disco em troca dos seus créditos.",
-              "plus": "{label} — localizações melhores, prioridade na fila de inicialização e nenhum anúncio no jogo.",
+              "plus": "{label} — localizações melhores e prioridade na fila de inicialização.",
               "tokens": "{label} — ganhe tokens e veja onde eles foram usados.",
               "backups": "{label} — baixe um backup de qualquer um dos seus servidores.",
               "account": "{label} — configurações do perfil, chaves, sessões e atividade."
@@ -3059,8 +3059,8 @@
         "membership": {
           "title": "Assinatura",
           "pageTitle": "{app} {name}",
-          "subtitle": "Localizações melhores, sem espera na fila e menos anúncios. Pago por mês com tokens; nada é renovado sozinho.",
-          "subtitleAutoRenew": "Localizações melhores, sem espera na fila e menos anúncios. Pago por mês com tokens; só é renovado se você ativar essa opção.",
+          "subtitle": "Localizações melhores e sem espera na fila. Pago por mês com tokens; nada é renovado sozinho.",
+          "subtitleAutoRenew": "Localizações melhores e sem espera na fila. Pago por mês com tokens; só é renovado se você ativar essa opção.",
           "unavailable": "O {name} não está à venda no momento.",
           "active": {
             "heading": "O {name} está ativo",
@@ -3074,7 +3074,7 @@
             "get": "Obter o {name}"
           },
           "plusplus": {
-            "pitch": "Para servidores que precisam de mais: hardware Premium, nenhum anúncio em lugar nenhum e mais CPU.",
+            "pitch": "Para servidores que precisam de mais: hardware Premium e mais CPU.",
             "term": "{tokens}, ou {credits} com créditos",
             "termTokens": "{tokens}",
             "notSold": "Não está à venda no momento."
@@ -3126,7 +3126,7 @@
           "perks": {
             "plusLocations": "As localizações {name}",
             "priority": "Prioridade na fila de inicialização quando um node está ocupado",
-            "noBannerAds": "Sem anúncios: sem banners, pop-ups ou anúncios no jogo",
+            "noBannerAds": "Sem banners ou pop-ups no painel",
             "burst": "Cada servidor faz burst de até +{cpu}% CPU enquanto o node dele tiver folga",
             "neoPlus": "{percent}% a mais de uso do neo (IA)",
             "devbox": "VS Code no seu servidor: {cpu} vCPU, {memory} de RAM, {disk} de disco",
@@ -3136,6 +3136,7 @@
             "premiumLocations": "As localizações {plus} e Premium",
             "highestPriority": "Prioridade máxima na fila de inicialização quando um node está ocupado",
             "noAds": "Nenhum anúncio em lugar nenhum: sem banners, pop-ups, tela de espera antes de iniciar ou anúncios no jogo",
+            "noGameAds": "Nenhum anúncio no jogo",
             "neoPlusplus": "{percent}% a mais de uso do neo (IA) no total",
             "devboxPlusplus": "Um devbox do VS Code maior: {cpu} vCPU, {memory} de RAM, {disk} de disco",
             "bundle": "{name} incluído"
@@ -6287,7 +6288,7 @@
           },
           "plusOffer": {
             "heading": "Passe na frente com o {app} {name}",
-            "body": "O {name} custa {cost} tokens por mês: prioridade nesta fila para todos os seus servidores, as localizações {name} e nenhum anúncio além da tela de espera.",
+            "body": "O {name} custa {cost} tokens por mês: prioridade nesta fila para todos os seus servidores e as localizações {name}.",
             "button": "Obter o {name}"
           },
           "offers": {

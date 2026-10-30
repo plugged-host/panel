@@ -1260,7 +1260,7 @@
             "bullets": {
               "home": "{label} — deine Server. Hier bist du gerade.",
               "store": "{label} — mehr CPU, Arbeitsspeicher und Speicherplatz für deine Credits.",
-              "plus": "{label} — bessere Standorte, Vorrang in der Startwarteschlange und keine Werbung im Spiel.",
+              "plus": "{label} — bessere Standorte und Vorrang in der Startwarteschlange.",
               "tokens": "{label} — Tokens verdienen und sehen, wohin sie gingen.",
               "backups": "{label} — ein Backup jedes deiner Server herunterladen.",
               "account": "{label} — deine Profileinstellungen, Schlüssel, Sitzungen und Aktivität."
@@ -3078,8 +3078,8 @@
         "membership": {
           "title": "Mitgliedschaft",
           "pageTitle": "{app} {name}",
-          "subtitle": "Bessere Standorte, kein Warten in der Schlange und weniger Werbung. Monatlich mit Tokens bezahlt; nichts verlängert sich von selbst.",
-          "subtitleAutoRenew": "Bessere Standorte, kein Warten in der Schlange und weniger Werbung. Monatlich mit Tokens bezahlt; sie verlängert sich nur, wenn du das einschaltest.",
+          "subtitle": "Bessere Standorte und kein Warten in der Schlange. Monatlich mit Tokens bezahlt; nichts verlängert sich von selbst.",
+          "subtitleAutoRenew": "Bessere Standorte und kein Warten in der Schlange. Monatlich mit Tokens bezahlt; sie verlängert sich nur, wenn du das einschaltest.",
           "unavailable": "{name} ist gerade nicht erhältlich.",
           "active": {
             "heading": "{name} ist aktiv",
@@ -3093,7 +3093,7 @@
             "get": "{name} holen"
           },
           "plusplus": {
-            "pitch": "Für Server, die am meisten brauchen: Premium-Hardware, nirgends Werbung und mehr CPU.",
+            "pitch": "Für Server, die am meisten brauchen: Premium-Hardware und mehr CPU.",
             "term": "für {tokens}, oder Credits für {credits}",
             "termTokens": "für {tokens}",
             "notSold": "Gerade nicht im Angebot."
@@ -3145,7 +3145,7 @@
           "perks": {
             "plusLocations": "Die {name}-Standorte",
             "priority": "Vorrang in der Start-Warteschlange, wenn ein Node ausgelastet ist",
-            "noBannerAds": "Keine Werbung: keine Banner, Popups oder Werbung im Spiel",
+            "noBannerAds": "Keine Banner oder Popups im Panel",
             "burst": "Jeder Server darf bis zu +{cpu} % CPU nutzen, solange sein Node Luft hat",
             "neoPlus": "{percent} % mehr neo-Nutzung (KI)",
             "devbox": "VS Code auf deinem Server: {cpu} vCPU, {memory} RAM, {disk} Speicher",
@@ -3155,6 +3155,7 @@
             "premiumLocations": "Die {plus}- und Premium-Standorte",
             "highestPriority": "Höchster Vorrang in der Start-Warteschlange, wenn ein Node ausgelastet ist",
             "noAds": "Nirgends Werbung: keine Banner, Popups, kein Warteschirm vor dem Start und keine Werbung im Spiel",
+            "noGameAds": "Keine Werbung im Spiel",
             "neoPlusplus": "Insgesamt {percent} % mehr neo-Nutzung (KI)",
             "devboxPlusplus": "Eine größere VS-Code-Devbox: {cpu} vCPU, {memory} RAM, {disk} Speicher",
             "bundle": "{name} inklusive"
@@ -4706,7 +4707,7 @@
                 },
                 "form": {
                   "enabled": "Werbung anzeigen",
-                  "enabledDescription": "Es erscheint nichts, bis es eine Zone, ein Tag oder ein gesponsertes Banner gibt. Admin-Seiten zeigen nie Werbung.",
+                  "enabledDescription": "Es erscheint nichts, bis es eine Zone, ein Tag oder ein gesponsertes Banner gibt. Admin-Seiten zeigen nie Werbung. Nachrichten im Spiel haben einen eigenen Schalter.",
                   "showAccount": "Im Dashboard",
                   "showAccountDescription": "Die Serverliste, die Kontoseiten, Server erstellen und der Shop.",
                   "showServer": "Auf Serverseiten",
@@ -4817,7 +4818,7 @@
                   "adblockMessage": "Nachricht",
                   "adblockMessageDescription": "Ersetzt den Standardtext.",
                   "inGameEnabled": "Nachrichten im Spiel",
-                  "inGameEnabledDescription": "Laufende Minecraft-Server von Konten ohne Mitgliedschaft bekommen ab und zu eine Chatnachricht.",
+                  "inGameEnabledDescription": "Laufende Minecraft-Server von Konten ohne die zweite Mitgliedschaft bekommen ab und zu eine Chatnachricht, auch wenn „Werbung anzeigen“ aus ist.",
                   "inGameMessage": "Nachricht",
                   "inGameMessageDescription": "Eine Zeile. Leer: „This server is hosted on\" und der Name des Panels.",
                   "inGameInterval": "Alle (Minuten)",
@@ -11768,7 +11769,7 @@
           },
           "plusOffer": {
             "heading": "Mit {app} {name} nach vorne",
-            "body": "{name} kostet {cost} Tokens im Monat: Vorrang in dieser Schlange für alle deine Server, die {name}-Standorte und keine Werbung außer dem Warteschirm.",
+            "body": "{name} kostet {cost} Tokens im Monat: Vorrang in dieser Schlange für alle deine Server und die {name}-Standorte.",
             "button": "{name} holen"
           },
           "offers": {

@@ -1244,7 +1244,7 @@
             "bullets": {
               "home": "{label} — serverlaringiz. Hozir shu sahifadasiz.",
               "store": "{label} — kreditlaringiz evaziga qoʻshimcha CPU, xotira va disk.",
-              "plus": "{label} — yaxshiroq joylashuvlar, ishga tushirish navbatida ustuvorlik va oʻyin ichida reklama yoʻq.",
+              "plus": "{label} — yaxshiroq joylashuvlar va ishga tushirish navbatida ustuvorlik.",
               "tokens": "{label} — jeton ishlab oling va ular nimaga sarflanganini koʻring.",
               "backups": "{label} — istalgan serveringizning zaxira nusxasini yuklab oling.",
               "account": "{label} — profil sozlamalaringiz, kalitlar, seanslar va faollik."
@@ -3059,8 +3059,8 @@
         "membership": {
           "title": "Aʼzolik",
           "pageTitle": "{app} {name}",
-          "subtitle": "Yaxshiroq joylashuvlar, navbatda kutish yoʻq va kamroq reklama. Jetonlar bilan oyma-oy toʻlanadi; hech narsa oʻz-oʻzidan yangilanmaydi.",
-          "subtitleAutoRenew": "Yaxshiroq joylashuvlar, navbatda kutish yoʻq va kamroq reklama. Jetonlar bilan oyma-oy toʻlanadi; faqat siz yoqsangiz yangilanadi.",
+          "subtitle": "Yaxshiroq joylashuvlar va navbatda kutish yoʻq. Jetonlar bilan oyma-oy toʻlanadi; hech narsa oʻz-oʻzidan yangilanmaydi.",
+          "subtitleAutoRenew": "Yaxshiroq joylashuvlar va navbatda kutish yoʻq. Jetonlar bilan oyma-oy toʻlanadi; faqat siz yoqsangiz yangilanadi.",
           "unavailable": "{name} hozircha sotuvda yoʻq.",
           "active": {
             "heading": "{name} faol",
@@ -3074,7 +3074,7 @@
             "get": "{name} aʼzoligini olish"
           },
           "plusplus": {
-            "pitch": "Eng koʻp resurs talab qiladigan serverlar uchun: Premium uskunalar, hech qayerda reklama yoʻq va koʻproq CPU.",
+            "pitch": "Eng koʻp resurs talab qiladigan serverlar uchun: Premium uskunalar va koʻproq CPU.",
             "term": "{tokens}, kreditga esa {credits}",
             "termTokens": "{tokens}",
             "notSold": "Hozir sotuvda yoʻq."
@@ -3126,7 +3126,7 @@
           "perks": {
             "plusLocations": "{name} joylashuvlari",
             "priority": "Tugun band boʻlganda ishga tushirish navbatida ustuvorlik",
-            "noBannerAds": "Reklama yoʻq: na bannerlar, na qalqib chiquvchi oynalar, na oʻyin ichidagi reklamalar",
+            "noBannerAds": "Panelda na bannerlar, na qalqib chiquvchi oynalar",
             "burst": "Tugunda joy boʻlganda har bir server +{cpu}% CPUgacha burst qiladi",
             "neoPlus": "neo (AI) sarfi {percent}% koʻproq",
             "devbox": "Serveringizda VS Code: {cpu} vCPU, {memory} RAM, {disk} disk",
@@ -3136,6 +3136,7 @@
             "premiumLocations": "{plus} va Premium joylashuvlar",
             "highestPriority": "Tugun band boʻlganda ishga tushirish navbatida eng yuqori ustuvorlik",
             "noAds": "Hech qayerda reklama yoʻq: na bannerlar, na qalqib chiquvchi oynalar, na ishga tushirish oldidan kutish ekrani, na oʻyin ichidagi reklamalar",
+            "noGameAds": "Oʻyin ichida reklama yoʻq",
             "neoPlusplus": "Jami {percent}% koʻproq neo (AI) sarfi",
             "devboxPlusplus": "Kattaroq VS Code devbox: {cpu} vCPU, {memory} RAM, {disk} disk",
             "bundle": "{name} kiritilgan"
@@ -6287,7 +6288,7 @@
           },
           "plusOffer": {
             "heading": "{app} {name} bilan navbatdan oʻting",
-            "body": "{name} narxi oyiga {cost} jeton: barcha serverlaringiz uchun bu navbatda ustuvorlik, {name} joylashuvlari va kutish ekranidan boshqa reklama yoʻq.",
+            "body": "{name} narxi oyiga {cost} jeton: barcha serverlaringiz uchun bu navbatda ustuvorlik va {name} joylashuvlari.",
             "button": "{name} aʼzoligini olish"
           },
           "offers": {

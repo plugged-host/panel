@@ -110,6 +110,8 @@ export const userEconomySchema = z.object({
   plusDays: z.number(),
   panelAccess: z.boolean(),
   waitingRoom: z.boolean(),
+  panelAds: z.boolean(),
+  gameAds: z.boolean(),
   idleStop: z.boolean(),
   idleDelete: z.boolean(),
   plusplusOffers: z.array(

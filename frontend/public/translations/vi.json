@@ -1244,7 +1244,7 @@
             "bullets": {
               "home": "{label} — các máy chủ của bạn. Bạn đang ở trang này.",
               "store": "{label} — thêm CPU, bộ nhớ và ổ đĩa bằng credit của bạn.",
-              "plus": "{label} — vị trí tốt hơn, ưu tiên trong hàng chờ khởi động và không có quảng cáo trong game.",
+              "plus": "{label} — vị trí tốt hơn và ưu tiên trong hàng chờ khởi động.",
               "tokens": "{label} — kiếm token và xem token đã được dùng vào đâu.",
               "backups": "{label} — tải xuống bản sao lưu của bất kỳ máy chủ nào của bạn.",
               "account": "{label} — cài đặt hồ sơ, khóa, phiên và hoạt động của bạn."
@@ -3062,8 +3062,8 @@
         "membership": {
           "title": "Hội Viên",
           "pageTitle": "{app} {name}",
-          "subtitle": "Vị trí tốt hơn, không phải xếp hàng chờ và ít quảng cáo hơn. Trả theo tháng bằng token; không có gì tự động gia hạn.",
-          "subtitleAutoRenew": "Vị trí tốt hơn, không phải xếp hàng chờ và ít quảng cáo hơn. Trả theo tháng bằng token; chỉ tự động gia hạn nếu bạn bật tùy chọn đó.",
+          "subtitle": "Vị trí tốt hơn và không phải xếp hàng chờ. Trả theo tháng bằng token; không có gì tự động gia hạn.",
+          "subtitleAutoRenew": "Vị trí tốt hơn và không phải xếp hàng chờ. Trả theo tháng bằng token; chỉ tự động gia hạn nếu bạn bật tùy chọn đó.",
           "unavailable": "{name} hiện chưa được bán.",
           "active": {
             "heading": "{name} đang hoạt động",
@@ -3077,7 +3077,7 @@
             "get": "Nhận {name}"
           },
           "plusplus": {
-            "pitch": "Dành cho những máy chủ cần nhiều nhất: phần cứng Premium, không có quảng cáo ở bất cứ đâu và thêm CPU.",
+            "pitch": "Dành cho những máy chủ cần nhiều nhất: phần cứng Premium và thêm CPU.",
             "term": "{tokens}, hoặc {credits} khi trả bằng credit",
             "termTokens": "{tokens}",
             "notSold": "Hiện không bán."
@@ -3129,7 +3129,7 @@
           "perks": {
             "plusLocations": "Các vị trí {name}",
             "priority": "Ưu tiên trong hàng chờ khởi động khi node đang bận",
-            "noBannerAds": "Không quảng cáo: không banner, popup hay quảng cáo trong game",
+            "noBannerAds": "Không banner hay popup trong panel",
             "burst": "Mỗi máy chủ được burst đến +{cpu}% CPU khi node còn dư tài nguyên",
             "neoPlus": "Thêm {percent}% mức sử dụng neo (AI)",
             "devbox": "VS Code trên máy chủ của bạn: {cpu} vCPU, {memory} RAM, {disk} ổ đĩa",
@@ -3139,6 +3139,7 @@
             "premiumLocations": "Các vị trí {plus} và Premium",
             "highestPriority": "Ưu tiên cao nhất trong hàng chờ khởi động khi node đang bận",
             "noAds": "Không có quảng cáo ở bất cứ đâu: không banner, popup, màn hình chờ trước khi khởi động hay quảng cáo trong game",
+            "noGameAds": "Không có quảng cáo trong game",
             "neoPlusplus": "Tổng cộng thêm {percent}% mức sử dụng neo (AI)",
             "devboxPlusplus": "Devbox VS Code lớn hơn: {cpu} vCPU, {memory} RAM, {disk} ổ đĩa",
             "bundle": "Đã bao gồm {name}"
@@ -9261,7 +9262,7 @@
           },
           "plusOffer": {
             "heading": "Vượt lên trước với {app} {name}",
-            "body": "{name} có giá {cost} token mỗi tháng: ưu tiên trong hàng chờ này cho mọi máy chủ của bạn, các vị trí {name} và không có quảng cáo nào ngoài màn hình chờ.",
+            "body": "{name} có giá {cost} token mỗi tháng: ưu tiên trong hàng chờ này cho mọi máy chủ của bạn và các vị trí {name}.",
             "button": "Nhận {name}"
           },
           "offers": {

@@ -515,10 +515,11 @@ pub fn in_game_turn(uuid_short: i32, interval: i32, minute: i64) -> bool {
 }
 
 /// Sends the in-game message to the running Minecraft servers (eggs with the `eula` feature) whose
-/// turn it is, of accounts that are not admins and have no membership.
+/// turn it is, of accounts that are not admins and have no second membership (Plus gets it too).
+/// It has its own switch: the panel's ads can be off while it runs.
 pub async fn send_in_game(state: &crate::State) -> Result<(), anyhow::Error> {
     let settings = state.settings.get().await?;
-    if !settings.ads.enabled || !settings.ads.in_game_enabled {
+    if !settings.ads.in_game_enabled {
         return Ok(());
     }
     let interval = settings.ads.in_game_interval.max(5);
@@ -545,9 +546,7 @@ pub async fn send_in_game(state: &crate::State) -> Result<(), anyhow::Error> {
             AND NOT ($1 AND EXISTS (
                 SELECT 1 FROM user_memberships
                 WHERE user_memberships.user_uuid = users.uuid
-                    AND (user_memberships.plus_until > NOW()
-                        OR user_memberships.plusplus_until > NOW()
-                        OR user_memberships.bundle_plus_until > NOW())
+                    AND user_memberships.plusplus_until > NOW()
             ))
             AND MOD(servers.uuid_short::BIGINT - $2, $3) = 0",
     )

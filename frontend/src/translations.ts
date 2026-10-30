@@ -1067,7 +1067,7 @@ const baseTranslations = defineTranslations({
             bullets: {
               home: '{label} — your servers. You are on it now.',
               store: '{label} — more CPU, memory and disk for your credits.',
-              plus: '{label} — better locations, priority in the start queue and no in-game ads.',
+              plus: '{label} — better locations and priority in the start queue.',
               tokens: '{label} — earn tokens and see where they went.',
               backups: '{label} — download a backup of any of your servers.',
               account: '{label} — your profile settings, keys, sessions and activity.',
@@ -2963,10 +2963,9 @@ const baseTranslations = defineTranslations({
         membership: {
           title: 'Membership',
           pageTitle: '{app} {name}',
-          subtitle:
-            'Better locations, no waiting in line and fewer ads. Paid by the month with tokens; nothing renews by itself.',
+          subtitle: 'Better locations and no waiting in line. Paid by the month with tokens; nothing renews by itself.',
           subtitleAutoRenew:
-            'Better locations, no waiting in line and fewer ads. Paid by the month with tokens; it renews only if you switch that on.',
+            'Better locations and no waiting in line. Paid by the month with tokens; it renews only if you switch that on.',
           unavailable: '{name} is not on sale at the moment.',
           active: {
             heading: '{name} is active',
@@ -2980,7 +2979,7 @@ const baseTranslations = defineTranslations({
             get: 'Get {name}',
           },
           plusplus: {
-            pitch: 'For servers that need the most: Premium hardware, no ads anywhere and more CPU.',
+            pitch: 'For servers that need the most: Premium hardware and more CPU.',
             term: '{tokens}, or credits for {credits}',
             termTokens: '{tokens}',
             notSold: 'Not for sale right now.',
@@ -3033,7 +3032,7 @@ const baseTranslations = defineTranslations({
           perks: {
             plusLocations: 'The {name} locations',
             priority: 'Priority in the start queue when a node is busy',
-            noBannerAds: 'No ads: no banners, popups, or in-game ads',
+            noBannerAds: 'No banners or popups in the panel',
             burst: 'Each server bursts up to +{cpu}% CPU while its node has room',
             neoPlus: '{percent}% more neo (AI) usage',
             devbox: 'VS Code on your server: {cpu} vCPU, {memory} RAM, {disk} disk',
@@ -3043,6 +3042,7 @@ const baseTranslations = defineTranslations({
             premiumLocations: 'The {plus} and Premium locations',
             highestPriority: 'Highest priority in the start queue when a node is busy',
             noAds: 'No ads anywhere: no banners, popups, waiting screen before a start or in-game ads',
+            noGameAds: 'No in-game ads',
             neoPlusplus: '{percent}% more neo (AI) usage in all',
             devboxPlusplus: 'A bigger VS Code devbox: {cpu} vCPU, {memory} RAM, {disk} disk',
             bundle: '{name} included',
@@ -4777,7 +4777,7 @@ const baseTranslations = defineTranslations({
                 form: {
                   enabled: 'Show Ads',
                   enabledDescription:
-                    'Nothing shows until a zone, a tag or a sponsored banner exists. Admin pages never show ads.',
+                    'Nothing shows until a zone, a tag or a sponsored banner exists. Admin pages never show ads. In-game messages have their own switch.',
                   showAccount: 'On the Dashboard',
                   showAccountDescription: 'The server list, the account pages, Create Server and the store.',
                   showServer: 'On Server Pages',
@@ -4910,7 +4910,7 @@ const baseTranslations = defineTranslations({
                   adblockMessageDescription: 'Replaces the default text.',
                   inGameEnabled: 'In-Game Messages',
                   inGameEnabledDescription:
-                    'Running Minecraft servers of accounts without a membership get a chat message now and then.',
+                    'Running Minecraft servers of accounts without the second membership get a chat message now and then, also while Show Ads is off.',
                   inGameMessage: 'Message',
                   inGameMessageDescription: 'One line. Empty: "This server is hosted on" and the panel\'s name.',
                   inGameInterval: 'Every (Minutes)',
@@ -12222,7 +12222,7 @@ const baseTranslations = defineTranslations({
           },
           plusOffer: {
             heading: 'Skip ahead with {app} {name}',
-            body: '{name} is {cost} tokens a month: priority in this line for all your servers, the {name} locations and no ads but the waiting screen.',
+            body: '{name} is {cost} tokens a month: priority in this line for all your servers and the {name} locations.',
             button: 'Get {name}',
           },
           // plugged.host: docs/features/promos.md#offers

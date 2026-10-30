@@ -258,19 +258,26 @@ export default function DashboardMembership() {
               plus: t(`${page}.compare.cells.queuePlus`, {}),
               plusplus: t(`${page}.compare.cells.queuePlusplus`, {}),
             },
-            {
+          ];
+
+          // plugged.host: only the ads that run; Plus gets the in-game message too
+          if (economy.gameAds) {
+            rows.push({
               label: t(`${page}.compare.rows.gameAds`, {}),
               free: t(`${page}.compare.cells.gameAdsFree`, {}),
-              plus: t(`${page}.compare.cells.none`, {}),
+              plus: t(`${page}.compare.cells.gameAdsFree`, {}),
               plusplus: t(`${page}.compare.cells.none`, {}),
-            },
-            {
+            });
+          }
+
+          if (economy.panelAds) {
+            rows.push({
               label: t(`${page}.compare.rows.panelAds`, {}),
               free: t(`${page}.compare.cells.yes`, {}),
               plus: t(`${page}.compare.cells.no`, {}),
               plusplus: t(`${page}.compare.cells.no`, {}),
-            },
-          ];
+            });
+          }
 
           if (economy.waitingRoom) {
             rows.push({
@@ -341,8 +348,10 @@ export default function DashboardMembership() {
           const plusPerks = [
             t(`${page}.perks.plusLocations`, { name: economy.plusName }),
             t(`${page}.perks.priority`, {}),
-            t(`${page}.perks.noBannerAds`, {}),
           ];
+          if (economy.panelAds) {
+            plusPerks.push(t(`${page}.perks.noBannerAds`, {}));
+          }
           if (economy.plusBurstCores > 0) {
             plusPerks.push(t(`${page}.perks.burst`, { cpu: (economy.plusBurstCores * 100).toLocaleString() }));
           }
@@ -360,8 +369,12 @@ export default function DashboardMembership() {
           const plusplusPerks = [
             t(`${page}.perks.premiumLocations`, { plus: economy.plusName }),
             t(`${page}.perks.highestPriority`, {}),
-            t(`${page}.perks.noAds`, {}),
           ];
+          if (economy.panelAds) {
+            plusplusPerks.push(t(`${page}.perks.noAds`, {}));
+          } else if (economy.gameAds) {
+            plusplusPerks.push(t(`${page}.perks.noGameAds`, {}));
+          }
           if (economy.plusplusBurstCores > 0) {
             plusplusPerks.push(t(`${page}.perks.burst`, { cpu: (economy.plusplusBurstCores * 100).toLocaleString() }));
           }

@@ -1244,7 +1244,7 @@
             "bullets": {
               "home": "{label} — sunucularınız. Şu an bu sayfadasınız.",
               "store": "{label} — kredilerinizle daha fazla CPU, bellek ve disk.",
-              "plus": "{label} — daha iyi lokasyonlar, başlatma sırasında öncelik ve oyun içi reklam yok.",
+              "plus": "{label} — daha iyi lokasyonlar ve başlatma sırasında öncelik.",
               "tokens": "{label} — jeton kazanın ve nereye gittiklerini görün.",
               "backups": "{label} — sunucularınızdan herhangi birinin yedeğini indirin.",
               "account": "{label} — profil ayarlarınız, anahtarlarınız, oturumlarınız ve aktiviteniz."
@@ -3062,8 +3062,8 @@
         "membership": {
           "title": "Üyelik",
           "pageTitle": "{app} {name}",
-          "subtitle": "Daha iyi lokasyonlar, sırada bekleme yok ve daha az reklam. Jetonla aylık ödenir; hiçbir şey kendiliğinden yenilenmez.",
-          "subtitleAutoRenew": "Daha iyi lokasyonlar, sırada bekleme yok ve daha az reklam. Jetonla aylık ödenir; yalnızca siz açarsanız yenilenir.",
+          "subtitle": "Daha iyi lokasyonlar ve sırada bekleme yok. Jetonla aylık ödenir; hiçbir şey kendiliğinden yenilenmez.",
+          "subtitleAutoRenew": "Daha iyi lokasyonlar ve sırada bekleme yok. Jetonla aylık ödenir; yalnızca siz açarsanız yenilenir.",
           "unavailable": "{name} şu anda satışta değil.",
           "active": {
             "heading": "{name} etkin",
@@ -3077,7 +3077,7 @@
             "get": "{name} Al"
           },
           "plusplus": {
-            "pitch": "En çok ihtiyacı olan sunucular için: Premium donanım, hiçbir yerde reklam yok ve daha fazla CPU.",
+            "pitch": "En çok ihtiyacı olan sunucular için: Premium donanım ve daha fazla CPU.",
             "term": "{tokens}, krediyle {credits}",
             "termTokens": "{tokens}",
             "notSold": "Şu anda satışta değil."
@@ -3129,7 +3129,7 @@
           "perks": {
             "plusLocations": "{name} lokasyonları",
             "priority": "Bir node meşgulken başlatma sırasında öncelik",
-            "noBannerAds": "Reklam yok: banner, açılır pencere veya oyun içi reklam yok",
+            "noBannerAds": "Panelde banner veya açılır pencere yok",
             "burst": "Her sunucu, node'unda yer varken +%{cpu} CPU'ya kadar burst yapabilir",
             "neoPlus": "%{percent} daha fazla neo (yapay zeka) kullanımı",
             "devbox": "Sunucunuzda VS Code: {cpu} vCPU, {memory} RAM, {disk} disk",
@@ -3139,6 +3139,7 @@
             "premiumLocations": "{plus} ve Premium lokasyonlar",
             "highestPriority": "Bir node meşgulken başlatma sırasında en yüksek öncelik",
             "noAds": "Hiçbir yerde reklam yok: banner, açılır pencere, başlatma öncesi bekleme ekranı veya oyun içi reklam yok",
+            "noGameAds": "Oyun içi reklam yok",
             "neoPlusplus": "Toplamda %{percent} daha fazla neo (yapay zeka) kullanımı",
             "devboxPlusplus": "Daha büyük bir VS Code devbox'ı: {cpu} vCPU, {memory} RAM, {disk} disk",
             "bundle": "{name} dahil"
@@ -6290,7 +6291,7 @@
           },
           "plusOffer": {
             "heading": "{app} {name} ile öne geçin",
-            "body": "{name} ayda {cost} jetondur: tüm sunucularınız için bu sırada öncelik, {name} lokasyonları ve bekleme ekranı dışında reklam yok.",
+            "body": "{name} ayda {cost} jetondur: tüm sunucularınız için bu sırada öncelik ve {name} lokasyonları.",
             "button": "{name} Al"
           },
           "offers": {

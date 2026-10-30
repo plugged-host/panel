@@ -3,8 +3,9 @@
 Ads pay for free servers. The panel shows Adsterra units in sandboxed frames, Monetag's tags, the
 panel owner's own sponsored banners, an ad-funded waiting room on start (start gate 30,
 [start-gates.md](start-gates.md)), a note for visitors with an ad blocker and a chat line on
-running Minecraft servers. Everything is off until Admin › Settings › Ads › Placement turns it on,
-and with ads on nothing shows until a zone, a tag or a banner exists.
+running Minecraft servers. Everything but the chat line is off until Admin › Settings › Ads ›
+Placement turns it on, and with ads on nothing shows until a zone, a tag or a banner exists. The
+chat line has its own switch (In-Game tab) and runs while the rest is off too (since 3.0.6).
 
 Code: `shared/src/ads.rs` (zones, unit documents, who sees ads, in-game messages),
 `shared/src/waiting_room.rs` (the gate), `shared/src/models/ad_banner.rs`,
@@ -21,7 +22,8 @@ Code: `shared/src/ads.rs` (zones, unit documents, who sees ads, in-game messages
 | `member` | either membership while "Fewer Ads for Members" is off | all, refreshed after `refresh_member_seconds` (10) instead of `refresh_seconds` (5); no Vignette unless "Vignette for the First Membership" |
 | `everyone` | everybody else, admins included | all |
 
-In-game messages skip every account with a membership running, whatever the audience.
+In-game messages skip only accounts with the second membership running, whatever the audience:
+Plus members get them like free accounts (since 3.0.6).
 
 Admin pages never show ads. Dashboard pages and server pages each have their own switch.
 
@@ -183,9 +185,10 @@ The console never asks while "Not on the Console" is on, and a parked server's p
 
 ## In-game messages
 
-With **In-Game Messages** on, the `send_in_game_ads` task (every minute, at second 30) sends `say
-<message>` to running servers of eggs with the `eula` feature (Minecraft) whose owner is neither an
-admin nor a member. Each server gets it once per `in_game_interval` minutes, spread by its id over
+With **In-Game Messages** on, whatever Show Ads says, the `send_in_game_ads` task (every minute, at
+second 30) sends `say <message>` to running servers of eggs with the `eula` feature (Minecraft)
+whose owner is neither an admin nor has the second membership (the first membership, Plus from the
+bundle included, gets it). Each server gets it once per `in_game_interval` minutes, spread by its id over
 the interval so a node never gets them all at once. The default message is "This server is hosted
 on" and the panel's name.
 
@@ -221,4 +224,7 @@ container is set. Saving checks everything and says what is wrong.
   member the card also says "Premium skips this". Sell a Day Pass off: no card (Premium's line
   stays while it applies).
 - An ad blocker: the notice (or dialog) appears; not on the console.
-- In-game on, interval 5: a running Minecraft server of a non-member gets the line in chat.
+- In-game on, interval 5, Show Ads off: a running Minecraft server of a free account or a Plus
+  member gets the line in chat; a Premium member's does not.
+- Membership page: with Show Ads off, no "panel ads" row and no banner perk; the in-game row says
+  Plus gets the message and Premium none, and Premium lists "No in-game ads".
