@@ -157,9 +157,7 @@ mod ticket {
     mod get_route {
         use axum::extract::Path;
         use shared::{
-            ApiError, GetState,
-            models::user::GetPermissionManager,
-            response::ApiResponseResult,
+            ApiError, GetState, models::user::GetPermissionManager, response::ApiResponseResult,
         };
 
         #[utoipa::path(get, path = "/", responses(
@@ -200,7 +198,7 @@ mod ticket {
         }
 
         #[utoipa::path(post, path = "/reply", responses(
-            (status = OK, body = inline(super::super::Response)),
+            (status = OK, body = inline(super::Response)),
             (status = BAD_REQUEST, body = ApiError),
             (status = NOT_FOUND, body = ApiError),
         ), params(
@@ -222,12 +220,18 @@ mod ticket {
 
             permissions.has_admin_permission("tickets.manage")?;
 
-            let ticket =
-                match shared::tickets::reply(&state, user.uuid, ticket_uuid, &data.body, true).await
-                {
-                    Ok(ticket) => ticket,
-                    Err(err) => return err.response().ok(),
-                };
+            let ticket = match shared::tickets::reply(
+                &state,
+                user.uuid,
+                ticket_uuid,
+                &data.body,
+                true,
+            )
+            .await
+            {
+                Ok(ticket) => ticket,
+                Err(err) => return err.response().ok(),
+            };
             activity_logger
                 .log(
                     "tickets:ticket.reply",
@@ -235,7 +239,7 @@ mod ticket {
                 )
                 .await;
 
-            ApiResponse::new_serialized(super::super::Response { ticket }).ok()
+            ApiResponse::new_serialized(super::Response { ticket }).ok()
         }
     }
 
@@ -251,7 +255,7 @@ mod ticket {
         };
 
         #[utoipa::path(post, path = "/assign", responses(
-            (status = OK, body = inline(super::super::Response)),
+            (status = OK, body = inline(super::Response)),
             (status = NOT_FOUND, body = ApiError),
         ), params(
             ("ticket" = uuid::Uuid, Path, description = "The ticket ID"),
@@ -276,7 +280,7 @@ mod ticket {
                 )
                 .await;
 
-            ApiResponse::new_serialized(super::super::Response { ticket }).ok()
+            ApiResponse::new_serialized(super::Response { ticket }).ok()
         }
     }
 
@@ -289,7 +293,7 @@ mod ticket {
         };
 
         #[utoipa::path(delete, path = "/assign", responses(
-            (status = OK, body = inline(super::super::Response)),
+            (status = OK, body = inline(super::Response)),
             (status = NOT_FOUND, body = ApiError),
         ), params(
             ("ticket" = uuid::Uuid, Path, description = "The ticket ID"),
@@ -313,7 +317,7 @@ mod ticket {
                 )
                 .await;
 
-            ApiResponse::new_serialized(super::super::Response { ticket }).ok()
+            ApiResponse::new_serialized(super::Response { ticket }).ok()
         }
     }
 
@@ -341,7 +345,7 @@ mod ticket {
         }
 
         #[utoipa::path(patch, path = "/", responses(
-            (status = OK, body = inline(super::super::Response)),
+            (status = OK, body = inline(super::Response)),
             (status = BAD_REQUEST, body = ApiError),
             (status = NOT_FOUND, body = ApiError),
         ), params(
@@ -362,7 +366,8 @@ mod ticket {
 
             permissions.has_admin_permission("tickets.manage")?;
 
-            let mut ticket = match shared::tickets::admin_view(&state.database, ticket_uuid).await? {
+            let mut ticket = match shared::tickets::admin_view(&state.database, ticket_uuid).await?
+            {
                 Some(ticket) => ticket,
                 None => {
                     return ApiResponse::error("ticket not found")
@@ -371,7 +376,8 @@ mod ticket {
                 }
             };
             if let Some(status) = data.status.as_deref() {
-                ticket = match shared::tickets::set_status(&state, ticket_uuid, None, status).await {
+                ticket = match shared::tickets::set_status(&state, ticket_uuid, None, status).await
+                {
                     Ok(ticket) => ticket,
                     Err(err) => return err.response().ok(),
                 };
@@ -393,7 +399,7 @@ mod ticket {
                 )
                 .await;
 
-            ApiResponse::new_serialized(super::super::Response { ticket }).ok()
+            ApiResponse::new_serialized(super::Response { ticket }).ok()
         }
     }
 

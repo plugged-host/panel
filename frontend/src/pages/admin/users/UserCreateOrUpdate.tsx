@@ -42,9 +42,7 @@ export default function UserCreateOrUpdate({ contextUser }: { contextUser?: z.in
   const isRootAdmin = !!user?.admin;
   const editingOtherUser = !!contextUser && contextUser.uuid !== user?.uuid;
 
-  const [openModal, setOpenModal] = useState<
-    'grant_admin' | 'delete' | 'disable_two_factor' | null
-  >(null);
+  const [openModal, setOpenModal] = useState<'grant_admin' | 'delete' | 'disable_two_factor' | null>(null);
   const [confirmStay, setConfirmStay] = useState(false);
   // plugged.host: deleting a user can take their servers along (docs/features/admin-users.md)
   const canDeleteServers = useAdminCan('servers.delete');

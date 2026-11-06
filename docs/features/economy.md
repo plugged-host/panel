@@ -713,3 +713,9 @@ four routes of the accounts app ([noprofit.md](../noprofit.md#wire-format)): `/s
   page here says "Plus is included with your switched.cloud Premium until …", a `plus` location
   opens and its servers get the first membership's burst cores; Admin › Users › Economy shows the
   date. End it there: within a minute Plus ends here and servers on `plus` locations move off.
+
+## Ultra promotion
+
+The Membership page shows a compact noprofit.space Ultra card above the plans: one subscription
+covers plugged.host and switched.cloud, with a link to `accounts.noprofit.space/ultra`. The sidebar
+keeps Membership as a primary row.

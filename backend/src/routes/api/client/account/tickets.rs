@@ -130,8 +130,8 @@ mod ticket {
         response::{ApiResponse, ApiResponseResult},
         tickets::ApiTicket,
     };
-    use utoipa_axum::routes;
     use utoipa_axum::router::OpenApiRouter;
+    use utoipa_axum::routes;
 
     use serde::Serialize;
     use utoipa::ToSchema;
@@ -208,7 +208,8 @@ mod ticket {
             permissions.has_user_permission("tickets.create")?;
 
             let ticket =
-                match shared::tickets::reply(&state, user.uuid, ticket_uuid, &data.body, false).await
+                match shared::tickets::reply(&state, user.uuid, ticket_uuid, &data.body, false)
+                    .await
                 {
                     Ok(ticket) => ticket,
                     Err(err) => return err.response().ok(),

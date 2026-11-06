@@ -225,6 +225,24 @@ function Link({ to, end, icon, customIcon, name, title = name, className, active
     [t, addWindow, closeMobileMenu, title, to],
   );
 
+  // plugged.host: the accounts hub is an external link; keep the row looking like every other one.
+  if (/^https?:\/\//.test(to)) {
+    return (
+      <a href={to} target='_blank' rel='noopener noreferrer' className='w-full' onClick={() => closeMobileMenu?.()}>
+        <Button
+          color='gray'
+          className='sidebar-link'
+          variant='subtle'
+          radius={12}
+          fullWidth
+          styles={{ label: { width: '100%' } }}
+        >
+          {resolvedIcon && <FontAwesomeIcon icon={resolvedIcon} className='mr-2' />} {name}
+        </Button>
+      </a>
+    );
+  }
+
   return (
     <ContextMenu items={items}>
       {({ openMenu }) => (

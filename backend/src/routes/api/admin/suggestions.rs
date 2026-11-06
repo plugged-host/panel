@@ -161,7 +161,7 @@ mod suggestion {
         }
 
         #[utoipa::path(patch, path = "/", responses(
-            (status = OK, body = inline(super::super::ActionResponse)),
+            (status = OK, body = inline(super::ActionResponse)),
             (status = BAD_REQUEST, body = ApiError),
             (status = NOT_FOUND, body = ApiError),
         ), params(
@@ -203,7 +203,7 @@ mod suggestion {
                 )
                 .await;
 
-            super::super::answer(&state, user.uuid, suggestion_uuid).await
+            super::answer(&state, user.uuid, suggestion_uuid).await
         }
     }
 
@@ -229,7 +229,7 @@ mod suggestion {
         }
 
         #[utoipa::path(post, path = "/merge", responses(
-            (status = OK, body = inline(super::super::ActionResponse)),
+            (status = OK, body = inline(super::ActionResponse)),
             (status = BAD_REQUEST, body = ApiError),
             (status = NOT_FOUND, body = ApiError),
         ), params(
@@ -266,7 +266,7 @@ mod suggestion {
                 )
                 .await;
 
-            super::super::answer(&state, user.uuid, suggestion_uuid).await
+            super::answer(&state, user.uuid, suggestion_uuid).await
         }
     }
 

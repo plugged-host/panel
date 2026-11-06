@@ -21,7 +21,7 @@ import { Modal } from '@/elements/modals/Modal.tsx';
 import FormattedTimestamp from '@/elements/time/FormattedTimestamp.tsx';
 import Text from '@/elements/typography/Text.tsx';
 import { queryKeys } from '@/lib/queryKeys.ts';
-import { ticketSummarySchema, ticketStatus, type TicketStatus } from '@/lib/schemas/user/tickets.ts';
+import { type TicketStatus, ticketStatus, ticketSummarySchema } from '@/lib/schemas/user/tickets.ts';
 import { useSearchablePaginatedTable } from '@/plugins/resource/useSearchablePaginatedTable.ts';
 import { useAdminCan } from '@/plugins/usePermissions.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
@@ -131,7 +131,11 @@ function ThreadModal({ ticket, onClose }: { ticket: Ticket | null; onClose: () =
             <Text size='sm' c='dimmed'>
               {thread.ticket.user?.username}
             </Text>
-            {thread.ticket.server && <Text size='sm' c='dimmed'>{thread.ticket.server.name}</Text>}
+            {thread.ticket.server && (
+              <Text size='sm' c='dimmed'>
+                {thread.ticket.server.name}
+              </Text>
+            )}
             <Text size='sm' c='dimmed'>
               {thread.ticket.assignedTo
                 ? t(`${base}.thread.assigned`, { name: thread.ticket.assignedTo.username })
@@ -283,9 +287,7 @@ export default function AdminTickets() {
             <TableData>{ticket.user?.username}</TableData>
             <TableData>{t(`pages.account.tickets.category.${ticket.category}`, {})}</TableData>
             <TableData>
-              <Badge color={statusColor[ticket.status]}>
-                {t(`pages.account.tickets.status.${ticket.status}`, {})}
-              </Badge>
+              <Badge color={statusColor[ticket.status]}>{t(`pages.account.tickets.status.${ticket.status}`, {})}</Badge>
             </TableData>
             <TableData>{ticket.assignedTo?.username ?? t(`${base}.thread.unassigned`, {})}</TableData>
             <TableData>

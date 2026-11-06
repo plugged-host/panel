@@ -475,7 +475,6 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
                         }
 
                         let username = oauth_provider.extract_username(&info.info)?.into();
-                        let email = oauth_provider.extract_email(&info.info)?.into();
                         let name_first = oauth_provider.extract_name_first(&info.info)?.map(Into::into);
                         let name_last = oauth_provider.extract_name_last(&info.info)?.map(Into::into);
 
@@ -483,7 +482,6 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
                             role_uuid: None,
                             external_id: None,
                             username,
-                            email,
                             name_first,
                             name_last,
                             password: None,

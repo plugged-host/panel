@@ -604,6 +604,24 @@ export default function DashboardMembership() {
                     </Notification>
                   )}
 
+                  {/* plugged.host: noprofit.space Ultra, the one subscription for both products */}
+                  <section className='theme-eco-card'>
+                    <div className='flex flex-col gap-1'>
+                      <h3 className='theme-eco-heading'>{t(`${page}.ultra.title`, {})}</h3>
+                      <p className='theme-eco-muted'>{t(`${page}.ultra.body`, {})}</p>
+                    </div>
+                    <div>
+                      <a
+                        className='theme-eco-link'
+                        href='https://accounts.noprofit.space/ultra'
+                        target='_blank'
+                        rel='noopener noreferrer'
+                      >
+                        {t(`${page}.ultra.cta`, {})}
+                      </a>
+                    </div>
+                  </section>
+
                   <div className='theme-plus-plans'>
                     <PlanCard
                       name={t(`${page}.pageTitle`, { app: appName, name: economy.plusName })}

@@ -8,9 +8,9 @@ import {
   faCoins, // plugged.host
   faFingerprint,
   faHandshake, // plugged.host
-  faLightbulb, // plugged.host
   faKey,
   faKeyboard,
+  faLightbulb, // plugged.host
   faLock, // plugged.host
   faStar, // plugged.host
   faStore, // plugged.host

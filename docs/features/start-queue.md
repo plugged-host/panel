@@ -8,8 +8,9 @@ gate 20 ([start-gates.md](start-gates.md)), in `shared/src/start_queue.rs`.
 A start, and a restart unless that is turned off, waits when all of these hold:
 
 - the queue is on (Admin › Settings › Hosting › Start Queue; off by default);
-- the user is not an admin and not in one of the **exempt roles** (`exempt_roles`, none by default;
-  the Pelican panel's `START_QUEUE_EXEMPT_ROLES_SKIP` with the ads' exempt roles);
+- the user is not an admin, not in one of the **exempt roles** (`exempt_roles`, none by default;
+  the Pelican panel's `START_QUEUE_EXEMPT_ROLES_SKIP` with the ads' exempt roles) and does not have
+  noprofit.space Ultra (Ultra never queues);
 - the server is not suspended and has no status (installing, restoring, moving);
 - the server's start was not let go less than `pass_minutes` ago (the free pass);
 - `min_wait` is above 0 (10 by default, as on the Pelican panel: every start then shows the queue
@@ -40,7 +41,7 @@ The `release_start_queue` task runs every 10 seconds:
 | When | Does |
 |---|---|
 | The queue was turned off | Lets every waiting start go (reason `off`) |
-| A start waited `max_wait` seconds | Lets it go whatever the node looks like (reason `timeout`) |
+| The account has Ultra | Lets it go at once (reason `ultra`) |
 | The front of the line waited less than `min_wait` seconds | Nothing |
 | The node let a start go less than `release_interval` seconds ago | Nothing |
 | The node, asked right then, is under the line | Lets the front of its line go (reason `room`) |
@@ -63,9 +64,9 @@ Top to bottom:
 
 - **Status card**: "Getting your server ready" with what is held (a start, or a restart that keeps
   the server running until then), the place in line ("You are next" at the front, "Priority" under
-  it for members), a bar to `max_wait`, "Waiting m:ss" and "Starts within N seconds at the
-  latest". The clock moves every second in the browser and is re-seeded from the panel on every
-  poll (5 seconds); reaching `max_wait` asks the panel at once.
+  it for members), "Waiting m:ss" and "No time limit: your server starts as soon as the node has
+  room." There is no longest wait any more: a start is never let go just because it waited. The
+  clock moves every second in the browser and is re-seeded from the panel on every poll (5 seconds).
 - **Why**: while the node has a sample from the last 5 minutes, which of memory or CPU is over the
   line (or "The node has room again"), with both readings as meters, red over the line.
 - The first two units of the room's ads ([ads.md](ads.md#waiting-room)).
@@ -74,9 +75,9 @@ Top to bottom:
   membership page. While Offers Where a Limit Is Felt is on ([promos.md](promos.md#offers)), one
   line under the offer, and under a Plus member's receipt, says "Premium goes first in this line,
   ahead of everyone." with a link to the membership page; a Premium member sees none.
-- **Move to a quieter node**: with "Offer a Move" and players' moves on, to whoever has
-  `settings.transfer` (only to members by default), for a server whose disk limit is under "Largest
-  Server" and that is not cooling down from a move. It names the quietest other game node of the
+- **Move to a quieter node**: with "Offer a Move" and players' moves on, to every owner (and any
+  subuser with `settings.transfer`), for a server whose disk limit is under "Largest Server" and
+  that is not cooling down from a move. It names the quietest other game node of the
   server's location that takes new servers, has room for it and is under its line now (lowest of
   memory and CPU, `move_target`). Taking it, after a confirmation, re-checks all of this, moves the
   server there (that node first, then the location's others, `server_transfers::request_preferring`)
@@ -106,12 +107,12 @@ Admin › Settings › Hosting › Start Queue (`shared/src/settings/queue.rs`):
 | Queue Restarts | on | |
 | Line (%) | 85 | 1 to 100 |
 | Shortest Wait (Seconds) | 10 | 0 (busy nodes only) to 300 |
-| Longest Wait (Seconds) | 600 | 30 to 86400 |
+| ~~Longest Wait (Seconds)~~ | removed | the queue never times out |
 | Seconds Between Starts | 20 | 0 to 3600 |
 | Free Pass (Minutes) | 10 | 0 to 1440 |
 | Exempt Roles | none | up to 100 roles |
 | Offer a Move | on | |
-| Only for Members | on | |
+| ~~Only for Members~~ | removed | every owner gets the move offer | |
 | Largest Server (MiB) | 3072 | 0 (any size) to 1048576 |
 
 ## Tables
@@ -126,7 +127,7 @@ the wait is judged against), `action` (`start`/`restart`), `status` (`waiting`, 
   queue page opens with "You are next"; within about 20 seconds it does not move (the node is
   over 1 %). Set Longest Wait to 30: the server starts within 40 seconds, the page goes to the
   console, and the activity log shows `server:queue.release` with reason `timeout`.
-- Start again within 10 minutes: no queue (free pass).
+- Start again within 10 minutes: no queue (free pass). An Ultra account never sees the queue page.
 - Line back to 85 and Shortest Wait 0: a start on a quiet node goes straight through. With Shortest
   Wait 10, the same start shows the queue page and goes out after 10 to 20 seconds.
 - Put a test user's role in Exempt Roles: their start never queues.

@@ -26,12 +26,10 @@ const queueEmptyFormValues: QueueValues = {
   includeRestart: true,
   linePercent: 85,
   minWait: 10,
-  maxWait: 600,
   releaseInterval: 20,
   passMinutes: 10,
   exemptRoles: [],
   moveOffer: true,
-  moveRequiresMembership: true,
   moveMaxDisk: 3072,
 };
 
@@ -95,14 +93,6 @@ export default function QueueContainer() {
     },
     {
       type: 'number',
-      name: 'maxWait',
-      label: t(`${page}.maxWait`, {}),
-      description: t(`${page}.maxWaitDescription`, {}),
-      required: true,
-      props: { min: 30, max: 86400 },
-    },
-    {
-      type: 'number',
       name: 'releaseInterval',
       label: t(`${page}.releaseInterval`, {}),
       description: t(`${page}.releaseIntervalDescription`, {}),
@@ -135,12 +125,6 @@ export default function QueueContainer() {
       name: 'moveOffer',
       label: t(`${page}.moveOffer`, {}),
       description: t(`${page}.moveOfferDescription`, {}),
-    },
-    {
-      type: 'switch',
-      name: 'moveRequiresMembership',
-      label: t(`${page}.moveRequiresMembership`, {}),
-      description: t(`${page}.moveRequiresMembershipDescription`, {}),
     },
     {
       type: 'number',

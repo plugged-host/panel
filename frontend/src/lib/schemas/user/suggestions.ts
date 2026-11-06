@@ -1,14 +1,7 @@
 // plugged.host: the suggestions board (shared/src/suggestions.rs, docs/features/suggestions.md)
 import { z } from 'zod';
 
-export const suggestionStatus = z.enum([
-  'under_review',
-  'planned',
-  'in_progress',
-  'shipped',
-  'declined',
-  'merged',
-]);
+export const suggestionStatus = z.enum(['under_review', 'planned', 'in_progress', 'shipped', 'declined', 'merged']);
 export const suggestionServerType = z.enum(['minecraft', 'fivem', 'rust', 'teamspeak', 'other']);
 
 export const suggestionUserSchema = z.object({

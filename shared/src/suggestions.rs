@@ -151,16 +151,12 @@ fn map(row: &sqlx::postgres::PgRow) -> Result<ApiSuggestion, sqlx::Error> {
         changelog: row.try_get("changelog")?,
         votes: row.try_get("votes")?,
         voted: row.try_get("voted")?,
-        author: author_uuid.zip(author_username).map(|(uuid, username)| {
-            ApiSuggestionUser {
-                uuid,
-                username,
-            }
-        }),
-        merged_into: merged_uuid.zip(merged_title).map(|(uuid, title)| ApiSuggestionRef {
-            uuid,
-            title,
-        }),
+        author: author_uuid
+            .zip(author_username)
+            .map(|(uuid, username)| ApiSuggestionUser { uuid, username }),
+        merged_into: merged_uuid
+            .zip(merged_title)
+            .map(|(uuid, title)| ApiSuggestionRef { uuid, title }),
         created: utc(created),
         updated: utc(updated),
     })
@@ -257,10 +253,11 @@ pub async fn toggle_vote(
     viewer_uuid: uuid::Uuid,
     suggestion_uuid: uuid::Uuid,
 ) -> Result<ApiSuggestion, SuggestionError> {
-    let status: Option<String> = sqlx::query_scalar("SELECT status FROM suggestions WHERE uuid = $1")
-        .bind(suggestion_uuid)
-        .fetch_optional(state.database.read())
-        .await?;
+    let status: Option<String> =
+        sqlx::query_scalar("SELECT status FROM suggestions WHERE uuid = $1")
+            .bind(suggestion_uuid)
+            .fetch_optional(state.database.read())
+            .await?;
     let Some(status) = status else {
         return Err(SuggestionError::NotFound);
     };
@@ -494,13 +491,25 @@ mod tests {
     #[test]
     fn statuses_are_the_documented_ones() {
         assert_eq!(STATUSES.len(), 6);
-        assert_eq!(EDITABLE_STATUSES, ["under_review", "planned", "in_progress", "shipped", "declined"]);
+        assert_eq!(
+            EDITABLE_STATUSES,
+            [
+                "under_review",
+                "planned",
+                "in_progress",
+                "shipped",
+                "declined"
+            ]
+        );
         assert!(STATUSES.contains(&MERGED));
         assert!(!EDITABLE_STATUSES.contains(&MERGED));
     }
 
     #[test]
     fn server_types_are_offered() {
-        assert_eq!(SERVER_TYPES, ["minecraft", "fivem", "rust", "teamspeak", "other"]);
+        assert_eq!(
+            SERVER_TYPES,
+            ["minecraft", "fivem", "rust", "teamspeak", "other"]
+        );
     }
 }

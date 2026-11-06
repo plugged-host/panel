@@ -283,6 +283,8 @@
   },
   "translations": {
     "common": {
+      "ultra": "Ultra",
+      "loading": "Wird geladen …",
       "button": {
         "create": "Erstellen",
         "add": "Hinzufügen",
@@ -1208,6 +1210,10 @@
             "title": "Partner-Credits geändert",
             "body": "{guild} verdient jetzt {credits} Credits im Monat."
           },
+          "ticketReply": {
+            "title": "Support antwortet: {subject}",
+            "body": "Ein Teammitglied hat dein Ticket beantwortet. Öffne Konto › Support, um es zu lesen."
+          },
           "upgradeEnding": {
             "title": "{upgrade} endet bald",
             "body": "{upgrade} auf {server} endet am {time}.",
@@ -1234,6 +1240,14 @@
             "partnerSuspended": {
               "title": "Partnerschaft ausgesetzt: {guild}",
               "body": "{guild} hat die monatliche Prüfung auch nach der Frist nicht bestanden und wurde ausgesetzt."
+            },
+            "ticketCreated": {
+              "title": "Neues Ticket: {subject}",
+              "body": "{user} hat ein Ticket der Kategorie {category} geöffnet."
+            },
+            "suggestionCreated": {
+              "title": "Neue Idee: {title}",
+              "body": "{user} hat eine Idee gepostet."
             }
           }
         }
@@ -2017,7 +2031,7 @@
             "noprofitFailed": "Die Anmeldung mit noprofit.space hat nicht geklappt. Bitte versuche es erneut.",
             "noprofitExpired": "Diese Anmeldung hat zu lange gedauert oder wurde schon verwendet. Bitte versuche es erneut.",
             "noprofitAdminsOnly": "Dieses Panel ist noch nicht geöffnet: Im Moment können sich nur noprofit.space-Admins anmelden.",
-            "noprofitEmailTaken": "Es gibt schon einen Panel-Account mit deiner noprofit.space-E-Mail. Bitte einen Administrator, ihn zu verknüpfen."
+            "noprofitUsernameTaken": "Es gibt schon einen Panel-Account mit deinem noprofit.space-Benutzernamen. Bitte einen Administrator, ihn zu verknüpfen."
           },
           "noprofit": {
             "title": "Anmelden",
@@ -2046,6 +2060,7 @@
               "subtitle": "Gib deinen Benutzernamen oder deine E-Mail-Adresse ein, um fortzufahren",
               "subtitleProviderOnly": "Wähle einen Anbieter, um fortzufahren",
               "form": {
+                "usernamePlaceholder": "Dein Benutzername",
                 "usernameOrEmailPlaceholder": "Dein Benutzername oder deine E-Mail-Adresse"
               },
               "link": {
@@ -2366,8 +2381,9 @@
           "containers": {
             "noprofit": {
               "title": "noprofit.space",
-              "description": "Du meldest dich mit deinem noprofit.space-Account **{email}** an. Deine E-Mail, dein Passwort und die Zwei-Faktor-Authentifizierung verwaltest du dort.",
+              "description": "Du meldest dich mit deinem noprofit.space-Account **{username}** an. Dein Passwort und die Zwei-Faktor-Authentifizierung verwaltest du dort.",
               "credits": "Credits",
+              "ultra": "Ultra",
               "plan": "Plan",
               "planValue": "{cpu} % CPU, {memory} Arbeitsspeicher, {disk} Speicherplatz",
               "discord": "Discord",
@@ -3438,6 +3454,94 @@
             "reason": "Grund: {reason}"
           }
         },
+        "tickets": {
+          "title": "Support",
+          "subtitle": "Deine Tickets und ihre Antworten.",
+          "empty": "Noch keine Tickets",
+          "emptyHint": "Öffne eins, wenn du Hilfe mit deinem Konto oder einem Server brauchst.",
+          "noServer": "Kein Server",
+          "create": {
+            "title": "Neues Ticket",
+            "subject": "Betreff",
+            "category": "Kategorie",
+            "server": "Server",
+            "serverHint": "Optional: einer deiner Server, damit wir seine Daten haben.",
+            "message": "Nachricht",
+            "messageHint": "Was passiert ist, was du erwartet hast und was du schon versucht hast.",
+            "button": "Ticket öffnen"
+          },
+          "category": {
+            "general": "Allgemein",
+            "billing": "Abrechnung",
+            "technical": "Technisch",
+            "abuse": "Missbrauch",
+            "other": "Sonstiges"
+          },
+          "status": {
+            "open": "Offen",
+            "waiting": "Wartet auf dich",
+            "resolved": "Gelöst",
+            "closed": "Geschlossen"
+          },
+          "table": {
+            "subject": "Betreff",
+            "status": "Status",
+            "category": "Kategorie",
+            "server": "Server",
+            "updated": "Letzte Änderung"
+          },
+          "thread": {
+            "title": "Ticket",
+            "updated": "Letzte Änderung",
+            "neo": "Assistent",
+            "system": "Panel",
+            "staff": "Support",
+            "you": "Du",
+            "reply": "Antworten",
+            "send": "Antwort senden",
+            "close": "Ticket schließen",
+            "reopen": "Ticket wieder öffnen"
+          },
+          "toast": {
+            "created": "Ticket geöffnet."
+          }
+        },
+        "suggestions": {
+          "title": "Vorschläge",
+          "subtitle": "Ideen für das Panel. Stimme für die, die du willst.",
+          "empty": "Noch keine Ideen",
+          "emptyHint": "Poste die erste.",
+          "vote": "Abstimmen",
+          "changelog": "Umgesetzt: {entry}",
+          "mergedInto": "Zusammengeführt mit „{title}“.",
+          "anonymous": "Anonym",
+          "create": {
+            "title": "Neue Idee",
+            "titleField": "Titel",
+            "description": "Beschreibung",
+            "descriptionHint": "Ein Satz: was es macht und warum es hilft.",
+            "serverType": "Servertyp",
+            "button": "Idee posten"
+          },
+          "serverType": {
+            "minecraft": "Minecraft",
+            "fivem": "FiveM",
+            "rust": "Rust",
+            "teamspeak": "TeamSpeak",
+            "other": "Sonstiges"
+          },
+          "status": {
+            "under_review": "In Prüfung",
+            "planned": "Geplant",
+            "in_progress": "In Arbeit",
+            "shipped": "Umgesetzt",
+            "declined": "Abgelehnt",
+            "merged": "Zusammengeführt"
+          },
+          "toast": {
+            "created": "Idee gepostet."
+          }
+        },
         "devboxOpen": {
           "title": "VS Code",
           "opening": "Devbox wird geöffnet…",
@@ -3951,8 +4055,8 @@
                   "secretMissing": "Nicht gesetzt. Mindestens 32 Zeichen.",
                   "adminsOnly": "Nur Admins",
                   "adminsOnlyDescription": "Nur Admins von noprofit.space dürfen sich anmelden.",
-                  "linkByEmail": "Per E-Mail verknüpfen",
-                  "linkByEmailDescription": "Eine erste Anmeldung übernimmt den Panel-Benutzer mit derselben E-Mail, statt sie abzulehnen.",
+                  "linkByUsername": "Per Benutzername verknüpfen",
+                  "linkByUsernameDescription": "Eine erste Anmeldung übernimmt den nicht verknüpften Panel-Benutzer mit demselben Benutzernamen, statt sie abzulehnen.",
                   "deletedAccountDays": "Verschwundene Konten löschen nach (Tagen)",
                   "deletedAccountDaysDescription": "Wenn noprofit.space ein Konto nicht mehr hat (dort gelöscht, ohne dieses Panel zu erreichen), werden sein Benutzer und seine Server suspendiert und nach so vielen Tagen gelöscht. 0: nie.",
                   "ssoAudience": "Token-Zielgruppe",
@@ -5526,6 +5630,73 @@
               "suspendAfter": "Ausgesetzt ab",
               "payments": "Zahlungen ({total} Credits insgesamt)"
             }
+          }
+        },
+        "tickets": {
+          "title": "Tickets",
+          "filter": {
+            "status": "Alle Status",
+            "category": "Alle Kategorien"
+          },
+          "table": {
+            "subject": "Betreff",
+            "user": "Konto",
+            "category": "Kategorie",
+            "status": "Status",
+            "assigned": "Zugewiesen",
+            "updated": "Letzte Änderung"
+          },
+          "thread": {
+            "title": "Ticket",
+            "assigned": "Zugewiesen an {name}",
+            "unassigned": "Nicht zugewiesen",
+            "status": "Status",
+            "priority": "Priorität",
+            "assign": "Mir zuweisen",
+            "unassign": "Zuweisung aufheben",
+            "reply": "Als Team antworten",
+            "send": "Antwort senden"
+          },
+          "priority": {
+            "low": "Niedrig",
+            "normal": "Normal",
+            "high": "Hoch"
+          }
+        },
+        "suggestions": {
+          "title": "Vorschläge",
+          "filter": {
+            "status": "Alle Status",
+            "serverType": "Alle Servertypen"
+          },
+          "table": {
+            "title": "Idee",
+            "author": "Autor",
+            "type": "Servertyp",
+            "votes": "Stimmen",
+            "status": "Status",
+            "created": "Erstellt"
+          },
+          "edit": {
+            "title": "Idee bearbeiten",
+            "status": "Status",
+            "changelog": "Changelog-Eintrag",
+            "changelogHint": "Wird im Board angezeigt, wenn die Idee umgesetzt ist."
+          },
+          "merge": {
+            "title": "Duplikat zusammenführen",
+            "body": "Verschiebe die Stimmen von „{title}“ auf eine andere Idee und blende sie im Board aus.",
+            "target": "Zusammenführen mit",
+            "button": "Zusammenführen"
+          },
+          "delete": {
+            "title": "Idee löschen",
+            "body": "„{title}“ mit ihren Stimmen löschen? Das kann nicht rückgängig gemacht werden."
+          },
+          "toast": {
+            "updated": "Idee aktualisiert.",
+            "merged": "Idee zusammengeführt.",
+            "deleted": "Idee gelöscht."
           }
         },
         "status": {
@@ -7250,7 +7421,8 @@
               "toast": {
                 "limitSaved": "Subdomain-Limit gespeichert.",
                 "deleted": "{name} gelöscht.",
-                "deletedRefund": "{name} gelöscht, {count} Tokens erstattet."
+                "deletedRefund": "{name} gelöscht, {count} Tokens erstattet.",
+                "customDeleted": "{domain} gelöscht."
               }
             },
             "logs": {
@@ -10889,7 +11061,7 @@
                 "created": "Subuser erstellt."
               },
               "form": {
-                "emailPlaceholder": "Gib die E-Mail ein, unter der dieser Subuser gespeichert werden soll.",
+                "usernamePlaceholder": "Der Benutzername des Kontos, das hinzugefügt werden soll.",
                 "permissions": "Berechtigungen",
                 "ignoredFilesDescription": "Dateien und Verzeichnisse, die diesen Mustern entsprechen, werden vor diesem Subuser verborgen. Verwendet Glob-Muster im gitignore-Stil (z. B. `*.env`, `secrets/`). Stelle einem Muster ein `!` voran, um einen Pfad wieder anzuzeigen, den ein allgemeineres Muster andernfalls ausschließen würde.",
                 "ignoredFilesInherited": "Die vor dir verborgenen Pfade werden immer zusätzlich angewendet und können nicht weitergegeben werden."
@@ -12887,7 +13059,6 @@
           "limitReached": "Subdomain-Limit erreicht",
           "unavailable": {
             "off": "Subdomains sind auf diesem Panel nicht eingerichtet.",
-            "unsupported": "Für das Spiel dieses Servers gibt es keine Subdomains.",
             "no_domains": "Für Subdomains ist noch keine Domain eingerichtet.",
             "no_address": "Dieser Server hat keine Adresse, auf die eine Subdomain zeigen könnte.",
             "discord_link": "Der Besitzer des Servers muss für Subdomains sein Discord-Konto verknüpfen (Konto › Discord-Belohnungen).",
@@ -12945,6 +13116,38 @@
             "title": "Subdomain löschen",
             "body": "{name} löschen? Ihre DNS-Einträge werden entfernt, und Spieler können nicht mehr darüber beitreten.",
             "tokensBack": "Der Serverbesitzer bekommt {tokens} zurück."
+          },
+          "custom": {
+            "title": "Eigene Domains",
+            "subtitle": "Nutze eine eigene Domain für diesen Server. Richte sie mit einem CNAME auf die Panel-Subdomain.",
+            "add": "Domain hinzufügen",
+            "domain": "Domain",
+            "domainHint": "Eine Domain, die dir gehört, etwa play.example.com.",
+            "targetHint": "Ihr CNAME zeigt auf {target}.",
+            "setup": "Einrichten",
+            "setupTitle": "Domain einrichten",
+            "setupBody": "Lege diese Einträge bei deinem DNS-Anbieter an und drücke dann bei {domain} auf Prüfen.",
+            "cname": "CNAME-Eintrag",
+            "txt": "TXT-Eintrag",
+            "httpsNote": "Das Panel schreibt nur DNS. Für HTTPS muss der Server selbst TLS ausliefern; das Panel leitet keinen HTTP-Verkehr weiter.",
+            "verify": "Prüfen",
+            "verified": "Aktiv",
+            "pending": "Wartet auf DNS",
+            "deleteTitle": "Eigene Domain löschen",
+            "deleteBody": "{domain} löschen? Deine eigenen DNS-Einträge bleiben, wie sie sind.",
+            "empty": "Keine eigenen Domains",
+            "emptyHint": "Füge eine eigene Domain hinzu, um sie für diesen Server zu nutzen.",
+            "table": {
+              "domain": "Domain",
+              "status": "Status",
+              "target": "Zeigt auf",
+              "created": "Erstellt"
+            },
+            "toast": {
+              "added": "{domain} hinzugefügt. Lege die Einträge an und prüfe sie dann.",
+              "verified": "{domain} ist geprüft.",
+              "deleted": "{domain} gelöscht."
+            }
           },
           "toast": {
             "created": "{name} ist eingerichtet. Es kann ein paar Minuten dauern, bis alle Spieler sie erreichen.",
@@ -13032,6 +13235,13 @@
           "readOnly": "Du kannst diesen Chat lesen, aber nicht darin schreiben."
         }
       }
+    }
+  },
+  "elements": {
+    "sidebar": {
+      "more": "Mehr",
+      "accountSettings": "Kontoeinstellungen",
+      "accountsHub": "Accounts Panel"
     }
   }
 }

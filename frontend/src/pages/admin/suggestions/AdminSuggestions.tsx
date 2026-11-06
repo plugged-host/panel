@@ -22,10 +22,10 @@ import FormattedTimestamp from '@/elements/time/FormattedTimestamp.tsx';
 import Text from '@/elements/typography/Text.tsx';
 import { queryKeys } from '@/lib/queryKeys.ts';
 import {
+  type SuggestionStatus,
   suggestionSchema,
   suggestionServerType,
   suggestionStatus,
-  type SuggestionStatus,
 } from '@/lib/schemas/user/suggestions.ts';
 import { useSearchablePaginatedTable } from '@/plugins/resource/useSearchablePaginatedTable.ts';
 import { useAdminCan } from '@/plugins/usePermissions.ts';
@@ -47,13 +47,7 @@ const statusColor: Record<SuggestionStatus, string> = {
   merged: 'gray',
 };
 
-function EditModal({
-  suggestion,
-  onClose,
-}: {
-  suggestion: Suggestion | null;
-  onClose: () => void;
-}) {
+function EditModal({ suggestion, onClose }: { suggestion: Suggestion | null; onClose: () => void }) {
   const { t } = useTranslations();
   const { addToast } = useToast();
   const queryClient = useQueryClient();
@@ -63,7 +57,9 @@ function EditModal({
 
   useEffect(() => {
     if (!suggestion) return;
-    setStatus((EDITABLE.includes(suggestion.status as EditableStatus) ? suggestion.status : 'under_review') as EditableStatus);
+    setStatus(
+      (EDITABLE.includes(suggestion.status as EditableStatus) ? suggestion.status : 'under_review') as EditableStatus,
+    );
     setChangelog(suggestion.changelog ?? '');
   }, [suggestion?.uuid]);
 
@@ -152,12 +148,7 @@ function MergeModal({
   };
 
   return (
-    <Modal
-      opened={suggestion !== null}
-      onClose={onClose}
-      title={t(`${base}.merge.title`, {})}
-      size='lg'
-    >
+    <Modal opened={suggestion !== null} onClose={onClose} title={t(`${base}.merge.title`, {})} size='lg'>
       <Stack gap='md'>
         <Text size='sm'>{t(`${base}.merge.body`, { title: suggestion?.title ?? '' })}</Text>
         <Select

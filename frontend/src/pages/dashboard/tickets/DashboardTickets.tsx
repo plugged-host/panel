@@ -17,8 +17,8 @@ import AccountContentContainer from '@/elements/containers/AccountContentContain
 import Badge from '@/elements/data-display/Badge.tsx';
 import Table, { TableData, TableRow } from '@/elements/data-display/Table.tsx';
 import EmptyState from '@/elements/feedback/EmptyState.tsx';
-import ServerSelect from '@/elements/input/ServerSelect.tsx';
 import Select from '@/elements/input/Select.tsx';
+import ServerSelect from '@/elements/input/ServerSelect.tsx';
 import TextArea from '@/elements/input/TextArea.tsx';
 import TextInput from '@/elements/input/TextInput.tsx';
 import Stack from '@/elements/layout/Stack.tsx';
@@ -196,9 +196,7 @@ function ThreadModal({ uuid, onClose }: { uuid: string | null; onClose: () => vo
       ) : thread ? (
         <Stack gap='md'>
           <div className='flex flex-wrap items-center gap-2'>
-            <Badge color={statusColor[thread.ticket.status]}>
-              {t(`${base}.status.${thread.ticket.status}`, {})}
-            </Badge>
+            <Badge color={statusColor[thread.ticket.status]}>{t(`${base}.status.${thread.ticket.status}`, {})}</Badge>
             <Badge color='gray' variant='light'>
               {t(`${base}.category.${thread.ticket.category}`, {})}
             </Badge>
@@ -279,15 +277,10 @@ export default function DashboardTickets() {
     <AccountContentContainer
       title={t(`${base}.title`, {})}
       subtitle={t(`${base}.subtitle`, {})}
-      contentRight={
-        <Button onClick={() => setCreating(true)}>{t(`${base}.create.title`, {})}</Button>
-      }
+      contentRight={<Button onClick={() => setCreating(true)}>{t(`${base}.create.title`, {})}</Button>}
     >
       <CreateModal opened={creating} onClose={() => setCreating(false)} />
-      <ThreadModal
-        uuid={opening}
-        onClose={() => setOpening(null)}
-      />
+      <ThreadModal uuid={opening} onClose={() => setOpening(null)} />
 
       <ResourceView resource={resource}>
         {(data) => (
@@ -306,13 +299,7 @@ export default function DashboardTickets() {
               page: 1,
               data: data.tickets,
             }}
-            empty={
-              <EmptyState
-                flush
-                title={t(`${base}.empty`, {})}
-                description={t(`${base}.emptyHint`, {})}
-              />
-            }
+            empty={<EmptyState flush title={t(`${base}.empty`, {})} description={t(`${base}.emptyHint`, {})} />}
           >
             {data.tickets.map((ticket) => (
               <TableRow key={ticket.uuid}>
@@ -322,9 +309,7 @@ export default function DashboardTickets() {
                   </UnstyledButton>
                 </TableData>
                 <TableData>
-                  <Badge color={statusColor[ticket.status]}>
-                    {t(`${base}.status.${ticket.status}`, {})}
-                  </Badge>
+                  <Badge color={statusColor[ticket.status]}>{t(`${base}.status.${ticket.status}`, {})}</Badge>
                 </TableData>
                 <TableData>{t(`${base}.category.${ticket.category}`, {})}</TableData>
                 <TableData>{ticket.server?.name ?? t(`${base}.noServer`, {})}</TableData>

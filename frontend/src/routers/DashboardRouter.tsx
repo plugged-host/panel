@@ -1,4 +1,12 @@
-import { faArrowUpRightFromSquare, faCircleUser, faGraduationCap, faServer } from '@fortawesome/free-solid-svg-icons';
+import {
+  faArrowUpRightFromSquare,
+  faEllipsis,
+  faHouse,
+  faLifeRing,
+  faLightbulb,
+  faShieldHalved,
+  faUserCog,
+} from '@fortawesome/free-solid-svg-icons';
 import { Suspense, useMemo } from 'react';
 import { Navigate, Route, Routes } from 'react-router'; // plugged.host: Navigate
 import { AdLayoutFoot, AdLayoutTop } from '@/elements/ads/AdLayout.tsx'; // plugged.host
@@ -30,6 +38,8 @@ import { useGlobalStore } from '@/stores/global.ts';
 // plugged.host: the account pages the Pelican panel's sidebar shows as rows of their own, in its
 // order (Resource Store, Plus, Tokens, Backups); the others fold under Account.
 const MAIN_PATHS = ['/store', '/membership', '/tokens', '/backups'];
+// plugged.host v3.1: the secondary rows live under one More disclosure.
+const MORE_PATHS = ['/support', '/suggestions'];
 
 export default function DashboardRouter({ isNormal }: { isNormal: boolean }) {
   const { t, language } = useTranslations();
@@ -96,8 +106,23 @@ export default function DashboardRouter({ isNormal }: { isNormal: boolean }) {
     [allAccountRoutes, accessibleRoutePaths],
   );
   const accountItems = useMemo(
-    () => sidebarItems.filter((item) => item?.type !== 'route' || !MAIN_PATHS.includes(item.route.path)),
+    () =>
+      sidebarItems.filter(
+        (item) =>
+          item?.type !== 'route' || (!MAIN_PATHS.includes(item.route.path) && !MORE_PATHS.includes(item.route.path)),
+      ),
     [sidebarItems],
+  );
+  const moreRoutes = useMemo(
+    () =>
+      MORE_PATHS.map((path) => allAccountRoutes.find((route) => route.path === path)).filter(
+        (route) =>
+          !!route &&
+          !!route.name &&
+          (!route.filter || route.filter()) &&
+          (!accessibleRoutePaths || accessibleRoutePaths.has(route.path)),
+      ),
+    [allAccountRoutes, accessibleRoutePaths],
   );
 
   return (
@@ -131,7 +156,7 @@ export default function DashboardRouter({ isNormal }: { isNormal: boolean }) {
               <Sidebar.Link
                 to='/'
                 end
-                icon={faServer}
+                icon={faHouse}
                 name={t('pages.account.home.title', {})}
                 activeMatches={['/grouped', '/create']}
               />
@@ -150,9 +175,33 @@ export default function DashboardRouter({ isNormal }: { isNormal: boolean }) {
               )}
 
               <Sidebar.Group
+                id='more'
+                icon={faEllipsis}
+                name={t('elements.sidebar.more', {})}
+                activeMatches={MORE_PATHS.map((path) => ({ path, end: false }))}
+              >
+                {moreRoutes.map(
+                  (route) =>
+                    route && (
+                      <Sidebar.Link
+                        key={route.path}
+                        to={to(route.path, '/account')}
+                        icon={route.path === '/support' ? faLifeRing : faLightbulb}
+                        name={resolveString(route.name)}
+                      />
+                    ),
+                )}
+                <Sidebar.Link
+                  to='https://accounts.noprofit.space'
+                  icon={faArrowUpRightFromSquare}
+                  name={t('elements.sidebar.accountsHub', {})}
+                />
+              </Sidebar.Group>
+
+              <Sidebar.Group
                 id='account'
-                icon={faCircleUser}
-                name={t('pages.account.account.title', {})}
+                icon={faUserCog}
+                name={t('elements.sidebar.accountSettings', {})}
                 activeMatches={accountItems.flatMap((item) =>
                   item?.type === 'route'
                     ? [{ path: to(item.route.path, '/account'), end: item.route.path === '/' }]
@@ -195,7 +244,7 @@ export default function DashboardRouter({ isNormal }: { isNormal: boolean }) {
               </Sidebar.Group>
 
               {isAdmin(user) && (
-                <Sidebar.Link to='/admin' end icon={faGraduationCap} name={t('pages.account.admin.title', {})} />
+                <Sidebar.Link to='/admin' end icon={faShieldHalved} name={t('pages.account.admin.title', {})} />
               )}
             </>
           )}

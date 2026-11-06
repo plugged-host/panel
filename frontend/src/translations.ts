@@ -48,6 +48,8 @@ const baseTranslations = defineTranslations({
   },
   translations: {
     common: {
+      ultra: 'Ultra',
+      loading: 'Loading…',
       button: {
         create: 'Create',
         add: 'Add',
@@ -821,6 +823,10 @@ const baseTranslations = defineTranslations({
         },
         // plugged.host: the account's own page in the Account group (Pelican's "Profile Settings")
         profileSettings: 'Profile Settings',
+        // plugged.host v3.1: the short sidebar
+        more: 'More',
+        accountSettings: 'Account settings',
+        accountsHub: 'Accounts Panel',
         modal: {
           logout: {
             title: 'Logout',
@@ -1012,6 +1018,11 @@ const baseTranslations = defineTranslations({
             title: 'Partner credits changed',
             body: '{guild} now earns {credits} credits a month.',
           },
+          // plugged.host: support tickets (docs/features/tickets.md)
+          ticketReply: {
+            title: 'Support replied: {subject}',
+            body: 'A member of the team answered your ticket. Open Account › Support to read it.',
+          },
           // plugged.host: docs/features/server-upgrades.md
           upgradeEnding: {
             title: '{upgrade} ends soon',
@@ -1040,6 +1051,15 @@ const baseTranslations = defineTranslations({
             partnerSuspended: {
               title: 'Partnership suspended: {guild}',
               body: '{guild} failed its monthly check past the grace period and was suspended.',
+            },
+            // plugged.host: support tickets and the suggestions board
+            ticketCreated: {
+              title: 'New ticket: {subject}',
+              body: '{user} opened a {category} ticket.',
+            },
+            suggestionCreated: {
+              title: 'New idea: {title}',
+              body: '{user} posted an idea.',
             },
           },
         },
@@ -1855,8 +1875,8 @@ const baseTranslations = defineTranslations({
             noprofitFailed: 'Signing in with noprofit.space did not work. Please try again.',
             noprofitExpired: 'That sign-in took too long or was already used. Please try again.',
             noprofitAdminsOnly: 'This panel is not open yet: only noprofit.space admins can sign in for now.',
-            noprofitEmailTaken:
-              'A panel account with your noprofit.space email already exists. Ask an administrator to link it.',
+            noprofitUsernameTaken:
+              'A panel account with your noprofit.space username already exists. Ask an administrator to link it.',
           },
           noprofit: {
             title: 'Sign in',
@@ -1887,6 +1907,7 @@ const baseTranslations = defineTranslations({
               subtitle: 'Enter your username or email address to continue',
               subtitleProviderOnly: 'Choose a provider to continue',
               form: {
+                usernamePlaceholder: 'Your username',
                 usernameOrEmailPlaceholder: 'Your username or email address',
               },
               link: {
@@ -2217,8 +2238,9 @@ const baseTranslations = defineTranslations({
             noprofit: {
               title: 'noprofit.space',
               description:
-                'You sign in with your noprofit.space account **{email}**. Your email, password and two-factor authentication are managed there.',
+                'You sign in with your noprofit.space account **{username}**. Your password and two-factor authentication are managed there.',
               credits: 'Credits',
+              ultra: 'Ultra',
               plan: 'Plan',
               planValue: '{cpu}% CPU, {memory} memory, {disk} disk',
               discord: 'Discord',
@@ -2974,6 +2996,12 @@ const baseTranslations = defineTranslations({
           bundleActive: {
             heading: '{plus} is included with your {name}',
           },
+          // plugged.host: noprofit.space Ultra covers both products (docs/features/economy.md)
+          ultra: {
+            title: 'noprofit.space Ultra covers both products',
+            body: 'One monthly subscription for plugged.host and switched.cloud: Premium on both, 2x resources, highest queue priority and early access. Tokens and credits stay separate.',
+            cta: 'See noprofit.space Ultra',
+          },
           plus: {
             pitch: 'Everything most servers need, by the month.',
             get: 'Get {name}',
@@ -3339,6 +3367,96 @@ const baseTranslations = defineTranslations({
           history: {
             title: 'Earlier applications',
             reason: 'Reason: {reason}',
+          },
+        },
+        // plugged.host: Account › Support, support tickets (docs/features/tickets.md)
+        tickets: {
+          title: 'Support',
+          subtitle: 'Your tickets and their replies.',
+          empty: 'No tickets yet',
+          emptyHint: 'Open one when you need help with your account or a server.',
+          noServer: 'No server',
+          create: {
+            title: 'New ticket',
+            subject: 'Subject',
+            category: 'Category',
+            server: 'Server',
+            serverHint: 'Optional: one of your servers, so we have its details.',
+            message: 'Message',
+            messageHint: 'What happened, what you expected and what you already tried.',
+            button: 'Open ticket',
+          },
+          category: {
+            general: 'General',
+            billing: 'Billing',
+            technical: 'Technical',
+            abuse: 'Abuse',
+            other: 'Other',
+          },
+          status: {
+            open: 'Open',
+            waiting: 'Waiting for you',
+            resolved: 'Resolved',
+            closed: 'Closed',
+          },
+          table: {
+            subject: 'Subject',
+            status: 'Status',
+            category: 'Category',
+            server: 'Server',
+            updated: 'Last update',
+          },
+          thread: {
+            title: 'Ticket',
+            updated: 'Last update',
+            neo: 'Assistant',
+            system: 'Panel',
+            staff: 'Support',
+            you: 'You',
+            reply: 'Reply',
+            send: 'Send reply',
+            close: 'Close ticket',
+            reopen: 'Reopen ticket',
+          },
+          toast: {
+            created: 'Ticket opened.',
+          },
+        },
+        // plugged.host: Account › Suggestions, the ideas board (docs/features/suggestions.md)
+        suggestions: {
+          title: 'Suggestions',
+          subtitle: 'Ideas for the panel. Vote for the ones you want.',
+          empty: 'No ideas yet',
+          emptyHint: 'Post the first one.',
+          vote: 'Vote',
+          changelog: 'Shipped: {entry}',
+          mergedInto: 'Merged into “{title}”.',
+          anonymous: 'Anonymous',
+          create: {
+            title: 'New idea',
+            titleField: 'Title',
+            description: 'Description',
+            descriptionHint: 'One sentence: what it does and why it helps.',
+            serverType: 'Server type',
+            button: 'Post idea',
+          },
+          serverType: {
+            minecraft: 'Minecraft',
+            fivem: 'FiveM',
+            rust: 'Rust',
+            teamspeak: 'TeamSpeak',
+            other: 'Other',
+          },
+          status: {
+            under_review: 'Under review',
+            planned: 'Planned',
+            in_progress: 'In progress',
+            shipped: 'Shipped',
+            declined: 'Declined',
+            merged: 'Merged',
+          },
+          toast: {
+            created: 'Idea posted.',
           },
         },
         devboxOpen: {
@@ -3887,9 +4005,9 @@ const baseTranslations = defineTranslations({
                   secretMissing: 'Not set. At least 32 characters.',
                   adminsOnly: 'Admins Only',
                   adminsOnlyDescription: 'Only noprofit.space admins may sign in.',
-                  linkByEmail: 'Link by Email',
-                  linkByEmailDescription:
-                    'A first sign-in takes over the panel user with the same email instead of refusing it.',
+                  linkByUsername: 'Link by Username',
+                  linkByUsernameDescription:
+                    'A first sign-in takes over the unlinked panel user with the same username instead of refusing it.',
                   deletedAccountDays: 'Delete Gone Accounts After (Days)',
                   deletedAccountDaysDescription:
                     'When noprofit.space no longer has an account (deleted there without reaching this panel), its user and servers are suspended, then deleted after this many days. 0: never.',
@@ -5722,6 +5840,75 @@ const baseTranslations = defineTranslations({
             },
           },
         },
+        // plugged.host: Admin › Tickets (docs/features/tickets.md)
+        tickets: {
+          title: 'Tickets',
+          filter: {
+            status: 'All statuses',
+            category: 'All categories',
+          },
+          table: {
+            subject: 'Subject',
+            user: 'Account',
+            category: 'Category',
+            status: 'Status',
+            assigned: 'Assigned',
+            updated: 'Last update',
+          },
+          thread: {
+            title: 'Ticket',
+            assigned: 'Assigned to {name}',
+            unassigned: 'Unassigned',
+            status: 'Status',
+            priority: 'Priority',
+            assign: 'Assign to me',
+            unassign: 'Unassign',
+            reply: 'Reply as staff',
+            send: 'Send reply',
+          },
+          priority: {
+            low: 'Low',
+            normal: 'Normal',
+            high: 'High',
+          },
+        },
+        // plugged.host: Admin › Suggestions (docs/features/suggestions.md)
+        suggestions: {
+          title: 'Suggestions',
+          filter: {
+            status: 'All statuses',
+            serverType: 'All server types',
+          },
+          table: {
+            title: 'Idea',
+            author: 'Author',
+            type: 'Server type',
+            votes: 'Votes',
+            status: 'Status',
+            created: 'Created',
+          },
+          edit: {
+            title: 'Edit idea',
+            status: 'Status',
+            changelog: 'Changelog entry',
+            changelogHint: 'Shown on the board when the idea is shipped.',
+          },
+          merge: {
+            title: 'Merge duplicate',
+            body: 'Move the votes of “{title}” to another idea and hide it from the board.',
+            target: 'Merge into',
+            button: 'Merge',
+          },
+          delete: {
+            title: 'Delete idea',
+            body: 'Delete “{title}” with its votes? This cannot be undone.',
+          },
+          toast: {
+            updated: 'Idea updated.',
+            merged: 'Idea merged.',
+            deleted: 'Idea deleted.',
+          },
+        },
         // plugged.host
         status: {
           title: 'Status',
@@ -7153,6 +7340,14 @@ const baseTranslations = defineTranslations({
             delete: {
               title: 'Confirm Node Deletion',
             },
+            // plugged.host: force-delete every server on an offline node, then the node
+            forceNuke: {
+              button: 'Force Nuke',
+              title: 'Force Nuke Node',
+              body: 'This **force deletes every server on {name}** and then deletes the node from the panel. It only works while the node is offline or not responding: the panel refuses a node that answers. This cannot be undone.',
+              confirm: 'Force nuke',
+              done: '{count} servers deleted and {name} removed.',
+            },
             bulkConfig: {
               title: 'Update Configuration - {nodes}',
               button: {
@@ -7519,6 +7714,7 @@ const baseTranslations = defineTranslations({
                 limitSaved: 'Subdomain limit saved.',
                 deleted: '{name} deleted.',
                 deletedRefund: '{name} deleted, {count} tokens refunded.',
+                customDeleted: '{domain} deleted.', // plugged.host
               },
             },
             logs: {
@@ -11291,7 +11487,7 @@ const baseTranslations = defineTranslations({
                 created: 'Subuser created.',
               },
               form: {
-                emailPlaceholder: 'Enter the email that this subuser should be saved as.',
+                usernamePlaceholder: 'The username of the account to add.',
                 permissions: 'Permissions',
                 ignoredFilesDescription:
                   'Files and directories matching these patterns will be hidden from this subuser. Uses gitignore-style glob patterns (e.g. `*.env`, `secrets/`). Prefix a pattern with `!` to un-hide a path that a broader pattern would otherwise exclude.',
@@ -12200,6 +12396,7 @@ const baseTranslations = defineTranslations({
           waited: 'Waiting {time}',
           capNote: 'Starts within {seconds} seconds at the latest',
           capReached: 'Starting now',
+          noCap: 'No time limit: your server starts as soon as the node has room.',
           reason: {
             memory:
               'The memory on this node is above {limit}%. Starting another server now would slow down every server on it, including yours.',
@@ -13421,7 +13618,6 @@ const baseTranslations = defineTranslations({
           limitReached: 'Subdomain limit reached',
           unavailable: {
             off: 'Subdomains are not set up on this panel.',
-            unsupported: "Subdomains are not offered for this server's game.",
             no_domains: 'No domain is set up for subdomains yet.',
             no_address: 'This server has no address a subdomain could point at.',
             discord_link:
@@ -13485,6 +13681,40 @@ const baseTranslations = defineTranslations({
             title: 'Delete Subdomain',
             body: 'Delete {name}? Its DNS records are removed, and players can no longer join with it.',
             tokensBack: '{tokens} will go back to the server owner.',
+          },
+          // plugged.host: the person's own domains (docs/features/subdomains.md#custom-domains)
+          custom: {
+            title: 'Custom domains',
+            subtitle: 'Use a domain you own for this server. Point it at the panel subdomain with a CNAME.',
+            add: 'Add domain',
+            domain: 'Domain',
+            domainHint: 'A domain you own, such as play.example.com.',
+            targetHint: 'Its CNAME points at {target}.',
+            setup: 'Setup',
+            setupTitle: 'Set up your domain',
+            setupBody: 'Add these records at your DNS provider, then press Verify on {domain}.',
+            cname: 'CNAME record',
+            txt: 'TXT record',
+            httpsNote:
+              'The panel writes DNS only. For HTTPS, serve TLS on the server itself; the panel does not proxy HTTP traffic.',
+            verify: 'Verify',
+            verified: 'Active',
+            pending: 'Waiting for DNS',
+            deleteTitle: 'Delete custom domain',
+            deleteBody: 'Delete {domain}? Your own DNS records stay as they are.',
+            empty: 'No custom domains',
+            emptyHint: 'Add a domain you own to use it for this server.',
+            table: {
+              domain: 'Domain',
+              status: 'Status',
+              target: 'Points at',
+              created: 'Created',
+            },
+            toast: {
+              added: '{domain} added. Add its records, then verify it.',
+              verified: '{domain} is verified.',
+              deleted: '{domain} deleted.',
+            },
           },
           toast: {
             created: '{name} is set up. It can take a few minutes to reach every player.',

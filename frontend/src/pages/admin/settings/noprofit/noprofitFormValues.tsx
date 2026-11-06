@@ -13,7 +13,7 @@ export const noprofitEmptyFormValues: NoprofitFormValues = {
   ssoAudience: null,
   ssoCallbackUrl: null,
   adminsOnly: false,
-  linkByEmail: true,
+  linkByUsername: true,
   deletedAccountDays: 7,
   ssoSecret: '',
   apiSecret: '',

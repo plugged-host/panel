@@ -258,12 +258,10 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
     includeRestart: true,
     linePercent: 85,
     minWait: 10,
-    maxWait: 600,
     releaseInterval: 20,
     passMinutes: 10,
     exemptRoles: [],
     moveOffer: true,
-    moveRequiresMembership: true,
     moveMaxDisk: 3072,
   },
   ads: {

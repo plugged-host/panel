@@ -7497,5 +7497,12 @@
         }
       }
     }
+  },
+  "elements": {
+    "sidebar": {
+      "more": "Más",
+      "accountSettings": "Configuración de la cuenta",
+      "accountsHub": "Accounts Panel"
+    }
   }
 }

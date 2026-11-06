@@ -6,15 +6,15 @@
 //! node) or others are already waiting there, and always while `min_wait` is above 0 (as on the
 //! Pelican panel); otherwise it goes on to the next gate. The `release_start_queue` task lets the
 //! front of each line go once it waited `min_wait` and the node, asked right then, is under the
-//! line, at most one start per node every `release_interval` seconds, and everyone who waited
-//! `max_wait` whatever the node looks like: a queue without a ceiling is an outage with a progress
-//! bar. Members go first (the second membership, then the first), then by arrival; a membership
-//! bought while waiting moves the start up at once ([`restamp`]).
+//! line, at most one start per node every `release_interval` seconds. There is no timeout: a start
+//! waits until the node has room. noprofit.space Ultra bypasses the queue entirely. Members go
+//! first (the second membership, then the first), then by arrival; a membership bought while
+//! waiting moves the start up at once ([`restamp`]).
 //!
 //! A released start goes straight to Wings, past the other gates, and the server's next start
 //! within `pass_minutes` skips the queue. One row per server in `server_start_queue`, reused:
 //! `waiting`, then `released` or `left`. Moving the server (`server_transfers::request`) leaves
-//! the line; the queue page offers a move to the quietest other node of the location
+//! the line; the queue page offers every owner a move to the quietest other node of the location
 //! ([`take_move`]).
 
 use crate::{
@@ -41,8 +41,9 @@ pub const LEFT: &str = "left";
 
 /// Why a start was let go.
 pub const REASON_ROOM: &str = "room";
-pub const REASON_TIMEOUT: &str = "timeout";
+pub const REASON_TIMEOUT: &str = "timeout"; // kept for old activity rows only
 pub const REASON_OFF: &str = "off";
+pub const REASON_ULTRA: &str = "ultra";
 
 /// The line in percent for a node: the queue's, lowered on a small node like the deployment pause.
 pub fn line(
@@ -233,6 +234,19 @@ pub async fn position(
     Ok(ahead + 1)
 }
 
+/// noprofit.space Ultra: no start queue at all, whatever the node looks like.
+pub async fn ultra(
+    database: &crate::database::Database,
+    user_uuid: uuid::Uuid,
+) -> Result<bool, sqlx::Error> {
+    sqlx::query_scalar(
+        "SELECT EXISTS(SELECT 1 FROM user_noprofit_accounts          WHERE user_uuid = $1 AND ultra AND deleted IS NULL)",
+    )
+    .bind(user_uuid)
+    .fetch_one(database.read())
+    .await
+}
+
 /// The account's place in line: 2 with the second membership, 1 with the first, 0 without (and
 /// when memberships are off).
 async fn priority(state: &crate::State, user_uuid: uuid::Uuid) -> Result<i16, anyhow::Error> {
@@ -299,6 +313,20 @@ impl StartGate for QueueGate {
             || server.suspended
             || server.status.is_some()
         {
+            return Ok(Decision::Pass);
+        }
+
+        // Ultra subscribers never wait: any old row is released without starting, and the start
+        // goes straight on to Wings.
+        if ultra(&state.database, user.uuid).await? {
+            sqlx::query(
+                "UPDATE server_start_queue SET status = 'released', released = NOW(), reason = $2 \
+                 WHERE server_uuid = $1 AND status = 'waiting'",
+            )
+            .bind(server.uuid)
+            .bind(REASON_ULTRA)
+            .execute(state.database.write())
+            .await?;
             return Ok(Decision::Pass);
         }
 
@@ -540,10 +568,14 @@ async fn settle_node(
 ) -> Result<(), anyhow::Error> {
     let mut rest = Vec::with_capacity(entries.len());
     for entry in entries {
+        let is_ultra = match entry.user_uuid {
+            Some(user_uuid) => ultra(&state.database, user_uuid).await.unwrap_or(false),
+            None => false,
+        };
         let reason = if !queue.enabled {
             Some(REASON_OFF)
-        } else if entry.waited(now) >= queue.max_wait as i64 {
-            Some(REASON_TIMEOUT)
+        } else if is_ultra {
+            Some(REASON_ULTRA)
         } else {
             None
         };
@@ -712,7 +744,7 @@ async fn move_offer(
         chrono::Utc::now().naive_utc(),
     )
     .is_some();
-    if (queue.move_requires_membership && entry.priority < 1) || cooling_down {
+    if cooling_down {
         return Ok(MoveOffer {
             node: None,
             too_big: false,
@@ -834,7 +866,7 @@ pub async fn view(
             position: 0,
             waited: 0,
             remaining: 0,
-            max_wait: queue.max_wait,
+            max_wait: 0,
             priority: 0,
             memory_percent: None,
             cpu_percent: None,
@@ -904,12 +936,9 @@ pub async fn view(
         action: action_name(entry.action),
         position,
         waited,
-        remaining: if waiting {
-            (queue.max_wait as i64 - waited).max(0)
-        } else {
-            0
-        },
-        max_wait: queue.max_wait,
+        // there is no longest wait any more: a start waits until the node has room
+        remaining: 0,
+        max_wait: 0,
         priority: entry.priority,
         memory_percent: memory,
         cpu_percent: cpu,

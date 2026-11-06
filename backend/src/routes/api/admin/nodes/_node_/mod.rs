@@ -23,9 +23,9 @@ mod database_hosts;
 // plugged.host: devices removed (docs/upstream.md)
 // mod devices;
 mod duplicate;
-mod force_nuke; // plugged.host
 mod enrollment;
-mod failover; // plugged.host
+mod failover;
+mod force_nuke; // plugged.host // plugged.host
 // plugged.host: mounts removed (docs/upstream.md)
 // mod mounts;
 mod lighten; // plugged.host

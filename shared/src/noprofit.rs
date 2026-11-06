@@ -1118,7 +1118,13 @@ pub async fn alt_limited(state: &crate::State, user_uuid: uuid::Uuid) -> bool {
     let Ok(Some(link)) = Link::by_user_uuid(&state.database, user_uuid).await else {
         return false;
     };
-    let Some(config) = state.settings.get().await.ok().and_then(|s| s.noprofit.config()) else {
+    let Some(config) = state
+        .settings
+        .get()
+        .await
+        .ok()
+        .and_then(|s| s.noprofit.config())
+    else {
         return false;
     };
 
@@ -1141,7 +1147,13 @@ pub async fn alt_signal(
     let Ok(Some(link)) = Link::by_user_uuid(&state.database, user_uuid).await else {
         return;
     };
-    let Some(config) = state.settings.get().await.ok().and_then(|s| s.noprofit.config()) else {
+    let Some(config) = state
+        .settings
+        .get()
+        .await
+        .ok()
+        .and_then(|s| s.noprofit.config())
+    else {
         return;
     };
 

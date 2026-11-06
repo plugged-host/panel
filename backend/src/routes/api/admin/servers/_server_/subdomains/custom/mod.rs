@@ -9,9 +9,7 @@ mod delete {
     use shared::{
         ApiError, GetState,
         models::{
-            admin_activity::GetAdminActivityLogger,
-            server::GetServer,
-            user::GetPermissionManager,
+            admin_activity::GetAdminActivityLogger, server::GetServer, user::GetPermissionManager,
         },
         response::{ApiResponse, ApiResponseResult},
     };

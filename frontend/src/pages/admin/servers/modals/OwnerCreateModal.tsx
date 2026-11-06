@@ -29,8 +29,6 @@ interface OwnerCreateModalProps {
   onCreated: (user: z.infer<typeof adminFullUserSchema>) => void;
 }
 
-
-
 export default function OwnerCreateModal({ opened, onClose, initialSearch, onCreated }: OwnerCreateModalProps) {
   const { t } = useTranslations();
   const { addToast } = useToast();

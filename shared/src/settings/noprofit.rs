@@ -116,7 +116,10 @@ impl SettingsSerializeExt for AppSettingsNoprofit {
                 self.sso_callback_url.clone().unwrap_or_default(),
             )
             .write_raw_setting("admins_only", self.admins_only.to_compact_string())
-            .write_raw_setting("link_by_username", self.link_by_username.to_compact_string())
+            .write_raw_setting(
+                "link_by_username",
+                self.link_by_username.to_compact_string(),
+            )
             .write_raw_setting(
                 "deleted_account_days",
                 self.deleted_account_days.to_compact_string(),

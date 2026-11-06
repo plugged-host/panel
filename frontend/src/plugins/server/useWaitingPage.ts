@@ -30,10 +30,11 @@ export function useWaitClock(base: number, max: number, onZero?: () => void) {
 
   const nudged = useRef(false);
   useEffect(() => {
-    if (remaining > 0 || nudged.current) return;
+    // max <= 0 means "no time limit": never nudge the panel for a timeout that does not exist.
+    if (max <= 0 || remaining > 0 || nudged.current) return;
     nudged.current = true;
     onZero?.();
-  }, [remaining]);
+  }, [remaining, max]);
 
   return { elapsed, remaining, percent };
 }

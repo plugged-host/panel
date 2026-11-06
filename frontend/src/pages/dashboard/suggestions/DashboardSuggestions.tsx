@@ -152,9 +152,7 @@ function Idea({ suggestion }: { suggestion: Suggestion }) {
             <p className='theme-eco-small'>{t(`${base}.changelog`, { entry: suggestion.changelog })}</p>
           )}
           {suggestion.mergedInto && (
-            <p className='theme-eco-small'>
-              {t(`${base}.mergedInto`, { title: suggestion.mergedInto.title })}
-            </p>
+            <p className='theme-eco-small'>{t(`${base}.mergedInto`, { title: suggestion.mergedInto.title })}</p>
           )}
           <span className='theme-eco-small'>
             {suggestion.author?.username ?? t(`${base}.anonymous`, {})}

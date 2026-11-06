@@ -9,8 +9,8 @@ use serde::Serialize;
 use shared::{
     ApiError, GetState,
     models::{
-        DeletableModel, admin_activity::GetAdminActivityLogger,
-        node::GetNode, server::Server, user::GetPermissionManager,
+        DeletableModel, admin_activity::GetAdminActivityLogger, node::GetNode, server::Server,
+        user::GetPermissionManager,
     },
     response::{ApiResponse, ApiResponseResult},
 };
@@ -58,8 +58,8 @@ pub async fn route(
     // Force-delete every server, one batch at a time: page 1 always holds the next servers.
     let mut servers_deleted = 0i64;
     loop {
-        let batch = Server::by_node_uuid_with_pagination(&state.database, node.uuid, 1, 100, None)
-            .await?;
+        let batch =
+            Server::by_node_uuid_with_pagination(&state.database, node.uuid, 1, 100, None).await?;
         if batch.data.is_empty() {
             break;
         }

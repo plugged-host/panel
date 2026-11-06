@@ -1779,20 +1779,11 @@ pub fn knowledge_text(facts: &KnowledgeFacts) -> String {
                 " {plus} puts all the account's servers ahead of everyone without it, {plusplus} at the very front."
             );
         }
-        // As the queue page offers it (start_queue::position): with memberships off, an offer for
-        // members only reaches nobody.
-        if queue.move_offer
-            && games.transfer_enabled
-            && (memberships || !queue.move_requires_membership)
-        {
-            let members = if queue.move_requires_membership {
-                ", for accounts with a membership"
-            } else {
-                ""
-            };
+        // The queue page offers the move to every owner (start_queue::move_offer).
+        if queue.move_offer && games.transfer_enabled {
             let _ = write!(
                 sentence,
-                " The queue page also offers to move the server to a quieter node (Move Server{members})."
+                " The queue page also offers to move the server to a quieter node (Move Server)."
             );
         }
         item(&mut out, &sentence);
@@ -2913,15 +2904,15 @@ mod tests {
             browser: false,
         };
         let knowledge = knowledge_text(&facts);
-        assert!(knowledge.contains("quieter node (Move Server, for accounts with a membership)"));
+        assert!(knowledge.contains("quieter node (Move Server)."));
         assert!(knowledge.contains("Plus costs 15 tokens for 30 days"));
         assert!(knowledge.contains("VS Code on their servers"));
         assert!(!knowledge.contains("\nVS Code\n"));
 
-        // Without memberships, a members-only offer reaches nobody.
+        // Without memberships, the move is still offered to every owner.
         facts.economy.membership_enabled = false;
         let knowledge = knowledge_text(&facts);
-        assert!(!knowledge.contains("quieter node"));
+        assert!(knowledge.contains("quieter node (Move Server)."));
         assert!(!knowledge.contains("VS Code"));
 
         facts.queue.move_requires_membership = false;

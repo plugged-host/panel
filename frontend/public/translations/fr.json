@@ -9433,5 +9433,12 @@
         }
       }
     }
+  },
+  "elements": {
+    "sidebar": {
+      "more": "Plus",
+      "accountSettings": "Paramètres du compte",
+      "accountsHub": "Accounts Panel"
+    }
   }
 }

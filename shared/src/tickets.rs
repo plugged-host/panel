@@ -184,25 +184,20 @@ fn map_summary(row: &sqlx::postgres::PgRow) -> Result<ApiTicketSummary, sqlx::Er
         category: row.try_get("category")?,
         status: row.try_get("status")?,
         priority: row.try_get("priority")?,
-        server: server_uuid.zip(server_name).map(|(uuid, name)| ApiTicketServer {
-            uuid,
-            name,
-        }),
-        assigned_to: assigned_uuid.zip(assigned_username).map(|(uuid, username)| {
-            ApiTicketUser {
-                uuid,
-                username,
-            }
-        }),
+        server: server_uuid
+            .zip(server_name)
+            .map(|(uuid, name)| ApiTicketServer { uuid, name }),
+        assigned_to: assigned_uuid
+            .zip(assigned_username)
+            .map(|(uuid, username)| ApiTicketUser { uuid, username }),
         messages: row.try_get("message_count")?,
         last_message: last_message.map(utc),
         created: utc(row.try_get("created")?),
         updated: utc(row.try_get("updated")?),
         closed: closed.map(utc),
-        user: owner_uuid.zip(owner_username).map(|(uuid, username)| ApiTicketUser {
-            uuid,
-            username,
-        }),
+        user: owner_uuid
+            .zip(owner_username)
+            .map(|(uuid, username)| ApiTicketUser { uuid, username }),
     })
 }
 
@@ -231,12 +226,9 @@ async fn messages(
 
             Ok(ApiTicketMessage {
                 uuid: row.try_get("uuid")?,
-                author: author_uuid.zip(author_username).map(|(uuid, username)| {
-                    ApiTicketUser {
-                        uuid,
-                        username,
-                    }
-                }),
+                author: author_uuid
+                    .zip(author_username)
+                    .map(|(uuid, username)| ApiTicketUser { uuid, username }),
                 author_type: row.try_get("author_type")?,
                 body: row.try_get("body")?,
                 created: utc(created),
@@ -288,10 +280,12 @@ pub async fn admin_view(
     database: &crate::database::Database,
     ticket_uuid: uuid::Uuid,
 ) -> Result<Option<ApiTicket>, sqlx::Error> {
-    let row = sqlx::query(sqlx::AssertSqlSafe(format!("{SELECT} WHERE tickets.uuid = $1")))
-        .bind(ticket_uuid)
-        .fetch_optional(database.read())
-        .await?;
+    let row = sqlx::query(sqlx::AssertSqlSafe(format!(
+        "{SELECT} WHERE tickets.uuid = $1"
+    )))
+    .bind(ticket_uuid)
+    .fetch_optional(database.read())
+    .await?;
     let Some(row) = row else {
         return Ok(None);
     };
@@ -442,13 +436,11 @@ pub async fn reply(
     .bind(body)
     .execute(&mut *transaction)
     .await?;
-    sqlx::query(
-        "UPDATE tickets SET status = $2, updated = NOW(), closed = NULL WHERE uuid = $1",
-    )
-    .bind(ticket_uuid)
-    .bind(next_status)
-    .execute(&mut *transaction)
-    .await?;
+    sqlx::query("UPDATE tickets SET status = $2, updated = NOW(), closed = NULL WHERE uuid = $1")
+        .bind(ticket_uuid)
+        .bind(next_status)
+        .execute(&mut *transaction)
+        .await?;
     transaction.commit().await?;
 
     if staff {
@@ -542,14 +534,13 @@ pub async fn assign(
     ticket_uuid: uuid::Uuid,
     admin_uuid: Option<uuid::Uuid>,
 ) -> Result<ApiTicket, TicketError> {
-    let changed = sqlx::query(
-        "UPDATE tickets SET assigned_to = $2, updated = NOW() WHERE uuid = $1",
-    )
-    .bind(ticket_uuid)
-    .bind(admin_uuid)
-    .execute(state.database.write())
-    .await?
-    .rows_affected();
+    let changed =
+        sqlx::query("UPDATE tickets SET assigned_to = $2, updated = NOW() WHERE uuid = $1")
+            .bind(ticket_uuid)
+            .bind(admin_uuid)
+            .execute(state.database.write())
+            .await?
+            .rows_affected();
     if changed == 0 {
         return Err(TicketError::NotFound);
     }
@@ -663,12 +654,11 @@ async fn neo_reply(state: &crate::State, ticket_uuid: uuid::Uuid) -> Result<(), 
             crate::neo::offered(&settings),
         )
     };
-    let row = sqlx::query(
-        "SELECT subject, category, body, server_uuid FROM tickets WHERE uuid = $1",
-    )
-    .bind(ticket_uuid)
-    .fetch_optional(state.database.read())
-    .await?;
+    let row =
+        sqlx::query("SELECT subject, category, body, server_uuid FROM tickets WHERE uuid = $1")
+            .bind(ticket_uuid)
+            .fetch_optional(state.database.read())
+            .await?;
     let Some(row) = row else {
         return Ok(());
     };
@@ -759,7 +749,8 @@ async fn server_facts(
     state: &crate::State,
     server_uuid: uuid::Uuid,
 ) -> Result<Value, anyhow::Error> {
-    let Some(server) = crate::models::server::Server::by_uuid_optional(&state.database, server_uuid).await?
+    let Some(server) =
+        crate::models::server::Server::by_uuid_optional(&state.database, server_uuid).await?
     else {
         return Ok(Value::Null);
     };
@@ -797,7 +788,10 @@ mod tests {
     #[test]
     fn statuses_and_categories_are_the_documented_ones() {
         assert_eq!(STATUSES, ["open", "waiting", "resolved", "closed"]);
-        assert_eq!(CATEGORIES, ["general", "billing", "technical", "abuse", "other"]);
+        assert_eq!(
+            CATEGORIES,
+            ["general", "billing", "technical", "abuse", "other"]
+        );
         assert_eq!(PRIORITIES, ["low", "normal", "high"]);
         assert_eq!(AUTHOR_NEO, "neo");
     }

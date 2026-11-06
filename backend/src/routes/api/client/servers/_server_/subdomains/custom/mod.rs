@@ -54,11 +54,11 @@ mod post {
 
         permissions.has_server_permission("subdomains.custom")?;
 
-        let custom_domain = match shared::subdomains::custom::add(&state, &server, &data.domain).await
-        {
-            Ok(custom_domain) => custom_domain.into_api(),
-            Err(err) => return err.response().ok(),
-        };
+        let custom_domain =
+            match shared::subdomains::custom::add(&state, &server, &data.domain).await {
+                Ok(custom_domain) => custom_domain.into_api(),
+                Err(err) => return err.response().ok(),
+            };
         activity_logger
             .log(
                 "server:custom-domain.create",
@@ -120,17 +120,18 @@ mod custom_domain {
             permissions.has_server_permission("subdomains.custom")?;
 
             let Some(custom_domain) =
-                shared::subdomains::custom::by_uuid(&state.database, server.uuid, custom_uuid).await?
+                shared::subdomains::custom::by_uuid(&state.database, server.uuid, custom_uuid)
+                    .await?
             else {
                 return ApiResponse::error("custom domain not found")
                     .with_status(axum::http::StatusCode::NOT_FOUND)
                     .ok();
             };
-            let custom_domain = match shared::subdomains::custom::verify(&state, custom_domain).await
-            {
-                Ok(custom_domain) => custom_domain.into_api(),
-                Err(err) => return err.response().ok(),
-            };
+            let custom_domain =
+                match shared::subdomains::custom::verify(&state, custom_domain).await {
+                    Ok(custom_domain) => custom_domain.into_api(),
+                    Err(err) => return err.response().ok(),
+                };
             activity_logger
                 .log(
                     "server:custom-domain.verify",

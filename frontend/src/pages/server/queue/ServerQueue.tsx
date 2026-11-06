@@ -140,14 +140,20 @@ function Waiting({ queue, refetch }: { queue: Queue; refetch: () => void }) {
           </div>
         </div>
 
-        <div className='theme-wait-track'>
-          <div className='theme-wait-fill' style={{ width: `${clock.percent}%` }} />
-        </div>
+        {queue.maxWait > 0 && (
+          <div className='theme-wait-track'>
+            <div className='theme-wait-fill' style={{ width: `${clock.percent}%` }} />
+          </div>
+        )}
 
         <div className='theme-wait-times theme-eco-small'>
           <span>{t(`${page}.waited`, { time: formatWaited(clock.elapsed) })}</span>
           <span>
-            {clock.remaining > 0 ? t(`${page}.capNote`, { seconds: clock.remaining }) : t(`${page}.capReached`, {})}
+            {queue.maxWait <= 0
+              ? t(`${page}.noCap`, {})
+              : clock.remaining > 0
+                ? t(`${page}.capNote`, { seconds: clock.remaining })
+                : t(`${page}.capReached`, {})}
           </span>
         </div>
       </section>

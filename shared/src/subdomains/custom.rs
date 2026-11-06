@@ -292,10 +292,9 @@ async fn lookup(
         .await
         .map_err(|err| CustomDomainError::Dns(err.to_string()))?;
     let status = response.status();
-    let answer: Doh = response
-        .json()
-        .await
-        .map_err(|_| CustomDomainError::Dns(format!("the resolver answered {status} without its JSON")))?;
+    let answer: Doh = response.json().await.map_err(|_| {
+        CustomDomainError::Dns(format!("the resolver answered {status} without its JSON"))
+    })?;
 
     // 0: NOERROR, 3: NXDOMAIN; anything else is a resolver problem, not a missing record
     if answer.status != 0 && answer.status != 3 {
@@ -322,8 +321,7 @@ pub async fn verify(
     let txt = lookup(state, &verification_name, "TXT").await?;
     let expected = format!("panel-verify={}", custom.verification_token);
     let token_found = txt.iter().any(|answer| {
-        answer.kind == 16
-            && normalize(&answer.data.replace('"', "")) == normalize(&expected)
+        answer.kind == 16 && normalize(&answer.data.replace('"', "")) == normalize(&expected)
     });
     if !token_found {
         return Err(CustomDomainError::NotVerified(format!(
@@ -335,9 +333,9 @@ pub async fn verify(
     let points = if target.parse::<std::net::IpAddr>().is_ok() {
         let a = lookup(state, &custom.domain, "A").await?;
         let aaaa = lookup(state, &custom.domain, "AAAA").await?;
-        a.iter()
-            .chain(aaaa.iter())
-            .any(|answer| (answer.kind == 1 || answer.kind == 28) && normalize(&answer.data) == target)
+        a.iter().chain(aaaa.iter()).any(|answer| {
+            (answer.kind == 1 || answer.kind == 28) && normalize(&answer.data) == target
+        })
     } else {
         let cname = lookup(state, &custom.domain, "CNAME").await?;
         cname

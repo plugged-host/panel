@@ -802,12 +802,10 @@ export const adminSettingsQueueSchema = z.object({
   includeRestart: z.boolean(),
   linePercent: z.number().int().min(1).max(100),
   minWait: z.number().int().min(0).max(300),
-  maxWait: z.number().int().min(30).max(86400),
   releaseInterval: z.number().int().min(0).max(3600),
   passMinutes: z.number().int().min(0).max(1440),
   exemptRoles: z.array(z.string()).max(100),
   moveOffer: z.boolean(),
-  moveRequiresMembership: z.boolean(),
   moveMaxDisk: z.number().int().min(0).max(1048576),
 });
 

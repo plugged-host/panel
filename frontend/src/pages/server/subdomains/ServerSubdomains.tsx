@@ -412,13 +412,7 @@ function SubdomainRow({
   );
 }
 
-function CustomDomainInstructions({
-  custom,
-  onClose,
-}: {
-  custom: CustomDomain | null;
-  onClose: () => void;
-}) {
+function CustomDomainInstructions({ custom, onClose }: { custom: CustomDomain | null; onClose: () => void }) {
   const { t } = useTranslations();
 
   return (
@@ -578,9 +572,7 @@ function CustomDomains({ overview }: { overview: Overview }) {
             </TableData>
             <TableData>
               <Badge color={custom.verifiedAt ? 'green' : 'yellow'}>
-                {custom.verifiedAt
-                  ? t(`${base}.custom.verified`, {})
-                  : t(`${base}.custom.pending`, {})}
+                {custom.verifiedAt ? t(`${base}.custom.verified`, {}) : t(`${base}.custom.pending`, {})}
               </Badge>
             </TableData>
             <TableData>

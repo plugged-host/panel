@@ -287,5 +287,12 @@
         "ignored": "Ignorētie"
       }
     }
+  },
+  "elements": {
+    "sidebar": {
+      "more": "More",
+      "accountSettings": "Account settings",
+      "accountsHub": "Accounts Panel"
+    }
   }
 }

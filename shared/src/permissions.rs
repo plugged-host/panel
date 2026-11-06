@@ -293,10 +293,7 @@ pub(crate) static BASE_USER_PERMISSIONS: LazyLock<IndexMap<&'static str, Permiss
                             "read",
                             "Allows viewing the account's tickets and their messages.",
                         ),
-                        (
-                            "create",
-                            "Allows opening a ticket and replying to it.",
-                        ),
+                        ("create", "Allows opening a ticket and replying to it."),
                     ]),
                 },
             ),
@@ -308,7 +305,10 @@ pub(crate) static BASE_USER_PERMISSIONS: LazyLock<IndexMap<&'static str, Permiss
                     permissions: IndexMap::from([
                         ("read", "Allows viewing the suggestions board."),
                         ("create", "Allows posting an idea."),
-                        ("vote", "Allows voting for an idea and taking the vote back."),
+                        (
+                            "vote",
+                            "Allows voting for an idea and taking the vote back.",
+                        ),
                     ]),
                 },
             ),

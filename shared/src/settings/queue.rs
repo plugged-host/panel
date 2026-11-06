@@ -22,7 +22,7 @@ pub struct AppSettingsQueue {
     /// one on a busy node (the Pelican panel's queue: the queue page is seen on every start); 0
     /// queues busy nodes only.
     pub min_wait: i32,
-    /// Seconds after which a start goes out however busy the node is.
+    /// No longer used: the queue has no timeout (kept so old settings still read).
     pub max_wait: i32,
     /// Seconds between two releases on one node.
     pub release_interval: i32,
@@ -57,7 +57,7 @@ impl Default for AppSettingsQueue {
             release_interval: 20,
             pass_minutes: 10,
             move_offer: true,
-            move_requires_membership: true,
+            move_requires_membership: false,
             move_max_disk: 3072,
             exempt_roles: Vec::new(),
         }
