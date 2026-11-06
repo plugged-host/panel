@@ -226,6 +226,16 @@ const admin = {
     all: () => ['admin', 'partners'] as const,
   },
 
+  // plugged.host: Admin › Tickets (docs/features/tickets.md)
+  tickets: {
+    all: () => ['admin', 'tickets'] as const,
+  },
+
+  // plugged.host: Admin › Suggestions (docs/features/suggestions.md)
+  suggestions: {
+    all: () => ['admin', 'suggestions'] as const,
+  },
+
   // plugged.host: Admin › Status
   status: {
     all: () => ['admin', 'status'] as const,
@@ -463,6 +473,8 @@ const user = {
   balance: () => ['user', 'balance'] as const,
   discord: () => ['user', 'discord'] as const, // plugged.host: docs/features/discord.md
   partners: () => ['user', 'partners'] as const, // plugged.host: docs/features/partners.md
+  tickets: () => ['user', 'tickets'] as const, // plugged.host: docs/features/tickets.md
+  suggestions: () => ['user', 'suggestions'] as const, // plugged.host: docs/features/suggestions.md
   ads: () => ['user', 'ads'] as const, // plugged.host: docs/features/ads.md
   // plugged.host: neo's chat (docs/features/neo.md)
   neo: {

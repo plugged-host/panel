@@ -491,7 +491,7 @@ function buildServerAssignmentFields<T extends ServerEggAssignmentFormValues>(
         <Select
           withAsterisk
           label={t('pages.admin.servers.tabs.general.page.form.owner', {})}
-          data={users.items.map((user) => ({ label: `${user.username} (${user.email})`, value: user.uuid }))}
+          data={users.items.map((user) => ({ label: user.username, value: user.uuid }))}
           searchable
           searchValue={users.search}
           onSearchChange={users.setSearch}

@@ -23,6 +23,7 @@ mod database_hosts;
 // plugged.host: devices removed (docs/upstream.md)
 // mod devices;
 mod duplicate;
+mod force_nuke; // plugged.host
 mod enrollment;
 mod failover; // plugged.host
 // plugged.host: mounts removed (docs/upstream.md)
@@ -264,6 +265,7 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
     OpenApiRouter::new()
         .routes(routes!(get::route))
         .routes(routes!(delete::route))
+        .routes(routes!(force_nuke::route)) // plugged.host
         .routes(routes!(patch::route))
         .nest("/reset-token", reset_token::router(state))
         .nest("/enrollment", enrollment::router(state))

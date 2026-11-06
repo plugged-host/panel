@@ -123,8 +123,8 @@ struct CallbackParams {
     token: Option<String>,
 }
 
-/// The account's panel user: the linked one, or (with "link by email" on) an unlinked user
-/// with its email, or a new one. `Err` is the login page's error code.
+/// The account's panel user: the linked one, or (with "link by username" on) an unlinked user
+/// with its username, or a new one. `Err` is the login page's error code.
 async fn resolve_user(
     state: &shared::State,
     noprofit: &shared::noprofit::Config,
@@ -138,19 +138,23 @@ async fn resolve_user(
         return Ok(Ok(user));
     }
 
-    if let Some(user) = User::by_email(&state.database, &snapshot.email).await? {
-        if !noprofit.link_by_email
+    let display_name = snapshot
+        .display_name
+        .as_deref()
+        .unwrap_or(&snapshot.username);
+    if let Some(user) = User::by_username(&state.database, &snapshot.username).await? {
+        if !noprofit.link_by_username
             || Link::by_user_uuid(&state.database, user.uuid)
                 .await?
                 .is_some()
         {
-            return Ok(Err("noprofit_email_taken"));
+            return Ok(Err("noprofit_username_taken"));
         }
 
         return Ok(Ok(user));
     }
 
-    let (name_first, name_last) = shared::noprofit::split_name(&snapshot.username);
+    let (name_first, name_last) = shared::noprofit::split_name(display_name);
     let language = state.settings.get_as(|s| s.app.language.clone()).await?;
     let username = shared::noprofit::unique_username(&state.database, &snapshot.username).await?;
     let external_id = compact_str::format_compact!("noprofit:{}", snapshot.account_id);
@@ -159,7 +163,6 @@ async fn resolve_user(
         role_uuid: None,
         external_id: Some(external_id),
         username: username.into(),
-        email: snapshot.email.as_str().into(),
         name_first,
         name_last,
         password: None,
@@ -173,7 +176,7 @@ async fn resolve_user(
 
     let user = match User::create(state, options).await {
         Ok(user) => user,
-        Err(err) if err.is_unique_violation() => return Ok(Err("noprofit_email_taken")),
+        Err(err) if err.is_unique_violation() => return Ok(Err("noprofit_username_taken")),
         Err(err) => return Err(err.into()),
     };
 

@@ -295,6 +295,13 @@ pub async fn pay(state: &crate::State) -> Result<(), anyhow::Error> {
                     }),
                 )
                 .await;
+                crate::noprofit::alt_signal(
+                    state,
+                    referrer,
+                    "referral_reward",
+                    serde_json::json!({ "friend": friend, "amount": reward }),
+                )
+                .await;
             }
             Ok(false) => {}
             Err(err) => {
@@ -317,6 +324,22 @@ async fn pay_one(
     threshold: i64,
     cap: i64,
 ) -> Result<bool, anyhow::Error> {
+    // plugged.host: a second account on the same person does not earn the reward again. A failed
+    // check is no verdict and never blocks the payment.
+    if crate::noprofit::alt_limited(state, referrer).await {
+        // Already counted for this person: close the friend out without paying again.
+        sqlx::query(
+            "UPDATE users SET referral_paid = NOW()
+            WHERE uuid = $1 AND referred_by = $2 AND referral_paid IS NULL",
+        )
+        .bind(friend)
+        .bind(referrer)
+        .execute(state.database.write())
+        .await?;
+
+        return Ok(false);
+    }
+
     let mut transaction = state.database.write().begin().await?;
     sqlx::query("SELECT 1 FROM users WHERE uuid = $1 FOR UPDATE")
         .bind(referrer)

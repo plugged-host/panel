@@ -2,15 +2,17 @@ import { faDiscord } from '@fortawesome/free-brands-svg-icons'; // plugged.host
 import {
   faBoxArchive, // plugged.host
   faBriefcase,
+  faCircleQuestion, // plugged.host
   faClipboard,
   faCloud,
   faCoins, // plugged.host
   faFingerprint,
   faHandshake, // plugged.host
+  faLightbulb, // plugged.host
   faKey,
   faKeyboard,
   faLock, // plugged.host
-  faMedal, // plugged.host
+  faStar, // plugged.host
   faStore, // plugged.host
   faUnlockKeyhole,
   faUser,
@@ -41,6 +43,8 @@ const DashboardSessions = lazy(() => import('@/pages/dashboard/sessions/Dashboar
 const DashboardShortcuts = lazy(() => import('@/pages/dashboard/shortcuts/DashboardShortcuts.tsx'));
 const DashboardSshKeys = lazy(() => import('@/pages/dashboard/ssh-keys/DashboardSshKeys.tsx'));
 const DashboardStore = lazy(() => import('@/pages/dashboard/store/DashboardStore.tsx')); // plugged.host
+const DashboardSuggestions = lazy(() => import('@/pages/dashboard/suggestions/DashboardSuggestions.tsx')); // plugged.host
+const DashboardTickets = lazy(() => import('@/pages/dashboard/tickets/DashboardTickets.tsx')); // plugged.host
 const DashboardTokens = lazy(() => import('@/pages/dashboard/tokens/DashboardTokens.tsx')); // plugged.host
 
 // plugged.host: no security keys or OAuth links while noprofit.space owns sign-in
@@ -133,7 +137,7 @@ const routes: RouteDefinition[] = [
   {
     name: () =>
       useGlobalStore.getState().settings.economy?.plusName || getTranslations().t('pages.account.membership.title', {}), // plugged.host: named like the Pelican panel's row
-    icon: faMedal,
+    icon: faStar,
     path: '/membership',
     element: DashboardMembership,
     filter: () => !!useGlobalStore.getState().settings.economy?.membershipEnabled,
@@ -161,6 +165,20 @@ const routes: RouteDefinition[] = [
     path: '/partners',
     element: DashboardPartners,
     filter: () => !!useGlobalStore.getState().settings.partners?.enabled,
+  },
+  // plugged.host: support tickets (docs/features/tickets.md)
+  {
+    name: () => getTranslations().t('pages.account.tickets.title', {}),
+    icon: faCircleQuestion,
+    path: '/support',
+    element: DashboardTickets,
+  },
+  // plugged.host: the suggestions board (docs/features/suggestions.md)
+  {
+    name: () => getTranslations().t('pages.account.suggestions.title', {}),
+    icon: faLightbulb,
+    path: '/suggestions',
+    element: DashboardSuggestions,
   },
   // plugged.host: back to a devbox in the browser (docs/features/devboxes.md)
   {

@@ -87,6 +87,14 @@ pub const SERVER_IDLE_STOPPED: &str = "serverIdleStopped";
 /// A friend the account brought earned the referral threshold: `amount` tokens paid
 /// (shared/src/referrals.rs, docs/features/referrals.md).
 pub const REFERRAL_PAID: &str = "referralPaid";
+/// Staff answered the person's support ticket (`subject`)
+/// (shared/src/tickets.rs, docs/features/tickets.md).
+pub const TICKET_REPLY: &str = "ticketReply";
+/// For admins with `tickets.manage`: a new ticket (`subject`, `category`, `user`).
+pub const ADMIN_TICKET_CREATED: &str = "admin.ticketCreated";
+/// For admins with `suggestions.manage`: a new idea (`title`, `user`)
+/// (shared/src/suggestions.rs, docs/features/suggestions.md).
+pub const ADMIN_SUGGESTION_CREATED: &str = "admin.suggestionCreated";
 
 /// Read notifications are deleted after this many days (the `delete_old_activity` task).
 pub const KEEP_READ_DAYS: i64 = 90;

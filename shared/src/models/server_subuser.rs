@@ -3,7 +3,6 @@ use crate::{
     prelude::*,
 };
 use garde::Validate;
-use rand::distr::SampleString;
 use serde::{Deserialize, Serialize};
 use sqlx::{Row, postgres::PgRow};
 use std::{
@@ -275,8 +274,8 @@ pub struct CreateServerSubuserOptions<'a> {
     #[garde(skip)]
     pub server: &'a super::server::Server,
 
-    #[garde(email)]
-    pub email: compact_str::CompactString,
+    #[garde(length(chars, min = 3, max = 15), pattern("^[a-zA-Z0-9_]+$"))]
+    pub username: compact_str::CompactString,
     #[garde(custom(crate::permissions::validate_server_permissions))]
     pub permissions: Vec<compact_str::CompactString>,
     #[garde(
@@ -329,57 +328,13 @@ impl CreatableModel for ServerSubuser {
     ) -> Result<Self, crate::database::DatabaseError> {
         options.validate()?;
 
-        let user = match super::user::User::by_email(&state.database, &options.email).await? {
+        let user = match super::user::User::by_username(&state.database, &options.username).await? {
             Some(user) => user,
             None => {
-                let username = options
-                    .email
-                    .split('@')
-                    .next()
-                    .unwrap_or("unknown")
-                    .chars()
-                    .filter(|c| c.is_alphanumeric() || *c == '_')
-                    .take(10)
-                    .collect::<compact_str::CompactString>();
-                let username = compact_str::format_compact!(
-                    "{username}_{}",
-                    rand::distr::Alphanumeric.sample_string(&mut rand::rng(), 4)
-                );
-
                 let app_settings = state.settings.get().await?;
-
-                // plugged.host: accounts come from noprofit.space while it is connected; a panel
-                // user made here has no password and could not sign in, so the invite waits until
-                // they have signed up (the Pelican panel refused the same way)
-                if app_settings.noprofit.connected() {
-                    let message = unknown_email_message(&app_settings.app.name);
-                    drop(app_settings);
-                    return Err(sqlx::Error::InvalidArgument(message).into());
-                }
-
-                let create_options = super::user::CreateUserOptions {
-                    role_uuid: None,
-                    external_id: None,
-                    username: username.clone(),
-                    email: options.email.clone(),
-                    name_first: None,
-                    name_last: None,
-                    password: None,
-                    admin: false,
-                    frozen: false,
-                    suspended: false,
-                    verify_email: false,
-                    send_email: true,
-                    language: app_settings.app.language.clone(),
-                };
+                let message = unknown_username_message(&app_settings.app.name);
                 drop(app_settings);
-                match super::user::User::create(state, create_options).await {
-                    Ok(user) => user,
-                    Err(err) => {
-                        tracing::error!(username = %username, email = %options.email, "failed to create subuser user: {:?}", err);
-                        return Err(err);
-                    }
-                }
+                return Err(sqlx::Error::InvalidArgument(message).into());
             }
         };
 
@@ -618,21 +573,21 @@ pub struct ApiServerSubuser {
 
 /// plugged.host: why an invite to an email no panel user has is refused while noprofit.space is
 /// connected (the Pelican panel's words, in the API's error style).
-fn unknown_email_message(app_name: &str) -> String {
+fn unknown_username_message(app_name: &str) -> String {
     format!(
-        "no {app_name} account uses that email yet: ask them to sign up first, then invite them"
+        "no {app_name} account uses that username yet: ask them to sign up first, then invite them"
     )
 }
 
 #[cfg(test)]
 mod tests {
-    use super::unknown_email_message;
+    use super::unknown_username_message;
 
     #[test]
     fn the_refusal_names_the_panel() {
         assert_eq!(
-            unknown_email_message("Example"),
-            "no Example account uses that email yet: ask them to sign up first, then invite them"
+            unknown_username_message("Example"),
+            "no Example account uses that username yet: ask them to sign up first, then invite them"
         );
     }
 }

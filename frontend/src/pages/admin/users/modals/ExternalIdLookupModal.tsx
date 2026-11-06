@@ -25,7 +25,6 @@ export default function ExternalIdLookupModal(props: ModalProps) {
       lookup={(externalId) => getUserByExternalId(externalId)}
       fields={(user) => [
         { label: t(`${tr}.modal.result.username`, {}), value: user.username },
-        { label: t(`${tr}.modal.result.email`, {}), value: user.email },
         { label: t(`${tr}.modal.result.role`, {}), value: user.role?.name ?? t('common.na', {}) },
       ]}
       href={(user) => `/admin/users/${user.uuid}`}

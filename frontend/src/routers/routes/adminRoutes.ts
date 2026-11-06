@@ -2,6 +2,7 @@ import {
   faBriefcase,
   faBuilding,
   faBullhorn,
+  faCircleQuestion, // plugged.host
   faClockRotateLeft,
   faCogs,
   faCrow,
@@ -16,6 +17,7 @@ import {
   faHandshake, // plugged.host
   faHeartPulse,
   faLayerGroup,
+  faLightbulb, // plugged.host
   faRectangleAd, // plugged.host
   faScroll,
   faServer,
@@ -53,6 +55,8 @@ const AdminServers = lazy(() => import('@/pages/admin/servers/AdminServers.tsx')
 import AdminSettings, { AdminSettingsRedirect, settingsGroups } from '@/pages/admin/settings/AdminSettings.tsx'; // plugged.host
 
 const AdminStatus = lazy(() => import('@/pages/admin/status/AdminStatus.tsx'));
+const AdminSuggestions = lazy(() => import('@/pages/admin/suggestions/AdminSuggestions.tsx')); // plugged.host
+const AdminTickets = lazy(() => import('@/pages/admin/tickets/AdminTickets.tsx')); // plugged.host
 const AdminSystemBackupPolicies = lazy(
   () => import('@/pages/admin/system-backup-policies/AdminSystemBackupPolicies.tsx'),
 );
@@ -233,6 +237,24 @@ const routes: AdminRouteDefinition[] = [
     path: '/partners',
     element: AdminPartners,
     permission: ['partners.*'],
+    category: 'access',
+  },
+  // plugged.host: support tickets (docs/features/tickets.md)
+  {
+    name: () => getTranslations().t('pages.admin.tickets.title', {}),
+    icon: faCircleQuestion,
+    path: '/tickets',
+    element: AdminTickets,
+    permission: ['tickets.*'],
+    category: 'access',
+  },
+  // plugged.host: the suggestions board (docs/features/suggestions.md)
+  {
+    name: () => getTranslations().t('pages.admin.suggestions.title', {}),
+    icon: faLightbulb,
+    path: '/suggestions',
+    element: AdminSuggestions,
+    permission: ['suggestions.*'],
     category: 'access',
   },
 

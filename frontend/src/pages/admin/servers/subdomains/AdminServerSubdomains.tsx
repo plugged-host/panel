@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { z } from 'zod';
+import deleteServerCustomDomain from '@/api/admin/servers/subdomains/deleteServerCustomDomain.ts';
 import deleteServerSubdomain from '@/api/admin/servers/subdomains/deleteServerSubdomain.ts';
 import getServerSubdomains from '@/api/admin/servers/subdomains/getServerSubdomains.ts';
 import updateServerSubdomainLimit from '@/api/admin/servers/subdomains/updateServerSubdomainLimit.ts';
@@ -23,12 +24,13 @@ import Code from '@/elements/typography/Code.tsx';
 import Text from '@/elements/typography/Text.tsx';
 import { queryKeys } from '@/lib/queryKeys.ts';
 import { AdminServer } from '@/lib/schemas/admin/servers.ts';
-import { serverSubdomainSchema } from '@/lib/schemas/server/subdomains.ts';
+import { serverCustomDomainSchema, serverSubdomainSchema } from '@/lib/schemas/server/subdomains.ts';
 import { useResource } from '@/plugins/resource/useResource.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 
 type Subdomain = z.infer<typeof serverSubdomainSchema>;
+type CustomDomain = z.infer<typeof serverCustomDomainSchema>;
 
 const base = 'pages.admin.servers.tabs.subdomains';
 
@@ -84,6 +86,7 @@ export default function AdminServerSubdomains({ server }: { server: AdminServer 
   const { addToast } = useToast();
   const queryClient = useQueryClient();
   const [deleting, setDeleting] = useState<Subdomain | null>(null);
+  const [deletingCustom, setDeletingCustom] = useState<CustomDomain | null>(null);
 
   const resource = useResource({
     queryKey: queryKeys.admin.servers.subdomains(server.uuid),
@@ -108,8 +111,32 @@ export default function AdminServerSubdomains({ server }: { server: AdminServer 
     }
   };
 
+  const removeCustom = async () => {
+    if (!deletingCustom) return;
+
+    try {
+      await deleteServerCustomDomain(server.uuid, deletingCustom.uuid);
+      addToast(t(`${base}.toast.customDeleted`, { domain: deletingCustom.domain }), 'success');
+      setDeletingCustom(null);
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.servers.subdomains(server.uuid) });
+    } catch (error) {
+      addToast(httpErrorToHuman(error), 'error');
+    }
+  };
+
   return (
     <AdminSubContentContainer title={t(`${base}.title`, {})} titleOrder={2}>
+      <ConfirmationModal
+        opened={deletingCustom !== null}
+        onClose={() => setDeletingCustom(null)}
+        title={t('pages.server.subdomains.custom.deleteTitle', {})}
+        confirm={t('common.button.delete', {})}
+        onConfirmed={removeCustom}
+      >
+        <Text size='sm'>
+          {t('pages.server.subdomains.custom.deleteBody', { domain: deletingCustom?.domain ?? '' })}
+        </Text>
+      </ConfirmationModal>
       <ConfirmationModal
         opened={deleting !== null}
         onClose={() => setDeleting(null)}
@@ -188,6 +215,57 @@ export default function AdminServerSubdomains({ server }: { server: AdminServer 
                 </TableRow>
               ))}
             </Table>
+
+            {overview.customDomains.length > 0 && (
+              <div className='flex flex-col gap-2'>
+                <h3 className='theme-eco-heading'>{t('pages.server.subdomains.custom.title', {})}</h3>
+                <Table
+                  columns={[
+                    t('pages.server.subdomains.custom.table.domain', {}),
+                    t('pages.server.subdomains.custom.table.status', {}),
+                    t('pages.server.subdomains.custom.table.target', {}),
+                    '',
+                  ]}
+                  pagination={{
+                    total: overview.customDomains.length,
+                    perPage: Math.max(overview.customDomains.length, 1),
+                    page: 1,
+                    data: overview.customDomains,
+                  }}
+                >
+                  {overview.customDomains.map((custom) => (
+                    <TableRow key={custom.uuid}>
+                      <TableData>
+                        <Text size='sm' fw={500}>
+                          {custom.domain}
+                        </Text>
+                      </TableData>
+                      <TableData>
+                        <Text size='sm' c={custom.verifiedAt ? undefined : 'yellow'}>
+                          {custom.verifiedAt
+                            ? t('pages.server.subdomains.custom.verified', {})
+                            : t('pages.server.subdomains.custom.pending', {})}
+                        </Text>
+                      </TableData>
+                      <TableData>
+                        <Code>{custom.target}</Code>
+                      </TableData>
+                      <TableData className='text-end'>
+                        <Tooltip label={t('common.button.delete', {})}>
+                          <ActionIcon
+                            variant='default'
+                            aria-label={t('common.button.delete', {})}
+                            onClick={() => setDeletingCustom(custom)}
+                          >
+                            <FontAwesomeIcon icon={faTrash} />
+                          </ActionIcon>
+                        </Tooltip>
+                      </TableData>
+                    </TableRow>
+                  ))}
+                </Table>
+              </div>
+            )}
 
             <LimitForm server={server} limit={overview.limit} defaultLimit={overview.defaultLimit} />
           </Stack>

@@ -37,8 +37,6 @@ pub const MOUNT_SQL: &str = "SELECT devboxes.mount_source
         AND devboxes.mount_source LIKE '%/' || game.uuid::text";
 /// Where the game server's files are inside a devbox.
 pub const MOUNT_TARGET: &str = "/server";
-/// The system account's email: `.invalid` is reserved, so it never belongs to anyone.
-const SYSTEM_EMAIL: &str = "devboxes@system.invalid";
 /// Wings' defaults (`/var/lib/calagopus-wings`, `{root_directory}/volumes`).
 const WINGS_ROOT: &str = "/var/lib/calagopus-wings";
 const WINGS_DATA: &str = "{root_directory}/volumes";
@@ -91,8 +89,8 @@ pub async fn system_user(
         .lock("devboxes::system_user", Some(60), Some(30_000))
         .await?;
     let existing: Option<uuid::Uuid> =
-        sqlx::query_scalar("SELECT uuid FROM users WHERE email = $1")
-            .bind(SYSTEM_EMAIL)
+        sqlx::query_scalar("SELECT uuid FROM users WHERE external_id = $1")
+            .bind("system:devboxes")
             .fetch_optional(state.database.write())
             .await?;
 
@@ -110,7 +108,6 @@ pub async fn system_user(
                     role_uuid: None,
                     external_id: Some("system:devboxes".into()),
                     username: username.into(),
-                    email: SYSTEM_EMAIL.into(),
                     name_first: Some("Devboxes".into()),
                     name_last: None,
                     password: None,

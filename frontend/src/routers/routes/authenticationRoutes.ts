@@ -1,5 +1,4 @@
 import type { GlobalRouteDefinition } from 'shared';
-import ForgotPassword from '@/pages/auth/ForgotPassword.tsx';
 import Login from '@/pages/auth/Login.tsx';
 import LoginCheckpoint from '@/pages/auth/login-steps/LoginCheckpoint.tsx';
 import LoginOAuth from '@/pages/auth/login-steps/LoginOAuth.tsx';
@@ -28,11 +27,6 @@ const routes: GlobalRouteDefinition[] = [
 
       return settings.app.registrationEnabled && settings.app.passwordLoginEnabled;
     },
-  },
-  {
-    path: '/forgot-password',
-    element: ForgotPassword,
-    filter: () => getGlobalStore().settings.app.passwordLoginEnabled,
   },
   {
     path: '/reset-password',

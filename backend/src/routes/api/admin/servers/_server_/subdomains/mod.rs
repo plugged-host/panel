@@ -3,6 +3,7 @@ use super::State;
 use utoipa_axum::{router::OpenApiRouter, routes};
 
 mod _subdomain_;
+mod custom; // plugged.host
 
 mod get {
     use serde::Serialize;
@@ -10,7 +11,7 @@ mod get {
         ApiError, GetState,
         models::{server::GetServer, user::GetPermissionManager},
         response::{ApiResponse, ApiResponseResult},
-        subdomains::{ApiSubdomain, Subdomain, records::Service},
+        subdomains::{ApiSubdomain, Subdomain, custom::ApiCustomDomain, records::Service},
     };
     use utoipa::ToSchema;
 
@@ -20,6 +21,8 @@ mod get {
         /// The server's own limit; `None` follows the settings' default.
         limit: Option<i32>,
         default_limit: i32,
+        /// plugged.host: the server's own domains, which an admin may see and delete
+        custom_domains: Vec<ApiCustomDomain>,
     }
 
     #[utoipa::path(get, path = "/", responses(
@@ -52,6 +55,14 @@ mod get {
                 .collect(),
             limit: shared::subdomains::own_limit(&state.database, server.uuid).await?,
             default_limit,
+            custom_domains: shared::subdomains::custom::all_by_server_uuid(
+                &state.database,
+                server.uuid,
+            )
+            .await?
+            .into_iter()
+            .map(shared::subdomains::custom::CustomDomain::into_api)
+            .collect(),
         })
         .ok()
     }
@@ -123,6 +134,7 @@ mod put {
 pub fn router(state: &State) -> OpenApiRouter<State> {
     OpenApiRouter::new()
         .routes(routes!(get::route, put::route))
+        .nest("/custom", custom::router(state)) // plugged.host
         .nest("/{subdomain}", _subdomain_::router(state))
         .with_state(state.clone())
 }

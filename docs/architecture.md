@@ -156,7 +156,7 @@ deleted without editing the code that does it. Register them where the feature's
 permissions; subusers and API keys carry server permissions. Admins have every permission.
 
 - New permissions go into an existing group when they fit (`control.*`, `settings.*`); a new area
-  gets a group of its own named like upstream's (`status`, `abuse`).
+  gets a group of its own named like upstream's (`status`, `abuse`, `tickets`, `suggestions`).
 - Permissions of removed features are listed in `REMOVED_*_PERMISSIONS`: they are never offered or
   granted, and the frontend (`frontend/src/plugins/usePermissions.ts`) hides whatever they gate.
 - Wings receives the user's server permissions in its websocket token (`websocket.rs`); Wings checks

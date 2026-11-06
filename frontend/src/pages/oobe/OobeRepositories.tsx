@@ -56,7 +56,7 @@ export default function OobeRepositories({ onNext, onBack, canGoBack, skipFrom, 
   // A nest with the default name may already exist when the wizard is rerun, so reuse it instead of failing.
   const ensureNest = async (name: string): Promise<z.infer<typeof adminNestSchema>> => {
     try {
-      return await createNest({ author: user!.email, name, description: null });
+      return await createNest({ author: user!.username, name, description: null });
     } catch (err) {
       const existing = await getNests(1, name).then((nests) =>
         nests.data.find((nest) => nest.name.toLowerCase() === name.toLowerCase()),

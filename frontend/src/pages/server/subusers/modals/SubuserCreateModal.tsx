@@ -41,7 +41,7 @@ export default function SubuserCreateModal({ ...props }: ModalProps) {
   const { form, handleClose, handleSubmit, loading, isDirty } = useModalForm<z.infer<typeof serverSubuserCreateSchema>>(
     {
       initialValues: {
-        email: '',
+        username: '',
         permissions: [],
         ignoredFiles: [],
       },
@@ -50,7 +50,7 @@ export default function SubuserCreateModal({ ...props }: ModalProps) {
       onSubmit: async (values) => {
         const captchaToken = await captcha.getToken();
         await createSubuser(server.uuid, {
-          email: values.email,
+          username: values.username,
           permissions: Array.from(values.permissions),
           ignoredFiles: appendInheritedIgnoredFiles(values.ignoredFiles, server.ignoredFiles),
           captcha: captchaToken,
@@ -76,10 +76,10 @@ export default function SubuserCreateModal({ ...props }: ModalProps) {
       <Stack>
         <TextInput
           withAsterisk
-          label={t('common.form.email', {})}
-          placeholder={t('pages.server.subusers.modal.createSubuser.form.emailPlaceholder', {})}
+          label={t('common.form.username', {})}
+          placeholder={t('pages.server.subusers.modal.createSubuser.form.usernamePlaceholder', {})}
           {...ignorePasswordManagerProps}
-          {...form.getInputProps('email')}
+          {...form.getInputProps('username')}
         />
 
         <PermissionSelector

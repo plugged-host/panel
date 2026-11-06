@@ -7,10 +7,7 @@ mod post {
     use serde::{Deserialize, Serialize};
     use shared::{
         ApiError, GetState,
-        models::{
-            ByUuid, CreatableModel, user::User, user_email_verification::UserEmailVerification,
-            user_session::UserSession,
-        },
+        models::{ByUuid, CreatableModel, user::User, user_session::UserSession},
         response::{ApiResponse, ApiResponseResult},
     };
     use tower_cookies::Cookies;
@@ -22,9 +19,6 @@ mod post {
         #[schema(min_length = 3, max_length = 15)]
         #[schema(pattern = "^[a-zA-Z0-9_]+$")]
         username: compact_str::CompactString,
-        #[garde(email)]
-        #[schema(format = "email")]
-        email: compact_str::CompactString,
         #[garde(length(chars, min = 1, max = 255))]
         #[schema(min_length = 1, max_length = 255)]
         name_first: Option<compact_str::CompactString>,
@@ -106,7 +100,6 @@ mod post {
         let mut user = match User::create_automatic_admin(
             &state.database,
             &data.username,
-            &data.email,
             data.name_first.as_deref(),
             data.name_last.as_deref(),
             &data.password,
@@ -116,7 +109,7 @@ mod post {
         {
             Ok(user_uuid) => User::by_uuid(&state.database, user_uuid).await?,
             Err(err) if err.is_unique_violation() => {
-                return ApiResponse::error("user with username or email already exists")
+                return ApiResponse::error("user with that username already exists")
                     .with_status(StatusCode::BAD_REQUEST)
                     .ok();
             }
@@ -132,51 +125,13 @@ mod post {
         // plugged.host: who brought the new account (docs/features/referrals.md)
         shared::referrals::record(&state, user.uuid, &cookies, ip.0).await;
 
-        if user.admin {
-            sqlx::query!(
-                "UPDATE users
-                SET email_verified = true
-                WHERE users.uuid = $1",
-                user.uuid
-            )
+        // plugged.host: there is no email address to verify any more.
+        sqlx::query("UPDATE users SET email_verified = true WHERE users.uuid = $1")
+            .bind(user.uuid)
             .execute(state.database.write())
             .await?;
-
-            User::invalidate_cached(&state.database, user.uuid).await;
-
-            user.email_verified = true;
-        } else if state
-            .settings
-            .get_as(|s| s.app.email_verification_required)
-            .await?
-        {
-            match UserEmailVerification::create(&state.database, user.uuid, &user.email).await {
-                Ok(token) => {
-                    if let Err(err) = UserEmailVerification::send(
-                        &state,
-                        request_host.as_deref(),
-                        &user,
-                        &user.email,
-                        &token,
-                    )
-                    .await
-                    {
-                        tracing::error!(
-                            user = %user.uuid,
-                            "failed to send email verification: {:#?}",
-                            err
-                        );
-                    }
-                }
-                Err(err) => {
-                    tracing::error!(
-                        user = %user.uuid,
-                        "failed to create email verification: {:#?}",
-                        err
-                    );
-                }
-            }
-        }
+        User::invalidate_cached(&state.database, user.uuid).await;
+        user.email_verified = true;
 
         let key = UserSession::create(
             &state,

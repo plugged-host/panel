@@ -298,7 +298,7 @@ mod put {
         #[garde(skip)]
         admins_only: Option<bool>,
         #[garde(skip)]
-        link_by_email: Option<bool>,
+        link_by_username: Option<bool>,
         /// Days until the user and servers of an account noprofit.space no longer has are
         /// deleted; 0 never.
         #[garde(range(min = 0, max = 365))]
@@ -883,8 +883,8 @@ mod put {
             if let Some(admins_only) = noprofit.admins_only {
                 settings.noprofit.admins_only = admins_only;
             }
-            if let Some(link_by_email) = noprofit.link_by_email {
-                settings.noprofit.link_by_email = link_by_email;
+            if let Some(link_by_username) = noprofit.link_by_username {
+                settings.noprofit.link_by_username = link_by_username;
             }
             if let Some(deleted_account_days) = noprofit.deleted_account_days {
                 settings.noprofit.deleted_account_days = deleted_account_days;

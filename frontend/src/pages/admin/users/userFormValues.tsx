@@ -13,7 +13,6 @@ type UserFormValues = z.infer<typeof adminUserUpdateSchema>;
 export const userEmptyFormValues: UserFormValues = {
   externalId: null,
   username: '',
-  email: '',
   nameFirst: '',
   nameLast: '',
   password: null,
@@ -27,7 +26,6 @@ export const userEmptyFormValues: UserFormValues = {
 export const userToFormValues = (user: z.infer<typeof adminFullUserSchema>): Partial<UserFormValues> => ({
   externalId: user.externalId,
   username: user.username,
-  email: user.email,
   nameFirst: user.nameFirst,
   nameLast: user.nameLast,
   password: null,
@@ -72,18 +70,6 @@ export function useUserFormFields({
       required: true,
       description: lockedDescription, // plugged.host
       props: { disabled: identityLocked, ...ignorePasswordManagerProps }, // plugged.host: disabled
-    },
-    {
-      type: 'text',
-      name: 'email',
-      label: t('common.form.email', {}),
-      required: true,
-      description: lockedDescription, // plugged.host
-      props: {
-        type: 'email',
-        disabled: (!isRootAdmin && editingOtherUser) || identityLocked, // plugged.host: identityLocked
-        ...ignorePasswordManagerProps,
-      },
     },
     { type: 'text', name: 'nameFirst', label: t('common.form.firstName', {}) },
     { type: 'text', name: 'nameLast', label: t('common.form.lastName', {}) },

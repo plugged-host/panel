@@ -112,7 +112,7 @@ export default function OobeServer({ onNext, onBack, canGoBack, skipFrom, data }
       const nest = needsNest
         ? (createdNest ??
           (await createNest({
-            author: user!.email,
+            author: user!.username,
             name: form.getValues().nestName!,
             description: null,
           })))

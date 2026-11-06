@@ -21,10 +21,15 @@ export default function NoprofitContainer({
     <TitleCard title={t('pages.account.account.containers.noprofit.title', {})} className='h-full order-10'>
       <Stack h='100%'>
         <div className='text-sm'>
-          {t('pages.account.account.containers.noprofit.description', { email: account.email }).md()}
+          {t('pages.account.account.containers.noprofit.description', { username: account.username }).md()}
         </div>
 
         <dl className='grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm'>
+          <dt className='text-(--mantine-color-dimmed)'>
+            {t('pages.account.account.containers.noprofit.ultra', {})}
+          </dt>
+          <dd>{account.ultra ? t('common.ultra', {}) : t('common.none', {})}</dd>
+
           <dt className='text-(--mantine-color-dimmed)'>
             {t('pages.account.account.containers.noprofit.credits', {})}
           </dt>

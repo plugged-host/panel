@@ -30,6 +30,8 @@ mod sessions;
 mod settings;
 mod ssh_keys;
 mod standing; // plugged.host
+mod suggestions; // plugged.host
+mod tickets; // plugged.host
 mod tokens; // plugged.host
 mod tour; // plugged.host
 mod two_factor;
@@ -217,6 +219,8 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         .nest("/neo", neo::router(state)) // plugged.host
         .nest("/notifications", notifications::router(state)) // plugged.host
         .nest("/standing", standing::router(state)) // plugged.host
+        .nest("/suggestions", suggestions::router(state)) // plugged.host
+        .nest("/tickets", tickets::router(state)) // plugged.host
         .nest("/partners", partners::router(state)) // plugged.host
         .nest("/day-pass", day_pass::router(state)) // plugged.host
         .nest("/promo", promo::router(state)) // plugged.host

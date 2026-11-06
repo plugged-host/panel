@@ -29,7 +29,7 @@ interface OwnerCreateModalProps {
   onCreated: (user: z.infer<typeof adminFullUserSchema>) => void;
 }
 
-const looksLikeEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+
 
 export default function OwnerCreateModal({ opened, onClose, initialSearch, onCreated }: OwnerCreateModalProps) {
   const { t } = useTranslations();
@@ -51,9 +51,7 @@ export default function OwnerCreateModal({ opened, onClose, initialSearch, onCre
       const term = initialSearch.trim();
       const base = { ...userEmptyFormValues, language: settings.app.language };
       if (!term) return base;
-      return looksLikeEmail(term)
-        ? { ...base, email: term, username: term.slice(0, term.indexOf('@')) }
-        : { ...base, username: term };
+      return { ...base, username: term };
     },
     onSubmit: async (values) => {
       const created = await createUser(adminUserUpdateSchema.parse(values));

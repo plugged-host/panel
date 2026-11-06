@@ -95,16 +95,7 @@ mod post {
                 .ok();
         }
 
-        let user = if data.user.contains('@') {
-            match User::by_email_password(&state.database, &data.user, &data.password).await? {
-                Some(user) => user,
-                None => {
-                    return ApiResponse::error("invalid username or password")
-                        .with_status(StatusCode::BAD_REQUEST)
-                        .ok();
-                }
-            }
-        } else {
+        let user =
             match User::by_username_password(&state.database, &data.user, &data.password).await? {
                 Some(user) => user,
                 None => {
@@ -112,8 +103,7 @@ mod post {
                         .with_status(StatusCode::BAD_REQUEST)
                         .ok();
                 }
-            }
-        };
+            };
 
         if user.password_login_disabled {
             return ApiResponse::error("password login is disabled for this account")

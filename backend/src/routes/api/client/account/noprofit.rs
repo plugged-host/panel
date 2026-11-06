@@ -15,8 +15,8 @@ mod get {
     #[derive(ToSchema, Serialize)]
     struct ResponseAccount {
         account_id: i64,
-        email: String,
         username: String,
+        ultra: bool,
         is_admin: bool,
         credits: i64,
         #[schema(value_type = Option<Object>)]
@@ -49,8 +49,8 @@ mod get {
             .await?
             .map(|link| ResponseAccount {
                 account_id: link.account_id,
-                email: link.email,
                 username: link.username,
+                ultra: link.ultra,
                 is_admin: link.is_admin,
                 credits: link.credits,
                 plan: link.plan,

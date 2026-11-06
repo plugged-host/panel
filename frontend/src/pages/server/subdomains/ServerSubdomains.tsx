@@ -8,10 +8,13 @@ import { FormEvent, ReactNode, useEffect, useState } from 'react';
 import { ClipboardCancelledError } from 'shared';
 import { z } from 'zod';
 import { getHttpStatus, httpErrorToHuman } from '@/api/axios.ts';
+import createCustomDomain from '@/api/server/subdomains/createCustomDomain.ts';
 import createSubdomain from '@/api/server/subdomains/createSubdomain.ts';
+import deleteCustomDomain from '@/api/server/subdomains/deleteCustomDomain.ts';
 import deleteSubdomain from '@/api/server/subdomains/deleteSubdomain.ts';
 import getSubdomains from '@/api/server/subdomains/getSubdomains.ts';
 import updateSubdomain from '@/api/server/subdomains/updateSubdomain.ts';
+import verifyCustomDomain from '@/api/server/subdomains/verifyCustomDomain.ts';
 import Button from '@/elements/buttons/Button.tsx';
 import UnstyledButton from '@/elements/buttons/UnstyledButton.tsx';
 import ServerContentContainer from '@/elements/containers/ServerContentContainer.tsx';
@@ -25,11 +28,16 @@ import ConfirmationModal from '@/elements/modals/ConfirmationModal.tsx';
 import { Modal, ModalFooter } from '@/elements/modals/Modal.tsx';
 import Tooltip from '@/elements/overlays/Tooltip.tsx';
 import ResourceView from '@/elements/ResourceView.tsx';
+import FormattedTimestamp from '@/elements/time/FormattedTimestamp.tsx';
 import Text from '@/elements/typography/Text.tsx';
 import { copyToClipboard } from '@/lib/clipboard/copy.ts';
 import { intlLocale } from '@/lib/languages.ts';
 import { queryKeys } from '@/lib/queryKeys.ts';
-import { serverSubdomainSchema, serverSubdomainsSchema } from '@/lib/schemas/server/subdomains.ts';
+import {
+  serverCustomDomainSchema,
+  serverSubdomainSchema,
+  serverSubdomainsSchema,
+} from '@/lib/schemas/server/subdomains.ts';
 import { useServerCan } from '@/plugins/usePermissions.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
@@ -38,6 +46,7 @@ import { useServerStore } from '@/stores/server.ts';
 
 type Overview = z.infer<typeof serverSubdomainsSchema>;
 type Subdomain = z.infer<typeof serverSubdomainSchema>;
+type CustomDomain = z.infer<typeof serverCustomDomainSchema>;
 type Translate = ReturnType<typeof useTranslations>['t'];
 
 const base = 'pages.server.subdomains';
@@ -403,6 +412,211 @@ function SubdomainRow({
   );
 }
 
+function CustomDomainInstructions({
+  custom,
+  onClose,
+}: {
+  custom: CustomDomain | null;
+  onClose: () => void;
+}) {
+  const { t } = useTranslations();
+
+  return (
+    <Modal opened={custom !== null} onClose={onClose} title={t(`${base}.custom.setupTitle`, {})} size='lg'>
+      {custom && (
+        <Stack gap='md'>
+          <Text size='sm'>{t(`${base}.custom.setupBody`, { domain: custom.domain })}</Text>
+          <div className='flex flex-col gap-2'>
+            <span className='theme-eco-small'>{t(`${base}.custom.cname`, {})}</span>
+            <CopyCell value={custom.target} message={t(`${base}.copied`, {})}>
+              <span className='font-mono'>{custom.target}</span>
+            </CopyCell>
+            <span className='theme-eco-small'>{t(`${base}.custom.txt`, {})}</span>
+            <CopyCell value={custom.verificationName} message={t(`${base}.copied`, {})}>
+              <span className='font-mono'>{custom.verificationName}</span>
+            </CopyCell>
+            <CopyCell value={`panel-verify=${custom.verificationToken}`} message={t(`${base}.copied`, {})}>
+              <span className='font-mono'>panel-verify={custom.verificationToken}</span>
+            </CopyCell>
+          </div>
+          <Text size='sm' c='dimmed'>
+            {t(`${base}.custom.httpsNote`, {})}
+          </Text>
+        </Stack>
+      )}
+    </Modal>
+  );
+}
+
+function CustomDomains({ overview }: { overview: Overview }) {
+  const { t } = useTranslations();
+  const { addToast } = useToast();
+  const queryClient = useQueryClient();
+  const server = useServerStore((state) => state.server);
+  const canCustom = useServerCan('subdomains.custom');
+  const [creating, setCreating] = useState(false);
+  const [domain, setDomain] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [verifying, setVerifying] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<CustomDomain | null>(null);
+  const [instructions, setInstructions] = useState<CustomDomain | null>(null);
+
+  const refresh = () => queryClient.invalidateQueries({ queryKey: queryKeys.server(server.uuid).subdomains() });
+
+  const add = () => {
+    setLoading(true);
+    createCustomDomain(server.uuid, domain.trim())
+      .then((custom) => {
+        addToast(t(`${base}.custom.toast.added`, { domain: custom.domain }), 'success');
+        setCreating(false);
+        setDomain('');
+        setInstructions(custom);
+        refresh();
+      })
+      .catch((error) => addToast(httpErrorToHuman(error), 'error'))
+      .finally(() => setLoading(false));
+  };
+
+  const verify = (custom: CustomDomain) => {
+    setVerifying(custom.uuid);
+    verifyCustomDomain(server.uuid, custom.uuid)
+      .then(() => {
+        addToast(t(`${base}.custom.toast.verified`, { domain: custom.domain }), 'success');
+        refresh();
+      })
+      .catch((error) => addToast(httpErrorToHuman(error), 'error'))
+      .finally(() => setVerifying(null));
+  };
+
+  const remove = async () => {
+    if (!deleting) return;
+    await deleteCustomDomain(server.uuid, deleting.uuid)
+      .then(() => {
+        addToast(t(`${base}.custom.toast.deleted`, { domain: deleting.domain }), 'success');
+        setDeleting(null);
+        refresh();
+      })
+      .catch((error) => addToast(httpErrorToHuman(error), 'error'));
+  };
+
+  if (overview.unavailable === 'off' || (!overview.customTarget && overview.customDomains.length === 0)) {
+    return null;
+  }
+
+  return (
+    <section className='mt-8 flex flex-col gap-3'>
+      <div className='flex flex-wrap items-center justify-between gap-2'>
+        <div>
+          <h3 className='theme-eco-heading'>{t(`${base}.custom.title`, {})}</h3>
+          <p className='theme-eco-small'>{t(`${base}.custom.subtitle`, {})}</p>
+        </div>
+        {canCustom && overview.customTarget && (
+          <Button onClick={() => setCreating(true)}>{t(`${base}.custom.add`, {})}</Button>
+        )}
+      </div>
+
+      <CustomDomainInstructions custom={instructions} onClose={() => setInstructions(null)} />
+
+      <Modal opened={creating} onClose={() => setCreating(false)} title={t(`${base}.custom.add`, {})}>
+        <Stack gap='md'>
+          <TextInput
+            label={t(`${base}.custom.domain`, {})}
+            placeholder='play.example.com'
+            value={domain}
+            onChange={(event) => setDomain(event.currentTarget.value)}
+            description={t(`${base}.custom.domainHint`, {})}
+            data-autofocus
+          />
+          {overview.customTarget && (
+            <Text size='sm' c='dimmed'>
+              {t(`${base}.custom.targetHint`, { target: overview.customTarget })}
+            </Text>
+          )}
+        </Stack>
+        <ModalFooter>
+          <Button loading={loading} disabled={!domain.includes('.')} onClick={add}>
+            {t(`${base}.custom.add`, {})}
+          </Button>
+          <Button variant='default' onClick={() => setCreating(false)}>
+            {t('common.button.cancel', {})}
+          </Button>
+        </ModalFooter>
+      </Modal>
+
+      <ConfirmationModal
+        opened={deleting !== null}
+        onClose={() => setDeleting(null)}
+        title={t(`${base}.custom.deleteTitle`, {})}
+        confirm={t('common.button.delete', {})}
+        onConfirmed={remove}
+      >
+        <Text size='sm'>{t(`${base}.custom.deleteBody`, { domain: deleting?.domain ?? '' })}</Text>
+      </ConfirmationModal>
+
+      <Table
+        columns={[
+          t(`${base}.custom.table.domain`, {}),
+          t(`${base}.custom.table.status`, {}),
+          t(`${base}.custom.table.target`, {}),
+          t(`${base}.custom.table.created`, {}),
+          '',
+        ]}
+        pagination={{
+          total: overview.customDomains.length,
+          perPage: Math.max(overview.customDomains.length, 1),
+          page: 1,
+          data: overview.customDomains,
+        }}
+        empty={
+          <EmptyState flush title={t(`${base}.custom.empty`, {})} description={t(`${base}.custom.emptyHint`, {})} />
+        }
+      >
+        {overview.customDomains.map((custom) => (
+          <TableRow key={custom.uuid}>
+            <TableData>
+              <span className='font-mono'>{custom.domain}</span>
+            </TableData>
+            <TableData>
+              <Badge color={custom.verifiedAt ? 'green' : 'yellow'}>
+                {custom.verifiedAt
+                  ? t(`${base}.custom.verified`, {})
+                  : t(`${base}.custom.pending`, {})}
+              </Badge>
+            </TableData>
+            <TableData>
+              <span className='font-mono'>{custom.target}</span>
+            </TableData>
+            <TableData>
+              <FormattedTimestamp timestamp={custom.created} />
+            </TableData>
+            <TableData className='text-end'>
+              {canCustom && (
+                <div className='theme-link-actions'>
+                  {!custom.verifiedAt && (
+                    <UnstyledButton
+                      className='theme-link-action'
+                      disabled={verifying === custom.uuid}
+                      onClick={() => verify(custom)}
+                    >
+                      {t(`${base}.custom.verify`, {})}
+                    </UnstyledButton>
+                  )}
+                  <UnstyledButton className='theme-link-action' onClick={() => setInstructions(custom)}>
+                    {t(`${base}.custom.setup`, {})}
+                  </UnstyledButton>
+                  <UnstyledButton className='theme-link-action' data-danger onClick={() => setDeleting(custom)}>
+                    {t('common.button.delete', {})}
+                  </UnstyledButton>
+                </div>
+              )}
+            </TableData>
+          </TableRow>
+        ))}
+      </Table>
+    </section>
+  );
+}
+
 function Subdomains({ overview }: { overview: Overview }) {
   const { t, tItem } = useTranslations();
   const { addToast } = useToast();
@@ -539,6 +753,8 @@ function Subdomains({ overview }: { overview: Overview }) {
           />
         ))}
       </Table>
+
+      <CustomDomains overview={overview} />
     </div>
   );
 }

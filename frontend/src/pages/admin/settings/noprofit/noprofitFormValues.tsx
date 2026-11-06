@@ -100,9 +100,9 @@ export function useNoprofitFormFields(stored: {
     },
     {
       type: 'switch',
-      name: 'linkByEmail',
-      label: t('pages.admin.settings.tabs.noprofit.page.form.linkByEmail', {}),
-      description: t('pages.admin.settings.tabs.noprofit.page.form.linkByEmailDescription', {}),
+      name: 'linkByUsername',
+      label: t('pages.admin.settings.tabs.noprofit.page.form.linkByUsername', {}),
+      description: t('pages.admin.settings.tabs.noprofit.page.form.linkByUsernameDescription', {}),
     },
     {
       type: 'number',

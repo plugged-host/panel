@@ -50,8 +50,10 @@ mod servers;
 mod settings;
 mod stats;
 mod status; // plugged.host
+mod suggestions; // plugged.host
 mod system;
 mod system_backup_policies;
+mod tickets; // plugged.host
 mod users;
 
 pub async fn auth(
@@ -128,6 +130,8 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         .nest("/status", status::router(state)) // plugged.host
         .nest("/abuse", abuse::router(state)) // plugged.host
         .nest("/partners", partners::router(state)) // plugged.host
+        .nest("/tickets", tickets::router(state)) // plugged.host
+        .nest("/suggestions", suggestions::router(state)) // plugged.host
         .route_layer(axum::middleware::from_fn_with_state(state.clone(), auth))
         .route_layer(axum::middleware::from_fn_with_state(
             state.clone(),

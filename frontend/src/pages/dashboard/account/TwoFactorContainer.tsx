@@ -10,8 +10,6 @@ import FormattedTimestamp from '@/elements/time/FormattedTimestamp.tsx';
 import Text from '@/elements/typography/Text.tsx';
 import { useAuth } from '@/providers/AuthProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
-import { useGlobalStore } from '@/stores/global.ts';
-import EmailTwoFactorToggleButton from './actions/EmailTwoFactorToggleButton.tsx';
 import TwoFactorDisableButton from './actions/TwoFactorDisableButton.tsx';
 import TwoFactorSetupButton from './actions/TwoFactorSetupButton.tsx';
 
@@ -19,17 +17,13 @@ export default function TwoFactorContainer() {
   const { t, tReact } = useTranslations();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const settings = useGlobalStore((state) => state.settings);
 
-  const methods = user!.twoFactorMethods;
-  const emailOffered = settings.app.emailTwoFactorEnabled || user!.emailTwoFactorEnabled;
+  const methods = user!.twoFactorMethods.filter((method) => method !== 'email');
 
   const methodLabel = (method: (typeof methods)[number]) =>
     method === 'totp'
       ? t('pages.account.account.containers.twoFactor.enum.twoFactorMethod.totp', {})
-      : method === 'security_key'
-        ? t('pages.account.account.containers.twoFactor.enum.twoFactorMethod.securityKey', {})
-        : t('pages.account.account.containers.twoFactor.enum.twoFactorMethod.email', {});
+      : t('pages.account.account.containers.twoFactor.enum.twoFactorMethod.securityKey', {});
 
   return (
     <TitleCard
@@ -68,7 +62,6 @@ export default function TwoFactorContainer() {
 
         <Group className='mt-auto' gap='xs'>
           {user!.totpEnabled ? <TwoFactorDisableButton /> : <TwoFactorSetupButton />}
-          {emailOffered && <EmailTwoFactorToggleButton />}
           <Button variant='light' onClick={() => navigate('/account/security-keys')}>
             {t('pages.account.account.containers.twoFactor.button.securityKeys', {})}
           </Button>

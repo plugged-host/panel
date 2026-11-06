@@ -187,7 +187,7 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
     ssoAudience: null,
     ssoCallbackUrl: null,
     adminsOnly: false,
-    linkByEmail: true,
+    linkByUsername: true,
     deletedAccountDays: 7,
     ssoSecret: null,
     apiSecret: null,

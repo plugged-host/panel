@@ -90,7 +90,9 @@ pub mod storage;
 pub mod streak; // plugged.host
 pub mod stuck_installs; // plugged.host
 pub mod subdomains; // plugged.host
+pub mod suggestions; // plugged.host
 pub mod telemetry;
+pub mod tickets; // plugged.host
 pub mod tunnel;
 pub mod updates;
 pub mod user_links; // plugged.host

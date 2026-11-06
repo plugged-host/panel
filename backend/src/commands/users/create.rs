@@ -12,8 +12,6 @@ pub struct CreateArgs {
 
     #[arg(long = "username", help = "the username for the new user")]
     username: Option<String>,
-    #[arg(long = "email", help = "the email address for the new user")]
-    email: Option<String>,
     #[arg(long = "name-first", help = "the first name of the new user")]
     name_first: Option<String>,
     #[arg(long = "name-last", help = "the last name of the new user")]
@@ -50,25 +48,6 @@ impl shared::extensions::commands::CliCommand<CreateArgs> for CreateCommand {
                             username
                         } else {
                             eprintln!("{}", "username arg is required when not running in an interactive terminal".red());
-                            return Ok(1);
-                        }
-                    }
-                };
-
-                let email = match args.email {
-                    Some(email) => email,
-                    None => {
-                        if std::io::stdout().is_terminal() {
-                            let email: String = Input::with_theme(&ColorfulTheme::default())
-                                .with_prompt("Email")
-                                .interact_text()?;
-                            email
-                        } else {
-                            eprintln!(
-                                "{}",
-                                "email arg is required when not running in an interactive terminal"
-                                    .red()
-                            );
                             return Ok(1);
                         }
                     }
@@ -132,7 +111,6 @@ impl shared::extensions::commands::CliCommand<CreateArgs> for CreateCommand {
                     role_uuid: None,
                     external_id: None,
                     username: username.into(),
-                    email: email.into(),
                     name_first: name_first.map(Into::into),
                     name_last: name_last.map(Into::into),
                     password: Some(password),

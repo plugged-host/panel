@@ -9,7 +9,7 @@ export const serverSubuserSchema = z.looseObject({
 });
 
 export const serverSubuserCreateSchema = z.object({
-  email: z.email(),
+  username: z.string().min(3).max(15).regex(/^[a-zA-Z0-9_]+$/),
   permissions: z.array(z.string()),
   ignoredFiles: z.array(z.string()),
 });

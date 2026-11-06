@@ -9,6 +9,7 @@ import getLocations from '@/api/admin/locations/getLocations.ts';
 import createNodeAllocations from '@/api/admin/nodes/allocations/createNodeAllocations.ts';
 import createNode from '@/api/admin/nodes/createNode.ts';
 import deleteNode from '@/api/admin/nodes/deleteNode.ts';
+import forceNukeNode from '@/api/admin/nodes/forceNukeNode.ts'; // plugged.host
 import pairNode from '@/api/admin/nodes/pairNode.ts';
 import resetNodeToken from '@/api/admin/nodes/resetNodeToken.ts';
 import updateNode from '@/api/admin/nodes/updateNode.ts';
@@ -66,7 +67,7 @@ export default function NodeCreateOrUpdate({ contextNode }: { contextNode?: z.in
 
   const [isValid, setIsValid] = useState(false);
   const [urlValue, setUrlValue] = useState('');
-  const [openModal, setOpenModal] = useState<'delete' | 'duplicate' | null>(null);
+  const [openModal, setOpenModal] = useState<'delete' | 'duplicate' | 'nuke' | null>(null);
 
   const isAIO = contextNode ? isNodeAIO(contextNode) : false;
 
@@ -193,6 +194,37 @@ export default function NodeCreateOrUpdate({ contextNode }: { contextNode?: z.in
         {t('common.modal.delete.content', { name: form.getValues().name }).md()}
       </ConfirmationModal>
 
+      {/* plugged.host: only the API can tell whether the node is really offline; it refuses a
+          node that answers. The confirmation says what the button does. */}
+      <ConfirmationModal
+        opened={openModal === 'nuke'}
+        onClose={() => setOpenModal(null)}
+        title={t('pages.admin.nodes.modal.forceNuke.title', {})}
+        confirm={t('pages.admin.nodes.modal.forceNuke.confirm', {})}
+        confirmColor='red'
+        onConfirmed={async () => {
+          if (!contextNode) return;
+          setLoading(true);
+          try {
+            const { serversDeleted } = await forceNukeNode(contextNode.uuid);
+            addToast(
+              t('pages.admin.nodes.modal.forceNuke.done', { count: serversDeleted, name: contextNode.name }),
+              'success',
+            );
+            queryClient.removeQueries({ queryKey: queryKeys.admin.nodes.detail(contextNode.uuid) });
+            queryClient.invalidateQueries({ queryKey: queryKeys.admin.nodes.all() });
+            navigate('/admin/nodes');
+          } catch (err) {
+            addToast(httpErrorToHuman(err), 'error');
+          } finally {
+            setLoading(false);
+            setOpenModal(null);
+          }
+        }}
+      >
+        {t('pages.admin.nodes.modal.forceNuke.body', { name: contextNode?.name ?? '' }).md()}
+      </ConfirmationModal>
+
       {contextNode && (
         <NodeDuplicateModal node={contextNode} opened={openModal === 'duplicate'} onClose={() => setOpenModal(null)} />
       )}
@@ -309,6 +341,11 @@ export default function NodeCreateOrUpdate({ contextNode }: { contextNode?: z.in
               <AdminCan action='nodes.delete' cantDelete>
                 <Button color='red' onClick={() => setOpenModal('delete')} loading={loading}>
                   {t('common.button.delete', {})}
+                </Button>
+              </AdminCan>
+              <AdminCan action='nodes.force-nuke' cantDelete>
+                <Button color='red' variant='outline' onClick={() => setOpenModal('nuke')} loading={loading}>
+                  {t('pages.admin.nodes.modal.forceNuke.button', {})}
                 </Button>
               </AdminCan>
             </>

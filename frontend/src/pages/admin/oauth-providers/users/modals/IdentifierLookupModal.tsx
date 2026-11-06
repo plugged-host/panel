@@ -28,7 +28,6 @@ export default function IdentifierLookupModal({
       lookup={(identifier) => getOAuthProviderUserByIdentifier(oauthProviderUuid, identifier)}
       fields={(link) => [
         { label: t(`${tr}.modal.result.username`, {}), value: link.user.username },
-        { label: t(`${tr}.modal.result.email`, {}), value: link.user.email },
         { label: t(`${tr}.modal.result.identifier`, {}), value: link.identifier },
       ]}
       href={(link) => `/admin/users/${link.user.uuid}`}

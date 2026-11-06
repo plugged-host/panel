@@ -28,7 +28,7 @@ export default function NestCreateModal({ opened, onClose, onCreated, ...props }
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  const initialValues = { ...nestEmptyFormValues, author: user?.email ?? '' };
+  const initialValues = { ...nestEmptyFormValues, author: user?.username ?? '' };
 
   const { form, handleClose, handleSubmit, loading, isDirty } = useModalForm<NestFormValues>({
     formId: 'admin.nests.createOrUpdate',

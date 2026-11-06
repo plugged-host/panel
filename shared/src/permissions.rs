@@ -283,6 +283,35 @@ pub(crate) static BASE_USER_PERMISSIONS: LazyLock<IndexMap<&'static str, Permiss
                     ]),
                 },
             ),
+            // plugged.host: support tickets (docs/features/tickets.md)
+            (
+                "tickets",
+                PermissionGroup {
+                    description: "Permissions that control the account's support tickets.",
+                    permissions: IndexMap::from([
+                        (
+                            "read",
+                            "Allows viewing the account's tickets and their messages.",
+                        ),
+                        (
+                            "create",
+                            "Allows opening a ticket and replying to it.",
+                        ),
+                    ]),
+                },
+            ),
+            // plugged.host: the suggestions board (docs/features/suggestions.md)
+            (
+                "suggestions",
+                PermissionGroup {
+                    description: "Permissions that control the account's ideas and votes.",
+                    permissions: IndexMap::from([
+                        ("read", "Allows viewing the suggestions board."),
+                        ("create", "Allows posting an idea."),
+                        ("vote", "Allows voting for an idea and taking the vote back."),
+                    ]),
+                },
+            ),
             (
                 "activity",
                 PermissionGroup {
@@ -411,6 +440,37 @@ pub(crate) static BASE_ADMIN_PERMISSIONS: LazyLock<IndexMap<&'static str, Permis
                         (
                             "manage",
                             "Allows approving (which pays the credits), rejecting, checking again and revoking partnerships.",
+                        ),
+                    ]),
+                },
+            ),
+            // plugged.host: support tickets (docs/features/tickets.md)
+            (
+                "tickets",
+                PermissionGroup {
+                    description: "Permissions that control support tickets.",
+                    permissions: IndexMap::from([
+                        (
+                            "read",
+                            "Allows viewing every ticket, its thread and its server context.",
+                        ),
+                        (
+                            "manage",
+                            "Allows replying as staff, assigning tickets and changing their status and priority.",
+                        ),
+                    ]),
+                },
+            ),
+            // plugged.host: the suggestions board (docs/features/suggestions.md)
+            (
+                "suggestions",
+                PermissionGroup {
+                    description: "Permissions that control the suggestions board.",
+                    permissions: IndexMap::from([
+                        ("read", "Allows viewing every idea and its votes."),
+                        (
+                            "manage",
+                            "Allows changing an idea's status, writing its changelog entry, merging duplicates and deleting ideas.",
                         ),
                     ]),
                 },
@@ -568,6 +628,11 @@ pub(crate) static BASE_ADMIN_PERMISSIONS: LazyLock<IndexMap<&'static str, Permis
                         ("read", "Allows viewing nodes."),
                         ("update", "Allows modifying nodes."),
                         ("delete", "Allows deleting nodes."),
+                        // plugged.host: only while the node is offline (docs/features/nodes.md)
+                        (
+                            "force-nuke",
+                            "Allows force-deleting every server on an offline node and the node itself.",
+                        ),
                         ("read-token", "Allows viewing a node's token."),
                         ("reset-token", "Allows resetting a node's token."),
                         (
@@ -1296,6 +1361,10 @@ pub(crate) static BASE_SERVER_PERMISSIONS: LazyLock<IndexMap<&'static str, Permi
                         (
                             "delete",
                             "Allows deleting subdomains. Their tokens go back to the server's owner.",
+                        ),
+                        (
+                            "custom",
+                            "Allows attaching, verifying and deleting the server's own custom domains.",
                         ),
                     ]),
                 },

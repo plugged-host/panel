@@ -10,12 +10,10 @@ import TextInput from '@/elements/input/TextInput.tsx';
 import { Modal, ModalFooter } from '@/elements/modals/Modal.tsx';
 import { adminSettingsEmailTestSchema } from '@/lib/schemas/admin/settings.ts';
 import { liveValidation } from '@/plugins/form/liveValidation.ts';
-import { useAuth } from '@/providers/AuthProvider.tsx';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 
 export default function EmailSendTestModal({ ...props }: ModalProps) {
-  const { user } = useAuth();
   const { addToast } = useToast();
   const { t } = useTranslations();
 
@@ -23,7 +21,7 @@ export default function EmailSendTestModal({ ...props }: ModalProps) {
 
   const form = useForm<z.infer<typeof adminSettingsEmailTestSchema>>({
     initialValues: {
-      email: user?.email ?? '',
+      email: '',
     },
     ...liveValidation,
     validate: zod4Resolver(adminSettingsEmailTestSchema),

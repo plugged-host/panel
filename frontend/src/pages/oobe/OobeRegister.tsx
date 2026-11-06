@@ -1,4 +1,4 @@
-import { faEnvelope, faLock, faShieldHalved, faUser } from '@fortawesome/free-solid-svg-icons';
+import { faLock, faShieldHalved, faUser } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useForm } from '@mantine/form';
 import { zod4Resolver } from 'mantine-form-zod-resolver';
@@ -29,7 +29,6 @@ export default function OobeRegister({ onNext }: OobeComponentProps) {
   const form = useForm<z.infer<typeof oobeRegister>>({
     initialValues: {
       username: '',
-      email: '',
       nameFirst: '',
       nameLast: '',
       password: '',
@@ -46,7 +45,6 @@ export default function OobeRegister({ onNext }: OobeComponentProps) {
 
     register({
       username: values.username,
-      email: values.email,
       nameFirst: values.nameFirst,
       nameLast: values.nameLast,
       password: values.password,
@@ -109,16 +107,6 @@ export default function OobeRegister({ onNext }: OobeComponentProps) {
                 required
                 className='flex-1'
                 {...form.getInputProps('username')}
-              />
-              <TextInput
-                label={t('pages.oobe.register.form.email', {})}
-                placeholder={t('pages.oobe.register.form.emailPlaceholder', {})}
-                autoComplete='email'
-                leftSection={<FontAwesomeIcon icon={faEnvelope} size='sm' />}
-                type='email'
-                required
-                className='flex-1'
-                {...form.getInputProps('email')}
               />
             </div>
 

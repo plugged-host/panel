@@ -109,8 +109,8 @@ export default function Login() {
         case 'noprofit_admins_only':
           setError(t('pages.auth.login.error.noprofitAdminsOnly', {}));
           break;
-        case 'noprofit_email_taken':
-          setError(t('pages.auth.login.error.noprofitEmailTaken', {}));
+        case 'noprofit_username_taken':
+          setError(t('pages.auth.login.error.noprofitUsernameTaken', {}));
           break;
       }
 
@@ -340,19 +340,14 @@ export default function Login() {
                     <>
                       <div className='flex flex-col gap-1'>
                         <TextInput
-                          label={t('common.form.usernameOrEmail', {})}
-                          placeholder={t('pages.auth.login.step.username.form.usernameOrEmailPlaceholder', {})}
+                          label={t('common.form.username', {})}
+                          placeholder={t('pages.auth.login.step.username.form.usernamePlaceholder', {})}
                           autoComplete='username'
                           leftSection={<FontAwesomeIcon icon={faUser} />}
                           size='md'
                           autoFocus
                           {...usernameForm.getInputProps('username')}
                         />
-                        {settings.app.passwordLoginEnabled && (
-                          <NavLink className='text-(--mantine-color-dimmed)' to='/auth/forgot-password'>
-                            {t('pages.auth.login.step.username.link.forgotPassword', {})}
-                          </NavLink>
-                        )}
                       </div>
                       <Button type='submit' disabled={!usernameForm.isValid()} loading={loading} size='md' fullWidth>
                         {t('common.button.continue', {})}
@@ -488,9 +483,6 @@ export default function Login() {
 
                   <Divider label={t('common.divider.or', {})} labelPosition='center' />
 
-                  <Button variant='light' onClick={() => navigate('/auth/forgot-password')} size='md' fullWidth>
-                    {t('pages.auth.login.step.password.button.forgotPassword', {})}
-                  </Button>
                   <Button variant='light' onClick={() => setStep('username')} size='md' fullWidth>
                     {t('common.button.back', {})}
                   </Button>

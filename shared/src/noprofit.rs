@@ -53,9 +53,9 @@ pub struct Config {
     pub callback_url: Option<String>,
     /// Only noprofit.space admins may sign in.
     pub admins_only: bool,
-    /// A first sign-in takes over the panel user with the same email (unless that one is linked to
-    /// another account already).
-    pub link_by_email: bool,
+    /// A first sign-in takes over an unlinked panel user with the same username (unless that one
+    /// is linked to another account already).
+    pub link_by_username: bool,
     sso_secret: String,
     api_secret: Option<String>,
     /// neo's gateway (docs/features/neo.md); its own secret, signed like the API.
@@ -96,7 +96,7 @@ impl Config {
                 .filter(|url| !url.is_empty())
                 .map(str::to_string),
             admins_only: settings.admins_only,
-            link_by_email: settings.link_by_email,
+            link_by_username: settings.link_by_username,
             sso_secret: sso_secret.to_string(),
             api_secret: settings
                 .api_secret
@@ -195,7 +195,7 @@ impl Config {
         if claims.nonce.is_empty() || claims.state.is_empty() {
             return Err(TokenError::Malformed);
         }
-        if claims.snapshot.account_id <= 0 || claims.snapshot.email.is_empty() {
+        if claims.snapshot.account_id <= 0 || claims.snapshot.username.trim().is_empty() {
             return Err(TokenError::Malformed);
         }
 
@@ -471,6 +471,60 @@ impl Config {
             reqwest::StatusCode::UNPROCESSABLE_ENTITY => Ok(None),
             status => anyhow::bail!("noprofit.space answered {status} to a credit spend"),
         }
+    }
+
+    /// Whether the central service considers this account an alt for a vote or reward. A failed
+    /// call is no verdict: callers must not block the person for it.
+    pub async fn alt_check(
+        &self,
+        client: &reqwest::Client,
+        account_id: i64,
+    ) -> Result<AltVerdict, anyhow::Error> {
+        const PATH: &str = "/api/v1/internal/calagopus/alt/check";
+
+        let response = self
+            .post_within(
+                client,
+                PATH,
+                &serde_json::json!({ "user_id": account_id }),
+                std::time::Duration::from_secs(4),
+            )
+            .await?;
+        let status = response.status();
+
+        if !status.is_success() {
+            anyhow::bail!("noprofit.space answered {status} to an alt check");
+        }
+
+        Ok(response.json::<AltVerdict>().await?)
+    }
+
+    /// Tells the central service that this account voted or was rewarded, so a second account on
+    /// the same person can be recognised. Best effort: a failure is only logged.
+    pub async fn alt_signal(
+        &self,
+        client: &reqwest::Client,
+        account_id: i64,
+        kind: &str,
+        value: &serde_json::Value,
+    ) -> Result<(), anyhow::Error> {
+        const PATH: &str = "/api/v1/internal/calagopus/alt/signal";
+
+        let response = self
+            .post_within(
+                client,
+                PATH,
+                &serde_json::json!({ "user_id": account_id, "kind": kind, "value": value }),
+                std::time::Duration::from_secs(4),
+            )
+            .await?;
+        let status = response.status();
+
+        if !status.is_success() {
+            anyhow::bail!("noprofit.space answered {status} to an alt signal");
+        }
+
+        Ok(())
     }
 
     /// The account's standing (docs/features/standing.md). A page waits for it, so it gives up
@@ -850,9 +904,15 @@ pub struct SsoClaims {
 pub struct Snapshot {
     #[serde(default)]
     pub account_id: i64,
-    pub email: String,
-    /// The account's display name: not unique, may contain spaces.
+    /// The account's username on noprofit.space: the only identity the panel matches on.
+    #[serde(default)]
     pub username: String,
+    /// The account's display name, when it differs from the username.
+    #[serde(default)]
+    pub display_name: Option<String>,
+    /// The account's Premium-equivalent plan on the central service.
+    #[serde(default)]
+    pub ultra: bool,
     #[serde(default)]
     pub is_admin: bool,
     #[serde(default)]
@@ -911,8 +971,8 @@ impl Usage {
 pub struct Link {
     pub user_uuid: uuid::Uuid,
     pub account_id: i64,
-    pub email: String,
     pub username: String,
+    pub ultra: bool,
     pub is_admin: bool,
     pub avatar: Option<String>,
     pub credits: i64,
@@ -923,7 +983,7 @@ pub struct Link {
     pub created: chrono::NaiveDateTime,
 }
 
-const LINK_COLUMNS: &str = "user_uuid, account_id, email, username, is_admin, avatar, credits, plan, discord, deleted, synced, created";
+const LINK_COLUMNS: &str = "user_uuid, account_id, username, ultra, is_admin, avatar, credits, plan, discord, deleted, synced, created";
 
 impl Link {
     pub async fn by_user_uuid(
@@ -984,12 +1044,12 @@ impl Link {
         let old_plan: Option<serde_json::Value> = sqlx::query_scalar(
             "WITH old AS (SELECT plan FROM user_noprofit_accounts WHERE user_uuid = $1)
             INSERT INTO user_noprofit_accounts
-                (user_uuid, account_id, email, username, is_admin, avatar, credits, plan, discord, deleted, synced)
+                (user_uuid, account_id, username, ultra, is_admin, avatar, credits, plan, discord, deleted, synced)
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NULL, NOW())
             ON CONFLICT (user_uuid) DO UPDATE SET
                 account_id = EXCLUDED.account_id,
-                email = EXCLUDED.email,
                 username = EXCLUDED.username,
+                ultra = EXCLUDED.ultra,
                 is_admin = EXCLUDED.is_admin,
                 avatar = EXCLUDED.avatar,
                 credits = EXCLUDED.credits,
@@ -1001,8 +1061,8 @@ impl Link {
         )
         .bind(user_uuid)
         .bind(snapshot.account_id)
-        .bind(&snapshot.email)
         .bind(&snapshot.username)
+        .bind(snapshot.ultra)
         .bind(snapshot.is_admin)
         .bind(&snapshot.avatar)
         .bind(snapshot.credits)
@@ -1042,6 +1102,54 @@ impl Link {
         .bind(account_ids)
         .fetch_all(database.write())
         .await
+    }
+}
+
+/// The central service's answer to an alt check.
+#[derive(Debug, Default, Deserialize)]
+pub struct AltVerdict {
+    #[serde(default)]
+    pub limited: bool,
+}
+
+/// Whether this panel user's vote or reward already counted, according to the central service.
+/// `false` without a noprofit.space link or when the call fails: a failure never blocks anyone.
+pub async fn alt_limited(state: &crate::State, user_uuid: uuid::Uuid) -> bool {
+    let Ok(Some(link)) = Link::by_user_uuid(&state.database, user_uuid).await else {
+        return false;
+    };
+    let Some(config) = state.settings.get().await.ok().and_then(|s| s.noprofit.config()) else {
+        return false;
+    };
+
+    match config.alt_check(&state.client, link.account_id).await {
+        Ok(verdict) => verdict.limited,
+        Err(err) => {
+            tracing::debug!(user = %user_uuid, "alt check skipped: {err:#}");
+            false
+        }
+    }
+}
+
+/// Tells the central service about a vote or reward, best effort.
+pub async fn alt_signal(
+    state: &crate::State,
+    user_uuid: uuid::Uuid,
+    kind: &str,
+    value: serde_json::Value,
+) {
+    let Ok(Some(link)) = Link::by_user_uuid(&state.database, user_uuid).await else {
+        return;
+    };
+    let Some(config) = state.settings.get().await.ok().and_then(|s| s.noprofit.config()) else {
+        return;
+    };
+
+    if let Err(err) = config
+        .alt_signal(&state.client, link.account_id, kind, &value)
+        .await
+    {
+        tracing::debug!(user = %user_uuid, "alt signal skipped: {err:#}");
     }
 }
 
@@ -1115,8 +1223,8 @@ pub async fn unique_username(
     Ok(format!("{}_{suffix}", &base[..base.len().min(8)]))
 }
 
-/// Brings a panel user in step with its account's snapshot: the link row, the admin flag, the
-/// email, and the name and avatar when they changed on noprofit.space. The username stays what it
+/// Brings a panel user in step with its account's snapshot: the link row, the admin and Ultra
+/// flags, and the name and avatar when they changed on noprofit.space. The username stays what it
 /// was made as: it is the user's SFTP login.
 pub async fn apply_snapshot(
     state: &crate::State,
@@ -1147,22 +1255,8 @@ pub async fn apply_snapshot(
         changed = true;
     }
 
-    let email_changed = !user.email.eq_ignore_ascii_case(&snapshot.email);
-
     if changed && let Err(err) = user.update(state, options).await {
         tracing::warn!(user = %user.uuid, "failed to bring a user in step with noprofit.space: {err:#?}");
-    }
-
-    if email_changed {
-        let options = crate::models::user::UpdateUserOptions {
-            email: Some(snapshot.email.as_str().into()),
-            ..Default::default()
-        };
-
-        // Another panel user may have this email; then it stays as it was.
-        if let Err(err) = user.update(state, options).await {
-            tracing::warn!(user = %user.uuid, "failed to take over the noprofit.space email: {err:#?}");
-        }
     }
 
     let avatar_changed = previous.as_ref().map(|link| &link.avatar) != Some(&snapshot.avatar);
@@ -1888,7 +1982,7 @@ mod tests {
             audience: "plugged-host-calagopus:sso".into(),
             callback_url: None,
             admins_only: false,
-            link_by_email: false,
+            link_by_username: false,
             sso_secret: "test-secret-0123456789abcdef0123456789abcdef".into(),
             api_secret: Some("test-secret-0123456789abcdef0123456789abcdef".into()),
             neo_secret: None,
@@ -1907,8 +2001,8 @@ mod tests {
         serde_json::json!({
             "account_user_id": 42,
             "account_id": 42,
-            "email": "alice@example.com",
             "username": "Alice B/é",
+            "ultra": true,
             "is_admin": true,
             "avatar": null,
             "credits": 1234,

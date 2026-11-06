@@ -16,8 +16,8 @@ export const noprofitDiscordSchema = z.object({
 
 export const noprofitAccountSchema = z.object({
   accountId: z.number(),
-  email: z.string(),
   username: z.string(),
+  ultra: z.boolean().default(false),
   isAdmin: z.boolean(),
   credits: z.number(),
   plan: noprofitPlanSchema.nullable().catch(null),

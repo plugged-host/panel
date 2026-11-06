@@ -29,8 +29,8 @@ pub struct AppSettingsNoprofit {
     pub sso_callback_url: Option<compact_str::CompactString>,
     /// Only noprofit.space admins may sign in.
     pub admins_only: bool,
-    /// A first sign-in takes over the panel user with the same email.
-    pub link_by_email: bool,
+    /// A first sign-in takes over the unlinked panel user with the same username.
+    pub link_by_username: bool,
     /// Days after noprofit.space was found to no longer have an account until its panel user and
     /// servers are deleted (suspended meanwhile); 0 never deletes them.
     pub deleted_account_days: i32,
@@ -116,7 +116,7 @@ impl SettingsSerializeExt for AppSettingsNoprofit {
                 self.sso_callback_url.clone().unwrap_or_default(),
             )
             .write_raw_setting("admins_only", self.admins_only.to_compact_string())
-            .write_raw_setting("link_by_email", self.link_by_email.to_compact_string())
+            .write_raw_setting("link_by_username", self.link_by_username.to_compact_string())
             .write_raw_setting(
                 "deleted_account_days",
                 self.deleted_account_days.to_compact_string(),
@@ -197,9 +197,11 @@ impl SettingsDeserializeExt for AppSettingsNoprofitDeserializer {
                 .map(|s| s == "true")
                 .or_else(|| env_flag("NOPROFIT_ADMINS_ONLY"))
                 .unwrap_or(false),
-            link_by_email: deserializer
-                .take_raw_setting("link_by_email")
+            link_by_username: deserializer
+                .take_raw_setting("link_by_username")
+                .or_else(|| deserializer.take_raw_setting("link_by_email"))
                 .map(|s| s == "true")
+                .or_else(|| env_flag("NOPROFIT_LINK_BY_USERNAME"))
                 .or_else(|| env_flag("NOPROFIT_LINK_BY_EMAIL"))
                 .unwrap_or(true),
             deleted_account_days: deserializer

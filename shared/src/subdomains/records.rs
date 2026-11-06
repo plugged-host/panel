@@ -128,15 +128,20 @@ pub struct SrvSpec {
 
 impl Service {
     /// The egg's game: [`of_features`](Self::of_features), with Minecraft being a Java Edition
-    /// game server (`crate::minecraft::is_minecraft`), not a proxy such as Velocity.
+    /// game server (`crate::minecraft::is_minecraft`), not a proxy such as Velocity. Every egg
+    /// gets a subdomain: an egg with no game-specific service falls back to a plain address
+    /// record, so bots, Node/Python apps, proxies and small services work too.
     pub fn of_egg(egg: &crate::models::nest_egg::NestEgg) -> Option<Self> {
-        Self::of_features(&egg.features, crate::minecraft::is_minecraft(egg))
+        Some(
+            Self::of_features(&egg.features, crate::minecraft::is_minecraft(egg))
+                .unwrap_or(Self::Plain),
+        )
     }
 
     /// The egg's game from its features: `srv-<service>` names one (`srv-minecraft`, `srv-fivem`,
     /// `srv-teamspeak`, ...), `subdomain` asks for an address record alone, and otherwise
     /// FiveM / RedM (`cfx`) and a Minecraft server (`minecraft`) are recognised. `None`: no
-    /// subdomains.
+    /// game-specific service, which [`of_egg`](Self::of_egg) turns into [`Plain`](Self::Plain).
     pub fn of_features(features: &[compact_str::CompactString], minecraft: bool) -> Option<Self> {
         let has = |name: &str| features.iter().any(|feature| feature == name);
 

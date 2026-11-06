@@ -13,6 +13,7 @@
 //! Discord or to be in the Discord server first ([`crate::discord::subdomain_gate`]).
 
 pub mod cloudflare;
+pub mod custom;
 pub mod records;
 
 use crate::{
@@ -37,8 +38,6 @@ const PROPAGATION_MINUTES: i64 = 3;
 pub enum SubdomainError {
     /// Subdomains are off, or the Cloudflare token is missing.
     Off,
-    /// The server's egg runs nothing subdomains are made for.
-    Unsupported,
     /// The server has no address (or port) a record could point at.
     NoAddress,
     /// The domain does not exist or is not linked to a Cloudflare zone.
@@ -86,7 +85,6 @@ impl SubdomainError {
     pub fn message(&self) -> String {
         match self {
             Self::Off => "subdomains are not set up on this panel".into(),
-            Self::Unsupported => "subdomains are not offered for this server's game".into(),
             Self::NoAddress => "the server has no address a subdomain could point at".into(),
             Self::NoDomain => "this domain cannot be used".into(),
             Self::InvalidName => "a subdomain is 2 to 63 lowercase letters, digits and hyphens, not starting or ending with a hyphen".into(),
@@ -503,8 +501,6 @@ async fn synced_domains(
 pub enum Unavailable {
     /// Subdomains are off on this panel.
     Off,
-    /// The server's game gets none.
-    Unsupported,
     /// No domain is linked to Cloudflare yet.
     NoDomains,
     /// The server has no address to point at.
@@ -521,6 +517,10 @@ pub struct ApiOverview {
     pub subdomains: Vec<ApiSubdomain>,
     pub limit: i32,
     pub domains: Vec<ApiDomainChoice>,
+    /// plugged.host: the person's own domains, pointed at the panel subdomain or address
+    pub custom_domains: Vec<custom::ApiCustomDomain>,
+    /// What a new custom domain should point at; `None` when the server has no address yet.
+    pub custom_target: Option<String>,
     /// The game's records (`minecraft`, `fivem`, `teamspeak`, ..., `plain`); `None` when the
     /// game gets none.
     pub service: Option<&'static str>,
@@ -555,6 +555,12 @@ pub async fn overview(
     let port = target.as_ref().and_then(|target| target.port);
     let subdomains = Subdomain::all_by_server_uuid(&state.database, server.uuid).await?;
     let domains = synced_domains(&state.database).await?;
+    let custom_domains = custom::all_by_server_uuid(&state.database, server.uuid)
+        .await?
+        .into_iter()
+        .map(custom::CustomDomain::into_api)
+        .collect();
+    let custom_target = custom::target_for(state, server).await?;
     let limit = limit(
         &state.database,
         server.uuid,
@@ -564,8 +570,6 @@ pub async fn overview(
 
     let unavailable = if !active {
         Some(Unavailable::Off)
-    } else if service.is_none() {
-        Some(Unavailable::Unsupported)
     } else if domains.is_empty() {
         Some(Unavailable::NoDomains)
     } else if target.is_none() {
@@ -612,6 +616,8 @@ pub async fn overview(
             .into_iter()
             .map(|(uuid, name, _)| ApiDomainChoice { uuid, name })
             .collect(),
+        custom_domains,
+        custom_target,
         service: service.map(Service::key),
         address: target.map(|target| target.ip.to_string()),
         unavailable,
@@ -831,7 +837,7 @@ pub async fn create(
     request: Create,
 ) -> Result<Subdomain, SubdomainError> {
     let context = context(state).await?;
-    let service = Service::of_egg(&server.egg).ok_or(SubdomainError::Unsupported)?;
+    let service = Service::of_egg(&server.egg).unwrap_or(Service::Plain);
     match crate::discord::subdomain_gate(state, server.owner.uuid, true).await? {
         crate::discord::Gate::Open => {}
         crate::discord::Gate::NeedsLink => return Err(SubdomainError::DiscordLink),
@@ -973,7 +979,7 @@ pub async fn update(
     name: Option<String>,
 ) -> Result<Subdomain, SubdomainError> {
     let context = context(state).await?;
-    let service = Service::of_egg(&server.egg).ok_or(SubdomainError::Unsupported)?;
+    let service = Service::of_egg(&server.egg).unwrap_or(Service::Plain);
     let target = target(state, server)
         .await?
         .ok_or(SubdomainError::NoAddress)?;

@@ -1,4 +1,4 @@
-import { faEnvelope, faExclamationTriangle, faLock, faUser } from '@fortawesome/free-solid-svg-icons';
+import { faExclamationTriangle, faLock, faUser } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useForm } from '@mantine/form';
 import { zod4Resolver } from 'mantine-form-zod-resolver';
@@ -37,7 +37,6 @@ export default function Register() {
   const form = useForm<z.infer<typeof authRegisterSchema>>({
     initialValues: {
       username: '',
-      email: '',
       nameFirst: '',
       nameLast: '',
       password: '',
@@ -110,14 +109,6 @@ export default function Register() {
                 autoFocus
                 description={t('common.form.rule.username', {})}
                 {...form.getInputProps('username')}
-              />
-              <TextInput
-                label={t('common.form.email', {})}
-                placeholder={t('pages.auth.register.form.emailPlaceholder', {})}
-                autoComplete='email'
-                leftSection={<FontAwesomeIcon icon={faEnvelope} />}
-                size='md'
-                {...form.getInputProps('email')}
               />
               <TextInput
                 label={t('common.form.firstName', {})}

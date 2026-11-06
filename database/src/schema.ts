@@ -153,7 +153,8 @@ export const usersTable = pgTable(
     external_id: varchar({ length: 255 }),
     avatar: varchar({ length: 255 }),
     username: varchar({ length: 15 * UTF8_MAX_SCALAR_SIZE }).notNull(),
-    email: varchar({ length: 255 }).notNull(),
+    // plugged.host: kept for Laravel compatibility, never read or written by the panel
+    email: varchar({ length: 255 }),
     name_first: varchar({ length: 255 }),
     name_last: varchar({ length: 255 }),
     password: text(),
@@ -479,8 +480,11 @@ export const userNoprofitAccountsTable = pgTable(
       .primaryKey()
       .notNull(),
     account_id: bigint({ mode: 'number' }).notNull(),
-    email: varchar({ length: 255 }).notNull(),
+    // plugged.host: kept for Laravel compatibility, never read or written by the panel
+    email: varchar({ length: 255 }),
     username: varchar({ length: 255 }).notNull(),
+    // plugged.host: the central service's Premium-equivalent plan
+    ultra: boolean().default(false).notNull(),
     is_admin: boolean().default(false).notNull(),
     avatar: text(),
     credits: bigint({ mode: 'number' }).default(0).notNull(),
@@ -763,6 +767,94 @@ export const partnerPaymentsTable = pgTable(
   },
   (cols) => [
     uniqueIndex('partner_payments_application_uuid_period_idx').on(cols.application_uuid, cols.period),
+  ],
+);
+
+// plugged.host: support tickets and their full message thread (shared/src/tickets.rs,
+// docs/features/tickets.md). A ticket keeps its server context when a person takes over.
+export const ticketsTable = pgTable(
+  'tickets',
+  {
+    uuid: uuid().default(sql`gen_random_uuid()`).primaryKey().notNull(),
+    user_uuid: uuid()
+      .references(() => usersTable.uuid, { onDelete: 'cascade' })
+      .notNull(),
+    server_uuid: uuid().references(() => serversTable.uuid, { onDelete: 'set null' }),
+    subject: varchar({ length: 200 * UTF8_MAX_SCALAR_SIZE }).notNull(),
+    category: varchar({ length: 16 }).notNull(),
+    status: varchar({ length: 16 }).default('open').notNull(),
+    priority: varchar({ length: 16 }).default('normal').notNull(),
+    assigned_to: uuid().references(() => usersTable.uuid, { onDelete: 'set null' }),
+    created: timestamp().defaultNow().notNull(),
+    updated: timestamp().defaultNow().notNull(),
+    closed: timestamp(),
+  },
+  (cols) => [
+    index('tickets_user_uuid_updated_idx').on(cols.user_uuid, cols.updated),
+    index('tickets_status_updated_idx').on(cols.status, cols.updated),
+    index('tickets_assigned_to_idx').on(cols.assigned_to),
+  ],
+);
+
+// plugged.host: one message of a ticket's thread: the person's, an admin's, neo's or the panel's.
+export const ticketMessagesTable = pgTable(
+  'ticket_messages',
+  {
+    uuid: uuid().default(sql`gen_random_uuid()`).primaryKey().notNull(),
+    ticket_uuid: uuid()
+      .references(() => ticketsTable.uuid, { onDelete: 'cascade' })
+      .notNull(),
+    author_uuid: uuid().references(() => usersTable.uuid, { onDelete: 'set null' }),
+    // user, admin, neo, system
+    author_type: varchar({ length: 8 }).notNull(),
+    body: text().notNull(),
+    created: timestamp().defaultNow().notNull(),
+  },
+  (cols) => [index('ticket_messages_ticket_uuid_created_idx').on(cols.ticket_uuid, cols.created)],
+);
+
+// plugged.host: the ideas board (shared/src/suggestions.rs, docs/features/suggestions.md).
+export const suggestionsTable = pgTable(
+  'suggestions',
+  {
+    uuid: uuid().default(sql`gen_random_uuid()`).primaryKey().notNull(),
+    user_uuid: uuid()
+      .references(() => usersTable.uuid, { onDelete: 'cascade' })
+      .notNull(),
+    title: varchar({ length: 120 * UTF8_MAX_SCALAR_SIZE }).notNull(),
+    body: text().notNull(),
+    server_type: varchar({ length: 16 }).notNull(),
+    status: varchar({ length: 16 }).default('under_review').notNull(),
+    changelog: text(),
+    merged_into: uuid().references((): PgColumn => suggestionsTable.uuid, { onDelete: 'set null' }),
+    created: timestamp().defaultNow().notNull(),
+    updated: timestamp().defaultNow().notNull(),
+  },
+  (cols) => [
+    index('suggestions_status_created_idx').on(cols.status, cols.created),
+    index('suggestions_user_uuid_created_idx').on(cols.user_uuid, cols.created),
+    index('suggestions_merged_into_idx').on(cols.merged_into),
+  ],
+);
+
+// plugged.host: one vote per account and idea.
+export const suggestionVotesTable = pgTable(
+  'suggestion_votes',
+  {
+    suggestion_uuid: uuid()
+      .references(() => suggestionsTable.uuid, { onDelete: 'cascade' })
+      .notNull(),
+    user_uuid: uuid()
+      .references(() => usersTable.uuid, { onDelete: 'cascade' })
+      .notNull(),
+    created: timestamp().defaultNow().notNull(),
+  },
+  (cols) => [
+    primaryKey({
+      name: 'suggestion_votes_pk',
+      columns: [cols.suggestion_uuid, cols.user_uuid],
+    }),
+    index('suggestion_votes_user_uuid_idx').on(cols.user_uuid),
   ],
 );
 
@@ -2395,6 +2487,28 @@ export const serverSubdomainsTable = pgTable(
     index('server_subdomains_server_uuid_idx').on(cols.server_uuid),
     index('server_subdomains_domain_uuid_idx').on(cols.domain_uuid),
     uniqueIndex('server_subdomains_domain_uuid_name_idx').on(cols.domain_uuid, cols.name),
+  ],
+);
+
+// plugged.host: a server's own domain, pointed at its panel subdomain (or address) with a CNAME
+// and proven with a TXT record (shared/src/subdomains/custom.rs, docs/features/subdomains.md).
+export const serverCustomDomainsTable = pgTable(
+  'server_custom_domains',
+  {
+    uuid: uuid().default(sql`gen_random_uuid()`).primaryKey().notNull(),
+    server_uuid: uuid()
+      .references(() => serversTable.uuid, { onDelete: 'cascade' })
+      .notNull(),
+    domain: varchar({ length: 253 }).notNull(),
+    // the server's panel subdomain, or its address when it has none
+    target: varchar({ length: 255 }).notNull(),
+    verification_token: varchar({ length: 64 }).notNull(),
+    verified_at: timestamp(),
+    created: timestamp().defaultNow().notNull(),
+  },
+  (cols) => [
+    uniqueIndex('server_custom_domains_domain_idx').on(cols.domain),
+    index('server_custom_domains_server_uuid_idx').on(cols.server_uuid),
   ],
 );
 

@@ -9,7 +9,8 @@ export default function AuthenticatedGuard() {
   if (
     pathname !== '/account' &&
     pathname !== '/account/security-keys' &&
-    ((user.requireTwoFactor && !user.twoFactorSatisfied) || (user.requireEmailVerification && !user.emailVerified))
+    user.requireTwoFactor &&
+    !user.twoFactorSatisfied
   )
     return <Navigate to='/account' />;
 

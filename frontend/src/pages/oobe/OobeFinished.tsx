@@ -95,7 +95,7 @@ export default function OobeFinished() {
                 {t('pages.oobe.finished.items.account', {})}
               </Text>
               <Text size='xs' c='dimmed'>
-                {user!.username} ({user!.email})
+                {user!.username}
               </Text>
             </div>
           </Group>

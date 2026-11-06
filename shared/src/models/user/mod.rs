@@ -97,7 +97,11 @@ impl BaseModel for User {
                 "users.username",
                 compact_str::format_compact!("{prefix}username"),
             ),
-            ("users.email", compact_str::format_compact!("{prefix}email")),
+            // plugged.host: the column stays for Laravel compatibility, the panel reads it empty
+            (
+                "COALESCE(users.email, '')",
+                compact_str::format_compact!("{prefix}email"),
+            ),
             (
                 "users.name_first",
                 compact_str::format_compact!("{prefix}name_first"),
@@ -163,11 +167,11 @@ impl BaseModel for User {
             ),
             (
                 // plugged.host: Plus bought or with the membership bundle (shared/src/membership_bundle.rs)
-                "EXISTS (SELECT 1 FROM user_memberships WHERE user_memberships.user_uuid = users.uuid AND (user_memberships.plus_until > NOW() OR user_memberships.bundle_plus_until > NOW()))",
+                "EXISTS (SELECT 1 FROM user_memberships WHERE user_memberships.user_uuid = users.uuid AND (user_memberships.plus_until > NOW() OR user_memberships.bundle_plus_until > NOW())) OR EXISTS (SELECT 1 FROM user_noprofit_accounts WHERE user_noprofit_accounts.user_uuid = users.uuid AND user_noprofit_accounts.ultra AND user_noprofit_accounts.deleted IS NULL)",
                 compact_str::format_compact!("{prefix}has_plus"),
             ),
             (
-                "EXISTS (SELECT 1 FROM user_memberships WHERE user_memberships.user_uuid = users.uuid AND user_memberships.plusplus_until > NOW())",
+                "EXISTS (SELECT 1 FROM user_memberships WHERE user_memberships.user_uuid = users.uuid AND user_memberships.plusplus_until > NOW()) OR EXISTS (SELECT 1 FROM user_noprofit_accounts WHERE user_noprofit_accounts.user_uuid = users.uuid AND user_noprofit_accounts.ultra AND user_noprofit_accounts.deleted IS NULL)",
                 compact_str::format_compact!("{prefix}has_plusplus"),
             ),
             // plugged.host: the profile badge shown (shared/src/badges.rs)
@@ -254,7 +258,6 @@ impl User {
     pub async fn create_automatic_admin(
         database: &crate::database::Database,
         username: &str,
-        email: &str,
         name_first: Option<&str>,
         name_last: Option<&str>,
         password: &str,
@@ -265,12 +268,11 @@ impl User {
         let row = sqlx::query(
             r#"
             INSERT INTO users (username, email, name_first, name_last, password, language, admin)
-            VALUES ($1, $2, $3, $4, $5, $6, (SELECT COUNT(*) = 0 FROM users))
+            VALUES ($1, NULL, $2, $3, $4, $5, (SELECT COUNT(*) = 0 FROM users))
             RETURNING users.uuid
             "#,
         )
         .bind(username)
-        .bind(email)
         .bind(name_first)
         .bind(name_last)
         .bind(password)
@@ -839,10 +841,9 @@ impl User {
 
     /// A stale `email_two_factor_enabled` is ignored once an admin turns the feature off, degrading to
     /// password only rather than locking the user out of a mailbox nobody can deliver to.
-    fn email_two_factor_available(&self, settings: &crate::settings::AppSettings) -> bool {
-        self.email_two_factor_enabled
-            && settings.app.email_two_factor_enabled
-            && !matches!(settings.mail_mode, crate::settings::MailMode::None)
+    fn email_two_factor_available(&self, _settings: &crate::settings::AppSettings) -> bool {
+        // plugged.host: no email addresses are stored, so email is never a second factor.
+        false
     }
 
     pub fn has_two_factor_method(
@@ -937,7 +938,6 @@ impl User {
                     .avatar
                     .as_ref()
                     .map(|a| storage_url_retriever.get_url(a)),
-                email: self.email,
                 name_first: self.name_first,
                 name_last: self.name_last,
                 admin: self.admin,
@@ -1031,7 +1031,6 @@ impl IntoAdminApiObject for User {
                     .avatar
                     .as_ref()
                     .map(|a| storage_url_retriever.get_url(a)),
-                email: self.email,
                 name_first: self.name_first,
                 name_last: self.name_last,
                 admin: self.admin,
@@ -1077,9 +1076,6 @@ pub struct CreateUserOptions {
     #[schema(min_length = 3, max_length = 15)]
     #[schema(pattern = "^[a-zA-Z0-9_]+$")]
     pub username: compact_str::CompactString,
-    #[garde(email, length(max = 255))]
-    #[schema(format = "email", max_length = 255)]
-    pub email: compact_str::CompactString,
     #[garde(length(chars, min = 1, max = 255))]
     #[schema(min_length = 1, max_length = 255)]
     pub name_first: Option<compact_str::CompactString>,
@@ -1146,7 +1142,6 @@ impl CreatableModel for User {
             .set("role_uuid", options.role_uuid)
             .set("external_id", options.external_id.as_deref())
             .set("username", &options.username)
-            .set("email", &options.email)
             .set("name_first", options.name_first.as_deref())
             .set("name_last", options.name_last.as_deref());
 
@@ -1250,8 +1245,9 @@ pub struct UpdateUserOptions {
     #[schema(min_length = 3, max_length = 15)]
     #[schema(pattern = "^[a-zA-Z0-9_]+$")]
     pub username: Option<compact_str::CompactString>,
-    #[garde(email, length(max = 255))]
-    #[schema(format = "email", max_length = 255)]
+    // plugged.host: kept for the database column, never set by a user flow.
+    #[garde(skip)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub email: Option<compact_str::CompactString>,
     #[garde(length(chars, min = 1, max = 255))]
     #[schema(min_length = 1, max_length = 255)]
@@ -1568,7 +1564,6 @@ pub struct ApiFullUser {
     pub username: compact_str::CompactString,
     pub role: Option<super::role::AdminApiRole>,
     pub avatar: Option<String>,
-    pub email: compact_str::CompactString,
 
     pub name_first: Option<compact_str::CompactString>,
     pub name_last: Option<compact_str::CompactString>,
@@ -1607,7 +1602,6 @@ pub struct AdminApiUser {
     pub username: compact_str::CompactString,
     pub role: Option<super::role::AdminApiRole>,
     pub avatar: Option<String>,
-    pub email: compact_str::CompactString,
 
     pub name_first: Option<compact_str::CompactString>,
     pub name_last: Option<compact_str::CompactString>,

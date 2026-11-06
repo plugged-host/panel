@@ -329,7 +329,7 @@ export const adminSettingsNoprofitSchema = z.object({
       .nullable(),
   ),
   adminsOnly: z.boolean(),
-  linkByEmail: z.boolean(),
+  linkByUsername: z.boolean(),
   deletedAccountDays: z.number().int().min(0).max(365),
   ssoSecret: z.string().max(512).nullable(),
   apiSecret: z.string().max(512).nullable(),

@@ -13,7 +13,9 @@ version:
 | Feature | Without noprofit.space | With noprofit.space |
 |---|---|---|
 | Sign-in | Calagopus's own: passwords, two-factor, security keys, OAuth providers, registration | Everyone signs in at noprofit.space |
-| Profile, email, password | Edited in the panel | Managed on noprofit.space, mirrored into the panel |
+| Profile, password | Edited in the panel | Managed on noprofit.space, mirrored into the panel |
+| Email address | Never stored or shown | Never sent; the panel uses the account's username and `account_user_id` |
+| Ultra | — | `ultra: true` gives the panel's Premium-equivalent benefits (both membership tiers) |
 | SFTP passwords | The panel password | The noprofit.space password, checked by noprofit.space |
 | Credits and the Resource Store | The panel's own (`users.credits`, its own prices) | noprofit.space's balance, store and prices ([features/economy.md](features/economy.md)); credits the panel gives or takes (Discord invites, admins) are sent to it |
 | Deleting an account | Admins delete users | Deleting the noprofit.space account deletes the panel user and its servers (asked by noprofit.space, or by the sync once the account is gone) |
@@ -35,7 +37,7 @@ Admin › Settings › Accounts › noprofit.space:
 | Sign-in secret | The shared secret the sign-in tokens are signed with, at least 32 characters |
 | API secret | The secret of the server-to-server API (account sync, SFTP passwords), at least 32 characters. Without it there is sign-in but no sync |
 | Only noprofit.space admins | Lets only noprofit.space admins in, while the panel is not open to everyone |
-| Link by email | A first sign-in takes over the panel user with the same email (on by default); off refuses it instead |
+| Link by username | A first sign-in takes over the unlinked panel user with the same username (on by default); off refuses it instead |
 | Delete gone accounts after (days) | How long a user (and its servers) whose account the sync found missing stays suspended before it is deleted here too; 7 by default, 0 never deletes |
 | Advanced: audience, callback URL | Defaults `{client}:sso` and `{app url}/api/auth/noprofit/callback` |
 
@@ -52,15 +54,16 @@ admins who have no panel password, since everyone noprofit.space created has non
 - **Sign-in**: the login page goes straight to noprofit.space. A sign-in that comes back with an
   error stops on the login page with the reason and *Try again*. *Administrator sign-in*
   (`/auth/login?local=1`) is the password form, for admins with a panel password only.
-- **First sign-in**: links the panel user with the account's email (when *Link by email* is on) or
-  creates one: no password, email verified, username from the display name, admin when the account
-  is a noprofit.space admin.
+- **First sign-in**: links the panel user with the account's username (when *Link by username* is
+  on) or creates one: no password, username from the account's username, admin when the account is
+  a noprofit.space admin. The account is matched on `account_user_id`; the panel never asks for or
+  stores an email address.
 - **Off while connected**: registration, password resets (except for admins), the panel's own OAuth providers (admin page,
   account links, login buttons) and security keys (account page, login). Their routes answer 404.
   Turned off again, everything is as before.
 - **Account sync** (with the API secret): every minute (`sync_noprofit_accounts`), the panel first
   sends its credit changes, then pulls the snapshots of its linked accounts and updates admin flag,
-  email, name, avatar, plan, credits and Discord. A smaller plan shrinks the account's servers that
+  Ultra, name, avatar, plan, credits and Discord. A smaller plan shrinks the account's servers that
   are then over it ([features/allowance-cuts.md](features/allowance-cuts.md)).
 - **Accounts gone from noprofit.space** (left out of its answer, without the deletion reaching the
   panel): the user is suspended and its servers too, with the deletion time of *Delete gone
@@ -83,22 +86,41 @@ admins who have no panel password, since everyone noprofit.space created has non
 - **SFTP**: users made by noprofit.space have no panel password, so their SFTP password logins are
   checked by noprofit.space (the account's password; 10 wrong guesses per account and minute,
   shared with every panel). SSH keys work as usual.
-- **Account page**: a noprofit.space card with the email, plan, credits and Discord, and a link to
-  manage them there. Email and password changes are refused for linked users: they live on
+- **Account page**: a noprofit.space card with the username, Ultra, plan, credits and Discord, and
+  a link to manage them there. Password changes are refused for linked users: they live on
   noprofit.space.
-- **Subuser invites** reach existing panel users only: an email no panel user has is refused with
-  "no *app* account uses that email yet: ask them to sign up first, then invite them" instead of
-  making a password-less user and mailing it (`server_subuser.rs`, as the Pelican panel's
-  `GuardedSubuserCreationService`). Without noprofit.space, upstream's invite makes the user.
+- **Subuser invites** reach existing panel users only, by username: one no panel user has is
+  refused with "no *app* account uses that username yet: ask them to sign up first, then invite
+  them" instead of making a password-less user (`server_subuser.rs`). Without noprofit.space,
+  upstream's invite makes the user.
 - **Admin › Users**: no Create (users come from sign-ins; emergency admins from the `users create`
-  command), and a linked user's username and email cannot be changed there
+  command), and a linked user's username cannot be changed there
   ([features/admin-users.md](features/admin-users.md#identity-lock-noprofitspace)).
+
+## Ultra and anti-alt
+
+The snapshot's `ultra: true` is stored on the link row. `users.has_plus` and `users.has_plusplus`
+count it like an active membership, so an Ultra account gets the panel's Premium-equivalent
+benefits: the premium locations, the larger limits and everything both tiers open
+([features/economy.md](features/economy.md)). It ends when the next snapshot says `ultra: false` or
+the account is gone.
+
+The panel also calls two signed internal routes with the API secret:
+
+- `POST /api/v1/internal/calagopus/alt/check` with `{user_id}` answers `{limited: bool}`.
+  `shared::noprofit::alt_limited` returns `false` without a link or when the call fails.
+- `POST /api/v1/internal/calagopus/alt/signal` with `{user_id, kind, value}` records a counted vote
+  or reward, best effort (`suggestion_vote`, `referral_reward`).
+
+Before a suggestion vote is counted and before a referral reward is paid, `limited: true` means the
+person's vote or reward already counted: the vote is refused and the reward is skipped. A failed
+call never blocks the person.
 
 ## Tables
 
 | Table | What it holds |
 |---|---|
-| `user_noprofit_accounts` | The link between a panel user and a noprofit.space account, and the last snapshot (email, username, admin, avatar, credits, plan, Discord, when it was deleted, whether the sync suspended the user then) |
+| `user_noprofit_accounts` | The link between a panel user and a noprofit.space account, and the last snapshot (username, Ultra, admin, avatar, credits, plan, Discord, when it was deleted, whether the sync suspended the user then). `email` stays as a nullable column for Laravel compatibility and is always `NULL` |
 | `user_noprofit_credit_changes` | Credit changes made here for noprofit.space: amount, type, description, when it was sent, what it applied and the balance after, attempts and the last error |
 
 ## Wire format
@@ -111,8 +133,9 @@ What the accounts app must implement to work with this panel (tested against its
   `{callback}?token=…`.
 - **Token**: `base64url(json) "." hex(hmac_sha256(sign-in secret, base64url(json)))`. The JSON has
   `aud` (the audience), `iat`, `exp`, `nonce`, `state`, `account_user_id` and the snapshot fields
-  (`email`, `username`, `is_admin`, `avatar`, `credits`, `plan`, `discord`). The panel checks the
-  signature, the audience, the lifetime (60 s clock skew) and the state.
+  (`username`, `ultra`, `is_admin`, `avatar`, `credits`, `plan`, `discord`; an optional
+  `display_name`). There is no `email`. The panel checks the signature, the audience, the lifetime
+  (60 s clock skew) and the state, and requires a non-empty `username`.
 - **Server-to-server requests** carry `X-NP-Timestamp`, `X-NP-Nonce` and
   `X-NP-Signature = hex(hmac_sha256(API secret, METHOD "\n" path "\n" timestamp "\n" nonce "\n" hex(sha256(body))))`.
 - `POST /api/v1/internal/calagopus/accounts` with `{"account_ids": [...], "usage": [{account_id,

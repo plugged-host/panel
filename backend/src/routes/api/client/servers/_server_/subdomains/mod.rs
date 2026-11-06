@@ -3,6 +3,7 @@ use super::State;
 use utoipa_axum::{router::OpenApiRouter, routes};
 
 mod _subdomain_;
+mod custom; // plugged.host
 
 mod get {
     use shared::{
@@ -133,6 +134,7 @@ mod post {
 pub fn router(state: &State) -> OpenApiRouter<State> {
     OpenApiRouter::new()
         .routes(routes!(get::route, post::route))
+        .nest("/custom", custom::router(state)) // plugged.host
         .nest("/{subdomain}", _subdomain_::router(state))
         .with_state(state.clone())
 }

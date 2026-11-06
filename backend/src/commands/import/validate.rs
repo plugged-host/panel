@@ -804,7 +804,6 @@ impl Validator<'_> {
                     role_uuid: None,
                     external_id: external_id.as_deref().map(Into::into),
                     username: username.as_str().into(),
-                    email: email.as_str().into(),
                     name_first: name_first.as_deref().map(Into::into),
                     name_last: name_last.as_deref().map(Into::into),
                     password: None,

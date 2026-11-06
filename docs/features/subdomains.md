@@ -15,9 +15,12 @@ The egg's features decide what a server gets (`records::Service::of_egg`):
 | `srv-mumble`, `srv-teamspeak` | A + `_mumble._tcp` / `_ts3._udp` SRV | `play.example.com:<port>` |
 | `srv-factorio`, `srv-rust`, `srv-scpsl` | A + `_factorio._udp` / `_rust._udp` / `_scpsl._udp` SRV | `play.example.com:<port>` |
 | `subdomain` | A alone | `play.example.com:<port>` (the port left out for 80 and 443) |
+| Any other egg (bots, Node/Python apps, proxies, web apps, small services) | A alone, the `plain` fallback | `play.example.com:<port>` (the port left out for 80 and 443) |
 
-A server whose egg has none of these has no Subdomains page (`lib/domain/games.ts`), and its
-subdomain routes answer 400.
+Every server with an allocation gets a subdomain. Only a server without an address has no
+Subdomains page; its routes answer `no_address`. HTTP services get the same A record and are
+reachable on `https://<name>` only when the service itself serves TLS on its port: the panel writes
+DNS records and does not proxy HTTP or issue certificates.
 
 ## The address
 
@@ -76,6 +79,26 @@ Admin › Settings › Accounts › Discord can keep new subdomains for owners w
 account or are in the Discord server (`unavailable` is then `discord_link` or `discord_member`,
 creating answers 403); see [discord.md](discord.md#subdomains).
 
+## Custom domains
+
+A server may also use a domain the person already owns. The Subdomains page has a **Custom domains**
+section (permission `subdomains.custom`, a server permission):
+
+1. **Add domain**: the panel stores the domain, a CNAME target and a verification token. The target
+   is the server's first panel subdomain, or its address when it has none.
+2. The person adds two records at their DNS provider:
+   - a `CNAME` from the domain to the target;
+   - a `TXT` at `_panel-verify.<domain>` with `panel-verify=<token>`.
+3. **Verify** asks Cloudflare's DNS-over-HTTPS resolver (`https://cloudflare-dns.com/dns-query`,
+   JSON) for the CNAME and the TXT record. A CNAME target that is an IP address is checked as an
+   `A`/`AAAA` record instead. Only a domain whose records match shows as Active.
+4. **Delete** removes the row; the person's own DNS records are theirs to keep.
+
+A custom domain may not be one of the panel's domains (Admin › Domains) or the panel's own host.
+It is unique across the panel. The panel writes no DNS records for it and does not terminate TLS:
+it only checks where the domain points. Admin › Servers › the server › Subdomains lists custom
+domains and can delete them (`servers.subdomains`).
+
 ## Domains
 
 Admin › Domains (`domains.*`) lists the domains subdomains are made under. Adding one looks its
@@ -114,22 +137,29 @@ the Pelican plugin's Filament table:
 - Edit Subdomain: the same form without the deposit, the domain fixed; Save changes renames it (the
   same name writes the records again).
 - Delete asks "Delete Subdomain" with what happens and the tokens that go back.
+- Below the table, **Custom domains** lists the person's own domains with Active / Waiting for DNS,
+  the target, Setup (the CNAME and TXT instructions) and Delete. Add domain is the section's one
+  filled action.
 
 ## Routes
 
 | Route | Permission | Does |
 |---|---|---|
-| `GET /api/client/servers/{server}/subdomains` | `subdomains.read` | `{subdomains, limit, domains, service, address, unavailable, next_cost, short_two, short_three, balance}` (`short_*`: the least deposit of a 2 and a 3 character name, 0 while tokens or short-name deposits are off); `unavailable` is `off`, `unsupported`, `no_domains`, `no_address`, `discord_link`, `discord_member` or `null`; `balance` only for the owner while tokens are on |
+| `GET /api/client/servers/{server}/subdomains` | `subdomains.read` | `{subdomains, limit, domains, custom_domains, custom_target, service, address, unavailable, next_cost, short_two, short_three, balance}` (`short_*`: the least deposit of a 2 and a 3 character name, 0 while tokens or short-name deposits are off); `unavailable` is `off`, `no_domains`, `no_address`, `discord_link`, `discord_member` or `null`; `balance` only for the owner while tokens are on |
 | `POST /api/client/servers/{server}/subdomains` | `subdomains.create` | `{name, domain_uuid?}`: 400 bad or blocked name, unknown domain or too few tokens; 409 taken, limit reached, or another record of the name exists; 502 Cloudflare refused |
 | `PATCH /api/client/servers/{server}/subdomains/{subdomain}` | `subdomains.update` | `{name?}`: renames, or without a name writes the records again |
 | `DELETE /api/client/servers/{server}/subdomains/{subdomain}` | `subdomains.delete` | `{refunded}` |
+| `POST /api/client/servers/{server}/subdomains/custom` | `subdomains.custom` | `{domain}`: 400 invalid or panel domain; 409 already attached; 422 when no address |
+| `POST /api/client/servers/{server}/subdomains/custom/{custom}/verify` | `subdomains.custom` | Checks the CNAME and TXT records now; 422 says which is missing |
+| `DELETE /api/client/servers/{server}/subdomains/custom/{custom}` | `subdomains.custom` | Removes the row |
 | `GET /api/admin/domains` | `domains.read` | `{domains, token_set}` |
 | `POST /api/admin/domains` | `domains.create` | `{name}` |
 | `POST /api/admin/domains/{domain}/sync` | `domains.update` | Looks the zone up again |
 | `DELETE /api/admin/domains/{domain}` | `domains.delete` | With its subdomains |
-| `GET /api/admin/servers/{server}/subdomains` | `servers.subdomains` | `{subdomains, limit, default_limit}` |
+| `GET /api/admin/servers/{server}/subdomains` | `servers.subdomains` | `{subdomains, limit, default_limit, custom_domains}` |
 | `PUT /api/admin/servers/{server}/subdomains` | `servers.subdomains` | `{limit}` (`null` follows the setting) |
 | `DELETE /api/admin/servers/{server}/subdomains/{subdomain}` | `servers.subdomains` | `{refunded}` |
+| `DELETE /api/admin/servers/{server}/subdomains/custom/{custom}` | `servers.subdomains` | Removes a custom domain |
 
 Server activity: `server:subdomain.create`, `.update`, `.delete`. Admin activity:
 `server:subdomains.limit`, `server:subdomain.delete` (from the server's tab), `domain:create`,
@@ -157,6 +187,8 @@ in `/api/settings`).
 - `server_subdomains`: `server_uuid` (deleted with the server), `domain_uuid`, `name` (unique per
   domain), `record_type` (`A`, `AAAA` or `SRV`), `records` (the Cloudflare record ids by key: `a`,
   `srv`, `srv_udp`, `srv_tcp`), `token_cost`, `created`.
+- `server_custom_domains`: `server_uuid` (deleted with the server), `domain` (unique), `target`,
+  `verification_token`, `verified_at`, `created`.
 - `servers.subdomain_limit`: the server's own limit, `NULL` follows the setting.
 
 ## Without noprofit.space
@@ -197,3 +229,8 @@ Nothing changes: the deposit is the panel's tokens, which work without it.
 - Delete the server: its records are gone from Cloudflare and the owner got the tokens back.
 - Admin › Servers › the server › Subdomains: set the limit to 1 with two subdomains: no more can be
   added; empty goes back to the default.
+- A bot or Node/Python server (an egg with no game feature) gets the Subdomains page too and a
+  plain A record; Connect With shows the name and port.
+- Custom domains: add `play.example.com`; the Setup dialog shows the CNAME and TXT. Verify before
+  adding them: refused with what is missing. Add both records: Verify makes it Active. A panel
+  domain is refused; a second server cannot attach the same domain. Delete it: the row goes.

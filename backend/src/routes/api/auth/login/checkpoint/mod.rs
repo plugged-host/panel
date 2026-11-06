@@ -28,7 +28,7 @@ pub fn available_methods(
 
     user.two_factor_methods(settings)
         .into_iter()
-        .filter(|method| matches!(method, TwoFactorMethod::Totp | TwoFactorMethod::Email))
+        .filter(|method| matches!(method, TwoFactorMethod::Totp))
         .filter(|method| !enforced || settings.app.two_factor_accepted_methods.contains(method))
         .collect()
 }
