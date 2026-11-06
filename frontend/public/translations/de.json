@@ -1045,7 +1045,10 @@
           "goalReady": "Genug für {name}",
           "openMembership": "Mitgliedschaftsseite öffnen",
           "streak": "Deine Serien-Tokens für heute warten"
-        }
+        },
+        "more": "Mehr",
+        "accountSettings": "Kontoeinstellungen",
+        "accountsHub": "Konten-Panel"
       },
       "notifications": {
         "title": "Benachrichtigungen",
@@ -3251,6 +3254,11 @@
           "toast": {
             "plus": "{name} gekauft.",
             "plusplus": "{name} gekauft."
+          },
+          "ultra": {
+            "title": "noprofit.space Ultra gilt für beide Produkte",
+            "body": "Ein monatliches Abo für plugged.host und switched.cloud: Premium auf beiden, 2× Ressourcen, höchste Warteschlangen-Priorität und früher Zugang. Tokens und Credits bleiben getrennt.",
+            "cta": "noprofit.space Ultra ansehen"
           }
         },
         "panelAccess": {
@@ -7091,6 +7099,13 @@
                 "scheduled": "Aktualisierung von {name} auf {version} geplant, der Node startet neu.",
                 "ignored": "{name} hat die Aktualisierung ignoriert, seine lokale Konfiguration deaktiviert vom Panel gestartete Aktualisierungen."
               }
+            },
+            "forceNuke": {
+              "button": "Force Nuke",
+              "title": "Node hart löschen",
+              "body": "Dies **löscht alle Server auf {name} mit Gewalt** und danach den Node aus dem Panel. Es funktioniert nur, solange der Node offline ist oder nicht antwortet: Ein antwortender Node wird abgelehnt. Das kann nicht rückgängig gemacht werden.",
+              "confirm": "Hart löschen",
+              "done": "{count} Server gelöscht und {name} entfernt."
             }
           }
         },
@@ -11963,7 +11978,8 @@
             "moveStarted": "Der Umzug läuft. Dein Server ist wieder da, sobald die Dateien kopiert sind."
           },
           "leave": "Abbrechen und zurück",
-          "passNote": "Nach dem Start überspringen die nächsten {minutes} Minuten an Starts diese Seite."
+          "passNote": "Nach dem Start überspringen die nächsten {minutes} Minuten an Starts diese Seite.",
+          "noCap": "Kein Zeitlimit: Dein Server startet, sobald der Node Platz hat."
         },
         "waitingRoom": {
           "title": "Werbefinanzierter Start",
