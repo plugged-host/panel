@@ -1507,7 +1507,7 @@ strong {
   /* A leading glyph carries the 12px gap itself; an iconElement wrapper carries its own. */
   .sidebar-link .mantine-Button-label > .theme-icon:not(.theme-sidebar-group-arrow),
   .sidebar-link .mantine-Button-label > .svg-inline--fa:not(.theme-sidebar-group-arrow) {
-    margin-inline-end: 0.75rem !important;
+    margin-inline-end: 0.625rem !important;
   }
 
   /* The quick search row: one of the rows, "transparent until hover" like Theme v2's bell. */
@@ -1529,7 +1529,7 @@ strong {
     justify-content: center;
     width: 1.5rem;
     height: 1.5rem;
-    margin-inline-end: 0.75rem;
+    margin-inline-end: 0.625rem;
     color: var(--theme-text-faint);
   }
 

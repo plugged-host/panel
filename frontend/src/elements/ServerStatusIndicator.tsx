@@ -134,7 +134,7 @@ export default function ServerStatusIndicator() {
       <NavLink to={`/server/${params.id}`} className='block'>
         <Card p='xs' className='theme-sidebar-server min-h-fit'>
           {/* plugged.host: the server's icon (else its game's) before its name and state */}
-          <div className='flex items-center gap-3 min-w-0'>
+          <div className='flex items-center gap-2.5 min-w-0'>
             {icon && <img className='theme-sidebar-server-icon' src={icon} alt='' />}
             <div className='min-w-0 flex-1'>
               <div className='h-5 flex items-center min-w-0'>

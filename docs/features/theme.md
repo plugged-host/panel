@@ -121,7 +121,7 @@ The two panels are one design: a change to one of these is a change to both.
   .875rem/1.25rem muted, as in switched.
 - **Sidebar rows** share one sliding pill (220ms cubic-bezier(.16,1,.3,1)) that follows the
   hovered row and returns to the active row on leave; rows stay transparent, only the row under
-  the pill reads bright, and a leading Font Awesome glyph carries the same 12px gap as a Heroicon.
+  the pill reads bright, and a leading Font Awesome glyph carries the same 10px gap as a Heroicon.
 - **File fields** use `elements/input/FileInput.tsx` (generic over `multiple`) instead of a one-off
   `.field`/`.input` block, so the ticket attachments match every other field.
 
