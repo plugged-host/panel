@@ -157,6 +157,8 @@ mod ticket {
     ) -> ApiResponseResult {
         permissions.has_user_permission("tickets.read")?;
 
+        // An existing ticket with no neo/system answer gets one on open (the task checks first).
+        shared::tickets::spawn_neo_reply(&state, ticket_uuid);
         match shared::tickets::view(&state.database, user.uuid, ticket_uuid).await? {
             Some(ticket) => ApiResponse::new_serialized(Response { ticket }).ok(),
             None => ApiResponse::error("ticket not found")

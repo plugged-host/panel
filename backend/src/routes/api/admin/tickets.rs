@@ -147,6 +147,8 @@ mod ticket {
         state: &shared::State,
         ticket_uuid: uuid::Uuid,
     ) -> shared::response::ApiResponseResult {
+        // Backfill an answer for a ticket opened before neo could reply.
+        shared::tickets::spawn_neo_reply(state, ticket_uuid);
         match shared::tickets::admin_view(&state.database, ticket_uuid).await? {
             Some(ticket) => ApiResponse::new_serialized(Response { ticket }).ok(),
             None => ApiResponse::error("ticket not found")

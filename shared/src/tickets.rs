@@ -656,17 +656,30 @@ async fn neo_reply(state: &crate::State, ticket_uuid: uuid::Uuid) -> Result<(), 
             crate::neo::offered(&settings),
         )
     };
-    let row =
-        sqlx::query("SELECT subject, category, body, server_uuid FROM tickets WHERE uuid = $1")
-            .bind(ticket_uuid)
-            .fetch_optional(state.database.read())
-            .await?;
+    // The first message is the ticket's body; `tickets` has no body column.
+    let row = sqlx::query(
+        "SELECT tickets.subject, tickets.category, tickets.server_uuid, first_message.body
+        FROM tickets
+        LEFT JOIN LATERAL (
+            SELECT ticket_messages.body
+            FROM ticket_messages
+            WHERE ticket_messages.ticket_uuid = tickets.uuid
+            ORDER BY ticket_messages.created, ticket_messages.uuid
+            LIMIT 1
+        ) AS first_message ON TRUE
+        WHERE tickets.uuid = $1",
+    )
+    .bind(ticket_uuid)
+    .fetch_optional(state.database.read())
+    .await?;
     let Some(row) = row else {
         return Ok(());
     };
     let subject: String = row.try_get("subject")?;
     let category: String = row.try_get("category")?;
-    let body: String = row.try_get("body")?;
+    let body: String = row
+        .try_get::<Option<String>, _>("body")?
+        .unwrap_or_default();
     let server_uuid: Option<uuid::Uuid> = row.try_get("server_uuid")?;
 
     let facts = match server_uuid {
