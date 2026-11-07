@@ -67,7 +67,7 @@ export default function SidebarGroup({ id, icon, iconElement, name, activeMatche
         onClick={toggle}
       >
         {iconElement ? (
-          <span className='mr-2.5 inline-flex shrink-0 items-center justify-center'>{iconElement}</span>
+          <span className='mr-3 inline-flex shrink-0 items-center justify-center'>{iconElement}</span>
         ) : (
           icon && <FontAwesomeIcon icon={icon} className='mr-2' />
         )}

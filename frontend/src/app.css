@@ -1506,7 +1506,7 @@ strong {
      ("mr-2.5"), so a server's rows space their icons like the account rows do. The group
      chevron sits at the end and must not take the gap. */
   .sidebar-link .svg-inline--fa:not(.theme-sidebar-group-arrow) {
-    margin-inline-end: 0.625rem !important;
+    margin-inline-end: 0.75rem !important;
   }
 
   /* The quick search row: one of the rows, "transparent until hover" like Theme v2's bell. */
@@ -1525,7 +1525,7 @@ strong {
     justify-content: center;
     width: 1.5rem;
     height: 1.5rem;
-    margin-inline-end: 0.625rem;
+    margin-inline-end: 0.75rem;
     color: var(--theme-text-faint);
   }
 
