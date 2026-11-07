@@ -9385,7 +9385,8 @@
           },
           "actionBar": {
             "copyHere": "Kopírovať sem {files}",
-            "moveHere": "Presunúť {files} sem"
+            "moveHere": "Presunúť {files} sem",
+            "selected": "{count} selected"
           },
           "searchBanner": {
             "resultsTitle": "Výsledky vyhľadávania (nájdené: {files})",

@@ -9479,7 +9479,8 @@
           },
           "actionBar": {
             "copyHere": "Kopiere {files} hierhin",
-            "moveHere": "Verschiebe {files} hierhin"
+            "moveHere": "Verschiebe {files} hierhin",
+            "selected": "{count} selected"
           },
           "searchBanner": {
             "resultsTitle": "Suchergebnisse ({files} gefunden)",

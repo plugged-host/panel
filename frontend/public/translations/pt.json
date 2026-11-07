@@ -3920,7 +3920,8 @@
           },
           "actionBar": {
             "copyHere": "Copiar {files} para cá",
-            "moveHere": "Mover {files} para cá"
+            "moveHere": "Mover {files} para cá",
+            "selected": "{count} selected"
           },
           "searchBanner": {
             "resultsTitle": "Resultados da pesquisa (encontrados: {files})",

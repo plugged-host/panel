@@ -9479,7 +9479,8 @@
           },
           "actionBar": {
             "copyHere": "Kopiér {files} hertil",
-            "moveHere": "Flyt {files} hertil"
+            "moveHere": "Flyt {files} hertil",
+            "selected": "{count} selected"
           },
           "searchBanner": {
             "resultsTitle": "Søgeresultater ({files} fundet)",

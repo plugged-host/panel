@@ -9380,7 +9380,8 @@
           },
           "actionBar": {
             "copyHere": "Skopiuj {files} tutaj",
-            "moveHere": "Przenieś {files} tutaj"
+            "moveHere": "Przenieś {files} tutaj",
+            "selected": "{count} selected"
           },
           "searchBanner": {
             "resultsTitle": "Wyniki wyszukiwania (znaleziono {files})",

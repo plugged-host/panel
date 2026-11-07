@@ -9486,7 +9486,8 @@
           },
           "actionBar": {
             "copyHere": "Sao Chép {files} ở đây",
-            "moveHere": "Di Chuyển {files} ở đây"
+            "moveHere": "Di Chuyển {files} ở đây",
+            "selected": "{count} selected"
           },
           "searchBanner": {
             "resultsTitle": "Kết Quả Tìm Kiếm ({files} tìm thấy)",

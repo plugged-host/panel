@@ -3920,7 +3920,8 @@
           },
           "actionBar": {
             "copyHere": "Shu yerga nusxalash ({files})",
-            "moveHere": "Shu yerga koʻchirish ({files})"
+            "moveHere": "Shu yerga koʻchirish ({files})",
+            "selected": "{count} selected"
           },
           "searchBanner": {
             "resultsTitle": "Qidiruv natijalari ({files} topildi)",

@@ -303,14 +303,14 @@ function FileActionBar() {
                   })}
                 >
                   <Button
-                    leftSection={<FontAwesomeIcon icon={faAnglesDown} />}
                     onClick={doCopy}
                     loading={loading}
                     disabled={!browsingWritableDirectory}
-                  >
-                    {t('pages.server.files.actionBar.copyHere', {
+                    aria-label={t('pages.server.files.actionBar.copyHere', {
                       files: tItem(actingFilesItemKey, actingFiles.size),
                     })}
+                  >
+                    <FontAwesomeIcon icon={faAnglesDown} />
                   </Button>
                 </Tooltip>
               </ServerCan>
@@ -322,56 +322,59 @@ function FileActionBar() {
                   })}
                 >
                   <Button
-                    leftSection={<FontAwesomeIcon icon={faAnglesDown} />}
                     onClick={doMove}
                     loading={loading}
                     disabled={
                       !browsingWritableDirectory ||
                       !canMoveFilesToDirectory(actingFiles.values(), actingFilesSource, browsingDirectory)
                     }
-                  >
-                    {t('pages.server.files.actionBar.moveHere', {
+                    aria-label={t('pages.server.files.actionBar.moveHere', {
                       files: tItem(actingFilesItemKey, actingFiles.size),
                     })}
+                  >
+                    <FontAwesomeIcon icon={faAnglesDown} />
                   </Button>
                 </Tooltip>
               </ServerCan>
             )}
             <Tooltip label={t('common.button.cancel', {})}>
-              <Button variant='default' leftSection={<FontAwesomeIcon icon={faBan} />} onClick={clearActingFiles}>
-                {t('common.button.cancel', {})}
+              <Button variant='default' onClick={clearActingFiles} aria-label={t('common.button.cancel', {})}>
+                <FontAwesomeIcon icon={faBan} />
               </Button>
             </Tooltip>
           </>
         ) : (
           <>
+            <span className='self-center px-1 theme-eco-small'>
+              {t('pages.server.files.actionBar.selected', { count: selectedFilesCount })}
+            </span>
             <ServerCan action='files.read-content'>
               <Tooltip label={t('common.button.download', {})}>
-                <Button leftSection={<FontAwesomeIcon icon={faFileDownload} />} onClick={doDownload} loading={loading}>
-                  {t('common.button.download', {})}
+                <Button onClick={doDownload} loading={loading} aria-label={t('common.button.download', {})}>
+                  <FontAwesomeIcon icon={faFileDownload} />
                 </Button>
               </Tooltip>
             </ServerCan>
             <ServerCan action='files.read-content'>
               <Tooltip label={t('pages.server.files.button.remoteCopy', {})}>
                 <Button
-                  leftSection={<FontAwesomeIcon icon={faClone} />}
                   onClick={() => doOpenModal('copy-remote', store.getState().selectedFiles.values())}
+                  aria-label={t('pages.server.files.button.remoteCopy', {})}
                 >
-                  {t('pages.server.files.button.remoteCopy', {})}
+                  <FontAwesomeIcon icon={faClone} />
                 </Button>
               </Tooltip>
             </ServerCan>
             <ServerCan action='files.create'>
               <Tooltip label={t('pages.server.files.button.copy', {})}>
                 <Button
-                  leftSection={<FontAwesomeIcon icon={faCopy} />}
                   onClick={() => {
                     doActFiles('copy', store.getState().selectedFiles.values());
                     doSelectFiles([]);
                   }}
+                  aria-label={t('pages.server.files.button.copy', {})}
                 >
-                  {t('pages.server.files.button.copy', {})}
+                  <FontAwesomeIcon icon={faCopy} />
                 </Button>
               </Tooltip>
             </ServerCan>
@@ -380,33 +383,33 @@ function FileActionBar() {
                 <ServerCan action='files.archive'>
                   <Tooltip label={t('pages.server.files.button.archive', {})}>
                     <Button
-                      leftSection={<FontAwesomeIcon icon={faArchive} />}
                       onClick={() => doOpenModal('archive', store.getState().selectedFiles.values())}
+                      aria-label={t('pages.server.files.button.archive', {})}
                     >
-                      {t('pages.server.files.button.archive', {})}
+                      <FontAwesomeIcon icon={faArchive} />
                     </Button>
                   </Tooltip>
                 </ServerCan>
                 <ServerCan action='files.update'>
                   <Tooltip label={t('pages.server.files.button.rename', {})}>
                     <Button
-                      leftSection={<FontAwesomeIcon icon={faPen} />}
                       onClick={() => doOpenModal('mass-rename', store.getState().selectedFiles.values())}
+                      aria-label={t('pages.server.files.button.rename', {})}
                     >
-                      {t('pages.server.files.button.rename', {})}
+                      <FontAwesomeIcon icon={faPen} />
                     </Button>
                   </Tooltip>
                 </ServerCan>
                 <ServerCan action='files.update'>
                   <Tooltip label={t('common.button.move', {})}>
                     <Button
-                      leftSection={<FontAwesomeIcon icon={faAnglesUp} />}
                       onClick={() => {
                         doActFiles('move', store.getState().selectedFiles.values());
                         doSelectFiles([]);
                       }}
+                      aria-label={t('common.button.move', {})}
                     >
-                      {t('common.button.move', {})}
+                      <FontAwesomeIcon icon={faAnglesUp} />
                     </Button>
                   </Tooltip>
                 </ServerCan>
@@ -417,24 +420,29 @@ function FileActionBar() {
                     >
                       <Button
                         color={trashEnabled ? 'blue' : 'red'}
-                        leftSection={<FontAwesomeIcon icon={faTrash} />}
                         onClick={() =>
                           doOpenModal(
                             'delete',
                             withoutMountGateways(store.getState().selectedFiles.values(), browsingPrimaryFilesystem),
                           )
                         }
+                        aria-label={t(
+                          trashEnabled ? 'pages.server.files.button.moveToTrash' : 'common.button.delete',
+                          {},
+                        )}
                       >
-                        {t(trashEnabled ? 'pages.server.files.button.moveToTrash' : 'common.button.delete', {})}
+                        <FontAwesomeIcon icon={faTrash} />
                       </Button>
                     </Tooltip>
                   </ServerCan>
                 )}
               </>
             )}
-            <Button variant='ghost' onClick={() => doSelectFiles([])}>
-              {t('common.button.deselectAll', {})}
-            </Button>
+            <Tooltip label={t('common.button.deselectAll', {})}>
+              <Button variant='ghost' onClick={() => doSelectFiles([])} aria-label={t('common.button.deselectAll', {})}>
+                <FontAwesomeIcon icon={faBan} />
+              </Button>
+            </Tooltip>
           </>
         )}
 

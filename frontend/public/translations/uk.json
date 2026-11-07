@@ -3920,7 +3920,8 @@
           },
           "actionBar": {
             "copyHere": "Копіювати {files} сюди",
-            "moveHere": "Перемістити {files} сюди"
+            "moveHere": "Перемістити {files} сюди",
+            "selected": "{count} selected"
           },
           "searchBanner": {
             "resultsTitle": "Результати пошуку (знайдено: {files})",

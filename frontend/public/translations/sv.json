@@ -3816,7 +3816,8 @@
           },
           "actionBar": {
             "copyHere": "Kopiera {files} hit",
-            "moveHere": "Flytta {files} hit"
+            "moveHere": "Flytta {files} hit",
+            "selected": "{count} selected"
           },
           "searchBanner": {
             "resultsTitle": "Sökresultat ({files} hittade)",

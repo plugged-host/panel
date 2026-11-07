@@ -3920,7 +3920,8 @@
           },
           "actionBar": {
             "copyHere": "Salin {files} ke sini",
-            "moveHere": "Pindahkan {files} ke sini"
+            "moveHere": "Pindahkan {files} ke sini",
+            "selected": "{count} selected"
           },
           "searchBanner": {
             "resultsTitle": "Hasil Pencarian ({files} ditemukan)",

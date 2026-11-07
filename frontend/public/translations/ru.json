@@ -3920,7 +3920,8 @@
           },
           "actionBar": {
             "copyHere": "Копировать {files} сюда",
-            "moveHere": "Переместить {files} сюда"
+            "moveHere": "Переместить {files} сюда",
+            "selected": "{count} selected"
           },
           "searchBanner": {
             "resultsTitle": "Результаты поиска (найдено {files})",

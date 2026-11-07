@@ -9854,6 +9854,7 @@ const baseTranslations = defineTranslations({
           actionBar: {
             copyHere: 'Copy {files} here',
             moveHere: 'Move {files} here',
+            selected: '{count} selected',
           },
           searchBanner: {
             resultsTitle: 'Search Results ({files} found)',

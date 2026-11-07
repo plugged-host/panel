@@ -11,6 +11,7 @@ import {
   faTrashCan,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { useEffect, useRef, useState } from 'react';
 import { createSearchParams, useNavigate } from 'react-router';
 import { useShallow } from 'zustand/react/shallow';
 import ActionIcon from '@/elements/buttons/ActionIcon.tsx';
@@ -42,6 +43,8 @@ export default function FileToolbar({
   const navigate = useNavigate();
   const canCreate = useServerCan('files.create');
   const canRead = useServerCan('files.read');
+  const [searchOpen, setSearchOpen] = useState(false);
+  const searchRef = useRef<HTMLInputElement>(null);
   const server = useServerStore((state) => state.server);
   const { fileInputRef, folderInputRef, browsingDirectory, browsingWritableDirectory, doOpenModal } = useFileManager(
     useShallow((state) => ({
@@ -52,6 +55,10 @@ export default function FileToolbar({
       doOpenModal: state.doOpenModal,
     })),
   );
+
+  useEffect(() => {
+    if (searchOpen) searchRef.current?.focus();
+  }, [searchOpen]);
 
   const newFile = () => {
     if (onCreateFile) {
@@ -64,13 +71,6 @@ export default function FileToolbar({
   const moreItems = [
     ...(canCreate && !treeView && browsingWritableDirectory
       ? [
-          {
-            type: 'action' as const,
-            icon: faFolderOpen,
-            label: t('pages.server.files.button.directoryFromUpload', {}),
-            onClick: () => folderInputRef.current?.click(),
-            color: 'gray' as const,
-          },
           {
             type: 'action' as const,
             icon: faDownload,
@@ -103,64 +103,126 @@ export default function FileToolbar({
             onClick: () => doOpenModal('largestDirectories'),
             color: 'gray' as const,
           },
-          {
-            type: 'action' as const,
-            icon: faTrashCan,
-            label: t('pages.server.files.button.trash', {}),
-            onClick: () => navigate(`/server/${server.uuidShort}/files/trash`),
-            color: 'gray' as const,
-          },
         ]
       : []),
   ];
 
   return (
-    <Group>
+    <Group className='min-w-0 flex-1'>
       <ExtensionSlot
         components={window.extensionContext.extensionRegistry.pages.server.files.fileToolbar.prependedComponents}
         name='files-fileToolbar-prepended'
       />
 
       {!treeView && (
-        <TextInput
-          leftSection={<FontAwesomeIcon icon={faSearch} />}
-          placeholder={t('pages.server.files.searchPlaceholder', {})}
-          aria-label={t('pages.server.files.searchPlaceholder', {})}
-          value={filter}
-          onChange={(event) => onFilterChange(event.currentTarget.value)}
-          className='w-full sm:w-60'
-        />
+        <Group gap='xs' className='min-w-0'>
+          <Tooltip label={t('pages.server.files.searchPlaceholder', {})}>
+            <ActionIcon
+              variant={searchOpen ? 'light' : 'subtle'}
+              color='gray'
+              aria-label={t('pages.server.files.searchPlaceholder', {})}
+              onClick={() => {
+                if (searchOpen) onFilterChange('');
+                setSearchOpen((open) => !open);
+              }}
+            >
+              <FontAwesomeIcon icon={faSearch} />
+            </ActionIcon>
+          </Tooltip>
+          <div
+            className={`overflow-hidden transition-all duration-300 ease-out ${
+              searchOpen ? 'w-full opacity-100 sm:w-[clamp(16rem,40vw,32rem)]' : 'w-0 opacity-0'
+            }`}
+          >
+            <TextInput
+              ref={searchRef}
+              placeholder={t('pages.server.files.searchPlaceholder', {})}
+              aria-label={t('pages.server.files.searchPlaceholder', {})}
+              value={filter}
+              onChange={(event) => onFilterChange(event.currentTarget.value)}
+              className='w-full'
+            />
+          </div>
+        </Group>
       )}
 
-      <FileConnectButton />
+      <FileConnectButton iconOnly />
 
       {!treeView && browsingWritableDirectory && (
         <ServerCan action='files.create'>
-          <Button
-            variant='default'
-            leftSection={<FontAwesomeIcon icon={faFolderPlus} />}
-            onClick={() => doOpenModal('nameDirectory')}
-          >
-            {t('pages.server.files.button.newFolder', {})}
-          </Button>
+          <Tooltip label={t('pages.server.files.button.newFolder', {})}>
+            <ActionIcon
+              variant='subtle'
+              color='gray'
+              aria-label={t('pages.server.files.button.newFolder', {})}
+              onClick={() => doOpenModal('nameDirectory')}
+            >
+              <FontAwesomeIcon icon={faFolderPlus} />
+            </ActionIcon>
+          </Tooltip>
         </ServerCan>
       )}
 
       {browsingWritableDirectory && (
         <ServerCan action='files.create'>
-          <Button variant='default' leftSection={<FontAwesomeIcon icon={faFileCirclePlus} />} onClick={newFile}>
-            {t('pages.server.files.button.newFile', {})}
-          </Button>
+          <Tooltip label={t('pages.server.files.button.newFile', {})}>
+            <ActionIcon
+              variant='subtle'
+              color='gray'
+              aria-label={t('pages.server.files.button.newFile', {})}
+              onClick={newFile}
+            >
+              <FontAwesomeIcon icon={faFileCirclePlus} />
+            </ActionIcon>
+          </Tooltip>
         </ServerCan>
       )}
 
       {!treeView && browsingWritableDirectory && (
         <ServerCan action='files.create'>
-          <Button leftSection={<FontAwesomeIcon icon={faFileUpload} />} onClick={() => fileInputRef.current?.click()}>
-            {t('pages.server.files.button.upload', {})}
-          </Button>
+          <Tooltip label={t('pages.server.files.button.directoryFromUpload', {})}>
+            <Button
+              variant='default'
+              className='theme-file-header-action'
+              data-collapsed={searchOpen}
+              aria-label={t('pages.server.files.button.directoryFromUpload', {})}
+              leftSection={<FontAwesomeIcon icon={faFolderOpen} />}
+              onClick={() => folderInputRef.current?.click()}
+            >
+              <span className='theme-file-header-label'>{t('pages.server.files.button.directoryFromUpload', {})}</span>
+            </Button>
+          </Tooltip>
         </ServerCan>
       )}
+
+      {!treeView && browsingWritableDirectory && (
+        <ServerCan action='files.create'>
+          <Tooltip label={t('pages.server.files.button.upload', {})}>
+            <Button
+              className='theme-file-header-action'
+              data-collapsed={searchOpen}
+              aria-label={t('pages.server.files.button.upload', {})}
+              leftSection={<FontAwesomeIcon icon={faFileUpload} />}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <span className='theme-file-header-label'>{t('pages.server.files.button.upload', {})}</span>
+            </Button>
+          </Tooltip>
+        </ServerCan>
+      )}
+
+      <ServerCan action='files.read'>
+        <Tooltip label={t('pages.server.files.button.trash', {})}>
+          <ActionIcon
+            variant='subtle'
+            color='gray'
+            aria-label={t('pages.server.files.button.trash', {})}
+            onClick={() => navigate(`/server/${server.uuidShort}/files/trash`)}
+          >
+            <FontAwesomeIcon icon={faTrashCan} />
+          </ActionIcon>
+        </Tooltip>
+      </ServerCan>
 
       <Tooltip label={t('pages.server.files.button.more', {})}>
         <ContextMenu items={moreItems}>

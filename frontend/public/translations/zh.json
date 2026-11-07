@@ -9429,7 +9429,8 @@
           },
           "actionBar": {
             "copyHere": "將 {files} 複製到這裡",
-            "moveHere": "將 {files} 移動到這裡"
+            "moveHere": "將 {files} 移動到這裡",
+            "selected": "{count} selected"
           },
           "searchBanner": {
             "resultsTitle": "搜尋結果（找到 {files}）",

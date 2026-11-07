@@ -3920,7 +3920,8 @@
           },
           "actionBar": {
             "copyHere": "{files} buraya kopyala",
-            "moveHere": "{files} buraya taşı"
+            "moveHere": "{files} buraya taşı",
+            "selected": "{count} selected"
           },
           "searchBanner": {
             "resultsTitle": "Arama Sonuçları ({files} bulundu)",

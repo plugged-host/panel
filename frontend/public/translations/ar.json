@@ -3920,7 +3920,8 @@
           },
           "actionBar": {
             "copyHere": "نسخ {files} هنا",
-            "moveHere": "نقل {files} هنا"
+            "moveHere": "نقل {files} هنا",
+            "selected": "{count} selected"
           },
           "searchBanner": {
             "resultsTitle": "نتائج البحث ({files} تم العثور)",

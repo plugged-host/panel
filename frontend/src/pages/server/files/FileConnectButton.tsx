@@ -1,9 +1,11 @@
 import { faChevronDown, faCode, faServer } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useShallow } from 'zustand/react/shallow';
+import ActionIcon from '@/elements/buttons/ActionIcon.tsx';
 import Button from '@/elements/buttons/Button.tsx';
 import { ServerCan } from '@/elements/Can.tsx';
 import ContextMenu from '@/elements/overlays/ContextMenu.tsx';
+import Tooltip from '@/elements/overlays/Tooltip.tsx';
 import { vscodeConnectUrl } from '@/lib/files/files.ts';
 import { openUrl } from '@/lib/network/url.ts';
 import { CORE_QUICK_ACTION_CATEGORIES } from '@/lib/quickActions/coreQuickActions.tsx';
@@ -15,7 +17,7 @@ import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useServerStore } from '@/stores/server.ts';
 import SftpDetailsModal from './modals/SftpDetailsModal.tsx';
 
-export default function FileConnectButton({ file }: { file?: string }) {
+export default function FileConnectButton({ file, iconOnly = false }: { file?: string; iconOnly?: boolean }) {
   const { t } = useTranslations();
   const { user } = useAuth();
   const server = useServerStore((state) => state.server);
@@ -85,20 +87,37 @@ export default function FileConnectButton({ file }: { file?: string }) {
             },
           ]}
         >
-          {({ openMenu }) => (
-            <Button
-              variant='outline'
-              leftSection={<FontAwesomeIcon icon={faServer} />}
-              rightSection={<FontAwesomeIcon icon={faChevronDown} />}
-              onClick={(e) => {
-                e.stopPropagation();
-                const rect = e.currentTarget.getBoundingClientRect();
-                openMenu(rect.left, rect.bottom);
-              }}
-            >
-              {t('pages.server.files.button.connect', {})}
-            </Button>
-          )}
+          {({ openMenu }) =>
+            iconOnly ? (
+              <Tooltip label={t('pages.server.files.button.connect', {})}>
+                <ActionIcon
+                  variant='subtle'
+                  color='gray'
+                  aria-label={t('pages.server.files.button.connect', {})}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    openMenu(rect.left, rect.bottom);
+                  }}
+                >
+                  <FontAwesomeIcon icon={faServer} />
+                </ActionIcon>
+              </Tooltip>
+            ) : (
+              <Button
+                variant='outline'
+                leftSection={<FontAwesomeIcon icon={faServer} />}
+                rightSection={<FontAwesomeIcon icon={faChevronDown} />}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  openMenu(rect.left, rect.bottom);
+                }}
+              >
+                {t('pages.server.files.button.connect', {})}
+              </Button>
+            )
+          }
         </ContextMenu>
       </ServerCan>
     </>
