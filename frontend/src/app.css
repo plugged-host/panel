@@ -898,6 +898,27 @@ strong {
     filter: brightness(1.08);
   }
 
+  /* Filament's button heights, so a button is the same size in both panels:
+     h-11 default, 2.125rem small, 1.75rem extra small. The class is added in
+     elements/buttons/Button.tsx; explicit Mantine sizes still set their own font size. */
+  .theme-btn.mantine-Button-root {
+    --button-height: 2.75rem;
+    --button-padding-x: 1.25rem;
+    --button-fz: 0.875rem;
+  }
+
+  .theme-btn-sm.mantine-Button-root {
+    --button-height: 2.125rem;
+    --button-padding-x: 0.875rem;
+    --button-fz: 0.8125rem;
+  }
+
+  .theme-btn-xs.mantine-Button-root {
+    --button-height: 1.75rem;
+    --button-padding-x: 0.625rem;
+    --button-fz: 0.75rem;
+  }
+
   /* Gray buttons: "bg-white/10 hover:bg-white/15", no edge. */
   .mantine-Button-root[data-variant="default"],
   .mantine-ActionIcon-root[data-variant="default"] {
@@ -1378,8 +1399,8 @@ strong {
     color: var(--theme-text-faint);
     font-size: 0.75rem;
     font-weight: 600;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
+    letter-spacing: normal;
+    text-transform: none;
   }
 
   .theme-sidebar-divider {

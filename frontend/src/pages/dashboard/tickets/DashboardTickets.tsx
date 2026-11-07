@@ -23,6 +23,7 @@ import UnstyledButton from '@/elements/buttons/UnstyledButton.tsx';
 import AccountContentContainer from '@/elements/containers/AccountContentContainer.tsx';
 import Badge from '@/elements/data-display/Badge.tsx';
 import EmptyState from '@/elements/feedback/EmptyState.tsx';
+import FileInput from '@/elements/input/FileInput.tsx';
 import Select from '@/elements/input/Select.tsx';
 import ServerSelect from '@/elements/input/ServerSelect.tsx';
 import TextArea from '@/elements/input/TextArea.tsx';
@@ -30,7 +31,6 @@ import TextInput from '@/elements/input/TextInput.tsx';
 import Stack from '@/elements/layout/Stack.tsx';
 import ConfirmationModal from '@/elements/modals/ConfirmationModal.tsx';
 import { Modal, ModalFooter } from '@/elements/modals/Modal.tsx';
-import NeoMarkdown from '@/elements/neo/NeoMarkdown.tsx';
 import ResourceView from '@/elements/ResourceView.tsx';
 import FormattedTimestamp from '@/elements/time/FormattedTimestamp.tsx';
 import Text from '@/elements/typography/Text.tsx';
@@ -160,20 +160,15 @@ function CreateModal({
               <TextInput label={t(`${base}.create.bugEnvironment`, {})} {...form.getInputProps('bugEnvironment')} />
             </>
           )}
-          <div className='field'>
-            <label className='label' htmlFor='ticket-attachments'>
-              {t(`${base}.create.attachments`, {})}
-            </label>
-            <input
-              id='ticket-attachments'
-              className='input'
-              type='file'
-              multiple
-              accept='image/*,application/pdf,text/plain,application/json,application/zip,application/gzip'
-              onChange={(event) => setFiles(Array.from(event.currentTarget.files ?? []))}
-            />
-            <p className='hint'>{t(`${base}.create.attachmentsHint`, {})}</p>
-          </div>
+          <FileInput
+            label={t(`${base}.create.attachments`, {})}
+            description={t(`${base}.create.attachmentsHint`, {})}
+            multiple
+            clearable
+            accept='image/*,application/pdf,text/plain,application/json,application/zip,application/gzip'
+            value={files}
+            onChange={(value) => setFiles(Array.isArray(value) ? value : value ? [value] : [])}
+          />
         </Stack>
 
         <ModalFooter>

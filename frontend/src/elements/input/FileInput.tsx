@@ -1,8 +1,11 @@
 import { FileInputProps, FileInput as MantineFileInput } from '@mantine/core';
-import { forwardRef } from 'react';
+import { ForwardedRef, forwardRef, ReactElement, Ref } from 'react';
 import { makeComponentHookable } from 'shared';
 
-const FileInput = forwardRef<HTMLButtonElement, FileInputProps>(({ className, ...rest }, ref) => {
+function FileInputInner<Multiple extends boolean = false>(
+  { className, ...rest }: FileInputProps<Multiple>,
+  ref: ForwardedRef<HTMLButtonElement>,
+) {
   return (
     <MantineFileInput
       ref={ref}
@@ -11,6 +14,11 @@ const FileInput = forwardRef<HTMLButtonElement, FileInputProps>(({ className, ..
       {...rest}
     />
   );
-});
+}
 
-export default makeComponentHookable(FileInput);
+// plugged.host: generic so `multiple` narrows value/onChange to File[] at the call site.
+const FileInput = forwardRef(FileInputInner) as <Multiple extends boolean = false>(
+  props: FileInputProps<Multiple> & { ref?: Ref<HTMLButtonElement> },
+) => ReactElement;
+
+export default makeComponentHookable(FileInput) as typeof FileInput;

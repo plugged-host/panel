@@ -5,11 +5,13 @@ import React, { createContext, ReactNode, useContext, useMemo } from 'react';
 import { NavLink, Route, Routes, useLocation, useNavigate } from 'react-router';
 import { HookableComponentBase, makeComponentHookable } from 'shared';
 import { SubNavigationRegistry } from 'shared/src/registries/slices/subNavigation.ts';
+import Select from '@/elements/input/Select.tsx';
 import { type LazyString, resolveString } from '@/lib/lazy.ts';
 import { pageNavigationCategoryId } from '@/lib/quickActions/coreQuickActions.tsx';
 import { to } from '@/lib/routes.ts';
 import { useQuickActions } from '@/plugins/quick-actions/useQuickActions.ts';
 import { useAdminPermissions } from '@/plugins/usePermissions.ts';
+import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import AdminPermissionGuard from '@/routers/guards/AdminPermissionGuard.tsx';
 
 interface BaseItemProp {
@@ -101,6 +103,8 @@ function SubNavigation<P>({
   registryProps,
 }: SubNavigationProps<P>) {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { t } = useTranslations();
   const depth = useContext(SubNavigationDepthContext) + 1;
 
   const items = useMemo(() => {
@@ -142,17 +146,50 @@ function SubNavigation<P>({
       })
       .sort((a, b) => (b.path?.length ?? b.link?.length ?? 0) - (a.path?.length ?? a.link?.length ?? 0))[0] ?? items[0];
 
+  const activePath = activeItem ? itemPath(baseUrl, activeItem) : '';
+  const selectData = visibleItems.map((item) => ({
+    value: itemPath(baseUrl, item),
+    label: resolveString(item.name),
+  }));
+
   return (
     <SubNavigationDepthContext.Provider value={depth}>
       {tabsShown && (
-        // plugged.host: Filament's page tabs under Theme v2 (".theme-tabs" in app.css)
-        <Tabs className='theme-tabs' mb='lg' value={resolveString(activeItem?.name) ?? resolveString(items[0].name)}>
-          <Tabs.List>
-            {visibleItems.map((item) => (
-              <SubNavigationItem key={resolveString(item.name)} baseUrl={baseUrl} item={item} />
-            ))}
-          </Tabs.List>
-        </Tabs>
+        <>
+          {/* plugged.host: Filament's page tabs under Theme v2 (".theme-tabs" in app.css) */}
+          <div className='hidden md:block'>
+            <Tabs
+              className='theme-tabs'
+              mb='lg'
+              value={resolveString(activeItem?.name) ?? resolveString(items[0].name)}
+            >
+              <Tabs.List>
+                {visibleItems.map((item) => (
+                  <SubNavigationItem key={resolveString(item.name)} baseUrl={baseUrl} item={item} />
+                ))}
+              </Tabs.List>
+            </Tabs>
+          </div>
+          {/* plugged.host: on a phone the same sections become one select (the hosting
+              dashboard's MobileSectionNav), so nothing scrolls sideways off the screen. */}
+          <div className='md:hidden mb-4'>
+            <Select
+              aria-label={t('elements.quickActions.category.pageNavigation', {})}
+              data={selectData}
+              value={activePath}
+              allowDeselect={false}
+              comboboxProps={{ withinPortal: false }}
+              onChange={(value) => {
+                if (!value || value === activePath) return;
+                if (/^https?:\/\//.test(value)) {
+                  window.location.href = value;
+                } else {
+                  navigate(value);
+                }
+              }}
+            />
+          </div>
+        </>
       )}
       {pathItems.length > 0 && (
         <Routes>
