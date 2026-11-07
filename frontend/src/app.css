@@ -902,6 +902,37 @@ strong {
     filter: brightness(1.08);
   }
 
+  /* Filament's button heights for every Mantine button, including the direct
+     MantineButton links that do not use the wrapper: h-11 default, 2.125rem small,
+     1.75rem extra small. */
+  .mantine-Button-root:not([data-size]),
+  .mantine-Button-root[data-size="md"],
+  .mantine-Button-root[data-size="lg"],
+  .mantine-Button-root[data-size="xl"] {
+    --button-height: 2.75rem;
+    --button-padding-x: 1.25rem;
+    --button-fz: 0.875rem;
+    box-shadow:
+      0 1px 3px 0 rgb(0 0 0 / 0.1),
+      0 1px 2px -1px rgb(0 0 0 / 0.1);
+  }
+
+  .mantine-Button-root[data-size="sm"] {
+    --button-height: 2.125rem;
+    --button-padding-x: 0.875rem;
+    --button-fz: 0.8125rem;
+  }
+
+  .mantine-Button-root[data-size="xs"] {
+    --button-height: 1.75rem;
+    --button-padding-x: 0.625rem;
+    --button-fz: 0.75rem;
+  }
+
+  .mantine-Button-root:active {
+    box-shadow: none;
+  }
+
   /* Filament's button heights, so a button is the same size in both panels:
      h-11 default, 2.125rem small, 1.75rem extra small. The class is added in
      elements/buttons/Button.tsx; explicit Mantine sizes still set their own font size. */

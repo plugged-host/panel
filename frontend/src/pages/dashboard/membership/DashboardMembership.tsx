@@ -68,7 +68,7 @@ function PlanCard({
   children: ReactNode;
 }) {
   return (
-    <section className='theme-eco-card'>
+    <section className='theme-eco-card justify-between h-full'>
       <div className='flex flex-col gap-1'>
         <h3 className='theme-eco-heading'>{name}</h3>
         <p className='theme-eco-muted'>{pitch}</p>
@@ -196,7 +196,7 @@ export default function DashboardMembership() {
 
   return (
     <AccountContentContainer
-      title={names ? t(`${page}.pageTitle`, { app: appName, name: names.plusName }) : t(`${page}.title`, {})}
+      title={t(`${page}.title`, {})}
       subtitle={membership.data?.autoRenewEnabled ? t(`${page}.subtitleAutoRenew`, {}) : t(`${page}.subtitle`, {})}
     >
       <ResourceView resource={membership}>
@@ -448,7 +448,7 @@ export default function DashboardMembership() {
             return (
               <Button
                 key={key}
-                className='theme-plus-offer w-full'
+                className='w-full'
                 variant={filled ? 'filled' : 'default'}
                 disabled={disabled}
                 onClick={
@@ -457,21 +457,20 @@ export default function DashboardMembership() {
                     : onBuy
                 }
               >
-                <span className='font-semibold'>{t(`${page}.days`, { days: offer.days })}</span>
-                <span className='theme-plus-offer-cost'>
-                  {missing > 0 ? (
-                    t(`${page}.moreToGo`, { amount: tItem(offer.pay === 'tokens' ? 'token' : 'credit', missing) })
-                  ) : (
-                    <>
-                      {offer.fullCost > offer.cost && (
-                        <s className='theme-eco-was' aria-hidden='true'>
-                          {offer.fullCost.toLocaleString()}
-                        </s>
-                      )}
-                      {costText(offer.pay, offer.cost)}
-                    </>
-                  )}
-                </span>
+                {duration(offer.days)}
+                {' · '}
+                {missing > 0 ? (
+                  t(`${page}.moreToGo`, { amount: tItem(offer.pay === 'tokens' ? 'token' : 'credit', missing) })
+                ) : (
+                  <>
+                    {offer.fullCost > offer.cost && (
+                      <s className='theme-eco-was' aria-hidden='true'>
+                        {offer.fullCost.toLocaleString()}
+                      </s>
+                    )}
+                    {costText(offer.pay, offer.cost)}
+                  </>
+                )}
               </Button>
             );
           };
@@ -626,7 +625,7 @@ export default function DashboardMembership() {
 
                   <div className='theme-plus-plans'>
                     <PlanCard
-                      name={t(`${page}.pageTitle`, { app: appName, name: economy.plusName })}
+                      name={economy.plusName}
                       pitch={t(`${page}.plus.pitch`, {})}
                       price={costText('tokens', economy.plusCost)}
                       was={economy.plusFullCost > economy.plusCost ? economy.plusFullCost.toLocaleString() : undefined}
@@ -659,7 +658,7 @@ export default function DashboardMembership() {
                     </PlanCard>
 
                     <PlanCard
-                      name={t(`${page}.pageTitle`, { app: appName, name: economy.plusplusName })}
+                      name={economy.plusplusName}
                       pitch={t(`${page}.plusplus.pitch`, {})}
                       price={
                         pricedOffer ? costText(pricedOffer.pay, pricedOffer.cost) : t(`${page}.plusplus.notSold`, {})
@@ -705,7 +704,7 @@ export default function DashboardMembership() {
                         <p className='theme-eco-muted'>{t(`${page}.gift.text`, {})}</p>
                       </div>
 
-                      <form className='flex flex-col gap-3' onSubmit={sendGift}>
+                      <form className='theme-eco-card' onSubmit={sendGift}>
                         <div className='grid gap-3 sm:grid-cols-2'>
                           <TextInput
                             label={t(`${page}.gift.recipient`, {})}
@@ -757,48 +756,50 @@ export default function DashboardMembership() {
                     </section>
                   )}
 
-                  <section className='flex flex-col gap-3'>
-                    <h3 className='theme-eco-heading'>{t(`${page}.compare.heading`, {})}</h3>
+                  <div className='grid items-start gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]'>
+                    <section className='flex flex-col gap-3'>
+                      <h3 className='theme-eco-heading'>{t(`${page}.compare.heading`, {})}</h3>
 
-                    <div className='theme-eco-list'>
-                      <div className='theme-plus-compare' role='table' aria-label={t(`${page}.compare.heading`, {})}>
-                        <div className='theme-plus-head' role='columnheader' />
-                        <div className='theme-plus-head' role='columnheader'>
-                          {t(`${page}.compare.free`, {})}
-                        </div>
-                        <div className='theme-plus-head' role='columnheader'>
-                          {economy.plusName}
-                        </div>
-                        <div className='theme-plus-head' role='columnheader'>
-                          {economy.plusplusName}
-                        </div>
+                      <div className='theme-eco-list'>
+                        <div className='theme-plus-compare' role='table' aria-label={t(`${page}.compare.heading`, {})}>
+                          <div className='theme-plus-head' role='columnheader' />
+                          <div className='theme-plus-head' role='columnheader'>
+                            {t(`${page}.compare.free`, {})}
+                          </div>
+                          <div className='theme-plus-head' role='columnheader'>
+                            {economy.plusName}
+                          </div>
+                          <div className='theme-plus-head' role='columnheader'>
+                            {economy.plusplusName}
+                          </div>
 
-                        {rows.map((row) => (
-                          <Fragment key={row.label}>
-                            <div className='theme-plus-rowhead' role='rowheader'>
-                              {row.label}
-                            </div>
-                            <div role='cell'>{row.free}</div>
-                            <div role='cell'>{row.plus}</div>
-                            <div role='cell'>{row.plusplus}</div>
-                          </Fragment>
+                          {rows.map((row) => (
+                            <Fragment key={row.label}>
+                              <div className='theme-plus-rowhead' role='rowheader'>
+                                {row.label}
+                              </div>
+                              <div role='cell'>{row.free}</div>
+                              <div role='cell'>{row.plus}</div>
+                              <div role='cell'>{row.plusplus}</div>
+                            </Fragment>
+                          ))}
+                        </div>
+                      </div>
+                    </section>
+
+                    <section className='flex flex-col gap-3'>
+                      <h3 className='theme-eco-heading'>{t(`${page}.faq.heading`, {})}</h3>
+
+                      <div className='theme-eco-list theme-plus-faq'>
+                        {faq.map((entry) => (
+                          <details key={entry.question}>
+                            <summary>{entry.question}</summary>
+                            <p className='theme-eco-text'>{entry.answer}</p>
+                          </details>
                         ))}
                       </div>
-                    </div>
-                  </section>
-
-                  <section className='flex flex-col gap-3'>
-                    <h3 className='theme-eco-heading'>{t(`${page}.faq.heading`, {})}</h3>
-
-                    <div className='theme-eco-list theme-plus-faq'>
-                      {faq.map((entry) => (
-                        <details key={entry.question}>
-                          <summary>{entry.question}</summary>
-                          <p className='theme-eco-text'>{entry.answer}</p>
-                        </details>
-                      ))}
-                    </div>
-                  </section>
+                    </section>
+                  </div>
                 </>
               )}
             </Stack>

@@ -1,13 +1,15 @@
 import { faPencil, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { Group } from '@mantine/core';
 import { useQueryClient } from '@tanstack/react-query';
 import { forwardRef, useState } from 'react';
 import { z } from 'zod';
 import { httpErrorToHuman } from '@/api/axios.ts';
 import deleteSshKey from '@/api/me/ssh-keys/deleteSshKey.ts';
+import Button from '@/elements/buttons/Button.tsx';
 import CopyOnClick from '@/elements/CopyOnClick.tsx';
 import { TableData, TableRow, TableSelectionCell } from '@/elements/data-display/Table.tsx';
 import ConfirmationModal from '@/elements/modals/ConfirmationModal.tsx';
-import ContextMenu, { ContextMenuToggle } from '@/elements/overlays/ContextMenu.tsx';
+import ContextMenu from '@/elements/overlays/ContextMenu.tsx';
 import FormattedTimestamp from '@/elements/time/FormattedTimestamp.tsx';
 import Code from '@/elements/typography/Code.tsx';
 import { queryKeys } from '@/lib/queryKeys.ts';
@@ -105,7 +107,16 @@ const SshKeyRow = forwardRef<HTMLTableRowElement, SshKeyRowProps>(function SshKe
               <FormattedTimestamp timestamp={sshKey.created} />
             </TableData>
 
-            <ContextMenuToggle items={items} openMenu={openMenu} />
+            <TableData>
+              <Group justify='flex-end' gap='xs' wrap='nowrap'>
+                <Button variant='default' size='sm' onClick={() => setOpenModal('edit')}>
+                  {t('common.button.edit', {})}
+                </Button>
+                <Button variant='default' size='sm' onClick={() => setOpenModal('delete')}>
+                  {t('common.button.delete', {})}
+                </Button>
+              </Group>
+            </TableData>
           </TableRow>
         )}
       </ContextMenu>
