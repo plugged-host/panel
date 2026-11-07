@@ -9424,19 +9424,22 @@
             "backToFiles": "Zurück zu den Dateien",
             "restoreTo": "Wiederherstellen nach...",
             "remoteCopy": "Remote-Kopie",
-            "search": "Suchen",
+            "search": "Advanced search",
             "exitBackup": "Backup verlassen",
             "fileFromEditor": "Datei aus Editor",
             "directory": "Verzeichnis",
-            "symlink": "Symlink",
-            "fileFromPull": "Datei aus Pull",
-            "fileFromUpload": "Datei aus Upload",
-            "directoryFromUpload": "Verzeichnis aus Upload",
+            "symlink": "New symlink",
+            "fileFromPull": "New from URL",
+            "fileFromUpload": "Upload files",
+            "directoryFromUpload": "Upload folder",
             "viewDiff": "Unterschiede anzeigen",
             "openInEditor": "Im Editor öffnen",
             "editorActions": "Editoraktionen",
             "loadDisk": "Festplattenversion laden",
-            "keepEditor": "Editor-Version behalten"
+            "keepEditor": "Editor-Version behalten",
+            "newFolder": "New folder",
+            "newFile": "New file",
+            "upload": "Upload"
           },
           "quickAction": {
             "newFile": "Neue Datei",
@@ -9451,7 +9454,7 @@
             "uploadFiles": "Dateien hochladen",
             "uploadDirectory": "Verzeichnis hochladen",
             "search": "Dateien suchen",
-            "largestDirectories": "Verzeichnisgrößen analysieren",
+            "largestDirectories": "Analyze directory sizes",
             "incompleteUploads": "Unvollständige Uploads ansehen",
             "parentDirectory": "Zum übergeordneten Verzeichnis",
             "copyPath": "Aktuellen Pfad kopieren",
@@ -9878,8 +9881,11 @@
           "empty": {
             "title": "Leeres Verzeichnis",
             "description": "In diesem Verzeichnis ist noch nichts. Lade Dateien hoch oder erstelle neue, um es zu füllen.",
-            "descriptionReadOnly": "In diesem Verzeichnis ist noch nichts."
-          }
+            "descriptionReadOnly": "In diesem Verzeichnis ist noch nichts.",
+            "filtered": "No files match."
+          },
+          "subtitle": "Manage, download and edit your files.",
+          "searchPlaceholder": "Search this folder…"
         },
         "databases": {
           "title": "Datenbanken",

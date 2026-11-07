@@ -9340,7 +9340,8 @@
           "empty": {
             "title": "Thư Mục Trống",
             "description": "Thư mục này chưa có gì. Tải tệp lên hoặc tạo tệp mới để thêm nội dung.",
-            "descriptionReadOnly": "Thư mục này chưa có gì."
+            "descriptionReadOnly": "Thư mục này chưa có gì.",
+            "filtered": "No files match."
           },
           "title": "Tệp",
           "editorNotFound": {
@@ -9430,19 +9431,22 @@
             "backToFiles": "Quay Lại Tệp",
             "restoreTo": "Khôi Phục Vào...",
             "remoteCopy": "Sao Chép Máy Chủ Điều Khiển",
-            "search": "Tìm Kiếm",
+            "search": "Advanced search",
             "exitBackup": "Thoát Sao Lưu",
             "fileFromEditor": "Tệp Từ Trình Soạn Thảo",
             "directory": "Thư Mục",
-            "symlink": "Symlink",
-            "fileFromPull": "Tệp Từ Kéo",
-            "fileFromUpload": "Tệp Từ Tải Lên",
-            "directoryFromUpload": "Thư Mục Từ Tải Lên",
+            "symlink": "New symlink",
+            "fileFromPull": "New from URL",
+            "fileFromUpload": "Upload files",
+            "directoryFromUpload": "Upload folder",
             "viewDiff": "Xem khác biệt",
             "openInEditor": "Mở trong Trình Soạn Thảo",
             "editorActions": "Các thao tác của trình biên tập",
             "loadDisk": "Load Phiên Bản Ổ đĩa",
-            "keepEditor": "Giữ bản Chỉnh sửa"
+            "keepEditor": "Giữ bản Chỉnh sửa",
+            "newFolder": "New folder",
+            "newFile": "New file",
+            "upload": "Upload"
           },
           "quickAction": {
             "newFile": "Tệp Mới",
@@ -9457,7 +9461,7 @@
             "uploadFiles": "Tải Tệp lên",
             "uploadDirectory": "Tải thư mục lên",
             "search": "Tìm kiếm tệp",
-            "largestDirectories": "Phân tích kích thước thư mục",
+            "largestDirectories": "Analyze directory sizes",
             "incompleteUploads": "Chuyển sang chế độ xem dạng cây",
             "parentDirectory": "Đi tới thư mục chính",
             "copyPath": "Sao chép đường dẫn hiện tại",
@@ -9880,7 +9884,9 @@
               "hint": "Hãy tiếp tục quá trình từ bảng tải lên nếu bạn đã bắt đầu nó, hoặc xóa tệp tin chưa hoàn tất nếu bạn không còn cần đến nữa.",
               "empty": "Mọi quá trình tải lên máy chủ này đã hoàn tất."
             }
-          }
+          },
+          "subtitle": "Manage, download and edit your files.",
+          "searchPlaceholder": "Search this folder…"
         },
         "databases": {
           "title": "Cơ Sở Dữ Liệu",

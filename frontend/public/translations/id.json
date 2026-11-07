@@ -3774,7 +3774,8 @@
           "empty": {
             "title": "Direktori Kosong",
             "description": "Belum ada apa pun di direktori ini. Unggah file atau buat file baru untuk mengisinya.",
-            "descriptionReadOnly": "Belum ada apa pun di direktori ini."
+            "descriptionReadOnly": "Belum ada apa pun di direktori ini.",
+            "filtered": "No files match."
           },
           "title": "File",
           "editorNotFound": {
@@ -3864,19 +3865,22 @@
             "backToFiles": "Kembali ke File",
             "restoreTo": "Pulihkan ke...",
             "remoteCopy": "Salin Jarak Jauh",
-            "search": "Cari",
+            "search": "Advanced search",
             "exitBackup": "Keluar dari Cadangan",
             "fileFromEditor": "File dari Editor",
             "directory": "Direktori",
-            "symlink": "Symlink",
-            "fileFromPull": "File dari Tarikan URL",
-            "fileFromUpload": "File dari Unggahan",
-            "directoryFromUpload": "Direktori dari Unggahan",
+            "symlink": "New symlink",
+            "fileFromPull": "New from URL",
+            "fileFromUpload": "Upload files",
+            "directoryFromUpload": "Upload folder",
             "viewDiff": "Lihat Perbedaan",
             "openInEditor": "Buka di Editor",
             "editorActions": "Aksi Editor",
             "loadDisk": "Muat Versi Disk",
-            "keepEditor": "Pertahankan Versi Editor"
+            "keepEditor": "Pertahankan Versi Editor",
+            "newFolder": "New folder",
+            "newFile": "New file",
+            "upload": "Upload"
           },
           "quickAction": {
             "newFile": "File Baru",
@@ -3891,7 +3895,7 @@
             "uploadFiles": "Unggah File",
             "uploadDirectory": "Unggah Direktori",
             "search": "Cari File",
-            "largestDirectories": "Analisis Ukuran Direktori",
+            "largestDirectories": "Analyze directory sizes",
             "incompleteUploads": "Tinjau Unggahan yang Belum Selesai",
             "parentDirectory": "Ke Direktori Induk",
             "copyPath": "Salin Jalur Saat Ini",
@@ -4314,7 +4318,9 @@
               "hint": "Lanjutkan dari panel unggahan jika Anda yang memulainya, atau hapus file parsial jika tidak lagi diperlukan.",
               "empty": "Semua unggahan ke server ini sudah selesai."
             }
-          }
+          },
+          "subtitle": "Manage, download and edit your files.",
+          "searchPlaceholder": "Search this folder…"
         },
         "databases": {
           "title": "Database",

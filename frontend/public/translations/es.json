@@ -9418,14 +9418,14 @@
             "archive": "Archivar",
             "more": "Más",
             "remoteCopy": "Copia remota",
-            "search": "Buscar",
+            "search": "Advanced search",
             "exitBackup": "Salir de la copia de seguridad",
             "fileFromEditor": "Archivo desde el editor",
             "directory": "Directorio",
-            "symlink": "Enlace simbólico",
-            "fileFromPull": "Archivo desde pull",
-            "fileFromUpload": "Archivo desde subida",
-            "directoryFromUpload": "Directorio desde subida",
+            "symlink": "New symlink",
+            "fileFromPull": "New from URL",
+            "fileFromUpload": "Upload files",
+            "directoryFromUpload": "Upload folder",
             "viewDiff": "Ver diferencias",
             "openInEditor": "Abrir en editor",
             "editorActions": "Acciones del editor",
@@ -9436,7 +9436,10 @@
             "trash": "Trash",
             "emptyTrash": "Empty Trash",
             "backToFiles": "Back to Files",
-            "restoreTo": "Restore to..."
+            "restoreTo": "Restore to...",
+            "newFolder": "New folder",
+            "newFile": "New file",
+            "upload": "Upload"
           },
           "quickAction": {
             "newFile": "Nuevo archivo",
@@ -9451,7 +9454,7 @@
             "uploadFiles": "Subir archivos",
             "uploadDirectory": "Subir directorio",
             "search": "Buscar archivos",
-            "largestDirectories": "Analizar tamaños de directorio",
+            "largestDirectories": "Analyze directory sizes",
             "incompleteUploads": "Revisar subidas incompletas",
             "parentDirectory": "Ir al directorio principal",
             "copyPath": "Copiar ruta actual",
@@ -9831,7 +9834,8 @@
           "empty": {
             "title": "Empty Directory",
             "description": "There is nothing in this directory yet. Upload files or create new ones to fill it.",
-            "descriptionReadOnly": "There is nothing in this directory yet."
+            "descriptionReadOnly": "There is nothing in this directory yet.",
+            "filtered": "No files match."
           },
           "trash": {
             "title": "Trash",
@@ -9879,7 +9883,9 @@
               "deleted": "{entries} permanently deleted.",
               "emptied": "The trash has been emptied."
             }
-          }
+          },
+          "subtitle": "Manage, download and edit your files.",
+          "searchPlaceholder": "Search this folder…"
         },
         "databases": {
           "title": "Bases de datos",

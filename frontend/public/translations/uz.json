@@ -3774,7 +3774,8 @@
           "empty": {
             "title": "Boʻsh katalog",
             "description": "Bu katalogda hali hech narsa yoʻq. Uni toʻldirish uchun fayllarni yuklang yoki yangilarini yarating.",
-            "descriptionReadOnly": "Bu katalogda hali hech narsa yoʻq."
+            "descriptionReadOnly": "Bu katalogda hali hech narsa yoʻq.",
+            "filtered": "No files match."
           },
           "title": "Fayllar",
           "editorNotFound": {
@@ -3864,19 +3865,22 @@
             "backToFiles": "Fayllarga qaytish",
             "restoreTo": "Katalogga tiklash...",
             "remoteCopy": "Masofaviy nusxalash",
-            "search": "Qidirish",
+            "search": "Advanced search",
             "exitBackup": "Zaxira nusxadan chiqish",
             "fileFromEditor": "Fayl (muharrir orqali)",
             "directory": "Katalog",
-            "symlink": "Ramziy havola",
-            "fileFromPull": "Fayl (tortib olish orqali)",
-            "fileFromUpload": "Fayl (yuklash orqali)",
-            "directoryFromUpload": "Katalog (yuklash orqali)",
+            "symlink": "New symlink",
+            "fileFromPull": "New from URL",
+            "fileFromUpload": "Upload files",
+            "directoryFromUpload": "Upload folder",
             "viewDiff": "Farqlarni koʻrish",
             "openInEditor": "Muharrirda ochish",
             "editorActions": "Muharrir amallari",
             "loadDisk": "Diskdagi versiyani yuklash",
-            "keepEditor": "Muharrirdagi versiyani qoldirish"
+            "keepEditor": "Muharrirdagi versiyani qoldirish",
+            "newFolder": "New folder",
+            "newFile": "New file",
+            "upload": "Upload"
           },
           "quickAction": {
             "newFile": "Yangi fayl",
@@ -3891,7 +3895,7 @@
             "uploadFiles": "Fayllarni yuklash",
             "uploadDirectory": "Katalogni yuklash",
             "search": "Fayllarni qidirish",
-            "largestDirectories": "Katalog hajmlarini tahlil qilish",
+            "largestDirectories": "Analyze directory sizes",
             "incompleteUploads": "Tugallanmagan yuklashlarni koʻrib chiqish",
             "parentDirectory": "Yuqori katalogga oʻtish",
             "copyPath": "Joriy yoʻlni nusxalash",
@@ -4314,7 +4318,9 @@
               "hint": "Agar yuklashni siz boshlagan boʻlsangiz, uni yuklashlar panelidan davom ettiring yoki endi kerak boʻlmasa, qisman yuklangan faylni oʻchiring.",
               "empty": "Bu serverga qilingan barcha yuklashlar tugallangan."
             }
-          }
+          },
+          "subtitle": "Manage, download and edit your files.",
+          "searchPlaceholder": "Search this folder…"
         },
         "databases": {
           "title": "Maʼlumotlar bazalari",

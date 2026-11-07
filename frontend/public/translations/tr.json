@@ -3774,7 +3774,8 @@
           "empty": {
             "title": "Boş Dizin",
             "description": "Bu dizinde henüz hiçbir şey yok. Doldurmak için dosya yükleyin veya yeni dosyalar oluşturun.",
-            "descriptionReadOnly": "Bu dizinde henüz hiçbir şey yok."
+            "descriptionReadOnly": "Bu dizinde henüz hiçbir şey yok.",
+            "filtered": "No files match."
           },
           "title": "Dosyalar",
           "editorNotFound": {
@@ -3864,19 +3865,22 @@
             "backToFiles": "Dosyalara Dön",
             "restoreTo": "Şuraya Geri Yükle...",
             "remoteCopy": "Uzak Kopyalama",
-            "search": "Ara",
+            "search": "Advanced search",
             "exitBackup": "Yedekten Çık",
             "fileFromEditor": "Editörden Dosya",
             "directory": "Dizin",
-            "symlink": "Sembolik Bağlantı",
-            "fileFromPull": "URL'den Dosya Çek",
-            "fileFromUpload": "Dosya Yükle",
-            "directoryFromUpload": "Klasör Yükle",
+            "symlink": "New symlink",
+            "fileFromPull": "New from URL",
+            "fileFromUpload": "Upload files",
+            "directoryFromUpload": "Upload folder",
             "viewDiff": "Farkları Görüntüle",
             "openInEditor": "Editörde Aç",
             "editorActions": "Editör Eylemleri",
             "loadDisk": "Diskteki Sürümü Yükle",
-            "keepEditor": "Editördeki Sürümü Koru"
+            "keepEditor": "Editördeki Sürümü Koru",
+            "newFolder": "New folder",
+            "newFile": "New file",
+            "upload": "Upload"
           },
           "quickAction": {
             "newFile": "Yeni Dosya",
@@ -3891,7 +3895,7 @@
             "uploadFiles": "Dosya Yükle",
             "uploadDirectory": "Dizin Yükle",
             "search": "Dosya Ara",
-            "largestDirectories": "Dizin Boyutlarını Analiz Et",
+            "largestDirectories": "Analyze directory sizes",
             "incompleteUploads": "Tamamlanmamış Yüklemeleri İncele",
             "parentDirectory": "Üst Dizine Git",
             "copyPath": "Geçerli Yolu Kopyala",
@@ -4314,7 +4318,9 @@
               "hint": "Yüklemeyi siz başlattıysanız yüklemeler panelinden devam ettirin, artık ihtiyacınız yoksa yarım kalan dosyayı silin.",
               "empty": "Bu sunucuya yapılan tüm yüklemeler tamamlandı."
             }
-          }
+          },
+          "subtitle": "Manage, download and edit your files.",
+          "searchPlaceholder": "Search this folder…"
         },
         "databases": {
           "title": "Veritabanları",

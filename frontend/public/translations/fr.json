@@ -9340,7 +9340,8 @@
           "empty": {
             "title": "Dossier vide",
             "description": "Ce dossier est encore vide. Téléversez des fichiers ou créez-en de nouveaux pour le remplir.",
-            "descriptionReadOnly": "Ce dossier est encore vide."
+            "descriptionReadOnly": "Ce dossier est encore vide.",
+            "filtered": "No files match."
           },
           "title": "Fichiers",
           "editorNotFound": {
@@ -9430,19 +9431,22 @@
             "backToFiles": "Retour aux fichiers",
             "restoreTo": "Restaurer vers...",
             "remoteCopy": "Copie distante",
-            "search": "Rechercher",
+            "search": "Advanced search",
             "exitBackup": "Quitter la sauvegarde",
             "fileFromEditor": "Fichier de l'éditeur",
             "directory": "Répertoire",
-            "symlink": "Lien symbolique",
-            "fileFromPull": "Fichier depuis récupération",
-            "fileFromUpload": "Fichier depuis téléversement",
-            "directoryFromUpload": "Répertoire depuis téléversement",
+            "symlink": "New symlink",
+            "fileFromPull": "New from URL",
+            "fileFromUpload": "Upload files",
+            "directoryFromUpload": "Upload folder",
             "viewDiff": "Voir les différences",
             "openInEditor": "Ouvrir dans l'éditeur",
             "editorActions": "Actions de l'éditeur",
             "loadDisk": "Charger la version du disque",
-            "keepEditor": "Garder la version de l'éditeur"
+            "keepEditor": "Garder la version de l'éditeur",
+            "newFolder": "New folder",
+            "newFile": "New file",
+            "upload": "Upload"
           },
           "quickAction": {
             "newFile": "Nouveau fichier",
@@ -9457,7 +9461,7 @@
             "uploadFiles": "Téléverser des fichiers",
             "uploadDirectory": "Téléverser un dossier",
             "search": "Rechercher des fichiers",
-            "largestDirectories": "Analyser la taille des dossiers",
+            "largestDirectories": "Analyze directory sizes",
             "incompleteUploads": "Vérifier les téléversements incomplets",
             "parentDirectory": "Aller au dossier parent",
             "copyPath": "Copier le chemin actuel",
@@ -9880,7 +9884,9 @@
               "hint": "Reprenez-le depuis le panneau des téléversements si c'est vous qui l'avez lancé, ou supprimez le fichier partiel si vous n'en avez plus besoin.",
               "empty": "Tous les téléversements vers ce serveur sont terminés."
             }
-          }
+          },
+          "subtitle": "Manage, download and edit your files.",
+          "searchPlaceholder": "Search this folder…"
         },
         "databases": {
           "title": "Bases de données",

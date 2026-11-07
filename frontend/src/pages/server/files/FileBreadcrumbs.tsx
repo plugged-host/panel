@@ -1,9 +1,10 @@
-import { faDoorOpen, faMagnifyingGlassChart, faSearch } from '@fortawesome/free-solid-svg-icons';
+import { faArrowUp, faDoorOpen, faRotate } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classNames from 'classnames';
 import { join } from 'pathe';
 import { ReactNode } from 'react';
-import { createSearchParams, NavLink } from 'react-router';
+import { createSearchParams, NavLink, useSearchParams } from 'react-router';
+import { z } from 'zod';
 import { useShallow } from 'zustand/react/shallow';
 import ActionIcon from '@/elements/buttons/ActionIcon.tsx';
 import Button from '@/elements/buttons/Button.tsx';
@@ -11,37 +12,46 @@ import Breadcrumbs from '@/elements/data-display/Breadcrumbs.tsx';
 import Checkbox from '@/elements/input/Checkbox.tsx';
 import Tooltip from '@/elements/overlays/Tooltip.tsx';
 import { pathSegments } from '@/lib/path.ts';
+import { serverDirectoryEntrySchema } from '@/lib/schemas/server/files.ts';
 import { useDraggedFileMove } from '@/pages/server/files/hooks/useDraggedFileMove.ts';
 import { useFileManager } from '@/providers/FileManagerProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useServerStore } from '@/stores/server.ts';
 
-export default function FileBreadcrumbs({ path, inFileEditor }: { path: string; inFileEditor?: boolean }) {
+export default function FileBreadcrumbs({
+  path,
+  inFileEditor,
+  entries,
+}: {
+  path: string;
+  inFileEditor?: boolean;
+  entries?: z.infer<typeof serverDirectoryEntrySchema>[];
+}) {
   const { t } = useTranslations();
   const server = useServerStore((state) => state.server);
+  const [, setSearchParams] = useSearchParams();
   const { isDropTarget, getDropHandlers } = useDraggedFileMove({ disabled: !!inFileEditor });
   const {
     selectedFilesCount,
     browsingBackup,
     browsingEntries,
-    browsingPrimaryFilesystem,
     setBrowsingDirectory,
     anyActing,
     doSelectFiles,
-    doOpenModal,
+    invalidateFilemanager,
   } = useFileManager(
     useShallow((state) => ({
       selectedFilesCount: state.selectedFiles.size,
       browsingBackup: state.browsingBackup,
       browsingEntries: state.browsingEntries,
-      browsingPrimaryFilesystem: state.browsingPrimaryFilesystem,
       setBrowsingDirectory: state.setBrowsingDirectory,
       anyActing: state.actingFiles.size > 0,
       doSelectFiles: state.doSelectFiles,
-      doOpenModal: state.doOpenModal,
+      invalidateFilemanager: state.invalidateFilemanager,
     })),
   );
 
+  const selectableEntries = entries ?? browsingEntries.data;
   const splittedPath = path.split('/').filter(Boolean);
   const pathItems = pathSegments(path);
 
@@ -95,16 +105,16 @@ export default function FileBreadcrumbs({ path, inFileEditor }: { path: string; 
       <Breadcrumbs separatorMargin='xs'>
         <Checkbox
           disabled={anyActing}
-          checked={!inFileEditor && selectedFilesCount > 0 && selectedFilesCount >= browsingEntries.data.length}
-          indeterminate={selectedFilesCount > 0 && selectedFilesCount < browsingEntries.data.length}
+          checked={!inFileEditor && selectedFilesCount > 0 && selectedFilesCount >= selectableEntries.length}
+          indeterminate={selectedFilesCount > 0 && selectedFilesCount < selectableEntries.length}
           className='mr-2'
           classNames={{ input: 'cursor-pointer!' }}
           hidden={inFileEditor}
           onChange={() => {
-            if (selectedFilesCount >= browsingEntries.data.length) {
+            if (selectedFilesCount >= selectableEntries.length) {
               doSelectFiles([]);
             } else {
-              doSelectFiles(browsingEntries.data);
+              doSelectFiles(selectableEntries);
             }
           }}
         />
@@ -118,24 +128,34 @@ export default function FileBreadcrumbs({ path, inFileEditor }: { path: string; 
               {t('pages.server.files.button.exitBackup', {})}
             </Button>
           </NavLink>
-          <span className='flex flex-row space-x-2'>
-            <Tooltip label={t('pages.server.files.tooltip.largestDirectories', {})}>
+          <span className='flex flex-row gap-2'>
+            <Tooltip label={t('pages.server.files.quickAction.parentDirectory', {})}>
               <ActionIcon
-                variant='light'
+                variant='subtle'
+                color='gray'
                 size='input-sm'
-                hidden={!browsingPrimaryFilesystem}
-                onClick={() => doOpenModal('largestDirectories')}
+                disabled={path === '/' || path === ''}
+                aria-label={t('pages.server.files.quickAction.parentDirectory', {})}
+                onClick={() => {
+                  const parent = join(path, '..');
+                  setBrowsingDirectory(parent);
+                  setSearchParams({ directory: parent });
+                }}
               >
-                <FontAwesomeIcon icon={faMagnifyingGlassChart} />
+                <FontAwesomeIcon icon={faArrowUp} />
               </ActionIcon>
             </Tooltip>
-            <Button
-              variant='outline'
-              leftSection={<FontAwesomeIcon icon={faSearch} />}
-              onClick={() => doOpenModal('search')}
-            >
-              {t('pages.server.files.button.search', {})}
-            </Button>
+            <Tooltip label={t('pages.server.files.tree.reload', {})}>
+              <ActionIcon
+                variant='subtle'
+                color='gray'
+                size='input-sm'
+                aria-label={t('pages.server.files.tree.reload', {})}
+                onClick={() => invalidateFilemanager()}
+              >
+                <FontAwesomeIcon icon={faRotate} />
+              </ActionIcon>
+            </Tooltip>
           </span>
         </div>
       )}

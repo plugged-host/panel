@@ -9355,13 +9355,13 @@
             "archive": "Archivovať",
             "more": "Viac",
             "remoteCopy": "Vzdialené kopírovanie",
-            "search": "Hľadať",
+            "search": "Advanced search",
             "exitBackup": "Ukončiť prehliadanie zálohy",
             "fileFromEditor": "Súbor z editora",
             "directory": "Adresár",
-            "fileFromPull": "Súbor zo stiahnutia",
-            "fileFromUpload": "Súbor z nahrávania",
-            "directoryFromUpload": "Adresár z nahrávania",
+            "fileFromPull": "New from URL",
+            "fileFromUpload": "Upload files",
+            "directoryFromUpload": "Upload folder",
             "open": "Open",
             "openInNewTab": "Open in New Tab",
             "openInPopup": "Open in Popup",
@@ -9373,12 +9373,15 @@
             "emptyTrash": "Empty Trash",
             "backToFiles": "Back to Files",
             "restoreTo": "Restore to...",
-            "symlink": "Symlink",
+            "symlink": "New symlink",
             "viewDiff": "View Diff",
             "openInEditor": "Open in Editor",
             "editorActions": "Editor Actions",
             "loadDisk": "Load Disk Version",
-            "keepEditor": "Keep Editor Version"
+            "keepEditor": "Keep Editor Version",
+            "newFolder": "New folder",
+            "newFile": "New file",
+            "upload": "Upload"
           },
           "actionBar": {
             "copyHere": "Kopírovať sem {files}",
@@ -9725,7 +9728,8 @@
           "empty": {
             "title": "Empty Directory",
             "description": "There is nothing in this directory yet. Upload files or create new ones to fill it.",
-            "descriptionReadOnly": "There is nothing in this directory yet."
+            "descriptionReadOnly": "There is nothing in this directory yet.",
+            "filtered": "No files match."
           },
           "editorNotFound": {
             "title": "Not Found",
@@ -9793,7 +9797,7 @@
             "uploadFiles": "Upload Files",
             "uploadDirectory": "Upload Directory",
             "search": "Search Files",
-            "largestDirectories": "Analyze Directory Sizes",
+            "largestDirectories": "Analyze directory sizes",
             "incompleteUploads": "Review Incomplete Uploads",
             "parentDirectory": "Go to Parent Directory",
             "copyPath": "Copy Current Path",
@@ -9874,7 +9878,9 @@
               "deleted": "{entries} permanently deleted.",
               "emptied": "The trash has been emptied."
             }
-          }
+          },
+          "subtitle": "Manage, download and edit your files.",
+          "searchPlaceholder": "Search this folder…"
         },
         "databases": {
           "title": "Databázy",

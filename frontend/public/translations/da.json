@@ -9412,13 +9412,13 @@
             "archive": "Arkivér",
             "more": "Mere",
             "remoteCopy": "Fjernkopiering",
-            "search": "Søg",
+            "search": "Advanced search",
             "exitBackup": "Forlad backup",
             "fileFromEditor": "Fil fra editor",
             "directory": "Mappe",
-            "fileFromPull": "Fil fra URL",
-            "fileFromUpload": "Fil fra upload",
-            "directoryFromUpload": "Mappe fra upload",
+            "fileFromPull": "New from URL",
+            "fileFromUpload": "Upload files",
+            "directoryFromUpload": "Upload folder",
             "viewDiff": "Vis diff",
             "openInEditor": "Åbn i editor",
             "editorActions": "Editor-handlinger",
@@ -9436,7 +9436,10 @@
             "emptyTrash": "Empty Trash",
             "backToFiles": "Back to Files",
             "restoreTo": "Restore to...",
-            "symlink": "Symlink"
+            "symlink": "New symlink",
+            "newFolder": "New folder",
+            "newFile": "New file",
+            "upload": "Upload"
           },
           "quickAction": {
             "newFile": "Ny fil",
@@ -9451,7 +9454,7 @@
             "uploadFiles": "Upload filer",
             "uploadDirectory": "Upload mappe",
             "search": "Søg efter filer",
-            "largestDirectories": "Analysér mappestørrelser",
+            "largestDirectories": "Analyze directory sizes",
             "parentDirectory": "Gå til overordnet mappe",
             "copyPath": "Kopiér nuværende sti",
             "exitBackup": "Forlad backup-visning",
@@ -9823,7 +9826,8 @@
           "empty": {
             "title": "Empty Directory",
             "description": "There is nothing in this directory yet. Upload files or create new ones to fill it.",
-            "descriptionReadOnly": "There is nothing in this directory yet."
+            "descriptionReadOnly": "There is nothing in this directory yet.",
+            "filtered": "No files match."
           },
           "upload": {
             "by": "by {user}",
@@ -9879,7 +9883,9 @@
               "deleted": "{entries} permanently deleted.",
               "emptied": "The trash has been emptied."
             }
-          }
+          },
+          "subtitle": "Manage, download and edit your files.",
+          "searchPlaceholder": "Search this folder…"
         },
         "databases": {
           "title": "Databaser",

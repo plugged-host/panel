@@ -1,4 +1,4 @@
-import { faCode, faFolderOpen, faSearch } from '@fortawesome/free-solid-svg-icons';
+import { faCode, faFolderOpen } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useWindowVirtualizer } from '@tanstack/react-virtual';
 import { join } from 'pathe';
@@ -17,7 +17,6 @@ import { createSearchParams, useNavigate, useSearchParams } from 'react-router';
 import { FileOpenMode } from 'shared/src/registries/pages/server/files';
 import { httpErrorToHuman } from '@/api/axios.ts';
 import copyFile from '@/api/server/files/copyFile.ts';
-import ActionIcon from '@/elements/buttons/ActionIcon.tsx';
 import ServerContentContainer from '@/elements/containers/ServerContentContainer.tsx';
 import { useNavbarPageHeader } from '@/elements/containers/useNavbarPageHeader.ts';
 import Card from '@/elements/data-display/Card.tsx';
@@ -29,6 +28,7 @@ import Group from '@/elements/layout/Group.tsx';
 import SegmentedControl from '@/elements/layout/SegmentedControl.tsx';
 import ConfirmationModal from '@/elements/modals/ConfirmationModal.tsx';
 import Tooltip from '@/elements/overlays/Tooltip.tsx';
+import Text from '@/elements/typography/Text.tsx';
 import Title from '@/elements/typography/Title.tsx';
 import { isOpenableFile } from '@/lib/files/files.ts';
 import { CORE_QUICK_ACTION_CATEGORIES } from '@/lib/quickActions/coreQuickActions.tsx';
@@ -76,7 +76,7 @@ import { fileManagerUndoScope, runLastUndoEntry } from '@/stores/undoHistory.ts'
 const ESTIMATED_ROW_HEIGHT = 41;
 const VIRTUALIZER_OVERSCAN = 15;
 
-function FileBrowser() {
+function FileBrowser({ filter }: { filter: string }) {
   const { t } = useTranslations();
   const server = useServerStore((state) => state.server);
   const { addToast } = useToast();
@@ -101,6 +101,13 @@ function FileBrowser() {
 
   const canCreate = useServerCan('files.create');
   const canUpdate = useServerCan('files.update');
+
+  const visibleEntries = useMemo(() => {
+    const query = filter.trim().toLowerCase();
+    return query
+      ? browsingEntries.data.filter((entry) => entry.name.toLowerCase().includes(query))
+      : browsingEntries.data;
+  }, [browsingEntries.data, filter]);
 
   const { onSelectedStart, onSelected } = useSelectionArea({
     identify: (file) => file.name,
@@ -169,9 +176,7 @@ function FileBrowser() {
       if (typeAheadTimeout.current) clearTimeout(typeAheadTimeout.current);
       typeAheadBuffer.current += e.key.toLowerCase();
 
-      const match = state.browsingEntries.data.find((entry) =>
-        entry.name.toLowerCase().startsWith(typeAheadBuffer.current),
-      );
+      const match = visibleEntries.find((entry) => entry.name.toLowerCase().startsWith(typeAheadBuffer.current));
 
       if (match) {
         state.doSelectFiles([match]);
@@ -187,13 +192,13 @@ function FileBrowser() {
       window.removeEventListener('keydown', handleKeyDown);
       if (typeAheadTimeout.current) clearTimeout(typeAheadTimeout.current);
     };
-  }, [store]);
+  }, [store, visibleEntries]);
 
   const moveSelection = (direction: -1 | 1) => {
     const state = store.getState();
     if (state.selectedFiles.size === 0) return;
 
-    const entries = state.browsingEntries.data;
+    const entries = visibleEntries;
     const indexByName = new Map(entries.map((entry, index) => [entry.name, index]));
 
     const selectedIndices = state.selectedFiles
@@ -312,7 +317,10 @@ function FileBrowser() {
   const normalizedBrowsingDirectory = join('/', browsingDirectory);
   const backupRootDirectory = browsingBackup ? `/.backups/${browsingBackup.uuid}` : null;
   const showParentDirectoryRow =
-    normalizedBrowsingDirectory !== '/' && normalizedBrowsingDirectory !== backupRootDirectory && !searchInfo;
+    normalizedBrowsingDirectory !== '/' &&
+    normalizedBrowsingDirectory !== backupRootDirectory &&
+    !searchInfo &&
+    !filter.trim();
 
   const tableAnchorRef = useRef<HTMLDivElement>(null);
   const [scrollMargin, setScrollMargin] = useState(0);
@@ -338,7 +346,7 @@ function FileBrowser() {
 
   const rows = useMemo(() => {
     const result: { entry: (typeof browsingEntries.data)[number]; path: string; key: string; preview: boolean }[] = [];
-    for (const entry of browsingEntries.data) {
+    for (const entry of visibleEntries) {
       const path = join('/', searchInfo?.root ?? browsingDirectory, entry.name);
       result.push({ entry, path, key: `file:${path}`, preview: false });
       if (searchInfo && canPreviewFile(entry) && !collapsedSearchPreviews.has(path)) {
@@ -346,7 +354,7 @@ function FileBrowser() {
       }
     }
     return result;
-  }, [browsingEntries.data, browsingDirectory, searchInfo, collapsedSearchPreviews]);
+  }, [visibleEntries, browsingDirectory, searchInfo, collapsedSearchPreviews]);
 
   const rowVirtualizer = useWindowVirtualizer<HTMLTableRowElement>({
     count: rows.length,
@@ -376,7 +384,7 @@ function FileBrowser() {
       <FileDiskUsageBar />
 
       <Card mb='sm'>
-        <FileBreadcrumbs path={browsingDirectory} />
+        <FileBreadcrumbs path={browsingDirectory} entries={visibleEntries} />
       </Card>
 
       <FileSearchBanner resetEntries={resetEntries} />
@@ -399,7 +407,9 @@ function FileBrowser() {
                 error={browsingError}
                 allowSelect={false}
                 empty={
-                  searchInfo ? undefined : (
+                  searchInfo ? undefined : filter.trim() ? (
+                    <EmptyState flush icon={faFolderOpen} title={t('pages.server.files.empty.filtered', {})} />
+                  ) : (
                     <EmptyState
                       flush
                       icon={faFolderOpen}
@@ -459,7 +469,7 @@ function FileBrowser() {
                   </TableRow>
                 )}
 
-                {!searchInfo && <FileInfiniteScrollSentinel colSpan={columns.length} />}
+                {!searchInfo && !filter.trim() && <FileInfiniteScrollSentinel colSpan={columns.length} />}
               </Table>
             </div>
           </SelectionArea>
@@ -485,19 +495,19 @@ const getStoredFileTreeVisibility = (serverUuid: string) =>
 function ServerFilesComponent() {
   const { t } = useTranslations();
   const serverUuid = useServerStore((state) => state.server.uuid);
-  const doOpenModal = useFileManagerStore((state) => state.doOpenModal);
   const browsingDirectory = useFileManagerStore((state) => state.browsingDirectory);
   const resetEntries = useFileManagerStore((state) => state.resetEntries);
   const setSearchInfo = useFileManagerStore((state) => state.setSearchInfo);
   const [, setSearchParams] = useSearchParams();
   const [view, setView] = useState<FileManagerView>(getStoredFileManagerView);
-  const viewTitle = t(view === 'tree' ? 'pages.server.files.view.tree' : 'pages.server.files.view.list', {});
-  const titleHoisted = useNavbarPageHeader({ title: viewTitle });
+  const pageTitle = t('pages.server.files.title', {});
+  const titleHoisted = useNavbarPageHeader({ title: pageTitle });
   const desktop = usePageBreakpoint('lg');
   const settingsBesideTitle = !titleHoisted || desktop;
   const [fileTreeVisible, setFileTreeVisible] = useState(() => getStoredFileTreeVisibility(serverUuid));
   const [treeInitialDirectory, setTreeInitialDirectory] = useState(browsingDirectory);
   const [treeDirty, setTreeDirty] = useState(false);
+  const [fileFilter, setFileFilter] = useState('');
   const [pendingView, setPendingView] = useState<FileManagerView | null>(null);
   const treeWorkspaceRef = useRef<FileTreeWorkspaceHandle>(null);
   const createTreeFile = view === 'tree' ? () => treeWorkspaceRef.current?.createFile() : undefined;
@@ -506,6 +516,7 @@ function ServerFilesComponent() {
   useFileUploadSocket();
 
   useEffect(() => setFileTreeVisible(getStoredFileTreeVisibility(serverUuid)), [serverUuid]);
+  useEffect(() => setFileFilter(''), [browsingDirectory]);
 
   const applyView = (value: FileManagerView) => {
     setSearchInfo(null);
@@ -567,67 +578,63 @@ function ServerFilesComponent() {
       <FileUpload showOverlay={view === 'list'} />
       <FileActionBar />
 
-      <Group justify='space-between' align='center' mb='md'>
-        {settingsBesideTitle && (
-          <Group>
-            <Title order={1}>{viewTitle}</Title>
-            <FileSettings />
-          </Group>
-        )}
-
-        <Group>
-          {!settingsBesideTitle && <FileSettings />}
-          {view === 'tree' && (
-            <Tooltip label={t('pages.server.files.tooltip.advancedSearch', {})}>
-              <ActionIcon
-                type='button'
-                variant='subtle'
-                color='gray'
-                aria-label={t('pages.server.files.tooltip.advancedSearch', {})}
-                onClick={() => doOpenModal('search')}
-              >
-                <FontAwesomeIcon icon={faSearch} />
-              </ActionIcon>
-            </Tooltip>
+      <div className='mb-4 flex flex-col gap-3'>
+        <div className='flex flex-wrap items-end justify-between gap-3'>
+          {settingsBesideTitle ? (
+            <div>
+              <Title order={1}>{pageTitle}</Title>
+              <Text size='sm' c='dimmed'>
+                {t('pages.server.files.subtitle', {})}
+              </Text>
+            </div>
+          ) : (
+            <div />
           )}
 
-          <SegmentedControl
-            value={view}
-            onChange={changeView}
-            styles={{ label: { padding: 0 } }}
-            data={[
-              {
-                value: 'list',
-                label: (
-                  <Tooltip label={t('pages.server.files.view.list', {})}>
-                    <span className='block' style={{ padding: 'var(--sc-padding)' }}>
-                      <FontAwesomeIcon icon={faFolderOpen} aria-label={t('pages.server.files.view.list', {})} />
-                    </span>
-                  </Tooltip>
-                ),
-              },
-              {
-                value: 'tree',
-                label: (
-                  <Tooltip label={t('pages.server.files.view.tree', {})}>
-                    <span className='block' style={{ padding: 'var(--sc-padding)' }}>
-                      <FontAwesomeIcon icon={faCode} aria-label={t('pages.server.files.view.tree', {})} />
-                    </span>
-                  </Tooltip>
-                ),
-              },
-            ]}
-          />
-
-          <FileOperationsProgress />
-          <FileToolbar onCreateFile={createTreeFile} />
-        </Group>
-      </Group>
+          <Group>
+            <FileToolbar
+              onCreateFile={createTreeFile}
+              treeView={view === 'tree'}
+              filter={fileFilter}
+              onFilterChange={setFileFilter}
+            />
+            <FileSettings />
+            <SegmentedControl
+              value={view}
+              onChange={changeView}
+              styles={{ label: { padding: 0 } }}
+              data={[
+                {
+                  value: 'list',
+                  label: (
+                    <Tooltip label={t('pages.server.files.view.list', {})}>
+                      <span className='block' style={{ padding: 'var(--sc-padding)' }}>
+                        <FontAwesomeIcon icon={faFolderOpen} aria-label={t('pages.server.files.view.list', {})} />
+                      </span>
+                    </Tooltip>
+                  ),
+                },
+                {
+                  value: 'tree',
+                  label: (
+                    <Tooltip label={t('pages.server.files.view.tree', {})}>
+                      <span className='block' style={{ padding: 'var(--sc-padding)' }}>
+                        <FontAwesomeIcon icon={faCode} aria-label={t('pages.server.files.view.tree', {})} />
+                      </span>
+                    </Tooltip>
+                  ),
+                },
+              ]}
+            />
+            <FileOperationsProgress />
+          </Group>
+        </div>
+      </div>
 
       <IncompleteUploadsBanner />
 
       {view === 'list' ? (
-        <FileBrowser />
+        <FileBrowser filter={fileFilter} />
       ) : (
         <>
           <FileSearchBanner resetEntries={resetEntries} />

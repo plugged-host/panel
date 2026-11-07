@@ -3774,7 +3774,8 @@
           "empty": {
             "title": "Порожній каталог",
             "description": "У цьому каталозі ще нічого немає. Вивантажте файли або створіть нові, щоб заповнити його.",
-            "descriptionReadOnly": "У цьому каталозі ще нічого немає."
+            "descriptionReadOnly": "У цьому каталозі ще нічого немає.",
+            "filtered": "No files match."
           },
           "title": "Файли",
           "editorNotFound": {
@@ -3864,19 +3865,22 @@
             "backToFiles": "Назад до файлів",
             "restoreTo": "Відновити в...",
             "remoteCopy": "Віддалене копіювання",
-            "search": "Пошук",
+            "search": "Advanced search",
             "exitBackup": "Вийти з резервної копії",
             "fileFromEditor": "Файл у редакторі",
             "directory": "Каталог",
-            "symlink": "Символьне посилання",
-            "fileFromPull": "Файл з URL",
-            "fileFromUpload": "Вивантажити файл",
-            "directoryFromUpload": "Вивантажити каталог",
+            "symlink": "New symlink",
+            "fileFromPull": "New from URL",
+            "fileFromUpload": "Upload files",
+            "directoryFromUpload": "Upload folder",
             "viewDiff": "Переглянути відмінності",
             "openInEditor": "Відкрити в редакторі",
             "editorActions": "Дії редактора",
             "loadDisk": "Завантажити версію з диска",
-            "keepEditor": "Залишити версію з редактора"
+            "keepEditor": "Залишити версію з редактора",
+            "newFolder": "New folder",
+            "newFile": "New file",
+            "upload": "Upload"
           },
           "quickAction": {
             "newFile": "Новий файл",
@@ -3891,7 +3895,7 @@
             "uploadFiles": "Вивантажити файли",
             "uploadDirectory": "Вивантажити каталог",
             "search": "Пошук файлів",
-            "largestDirectories": "Аналізувати розміри каталогів",
+            "largestDirectories": "Analyze directory sizes",
             "incompleteUploads": "Переглянути незавершені вивантаження",
             "parentDirectory": "Перейти до батьківського каталогу",
             "copyPath": "Копіювати поточний шлях",
@@ -4314,7 +4318,9 @@
               "hint": "Продовжте вивантаження на панелі вивантажень, якщо ви його почали, або видаліть частковий файл, якщо він вам більше не потрібен.",
               "empty": "Усі вивантаження на цей сервер завершено."
             }
-          }
+          },
+          "subtitle": "Manage, download and edit your files.",
+          "searchPlaceholder": "Search this folder…"
         },
         "databases": {
           "title": "Бази даних",

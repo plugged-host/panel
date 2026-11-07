@@ -9339,7 +9339,8 @@
           "empty": {
             "title": "Empty Directory",
             "description": "There is nothing in this directory yet. Upload files or create new ones to fill it.",
-            "descriptionReadOnly": "There is nothing in this directory yet."
+            "descriptionReadOnly": "There is nothing in this directory yet.",
+            "filtered": "No files match."
           },
           "title": "Files",
           "editorNotFound": {
@@ -9429,19 +9430,22 @@
             "backToFiles": "Back to Files",
             "restoreTo": "Restore to...",
             "remoteCopy": "Remote Copy",
-            "search": "Search",
+            "search": "Advanced search",
             "exitBackup": "Exit Backup",
             "fileFromEditor": "File from Editor",
             "directory": "Directory",
-            "symlink": "Symlink",
-            "fileFromPull": "File from Pull",
-            "fileFromUpload": "File from Upload",
-            "directoryFromUpload": "Directory from Upload",
+            "symlink": "New symlink",
+            "fileFromPull": "New from URL",
+            "fileFromUpload": "Upload files",
+            "directoryFromUpload": "Upload folder",
             "viewDiff": "View Diff",
             "openInEditor": "Open in Editor",
             "editorActions": "Editor Actions",
             "loadDisk": "Load Disk Version",
-            "keepEditor": "Keep Editor Version"
+            "keepEditor": "Keep Editor Version",
+            "newFolder": "New folder",
+            "newFile": "New file",
+            "upload": "Upload"
           },
           "quickAction": {
             "newFile": "New File",
@@ -9456,7 +9460,7 @@
             "uploadFiles": "Upload Files",
             "uploadDirectory": "Upload Directory",
             "search": "Search Files",
-            "largestDirectories": "Analyze Directory Sizes",
+            "largestDirectories": "Analyze directory sizes",
             "incompleteUploads": "Review Incomplete Uploads",
             "parentDirectory": "Go to Parent Directory",
             "copyPath": "Copy Current Path",
@@ -9879,7 +9883,9 @@
               "hint": "Resume it from the uploads panel if you started it, or delete the partial file if you no longer need it.",
               "empty": "Every upload to this server has finished."
             }
-          }
+          },
+          "subtitle": "Manage, download and edit your files.",
+          "searchPlaceholder": "Search this folder…"
         },
         "databases": {
           "title": "Databases",

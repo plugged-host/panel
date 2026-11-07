@@ -3774,7 +3774,8 @@
           "empty": {
             "title": "Pasta vazia",
             "description": "Ainda não há nada nesta pasta. Envie arquivos ou crie novos para preenchê-la.",
-            "descriptionReadOnly": "Ainda não há nada nesta pasta."
+            "descriptionReadOnly": "Ainda não há nada nesta pasta.",
+            "filtered": "No files match."
           },
           "title": "Arquivos",
           "editorNotFound": {
@@ -3864,19 +3865,22 @@
             "backToFiles": "Voltar para os arquivos",
             "restoreTo": "Restaurar em...",
             "remoteCopy": "Cópia remota",
-            "search": "Pesquisar",
+            "search": "Advanced search",
             "exitBackup": "Sair do backup",
             "fileFromEditor": "Arquivo no editor",
             "directory": "Pasta",
-            "symlink": "Link simbólico",
-            "fileFromPull": "Arquivo de URL",
-            "fileFromUpload": "Enviar arquivo",
-            "directoryFromUpload": "Enviar pasta",
+            "symlink": "New symlink",
+            "fileFromPull": "New from URL",
+            "fileFromUpload": "Upload files",
+            "directoryFromUpload": "Upload folder",
             "viewDiff": "Ver diferenças",
             "openInEditor": "Abrir no editor",
             "editorActions": "Ações do editor",
             "loadDisk": "Carregar versão do disco",
-            "keepEditor": "Manter versão do editor"
+            "keepEditor": "Manter versão do editor",
+            "newFolder": "New folder",
+            "newFile": "New file",
+            "upload": "Upload"
           },
           "quickAction": {
             "newFile": "Novo arquivo",
@@ -3891,7 +3895,7 @@
             "uploadFiles": "Enviar arquivos",
             "uploadDirectory": "Enviar pasta",
             "search": "Pesquisar arquivos",
-            "largestDirectories": "Analisar tamanho das pastas",
+            "largestDirectories": "Analyze directory sizes",
             "incompleteUploads": "Revisar envios incompletos",
             "parentDirectory": "Ir para a pasta superior",
             "copyPath": "Copiar caminho atual",
@@ -4314,7 +4318,9 @@
               "hint": "Retome o envio pelo painel de envios se foi você quem o iniciou, ou exclua o arquivo parcial se não precisar mais dele.",
               "empty": "Todos os envios para este servidor foram concluídos."
             }
-          }
+          },
+          "subtitle": "Manage, download and edit your files.",
+          "searchPlaceholder": "Search this folder…"
         },
         "databases": {
           "title": "Bancos de dados",

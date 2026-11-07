@@ -3774,7 +3774,8 @@
           "empty": {
             "title": "مجلد فارغ",
             "description": "لا يوجد شيء في هذا المجلد بعد. ارفع ملفات أو أنشئ ملفات جديدة لملئه.",
-            "descriptionReadOnly": "لا يوجد شيء في هذا المجلد بعد."
+            "descriptionReadOnly": "لا يوجد شيء في هذا المجلد بعد.",
+            "filtered": "No files match."
           },
           "title": "الملفات",
           "editorNotFound": {
@@ -3864,19 +3865,22 @@
             "backToFiles": "رجوع إلى الملفات",
             "restoreTo": "استعادة إلى...",
             "remoteCopy": "نسخ عن بعد",
-            "search": "بحث",
+            "search": "Advanced search",
             "exitBackup": "خروج من النسخة الاحتياطية",
             "fileFromEditor": "ملف من المحرر",
             "directory": "مجلد",
-            "symlink": "رابط رمزي",
-            "fileFromPull": "ملف من السحب",
-            "fileFromUpload": "ملف من الرفع",
-            "directoryFromUpload": "مجلد من الرفع",
+            "symlink": "New symlink",
+            "fileFromPull": "New from URL",
+            "fileFromUpload": "Upload files",
+            "directoryFromUpload": "Upload folder",
             "viewDiff": "عرض الفروقات",
             "openInEditor": "فتح في المحرر",
             "editorActions": "إجراءات المحرر",
             "loadDisk": "تحميل نسخة القرص",
-            "keepEditor": "الإبقاء على نسخة المحرر"
+            "keepEditor": "الإبقاء على نسخة المحرر",
+            "newFolder": "New folder",
+            "newFile": "New file",
+            "upload": "Upload"
           },
           "quickAction": {
             "newFile": "ملف جديد",
@@ -3891,7 +3895,7 @@
             "uploadFiles": "رفع ملفات",
             "uploadDirectory": "رفع مجلد",
             "search": "البحث في الملفات",
-            "largestDirectories": "تحليل أحجام المجلدات",
+            "largestDirectories": "Analyze directory sizes",
             "incompleteUploads": "مراجعة عمليات الرفع غير المكتملة",
             "parentDirectory": "الانتقال إلى المجلد الأب",
             "copyPath": "نسخ المسار الحالي",
@@ -4314,7 +4318,9 @@
               "hint": "استأنفه من لوحة الرفع إن كنت قد بدأته، أو احذف الملف الجزئي إن لم تعد بحاجة إليه.",
               "empty": "اكتملت جميع عمليات الرفع إلى هذا الخادم."
             }
-          }
+          },
+          "subtitle": "Manage, download and edit your files.",
+          "searchPlaceholder": "Search this folder…"
         },
         "databases": {
           "title": "قواعد البيانات",

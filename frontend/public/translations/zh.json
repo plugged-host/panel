@@ -9364,13 +9364,13 @@
             "archive": "壓縮",
             "more": "更多",
             "remoteCopy": "遠端複製",
-            "search": "搜尋",
+            "search": "Advanced search",
             "exitBackup": "離開備份",
             "fileFromEditor": "建立檔案",
             "directory": "建立目錄",
-            "fileFromPull": "從網址匯入",
-            "fileFromUpload": "上傳檔案",
-            "directoryFromUpload": "上傳目錄",
+            "fileFromPull": "New from URL",
+            "fileFromUpload": "Upload files",
+            "directoryFromUpload": "Upload folder",
             "viewDiff": "檢視差異",
             "loadDisk": "載入磁碟版本",
             "keepEditor": "保留編輯器版本",
@@ -9384,9 +9384,12 @@
             "emptyTrash": "Empty Trash",
             "backToFiles": "Back to Files",
             "restoreTo": "Restore to...",
-            "symlink": "Symlink",
+            "symlink": "New symlink",
             "openInEditor": "Open in Editor",
-            "editorActions": "Editor Actions"
+            "editorActions": "Editor Actions",
+            "newFolder": "New folder",
+            "newFile": "New file",
+            "upload": "Upload"
           },
           "quickAction": {
             "newFile": "新增檔案",
@@ -9395,7 +9398,7 @@
             "uploadFiles": "上傳檔案",
             "uploadDirectory": "上傳資料夾",
             "search": "搜尋檔案",
-            "largestDirectories": "分析目錄大小",
+            "largestDirectories": "Analyze directory sizes",
             "parentDirectory": "前往上層資料夾",
             "copyPath": "複製目前路徑",
             "exitBackup": "離開備份瀏覽",
@@ -9773,7 +9776,8 @@
           "empty": {
             "title": "Empty Directory",
             "description": "There is nothing in this directory yet. Upload files or create new ones to fill it.",
-            "descriptionReadOnly": "There is nothing in this directory yet."
+            "descriptionReadOnly": "There is nothing in this directory yet.",
+            "filtered": "No files match."
           },
           "editorNotFound": {
             "title": "Not Found",
@@ -9879,7 +9883,9 @@
               "deleted": "{entries} permanently deleted.",
               "emptied": "The trash has been emptied."
             }
-          }
+          },
+          "subtitle": "Manage, download and edit your files.",
+          "searchPlaceholder": "Search this folder…"
         },
         "databases": {
           "title": "資料庫",

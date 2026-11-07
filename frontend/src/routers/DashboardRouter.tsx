@@ -44,7 +44,7 @@ import { useGlobalStore } from '@/stores/global.ts';
 // order (Resource Store, Plus, Tokens, Backups); the others fold under Account.
 const MAIN_PATHS = ['/store', '/membership', '/tokens', '/backups'];
 // plugged.host v3.1: the secondary rows live under one More disclosure.
-const MORE_PATHS = ['/support', '/suggestions'];
+const MORE_PATHS = ['/support', '/suggestions', '/panel-access', '/discord', '/partners'];
 
 /// The shared Heroicon set, the same SVGs the switched.cloud sidebar renders.
 function mainIcon(path: string) {
@@ -207,7 +207,14 @@ export default function DashboardRouter({ isNormal }: { isNormal: boolean }) {
                       <Sidebar.Link
                         key={route.path}
                         to={to(route.path, '/account')}
-                        iconElement={route.path === '/support' ? <LifebuoyIcon /> : <LightBulbIcon />}
+                        icon={route.path === '/support' || route.path === '/suggestions' ? undefined : route.icon}
+                        iconElement={
+                          route.path === '/support' ? (
+                            <LifebuoyIcon />
+                          ) : route.path === '/suggestions' ? (
+                            <LightBulbIcon />
+                          ) : undefined
+                        }
                         name={resolveString(route.name)}
                       />
                     ),

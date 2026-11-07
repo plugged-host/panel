@@ -3774,7 +3774,8 @@
           "empty": {
             "title": "Пустая директория",
             "description": "В этой директории пока ничего нет. Загрузите файлы или создайте новые.",
-            "descriptionReadOnly": "В этой директории пока ничего нет."
+            "descriptionReadOnly": "В этой директории пока ничего нет.",
+            "filtered": "No files match."
           },
           "title": "Файлы",
           "editorNotFound": {
@@ -3864,19 +3865,22 @@
             "backToFiles": "Назад к файлам",
             "restoreTo": "Восстановить в...",
             "remoteCopy": "Удалённое копирование",
-            "search": "Поиск",
+            "search": "Advanced search",
             "exitBackup": "Выйти из резервной копии",
             "fileFromEditor": "Файл из редактора",
             "directory": "Директория",
-            "symlink": "Символическая ссылка",
-            "fileFromPull": "Файл из загрузки",
-            "fileFromUpload": "Файл из загрузки",
-            "directoryFromUpload": "Директория из загрузки",
+            "symlink": "New symlink",
+            "fileFromPull": "New from URL",
+            "fileFromUpload": "Upload files",
+            "directoryFromUpload": "Upload folder",
             "viewDiff": "Показать различия",
             "openInEditor": "Открыть в редакторе",
             "editorActions": "Действия редактора",
             "loadDisk": "Загрузить версию с диска",
-            "keepEditor": "Оставить версию редактора"
+            "keepEditor": "Оставить версию редактора",
+            "newFolder": "New folder",
+            "newFile": "New file",
+            "upload": "Upload"
           },
           "quickAction": {
             "newFile": "Новый файл",
@@ -3891,7 +3895,7 @@
             "uploadFiles": "Загрузить файлы",
             "uploadDirectory": "Загрузить директорию",
             "search": "Поиск файлов",
-            "largestDirectories": "Анализ размеров директорий",
+            "largestDirectories": "Analyze directory sizes",
             "incompleteUploads": "Просмотреть незавершённые загрузки",
             "parentDirectory": "Перейти в родительскую директорию",
             "copyPath": "Копировать текущий путь",
@@ -4314,7 +4318,9 @@
               "hint": "Возобновите загрузку на панели загрузок, если начинали её вы, или удалите частичный файл, если он больше не нужен.",
               "empty": "Все загрузки на этот сервер завершены."
             }
-          }
+          },
+          "subtitle": "Manage, download and edit your files.",
+          "searchPlaceholder": "Search this folder…"
         },
         "databases": {
           "title": "Базы данных",

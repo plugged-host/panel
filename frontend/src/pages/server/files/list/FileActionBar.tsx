@@ -302,8 +302,15 @@ function FileActionBar() {
                     files: tItem(actingFilesItemKey, actingFiles.size),
                   })}
                 >
-                  <Button onClick={doCopy} loading={loading} disabled={!browsingWritableDirectory}>
-                    <FontAwesomeIcon icon={faAnglesDown} />
+                  <Button
+                    leftSection={<FontAwesomeIcon icon={faAnglesDown} />}
+                    onClick={doCopy}
+                    loading={loading}
+                    disabled={!browsingWritableDirectory}
+                  >
+                    {t('pages.server.files.actionBar.copyHere', {
+                      files: tItem(actingFilesItemKey, actingFiles.size),
+                    })}
                   </Button>
                 </Tooltip>
               </ServerCan>
@@ -315,6 +322,7 @@ function FileActionBar() {
                   })}
                 >
                   <Button
+                    leftSection={<FontAwesomeIcon icon={faAnglesDown} />}
                     onClick={doMove}
                     loading={loading}
                     disabled={
@@ -322,14 +330,16 @@ function FileActionBar() {
                       !canMoveFilesToDirectory(actingFiles.values(), actingFilesSource, browsingDirectory)
                     }
                   >
-                    <FontAwesomeIcon icon={faAnglesDown} />
+                    {t('pages.server.files.actionBar.moveHere', {
+                      files: tItem(actingFilesItemKey, actingFiles.size),
+                    })}
                   </Button>
                 </Tooltip>
               </ServerCan>
             )}
             <Tooltip label={t('common.button.cancel', {})}>
-              <Button variant='default' onClick={clearActingFiles}>
-                <FontAwesomeIcon icon={faBan} />
+              <Button variant='default' leftSection={<FontAwesomeIcon icon={faBan} />} onClick={clearActingFiles}>
+                {t('common.button.cancel', {})}
               </Button>
             </Tooltip>
           </>
@@ -337,27 +347,31 @@ function FileActionBar() {
           <>
             <ServerCan action='files.read-content'>
               <Tooltip label={t('common.button.download', {})}>
-                <Button onClick={doDownload} loading={loading}>
-                  <FontAwesomeIcon icon={faFileDownload} />
+                <Button leftSection={<FontAwesomeIcon icon={faFileDownload} />} onClick={doDownload} loading={loading}>
+                  {t('common.button.download', {})}
                 </Button>
               </Tooltip>
             </ServerCan>
             <ServerCan action='files.read-content'>
               <Tooltip label={t('pages.server.files.button.remoteCopy', {})}>
-                <Button onClick={() => doOpenModal('copy-remote', store.getState().selectedFiles.values())}>
-                  <FontAwesomeIcon icon={faClone} />
+                <Button
+                  leftSection={<FontAwesomeIcon icon={faClone} />}
+                  onClick={() => doOpenModal('copy-remote', store.getState().selectedFiles.values())}
+                >
+                  {t('pages.server.files.button.remoteCopy', {})}
                 </Button>
               </Tooltip>
             </ServerCan>
             <ServerCan action='files.create'>
               <Tooltip label={t('pages.server.files.button.copy', {})}>
                 <Button
+                  leftSection={<FontAwesomeIcon icon={faCopy} />}
                   onClick={() => {
                     doActFiles('copy', store.getState().selectedFiles.values());
                     doSelectFiles([]);
                   }}
                 >
-                  <FontAwesomeIcon icon={faCopy} />
+                  {t('pages.server.files.button.copy', {})}
                 </Button>
               </Tooltip>
             </ServerCan>
@@ -365,27 +379,34 @@ function FileActionBar() {
               <>
                 <ServerCan action='files.archive'>
                   <Tooltip label={t('pages.server.files.button.archive', {})}>
-                    <Button onClick={() => doOpenModal('archive', store.getState().selectedFiles.values())}>
-                      <FontAwesomeIcon icon={faArchive} />
+                    <Button
+                      leftSection={<FontAwesomeIcon icon={faArchive} />}
+                      onClick={() => doOpenModal('archive', store.getState().selectedFiles.values())}
+                    >
+                      {t('pages.server.files.button.archive', {})}
                     </Button>
                   </Tooltip>
                 </ServerCan>
                 <ServerCan action='files.update'>
                   <Tooltip label={t('pages.server.files.button.rename', {})}>
-                    <Button onClick={() => doOpenModal('mass-rename', store.getState().selectedFiles.values())}>
-                      <FontAwesomeIcon icon={faPen} />
+                    <Button
+                      leftSection={<FontAwesomeIcon icon={faPen} />}
+                      onClick={() => doOpenModal('mass-rename', store.getState().selectedFiles.values())}
+                    >
+                      {t('pages.server.files.button.rename', {})}
                     </Button>
                   </Tooltip>
                 </ServerCan>
                 <ServerCan action='files.update'>
                   <Tooltip label={t('common.button.move', {})}>
                     <Button
+                      leftSection={<FontAwesomeIcon icon={faAnglesUp} />}
                       onClick={() => {
                         doActFiles('move', store.getState().selectedFiles.values());
                         doSelectFiles([]);
                       }}
                     >
-                      <FontAwesomeIcon icon={faAnglesUp} />
+                      {t('common.button.move', {})}
                     </Button>
                   </Tooltip>
                 </ServerCan>
@@ -396,6 +417,7 @@ function FileActionBar() {
                     >
                       <Button
                         color={trashEnabled ? 'blue' : 'red'}
+                        leftSection={<FontAwesomeIcon icon={faTrash} />}
                         onClick={() =>
                           doOpenModal(
                             'delete',
@@ -403,13 +425,16 @@ function FileActionBar() {
                           )
                         }
                       >
-                        <FontAwesomeIcon icon={faTrash} />
+                        {t(trashEnabled ? 'pages.server.files.button.moveToTrash' : 'common.button.delete', {})}
                       </Button>
                     </Tooltip>
                   </ServerCan>
                 )}
               </>
             )}
+            <Button variant='ghost' onClick={() => doSelectFiles([])}>
+              {t('common.button.deselectAll', {})}
+            </Button>
           </>
         )}
 

@@ -9343,7 +9343,7 @@
             "extract": "Wypakuj",
             "archive": "Archiwizuj",
             "more": "Więcej",
-            "search": "Wyszukaj",
+            "search": "Advanced search",
             "directory": "Katalog",
             "viewDiff": "Pokaż różnice",
             "loadDisk": "Wczytaj wersję z dysku",
@@ -9368,12 +9368,15 @@
             "remoteCopy": "Remote Copy",
             "exitBackup": "Exit Backup",
             "fileFromEditor": "File from Editor",
-            "symlink": "Symlink",
-            "fileFromPull": "File from Pull",
-            "fileFromUpload": "File from Upload",
-            "directoryFromUpload": "Directory from Upload",
+            "symlink": "New symlink",
+            "fileFromPull": "New from URL",
+            "fileFromUpload": "Upload files",
+            "directoryFromUpload": "Upload folder",
             "openInEditor": "Open in Editor",
-            "editorActions": "Editor Actions"
+            "editorActions": "Editor Actions",
+            "newFolder": "New folder",
+            "newFile": "New file",
+            "upload": "Upload"
           },
           "actionBar": {
             "copyHere": "Skopiuj {files} tutaj",
@@ -9705,7 +9708,8 @@
           "empty": {
             "title": "Empty Directory",
             "description": "There is nothing in this directory yet. Upload files or create new ones to fill it.",
-            "descriptionReadOnly": "There is nothing in this directory yet."
+            "descriptionReadOnly": "There is nothing in this directory yet.",
+            "filtered": "No files match."
           },
           "editorNotFound": {
             "title": "Not Found",
@@ -9783,7 +9787,7 @@
             "uploadFiles": "Upload Files",
             "uploadDirectory": "Upload Directory",
             "search": "Search Files",
-            "largestDirectories": "Analyze Directory Sizes",
+            "largestDirectories": "Analyze directory sizes",
             "incompleteUploads": "Review Incomplete Uploads",
             "parentDirectory": "Go to Parent Directory",
             "copyPath": "Copy Current Path",
@@ -9879,7 +9883,9 @@
               "deleted": "{entries} permanently deleted.",
               "emptied": "The trash has been emptied."
             }
-          }
+          },
+          "subtitle": "Manage, download and edit your files.",
+          "searchPlaceholder": "Search this folder…"
         },
         "databases": {
           "title": "Bazy danych",
