@@ -44,6 +44,12 @@ overwritten by an automatic one.
 The server's pages are blocked as upstream does it; the block says who suspended it and when, the
 reason, when it will be deleted if it has a deletion time, and where to get help.
 
+neo may lift a suspension from a support ticket: an abuse suspension only after a fresh abuse
+scan finds nothing critical (an unreachable node keeps it suspended), an admin's suspension only
+when a staff message in the ticket explicitly allows or asks for it (the owner's request is not
+enough; a later refusal wins), and a noprofit.space suspension never. See
+[tickets.md](tickets.md) and [neo.md](neo.md).
+
 The deletion line is `suspension_delete_at` (the API's `suspension.delete_at`, the time the purge
 uses): "This server will be deleted in 3 days (October 30, 2026 at 6:00 PM GMT+1), unless the
 suspension is lifted before then." The time left is rounded down (minutes under an hour, hours
