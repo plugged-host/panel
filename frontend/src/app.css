@@ -1502,6 +1502,13 @@ strong {
     vertical-align: middle;
   }
 
+  /* A leading FontAwesome glyph gets the same 0.625rem the iconElement span carries
+     ("mr-2.5"), so a server's rows space their icons like the account rows do. The group
+     chevron sits at the end and must not take the gap. */
+  .sidebar-link .svg-inline--fa:not(.theme-sidebar-group-arrow) {
+    margin-inline-end: 0.625rem !important;
+  }
+
   /* The quick search row: one of the rows, "transparent until hover" like Theme v2's bell. */
   .theme-sidebar-search.mantine-Button-root {
     --button-height: 2.75rem !important;
