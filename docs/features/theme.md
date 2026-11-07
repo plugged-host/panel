@@ -121,3 +121,12 @@ The two panels are one design: a change to one of these is a change to both.
   .875rem/1.25rem muted, as in switched.
 - **File fields** use `elements/input/FileInput.tsx` (generic over `multiple`) instead of a one-off
   `.field`/`.input` block, so the ticket attachments match every other field.
+
+### CSS details (2026-11-07)
+
+The smaller values are shared too: body copy 14px; 600-weight buttons, badges and table heads; the
+1px button shadow and .5 disabled fade; 2.25rem icon buttons; 1rem dropdown items; 10% badge/alert
+tints (not 15%); 5% row and card hover (not 10%); the 2px bright input focus ring; stat cards
+(.8125rem muted label, 1.5rem/600 white value, .75rem muted description, 1/1.5rem padding); lists as
+one `white/5` card; the table header `white/5` band, .75rem row padding and 1.5rem edge cells;
+1.5rem empty states; full-height phone modals; and 44px phone inputs.
