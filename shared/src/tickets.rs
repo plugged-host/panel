@@ -608,13 +608,23 @@ pub async fn reply(
         .await?;
     transaction.commit().await?;
 
+    let subject = subject_of(state, ticket_uuid).await?;
     if staff {
         crate::notifications::send(
             state,
             owner_uuid,
             None,
             crate::notifications::TICKET_REPLY,
-            json!({ "subject": subject_of(state, ticket_uuid).await? }),
+            json!({ "subject": subject }),
+        )
+        .await;
+    } else {
+        crate::notifications::send_admins(
+            state,
+            "tickets.manage",
+            None,
+            crate::notifications::ADMIN_TICKET_REPLY,
+            json!({ "subject": subject, "user": user_uuid }),
         )
         .await;
     }

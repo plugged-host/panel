@@ -96,6 +96,8 @@ pub const ADMIN_TICKET_CREATED: &str = "admin.ticketCreated";
 pub const TICKET_ESCALATED: &str = "ticketEscalated";
 /// For admins: neo escalated a ticket (`subject`, `reason`, `user`).
 pub const ADMIN_TICKET_ESCALATED: &str = "admin.ticketEscalated";
+/// For admins: the person replied to their ticket (`subject`, `user`).
+pub const ADMIN_TICKET_REPLY: &str = "admin.ticketReply";
 /// For admins with `suggestions.manage`: a new idea (`title`, `user`)
 /// (shared/src/suggestions.rs, docs/features/suggestions.md).
 pub const ADMIN_SUGGESTION_CREATED: &str = "admin.suggestionCreated";

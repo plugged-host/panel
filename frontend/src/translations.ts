@@ -1065,6 +1065,10 @@ const baseTranslations = defineTranslations({
               title: 'Ticket escalated: {subject}',
               body: '{user} needs a person: {reason}',
             },
+            ticketReply: {
+              title: 'Ticket reply: {subject}',
+              body: 'The person replied to their ticket.',
+            },
             suggestionCreated: {
               title: 'New idea: {title}',
               body: '{user} posted an idea.',
