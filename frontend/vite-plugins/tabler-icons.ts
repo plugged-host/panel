@@ -2,8 +2,9 @@ import path from 'node:path';
 import type { Plugin } from 'vite';
 
 // plugged.host: every `@fortawesome/react-fontawesome` import in the panel's own code resolves to
-// src/lib/icons/FontAwesomeIcon.tsx, which draws Tabler's outline icons (the Pelican panel's) and
-// hands the rest to the real component. The shim itself and node_modules get the real package.
+// src/lib/icons/FontAwesomeIcon.tsx, which draws the shared Heroicons outline set first, then
+// Tabler's outline icons, and hands the rest to the real component. The shim itself and
+// node_modules get the real package.
 const shim = path.resolve(import.meta.dirname, '../src/lib/icons/FontAwesomeIcon.tsx');
 
 export function tablerIcons(): Plugin {

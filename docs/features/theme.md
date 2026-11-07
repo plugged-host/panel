@@ -66,10 +66,12 @@ the zod enums) and its option label.
 ## Icons
 
 Upstream's code imports FontAwesome icons. A Vite plugin points every
-`@fortawesome/react-fontawesome` import in the panel's own code at `src/lib/icons/FontAwesomeIcon.tsx`,
-which draws the matching Tabler icon from the map in `src/lib/icons/tablerIcons.ts` and hands
-unmapped ones to FontAwesome. New code keeps importing FontAwesome names; add the Tabler equivalent
-to the map when one is missing.
+`@fortawesome/react-fontawesome` import in the panel's own code at `src/lib/icons/FontAwesomeIcon.tsx`.
+It draws the matching **Heroicons outline** SVG from `src/lib/icons/heroIcons.ts` (paths generated
+into `heroIconPaths.ts` from switched.cloud's `templates/icons/o-*.svg`), falls back to the Tabler
+icon in `tablerIcons.ts`, and hands unknown names to FontAwesome. New code keeps importing
+FontAwesome names; add the Heroicons equivalent to `heroIcons.ts` when one is missing, otherwise the
+Tabler map. Both panels now use the same outline set at 24px/1.75 stroke.
 
 ## Rules the theme assumes
 

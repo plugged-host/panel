@@ -137,8 +137,8 @@ function Idea({ suggestion }: { suggestion: Suggestion }) {
   };
 
   return (
-    <div className='theme-eco-card'>
-      <div className='flex flex-col gap-3 sm:flex-row sm:items-start'>
+    <div className='theme-eco-row'>
+      <div className='flex items-start gap-4'>
         <Button
           variant={suggestion.voted ? 'light' : 'default'}
           size='xs'

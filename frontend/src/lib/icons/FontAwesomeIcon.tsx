@@ -1,8 +1,9 @@
 /*
  * plugged.host: what `import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'` resolves to
- * everywhere in the panel (vite-plugins/tabler-icons.ts). An icon tablerIcons.ts knows is drawn
- * as Tabler's outline icon, the Pelican panel's set; brands and the rest fall through to the real
- * Font Awesome component, which this module alone imports.
+ * everywhere in the panel (vite-plugins/tabler-icons.ts). An icon heroIcons.ts maps is drawn as
+ * the same Heroicons outline SVG switched.cloud uses; the rest of tablerIcons.ts is the Tabler
+ * fallback, and brands or unknown names fall through to the real Font Awesome component, which
+ * this module alone imports.
  *
  * The box is Font Awesome's (1.25em wide, centred on the text the same way), so a swapped icon
  * takes the room the solid one took. Its own CSS is the "Tabler icons" block in app.css.
@@ -11,23 +12,34 @@ import type { IconDefinition, IconProp } from '@fortawesome/fontawesome-svg-core
 import { type FontAwesomeIconProps, FontAwesomeIcon as RealFontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classNames from 'classnames';
 import { forwardRef } from 'react';
+import { HeroIcon } from './HeroIcon.tsx';
+import { heroIcons } from './heroIcons.ts';
 import { tablerIcons } from './tablerIcons.ts';
 
 export type { FontAwesomeIconProps };
 
-function tablerIconFor(icon: IconProp) {
+function definitionOf(icon: IconProp) {
   if (!icon || typeof icon !== 'object' || Array.isArray(icon)) return null;
 
   const definition = icon as IconDefinition;
-  if (definition.prefix === 'fab') return null;
+  return definition.prefix === 'fab' ? null : definition;
+}
 
-  return tablerIcons[definition.iconName] ?? null;
+function tablerIconFor(icon: IconProp) {
+  const definition = definitionOf(icon);
+  return definition ? (tablerIcons[definition.iconName] ?? null) : null;
+}
+
+function heroIconFor(icon: IconProp) {
+  const definition = definitionOf(icon);
+  return definition ? (heroIcons[definition.iconName] ?? null) : null;
 }
 
 export const FontAwesomeIcon = forwardRef<SVGSVGElement, FontAwesomeIconProps>((props, ref) => {
-  const TablerIcon = tablerIconFor(props.icon);
+  const heroName = heroIconFor(props.icon);
+  const TablerIcon = heroName ? null : tablerIconFor(props.icon);
 
-  if (!TablerIcon) {
+  if (!heroName && !TablerIcon) {
     return <RealFontAwesomeIcon ref={ref} {...props} />;
   }
 
@@ -61,6 +73,22 @@ export const FontAwesomeIcon = forwardRef<SVGSVGElement, FontAwesomeIconProps>((
     title,
     ...rest
   } = props;
+
+  if (heroName) {
+    return (
+      <HeroIcon
+        ref={ref}
+        name={heroName}
+        title={title}
+        size={size}
+        spin={spin || spinPulse || pulse}
+        stroke={1.75}
+        className={classNames('theme-icon', size && `theme-icon-${size}`, className)}
+      />
+    );
+  }
+
+  if (!TablerIcon) return null;
 
   return (
     <TablerIcon
