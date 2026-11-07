@@ -592,7 +592,7 @@ function ServerFilesComponent() {
             <div />
           )}
 
-          <Group justify='flex-end' className='theme-files-actions-row min-w-0 flex-1'>
+          <Group gap='xs' justify='flex-end' className='theme-files-actions-row min-w-0 flex-1'>
             <FileToolbar
               onCreateFile={createTreeFile}
               treeView={view === 'tree'}

@@ -8562,7 +8562,18 @@ span.theme-neo-image {
 }
 
 /* plugged.host: the files page header actions. The upload buttons keep their labels until the
-   search box opens, then collapse to icons so the box gets the room. */
+   search box opens, then collapse to icons so the box gets the room. They use the same 36px
+   rounded rectangle as the icon tiles, not the panel's pill buttons. */
+.theme-file-header-action.mantine-Button-root {
+  --button-height: 2.25rem;
+  --button-padding-x: 0.75rem;
+  --button-radius: 0.5rem;
+  height: 2.25rem;
+  min-height: 2.25rem;
+  border: 0 !important;
+  border-radius: 0.5rem !important;
+}
+
 .theme-file-header-action {
   transition: padding-inline 220ms cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -8583,7 +8594,7 @@ span.theme-neo-image {
 }
 
 .theme-file-header-action[data-collapsed="true"] {
-  padding-inline: 0.75rem !important;
+  padding-inline: 0.5rem !important;
 }
 
 .theme-file-header-action[data-collapsed="true"] .mantine-Button-section[data-position="left"] {
