@@ -99,3 +99,15 @@ person answers.
   it; set Waiting, Resolved and Closed.
 - A server ticket keeps its server name in both lists; delete the server: the ticket stays, without
   the server.
+
+## Deeper tickets (v3.1)
+
+- A ticket opens as a full page (`/account/support/{id}`, `/admin/tickets/{id}`), not a modal.
+- Category `bug` adds steps to reproduce, expected result, actual result and environment.
+- Owners can attach up to six images/PDF/text/JSON/zip files (10 MB each) when opening a ticket;
+  they are stored through the panel's storage driver and shown inline in the thread.
+- neo reads the whole thread (not just the first message) and the server facts. It has the normal
+  account/server tools, may run read and write tools (not destructive/critical ones), and has
+  `unsuspend_server` for a server the user owns; abuse/security suspensions are refused.
+- Owners and admins can delete a ticket (thread and attachments go with it). Owners can delete
+  their own ideas.
