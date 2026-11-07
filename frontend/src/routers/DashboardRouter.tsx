@@ -1,12 +1,4 @@
-import {
-  faArrowUpRightFromSquare,
-  faEllipsis,
-  faHouse,
-  faLifeRing,
-  faLightbulb,
-  faShieldHalved,
-  faUserCog,
-} from '@fortawesome/free-solid-svg-icons';
+import { faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons';
 import { Suspense, useMemo } from 'react';
 import { Navigate, Route, Routes } from 'react-router'; // plugged.host: Navigate
 import { AdLayoutFoot, AdLayoutTop } from '@/elements/ads/AdLayout.tsx'; // plugged.host
@@ -15,6 +7,19 @@ import ExtensionSlot from '@/elements/ExtensionSlot.tsx';
 import ScreenBlock from '@/elements/feedback/ScreenBlock.tsx';
 import Spinner from '@/elements/feedback/Spinner.tsx';
 import Container from '@/elements/layout/Container.tsx';
+import {
+  ArchiveBoxIcon,
+  ArrowTopRightOnSquareIcon,
+  CircleStackIcon,
+  Cog6ToothIcon,
+  EllipsisHorizontalIcon,
+  HomeIcon,
+  LifebuoyIcon,
+  LightBulbIcon,
+  ShieldCheckIcon,
+  ShoppingBagIcon,
+  StarIcon,
+} from '@/elements/navigation/NavIcons.tsx';
 import ServerSwitcher from '@/elements/navigation/ServerSwitcher.tsx';
 import Sidebar from '@/elements/navigation/Sidebar.tsx';
 import SidebarBalance from '@/elements/navigation/SidebarBalance.tsx'; // plugged.host
@@ -40,6 +45,22 @@ import { useGlobalStore } from '@/stores/global.ts';
 const MAIN_PATHS = ['/store', '/membership', '/tokens', '/backups'];
 // plugged.host v3.1: the secondary rows live under one More disclosure.
 const MORE_PATHS = ['/support', '/suggestions'];
+
+/// The shared Heroicon set, the same SVGs the switched.cloud sidebar renders.
+function mainIcon(path: string) {
+  switch (path) {
+    case '/store':
+      return <ShoppingBagIcon />;
+    case '/membership':
+      return <StarIcon />;
+    case '/tokens':
+      return <CircleStackIcon />;
+    case '/backups':
+      return <ArchiveBoxIcon />;
+    default:
+      return null;
+  }
+}
 
 export default function DashboardRouter({ isNormal }: { isNormal: boolean }) {
   const { t, language } = useTranslations();
@@ -156,7 +177,7 @@ export default function DashboardRouter({ isNormal }: { isNormal: boolean }) {
               <Sidebar.Link
                 to='/'
                 end
-                icon={faHouse}
+                iconElement={<HomeIcon />}
                 name={t('pages.account.home.title', {})}
                 activeMatches={['/grouped', '/create']}
               />
@@ -167,7 +188,7 @@ export default function DashboardRouter({ isNormal }: { isNormal: boolean }) {
                       key={route.path}
                       to={to(route.path, '/account')}
                       end={route.exact}
-                      icon={route.icon}
+                      iconElement={mainIcon(route.path)}
                       name={resolveString(route.name)}
                       activeMatches={route.activeMatches}
                     />
@@ -176,7 +197,7 @@ export default function DashboardRouter({ isNormal }: { isNormal: boolean }) {
 
               <Sidebar.Group
                 id='more'
-                icon={faEllipsis}
+                iconElement={<EllipsisHorizontalIcon />}
                 name={t('elements.sidebar.more', {})}
                 activeMatches={MORE_PATHS.map((path) => ({ path, end: false }))}
               >
@@ -186,21 +207,21 @@ export default function DashboardRouter({ isNormal }: { isNormal: boolean }) {
                       <Sidebar.Link
                         key={route.path}
                         to={to(route.path, '/account')}
-                        icon={route.path === '/support' ? faLifeRing : faLightbulb}
+                        iconElement={route.path === '/support' ? <LifebuoyIcon /> : <LightBulbIcon />}
                         name={resolveString(route.name)}
                       />
                     ),
                 )}
                 <Sidebar.Link
                   to='https://accounts.noprofit.space'
-                  icon={faArrowUpRightFromSquare}
+                  iconElement={<ArrowTopRightOnSquareIcon />}
                   name={t('elements.sidebar.accountsHub', {})}
                 />
               </Sidebar.Group>
 
               <Sidebar.Group
                 id='account'
-                icon={faUserCog}
+                iconElement={<Cog6ToothIcon />}
                 name={t('elements.sidebar.accountSettings', {})}
                 activeMatches={accountItems.flatMap((item) =>
                   item?.type === 'route'
@@ -244,7 +265,12 @@ export default function DashboardRouter({ isNormal }: { isNormal: boolean }) {
               </Sidebar.Group>
 
               {isAdmin(user) && (
-                <Sidebar.Link to='/admin' end icon={faShieldHalved} name={t('pages.account.admin.title', {})} />
+                <Sidebar.Link
+                  to='/admin'
+                  end
+                  iconElement={<ShieldCheckIcon />}
+                  name={t('pages.account.admin.title', {})}
+                />
               )}
             </>
           )}

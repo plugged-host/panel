@@ -166,6 +166,8 @@ type LinkProps = {
   to: string;
   end?: boolean;
   icon?: IconDefinition;
+  /** plugged.host: an already-rendered icon (the shared Heroicon sidebar set). */
+  iconElement?: ReactNode;
   customIcon?: string | null;
   name?: string;
   title?: string;
@@ -173,7 +175,7 @@ type LinkProps = {
   activeMatches?: string[];
 };
 
-function Link({ to, end, icon, customIcon, name, title = name, className, activeMatches }: LinkProps) {
+function Link({ to, end, icon, iconElement, customIcon, name, title = name, className, activeMatches }: LinkProps) {
   const { t } = useTranslations();
   const { addWindow } = useWindows();
   const closeMobileMenu = useContext(CloseMobileMenuContext);
@@ -237,7 +239,12 @@ function Link({ to, end, icon, customIcon, name, title = name, className, active
           fullWidth
           styles={{ label: { width: '100%' } }}
         >
-          {resolvedIcon && <FontAwesomeIcon icon={resolvedIcon} className='mr-2' />} {name}
+          {iconElement ? (
+            <span className='mr-2 inline-flex shrink-0'>{iconElement}</span>
+          ) : (
+            resolvedIcon && <FontAwesomeIcon icon={resolvedIcon} className='mr-2' />
+          )}{' '}
+          {name}
         </Button>
       </a>
     );
@@ -271,7 +278,12 @@ function Link({ to, end, icon, customIcon, name, title = name, className, active
                 fullWidth
                 styles={{ label: { width: '100%' } }}
               >
-                {resolvedIcon && <FontAwesomeIcon icon={resolvedIcon} className='mr-2' />} {name}
+                {iconElement ? (
+                  <span className='mr-2 inline-flex shrink-0'>{iconElement}</span>
+                ) : (
+                  resolvedIcon && <FontAwesomeIcon icon={resolvedIcon} className='mr-2' />
+                )}{' '}
+                {name}
               </Button>
             );
           }}

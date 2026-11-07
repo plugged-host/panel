@@ -13,6 +13,8 @@ import { usePendingPathname } from '@/providers/contexts/pendingNavigationContex
 type Props = {
   id: string;
   icon?: IconDefinition;
+  /** plugged.host: an already-rendered icon (the shared Heroicon sidebar set). */
+  iconElement?: ReactNode;
   name: string;
   /** The group's pages (`end`: that path only, not the pages under it): it opens on them. */
   activeMatches?: { path: string; end: boolean }[];
@@ -30,7 +32,7 @@ function storedOpen(id: string): boolean | null {
   }
 }
 
-export default function SidebarGroup({ id, icon, name, activeMatches, children }: Props) {
+export default function SidebarGroup({ id, icon, iconElement, name, activeMatches, children }: Props) {
   const { pathname } = useLocation();
   const pendingPathname = usePendingPathname();
   const contentId = useId();
@@ -64,7 +66,11 @@ export default function SidebarGroup({ id, icon, name, activeMatches, children }
         aria-controls={contentId}
         onClick={toggle}
       >
-        {icon && <FontAwesomeIcon icon={icon} className='mr-2' />}
+        {iconElement ? (
+          <span className='mr-2 inline-flex shrink-0'>{iconElement}</span>
+        ) : (
+          icon && <FontAwesomeIcon icon={icon} className='mr-2' />
+        )}
         <span className='theme-sidebar-group-name'>{name}</span>
         <FontAwesomeIcon icon={faChevronDown} className='theme-sidebar-group-arrow' />
       </Button>
