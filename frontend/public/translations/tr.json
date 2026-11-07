@@ -3157,6 +3157,8 @@
           "autoRenew": {
             "label": "Otomatik yenile",
             "description": "Süresi bittiğinde, bakiyeniz yetiyorsa o anki fiyatından yenilenir (bugün {cost}).",
+            "noteOn": "Renews by itself from your balance when it ends.",
+            "noteOff": "Doesn't renew by itself.",
             "on": "{name} artık otomatik olarak yenilenecek.",
             "off": "{name} artık otomatik olarak yenilenmeyecek."
           },

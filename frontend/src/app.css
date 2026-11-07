@@ -656,8 +656,12 @@ strong {
   .sidebar-link.mantine-Button-root {
     --button-height: 2.75rem !important;
     --button-color: var(--theme-text-nav) !important;
-    --button-hover: var(--theme-raise) !important;
+    --button-hover: transparent !important;
     --button-hover-color: var(--theme-text) !important;
+    transition:
+      color 200ms ease,
+      background-color 200ms ease,
+      transform 100ms ease !important;
     /* switched.cloud's .fi-sidebar-item-btn geometry, exactly */
     height: 2.75rem !important;
     min-height: 2.75rem !important;
@@ -685,6 +689,10 @@ strong {
 
   .sidebar-link.mantine-Button-root svg {
     color: var(--theme-text-faint);
+  }
+
+  .sidebar-link.mantine-Button-root:active {
+    transform: scale(0.98);
   }
 
   .sidebar-link.mantine-Button-root.active {
@@ -979,6 +987,19 @@ strong {
   .mantine-Button-root:disabled,
   .mantine-Button-root[data-disabled] {
     opacity: 0.5;
+  }
+
+  /* A disabled button keeps the colour of its variant, like Filament's .fi-disabled. */
+  .mantine-Button-root[data-variant="filled"]:disabled,
+  .mantine-Button-root[data-variant="filled"][data-disabled] {
+    background-color: var(--theme-accent);
+    color: #ffffff;
+  }
+
+  .mantine-Button-root[data-variant="default"]:disabled,
+  .mantine-Button-root[data-variant="default"][data-disabled] {
+    background-color: var(--theme-raise-2);
+    color: var(--theme-text);
   }
 
   /* Filament's icon buttons: 2.25rem default, 2rem small, 1.75rem extra small. */

@@ -3161,6 +3161,8 @@
           "autoRenew": {
             "label": "Renew automatically",
             "description": "As it ends, it renews at its price then ({cost} today), if your balance covers it.",
+            "noteOn": "Renews by itself from your balance when it ends.",
+            "noteOff": "Doesn't renew by itself.",
             "on": "{name} renews automatically now.",
             "off": "{name} no longer renews automatically."
           },

@@ -3154,6 +3154,8 @@
           "autoRenew": {
             "label": "Renovar automaticamente",
             "description": "Quando terminar, é renovada pelo preço do momento ({cost} hoje), se o seu saldo cobrir.",
+            "noteOn": "Renews by itself from your balance when it ends.",
+            "noteOff": "Doesn't renew by itself.",
             "on": "O {name} agora é renovado automaticamente.",
             "off": "O {name} não é mais renovado automaticamente."
           },

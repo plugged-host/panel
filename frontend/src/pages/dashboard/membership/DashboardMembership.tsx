@@ -471,7 +471,7 @@ export default function DashboardMembership() {
           const autoRenewSwitch = (kind: MembershipKind, name: string, checked: boolean, cost: string) => (
             <Switch
               label={t(`${page}.autoRenew.label`, {})}
-              description={t(`${page}.autoRenew.description`, { cost })}
+              description={checked ? t(`${page}.autoRenew.noteOn`, {}) : t(`${page}.autoRenew.noteOff`, {})}
               checked={checked}
               disabled={switching}
               onChange={(event) => toggleAutoRenew(kind, name, event.currentTarget.checked)}
@@ -635,16 +635,15 @@ export default function DashboardMembership() {
                         !economy.tokensEnabled,
                       )}
 
-                      {plusShort ? earnMore : <p className='theme-eco-small'>{t(`${page}.extendHint`, {})}</p>}
-
                       {economy.autoRenewEnabled &&
-                        hasPlus &&
                         autoRenewSwitch(
                           'plus',
                           economy.plusName,
                           economy.plusAutoRenew,
                           costText('tokens', economy.plusCost),
                         )}
+
+                      {plusShort ? earnMore : <p className='theme-eco-small'>{t(`${page}.extendHint`, {})}</p>}
                     </PlanCard>
 
                     <PlanCard
@@ -667,16 +666,7 @@ export default function DashboardMembership() {
                         ),
                       )}
 
-                      {economy.plusplusOffers.length === 0 ? (
-                        <p className='theme-eco-small'>{t(`${page}.plusplus.notSold`, {})}</p>
-                      ) : plusplusShort ? (
-                        earnMore
-                      ) : (
-                        <p className='theme-eco-small'>{t(`${page}.extendHint`, {})}</p>
-                      )}
-
                       {economy.autoRenewEnabled &&
-                        hasPlusplus &&
                         plusplusRenewal &&
                         autoRenewSwitch(
                           'plusplus',
@@ -684,6 +674,14 @@ export default function DashboardMembership() {
                           economy.plusplusAutoRenew,
                           costText(plusplusRenewal.pay, plusplusRenewal.cost),
                         )}
+
+                      {economy.plusplusOffers.length === 0 ? (
+                        <p className='theme-eco-small'>{t(`${page}.plusplus.notSold`, {})}</p>
+                      ) : plusplusShort ? (
+                        earnMore
+                      ) : (
+                        <p className='theme-eco-small'>{t(`${page}.extendHint`, {})}</p>
+                      )}
                     </PlanCard>
                   </div>
 

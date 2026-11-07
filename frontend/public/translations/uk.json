@@ -3154,6 +3154,8 @@
           "autoRenew": {
             "label": "Продовжувати автоматично",
             "description": "Після завершення терміну підписка продовжується за ціною на той момент, якщо вашого балансу вистачає (зараз — {cost}).",
+            "noteOn": "Renews by itself from your balance when it ends.",
+            "noteOff": "Doesn't renew by itself.",
             "on": "Автопродовження {name} увімкнено.",
             "off": "Автопродовження {name} вимкнено."
           },

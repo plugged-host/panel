@@ -3157,6 +3157,8 @@
           "autoRenew": {
             "label": "Tự động gia hạn",
             "description": "Khi hết hạn, gói sẽ được gia hạn theo giá lúc đó ({cost} hiện nay), nếu số dư của bạn đủ.",
+            "noteOn": "Renews by itself from your balance when it ends.",
+            "noteOff": "Doesn't renew by itself.",
             "on": "{name} giờ sẽ tự động gia hạn.",
             "off": "{name} sẽ không còn tự động gia hạn."
           },

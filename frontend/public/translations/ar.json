@@ -3157,6 +3157,8 @@
           "autoRenew": {
             "label": "التجديد التلقائي",
             "description": "عند انتهائها، تتجدد بسعرها في ذلك الوقت ({cost} اليوم)، إذا كان رصيدك يغطيه.",
+            "noteOn": "Renews by itself from your balance when it ends.",
+            "noteOff": "Doesn't renew by itself.",
             "on": "أصبح {name} يتجدد تلقائيًا الآن.",
             "off": "لم يعد {name} يتجدد تلقائيًا."
           },

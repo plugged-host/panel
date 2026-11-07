@@ -3154,6 +3154,8 @@
           "autoRenew": {
             "label": "Perpanjang otomatis",
             "description": "Saat berakhir, keanggotaan diperpanjang dengan harga saat itu ({cost} hari ini), jika saldo Anda cukup.",
+            "noteOn": "Renews by itself from your balance when it ends.",
+            "noteOff": "Doesn't renew by itself.",
             "on": "{name} sekarang diperpanjang otomatis.",
             "off": "{name} tidak lagi diperpanjang otomatis."
           },

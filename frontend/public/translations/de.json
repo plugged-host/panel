@@ -3156,6 +3156,8 @@
           "autoRenew": {
             "label": "Automatisch verlängern",
             "description": "Zum Ende verlängert sie sich zum dann gültigen Preis (heute {cost}), sofern dein Guthaben reicht.",
+            "noteOn": "Verlängert sich am Ende aus deinem Guthaben.",
+            "noteOff": "Verlängert sich nicht von selbst.",
             "on": "{name} verlängert sich jetzt automatisch.",
             "off": "{name} verlängert sich nicht mehr automatisch."
           },

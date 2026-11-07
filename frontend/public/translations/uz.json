@@ -3154,6 +3154,8 @@
           "autoRenew": {
             "label": "Avtomatik yangilash",
             "description": "Muddat tugaganda, balansingiz yetsa, u oʻsha paytdagi narxda (bugun {cost}) yangilanadi.",
+            "noteOn": "Renews by itself from your balance when it ends.",
+            "noteOff": "Doesn't renew by itself.",
             "on": "{name} endi avtomatik yangilanadi.",
             "off": "{name} endi avtomatik yangilanmaydi."
           },
