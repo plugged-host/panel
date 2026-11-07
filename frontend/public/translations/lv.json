@@ -3020,6 +3020,8 @@
         "tokens": {
           "title": "Tokens",
           "subheading": "Earn tokens and see where they went",
+          "balanceTitle": "Atlikums",
+          "waysTitle": "Nopelnīšanas veidi",
           "balance": "{count} tokens",
           "explainer": "Earn tokens by taking a survey or completing sponsored links. They pay for {app} {plus}, waking a hibernated server and subdomains.",
           "saved": "{amount} tokens saved toward your next token",

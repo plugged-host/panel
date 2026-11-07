@@ -9,7 +9,6 @@ import { httpErrorToHuman } from '@/api/axios.ts';
 import claimStarterTask from '@/api/me/economy/claimStarterTask.ts';
 import Button from '@/elements/buttons/Button.tsx';
 import Badge from '@/elements/data-display/Badge.tsx';
-import TitleCard from '@/elements/data-display/TitleCard.tsx';
 import { intlLocale } from '@/lib/languages.ts';
 import { queryKeys } from '@/lib/queryKeys.ts';
 import { starterTaskSchema, tokenStarterSchema } from '@/lib/schemas/user/economy.ts';
@@ -57,12 +56,15 @@ export default function StarterTasks({ starter }: { starter: z.infer<typeof toke
   };
 
   return (
-    <TitleCard
-      title={t(`${page}.title`, {})}
-      description={t(`${page}.description`, {
-        date: new Intl.DateTimeFormat(intlLocale(language), { dateStyle: 'medium' }).format(starter.ends),
-      })}
-    >
+    <section className='theme-eco-card'>
+      <div className='flex flex-col gap-1'>
+        <h3 className='theme-eco-heading'>{t(`${page}.title`, {})}</h3>
+        <p className='theme-eco-muted'>
+          {t(`${page}.description`, {
+            date: new Intl.DateTimeFormat(intlLocale(language), { dateStyle: 'medium' }).format(starter.ends),
+          })}
+        </p>
+      </div>
       <div className='theme-earn-rows flex flex-col'>
         {starter.tasks.map((task) => (
           <div key={task.task} className='theme-earn-row'>
@@ -95,6 +97,6 @@ export default function StarterTasks({ starter }: { starter: z.infer<typeof toke
           </div>
         ))}
       </div>
-    </TitleCard>
+    </section>
   );
 }

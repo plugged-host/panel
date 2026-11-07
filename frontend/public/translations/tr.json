@@ -3021,6 +3021,8 @@
         "tokens": {
           "title": "Jetonlar",
           "subheading": "Jeton kazanın ve nereye gittiklerini görün",
+          "balanceTitle": "Bakiye",
+          "waysTitle": "Kazanma yolları",
           "balance": "{count} jeton",
           "explainer": "Bir anket doldurarak veya sponsorlu bağlantıları tamamlayarak jeton kazanın. Jetonlarla {app} {plus}, uyku modundaki bir sunucuyu uyandırma ve alt alan adları için ödeme yaparsınız.",
           "saved": "Bir sonraki jeton için {amount} jeton biriktirildi",

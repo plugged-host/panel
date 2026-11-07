@@ -3021,6 +3021,8 @@
         "tokens": {
           "title": "Token",
           "subheading": "Kiếm token và xem token đã được dùng vào đâu",
+          "balanceTitle": "Số dư",
+          "waysTitle": "Cách kiếm",
           "balance": "{count} token",
           "explainer": "Kiếm token bằng cách làm khảo sát hoặc hoàn thành liên kết tài trợ. Token dùng để trả cho {app} {plus}, đánh thức máy chủ đang ngủ đông và tên miền phụ.",
           "saved": "Đã tích lũy {amount} token cho token tiếp theo",

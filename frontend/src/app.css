@@ -699,7 +699,7 @@ strong {
      replace text). */
   #title-card-header {
     background-color: transparent;
-    border-bottom: 1px solid var(--theme-hairline) !important;
+    border-bottom: 0 !important;
   }
 
   /* A section that is only its heading (and description) has nothing to divide off. */
@@ -8380,4 +8380,23 @@ span.theme-neo-image {
 :is(pre, code, kbd, samp):dir(rtl) {
   direction: ltr;
   unicode-bidi: isolate;
+}
+
+/* =============================================================================
+ * Phones: a modal is a full-height sheet, and inputs keep a 44px touch target.
+ * ============================================================================= */
+
+@media (max-width: 40em) {
+  .mantine-Modal-inner {
+    padding: 0;
+  }
+
+  .mantine-Modal-content {
+    min-height: 100dvh;
+    border-radius: 0;
+  }
+
+  .mantine-Input-input {
+    min-height: 2.75rem;
+  }
 }

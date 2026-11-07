@@ -3018,6 +3018,8 @@
         "tokens": {
           "title": "Token",
           "subheading": "Dapatkan token dan lihat ke mana token Anda terpakai",
+          "balanceTitle": "Saldo",
+          "waysTitle": "Cara mendapatkan",
           "balance": "{count} token",
           "explainer": "Dapatkan token dengan mengisi survei atau menyelesaikan tautan bersponsor. Token dipakai untuk membayar {app} {plus}, membangunkan server yang dihibernasi, dan subdomain.",
           "saved": "{amount} token tersimpan untuk token berikutnya",

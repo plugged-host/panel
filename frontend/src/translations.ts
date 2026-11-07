@@ -2899,6 +2899,8 @@ const baseTranslations = defineTranslations({
         tokens: {
           title: 'Tokens',
           subheading: 'Earn tokens and see where they went',
+          balanceTitle: 'Balance',
+          waysTitle: 'Ways to earn',
           balance: '{count} tokens',
           explainer:
             'Earn tokens by taking a survey or completing sponsored links. They pay for {app} {plus}, waking a hibernated server and subdomains.',

@@ -4,6 +4,7 @@
 // An offer the balance does not cover says how much is missing and leads to the Tokens page; a
 // membership that runs can renew by itself; a membership can be bought for someone else; a sale
 // that covers the memberships shows a banner and struck-through prices, as in the store.
+import { Button as MantineButton } from '@mantine/core';
 import { useQueryClient } from '@tanstack/react-query';
 import { FormEvent, Fragment, ReactNode, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
@@ -604,23 +605,24 @@ export default function DashboardMembership() {
                     </Notification>
                   )}
 
-                  {/* plugged.host: noprofit.space Ultra, the one subscription for both products */}
-                  <section className='theme-eco-card'>
-                    <div className='flex flex-col gap-1'>
-                      <h3 className='theme-eco-heading'>{t(`${page}.ultra.title`, {})}</h3>
-                      <p className='theme-eco-muted'>{t(`${page}.ultra.body`, {})}</p>
-                    </div>
-                    <div>
-                      <a
-                        className='theme-eco-link'
+                  {/* plugged.host: noprofit.space Ultra, the one subscription for both products.
+                      The same callout as switched.cloud: a tinted banner with one secondary action. */}
+                  <Alert color='blue' title={t(`${page}.ultra.title`, {})}>
+                    <div className='flex flex-col items-start gap-3'>
+                      <span>{t(`${page}.ultra.body`, {})}</span>
+                      <MantineButton
+                        component='a'
                         href='https://accounts.noprofit.space/ultra'
                         target='_blank'
                         rel='noopener noreferrer'
+                        variant='default'
+                        size='sm'
+                        fw={600}
                       >
                         {t(`${page}.ultra.cta`, {})}
-                      </a>
+                      </MantineButton>
                     </div>
-                  </section>
+                  </Alert>
 
                   <div className='theme-plus-plans'>
                     <PlanCard

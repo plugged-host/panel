@@ -1217,6 +1217,10 @@
             "title": "Support replied: {subject}",
             "body": "A member of the team answered your ticket. Open Account › Support to read it."
           },
+          "ticketEscalated": {
+            "title": "Your ticket was escalated: {subject}",
+            "body": "neo handed your ticket to a person. They will reply in the panel."
+          },
           "upgradeEnding": {
             "title": "{upgrade} ends soon",
             "body": "{upgrade} on {server} ends on {time}.",
@@ -1248,10 +1252,6 @@
               "title": "New ticket: {subject}",
               "body": "{user} opened a {category} ticket."
             },
-            "suggestionCreated": {
-              "title": "New idea: {title}",
-              "body": "{user} posted an idea."
-            },
             "ticketEscalated": {
               "title": "Ticket escalated: {subject}",
               "body": "{user} needs a person: {reason}"
@@ -1259,11 +1259,11 @@
             "ticketReply": {
               "title": "Ticket reply: {subject}",
               "body": "The person replied to their ticket."
+            },
+            "suggestionCreated": {
+              "title": "New idea: {title}",
+              "body": "{user} posted an idea."
             }
-          },
-          "ticketEscalated": {
-            "title": "Your ticket was escalated: {subject}",
-            "body": "neo handed your ticket to a person. They will reply in the panel."
           }
         }
       },
@@ -3020,6 +3020,8 @@
         "tokens": {
           "title": "Tokens",
           "subheading": "Earn tokens and see where they went",
+          "balanceTitle": "Balance",
+          "waysTitle": "Ways to earn",
           "balance": "{count} tokens",
           "explainer": "Earn tokens by taking a survey or completing sponsored links. They pay for {app} {plus}, waking a hibernated server and subdomains.",
           "saved": "{amount} tokens saved toward your next token",
@@ -3488,22 +3490,22 @@
             "serverHint": "Optional: one of your servers, so we have its details.",
             "message": "Message",
             "messageHint": "What happened, what you expected and what you already tried.",
-            "button": "Open ticket",
             "bugSteps": "Steps to reproduce",
             "bugStepsHint": "What you clicked, in order, so we can do the same.",
             "bugExpected": "Expected result",
             "bugActual": "Actual result",
             "bugEnvironment": "Browser, device or server version",
             "attachments": "Images and files",
-            "attachmentsHint": "Up to 6 files, 10 MB each: screenshots, logs, PDFs or a zip."
+            "attachmentsHint": "Up to 6 files, 10 MB each: screenshots, logs, PDFs or a zip.",
+            "button": "Open ticket"
           },
           "category": {
             "general": "General",
             "billing": "Billing",
             "technical": "Technical",
+            "bug": "Bug report",
             "abuse": "Abuse",
-            "other": "Other",
-            "bug": "Bug report"
+            "other": "Other"
           },
           "status": {
             "open": "Open",
@@ -3551,6 +3553,8 @@
           "vote": "Vote",
           "changelog": "Shipped: {entry}",
           "mergedInto": "Merged into “{title}”.",
+          "deleteTitle": "Delete idea",
+          "deleteBody": "This deletes your idea and its votes for good.",
           "anonymous": "Anonymous",
           "create": {
             "title": "New idea",
@@ -3577,9 +3581,7 @@
           },
           "toast": {
             "created": "Idea posted."
-          },
-          "deleteTitle": "Delete idea",
-          "deleteBody": "This deletes your idea and its votes for good."
+          }
         },
         "devboxOpen": {
           "title": "VS Code",

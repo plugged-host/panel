@@ -3018,6 +3018,8 @@
         "tokens": {
           "title": "Tokens",
           "subheading": "Ganhe tokens e veja onde eles foram usados",
+          "balanceTitle": "Saldo",
+          "waysTitle": "Formas de ganhar",
           "balance": "{count} tokens",
           "explainer": "Ganhe tokens respondendo a uma pesquisa ou concluindo links patrocinados. Eles pagam o {app} {plus}, a reativação de um servidor hibernado e subdomínios.",
           "saved": "{amount} tokens guardados para o seu próximo token",

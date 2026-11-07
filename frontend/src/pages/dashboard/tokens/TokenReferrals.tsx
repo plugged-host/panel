@@ -2,7 +2,6 @@
 // pays in one line, and the friends who signed up with it (docs/features/referrals.md).
 import { useQuery } from '@tanstack/react-query';
 import getReferrals from '@/api/me/economy/getReferrals.ts';
-import TitleCard from '@/elements/data-display/TitleCard.tsx';
 import { CopyActionIcon } from '@/elements/SettingRows.tsx';
 import { queryKeys } from '@/lib/queryKeys.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
@@ -22,13 +21,16 @@ export default function TokenReferrals() {
   }
 
   return (
-    <TitleCard
-      title={t(`${page}.title`, {})}
-      description={t(`${page}.howItWorks`, {
-        threshold: tItem('token', referrals.threshold),
-        reward: tItem('token', referrals.reward),
-      })}
-    >
+    <section className='theme-eco-card'>
+      <div className='flex flex-col gap-1'>
+        <h3 className='theme-eco-heading'>{t(`${page}.title`, {})}</h3>
+        <p className='theme-eco-muted'>
+          {t(`${page}.howItWorks`, {
+            threshold: tItem('token', referrals.threshold),
+            reward: tItem('token', referrals.reward),
+          })}
+        </p>
+      </div>
       <div className='flex flex-col gap-4'>
         <div className='flex flex-col gap-1'>
           <span className='theme-eco-title'>{t(`${page}.link`, {})}</span>
@@ -74,6 +76,6 @@ export default function TokenReferrals() {
           </div>
         )}
       </div>
-    </TitleCard>
+    </section>
   );
 }

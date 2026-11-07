@@ -140,7 +140,7 @@ function Idea({ suggestion }: { suggestion: Suggestion }) {
     <div className='theme-eco-card'>
       <div className='flex flex-col gap-3 sm:flex-row sm:items-start'>
         <Button
-          variant={suggestion.voted ? 'filled' : 'default'}
+          variant={suggestion.voted ? 'light' : 'default'}
           size='xs'
           loading={voting}
           onClick={vote}

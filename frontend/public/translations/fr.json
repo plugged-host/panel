@@ -3021,6 +3021,8 @@
         "tokens": {
           "title": "Jetons",
           "subheading": "Gagnez des jetons et voyez où ils sont passés",
+          "balanceTitle": "Solde",
+          "waysTitle": "Façons de gagner",
           "balance": "{count} jetons",
           "explainer": "Gagnez des jetons en répondant à un sondage ou en complétant des liens sponsorisés. Ils servent à payer {app} {plus}, le réveil d'un serveur en hibernation et les sous-domaines.",
           "saved": "{amount} jetons mis de côté pour votre prochain jeton",

@@ -64,7 +64,7 @@ export default function DashboardSshKeys() {
           >
             <Button
               onClick={() => setOpenModal('import')}
-              color='blue'
+              variant='default'
               leftSection={<FontAwesomeIcon icon={faDownload} />}
               disabled={(sshKeys?.total ?? 0) >= settings.user.maxSshKeyCount}
             >

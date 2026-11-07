@@ -3018,6 +3018,8 @@
         "tokens": {
           "title": "Jetonlar",
           "subheading": "Jeton ishlab oling va ular nimaga sarflanganini koʻring",
+          "balanceTitle": "Balans",
+          "waysTitle": "Pul ishlash yoʻllari",
           "balance": "{count} jeton",
           "explainer": "Soʻrovnomadan oʻtib yoki homiylik havolalarini yakunlab jeton ishlab oling. Ular bilan {app} {plus}, uyqu rejimidagi serverni uygʻotish va subdomenlar uchun toʻlanadi.",
           "saved": "Keyingi jeton uchun {amount} jeton yigʻildi",

@@ -273,38 +273,36 @@ export function ThreadModal({
           </div>
 
           {thread.ticket.bug && (
-            <div className='theme-eco-list'>
-              <div className='theme-eco-tx'>
-                <div className='flex min-w-0 flex-col gap-2'>
-                  <span className='theme-eco-small'>{t(`${base}.thread.bug`, {})}</span>
-                  {thread.ticket.bug.steps && (
-                    <p className='theme-eco-text'>
-                      <strong>{t(`${base}.thread.bugSteps`, {})}:</strong> {thread.ticket.bug.steps}
-                    </p>
-                  )}
-                  {thread.ticket.bug.expected && (
-                    <p className='theme-eco-text'>
-                      <strong>{t(`${base}.thread.bugExpected`, {})}:</strong> {thread.ticket.bug.expected}
-                    </p>
-                  )}
-                  {thread.ticket.bug.actual && (
-                    <p className='theme-eco-text'>
-                      <strong>{t(`${base}.thread.bugActual`, {})}:</strong> {thread.ticket.bug.actual}
-                    </p>
-                  )}
-                  {thread.ticket.bug.environment && (
-                    <p className='theme-eco-text'>
-                      <strong>{t(`${base}.thread.bugEnvironment`, {})}:</strong> {thread.ticket.bug.environment}
-                    </p>
-                  )}
-                </div>
+            <section className='theme-eco-card'>
+              <h3 className='theme-eco-heading'>{t(`${base}.thread.bug`, {})}</h3>
+              <div className='flex min-w-0 flex-col gap-2'>
+                {thread.ticket.bug.steps && (
+                  <p className='theme-eco-text'>
+                    <strong>{t(`${base}.thread.bugSteps`, {})}:</strong> {thread.ticket.bug.steps}
+                  </p>
+                )}
+                {thread.ticket.bug.expected && (
+                  <p className='theme-eco-text'>
+                    <strong>{t(`${base}.thread.bugExpected`, {})}:</strong> {thread.ticket.bug.expected}
+                  </p>
+                )}
+                {thread.ticket.bug.actual && (
+                  <p className='theme-eco-text'>
+                    <strong>{t(`${base}.thread.bugActual`, {})}:</strong> {thread.ticket.bug.actual}
+                  </p>
+                )}
+                {thread.ticket.bug.environment && (
+                  <p className='theme-eco-text'>
+                    <strong>{t(`${base}.thread.bugEnvironment`, {})}:</strong> {thread.ticket.bug.environment}
+                  </p>
+                )}
               </div>
-            </div>
+            </section>
           )}
 
           {thread.attachments.length > 0 && (
-            <div className='flex flex-col gap-2'>
-              <span className='theme-eco-small'>{t(`${base}.thread.attachments`, {})}</span>
+            <section className='theme-eco-card'>
+              <h3 className='theme-eco-heading'>{t(`${base}.thread.attachments`, {})}</h3>
               <div className='flex flex-wrap gap-2'>
                 {thread.attachments.map((attachment) =>
                   attachment.mime.startsWith('image/') ? (
@@ -328,7 +326,7 @@ export function ThreadModal({
                   ),
                 )}
               </div>
-            </div>
+            </section>
           )}
 
           <div className='theme-eco-list'>
@@ -355,12 +353,12 @@ export function ThreadModal({
           </div>
 
           {thread.ticket.status !== 'closed' ? (
-            <Stack gap='xs'>
+            <section className='theme-eco-card'>
+              <h3 className='theme-eco-heading'>{t(`${base}.thread.reply`, {})}</h3>
               <TextArea
                 autosize
                 minRows={3}
                 maxRows={8}
-                label={t(`${base}.thread.reply`, {})}
                 value={reply}
                 onChange={(event) => setReply(event.currentTarget.value)}
               />
@@ -372,7 +370,7 @@ export function ThreadModal({
                   {t(`${base}.thread.close`, {})}
                 </Button>
               </div>
-            </Stack>
+            </section>
           ) : (
             <div className='flex flex-wrap gap-2'>
               <Button variant='default' onClick={() => changeStatus('open')}>

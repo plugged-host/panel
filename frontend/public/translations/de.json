@@ -3020,6 +3020,8 @@
         "tokens": {
           "title": "Tokens",
           "subheading": "Tokens verdienen und sehen, wohin sie gingen",
+          "balanceTitle": "Guthaben",
+          "waysTitle": "Verdienstmöglichkeiten",
           "balance": "{count} Tokens",
           "explainer": "Verdiene Tokens über eine Umfrage oder gesponserte Links. Sie bezahlen {app} {plus}, das Aufwecken eines schlafenden Servers und Subdomains.",
           "saved": "{amount} Tokens für deinen nächsten Token angespart",

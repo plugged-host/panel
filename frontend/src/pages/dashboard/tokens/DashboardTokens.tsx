@@ -15,7 +15,6 @@ import startEarn from '@/api/me/economy/startEarn.ts';
 import Button from '@/elements/buttons/Button.tsx';
 import AccountContentContainer from '@/elements/containers/AccountContentContainer.tsx';
 import Badge from '@/elements/data-display/Badge.tsx';
-import TitleCard from '@/elements/data-display/TitleCard.tsx';
 import TransactionRows from '@/elements/economy/TransactionRows.tsx';
 import Alert from '@/elements/feedback/Alert.tsx';
 import ResourceView from '@/elements/ResourceView.tsx';
@@ -290,54 +289,45 @@ export default function DashboardTokens() {
       });
   }, []);
 
-  // The page header's buttons, one per static link. A Full Script link gets none: it must be the
-  // page's only anchor for its claim.
-  const headerProviders = tokens.data?.providers.filter((provider) => !provider.fullScript) ?? [];
-
   return (
-    <AccountContentContainer
-      title={t(`${page}.title`, {})}
-      subtitle={t(`${page}.subheading`, {})}
-      contentRight={
-        headerProviders.length > 0
-          ? headerProviders.map((provider) => <EarnButton key={provider.provider} provider={provider} filled={false} />)
-          : undefined
-      }
-    >
+    <AccountContentContainer title={t(`${page}.title`, {})} subtitle={t(`${page}.subheading`, {})}>
       <ResourceView resource={tokens}>
         {(tokens) => (
           <div className='flex flex-col gap-6'>
             {tokens.bonus && <BonusBanner bonus={tokens.bonus} />}
 
             <section className='theme-eco-card'>
-              <div className='theme-earn-rows flex flex-col'>
-                <div className='theme-earn-row'>
-                  <div className='flex flex-col gap-1'>
-                    <span className='theme-eco-value'>
-                      {t(`${page}.balance`, {
-                        count: new Intl.NumberFormat(intlLocale(language)).format(tokens.tokens),
-                      })}
-                    </span>
-                    <p className='theme-eco-muted'>{t(`${page}.explainer`, { app: appName, plus: plusName })}</p>
-                    {tokens.tokenFraction > 0 && (
-                      <p className='theme-eco-small'>
-                        {t(`${page}.saved`, {
-                          amount: new Intl.NumberFormat(intlLocale(language), { maximumFractionDigits: 2 }).format(
-                            tokens.tokenFraction,
-                          ),
-                        })}
-                      </p>
-                    )}
-                  </div>
-                </div>
-                {/* plugged.host: the daily streak; its claim button is the page's filled one while it waits */}
-                {tokens.streak && <TokenStreak streak={tokens.streak} />}
+              <div className='flex flex-col gap-1'>
+                <h3 className='theme-eco-heading'>{t(`${page}.balanceTitle`, {})}</h3>
+                <span className='theme-eco-value'>
+                  {t(`${page}.balance`, {
+                    count: new Intl.NumberFormat(intlLocale(language)).format(tokens.tokens),
+                  })}
+                </span>
+                <p className='theme-eco-muted'>{t(`${page}.explainer`, { app: appName, plus: plusName })}</p>
+                {tokens.tokenFraction > 0 && (
+                  <p className='theme-eco-small'>
+                    {t(`${page}.saved`, {
+                      amount: new Intl.NumberFormat(intlLocale(language), { maximumFractionDigits: 2 }).format(
+                        tokens.tokenFraction,
+                      ),
+                    })}
+                  </p>
+                )}
               </div>
             </section>
+
+            {/* plugged.host: the daily streak; its claim button is the page's filled one while it waits */}
+            {tokens.streak && (
+              <section className='theme-eco-card'>
+                <TokenStreak streak={tokens.streak} />
+              </section>
+            )}
 
             {tokens.starter && <StarterTasks starter={tokens.starter} />}
 
             <section id='earn' className='theme-eco-card'>
+              <h3 className='theme-eco-heading'>{t(`${page}.waysTitle`, {})}</h3>
               {tokens.providers.length === 0 ? (
                 <p className='theme-eco-muted'>{t(`${page}.none`, {})}</p>
               ) : (
@@ -357,11 +347,12 @@ export default function DashboardTokens() {
             {tokens.referrals && <TokenReferrals />}
 
             {tokens.transactions.length > 0 && (
-              <TitleCard title={t(`${page}.history`, {})}>
+              <section className='theme-eco-card'>
+                <h3 className='theme-eco-heading'>{t(`${page}.history`, {})}</h3>
                 <div className='theme-earn-rows flex flex-col'>
                   <TransactionRows transactions={tokens.transactions} variant='activity' />
                 </div>
-              </TitleCard>
+              </section>
             )}
           </div>
         )}
