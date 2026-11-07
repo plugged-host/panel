@@ -131,7 +131,7 @@ export default function FileBreadcrumbs({
           <span className='flex flex-row gap-2'>
             <Tooltip label={t('pages.server.files.quickAction.parentDirectory', {})}>
               <ActionIcon
-                variant='subtle'
+                variant='light'
                 color='gray'
                 size='input-sm'
                 disabled={path === '/' || path === ''}
@@ -147,8 +147,8 @@ export default function FileBreadcrumbs({
             </Tooltip>
             <Tooltip label={t('pages.server.files.tree.reload', {})}>
               <ActionIcon
-                variant='subtle'
-                color='gray'
+                variant='light'
+                color='cyan'
                 size='input-sm'
                 aria-label={t('pages.server.files.tree.reload', {})}
                 onClick={() => invalidateFilemanager()}

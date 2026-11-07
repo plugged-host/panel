@@ -9539,7 +9539,8 @@
             "alwaysOverwrite": "Always overwrite existing files",
             "alwaysOverwriteDescription": "Skip the conflict prompt when uploading, copying or pasting.",
             "vscodeUriScheme": "VS Code URI Scheme",
-            "imageViewerSmoothing": "Smoothen Image (Anti-Aliasing)"
+            "imageViewerSmoothing": "Smoothen Image (Anti-Aliasing)",
+            "view": "View"
           },
           "alert": {
             "collabConflictChanged": "This file has been changed on disk outside of the editor (e.g. via SFTP).",

@@ -9540,7 +9540,8 @@
             "alwaysOverwrite": "Luôn ghi đè tệp đã có",
             "alwaysOverwriteDescription": "Bỏ qua hộp thoại xung đột khi tải lên, sao chép hoặc dán.",
             "vscodeUriScheme": "Lược Đồ URI VS Code",
-            "imageViewerSmoothing": "Làm Mịn Hình Ảnh (Anti-Aliasing)"
+            "imageViewerSmoothing": "Làm Mịn Hình Ảnh (Anti-Aliasing)",
+            "view": "View"
           },
           "alert": {
             "collabConflictChanged": "Tệp này đã được chỉnh sửa ngoài trình chỉnh sửa của panel (vd. từ SFTP).",

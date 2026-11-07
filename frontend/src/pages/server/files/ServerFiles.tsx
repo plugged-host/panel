@@ -1,6 +1,7 @@
 import { faCode, faFolderOpen } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useWindowVirtualizer } from '@tanstack/react-virtual';
+import { AnimatePresence, LazyMotion, m } from 'motion/react';
 import { join } from 'pathe';
 import {
   lazy,
@@ -25,9 +26,7 @@ import SelectionArea from '@/elements/dnd/SelectionArea.tsx';
 import EmptyState from '@/elements/feedback/EmptyState.tsx';
 import Spinner from '@/elements/feedback/Spinner.tsx';
 import Group from '@/elements/layout/Group.tsx';
-import SegmentedControl from '@/elements/layout/SegmentedControl.tsx';
 import ConfirmationModal from '@/elements/modals/ConfirmationModal.tsx';
-import Tooltip from '@/elements/overlays/Tooltip.tsx';
 import Text from '@/elements/typography/Text.tsx';
 import Title from '@/elements/typography/Title.tsx';
 import { isOpenableFile } from '@/lib/files/files.ts';
@@ -72,6 +71,8 @@ import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useFileManagerApi, useFileManagerStore } from '@/stores/fileManager.ts';
 import { useServerStore } from '@/stores/server.ts';
 import { fileManagerUndoScope, runLastUndoEntry } from '@/stores/undoHistory.ts';
+
+const loadMotionFeatures = () => import('@/lib/motionFeatures.ts').then((module) => module.default);
 
 const ESTIMATED_ROW_HEIGHT = 41;
 const VIRTUALIZER_OVERSCAN = 15;
@@ -598,64 +599,49 @@ function ServerFilesComponent() {
               filter={fileFilter}
               onFilterChange={setFileFilter}
             />
-            <FileSettings />
-            <SegmentedControl
-              value={view}
-              onChange={changeView}
-              styles={{ label: { padding: 0 } }}
-              data={[
-                {
-                  value: 'list',
-                  label: (
-                    <Tooltip label={t('pages.server.files.view.list', {})}>
-                      <span className='block' style={{ padding: 'var(--sc-padding)' }}>
-                        <FontAwesomeIcon icon={faFolderOpen} aria-label={t('pages.server.files.view.list', {})} />
-                      </span>
-                    </Tooltip>
-                  ),
-                },
-                {
-                  value: 'tree',
-                  label: (
-                    <Tooltip label={t('pages.server.files.view.tree', {})}>
-                      <span className='block' style={{ padding: 'var(--sc-padding)' }}>
-                        <FontAwesomeIcon icon={faCode} aria-label={t('pages.server.files.view.tree', {})} />
-                      </span>
-                    </Tooltip>
-                  ),
-                },
-              ]}
-            />
             <FileOperationsProgress />
+            <FileSettings view={view} onViewChange={changeView} />
           </Group>
         </div>
       </div>
 
       <IncompleteUploadsBanner />
 
-      {view === 'list' ? (
-        <FileBrowser filter={fileFilter} />
-      ) : (
-        <>
-          <FileSearchBanner resetEntries={resetEntries} />
-          <Suspense
-            fallback={
-              <div className='flex justify-center py-16'>
-                <Spinner size={48} />
-              </div>
-            }
+      <LazyMotion features={loadMotionFeatures}>
+        <AnimatePresence mode='wait' initial={false}>
+          <m.div
+            key={view}
+            initial={{ opacity: 0, filter: 'blur(6px)' }}
+            animate={{ opacity: 1, filter: 'blur(0px)' }}
+            exit={{ opacity: 0, filter: 'blur(6px)' }}
+            transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
           >
-            <FileTreeWorkspace
-              ref={treeWorkspaceRef}
-              onDirtyStateChange={setTreeDirty}
-              key={serverUuid}
-              initialDirectory={treeInitialDirectory}
-              fileTreeVisible={fileTreeVisible}
-              onToggleFileTree={toggleFileTree}
-            />
-          </Suspense>
-        </>
-      )}
+            {view === 'list' ? (
+              <FileBrowser filter={fileFilter} />
+            ) : (
+              <>
+                <FileSearchBanner resetEntries={resetEntries} />
+                <Suspense
+                  fallback={
+                    <div className='flex justify-center py-16'>
+                      <Spinner size={48} />
+                    </div>
+                  }
+                >
+                  <FileTreeWorkspace
+                    ref={treeWorkspaceRef}
+                    onDirtyStateChange={setTreeDirty}
+                    key={serverUuid}
+                    initialDirectory={treeInitialDirectory}
+                    fileTreeVisible={fileTreeVisible}
+                    onToggleFileTree={toggleFileTree}
+                  />
+                </Suspense>
+              </>
+            )}
+          </m.div>
+        </AnimatePresence>
+      </LazyMotion>
     </div>
   );
 }

@@ -9533,7 +9533,8 @@
             "vscodeUriScheme": "Esquema URI de VS Code",
             "imageViewerSmoothing": "Suavizar imagen (antialiasing)",
             "alwaysOverwrite": "Always overwrite existing files",
-            "alwaysOverwriteDescription": "Skip the conflict prompt when uploading, copying or pasting."
+            "alwaysOverwriteDescription": "Skip the conflict prompt when uploading, copying or pasting.",
+            "view": "View"
           },
           "alert": {
             "collabConflictChanged": "Este archivo ha sido modificado en el disco fuera del editor (por ejemplo, mediante SFTP).",

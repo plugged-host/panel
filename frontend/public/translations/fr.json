@@ -9540,7 +9540,8 @@
             "alwaysOverwrite": "Toujours écraser les fichiers existants",
             "alwaysOverwriteDescription": "Ne plus demander quoi faire en cas de conflit lors d'un téléversement, d'une copie ou d'un collage.",
             "vscodeUriScheme": "Schéma d'URI VS Code",
-            "imageViewerSmoothing": "Adoucir l'image (anti-aliasing)"
+            "imageViewerSmoothing": "Adoucir l'image (anti-aliasing)",
+            "view": "View"
           },
           "alert": {
             "collabConflictChanged": "Ce fichier a été modifié sur le disque en dehors de l'éditeur (par ex. via SFTP).",

@@ -3974,7 +3974,8 @@
             "alwaysOverwrite": "Mavjud fayllar ustidan doim yozish",
             "alwaysOverwriteDescription": "Yuklash, nusxalash yoki qoʻyishda ziddiyat soʻrovini oʻtkazib yuborish.",
             "vscodeUriScheme": "VS Code URI sxemasi",
-            "imageViewerSmoothing": "Rasmni silliqlash (anti-aliasing)"
+            "imageViewerSmoothing": "Rasmni silliqlash (anti-aliasing)",
+            "view": "View"
           },
           "alert": {
             "collabConflictChanged": "Bu fayl diskda muharrirdan tashqarida oʻzgartirilgan (masalan, SFTP orqali).",

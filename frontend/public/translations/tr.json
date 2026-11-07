@@ -3974,7 +3974,8 @@
             "alwaysOverwrite": "Mevcut dosyaların üzerine her zaman yaz",
             "alwaysOverwriteDescription": "Yükleme, kopyalama veya yapıştırma sırasında çakışma sorusunu atla.",
             "vscodeUriScheme": "VS Code URI Şeması",
-            "imageViewerSmoothing": "Görüntü Yumuşatma (Anti-Aliasing)"
+            "imageViewerSmoothing": "Görüntü Yumuşatma (Anti-Aliasing)",
+            "view": "View"
           },
           "alert": {
             "collabConflictChanged": "Bu dosya editör dışında diskte değiştirildi (ör. SFTP ile).",

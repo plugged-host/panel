@@ -9896,6 +9896,7 @@ const baseTranslations = defineTranslations({
             subtitle: 'Release to start uploading',
           },
           settings: {
+            view: 'View',
             clickOnce: 'Click once to open file or folder',
             preferPhysicalSize: 'Show physical size instead of logical size',
             editorMinimap: 'Show File Minimap',

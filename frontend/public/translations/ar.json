@@ -3974,7 +3974,8 @@
             "alwaysOverwrite": "الكتابة فوق الملفات الموجودة دائمًا",
             "alwaysOverwriteDescription": "تخطي سؤال التعارض عند الرفع أو النسخ أو اللصق.",
             "vscodeUriScheme": "مخطط URI لـ VS Code",
-            "imageViewerSmoothing": "تنعيم الصورة (مضاد للتعرج)"
+            "imageViewerSmoothing": "تنعيم الصورة (مضاد للتعرج)",
+            "view": "View"
           },
           "alert": {
             "collabConflictChanged": "تم تغيير هذا الملف على القرص خارج المحرر (مثلًا عبر SFTP).",

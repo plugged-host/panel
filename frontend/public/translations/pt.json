@@ -3974,7 +3974,8 @@
             "alwaysOverwrite": "Sempre substituir arquivos existentes",
             "alwaysOverwriteDescription": "Pula o aviso de conflito ao enviar, copiar ou colar.",
             "vscodeUriScheme": "Esquema de URI do VS Code",
-            "imageViewerSmoothing": "Suavizar imagem (anti-aliasing)"
+            "imageViewerSmoothing": "Suavizar imagem (anti-aliasing)",
+            "view": "View"
           },
           "alert": {
             "collabConflictChanged": "Este arquivo foi alterado no disco fora do editor (ex.: via SFTP).",

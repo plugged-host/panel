@@ -3974,7 +3974,8 @@
             "alwaysOverwrite": "Всегда перезаписывать существующие файлы",
             "alwaysOverwriteDescription": "Не спрашивать о конфликтах при загрузке, копировании и вставке.",
             "vscodeUriScheme": "URI-схема VS Code",
-            "imageViewerSmoothing": "Сглаживание изображений (антиалиасинг)"
+            "imageViewerSmoothing": "Сглаживание изображений (антиалиасинг)",
+            "view": "View"
           },
           "alert": {
             "collabConflictChanged": "Этот файл был изменён на диске вне редактора (например, через SFTP).",

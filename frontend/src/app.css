@@ -8594,3 +8594,13 @@ span.theme-neo-image {
   max-width: 0;
   opacity: 0;
 }
+
+/* plugged.host: the files search box keeps the panel's dark input, without the bright focus
+   ring or border; the expanding icon is the focus cue. */
+.theme-file-search .mantine-Input-input,
+.theme-file-search .mantine-Input-input:focus,
+.theme-file-search .mantine-Input-input:focus-within {
+  border-color: var(--theme-hairline) !important;
+  outline: none !important;
+  box-shadow: none !important;
+}

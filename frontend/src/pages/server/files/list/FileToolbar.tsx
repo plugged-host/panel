@@ -118,8 +118,8 @@ export default function FileToolbar({
         <Group gap='xs' className='min-w-0'>
           <Tooltip label={t('pages.server.files.searchPlaceholder', {})}>
             <ActionIcon
-              variant={searchOpen ? 'light' : 'subtle'}
-              color='gray'
+              variant='light'
+              color='blue'
               aria-label={t('pages.server.files.searchPlaceholder', {})}
               onClick={() => {
                 if (searchOpen) onFilterChange('');
@@ -140,7 +140,7 @@ export default function FileToolbar({
               aria-label={t('pages.server.files.searchPlaceholder', {})}
               value={filter}
               onChange={(event) => onFilterChange(event.currentTarget.value)}
-              className='w-full'
+              className='theme-file-search w-full'
             />
           </div>
         </Group>
@@ -152,8 +152,8 @@ export default function FileToolbar({
         <ServerCan action='files.create'>
           <Tooltip label={t('pages.server.files.button.newFolder', {})}>
             <ActionIcon
-              variant='subtle'
-              color='gray'
+              variant='light'
+              color='yellow'
               aria-label={t('pages.server.files.button.newFolder', {})}
               onClick={() => doOpenModal('nameDirectory')}
             >
@@ -167,8 +167,8 @@ export default function FileToolbar({
         <ServerCan action='files.create'>
           <Tooltip label={t('pages.server.files.button.newFile', {})}>
             <ActionIcon
-              variant='subtle'
-              color='gray'
+              variant='light'
+              color='teal'
               aria-label={t('pages.server.files.button.newFile', {})}
               onClick={newFile}
             >
@@ -178,11 +178,25 @@ export default function FileToolbar({
         </ServerCan>
       )}
 
+      <ServerCan action='files.read'>
+        <Tooltip label={t('pages.server.files.button.trash', {})}>
+          <ActionIcon
+            variant='light'
+            color='red'
+            aria-label={t('pages.server.files.button.trash', {})}
+            onClick={() => navigate(`/server/${server.uuidShort}/files/trash`)}
+          >
+            <FontAwesomeIcon icon={faTrashCan} />
+          </ActionIcon>
+        </Tooltip>
+      </ServerCan>
+
       {!treeView && browsingWritableDirectory && (
         <ServerCan action='files.create'>
           <Tooltip label={t('pages.server.files.button.directoryFromUpload', {})}>
             <Button
-              variant='default'
+              variant='light'
+              color='green'
               className='theme-file-header-action'
               data-collapsed={searchOpen}
               aria-label={t('pages.server.files.button.directoryFromUpload', {})}
@@ -211,25 +225,12 @@ export default function FileToolbar({
         </ServerCan>
       )}
 
-      <ServerCan action='files.read'>
-        <Tooltip label={t('pages.server.files.button.trash', {})}>
-          <ActionIcon
-            variant='subtle'
-            color='gray'
-            aria-label={t('pages.server.files.button.trash', {})}
-            onClick={() => navigate(`/server/${server.uuidShort}/files/trash`)}
-          >
-            <FontAwesomeIcon icon={faTrashCan} />
-          </ActionIcon>
-        </Tooltip>
-      </ServerCan>
-
       <Tooltip label={t('pages.server.files.button.more', {})}>
         <ContextMenu items={moreItems}>
           {({ openMenu }) => (
             <ActionIcon
-              variant='subtle'
-              color='gray'
+              variant='light'
+              color='orange'
               aria-label={t('pages.server.files.button.more', {})}
               onClick={(event) => {
                 event.stopPropagation();

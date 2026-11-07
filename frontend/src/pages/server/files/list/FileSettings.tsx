@@ -1,13 +1,20 @@
 import { useShallow } from 'zustand/react/shallow';
 import Checkbox from '@/elements/input/Checkbox.tsx';
 import TextInput from '@/elements/input/TextInput.tsx';
+import SegmentedControl from '@/elements/layout/SegmentedControl.tsx';
 import UserSettingScopeMenu from '@/elements/UserSettingScopeMenu.tsx';
 import SettingsPopover from '@/pages/server/files/SettingsPopover.tsx';
 import { useFileManager } from '@/providers/FileManagerProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { fileManagerSettingKey } from '@/stores/fileManager.ts';
 
-export default function FileSettings() {
+export default function FileSettings({
+  view,
+  onViewChange,
+}: {
+  view: 'list' | 'tree';
+  onViewChange: (view: string) => void;
+}) {
   const { t } = useTranslations();
   const {
     clickOnce,
@@ -41,6 +48,18 @@ export default function FileSettings() {
       registry={window.extensionContext.extensionRegistry.pages.server.files.fileSettings}
       keyPrefix='files-settings'
     >
+      <div className='flex flex-col gap-1'>
+        <span className='theme-eco-small'>{t('pages.server.files.settings.view', {})}</span>
+        <SegmentedControl
+          value={view}
+          onChange={onViewChange}
+          fullWidth
+          data={[
+            { value: 'list', label: t('pages.server.files.view.list', {}) },
+            { value: 'tree', label: t('pages.server.files.view.tree', {}) },
+          ]}
+        />
+      </div>
       <Checkbox
         label={
           <span className='inline-flex items-center gap-1'>

@@ -21,7 +21,8 @@ export default function SettingsPopover({
   const { t } = useTranslations();
   const trigger = (
     <Button
-      variant='transparent'
+      variant='light'
+      color='indigo'
       size='compact-xs'
       aria-label={typeof tooltip === 'string' ? tooltip : t('pages.server.files.tooltip.settings', {})}
     >

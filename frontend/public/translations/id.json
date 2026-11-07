@@ -3974,7 +3974,8 @@
             "alwaysOverwrite": "Selalu timpa file yang sudah ada",
             "alwaysOverwriteDescription": "Lewati konfirmasi konflik saat mengunggah, menyalin, atau menempel.",
             "vscodeUriScheme": "Skema URI VS Code",
-            "imageViewerSmoothing": "Haluskan Gambar (Anti-Aliasing)"
+            "imageViewerSmoothing": "Haluskan Gambar (Anti-Aliasing)",
+            "view": "View"
           },
           "alert": {
             "collabConflictChanged": "File ini telah diubah di disk di luar editor (mis. melalui SFTP).",

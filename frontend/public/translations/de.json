@@ -9533,7 +9533,8 @@
             "alwaysOverwrite": "Vorhandene Dateien immer überschreiben",
             "alwaysOverwriteDescription": "Keine Konfliktabfrage beim Hochladen, Kopieren oder Einfügen.",
             "vscodeUriScheme": "VS Code URI-Schema",
-            "imageViewerSmoothing": "Bildglättung (Anti-Aliasing)"
+            "imageViewerSmoothing": "Bildglättung (Anti-Aliasing)",
+            "view": "View"
           },
           "alert": {
             "collabConflictChanged": "Diese Datei wurde außerhalb des Editors auf der Festplatte geändert (z. B. via SFTP).",

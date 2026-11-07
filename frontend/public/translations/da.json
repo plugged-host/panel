@@ -9525,7 +9525,8 @@
             "vscodeUriScheme": "VS Code URI-scheme",
             "imageViewerSmoothing": "Udglat billede (anti-aliasing)",
             "alwaysOverwrite": "Always overwrite existing files",
-            "alwaysOverwriteDescription": "Skip the conflict prompt when uploading, copying or pasting."
+            "alwaysOverwriteDescription": "Skip the conflict prompt when uploading, copying or pasting.",
+            "view": "View"
           },
           "alert": {
             "collabConflictChanged": "Denne fil er blevet ændret på disken uden for editoren (f.eks. via SFTP).",

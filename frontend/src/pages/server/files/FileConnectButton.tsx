@@ -91,8 +91,8 @@ export default function FileConnectButton({ file, iconOnly = false }: { file?: s
             iconOnly ? (
               <Tooltip label={t('pages.server.files.button.connect', {})}>
                 <ActionIcon
-                  variant='subtle'
-                  color='gray'
+                  variant='light'
+                  color='violet'
                   aria-label={t('pages.server.files.button.connect', {})}
                   onClick={(e) => {
                     e.stopPropagation();

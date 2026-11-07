@@ -3862,7 +3862,8 @@
             "editorPreviewTabsDescription": "Edit or double-click a tab to keep it open.",
             "alwaysOverwrite": "Always overwrite existing files",
             "alwaysOverwriteDescription": "Skip the conflict prompt when uploading, copying or pasting.",
-            "vscodeUriScheme": "VS Code URI Scheme"
+            "vscodeUriScheme": "VS Code URI Scheme",
+            "view": "View"
           },
           "toast": {
             "operationCancelled": "Åtgärden avbröts",
