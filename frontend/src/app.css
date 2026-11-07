@@ -1175,6 +1175,11 @@ strong {
     border-color: transparent;
   }
 
+  /* The noprofit.space Ultra banner: the exact solid tint the switched.cloud page uses. */
+  .theme-ultra-alert {
+    background-color: #0c132a !important;
+  }
+
   .mantine-Alert-title {
     color: var(--theme-text);
     font-size: 0.875rem;

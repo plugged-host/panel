@@ -450,27 +450,17 @@ export default function DashboardMembership() {
                 key={key}
                 className='w-full'
                 variant={filled ? 'filled' : 'default'}
-                disabled={disabled}
-                onClick={
-                  missing > 0
-                    ? () => navigate(offer.pay === 'tokens' ? to('/tokens', '/account') : to('/store', '/account'))
-                    : onBuy
-                }
+                disabled={disabled || missing > 0}
+                onClick={onBuy}
               >
                 {duration(offer.days)}
                 {' · '}
-                {missing > 0 ? (
-                  t(`${page}.moreToGo`, { amount: tItem(offer.pay === 'tokens' ? 'token' : 'credit', missing) })
-                ) : (
-                  <>
-                    {offer.fullCost > offer.cost && (
-                      <s className='theme-eco-was' aria-hidden='true'>
-                        {offer.fullCost.toLocaleString()}
-                      </s>
-                    )}
-                    {costText(offer.pay, offer.cost)}
-                  </>
+                {offer.fullCost > offer.cost && (
+                  <s className='theme-eco-was' aria-hidden='true'>
+                    {offer.fullCost.toLocaleString()}
+                  </s>
                 )}
+                {costText(offer.pay, offer.cost)}
               </Button>
             );
           };
@@ -606,7 +596,7 @@ export default function DashboardMembership() {
 
                   {/* plugged.host: noprofit.space Ultra, the one subscription for both products.
                       The same callout as switched.cloud: a tinted banner with one secondary action. */}
-                  <Alert color='blue' title={t(`${page}.ultra.title`, {})}>
+                  <Alert className='theme-ultra-alert' color='blue' title={t(`${page}.ultra.title`, {})}>
                     <div className='flex flex-col items-start gap-3'>
                       <span>{t(`${page}.ultra.body`, {})}</span>
                       <MantineButton
