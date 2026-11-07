@@ -582,9 +582,11 @@ function ServerFilesComponent() {
       <div className='mb-4 flex flex-col gap-3'>
         <div className='theme-files-header-row flex items-end justify-between gap-3'>
           {settingsBesideTitle ? (
-            <div className='min-w-0'>
-              <Title order={1}>{pageTitle}</Title>
-              <Text size='sm' c='dimmed'>
+            <div className='min-w-0 overflow-hidden'>
+              <Title order={1} className='whitespace-nowrap'>
+                {pageTitle}
+              </Title>
+              <Text size='sm' c='dimmed' truncate>
                 {t('pages.server.files.subtitle', {})}
               </Text>
             </div>
