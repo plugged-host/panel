@@ -101,3 +101,21 @@ to the map when one is missing.
 - A console: "Console" with the power buttons, then Name, Status ("Running (2h 14m)"), Address, CPU,
   Memory and Disk, the terminal with its command line, and the three charts while the server runs.
   Ctrl+F (or the quick action) opens the search at the terminal's top end.
+
+## Shared parity with switched.cloud (2026-11-07)
+
+The two panels are one design: a change to one of these is a change to both.
+
+- **Buttons** take Filament's heights — 2.75rem default, 2.125rem `sm`, 1.75rem `xs` — through
+  `.theme-btn*` in `app.css` (added in `elements/buttons/Button.tsx`), with the same 1.25/.875/.625rem
+  inline padding and 600 weight. Mantine's own explicit sizes still set the font size.
+- **Page tabs** (`SubNavigation`) are the Theme v2 tabs from `md` up; below `md` the same sections
+  become one labelled `Select` that navigates, so nothing scrolls off a phone.
+- **Empty states** are the centred Filament block: a 1rem/600 heading over one .875rem muted line,
+  no illustration. `EmptyState` (`flush`) and the switched `ph-eco-empty` block are the same shape.
+- **Sidebar group labels** are sentence case (no uppercase tracking), and the logo block is 2rem
+  top / 1rem bottom padding with a 2.5rem mark, the same as switched.
+- **Header actions** use a .5rem gap; the page header's title is 1.25rem/600 and its subheading
+  .875rem/1.25rem muted, as in switched.
+- **File fields** use `elements/input/FileInput.tsx` (generic over `multiple`) instead of a one-off
+  `.field`/`.input` block, so the ticket attachments match every other field.
