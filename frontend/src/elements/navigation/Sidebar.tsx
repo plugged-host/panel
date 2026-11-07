@@ -240,7 +240,7 @@ function Link({ to, end, icon, iconElement, customIcon, name, title = name, clas
           styles={{ label: { width: '100%' } }}
         >
           {iconElement ? (
-            <span className='mr-2 inline-flex shrink-0'>{iconElement}</span>
+            <span className='mr-3 inline-flex shrink-0'>{iconElement}</span>
           ) : (
             resolvedIcon && <FontAwesomeIcon icon={resolvedIcon} className='mr-2' />
           )}{' '}
@@ -279,7 +279,7 @@ function Link({ to, end, icon, iconElement, customIcon, name, title = name, clas
                 styles={{ label: { width: '100%' } }}
               >
                 {iconElement ? (
-                  <span className='mr-2 inline-flex shrink-0'>{iconElement}</span>
+                  <span className='mr-3 inline-flex shrink-0'>{iconElement}</span>
                 ) : (
                   resolvedIcon && <FontAwesomeIcon icon={resolvedIcon} className='mr-2' />
                 )}{' '}

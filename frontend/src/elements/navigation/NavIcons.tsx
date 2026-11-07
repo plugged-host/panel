@@ -11,7 +11,7 @@ function Svg({ children }: { children: ReactNode }) {
       strokeWidth={1.5}
       stroke='currentColor'
       aria-hidden='true'
-      className='h-5 w-5 shrink-0'
+      className='h-6 w-6 shrink-0'
     >
       {children}
     </svg>
