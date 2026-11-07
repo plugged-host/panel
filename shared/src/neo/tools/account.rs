@@ -903,8 +903,88 @@ mod tests {
 }
 
 /// plugged.host: a support ticket may ask neo to lift a suspension. It only acts on a server the
-/// user owns and never on an abuse/security suspension.
+/// user owns. An abuse suspension is checked first; an admin's suspension needs an explicit staff
+/// message in the ticket. A noprofit.space suspension is never lifted here.
 pub struct UnsuspendServerTool;
+
+/// What one admin message says about the unsuspension: `Some(true)` allows or asks for it,
+/// `Some(false)` refuses it, `None` is unrelated. The owner's own request is not enough: a manual
+/// suspension stays until a person says so.
+fn admin_unsuspend_decision(body: &str) -> Option<bool> {
+    let text = body.to_lowercase();
+    let allowed = [
+        "you may unsuspend",
+        "you can unsuspend",
+        "you are allowed to unsuspend",
+        "you're allowed to unsuspend",
+        "allowed to unsuspend",
+        "permission to unsuspend",
+        "go ahead and unsuspend",
+        "please unsuspend",
+        "unsuspend it",
+        "unsuspend this",
+        "unsuspend the server",
+        "unsuspend that server",
+        "lift the suspension",
+        "lift this suspension",
+        "lift the server's suspension",
+        "remove the suspension",
+        "suspension can be lifted",
+        "suspension may be lifted",
+        "you may lift",
+        "you can lift",
+    ];
+    let refused = [
+        "do not unsuspend",
+        "don't unsuspend",
+        "not unsuspend",
+        "cannot unsuspend",
+        "can't unsuspend",
+        "won't unsuspend",
+        "will not unsuspend",
+        "i will unsuspend",
+        "i'll unsuspend",
+        "i have unsuspended",
+        "i've unsuspended",
+        "do not lift",
+        "don't lift",
+        "not lift",
+        "cannot lift",
+        "can't lift",
+        "won't lift",
+        "will not lift",
+        "not allowed",
+        "no permission",
+        "denied",
+        "rejected",
+        "declined",
+        "not approved",
+        "keep it suspended",
+        "keep the suspension",
+        "stays suspended",
+        "suspension stays",
+        "leave it suspended",
+    ];
+
+    if refused.iter().any(|phrase| text.contains(phrase)) {
+        return Some(false);
+    }
+    if allowed.iter().any(|phrase| text.contains(phrase)) {
+        return Some(true);
+    }
+    None
+}
+
+/// Whether the admin messages, oldest first, leave the unsuspension allowed. A later refusal wins.
+fn admin_allows_unsuspend(messages: &[String]) -> bool {
+    let mut decision = None;
+    for body in messages {
+        if let Some(value) = admin_unsuspend_decision(body) {
+            decision = Some(value);
+        }
+    }
+    decision == Some(true)
+}
 
 #[async_trait::async_trait]
 impl Tool for UnsuspendServerTool {
@@ -913,7 +993,7 @@ impl Tool for UnsuspendServerTool {
     }
 
     fn description(&self) -> Cow<'static, str> {
-        "Lift a suspension on one of the user's own servers, when it was suspended for a limit or an automatic reason. Refuses abuse and security suspensions: those need a person. Give the server's full UUID (the ticket's server context has it).".into()
+        "Lift a suspension on one of the user's own servers. An abuse suspension is checked first: the server must pass the abuse scan. A suspension an admin made needs a staff member to explicitly allow the unsuspension in this ticket. A noprofit.space suspension cannot be lifted here. Give the server's full UUID (the ticket's server context has it).".into()
     }
 
     fn parameters(&self) -> Value {
@@ -956,16 +1036,78 @@ impl Tool for UnsuspendServerTool {
             return Ok(ToolResult::ok("That server is not suspended.")
                 .with_display("Server was not suspended"));
         }
+
+        let ticket_server: Option<Option<uuid::Uuid>> =
+            sqlx::query_scalar("SELECT server_uuid FROM tickets WHERE uuid = $1")
+                .bind(context.conversation)
+                .fetch_optional(context.state.database.read())
+                .await?;
+        if let Some(Some(ticket_server)) = ticket_server
+            && ticket_server != server_uuid
+        {
+            return Ok(ToolResult::error(
+                "This ticket is about a different server.",
+            ));
+        }
+
+        let kind = server
+            .suspension
+            .as_ref()
+            .map(|suspension| suspension.kind)
+            .unwrap_or(crate::models::server::suspension::SuspensionKind::Manual);
         let reason = server
             .suspension
             .as_ref()
             .and_then(|suspension| suspension.reason.as_deref())
             .unwrap_or_default()
             .to_lowercase();
-        if reason.contains("abuse") || reason.contains("security") || reason.contains("fraud") {
-            return Ok(ToolResult::error(
-                "That suspension is for abuse or security and needs a person; a team member will review the ticket.",
-            ));
+
+        match kind {
+            crate::models::server::suspension::SuspensionKind::Abuse => {
+                let scan = crate::abuse::scan_server(context.state, &server, false, false).await?;
+                if !scan.reachable {
+                    return Ok(ToolResult::error(
+                        "The abuse check could not reach the server, so I can't verify it. A team member will review the ticket.",
+                    ));
+                }
+                let critical: Vec<&str> = scan
+                    .findings
+                    .iter()
+                    .filter(|finding| finding.is_critical())
+                    .map(|finding| finding.summary.as_str())
+                    .collect();
+                if !critical.is_empty() {
+                    return Ok(ToolResult::error(format!(
+                        "The abuse check still finds: {}. A team member will review the ticket.",
+                        critical.join("; ")
+                    )));
+                }
+            }
+            crate::models::server::suspension::SuspensionKind::Manual => {
+                if ticket_server.is_none() {
+                    return Ok(ToolResult::error(
+                        "An admin suspended this server. A staff member must explicitly allow the unsuspension in a support ticket.",
+                    ));
+                }
+                let admin_messages: Vec<String> = sqlx::query_scalar(
+                    "SELECT body FROM ticket_messages
+                     WHERE ticket_uuid = $1 AND author_type = 'admin'
+                     ORDER BY created, uuid",
+                )
+                .bind(context.conversation)
+                .fetch_all(context.state.database.read())
+                .await?;
+                if !admin_allows_unsuspend(&admin_messages) {
+                    return Ok(ToolResult::error(
+                        "An admin suspended this server. I can only lift it when a staff member explicitly says so in this ticket.",
+                    ));
+                }
+            }
+            crate::models::server::suspension::SuspensionKind::Noprofit => {
+                return Ok(ToolResult::error(
+                    "This server is suspended because the owner's noprofit.space account is suspended or deleted. That has to be resolved at noprofit.space; I can't lift it here.",
+                ));
+            }
         }
 
         sqlx::query(
@@ -1098,5 +1240,64 @@ impl Tool for EscalateTicketTool {
             ToolResult::ok("Escalated to a person; the staff were notified.")
                 .with_display("Ticket escalated to a person"),
         )
+    }
+}
+
+#[cfg(test)]
+mod unsuspend_tests {
+    use super::admin_allows_unsuspend;
+
+    fn message(body: &str) -> String {
+        body.to_string()
+    }
+
+    #[test]
+    fn a_staff_member_can_allow_an_unsuspension() {
+        assert!(admin_allows_unsuspend(&[message(
+            "You may unsuspend this server."
+        )]));
+        assert!(admin_allows_unsuspend(&[message(
+            "Go ahead and unsuspend it."
+        )]));
+        assert!(admin_allows_unsuspend(&[message(
+            "Allowed to unsuspend; the abuse is gone."
+        )]));
+        assert!(admin_allows_unsuspend(&[message(
+            "Please unsuspend the server."
+        )]));
+        assert!(admin_allows_unsuspend(&[message(
+            "You can lift the suspension now."
+        )]));
+    }
+
+    #[test]
+    fn a_refusal_does_not() {
+        assert!(!admin_allows_unsuspend(&[message(
+            "Do not unsuspend this server."
+        )]));
+        assert!(!admin_allows_unsuspend(&[message(
+            "You can't unsuspend it yet."
+        )]));
+        assert!(!admin_allows_unsuspend(&[message(
+            "I will unsuspend it myself."
+        )]));
+        assert!(!admin_allows_unsuspend(&[message(
+            "No permission to unsuspend."
+        )]));
+        assert!(!admin_allows_unsuspend(&[message(
+            "Denied; the suspension stays."
+        )]));
+    }
+
+    #[test]
+    fn a_later_refusal_wins() {
+        assert!(!admin_allows_unsuspend(&[
+            message("You may unsuspend this server."),
+            message("Actually, keep it suspended for now."),
+        ]));
+        assert!(admin_allows_unsuspend(&[
+            message("Do not unsuspend it yet."),
+            message("The appeal is accepted; you can unsuspend it now."),
+        ]));
     }
 }

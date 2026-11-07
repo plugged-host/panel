@@ -187,6 +187,8 @@ write the `••••` mask back into a file or variable.
 | `rename_server` | server | `settings.rename` | write | Renames the server |
 | `resize_server` | server | `settings.resize` | write | Resizes within the owner's allowance, or to a plan's size ([server-settings.md](server-settings.md)) |
 | `delete_server` | server | `settings.delete` | critical | Deletes the server and its backups after the exact name is given, then takes the user home |
+| `unsuspend_server` | any | none | write | Lifts a suspension on one of the user's own servers. An abuse suspension is checked with a fresh abuse scan first; an admin's suspension needs a staff message in the ticket that explicitly allows it; a noprofit.space suspension is refused. Give the server's full UUID (the ticket's server context has it) |
+| `escalate_ticket` | any | none | write | Hands a support ticket to a person: marks it waiting/high priority, writes a system line, notifies the staff and the opener, and DMs the opener through rux when a Discord account is linked |
 | `minecraft_info` | server | any of `minecraft.content`, `settings.software`, `minecraft.bedrock` | read | Software, version, installable versions, content types and sources, modpacks, switchable software, Geyser |
 | `search_content` | server | `minecraft.content` | read | Searches Modrinth, CurseForge or SpigotMC for plugins, mods or modpacks |
 | `content_versions` | server | `minecraft.content` | read | A project's builds that fit the server |

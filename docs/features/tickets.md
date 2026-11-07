@@ -108,7 +108,10 @@ person answers.
   they are stored through the panel's storage driver and shown inline in the thread.
 - neo reads the whole thread (not just the first message) and the server facts. It has the normal
   account/server tools, may run read and write tools (not destructive/critical ones), and has
-  `unsuspend_server` for a server the user owns; abuse/security suspensions are refused.
+  `unsuspend_server` for a server the user owns. An abuse suspension is checked first: the server
+  must pass a fresh abuse scan (critical findings or an unreachable node mean no). An admin's
+  suspension is only lifted when a staff message in the ticket explicitly allows or asks for it;
+  the owner's own request is not enough. A noprofit.space suspension is never lifted by neo.
 - Owners and admins can delete a ticket (thread and attachments go with it). Owners can delete
   their own ideas.
 
