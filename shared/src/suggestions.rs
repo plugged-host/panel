@@ -101,6 +101,7 @@ pub struct ApiSuggestionRef {
 }
 
 #[derive(ToSchema, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct ApiSuggestion {
     pub uuid: uuid::Uuid,
     pub title: compact_str::CompactString,

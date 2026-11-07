@@ -118,6 +118,7 @@ pub struct ApiTicketUser {
 }
 
 #[derive(ToSchema, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct ApiTicketSummary {
     pub uuid: uuid::Uuid,
     pub subject: compact_str::CompactString,
@@ -137,6 +138,7 @@ pub struct ApiTicketSummary {
 }
 
 #[derive(ToSchema, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct ApiTicketMessage {
     pub uuid: uuid::Uuid,
     pub author: Option<ApiTicketUser>,

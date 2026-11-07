@@ -68,6 +68,7 @@ mod post {
 
     #[derive(ToSchema, Serialize)]
     struct Response {
+        #[serde(flatten)]
         ticket: ApiTicket,
     }
 
@@ -138,6 +139,7 @@ mod ticket {
 
     #[derive(ToSchema, Serialize)]
     struct Response {
+        #[serde(flatten)]
         ticket: ApiTicket,
     }
 

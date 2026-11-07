@@ -139,6 +139,7 @@ mod ticket {
 
     #[derive(ToSchema, Serialize)]
     pub struct Response {
+        #[serde(flatten)]
         pub ticket: ApiTicket,
     }
 
