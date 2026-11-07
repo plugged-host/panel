@@ -250,6 +250,15 @@ pub struct AppSettingsNeo {
     /// that drops them gets the tools described in the prompt instead.
     pub tools_probe: bool,
     pub providers: Vec<NeoProvider>,
+
+    /// Support tickets (shared/src/tickets.rs): the model slot neo uses (0: the chat's default),
+    /// the Discord channel a ticket is posted to when it needs a person, whether destructive
+    /// tools are allowed, how many model calls a ticket may take, and extra instructions.
+    pub ticket_model: i32,
+    pub ticket_escalation_channel: compact_str::CompactString,
+    pub ticket_allow_destructive: bool,
+    pub ticket_max_steps: i32,
+    pub ticket_instructions: compact_str::CompactString,
 }
 
 impl Default for AppSettingsNeo {
@@ -282,6 +291,11 @@ impl Default for AppSettingsNeo {
             max_concurrent: 4,
             tools_probe: true,
             providers: Vec::new(),
+            ticket_model: 0,
+            ticket_escalation_channel: compact_str::CompactString::default(),
+            ticket_allow_destructive: false,
+            ticket_max_steps: 8,
+            ticket_instructions: compact_str::CompactString::default(),
         }
     }
 }
@@ -428,6 +442,16 @@ pub struct PayloadNeo {
     tools_probe: Option<bool>,
     #[garde(length(max = MAX_PROVIDERS as usize), dive)]
     providers: Option<Vec<PayloadNeoProvider>>,
+    #[garde(inner(range(min = 0, max = MAX_PROVIDERS as i32)))]
+    ticket_model: Option<i32>,
+    #[garde(inner(length(chars, max = 32)))]
+    ticket_escalation_channel: Option<compact_str::CompactString>,
+    #[garde(skip)]
+    ticket_allow_destructive: Option<bool>,
+    #[garde(inner(range(min = 1, max = 50)))]
+    ticket_max_steps: Option<i32>,
+    #[garde(inner(length(chars, max = 2000)))]
+    ticket_instructions: Option<compact_str::CompactString>,
 }
 
 /// Why a neo payload was refused.
@@ -680,7 +704,10 @@ impl PayloadNeo {
             max_busy_wait,
             deadline,
             max_concurrent,
-            tools_probe
+            tools_probe,
+            ticket_model,
+            ticket_allow_destructive,
+            ticket_max_steps
         );
         macro_rules! text {
             ($($field:ident),*) => {
@@ -689,7 +716,14 @@ impl PayloadNeo {
                 })*
             };
         }
-        text!(support_url, legal_email, privacy_email, provider_disclosure);
+        text!(
+            support_url,
+            legal_email,
+            privacy_email,
+            provider_disclosure,
+            ticket_escalation_channel,
+            ticket_instructions
+        );
 
         if let Some(providers) = providers {
             settings.providers = providers;
@@ -766,7 +800,18 @@ impl SettingsSerializeExt for AppSettingsNeo {
             .write_raw_setting("deadline", self.deadline.to_compact_string())
             .write_raw_setting("max_concurrent", self.max_concurrent.to_compact_string())
             .write_raw_setting("tools_probe", self.tools_probe.to_compact_string())
-            .write_raw_setting("providers", providers))
+            .write_raw_setting("providers", providers)
+            .write_raw_setting("ticket_model", self.ticket_model.to_compact_string())
+            .write_raw_setting(
+                "ticket_escalation_channel",
+                &*self.ticket_escalation_channel,
+            )
+            .write_raw_setting(
+                "ticket_allow_destructive",
+                self.ticket_allow_destructive.to_compact_string(),
+            )
+            .write_raw_setting("ticket_max_steps", self.ticket_max_steps.to_compact_string())
+            .write_raw_setting("ticket_instructions", &*self.ticket_instructions))
     }
 }
 
@@ -842,6 +887,11 @@ impl SettingsDeserializeExt for AppSettingsNeoDeserializer {
             max_concurrent: read!(max_concurrent),
             tools_probe: read!(tools_probe),
             providers,
+            ticket_model: read!(ticket_model),
+            ticket_escalation_channel: text!(ticket_escalation_channel),
+            ticket_allow_destructive: read!(ticket_allow_destructive),
+            ticket_max_steps: read!(ticket_max_steps),
+            ticket_instructions: text!(ticket_instructions),
         }))
     }
 }

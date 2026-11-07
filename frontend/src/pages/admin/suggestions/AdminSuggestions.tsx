@@ -18,15 +18,12 @@ import TextArea from '@/elements/input/TextArea.tsx';
 import Stack from '@/elements/layout/Stack.tsx';
 import ConfirmationModal from '@/elements/modals/ConfirmationModal.tsx';
 import { Modal, ModalFooter } from '@/elements/modals/Modal.tsx';
+import ProfileBadge from '@/elements/ProfileBadge.tsx';
+import SuggestionThread from '@/elements/suggestions/SuggestionThread.tsx';
 import FormattedTimestamp from '@/elements/time/FormattedTimestamp.tsx';
 import Text from '@/elements/typography/Text.tsx';
 import { queryKeys } from '@/lib/queryKeys.ts';
-import {
-  type SuggestionStatus,
-  suggestionSchema,
-  suggestionServerType,
-  suggestionStatus,
-} from '@/lib/schemas/user/suggestions.ts';
+import { type SuggestionStatus, suggestionSchema } from '@/lib/schemas/user/suggestions.ts';
 import { useSearchablePaginatedTable } from '@/plugins/resource/useSearchablePaginatedTable.ts';
 import { useAdminCan } from '@/plugins/usePermissions.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
@@ -81,36 +78,48 @@ function EditModal({ suggestion, onClose }: { suggestion: Suggestion | null; onC
       opened={suggestion !== null}
       onClose={onClose}
       title={suggestion?.title ?? t(`${base}.edit.title`, {})}
-      size='lg'
+      size='xl'
     >
-      <Stack gap='md'>
-        <Select
-          label={t(`${base}.edit.status`, {})}
-          data={EDITABLE.map((value) => ({
-            value,
-            label: t(`pages.account.suggestions.status.${value}`, {}),
-          }))}
-          value={status}
-          onChange={(value) => value && setStatus(value as EditableStatus)}
-          allowDeselect={false}
-        />
-        <TextArea
-          autosize
-          minRows={3}
-          maxRows={10}
-          label={t(`${base}.edit.changelog`, {})}
-          description={t(`${base}.edit.changelogHint`, {})}
-          value={changelog}
-          onChange={(event) => setChangelog(event.currentTarget.value)}
-        />
+      <Stack gap='lg'>
+        <Stack gap='md'>
+          <Select
+            label={t(`${base}.edit.status`, {})}
+            data={EDITABLE.map((value) => ({
+              value,
+              label: t(`pages.account.suggestions.status.${value}`, {}),
+            }))}
+            value={status}
+            onChange={(value) => value && setStatus(value as EditableStatus)}
+            allowDeselect={false}
+          />
+          <TextArea
+            autosize
+            minRows={3}
+            maxRows={10}
+            label={t(`${base}.edit.changelog`, {})}
+            description={t(`${base}.edit.changelogHint`, {})}
+            value={changelog}
+            onChange={(event) => setChangelog(event.currentTarget.value)}
+          />
+          <div>
+            <Button loading={loading} onClick={save}>
+              {t('common.button.save', {})}
+            </Button>
+          </div>
+        </Stack>
+
+        {suggestion && (
+          <SuggestionThread
+            uuid={suggestion.uuid}
+            admin
+            onChanged={() => queryClient.invalidateQueries({ queryKey: queryKeys.admin.suggestions.all() })}
+          />
+        )}
       </Stack>
 
       <ModalFooter>
-        <Button loading={loading} onClick={save}>
-          {t('common.button.save', {})}
-        </Button>
         <Button variant='default' onClick={onClose}>
-          {t('common.button.cancel', {})}
+          {t('common.button.close', {})}
         </Button>
       </ModalFooter>
     </Modal>
@@ -266,11 +275,18 @@ export default function AdminSuggestions() {
           <TableRow key={suggestion.uuid}>
             <TableData>
               <div className='flex min-w-0 flex-col'>
-                <span className='font-medium'>{suggestion.title}</span>
+                <UnstyledButton className='text-left font-medium' onClick={() => setEditing(suggestion)}>
+                  {suggestion.title}
+                </UnstyledButton>
                 <span className='theme-eco-small'>{suggestion.body}</span>
               </div>
             </TableData>
-            <TableData>{suggestion.author?.username}</TableData>
+            <TableData>
+              <span className='flex items-center gap-1.5'>
+                {suggestion.author?.username}
+                <ProfileBadge badge={suggestion.author?.badge} />
+              </span>
+            </TableData>
             <TableData>{t(`pages.account.suggestions.serverType.${suggestion.serverType}`, {})}</TableData>
             <TableData>{suggestion.votes}</TableData>
             <TableData>

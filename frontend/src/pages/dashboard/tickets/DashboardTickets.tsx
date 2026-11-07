@@ -1,7 +1,7 @@
 // plugged.host: Account › Support, the account's tickets (docs/features/tickets.md). A full-width
 // list, one filled action (New ticket), and the thread in a modal.
 
-import { faEye, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faEye, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useForm } from '@mantine/form';
 import { useQueryClient } from '@tanstack/react-query';
@@ -341,7 +341,7 @@ export function ThreadModal({
                         : message.authorType === 'admin'
                           ? t(`${base}.thread.staff`, {})
                           : (message.author?.username ?? t(`${base}.thread.you`, {}))}
-                    {' · '}
+                    ·
                     <FormattedTimestamp timestamp={message.created} />
                   </span>
                   <p className='whitespace-pre-wrap theme-eco-text'>
@@ -362,28 +362,42 @@ export function ThreadModal({
                 value={reply}
                 onChange={(event) => setReply(event.currentTarget.value)}
               />
-              <div className='flex flex-wrap gap-2'>
+              <div className='flex flex-wrap items-center gap-2'>
                 <Button loading={sending} disabled={!reply.trim()} onClick={send}>
                   {t(`${base}.thread.send`, {})}
                 </Button>
                 <Button variant='default' onClick={() => changeStatus('closed')}>
                   {t(`${base}.thread.close`, {})}
                 </Button>
+                <ActionIcon
+                  className='ml-auto'
+                  color='red'
+                  variant='subtle'
+                  aria-label={t('common.button.delete', {})}
+                  title={t('common.button.delete', {})}
+                  onClick={() => setConfirmDelete(true)}
+                >
+                  <FontAwesomeIcon icon={faTrash} />
+                </ActionIcon>
               </div>
             </section>
           ) : (
-            <div className='flex flex-wrap gap-2'>
+            <div className='flex flex-wrap items-center gap-2'>
               <Button variant='default' onClick={() => changeStatus('open')}>
                 {t(`${base}.thread.reopen`, {})}
               </Button>
+              <ActionIcon
+                className='ml-auto'
+                color='red'
+                variant='subtle'
+                aria-label={t('common.button.delete', {})}
+                title={t('common.button.delete', {})}
+                onClick={() => setConfirmDelete(true)}
+              >
+                <FontAwesomeIcon icon={faTrash} />
+              </ActionIcon>
             </div>
           )}
-
-          <div className='flex flex-wrap gap-2'>
-            <Button color='red' variant='outline' onClick={() => setConfirmDelete(true)}>
-              {t('common.button.delete', {})}
-            </Button>
-          </div>
 
           <ConfirmationModal
             opened={confirmDelete}
@@ -471,7 +485,7 @@ export default function DashboardTickets() {
                     <span className='theme-eco-small'>
                       {t(`${base}.category.${ticket.category}`, {})}
                       {ticket.server ? ` · ${ticket.server.name}` : ''}
-                      {' · '}
+                      ·
                       <FormattedTimestamp timestamp={ticket.updated} />
                     </span>
                   </div>

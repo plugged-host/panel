@@ -7,9 +7,10 @@ statuses, write the changelog entry when one ships and merge duplicates. In
 
 ## The board
 
-Account › Suggestions shows every idea that is not merged: title, one-sentence description, server
-type (`minecraft`, `fivem`, `rust`, `teamspeak`, `other`), author and date, a vote button with the
-count, and the status:
+Account › Suggestions shows every idea that is not merged: a cover image when the idea has concept
+art, title, a short excerpt, server type (`minecraft`, `fivem`, `rust`, `teamspeak`, `other`),
+author and date, a vote button with the count, the comment and image counts, and the status. Clicking
+a card opens the idea's own page at `/account/suggestions/{id}`:
 
 | Status | Shown as |
 |---|---|
@@ -21,18 +22,26 @@ count, and the status:
 | `merged` | Merged (hidden from the board) |
 
 A shipped idea shows its changelog entry ("Shipped: …"). **New idea** is the only filled action:
-title (3 to 120 characters), description (10 to 500) and server type. The vote button toggles the
+title (3 to 120 characters), details (10 to 5000), server type and up to six attachments (images,
+PDF, text, JSON or zip, 10 MB each) such as concept art or screenshots. The vote button toggles the
 account's vote; voting again takes it back.
+
+The idea page shows the full Markdown body, a gallery of its images and files, the vote count and
+the whole discussion. Everyone who can read the board can comment; comments are plain text. Staff
+replies are written as `admin` and marked **Staff**. The author (or an admin) can add more images
+from the page. The author's trash button is at the top right of the page and deletes the idea, its
+comments and its stored images.
 
 ## Admin › Suggestions
 
 `suggestions.read` shows every idea; `suggestions.manage` acts. The list is paginated and filters by
 status and server type, with a search over the title, the description and the author.
 
-- **Edit**: status and changelog entry. `merged` is not picked by hand; it comes from a merge.
+- **Edit**: status and changelog entry, with the idea's discussion below; staff reply from the
+  same modal ("Reply as staff"). `merged` is not picked by hand; it comes from a merge.
 - **Merge**: the votes move to the chosen idea (`ON CONFLICT DO NOTHING` for accounts that voted for
   both), the source is marked `merged` with `merged_into`, and it disappears from the board.
-- **Delete**: the idea and its votes.
+- **Delete**: the idea, its votes, comments and stored attachments.
 
 New ideas notify admins with `suggestions.manage` (`admin.suggestionCreated`).
 
@@ -58,9 +67,14 @@ vote. A counted vote sends `/alt/signal` (`kind: suggestion_vote`) best effort.
 | Route | Permission | Does |
 |---|---|---|
 | `GET /api/client/account/suggestions` | `suggestions.read` | `{suggestions}`: the board |
+| `GET /api/client/account/suggestions/{suggestion}` | `suggestions.read` | The idea, its comments and attachments |
 | `POST /api/client/account/suggestions` | `suggestions.create` | `{title, body, server_type}` |
+| `POST /api/client/account/suggestions/{suggestion}/comments` | `suggestions.read` | `{body}`: a comment |
+| `POST /api/client/account/suggestions/{suggestion}/attachments` | `suggestions.create` | Multipart images/files; the author or an admin |
 | `POST /api/client/account/suggestions/{suggestion}/vote` | `suggestions.vote` | Toggles the account's vote |
 | `GET /api/admin/suggestions` | `suggestions.read` | Paginated; `status`, `server_type`, `search` |
+| `GET /api/admin/suggestions/{suggestion}` | `suggestions.read` | The idea, its comments and attachments |
+| `POST /api/admin/suggestions/{suggestion}/comments` | `suggestions.manage` | `{body}`: a staff reply |
 | `PATCH /api/admin/suggestions/{suggestion}` | `suggestions.manage` | `{status, changelog?}` |
 | `POST /api/admin/suggestions/{suggestion}/merge` | `suggestions.manage` | `{target_uuid}` |
 | `DELETE /api/admin/suggestions/{suggestion}` | `suggestions.manage` | With its votes |
@@ -71,6 +85,11 @@ Activity: `account:suggestion.create`; `suggestions:suggestion.update`, `.merge`
 
 - `suggestions`: `uuid`, `user_uuid`, `title`, `body`, `server_type`, `status`, `changelog`,
   `merged_into`, `created`, `updated`.
+- `suggestion_messages`: `uuid`, `suggestion_uuid`, `author_uuid`, `author_type` (`user` or
+  `admin`), `body`, `created`.
+- `suggestion_attachments`: `uuid`, `suggestion_uuid`, `message_uuid` (null for the idea itself),
+  `uploader_uuid`, `name`, `mime`, `size`, `path`, `created`; stored through the panel's storage
+  driver.
 - `suggestion_votes`: `suggestion_uuid`, `user_uuid` (primary key, one vote per account and idea),
   `created`.
 
@@ -82,8 +101,11 @@ Nothing changes. The anti-alt check is skipped, so every account votes once as b
 
 ## Checks
 
-- Account › Suggestions: post an idea; it appears. Vote: the count goes up and the button stays
-  filled; vote again: down. A second account votes too; the order follows the counts.
+- Account › Suggestions: post an idea with concept art; the card shows the cover and the comment
+  and image counts. Open it: the full body, gallery and discussion; comment, and vote from the
+  page. A second account votes too; the order follows the counts.
+- Staff open the idea from Admin › Suggestions, reply as staff, and the reply is marked Staff on
+  the idea page. The author's trash button at the top right deletes the idea and its images.
 - Admin › Suggestions: set Planned, then Shipped with a changelog entry; the board shows the status
   and the entry. Merge one idea into another: its votes move, it disappears, and the target's count
   is the sum (minus accounts that voted for both).

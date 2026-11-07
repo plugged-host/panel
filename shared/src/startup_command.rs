@@ -1347,6 +1347,7 @@ async fn ask_neo(
         messages,
         tools: Vec::new(),
         tool_choice: "none",
+        model: None,
     };
 
     let answer = match tokio::time::timeout(

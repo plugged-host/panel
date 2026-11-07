@@ -710,6 +710,12 @@ export const adminSettingsNeoSchema = z.object({
   privacyEmail: neoOptionalEmail,
   providerDisclosure: z.string().trim().max(255),
   alwaysConfirmDestructive: z.boolean(),
+  // plugged.host: support tickets (shared/src/tickets.rs)
+  ticketModel: z.number().int().min(0).max(NEO_MAX_PROVIDERS),
+  ticketEscalationChannel: z.string().trim().max(32),
+  ticketAllowDestructive: z.boolean(),
+  ticketMaxSteps: z.number().int().min(1).max(50),
+  ticketInstructions: z.string().trim().max(2000),
   providers: z.array(adminSettingsNeoProviderFormSchema).max(NEO_MAX_PROVIDERS),
   gatewayEnabled: z.boolean(),
   plusPercent: z.number().int().min(100).max(1000),
@@ -777,6 +783,11 @@ export const adminSettingsNeoStoreSchema = z.object({
   deadline: z.number(),
   maxConcurrent: z.number(),
   toolsProbe: z.boolean(),
+  ticketModel: z.number(),
+  ticketEscalationChannel: z.string(),
+  ticketAllowDestructive: z.boolean(),
+  ticketMaxSteps: z.number(),
+  ticketInstructions: z.string(),
   providers: z.array(adminSettingsNeoProviderSchema),
 });
 
@@ -935,6 +946,14 @@ export const adminSettingsEconomySchema = z.object({
   // plugged.host: profile badges (docs/features/promos.md#profile-badges)
   badgesEnabled: z.boolean().default(true),
   badgeTokens: z.number().int().min(1).max(100_000).default(5),
+  badges: z.array(
+    z.object({
+      id: z.string(),
+      label: z.string().max(32).nullable(),
+      color: z.string(),
+      discordRole: z.string().max(32).nullable(),
+    }),
+  ),
   membershipEnabled: z.boolean(),
   plusName: z.string().trim().min(1).max(32),
   plusplusName: z.string().trim().min(1).max(32),

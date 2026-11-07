@@ -122,6 +122,8 @@ mod get {
         panel_access_enabled: bool,
         plus_name: &'a str,
         plusplus_name: &'a str,
+        /// The profile badges' labels, colours and optional Discord roles.
+        badges: Vec<shared::badges::BadgeConfig>,
     }
 
     /// plugged.host: whether the chat with neo is offered (docs/features/neo.md).
@@ -293,6 +295,7 @@ mod get {
                 panel_access_enabled: settings.economy.panel_access_enabled,
                 plus_name: &settings.economy.plus_name,
                 plusplus_name: &settings.economy.plusplus_name,
+                badges: settings.economy.badges.clone(),
             },
             discord: ResponseDiscord {
                 enabled: settings.discord.active(),

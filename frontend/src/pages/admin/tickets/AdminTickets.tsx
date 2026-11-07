@@ -1,9 +1,10 @@
 // plugged.host: Admin › Tickets (docs/features/tickets.md): filter by status and category, open
 // the thread, reply as staff, assign self and change status or priority.
+import { faTrash } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { z } from 'zod';
 import assignTicket from '@/api/admin/tickets/assignTicket.ts';
 import deleteTicket from '@/api/admin/tickets/deleteTicket.ts';
 import getTicket from '@/api/admin/tickets/getTicket.ts';
@@ -11,6 +12,7 @@ import getTickets from '@/api/admin/tickets/getTickets.ts';
 import replyTicket from '@/api/admin/tickets/replyTicket.ts';
 import updateTicket from '@/api/admin/tickets/updateTicket.ts';
 import { httpErrorToHuman } from '@/api/axios.ts';
+import ActionIcon from '@/elements/buttons/ActionIcon.tsx';
 import Button from '@/elements/buttons/Button.tsx';
 import UnstyledButton from '@/elements/buttons/UnstyledButton.tsx';
 import AdminContentContainer from '@/elements/containers/AdminContentContainer.tsx';
@@ -21,17 +23,14 @@ import TextArea from '@/elements/input/TextArea.tsx';
 import Stack from '@/elements/layout/Stack.tsx';
 import ConfirmationModal from '@/elements/modals/ConfirmationModal.tsx';
 import { Modal } from '@/elements/modals/Modal.tsx';
-import NeoMarkdown from '@/elements/neo/NeoMarkdown.tsx';
 import FormattedTimestamp from '@/elements/time/FormattedTimestamp.tsx';
 import Text from '@/elements/typography/Text.tsx';
 import { queryKeys } from '@/lib/queryKeys.ts';
-import { type TicketStatus, ticketStatus, ticketSummarySchema } from '@/lib/schemas/user/tickets.ts';
+import { type TicketStatus } from '@/lib/schemas/user/tickets.ts';
 import { useSearchablePaginatedTable } from '@/plugins/resource/useSearchablePaginatedTable.ts';
 import { useAdminCan } from '@/plugins/usePermissions.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
-
-type Ticket = z.infer<typeof ticketSummarySchema>;
 
 const base = 'pages.admin.tickets';
 
@@ -225,7 +224,7 @@ export function ThreadModal({
                         : message.authorType === 'admin'
                           ? t('pages.account.tickets.thread.staff', {})
                           : (message.author?.username ?? t('pages.account.tickets.thread.you', {}))}
-                    {' · '}
+                    ·
                     <FormattedTimestamp timestamp={message.created} />
                   </span>
                   <p className='whitespace-pre-wrap theme-eco-text'>
@@ -274,13 +273,20 @@ export function ThreadModal({
                 value={reply}
                 onChange={(event) => setReply(event.currentTarget.value)}
               />
-              <div className='flex flex-wrap gap-2'>
+              <div className='flex flex-wrap items-center gap-2'>
                 <Button loading={sending} disabled={!reply.trim()} onClick={send}>
                   {t(`${base}.thread.send`, {})}
                 </Button>
-                <Button color='red' variant='outline' onClick={() => setConfirmDelete(true)}>
-                  {t('common.button.delete', {})}
-                </Button>
+                <ActionIcon
+                  className='ml-auto'
+                  color='red'
+                  variant='subtle'
+                  aria-label={t('common.button.delete', {})}
+                  title={t('common.button.delete', {})}
+                  onClick={() => setConfirmDelete(true)}
+                >
+                  <FontAwesomeIcon icon={faTrash} />
+                </ActionIcon>
               </div>
             </>
           )}

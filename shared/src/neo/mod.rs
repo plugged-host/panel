@@ -130,6 +130,8 @@ pub struct Ask<'a> {
     pub tools: Vec<Value>,
     /// auto or none.
     pub tool_choice: &'static str,
+    /// The model slot to use; `None` uses the account's picked model, else the default.
+    pub model: Option<String>,
 }
 
 static KEYS: LazyLock<regex::Regex> =

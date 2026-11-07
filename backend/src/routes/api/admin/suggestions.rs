@@ -135,6 +135,91 @@ mod suggestion {
         }
     }
 
+    mod thread {
+        use axum::extract::Path;
+        use shared::{
+            ApiError, GetState,
+            models::user::{GetPermissionManager, GetUser},
+            response::{ApiResponse, ApiResponseResult},
+            suggestions::ApiSuggestionThread,
+        };
+
+        #[utoipa::path(get, path = "/", responses(
+            (status = OK, body = inline(ApiSuggestionThread)),
+            (status = NOT_FOUND, body = ApiError),
+        ), params(
+            ("suggestion" = uuid::Uuid, Path, description = "The suggestion ID"),
+        ))]
+        pub async fn route(
+            state: GetState,
+            permissions: GetPermissionManager,
+            user: GetUser,
+            Path(suggestion_uuid): Path<uuid::Uuid>,
+        ) -> ApiResponseResult {
+            permissions.has_admin_permission("suggestions.read")?;
+            match shared::suggestions::thread(&state, user.uuid, suggestion_uuid).await? {
+                Some(thread) => ApiResponse::new_serialized(thread).ok(),
+                None => ApiResponse::error("suggestion not found")
+                    .with_status(axum::http::StatusCode::NOT_FOUND)
+                    .ok(),
+            }
+        }
+    }
+
+    mod comment {
+        use axum::extract::Path;
+        use garde::Validate;
+        use serde::Deserialize;
+        use shared::{
+            ApiError, GetState,
+            models::user::{GetPermissionManager, GetUser},
+            response::{ApiResponse, ApiResponseResult},
+            suggestions::{ApiSuggestionThread, AUTHOR_ADMIN},
+        };
+        use utoipa::ToSchema;
+
+        #[derive(ToSchema, Validate, Deserialize)]
+        pub struct Payload {
+            #[garde(length(chars, min = 1, max = 5000))]
+            body: String,
+        }
+
+        #[utoipa::path(post, path = "/comments", responses(
+            (status = OK, body = inline(ApiSuggestionThread)),
+            (status = BAD_REQUEST, body = ApiError),
+            (status = NOT_FOUND, body = ApiError),
+        ), params(
+            ("suggestion" = uuid::Uuid, Path, description = "The suggestion ID"),
+        ), request_body = inline(Payload))]
+        pub async fn route(
+            state: GetState,
+            permissions: GetPermissionManager,
+            user: GetUser,
+            Path(suggestion_uuid): Path<uuid::Uuid>,
+            shared::Payload(data): shared::Payload<Payload>,
+        ) -> ApiResponseResult {
+            if let Err(errors) = shared::utils::validate_data(&data) {
+                return ApiResponse::new_serialized(ApiError::new_strings_value(errors))
+                    .with_status(axum::http::StatusCode::BAD_REQUEST)
+                    .ok();
+            }
+            permissions.has_admin_permission("suggestions.manage")?;
+
+            match shared::suggestions::comment(
+                &state,
+                suggestion_uuid,
+                user.uuid,
+                AUTHOR_ADMIN,
+                &data.body,
+            )
+            .await
+            {
+                Ok(thread) => ApiResponse::new_serialized(thread).ok(),
+                Err(err) => err.response().ok(),
+            }
+        }
+    }
+
     mod patch {
         use axum::extract::Path;
         use garde::Validate;
@@ -308,6 +393,8 @@ mod suggestion {
 
     pub fn router(state: &super::super::State) -> OpenApiRouter<super::super::State> {
         OpenApiRouter::new()
+            .routes(routes!(thread::route))
+            .routes(routes!(comment::route))
             .routes(routes!(patch::route))
             .routes(routes!(merge::route))
             .routes(routes!(delete::route))

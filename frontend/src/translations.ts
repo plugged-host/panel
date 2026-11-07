@@ -3465,14 +3465,30 @@ const baseTranslations = defineTranslations({
           changelog: 'Shipped: {entry}',
           mergedInto: 'Merged into “{title}”.',
           deleteTitle: 'Delete idea',
-          deleteBody: 'This deletes your idea and its votes for good.',
+          deleteBody: 'This deletes your idea, its comments and its images for good.',
           anonymous: 'Anonymous',
+          viewDiscussion: 'View discussion',
+          thread: {
+            title: 'Suggestion',
+            comments: 'Comments',
+            noComments: 'No comments yet. Ask a question or add what you think.',
+            addComment: 'Add a comment',
+            postComment: 'Post comment',
+            staff: 'Staff',
+            you: 'You',
+            addImages: 'Add images',
+            attachmentsHint: 'Images or files, such as concept art or screenshots.',
+            posted: 'Comment posted.',
+            imagesAdded: 'Images added.',
+          },
           create: {
             title: 'New idea',
             titleField: 'Title',
-            description: 'Description',
-            descriptionHint: 'One sentence: what it does and why it helps.',
+            description: 'Details',
+            descriptionHint: 'Describe the idea, what it does and why it helps. Add concept art below if you have it.',
             serverType: 'Server type',
+            attachments: 'Concept art and screenshots',
+            attachmentsHint: 'Up to 6 files, 10 MB each: concept art, screenshots, mockups, PDFs or a zip.',
             button: 'Post idea',
           },
           serverType: {
@@ -5214,6 +5230,13 @@ const baseTranslations = defineTranslations({
                     'Users buy preset badges on their account page, for good, and show one next to their name. Bought badges stay shown when this is off.',
                   badgeTokens: 'Tokens per Badge',
                   badgeTokensDescription: 'What one badge costs.',
+                  badgesHint:
+                    "Each badge's label, colour and optional Discord role. The role is granted while the badge is shown; the bot needs Manage Roles and its own role above it.",
+                  badgeLabel: 'Label',
+                  badgeLabelDescription: 'Empty: the translated default.',
+                  badgeColor: 'Colour',
+                  badgeDiscordRole: 'Discord role ID',
+                  badgeDiscordRoleDescription: 'Optional. The role given while this badge is shown.',
                   membershipEnabled: 'Memberships',
                   membershipEnabledDescription:
                     'Both are bought for some days at a time. The first opens the locations with the tier “plus”; the second gives everything the first does, opens the tier “premium” too and needs no first membership.',
@@ -5508,6 +5531,24 @@ const baseTranslations = defineTranslations({
                   alwaysConfirmDestructive: 'Always Ask Before Deleting or Killing',
                   alwaysConfirmDestructiveDescription:
                     'Overrides a user\'s "without asking" choice for deletes and kill.',
+                  ticketSection: 'Support Tickets',
+                  ticketModel: 'Model for Tickets',
+                  ticketModelDescription:
+                    'The model slot neo uses in tickets. Default: the model the person picked in chat, else the default model.',
+                  ticketModelDefault: "Default (the chat's model)",
+                  ticketModelSlot: 'Model {slot} · {label}',
+                  ticketModelSlotPlain: 'Model {slot}',
+                  ticketEscalationChannel: 'Escalation Discord Channel',
+                  ticketEscalationChannelDescription:
+                    'Where a ticket that needs a person is posted, through rux. Empty: no Discord post.',
+                  ticketAllowDestructive: 'Allow Destructive Actions',
+                  ticketAllowDestructiveDescription:
+                    'Let neo delete files, reinstall, delete backups or kill a server in a ticket. Critical actions (deleting a server, restoring a backup) stay off.',
+                  ticketMaxSteps: 'Steps per Ticket Message',
+                  ticketMaxStepsDescription: 'Model calls neo may make for one ticket message.',
+                  ticketInstructions: 'Extra Ticket Instructions',
+                  ticketInstructionsDescription:
+                    "Appended to neo's ticket prompt, for your support rules. Empty: none.",
                   providers: 'AI Providers and Limits',
                   usage: 'Usage Limits',
                   usageDescription:

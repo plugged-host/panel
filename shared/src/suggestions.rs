@@ -38,8 +38,14 @@ pub const SERVER_TYPES: [&str; 5] = [MINECRAFT, FIVEM, RUST, TEAMSPEAK, OTHER];
 pub const TITLE_MIN: usize = 3;
 pub const TITLE_MAX: usize = 120;
 pub const BODY_MIN: usize = 10;
-pub const BODY_MAX: usize = 500;
+pub const BODY_MAX: usize = 5000;
+pub const MESSAGE_MAX: usize = 5000;
 pub const CHANGELOG_MAX: usize = 5000;
+
+/// A comment by the person who wrote it.
+pub const AUTHOR_USER: &str = "user";
+/// A reply by a staff member.
+pub const AUTHOR_ADMIN: &str = "admin";
 
 #[derive(Debug)]
 pub enum SuggestionError {
@@ -92,12 +98,44 @@ impl SuggestionError {
 pub struct ApiSuggestionUser {
     pub uuid: uuid::Uuid,
     pub username: compact_str::CompactString,
+    /// The profile badge shown next to the name (shared/src/badges.rs).
+    pub badge: Option<compact_str::CompactString>,
 }
 
 #[derive(ToSchema, Serialize, Clone)]
 pub struct ApiSuggestionRef {
     pub uuid: uuid::Uuid,
     pub title: compact_str::CompactString,
+}
+
+#[derive(ToSchema, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct ApiSuggestionAttachment {
+    pub uuid: uuid::Uuid,
+    pub name: compact_str::CompactString,
+    pub mime: compact_str::CompactString,
+    pub size: i64,
+    pub url: String,
+    pub created: chrono::DateTime<chrono::Utc>,
+}
+
+#[derive(ToSchema, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct ApiSuggestionMessage {
+    pub uuid: uuid::Uuid,
+    pub author: Option<ApiSuggestionUser>,
+    /// `user` or `admin`.
+    pub author_type: compact_str::CompactString,
+    pub body: String,
+    pub created: chrono::DateTime<chrono::Utc>,
+}
+
+#[derive(ToSchema, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ApiSuggestionThread {
+    pub suggestion: ApiSuggestion,
+    pub messages: Vec<ApiSuggestionMessage>,
+    pub attachments: Vec<ApiSuggestionAttachment>,
 }
 
 #[derive(ToSchema, Serialize, Clone)]
@@ -113,6 +151,12 @@ pub struct ApiSuggestion {
     pub votes: i64,
     /// Whether the reader voted for it.
     pub voted: bool,
+    /// How many comments the discussion has.
+    pub comments: i64,
+    /// How many images and files are attached.
+    pub attachments: i64,
+    /// The first image, shown as the board card's cover.
+    pub preview_url: Option<String>,
     pub author: Option<ApiSuggestionUser>,
     pub merged_into: Option<ApiSuggestionRef>,
     pub created: chrono::DateTime<chrono::Utc>,
@@ -126,11 +170,13 @@ fn utc(value: NaiveDateTime) -> chrono::DateTime<chrono::Utc> {
 const SELECT: &str = "SELECT suggestions.uuid, suggestions.title, suggestions.body,
         suggestions.server_type, suggestions.status, suggestions.changelog,
         suggestions.created, suggestions.updated,
-        authors.uuid AS author_uuid, authors.username AS author_username,
+        authors.uuid AS author_uuid, authors.username AS author_username, authors.badge AS author_badge,
         merged.uuid AS merged_uuid, merged.title AS merged_title,
         (SELECT COUNT(*) FROM suggestion_votes WHERE suggestion_votes.suggestion_uuid = suggestions.uuid) AS votes,
         EXISTS(SELECT 1 FROM suggestion_votes WHERE suggestion_votes.suggestion_uuid = suggestions.uuid
-            AND suggestion_votes.user_uuid = $1) AS voted
+            AND suggestion_votes.user_uuid = $1) AS voted,
+        (SELECT COUNT(*) FROM suggestion_messages WHERE suggestion_messages.suggestion_uuid = suggestions.uuid) AS comments,
+        (SELECT COUNT(*) FROM suggestion_attachments WHERE suggestion_attachments.suggestion_uuid = suggestions.uuid) AS attachments
     FROM suggestions
     LEFT JOIN users AS authors ON authors.uuid = suggestions.user_uuid
     LEFT JOIN suggestions AS merged ON merged.uuid = suggestions.merged_into";
@@ -138,6 +184,7 @@ const SELECT: &str = "SELECT suggestions.uuid, suggestions.title, suggestions.bo
 fn map(row: &sqlx::postgres::PgRow) -> Result<ApiSuggestion, sqlx::Error> {
     let author_uuid: Option<uuid::Uuid> = row.try_get("author_uuid")?;
     let author_username: Option<compact_str::CompactString> = row.try_get("author_username")?;
+    let author_badge: Option<compact_str::CompactString> = row.try_get("author_badge")?;
     let merged_uuid: Option<uuid::Uuid> = row.try_get("merged_uuid")?;
     let merged_title: Option<compact_str::CompactString> = row.try_get("merged_title")?;
     let created: NaiveDateTime = row.try_get("created")?;
@@ -152,9 +199,12 @@ fn map(row: &sqlx::postgres::PgRow) -> Result<ApiSuggestion, sqlx::Error> {
         changelog: row.try_get("changelog")?,
         votes: row.try_get("votes")?,
         voted: row.try_get("voted")?,
+        comments: row.try_get("comments")?,
+        attachments: row.try_get("attachments")?,
+        preview_url: None,
         author: author_uuid
             .zip(author_username)
-            .map(|(uuid, username)| ApiSuggestionUser { uuid, username }),
+            .map(|(uuid, username)| ApiSuggestionUser { uuid, username, badge: author_badge }),
         merged_into: merged_uuid
             .zip(merged_title)
             .map(|(uuid, title)| ApiSuggestionRef { uuid, title }),
@@ -165,18 +215,56 @@ fn map(row: &sqlx::postgres::PgRow) -> Result<ApiSuggestion, sqlx::Error> {
 
 /// The board: merged duplicates are left out, the rest by votes and then newest.
 pub async fn list(
-    database: &crate::database::Database,
+    state: &crate::State,
     viewer_uuid: uuid::Uuid,
-) -> Result<Vec<ApiSuggestion>, sqlx::Error> {
+) -> anyhow::Result<Vec<ApiSuggestion>> {
     let rows = sqlx::query(sqlx::AssertSqlSafe(format!(
         "{SELECT} WHERE suggestions.status <> 'merged'
         ORDER BY votes DESC, suggestions.created DESC"
     )))
     .bind(viewer_uuid)
-    .fetch_all(database.read())
+    .fetch_all(state.database.read())
     .await?;
 
-    rows.iter().map(map).collect()
+    let mut suggestions: Vec<ApiSuggestion> = rows.iter().map(map).collect::<Result<_, _>>()?;
+    with_previews(state, &mut suggestions).await?;
+    Ok(suggestions)
+}
+
+/// The first image of each idea, for the board's covers.
+async fn with_previews(
+    state: &crate::State,
+    suggestions: &mut [ApiSuggestion],
+) -> Result<(), anyhow::Error> {
+    let uuids: Vec<uuid::Uuid> = suggestions
+        .iter()
+        .map(|suggestion| suggestion.uuid)
+        .collect();
+    if uuids.is_empty() {
+        return Ok(());
+    }
+
+    let rows = sqlx::query(
+        "SELECT suggestion_uuid, path FROM suggestion_attachments
+        WHERE suggestion_uuid = ANY($1) AND mime LIKE 'image/%'
+        ORDER BY created, uuid",
+    )
+    .bind(&uuids)
+    .fetch_all(state.database.read())
+    .await?;
+    let urls = state.storage.retrieve_urls().await?;
+    let mut first: std::collections::HashMap<uuid::Uuid, String> = std::collections::HashMap::new();
+    for row in &rows {
+        first
+            .entry(row.try_get("suggestion_uuid")?)
+            .or_insert(row.try_get("path")?);
+    }
+    for suggestion in suggestions {
+        if let Some(path) = first.get(&suggestion.uuid) {
+            suggestion.preview_url = Some(urls.get_url(path));
+        }
+    }
+    Ok(())
 }
 
 /// One idea, for the account that just voted or created it.
@@ -194,6 +282,140 @@ pub async fn view(
     .await?;
 
     row.as_ref().map(map).transpose()
+}
+
+/// One idea with its discussion and attachments.
+pub async fn thread(
+    state: &crate::State,
+    viewer_uuid: uuid::Uuid,
+    suggestion_uuid: uuid::Uuid,
+) -> Result<Option<ApiSuggestionThread>, anyhow::Error> {
+    let Some(suggestion) = view(&state.database, viewer_uuid, suggestion_uuid).await? else {
+        return Ok(None);
+    };
+    Ok(Some(ApiSuggestionThread {
+        suggestion,
+        messages: messages(&state.database, suggestion_uuid).await?,
+        attachments: attachments(state, suggestion_uuid).await?,
+    }))
+}
+
+/// The discussion, oldest first.
+pub async fn messages(
+    database: &crate::database::Database,
+    suggestion_uuid: uuid::Uuid,
+) -> Result<Vec<ApiSuggestionMessage>, sqlx::Error> {
+    let rows = sqlx::query(
+        "SELECT suggestion_messages.uuid, suggestion_messages.author_type,
+            suggestion_messages.body, suggestion_messages.created,
+            users.uuid AS author_uuid, users.username AS author_username, users.badge AS author_badge
+        FROM suggestion_messages
+        LEFT JOIN users ON users.uuid = suggestion_messages.author_uuid
+        WHERE suggestion_messages.suggestion_uuid = $1
+        ORDER BY suggestion_messages.created, suggestion_messages.uuid",
+    )
+    .bind(suggestion_uuid)
+    .fetch_all(database.read())
+    .await?;
+
+    rows.iter()
+        .map(|row| {
+            let author_uuid: Option<uuid::Uuid> = row.try_get("author_uuid")?;
+            let author_username: Option<compact_str::CompactString> =
+                row.try_get("author_username")?;
+            let author_badge: Option<compact_str::CompactString> =
+                row.try_get("author_badge")?;
+            Ok(ApiSuggestionMessage {
+                uuid: row.try_get("uuid")?,
+                author: author_uuid.zip(author_username).map(|(uuid, username)| {
+                    ApiSuggestionUser { uuid, username, badge: author_badge }
+                }),
+                author_type: row.try_get("author_type")?,
+                body: row.try_get("body")?,
+                created: utc(row.try_get("created")?),
+            })
+        })
+        .collect()
+}
+
+/// The idea's images and files, with the URL the panel serves them from.
+pub async fn attachments(
+    state: &crate::State,
+    suggestion_uuid: uuid::Uuid,
+) -> Result<Vec<ApiSuggestionAttachment>, anyhow::Error> {
+    let rows = sqlx::query(
+        "SELECT uuid, name, mime, size, path, created FROM suggestion_attachments
+        WHERE suggestion_uuid = $1 ORDER BY created, uuid",
+    )
+    .bind(suggestion_uuid)
+    .fetch_all(state.database.read())
+    .await?;
+    let urls = state.storage.retrieve_urls().await?;
+
+    rows.iter()
+        .map(|row| {
+            let path: String = row.try_get("path")?;
+            Ok(ApiSuggestionAttachment {
+                uuid: row.try_get("uuid")?,
+                name: row.try_get("name")?,
+                mime: row.try_get("mime")?,
+                size: row.try_get("size")?,
+                url: urls.get_url(&path),
+                created: utc(row.try_get("created")?),
+            })
+        })
+        .collect()
+}
+
+/// Adds a comment or a staff reply to an idea.
+pub async fn comment(
+    state: &crate::State,
+    suggestion_uuid: uuid::Uuid,
+    author_uuid: uuid::Uuid,
+    author_type: &str,
+    body: &str,
+) -> Result<ApiSuggestionThread, SuggestionError> {
+    let body = body.trim();
+    if body.is_empty() {
+        return Err(SuggestionError::Invalid("a comment cannot be empty".into()));
+    }
+    if body.chars().count() > MESSAGE_MAX {
+        return Err(SuggestionError::Invalid(format!(
+            "a comment is at most {MESSAGE_MAX} characters"
+        )));
+    }
+    let status: Option<String> =
+        sqlx::query_scalar("SELECT status FROM suggestions WHERE uuid = $1")
+            .bind(suggestion_uuid)
+            .fetch_optional(state.database.read())
+            .await?;
+    let Some(status) = status else {
+        return Err(SuggestionError::NotFound);
+    };
+    if status == MERGED {
+        return Err(SuggestionError::Invalid(
+            "this suggestion was merged into another one".into(),
+        ));
+    }
+
+    sqlx::query(
+        "INSERT INTO suggestion_messages (suggestion_uuid, author_uuid, author_type, body)
+        VALUES ($1, $2, $3, $4)",
+    )
+    .bind(suggestion_uuid)
+    .bind(author_uuid)
+    .bind(author_type)
+    .bind(body)
+    .execute(state.database.write())
+    .await?;
+    sqlx::query("UPDATE suggestions SET updated = NOW() WHERE uuid = $1")
+        .bind(suggestion_uuid)
+        .execute(state.database.write())
+        .await?;
+
+    thread(state, author_uuid, suggestion_uuid)
+        .await?
+        .ok_or(SuggestionError::NotFound)
 }
 
 pub struct Create {
@@ -368,11 +590,13 @@ pub async fn admin_list(
     .fetch_one(state.database.read())
     .await?;
 
+    let mut data: Vec<ApiSuggestion> = rows.iter().map(map).collect::<Result<_, _>>()?;
+    with_previews(state, &mut data).await?;
     Ok(Pagination {
         total,
         per_page,
         page,
-        data: rows.iter().map(map).collect::<Result<_, _>>()?,
+        data,
     })
 }
 
@@ -473,6 +697,11 @@ pub async fn delete(
     state: &crate::State,
     suggestion_uuid: uuid::Uuid,
 ) -> Result<(), SuggestionError> {
+    let paths: Vec<String> =
+        sqlx::query_scalar("SELECT path FROM suggestion_attachments WHERE suggestion_uuid = $1")
+            .bind(suggestion_uuid)
+            .fetch_all(state.database.read())
+            .await?;
     let changed = sqlx::query("DELETE FROM suggestions WHERE uuid = $1")
         .bind(suggestion_uuid)
         .execute(state.database.write())
@@ -480,6 +709,11 @@ pub async fn delete(
         .rows_affected();
     if changed == 0 {
         return Err(SuggestionError::NotFound);
+    }
+    for path in paths {
+        if let Err(error) = state.storage.remove(Some(path)).await {
+            tracing::warn!(suggestion = %suggestion_uuid, "failed to remove a suggestion attachment: {error:#}");
+        }
     }
 
     Ok(())

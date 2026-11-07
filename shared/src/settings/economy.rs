@@ -37,6 +37,9 @@ pub struct AppSettingsEconomy {
     /// Profile badges (shared/src/badges.rs): bought for good with `badge_tokens` tokens each.
     pub badges_enabled: bool,
     pub badge_tokens: i32,
+    /// The six preset badges' labels, colours and optional Discord roles
+    /// (shared/src/badges.rs).
+    pub badges: Vec<crate::badges::BadgeConfig>,
 
     pub membership_enabled: bool,
     pub plus_name: compact_str::CompactString,
@@ -218,6 +221,7 @@ impl Default for AppSettingsEconomy {
             panel_access_days: 30,
             badges_enabled: true,
             badge_tokens: 5,
+            badges: crate::badges::default_badges(),
             membership_enabled: true,
             plus_name: "Plus".into(),
             plusplus_name: "Premium".into(),
@@ -408,6 +412,17 @@ impl AppSettingsEconomy {
     }
 }
 
+#[derive(ToSchema, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct PayloadBadge {
+    pub id: String,
+    #[serde(default)]
+    pub label: Option<String>,
+    pub color: String,
+    #[serde(default)]
+    pub discord_role: Option<String>,
+}
+
 /// The economy tab of Admin › Settings: every field optional, `null` leaves it alone. A secret
 /// sent empty or as the placeholder keeps the stored one; `null` removes it.
 #[derive(ToSchema, Validate, Deserialize)]
@@ -430,6 +445,9 @@ pub struct PayloadEconomy {
     badges_enabled: Option<bool>,
     #[garde(inner(range(min = 1, max = 100_000)))]
     badge_tokens: Option<i32>,
+    #[garde(skip)]
+    #[serde(default)]
+    badges: Option<Vec<PayloadBadge>>,
 
     #[garde(skip)]
     membership_enabled: Option<bool>,
@@ -748,6 +766,36 @@ impl PayloadEconomy {
             referral_monthly_cap,
         );
 
+        if let Some(badges) = self.badges {
+            for badge in &badges {
+                if !crate::badges::COLORS.contains(&badge.color.trim()) {
+                    return Err("a badge colour is not one of the theme's colours");
+                }
+                if badge
+                    .discord_role
+                    .as_deref()
+                    .map(str::trim)
+                    .is_some_and(|role| !role.is_empty() && !crate::discord::is_snowflake(role))
+                {
+                    return Err("a badge's Discord role id must be a snowflake");
+                }
+            }
+            settings.badges = crate::badges::normalize_badges(
+                badges
+                    .into_iter()
+                    .map(|badge| crate::badges::BadgeConfig {
+                        id: badge.id.trim().into(),
+                        label: badge.label.map(|label| label.trim().to_compact_string()).filter(|label| !label.is_empty()),
+                        color: badge.color.trim().into(),
+                        discord_role: badge
+                            .discord_role
+                            .map(|role| role.trim().to_compact_string())
+                            .filter(|role| !role.is_empty()),
+                    })
+                    .collect(),
+            );
+        }
+
         if let Some(name) = self.plus_name {
             settings.plus_name = name.trim().into();
         }
@@ -895,6 +943,7 @@ impl SettingsSerializeExt for AppSettingsEconomy {
             )
             .write_raw_setting("badges_enabled", self.badges_enabled.to_compact_string())
             .write_raw_setting("badge_tokens", self.badge_tokens.to_compact_string())
+            .write_raw_setting("badges", serde_json::to_string(&self.badges)?)
             .write_raw_setting(
                 "membership_enabled",
                 self.membership_enabled.to_compact_string(),
@@ -1153,6 +1202,12 @@ impl SettingsDeserializeExt for AppSettingsEconomyDeserializer {
             };
         }
 
+        let badges = deserializer
+            .take_raw_setting("badges")
+            .and_then(|raw| serde_json::from_str::<Vec<crate::badges::BadgeConfig>>(&raw).ok())
+            .map(crate::badges::normalize_badges)
+            .unwrap_or_else(crate::badges::default_badges);
+
         Ok(Box::new(AppSettingsEconomy {
             credits_enabled: flag!(credits_enabled),
             starting_credits: read!(starting_credits),
@@ -1163,6 +1218,7 @@ impl SettingsDeserializeExt for AppSettingsEconomyDeserializer {
             panel_access_days: read!(panel_access_days),
             badges_enabled: flag!(badges_enabled),
             badge_tokens: read!(badge_tokens),
+            badges,
             membership_enabled: flag!(membership_enabled),
             plus_name: text!(plus_name).unwrap_or(defaults.plus_name),
             plusplus_name: text!(plusplus_name).unwrap_or(defaults.plusplus_name),

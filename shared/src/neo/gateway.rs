@@ -179,7 +179,10 @@ pub async fn turn(
     let Some(account_id) = account_id(state, user_uuid).await else {
         return Err(TurnError::NotLinked);
     };
-    let picked = super::picked_model(&state.database, user_uuid).await;
+    let picked = match &ask.model {
+        Some(model) => Some(model.clone()),
+        None => super::picked_model(&state.database, user_uuid).await,
+    };
 
     let body = json!({
         "account_id": account_id,

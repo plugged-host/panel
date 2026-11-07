@@ -862,6 +862,50 @@ export const suggestionsTable = pgTable(
   ],
 );
 
+// plugged.host: a comment on an idea (docs/features/suggestions.md). `author_type` is `user` or
+// `admin`; staff replies are shown with the Staff badge.
+export const suggestionMessagesTable = pgTable(
+  'suggestion_messages',
+  {
+    uuid: uuid().default(sql`gen_random_uuid()`).primaryKey().notNull(),
+    suggestion_uuid: uuid()
+      .references(() => suggestionsTable.uuid, { onDelete: 'cascade' })
+      .notNull(),
+    author_uuid: uuid().references(() => usersTable.uuid, { onDelete: 'set null' }),
+    author_type: varchar({ length: 8 }).notNull(),
+    body: text().notNull(),
+    created: timestamp().defaultNow().notNull(),
+  },
+  (cols) => [
+    index('suggestion_messages_suggestion_uuid_created_idx').on(cols.suggestion_uuid, cols.created),
+  ],
+);
+
+// plugged.host: concept art, screenshots and files on an idea. Stored through the panel's storage
+// driver; `message_uuid` is null for an attachment on the idea itself.
+export const suggestionAttachmentsTable = pgTable(
+  'suggestion_attachments',
+  {
+    uuid: uuid().default(sql`gen_random_uuid()`).primaryKey().notNull(),
+    suggestion_uuid: uuid()
+      .references(() => suggestionsTable.uuid, { onDelete: 'cascade' })
+      .notNull(),
+    message_uuid: uuid().references(() => suggestionMessagesTable.uuid, { onDelete: 'cascade' }),
+    uploader_uuid: uuid().references(() => usersTable.uuid, { onDelete: 'set null' }),
+    name: varchar({ length: 255 * UTF8_MAX_SCALAR_SIZE }).notNull(),
+    mime: varchar({ length: 128 }).notNull(),
+    size: bigint({ mode: 'number' }).notNull(),
+    path: text().notNull(),
+    created: timestamp().defaultNow().notNull(),
+  },
+  (cols) => [
+    index('suggestion_attachments_suggestion_uuid_created_idx').on(
+      cols.suggestion_uuid,
+      cols.created,
+    ),
+  ],
+);
+
 // plugged.host: one vote per account and idea.
 export const suggestionVotesTable = pgTable(
   'suggestion_votes',

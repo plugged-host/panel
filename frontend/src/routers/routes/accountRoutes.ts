@@ -44,6 +44,7 @@ const DashboardShortcuts = lazy(() => import('@/pages/dashboard/shortcuts/Dashbo
 const DashboardSshKeys = lazy(() => import('@/pages/dashboard/ssh-keys/DashboardSshKeys.tsx'));
 const DashboardStore = lazy(() => import('@/pages/dashboard/store/DashboardStore.tsx')); // plugged.host
 const DashboardSuggestions = lazy(() => import('@/pages/dashboard/suggestions/DashboardSuggestions.tsx')); // plugged.host
+const DashboardSuggestion = lazy(() => import('@/pages/dashboard/suggestions/DashboardSuggestion.tsx')); // plugged.host
 const DashboardTickets = lazy(() => import('@/pages/dashboard/tickets/DashboardTickets.tsx')); // plugged.host
 const DashboardTicket = lazy(() => import('@/pages/dashboard/tickets/DashboardTicket.tsx')); // plugged.host
 const DashboardTokens = lazy(() => import('@/pages/dashboard/tokens/DashboardTokens.tsx')); // plugged.host
@@ -184,6 +185,11 @@ const routes: RouteDefinition[] = [
     icon: faLightbulb,
     path: '/suggestions',
     element: DashboardSuggestions,
+  },
+  {
+    name: undefined,
+    path: '/suggestions/:id',
+    element: DashboardSuggestion,
   },
   // plugged.host: back to a devbox in the browser (docs/features/devboxes.md)
   {

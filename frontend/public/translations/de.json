@@ -3559,10 +3559,12 @@
           "create": {
             "title": "Neue Idee",
             "titleField": "Titel",
-            "description": "Beschreibung",
-            "descriptionHint": "Ein Satz: was es macht und warum es hilft.",
+            "description": "Details",
+            "descriptionHint": "Beschreibe die Idee, was sie macht und warum sie hilft. Füge unten Konzeptzeichnungen hinzu, wenn du welche hast.",
             "serverType": "Servertyp",
-            "button": "Idee posten"
+            "button": "Idee posten",
+            "attachments": "Konzeptzeichnungen und Screenshots",
+            "attachmentsHint": "Bis zu 6 Dateien, je 10 MB: Konzeptzeichnungen, Screenshots, Mockups, PDFs oder ein Zip."
           },
           "serverType": {
             "minecraft": "Minecraft",
@@ -3583,7 +3585,21 @@
             "created": "Idee gepostet."
           },
           "deleteTitle": "Delete idea",
-          "deleteBody": "This deletes your idea and its votes for good."
+          "deleteBody": "Damit werden deine Idee, ihre Kommentare und ihre Bilder endgültig gelöscht.",
+          "viewDiscussion": "Diskussion ansehen",
+          "thread": {
+            "title": "Vorschlag",
+            "comments": "Kommentare",
+            "noComments": "Noch keine Kommentare. Stell eine Frage oder schreib, was du denkst.",
+            "addComment": "Kommentar hinzufügen",
+            "postComment": "Kommentar posten",
+            "staff": "Team",
+            "you": "Du",
+            "addImages": "Bilder hinzufügen",
+            "attachmentsHint": "Bilder oder Dateien, zum Beispiel Konzeptzeichnungen oder Screenshots.",
+            "posted": "Kommentar gepostet.",
+            "imagesAdded": "Bilder hinzugefügt."
+          }
         },
         "devboxOpen": {
           "title": "VS Code",
@@ -5218,11 +5234,23 @@
                   "referralThreshold": "Verdienst des Freundes",
                   "referralThresholdDescription": "Tokens, die der Freund verdient, bevor der Werber belohnt wird.",
                   "referralMonthlyCap": "Belohnungen pro Monat",
-                  "referralMonthlyCapDescription": "Belohnte Freunde pro Konto in 30 Tagen. 0 hat kein Limit."
+                  "referralMonthlyCapDescription": "Belohnte Freunde pro Konto in 30 Tagen. 0 hat kein Limit.",
+                  "badgesHint": "Bezeichnung, Farbe und optionale Discord-Rolle jedes Badges. Die Rolle wird vergeben, solange das Badge angezeigt wird; der Bot braucht „Rollen verwalten“ und muss mit seiner Rolle darüber stehen.",
+                  "badgeLabel": "Bezeichnung",
+                  "badgeLabelDescription": "Leer: die übersetzte Standardbezeichnung.",
+                  "badgeColor": "Farbe",
+                  "badgeDiscordRole": "Discord-Rollen-ID",
+                  "badgeDiscordRoleDescription": "Optional. Die Rolle, die vergeben wird, solange dieses Badge angezeigt wird."
                 },
                 "toast": {
                   "updated": "Wirtschaftseinstellungen gespeichert."
-                }
+                },
+                "badgesHint": "Bezeichnung, Farbe und optionale Discord-Rolle jedes Badges. Die Rolle wird vergeben, solange das Badge angezeigt wird; der Bot braucht „Rollen verwalten“ und muss mit seiner Rolle darüber stehen.",
+                "badgeLabel": "Bezeichnung",
+                "badgeLabelDescription": "Leer: die übersetzte Standardbezeichnung.",
+                "badgeColor": "Farbe",
+                "badgeDiscordRole": "Discord-Rollen-ID",
+                "badgeDiscordRoleDescription": "Optional. Die Rolle, die vergeben wird, solange dieses Badge angezeigt wird."
               }
             },
             "upgrades": {
@@ -5365,7 +5393,21 @@
                     "headers": "Muss ein JSON-Objekt aus Header-Namen und Textwerten sein.",
                     "json": "Muss ein JSON-Objekt sein.",
                     "required": "Nötig, solange das Modell an ist."
-                  }
+                  },
+                  "ticketSection": "Support Tickets",
+                  "ticketModel": "Model for Tickets",
+                  "ticketModelDescription": "The model slot neo uses in tickets. Default: the model the person picked in chat, else the default model.",
+                  "ticketModelDefault": "Default (the chat's model)",
+                  "ticketModelSlot": "Model {slot} · {label}",
+                  "ticketModelSlotPlain": "Model {slot}",
+                  "ticketEscalationChannel": "Escalation Discord Channel",
+                  "ticketEscalationChannelDescription": "Where a ticket that needs a person is posted, through rux. Empty: no Discord post.",
+                  "ticketAllowDestructive": "Allow Destructive Actions",
+                  "ticketAllowDestructiveDescription": "Let neo delete files, reinstall, delete backups or kill a server in a ticket. Critical actions (deleting a server, restoring a backup) stay off.",
+                  "ticketMaxSteps": "Steps per Ticket Message",
+                  "ticketMaxStepsDescription": "Model calls neo may make for one ticket message.",
+                  "ticketInstructions": "Extra Ticket Instructions",
+                  "ticketInstructionsDescription": "Appended to neo's ticket prompt, for your support rules. Empty: none."
                 },
                 "models": {
                   "hint": "Wird in neos Chat über die Bezeichnung gewählt. Ein Schritt läuft nur auf dem gewählten Modell, ohne Ausweichen auf ein anderes. Schritte ohne gewähltes Modell gehen an die Modelle für alle, in Slot-Reihenfolge. Ein Modell, das fehlschlägt, wird eine Weile übersprungen.",

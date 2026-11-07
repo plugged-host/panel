@@ -461,6 +461,7 @@ async fn call_model(
             messages: turn.messages.to_vec(),
             tools: turn.definitions.to_vec(),
             tool_choice: turn.tool_choice,
+            model: None,
         };
         let result = tokio::select! {
             result = tokio::time::timeout(remaining, who::turn(state, setup, who, ask)) => result,

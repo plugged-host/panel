@@ -24,7 +24,10 @@ pub async fn turn(
     deltas: Option<&DeltaSender>,
 ) -> Result<TurnAnswer, TurnError> {
     let subject = Subject::user(user_uuid, usage_percent);
-    let picked = super::picked_model(&state.database, user_uuid).await;
+    let picked = match &ask.model {
+        Some(model) => Some(model.clone()),
+        None => super::picked_model(&state.database, user_uuid).await,
+    };
     let slot = slot_for(neo, picked.as_deref(), plan)?;
 
     let answer = run(state, neo, &subject, SERVICE, ask, slot, plan).await?;

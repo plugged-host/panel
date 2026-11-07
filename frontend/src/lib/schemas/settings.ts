@@ -189,6 +189,15 @@ export const publicSettingsSchema = z.object({
     panelAccessEnabled: z.boolean(),
     plusName: z.string(),
     plusplusName: z.string(),
+    // plugged.host: the profile badges' labels, colours and optional Discord roles
+    badges: z.array(
+      z.object({
+        id: z.string(),
+        label: z.string().nullable(),
+        color: z.string(),
+        discordRole: z.string().nullable(),
+      }),
+    ),
   }),
   // plugged.host: the Discord rewards page and invite links (docs/features/discord.md)
   discord: z.object({

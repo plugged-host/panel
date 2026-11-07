@@ -1236,6 +1236,15 @@ impl Tool for EscalateTicketTool {
                 .await;
         }
 
+        crate::tickets::notify_staff_channel(
+            context.state,
+            ticket_uuid,
+            &subject,
+            reason,
+            &context.user.username,
+        )
+        .await;
+
         Ok(
             ToolResult::ok("Escalated to a person; the staff were notified.")
                 .with_display("Ticket escalated to a person"),

@@ -20,6 +20,7 @@ import { useAdminStore } from '@/stores/admin.tsx';
 import { useGlobalStore } from '@/stores/global.ts';
 import SettingsSaveButton from '../SettingsSaveButton.tsx';
 import { useSettingsSection } from '../useSettingsSection.ts';
+import BadgesField from './BadgesField.tsx';
 
 type EconomyValues = z.infer<typeof adminSettingsEconomySchema>;
 
@@ -58,6 +59,7 @@ const partFields: Record<EconomyPart, (keyof EconomyValues)[]> = {
     'panelAccessDays',
     'badgesEnabled',
     'badgeTokens',
+    'badges',
     'claimMinutes',
     'linkDecayPercent',
     'linkFloorPercent',
@@ -415,6 +417,13 @@ export default function EconomyContainer({ part }: { part: EconomyPart }) {
         100_000,
         (values) => values.tokensEnabled && values.badgesEnabled,
       ),
+      {
+        type: 'custom',
+        name: 'badgesField',
+        colSpan: 'full',
+        when: (values) => values.tokensEnabled && values.badgesEnabled,
+        render: (form) => <BadgesField form={form} />,
+      },
 
       { type: 'divider', name: 'earnDivider', label: t(`${page}.earnSection`, {}), when: tokens },
       // plugged.host: CPX Research's survey wall, first like on the Tokens page

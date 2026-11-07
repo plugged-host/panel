@@ -655,6 +655,7 @@ impl Agent<'_> {
                     tools::definitions(&available)
                 },
                 tool_choice: if final_answer { "none" } else { "auto" },
+                model: None,
             },
             deltas,
         )

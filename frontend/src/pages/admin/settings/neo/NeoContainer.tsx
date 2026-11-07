@@ -20,6 +20,7 @@ import { useAdminStore } from '@/stores/admin.tsx';
 import SettingsSaveButton from '../SettingsSaveButton.tsx';
 import NeoProvidersField from './NeoProvidersField.tsx';
 import { type NeoValues, neoEmptyFormValues, neoToFormValues } from './neoFormValues.ts';
+import TicketModelField from './TicketModelField.tsx';
 
 type NumberField = {
   [K in keyof NeoValues]: NeoValues[K] extends number ? K : never;
@@ -164,6 +165,44 @@ export default function NeoContainer() {
       name: 'alwaysConfirmDestructive',
       label: t(`${page}.form.alwaysConfirmDestructive`, {}),
       description: t(`${page}.form.alwaysConfirmDestructiveDescription`, {}),
+      colSpan: 'full',
+    },
+
+    // plugged.host: support tickets (shared/src/tickets.rs)
+    { type: 'divider', name: 'ticketsDivider', label: t(`${page}.form.ticketSection`, {}) },
+    {
+      type: 'custom',
+      name: 'ticketModelField',
+      colSpan: 'full',
+      render: (form) => <TicketModelField form={form} />,
+    },
+    {
+      type: 'text',
+      name: 'ticketEscalationChannel',
+      label: t(`${page}.form.ticketEscalationChannel`, {}),
+      description: t(`${page}.form.ticketEscalationChannelDescription`, {}),
+      props: { placeholder: '123456789012345678' },
+    },
+    {
+      type: 'switch',
+      name: 'ticketAllowDestructive',
+      label: t(`${page}.form.ticketAllowDestructive`, {}),
+      description: t(`${page}.form.ticketAllowDestructiveDescription`, {}),
+      colSpan: 'full',
+    },
+    number(
+      'ticketMaxSteps',
+      t(`${page}.form.ticketMaxSteps`, {}),
+      t(`${page}.form.ticketMaxStepsDescription`, {}),
+      1,
+      50,
+    ),
+    {
+      type: 'textarea',
+      name: 'ticketInstructions',
+      label: t(`${page}.form.ticketInstructions`, {}),
+      description: t(`${page}.form.ticketInstructionsDescription`, {}),
+      rows: 4,
       colSpan: 'full',
     },
 
