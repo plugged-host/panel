@@ -18,7 +18,6 @@ import Button from '@/elements/buttons/Button.tsx';
 import UnstyledButton from '@/elements/buttons/UnstyledButton.tsx';
 import AccountContentContainer from '@/elements/containers/AccountContentContainer.tsx';
 import Badge from '@/elements/data-display/Badge.tsx';
-import Table, { TableData, TableRow } from '@/elements/data-display/Table.tsx';
 import EmptyState from '@/elements/feedback/EmptyState.tsx';
 import Select from '@/elements/input/Select.tsx';
 import ServerSelect from '@/elements/input/ServerSelect.tsx';
@@ -454,54 +453,41 @@ export default function DashboardTickets() {
       />
 
       <ResourceView resource={resource}>
-        {(data) => (
-          <Table
-            columns={[
-              t(`${base}.table.subject`, {}),
-              t(`${base}.table.status`, {}),
-              t(`${base}.table.category`, {}),
-              t(`${base}.table.server`, {}),
-              t(`${base}.table.updated`, {}),
-              '',
-            ]}
-            pagination={{
-              total: data.tickets.length,
-              perPage: Math.max(data.tickets.length, 1),
-              page: 1,
-              data: data.tickets,
-            }}
-            empty={<EmptyState flush title={t(`${base}.empty`, {})} description={t(`${base}.emptyHint`, {})} />}
-          >
-            {data.tickets.map((ticket) => (
-              <TableRow key={ticket.uuid}>
-                <TableData>
-                  <UnstyledButton
-                    className='theme-link-action'
-                    onClick={() => navigate(`/account/support/${ticket.uuid}`)}
-                  >
-                    {ticket.subject}
-                  </UnstyledButton>
-                </TableData>
-                <TableData>
-                  <Badge color={statusColor[ticket.status]}>{t(`${base}.status.${ticket.status}`, {})}</Badge>
-                </TableData>
-                <TableData>{t(`${base}.category.${ticket.category}`, {})}</TableData>
-                <TableData>{ticket.server?.name ?? t(`${base}.noServer`, {})}</TableData>
-                <TableData>
-                  <FormattedTimestamp timestamp={ticket.updated} />
-                </TableData>
-                <TableData className='text-end'>
-                  <UnstyledButton
-                    className='theme-link-action'
-                    onClick={() => navigate(`/account/support/${ticket.uuid}`)}
-                  >
-                    {t('common.button.view', {})}
-                  </UnstyledButton>
-                </TableData>
-              </TableRow>
-            ))}
-          </Table>
-        )}
+        {(data) =>
+          data.tickets.length === 0 ? (
+            <EmptyState flush title={t(`${base}.empty`, {})} description={t(`${base}.emptyHint`, {})} />
+          ) : (
+            <div className='theme-eco-list'>
+              {data.tickets.map((ticket) => (
+                <div key={ticket.uuid} className='theme-eco-tx'>
+                  <div className='flex min-w-0 flex-col gap-1'>
+                    <UnstyledButton
+                      className='theme-eco-heading text-start'
+                      onClick={() => navigate(`/account/support/${ticket.uuid}`)}
+                    >
+                      {ticket.subject}
+                    </UnstyledButton>
+                    <span className='theme-eco-small'>
+                      {t(`${base}.category.${ticket.category}`, {})}
+                      {ticket.server ? ` · ${ticket.server.name}` : ''}
+                      {' · '}
+                      <FormattedTimestamp timestamp={ticket.updated} />
+                    </span>
+                  </div>
+                  <div className='flex shrink-0 items-center gap-3'>
+                    <Badge color={statusColor[ticket.status]}>{t(`${base}.status.${ticket.status}`, {})}</Badge>
+                    <UnstyledButton
+                      className='theme-link-action'
+                      onClick={() => navigate(`/account/support/${ticket.uuid}`)}
+                    >
+                      {t('common.button.view', {})}
+                    </UnstyledButton>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )
+        }
       </ResourceView>
     </AccountContentContainer>
   );
