@@ -25,6 +25,7 @@ import Avatar from '@/elements/data-display/Avatar.tsx';
 import Card from '@/elements/data-display/Card.tsx';
 import SeasonalDecor from '@/elements/navigation/SeasonalDecor.tsx'; // plugged.host
 import SidebarGroup from '@/elements/navigation/SidebarGroup.tsx'; // plugged.host
+import SidebarNav from '@/elements/navigation/SidebarNav.tsx'; // plugged.host
 import ContextMenu, { ContextMenuItem } from '@/elements/overlays/ContextMenu.tsx';
 import Drawer from '@/elements/overlays/Drawer.tsx';
 import ProfileBadge from '@/elements/ProfileBadge.tsx'; // plugged.host
@@ -128,7 +129,9 @@ function Sidebar({ children, header, footer }: SidebarProps) {
         <CloseMobileMenuContext.Provider value={() => setIsMobileMenuOpen(false)}>
           <div id='sidebar-content' className='h-full flex flex-col'>
             {header && <div className='shrink-0'>{header}</div>}
-            <div className='flex flex-col flex-1 overflow-y-auto min-h-0'>{children}</div>
+            <div className='flex flex-col flex-1 overflow-y-auto min-h-0'>
+              <SidebarNav>{children}</SidebarNav>
+            </div>
             {footer && (
               <div className='shrink-0 pt-2'>
                 {/* plugged.host */}
@@ -148,7 +151,9 @@ function Sidebar({ children, header, footer }: SidebarProps) {
       >
         <div id='sidebar-content' className='h-full flex flex-col'>
           {header && <div className='shrink-0'>{header}</div>}
-          <div className='flex flex-col flex-1 overflow-y-auto min-h-0'>{children}</div>
+          <div className='flex flex-col flex-1 overflow-y-auto min-h-0'>
+            <SidebarNav>{children}</SidebarNav>
+          </div>
           {footer && (
             <div className='shrink-0 pt-2'>
               {/* plugged.host */}

@@ -655,13 +655,11 @@ strong {
      the --button-* variables inline, hence !important. */
   .sidebar-link.mantine-Button-root {
     --button-height: 2.75rem !important;
+    --button-bg: transparent !important;
     --button-color: var(--theme-text-nav) !important;
     --button-hover: transparent !important;
     --button-hover-color: var(--theme-text) !important;
-    transition:
-      color 200ms ease,
-      background-color 200ms ease,
-      transform 100ms ease !important;
+    transition: color 150ms ease !important;
     /* switched.cloud's .fi-sidebar-item-btn geometry, exactly */
     height: 2.75rem !important;
     min-height: 2.75rem !important;
@@ -691,15 +689,51 @@ strong {
     color: var(--theme-text-faint);
   }
 
-  .sidebar-link.mantine-Button-root:active {
-    transform: scale(0.98);
-  }
-
   .sidebar-link.mantine-Button-root.active {
-    --button-bg: var(--theme-accent-soft) !important;
-    --button-hover: var(--theme-accent-soft) !important;
+    --button-bg: transparent !important;
+    --button-hover: transparent !important;
     --button-color: var(--theme-accent-bright) !important;
     --button-hover-color: var(--theme-accent-bright) !important;
+  }
+
+  /* One pill for the whole nav, sliding between rows like Altare's topbar. The rows sit above
+     it and stay transparent; only the row under it is bright. */
+  .sidebar-nav {
+    position: relative;
+  }
+
+  .sidebar-nav-indicator {
+    position: absolute;
+    z-index: 0;
+    border: 1px solid var(--theme-hairline);
+    border-radius: 0.75rem;
+    background-color: var(--theme-raise);
+    pointer-events: none;
+    transition:
+      left 220ms cubic-bezier(0.16, 1, 0.3, 1),
+      top 220ms cubic-bezier(0.16, 1, 0.3, 1),
+      width 220ms cubic-bezier(0.16, 1, 0.3, 1),
+      height 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .sidebar-nav .sidebar-link {
+    position: relative;
+    z-index: 1;
+  }
+
+  .sidebar-nav .sidebar-link:hover svg {
+    color: var(--theme-text-muted);
+  }
+
+  /* The active row only stays accent-bright while the pill rests on it; hovering another row
+     dims it, exactly like the topbar. */
+  .sidebar-nav.is-hovering .sidebar-link.active:not(:hover) {
+    --button-color: var(--theme-text-nav) !important;
+    --button-hover-color: var(--theme-text-nav) !important;
+  }
+
+  .sidebar-nav.is-hovering .sidebar-link.active:not(:hover) svg {
+    color: var(--theme-text-faint);
   }
 
   .sidebar-link.mantine-Button-root.active svg {
@@ -920,9 +954,6 @@ strong {
     --button-height: 2.75rem;
     --button-padding-x: 1.25rem;
     --button-fz: 0.875rem;
-    box-shadow:
-      0 1px 3px 0 rgb(0 0 0 / 0.1),
-      0 1px 2px -1px rgb(0 0 0 / 0.1);
   }
 
   .mantine-Button-root[data-size="sm"] {
@@ -948,9 +979,6 @@ strong {
     --button-height: 2.75rem;
     --button-padding-x: 1.25rem;
     --button-fz: 0.875rem;
-    box-shadow:
-      0 1px 3px 0 rgb(0 0 0 / 0.1),
-      0 1px 2px -1px rgb(0 0 0 / 0.1);
   }
 
   .theme-btn.mantine-Button-root:active {
