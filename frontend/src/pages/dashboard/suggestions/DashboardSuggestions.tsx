@@ -148,7 +148,7 @@ function Idea({ suggestion }: { suggestion: Suggestion }) {
         >
           ▲ {suggestion.votes}
         </Button>
-        <div className='flex min-w-0 flex-1 flex-col gap-1'>
+        <div className='flex min-w-0 flex-1 flex-col gap-2'>
           <div className='flex flex-wrap items-center gap-2'>
             <h3 className='theme-eco-heading'>{suggestion.title}</h3>
             <Badge color={statusColor[suggestion.status]}>{t(`${base}.status.${suggestion.status}`, {})}</Badge>

@@ -156,7 +156,7 @@ export function ThreadModal({
           {thread.ticket.bug && (
             <div className='theme-eco-list'>
               <div className='theme-eco-tx'>
-                <div className='flex min-w-0 flex-col gap-1'>
+                <div className='flex min-w-0 flex-col gap-2'>
                   <span className='theme-eco-small'>{t('pages.account.tickets.thread.bug', {})}</span>
                   {thread.ticket.bug.steps && (
                     <p className='theme-eco-text'>

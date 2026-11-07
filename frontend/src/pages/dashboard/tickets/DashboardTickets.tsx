@@ -280,7 +280,7 @@ export function ThreadModal({
           {thread.ticket.bug && (
             <div className='theme-eco-list'>
               <div className='theme-eco-tx'>
-                <div className='flex min-w-0 flex-col gap-1'>
+                <div className='flex min-w-0 flex-col gap-2'>
                   <span className='theme-eco-small'>{t(`${base}.thread.bug`, {})}</span>
                   {thread.ticket.bug.steps && (
                     <p className='theme-eco-text'>
@@ -468,7 +468,7 @@ export default function DashboardTickets() {
             <div className='theme-eco-list'>
               {data.tickets.map((ticket) => (
                 <div key={ticket.uuid} className='theme-eco-tx'>
-                  <div className='flex min-w-0 flex-col gap-1'>
+                  <div className='flex min-w-0 flex-col gap-2'>
                     <UnstyledButton
                       className='theme-eco-heading text-start'
                       onClick={() => navigate(`/account/support/${ticket.uuid}`)}

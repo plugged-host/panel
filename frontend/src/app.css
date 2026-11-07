@@ -654,8 +654,29 @@ strong {
     --button-color: var(--theme-text-nav) !important;
     --button-hover: var(--theme-raise) !important;
     --button-hover-color: var(--theme-text) !important;
+    /* switched.cloud's .fi-sidebar-item-btn geometry, exactly */
+    height: 2.75rem !important;
+    min-height: 2.75rem !important;
+    padding: 0.5rem 0.875rem !important;
+    border-radius: 0.75rem !important;
+    gap: 0.625rem !important;
+    font-size: 0.875rem !important;
     font-weight: 500 !important;
+    line-height: 1.25rem !important;
     justify-content: flex-start;
+  }
+
+  .sidebar-link.mantine-Button-root .mantine-Button-label {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    width: 100%;
+  }
+
+  .sidebar-link.mantine-Button-root svg {
+    width: 1.5rem;
+    height: 1.5rem;
+    flex-shrink: 0;
   }
 
   .sidebar-link.mantine-Button-root svg {
