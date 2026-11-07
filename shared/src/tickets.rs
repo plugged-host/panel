@@ -608,6 +608,11 @@ pub async fn reply(
         .await?;
     transaction.commit().await?;
 
+    // Every follow-up from the person gets neo's attention; a staff reply does not.
+    if !staff {
+        spawn_neo_reply(state, ticket_uuid);
+    }
+
     let subject = subject_of(state, ticket_uuid).await?;
     if staff {
         crate::notifications::send(
@@ -811,9 +816,17 @@ async fn neo_reply(state: &crate::State, ticket_uuid: uuid::Uuid) -> Result<(), 
         return Ok(());
     };
 
+    // Answer the newest person message unless a neo/system message already follows it. The
+    // first ticket message and every follow-up are answered; staff replies are not.
     let answered: bool = sqlx::query_scalar(
-        "SELECT EXISTS(SELECT 1 FROM ticket_messages
-            WHERE ticket_uuid = $1 AND author_type IN ('neo', 'system'))",
+        "SELECT EXISTS(
+            SELECT 1 FROM ticket_messages n
+            WHERE n.ticket_uuid = $1 AND n.author_type IN ('neo', 'system')
+              AND n.created >= COALESCE((
+                  SELECT MAX(u.created) FROM ticket_messages u
+                  WHERE u.ticket_uuid = $1 AND u.author_type = 'user'
+              ), '-infinity'::timestamp)
+        )",
     )
     .bind(ticket_uuid)
     .fetch_one(state.database.read())
