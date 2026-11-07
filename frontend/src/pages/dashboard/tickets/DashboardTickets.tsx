@@ -48,7 +48,15 @@ const statusColor: Record<TicketStatus, string> = {
   closed: 'gray',
 };
 
-function CreateModal({ opened, onClose }: { opened: boolean; onClose: () => void }) {
+function CreateModal({
+  opened,
+  onClose,
+  onCreated,
+}: {
+  opened: boolean;
+  onClose: () => void;
+  onCreated: (uuid: string) => void;
+}) {
   const { t } = useTranslations();
   const { addToast } = useToast();
   const queryClient = useQueryClient();
@@ -83,6 +91,7 @@ function CreateModal({ opened, onClose }: { opened: boolean; onClose: () => void
         setFiles([]);
         onClose();
         queryClient.invalidateQueries({ queryKey: queryKeys.user.tickets() });
+        onCreated(created.ticket.uuid);
       })
       .catch((error) => addToast(httpErrorToHuman(error), 'error'))
       .finally(() => setLoading(false));
@@ -194,13 +203,17 @@ export function ThreadModal({
   const [sending, setSending] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
-  const load = () => {
+  const load = (silent = false) => {
     if (!uuid) return;
-    setLoading(true);
+    if (!silent) setLoading(true);
     getTicket(uuid)
       .then(setThread)
-      .catch((error) => addToast(httpErrorToHuman(error), 'error'))
-      .finally(() => setLoading(false));
+      .catch((error) => {
+        if (!silent) addToast(httpErrorToHuman(error), 'error');
+      })
+      .finally(() => {
+        if (!silent) setLoading(false);
+      });
   };
 
   useEffect(() => {
@@ -210,6 +223,8 @@ export function ThreadModal({
       return;
     }
     load();
+    const timer = window.setInterval(() => load(true), 5_000);
+    return () => window.clearInterval(timer);
   }, [uuid]);
 
   const send = () => {
@@ -420,6 +435,7 @@ export default function DashboardTickets() {
   const resource = useResource({
     queryKey: queryKeys.user.tickets(),
     queryFn: getTickets,
+    refetchInterval: 10_000,
   });
 
   return (
@@ -428,7 +444,11 @@ export default function DashboardTickets() {
       subtitle={t(`${base}.subtitle`, {})}
       contentRight={<Button onClick={() => setCreating(true)}>{t(`${base}.create.title`, {})}</Button>}
     >
-      <CreateModal opened={creating} onClose={() => setCreating(false)} />
+      <CreateModal
+        opened={creating}
+        onClose={() => setCreating(false)}
+        onCreated={(uuid) => navigate(`/account/support/${uuid}`)}
+      />
 
       <ResourceView resource={resource}>
         {(data) => (

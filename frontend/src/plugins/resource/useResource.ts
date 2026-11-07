@@ -9,6 +9,8 @@ interface UseResourceOptions<T> {
   enabled?: boolean;
   silent?: boolean;
   keepPrevious?: boolean;
+  /** Poll this often (ms); the lists use it so new replies and neo answers appear without a refresh. */
+  refetchInterval?: number;
 }
 
 export function useResource<T>({
@@ -17,6 +19,7 @@ export function useResource<T>({
   enabled,
   silent = false,
   keepPrevious = false,
+  refetchInterval,
 }: UseResourceOptions<T>) {
   const { addToast } = useToast();
   const queryClient = useQueryClient();
@@ -26,6 +29,7 @@ export function useResource<T>({
     queryFn,
     enabled,
     placeholderData: keepPrevious ? keepPreviousData : undefined,
+    refetchInterval,
   });
 
   useEffect(() => {

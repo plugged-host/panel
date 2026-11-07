@@ -60,13 +60,17 @@ export function ThreadModal({
   const [sending, setSending] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
-  const load = () => {
+  const load = (silent = false) => {
     if (!ticket) return;
-    setLoading(true);
+    if (!silent) setLoading(true);
     getTicket(ticket.uuid)
       .then(setThread)
-      .catch((error) => addToast(httpErrorToHuman(error), 'error'))
-      .finally(() => setLoading(false));
+      .catch((error) => {
+        if (!silent) addToast(httpErrorToHuman(error), 'error');
+      })
+      .finally(() => {
+        if (!silent) setLoading(false);
+      });
   };
 
   useEffect(() => {
@@ -76,6 +80,8 @@ export function ThreadModal({
       return;
     }
     load();
+    const timer = window.setInterval(() => load(true), 5_000);
+    return () => window.clearInterval(timer);
   }, [ticket?.uuid]);
 
   const refresh = () => {
@@ -319,9 +325,18 @@ export function ThreadModal({
 
 export default function AdminTickets() {
   const { t } = useTranslations();
+  const queryClient = useQueryClient();
   const [status, setStatus] = useState<TicketStatus | null>(null);
   const [category, setCategory] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const timer = window.setInterval(
+      () => queryClient.invalidateQueries({ queryKey: queryKeys.admin.tickets.all() }),
+      10_000,
+    );
+    return () => window.clearInterval(timer);
+  }, [queryClient]);
 
   const { data, loading, error, search, setSearch, setPage, setPerPage } = useSearchablePaginatedTable({
     queryKey: [...queryKeys.admin.tickets.all(), { status, category }],
