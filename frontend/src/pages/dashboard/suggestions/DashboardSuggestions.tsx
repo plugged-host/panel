@@ -1,5 +1,8 @@
 // plugged.host: Account › Suggestions, the ideas board (docs/features/suggestions.md). Ideas by
 // votes and then age, one vote per account, one filled action (New idea).
+
+import { faPlus } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useForm } from '@mantine/form';
 import { useQueryClient } from '@tanstack/react-query';
 import { zod4Resolver } from 'mantine-form-zod-resolver';
@@ -204,7 +207,11 @@ export default function DashboardSuggestions() {
     <AccountContentContainer
       title={t(`${base}.title`, {})}
       subtitle={t(`${base}.subtitle`, {})}
-      contentRight={<Button onClick={() => setCreating(true)}>{t(`${base}.create.title`, {})}</Button>}
+      contentRight={
+        <Button leftSection={<FontAwesomeIcon icon={faPlus} />} onClick={() => setCreating(true)}>
+          {t(`${base}.create.title`, {})}
+        </Button>
+      }
     >
       <CreateModal opened={creating} onClose={() => setCreating(false)} />
 

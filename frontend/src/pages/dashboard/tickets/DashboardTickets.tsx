@@ -1,5 +1,8 @@
 // plugged.host: Account › Support, the account's tickets (docs/features/tickets.md). A full-width
 // list, one filled action (New ticket), and the thread in a modal.
+
+import { faEye, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useForm } from '@mantine/form';
 import { useQueryClient } from '@tanstack/react-query';
 import { zod4Resolver } from 'mantine-form-zod-resolver';
@@ -14,6 +17,7 @@ import getTickets from '@/api/me/tickets/getTickets.ts';
 import replyTicket from '@/api/me/tickets/replyTicket.ts';
 import setTicketStatus from '@/api/me/tickets/setTicketStatus.ts';
 import uploadTicketAttachments from '@/api/me/tickets/uploadTicketAttachments.ts';
+import ActionIcon from '@/elements/buttons/ActionIcon.tsx';
 import Button from '@/elements/buttons/Button.tsx';
 import UnstyledButton from '@/elements/buttons/UnstyledButton.tsx';
 import AccountContentContainer from '@/elements/containers/AccountContentContainer.tsx';
@@ -444,7 +448,11 @@ export default function DashboardTickets() {
     <AccountContentContainer
       title={t(`${base}.title`, {})}
       subtitle={t(`${base}.subtitle`, {})}
-      contentRight={<Button onClick={() => setCreating(true)}>{t(`${base}.create.title`, {})}</Button>}
+      contentRight={
+        <Button leftSection={<FontAwesomeIcon icon={faPlus} />} onClick={() => setCreating(true)}>
+          {t(`${base}.create.title`, {})}
+        </Button>
+      }
     >
       <CreateModal
         opened={creating}
@@ -476,12 +484,15 @@ export default function DashboardTickets() {
                   </div>
                   <div className='flex shrink-0 items-center gap-3'>
                     <Badge color={statusColor[ticket.status]}>{t(`${base}.status.${ticket.status}`, {})}</Badge>
-                    <UnstyledButton
-                      className='theme-link-action'
+                    <ActionIcon
+                      variant='subtle'
+                      color='gray'
+                      aria-label={t('common.button.view', {})}
+                      title={t('common.button.view', {})}
                       onClick={() => navigate(`/account/support/${ticket.uuid}`)}
                     >
-                      {t('common.button.view', {})}
-                    </UnstyledButton>
+                      <FontAwesomeIcon icon={faEye} />
+                    </ActionIcon>
                   </div>
                 </div>
               ))}
