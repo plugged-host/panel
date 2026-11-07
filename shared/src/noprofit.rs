@@ -913,6 +913,9 @@ pub struct Snapshot {
     /// The account's Premium-equivalent plan on the central service.
     #[serde(default)]
     pub ultra: bool,
+    /// The central anti-alt review suspended the account: suspend its servers here too.
+    #[serde(default)]
+    pub alt_suspended: bool,
     #[serde(default)]
     pub is_admin: bool,
     #[serde(default)]
@@ -1247,6 +1250,23 @@ pub async fn apply_snapshot(
 
     let previous = Link::by_user_uuid(&state.database, user.uuid).await?;
     Link::store(&state.database, user.uuid, snapshot).await?;
+
+    // The central anti-alt system suspended the account: its servers stop here too. This never
+    // lifts a suspension; only a person (or neo with unsuspend_server) does that.
+    if snapshot.alt_suspended {
+        if let Err(err) = sqlx::query(
+            "UPDATE servers SET suspended = TRUE, suspension_kind = 'abuse',
+                suspension_reason = 'Suspended by the anti-alt review; appeal through support.',
+                suspended_at = NOW()
+             WHERE owner_uuid = $1 AND suspended = FALSE",
+        )
+        .bind(user.uuid)
+        .execute(state.database.write())
+        .await
+        {
+            tracing::warn!(user = %user.uuid, "failed to suspend servers for an anti-alt decision: {err:#}");
+        }
+    }
 
     let (name_first, name_last) = split_name(&snapshot.username);
     let mut options = crate::models::user::UpdateUserOptions::default();

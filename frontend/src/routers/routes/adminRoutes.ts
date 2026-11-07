@@ -57,6 +57,7 @@ import AdminSettings, { AdminSettingsRedirect, settingsGroups } from '@/pages/ad
 const AdminStatus = lazy(() => import('@/pages/admin/status/AdminStatus.tsx'));
 const AdminSuggestions = lazy(() => import('@/pages/admin/suggestions/AdminSuggestions.tsx')); // plugged.host
 const AdminTickets = lazy(() => import('@/pages/admin/tickets/AdminTickets.tsx')); // plugged.host
+const AdminTicket = lazy(() => import('@/pages/admin/tickets/AdminTicket.tsx')); // plugged.host
 const AdminSystemBackupPolicies = lazy(
   () => import('@/pages/admin/system-backup-policies/AdminSystemBackupPolicies.tsx'),
 );
@@ -245,6 +246,13 @@ const routes: AdminRouteDefinition[] = [
     icon: faCircleQuestion,
     path: '/tickets',
     element: AdminTickets,
+    permission: ['tickets.*'],
+    category: 'access',
+  },
+  {
+    name: undefined,
+    path: '/tickets/:id',
+    element: AdminTicket,
     permission: ['tickets.*'],
     category: 'access',
   },

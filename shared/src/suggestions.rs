@@ -485,6 +485,25 @@ pub async fn delete(
     Ok(())
 }
 
+/// Deletes an idea the account owns (the admin delete is unrestricted).
+pub async fn delete_owned(
+    state: &crate::State,
+    user_uuid: uuid::Uuid,
+    suggestion_uuid: uuid::Uuid,
+) -> Result<(), SuggestionError> {
+    let owned: bool = sqlx::query_scalar(
+        "SELECT EXISTS(SELECT 1 FROM suggestions WHERE uuid = $1 AND user_uuid = $2)",
+    )
+    .bind(suggestion_uuid)
+    .bind(user_uuid)
+    .fetch_one(state.database.read())
+    .await?;
+    if !owned {
+        return Err(SuggestionError::NotFound);
+    }
+    delete(state, suggestion_uuid).await
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

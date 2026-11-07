@@ -156,9 +156,50 @@ mod vote {
     }
 }
 
+mod delete {
+    use axum::extract::Path;
+    use shared::{
+        ApiError, GetState,
+        models::{
+            user::{GetPermissionManager, GetUser},
+            user_activity::GetUserActivityLogger,
+        },
+        response::{ApiResponse, ApiResponseResult},
+    };
+
+    #[utoipa::path(delete, path = "/{suggestion}", responses(
+        (status = OK, body = Object),
+        (status = NOT_FOUND, body = ApiError),
+    ), params(
+        ("suggestion" = uuid::Uuid, Path, description = "The suggestion ID"),
+    ))]
+    pub async fn route(
+        state: GetState,
+        permissions: GetPermissionManager,
+        user: GetUser,
+        activity_logger: GetUserActivityLogger,
+        Path(suggestion_uuid): Path<uuid::Uuid>,
+    ) -> ApiResponseResult {
+        permissions.has_user_permission("suggestions.create")?;
+        if let Err(err) =
+            shared::suggestions::delete_owned(&state, user.uuid, suggestion_uuid).await
+        {
+            return err.response().ok();
+        }
+        activity_logger
+            .log(
+                "account:suggestion.delete",
+                serde_json::json!({ "uuid": suggestion_uuid }),
+            )
+            .await;
+        ApiResponse::new_serialized(serde_json::json!({})).ok()
+    }
+}
+
 pub fn router(state: &State) -> OpenApiRouter<State> {
     OpenApiRouter::new()
         .routes(routes!(get::route, post::route))
         .routes(routes!(vote::route))
+        .routes(routes!(delete::route))
         .with_state(state.clone())
 }

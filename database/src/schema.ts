@@ -784,6 +784,11 @@ export const ticketsTable = pgTable(
     category: varchar({ length: 16 }).notNull(),
     status: varchar({ length: 16 }).default('open').notNull(),
     priority: varchar({ length: 16 }).default('normal').notNull(),
+    // plugged.host: a bug report's steps, expected/actual result and environment (category `bug`)
+    bug_steps: text(),
+    bug_expected: text(),
+    bug_actual: text(),
+    bug_environment: text(),
     assigned_to: uuid().references(() => usersTable.uuid, { onDelete: 'set null' }),
     created: timestamp().defaultNow().notNull(),
     updated: timestamp().defaultNow().notNull(),
@@ -811,6 +816,26 @@ export const ticketMessagesTable = pgTable(
     created: timestamp().defaultNow().notNull(),
   },
   (cols) => [index('ticket_messages_ticket_uuid_created_idx').on(cols.ticket_uuid, cols.created)],
+);
+
+// plugged.host: an image or file on a ticket (docs/features/tickets.md). Stored through the panel's
+// storage driver; `message_uuid` is null for an attachment on the ticket's first message.
+export const ticketAttachmentsTable = pgTable(
+  'ticket_attachments',
+  {
+    uuid: uuid().default(sql`gen_random_uuid()`).primaryKey().notNull(),
+    ticket_uuid: uuid()
+      .references(() => ticketsTable.uuid, { onDelete: 'cascade' })
+      .notNull(),
+    message_uuid: uuid().references(() => ticketMessagesTable.uuid, { onDelete: 'cascade' }),
+    uploader_uuid: uuid().references(() => usersTable.uuid, { onDelete: 'set null' }),
+    name: varchar({ length: 255 * UTF8_MAX_SCALAR_SIZE }).notNull(),
+    mime: varchar({ length: 128 }).notNull(),
+    size: bigint({ mode: 'number' }).notNull(),
+    path: text().notNull(),
+    created: timestamp().defaultNow().notNull(),
+  },
+  (cols) => [index('ticket_attachments_ticket_uuid_created_idx').on(cols.ticket_uuid, cols.created)],
 );
 
 // plugged.host: the ideas board (shared/src/suggestions.rs, docs/features/suggestions.md).

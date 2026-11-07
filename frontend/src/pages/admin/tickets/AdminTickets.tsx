@@ -2,8 +2,10 @@
 // the thread, reply as staff, assign self and change status or priority.
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router';
 import { z } from 'zod';
 import assignTicket from '@/api/admin/tickets/assignTicket.ts';
+import deleteTicket from '@/api/admin/tickets/deleteTicket.ts';
 import getTicket from '@/api/admin/tickets/getTicket.ts';
 import getTickets from '@/api/admin/tickets/getTickets.ts';
 import replyTicket from '@/api/admin/tickets/replyTicket.ts';
@@ -17,6 +19,7 @@ import Table, { TableData, TableRow } from '@/elements/data-display/Table.tsx';
 import Select from '@/elements/input/Select.tsx';
 import TextArea from '@/elements/input/TextArea.tsx';
 import Stack from '@/elements/layout/Stack.tsx';
+import ConfirmationModal from '@/elements/modals/ConfirmationModal.tsx';
 import { Modal } from '@/elements/modals/Modal.tsx';
 import FormattedTimestamp from '@/elements/time/FormattedTimestamp.tsx';
 import Text from '@/elements/typography/Text.tsx';
@@ -38,7 +41,15 @@ const statusColor: Record<TicketStatus, string> = {
   closed: 'gray',
 };
 
-function ThreadModal({ ticket, onClose }: { ticket: Ticket | null; onClose: () => void }) {
+export function ThreadModal({
+  ticket,
+  onClose,
+  inline = false,
+}: {
+  ticket: { uuid: string; subject?: string } | null;
+  onClose: () => void;
+  inline?: boolean;
+}) {
   const { t } = useTranslations();
   const { addToast } = useToast();
   const queryClient = useQueryClient();
@@ -47,6 +58,7 @@ function ThreadModal({ ticket, onClose }: { ticket: Ticket | null; onClose: () =
   const [loading, setLoading] = useState(false);
   const [reply, setReply] = useState('');
   const [sending, setSending] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const load = () => {
     if (!ticket) return;
@@ -104,17 +116,8 @@ function ThreadModal({ ticket, onClose }: { ticket: Ticket | null; onClose: () =
       .catch((error) => addToast(httpErrorToHuman(error), 'error'));
   };
 
-  return (
-    <Modal
-      opened={ticket !== null}
-      onClose={() => {
-        setThread(null);
-        setReply('');
-        onClose();
-      }}
-      title={ticket?.subject ?? t(`${base}.thread.title`, {})}
-      size='xl'
-    >
+  const content = (
+    <>
       {loading && !thread ? (
         <Text size='sm' c='dimmed'>
           {t('common.loading', {})}
@@ -142,6 +145,66 @@ function ThreadModal({ ticket, onClose }: { ticket: Ticket | null; onClose: () =
                 : t(`${base}.thread.unassigned`, {})}
             </Text>
           </div>
+
+          {thread.ticket.bug && (
+            <div className='theme-eco-list'>
+              <div className='theme-eco-tx'>
+                <div className='flex min-w-0 flex-col gap-1'>
+                  <span className='theme-eco-small'>{t('pages.account.tickets.thread.bug', {})}</span>
+                  {thread.ticket.bug.steps && (
+                    <p className='theme-eco-text'>
+                      <strong>{t('pages.account.tickets.thread.bugSteps', {})}:</strong> {thread.ticket.bug.steps}
+                    </p>
+                  )}
+                  {thread.ticket.bug.expected && (
+                    <p className='theme-eco-text'>
+                      <strong>{t('pages.account.tickets.thread.bugExpected', {})}:</strong> {thread.ticket.bug.expected}
+                    </p>
+                  )}
+                  {thread.ticket.bug.actual && (
+                    <p className='theme-eco-text'>
+                      <strong>{t('pages.account.tickets.thread.bugActual', {})}:</strong> {thread.ticket.bug.actual}
+                    </p>
+                  )}
+                  {thread.ticket.bug.environment && (
+                    <p className='theme-eco-text'>
+                      <strong>{t('pages.account.tickets.thread.bugEnvironment', {})}:</strong>{' '}
+                      {thread.ticket.bug.environment}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {thread.attachments.length > 0 && (
+            <div className='flex flex-col gap-2'>
+              <span className='theme-eco-small'>{t('pages.account.tickets.thread.attachments', {})}</span>
+              <div className='flex flex-wrap gap-2'>
+                {thread.attachments.map((attachment) =>
+                  attachment.mime.startsWith('image/') ? (
+                    <a key={attachment.uuid} href={attachment.url} target='_blank' rel='noopener noreferrer'>
+                      <img
+                        src={attachment.url}
+                        alt={attachment.name}
+                        className='max-h-48 rounded-lg border border-(--theme-hairline) object-contain'
+                      />
+                    </a>
+                  ) : (
+                    <a
+                      key={attachment.uuid}
+                      href={attachment.url}
+                      target='_blank'
+                      rel='noopener noreferrer'
+                      className='theme-link-action'
+                    >
+                      {attachment.name}
+                    </a>
+                  ),
+                )}
+              </div>
+            </div>
+          )}
 
           <div className='theme-eco-list'>
             {thread.messages.map((message) => (
@@ -202,15 +265,54 @@ function ThreadModal({ ticket, onClose }: { ticket: Ticket | null; onClose: () =
                 value={reply}
                 onChange={(event) => setReply(event.currentTarget.value)}
               />
-              <div>
+              <div className='flex flex-wrap gap-2'>
                 <Button loading={sending} disabled={!reply.trim()} onClick={send}>
                   {t(`${base}.thread.send`, {})}
+                </Button>
+                <Button color='red' variant='outline' onClick={() => setConfirmDelete(true)}>
+                  {t('common.button.delete', {})}
                 </Button>
               </div>
             </>
           )}
+
+          <ConfirmationModal
+            opened={confirmDelete}
+            onClose={() => setConfirmDelete(false)}
+            title={t(`${base}.thread.deleteTitle`, {})}
+            confirm={t('common.button.delete', {})}
+            confirmColor='red'
+            onConfirmed={() => {
+              if (!ticket) return;
+              deleteTicket(ticket.uuid)
+                .then(() => {
+                  queryClient.invalidateQueries({ queryKey: queryKeys.admin.tickets.all() });
+                  onClose();
+                })
+                .catch((error) => addToast(httpErrorToHuman(error), 'error'));
+            }}
+          >
+            {t(`${base}.thread.deleteBody`, {})}
+          </ConfirmationModal>
         </Stack>
       ) : null}
+    </>
+  );
+
+  if (inline) return content;
+
+  return (
+    <Modal
+      opened={ticket !== null}
+      onClose={() => {
+        setThread(null);
+        setReply('');
+        onClose();
+      }}
+      title={ticket?.subject ?? t(`${base}.thread.title`, {})}
+      size='xl'
+    >
+      {content}
     </Modal>
   );
 }
@@ -219,7 +321,7 @@ export default function AdminTickets() {
   const { t } = useTranslations();
   const [status, setStatus] = useState<TicketStatus | null>(null);
   const [category, setCategory] = useState<string | null>(null);
-  const [opening, setOpening] = useState<Ticket | null>(null);
+  const navigate = useNavigate();
 
   const { data, loading, error, search, setSearch, setPage, setPerPage } = useSearchablePaginatedTable({
     queryKey: [...queryKeys.admin.tickets.all(), { status, category }],
@@ -249,7 +351,7 @@ export default function AdminTickets() {
             placeholder={t(`${base}.filter.category`, {})}
             value={category}
             onChange={setCategory}
-            data={(['general', 'billing', 'technical', 'abuse', 'other'] as const).map((value) => ({
+            data={(['general', 'billing', 'technical', 'bug', 'abuse', 'other'] as const).map((value) => ({
               value,
               label: t(`pages.account.tickets.category.${value}`, {}),
             }))}
@@ -259,8 +361,6 @@ export default function AdminTickets() {
         </div>
       }
     >
-      <ThreadModal ticket={opening} onClose={() => setOpening(null)} />
-
       <Table
         columns={[
           t(`${base}.table.subject`, {}),
@@ -280,7 +380,7 @@ export default function AdminTickets() {
         {data?.data.map((ticket) => (
           <TableRow key={ticket.uuid}>
             <TableData>
-              <UnstyledButton className='theme-link-action' onClick={() => setOpening(ticket)}>
+              <UnstyledButton className='theme-link-action' onClick={() => navigate(`/admin/tickets/${ticket.uuid}`)}>
                 {ticket.subject}
               </UnstyledButton>
             </TableData>
@@ -294,7 +394,7 @@ export default function AdminTickets() {
               <FormattedTimestamp timestamp={ticket.updated} />
             </TableData>
             <TableData className='text-end'>
-              <UnstyledButton className='theme-link-action' onClick={() => setOpening(ticket)}>
+              <UnstyledButton className='theme-link-action' onClick={() => navigate(`/admin/tickets/${ticket.uuid}`)}>
                 {t('common.button.view', {})}
               </UnstyledButton>
             </TableData>

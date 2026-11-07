@@ -6,6 +6,7 @@ use super::{Tool, ToolContext, ToolError, ToolOutcome, ToolResult, ToolRisk, Too
 use crate::{
     allowance::{Allowance, Resources},
     deleted_servers::DeleteServerError,
+    models::ByUuid,
     models::{UpdatableModel, plan::Plan, server::UpdateServerOptions},
     server_creation::{CreateError, CreateRequest},
     server_resize::ResizeError,
@@ -898,5 +899,90 @@ mod tests {
             ToolRisk::Critical
         );
         assert_eq!(CreateServerTool.risk(&json!({})), ToolRisk::Write);
+    }
+}
+
+/// plugged.host: a support ticket may ask neo to lift a suspension. It only acts on a server the
+/// user owns and never on an abuse/security suspension.
+pub struct UnsuspendServerTool;
+
+#[async_trait::async_trait]
+impl Tool for UnsuspendServerTool {
+    fn name(&self) -> &'static str {
+        "unsuspend_server"
+    }
+
+    fn description(&self) -> Cow<'static, str> {
+        "Lift a suspension on one of the user's own servers, when it was suspended for a limit or an automatic reason. Refuses abuse and security suspensions: those need a person. Give the server's full UUID (the ticket's server context has it).".into()
+    }
+
+    fn parameters(&self) -> Value {
+        json!({
+            "type": "object",
+            "properties": {
+                "server_uuid": {"type": "string", "description": "The server's full UUID."}
+            },
+            "required": ["server_uuid"]
+        })
+    }
+
+    fn scope(&self) -> ToolScope {
+        ToolScope::Any
+    }
+
+    fn risk(&self, _arguments: &Value) -> ToolRisk {
+        ToolRisk::Write
+    }
+
+    fn summarize(&self, _arguments: &Value) -> String {
+        "Unsuspend a server".into()
+    }
+
+    async fn execute(&self, context: &ToolContext<'_>, arguments: &Value) -> ToolOutcome {
+        let raw = arguments["server_uuid"].as_str().unwrap_or_default();
+        let Ok(server_uuid) = raw.parse::<uuid::Uuid>() else {
+            return Ok(ToolResult::error("That is not a valid server UUID."));
+        };
+        let Some(server) =
+            crate::models::server::Server::by_uuid_optional(&context.state.database, server_uuid)
+                .await?
+        else {
+            return Ok(ToolResult::error("That server does not exist."));
+        };
+        if server.owner.uuid != context.user.uuid {
+            return Ok(ToolResult::error("That server belongs to another account."));
+        }
+        if !server.suspended {
+            return Ok(ToolResult::ok("That server is not suspended.")
+                .with_display("Server was not suspended"));
+        }
+        let reason = server
+            .suspension
+            .as_ref()
+            .and_then(|suspension| suspension.reason.as_deref())
+            .unwrap_or_default()
+            .to_lowercase();
+        if reason.contains("abuse") || reason.contains("security") || reason.contains("fraud") {
+            return Ok(ToolResult::error(
+                "That suspension is for abuse or security and needs a person; a team member will review the ticket.",
+            ));
+        }
+
+        sqlx::query(
+            "UPDATE servers SET suspended = FALSE, suspension_kind = NULL, suspension_reason = NULL,
+                suspended_at = NULL, suspended_by = NULL, suspension_delete_at = NULL, updated = NOW()
+             WHERE uuid = $1",
+        )
+            .bind(server_uuid)
+            .execute(context.state.database.write())
+            .await?;
+        context
+            .log_user(
+                "unsuspend_server",
+                json!({ "server_uuid": server_uuid, "previous_reason": reason }),
+            )
+            .await;
+        Ok(ToolResult::ok(format!("Unsuspended {}.", server.name))
+            .with_display("Server unsuspended"))
     }
 }

@@ -9,12 +9,20 @@ export default async (payload: {
   category: string;
   serverUuid: string | null;
   body: string;
+  bugSteps?: string;
+  bugExpected?: string;
+  bugActual?: string;
+  bugEnvironment?: string;
 }): Promise<z.infer<typeof ticketSchema>> => {
   const { data } = await axiosInstance.post('/api/client/account/tickets', {
     subject: payload.subject,
     category: payload.category,
     server_uuid: payload.serverUuid,
     body: payload.body,
+    bug_steps: payload.bugSteps,
+    bug_expected: payload.bugExpected,
+    bug_actual: payload.bugActual,
+    bug_environment: payload.bugEnvironment,
   });
   return parseFromApi(ticketSchema, data);
 };

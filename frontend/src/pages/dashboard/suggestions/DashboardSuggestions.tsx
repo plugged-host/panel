@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { z } from 'zod';
 import { httpErrorToHuman } from '@/api/axios.ts';
 import createSuggestion from '@/api/me/suggestions/createSuggestion.ts';
+import deleteSuggestion from '@/api/me/suggestions/deleteSuggestion.ts';
 import getSuggestions from '@/api/me/suggestions/getSuggestions.ts';
 import toggleSuggestionVote from '@/api/me/suggestions/toggleSuggestionVote.ts';
 import Button from '@/elements/buttons/Button.tsx';
@@ -17,6 +18,7 @@ import Select from '@/elements/input/Select.tsx';
 import TextArea from '@/elements/input/TextArea.tsx';
 import TextInput from '@/elements/input/TextInput.tsx';
 import Stack from '@/elements/layout/Stack.tsx';
+import ConfirmationModal from '@/elements/modals/ConfirmationModal.tsx';
 import { Modal, ModalFooter } from '@/elements/modals/Modal.tsx';
 import ResourceView from '@/elements/ResourceView.tsx';
 import FormattedTimestamp from '@/elements/time/FormattedTimestamp.tsx';
@@ -29,6 +31,7 @@ import {
   suggestionStatus,
 } from '@/lib/schemas/user/suggestions.ts';
 import { useResource } from '@/plugins/resource/useResource.ts';
+import { useAuth } from '@/providers/AuthProvider.tsx';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 
@@ -118,6 +121,8 @@ function Idea({ suggestion }: { suggestion: Suggestion }) {
   const { addToast } = useToast();
   const queryClient = useQueryClient();
   const [voting, setVoting] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const { user } = useAuth();
 
   const vote = () => {
     setVoting(true);
@@ -160,7 +165,27 @@ function Idea({ suggestion }: { suggestion: Suggestion }) {
             <FormattedTimestamp timestamp={suggestion.created} />
           </span>
         </div>
+        {user?.uuid === suggestion.author?.uuid && (
+          <Button color='red' variant='outline' size='xs' onClick={() => setConfirmDelete(true)}>
+            {t('common.button.delete', {})}
+          </Button>
+        )}
       </div>
+
+      <ConfirmationModal
+        opened={confirmDelete}
+        onClose={() => setConfirmDelete(false)}
+        title={t(`${base}.deleteTitle`, {})}
+        confirm={t('common.button.delete', {})}
+        confirmColor='red'
+        onConfirmed={() => {
+          deleteSuggestion(suggestion.uuid)
+            .then(() => queryClient.invalidateQueries({ queryKey: queryKeys.user.suggestions() }))
+            .catch((error) => addToast(httpErrorToHuman(error), 'error'));
+        }}
+      >
+        {t(`${base}.deleteBody`, {})}
+      </ConfirmationModal>
     </div>
   );
 }

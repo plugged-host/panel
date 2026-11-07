@@ -150,7 +150,10 @@ mod ticket {
         // Backfill an answer for a ticket opened before neo could reply.
         shared::tickets::spawn_neo_reply(state, ticket_uuid);
         match shared::tickets::admin_view(&state.database, ticket_uuid).await? {
-            Some(ticket) => ApiResponse::new_serialized(Response { ticket }).ok(),
+            Some(mut ticket) => {
+                shared::tickets::with_attachments(state, &mut ticket).await?;
+                ApiResponse::new_serialized(Response { ticket }).ok()
+            }
             None => ApiResponse::error("ticket not found")
                 .with_status(axum::http::StatusCode::NOT_FOUND)
                 .ok(),
@@ -406,9 +409,50 @@ mod ticket {
         }
     }
 
+    mod delete {
+        use axum::extract::Path;
+        use shared::{
+            ApiError, GetState,
+            models::{admin_activity::GetAdminActivityLogger, user::GetPermissionManager},
+            response::{ApiResponse, ApiResponseResult},
+        };
+
+        #[utoipa::path(delete, path = "/", responses(
+            (status = OK, body = Object),
+            (status = NOT_FOUND, body = ApiError),
+        ), params(
+            ("ticket" = uuid::Uuid, Path, description = "The ticket ID"),
+        ))]
+        pub async fn route(
+            state: GetState,
+            permissions: GetPermissionManager,
+            activity_logger: GetAdminActivityLogger,
+            Path(ticket_uuid): Path<uuid::Uuid>,
+        ) -> ApiResponseResult {
+            permissions.has_admin_permission("tickets.manage")?;
+            match shared::tickets::delete(&state, ticket_uuid, None).await {
+                Ok(true) => {}
+                Ok(false) => {
+                    return ApiResponse::error("ticket not found")
+                        .with_status(axum::http::StatusCode::NOT_FOUND)
+                        .ok();
+                }
+                Err(err) => return err.response().ok(),
+            }
+            activity_logger
+                .log(
+                    "tickets:ticket.delete",
+                    serde_json::json!({ "uuid": ticket_uuid }),
+                )
+                .await;
+            ApiResponse::new_serialized(serde_json::json!({})).ok()
+        }
+    }
+
     pub fn router(state: &super::super::State) -> OpenApiRouter<super::super::State> {
         OpenApiRouter::new()
             .routes(routes!(get_route::route))
+            .routes(routes!(delete::route))
             .routes(routes!(reply::route))
             .routes(routes!(assign::route, unassign::route))
             .routes(routes!(patch::route))

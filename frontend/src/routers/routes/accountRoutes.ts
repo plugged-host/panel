@@ -45,6 +45,7 @@ const DashboardSshKeys = lazy(() => import('@/pages/dashboard/ssh-keys/Dashboard
 const DashboardStore = lazy(() => import('@/pages/dashboard/store/DashboardStore.tsx')); // plugged.host
 const DashboardSuggestions = lazy(() => import('@/pages/dashboard/suggestions/DashboardSuggestions.tsx')); // plugged.host
 const DashboardTickets = lazy(() => import('@/pages/dashboard/tickets/DashboardTickets.tsx')); // plugged.host
+const DashboardTicket = lazy(() => import('@/pages/dashboard/tickets/DashboardTicket.tsx')); // plugged.host
 const DashboardTokens = lazy(() => import('@/pages/dashboard/tokens/DashboardTokens.tsx')); // plugged.host
 
 // plugged.host: no security keys or OAuth links while noprofit.space owns sign-in
@@ -172,6 +173,11 @@ const routes: RouteDefinition[] = [
     icon: faCircleQuestion,
     path: '/support',
     element: DashboardTickets,
+  },
+  {
+    name: undefined,
+    path: '/support/:id',
+    element: DashboardTicket,
   },
   // plugged.host: the suggestions board (docs/features/suggestions.md)
   {

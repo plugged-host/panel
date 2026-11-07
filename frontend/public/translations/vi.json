@@ -3487,14 +3487,22 @@
             "serverHint": "Optional: one of your servers, so we have its details.",
             "message": "Message",
             "messageHint": "What happened, what you expected and what you already tried.",
-            "button": "Open ticket"
+            "button": "Open ticket",
+            "bugSteps": "Steps to reproduce",
+            "bugStepsHint": "What you clicked, in order, so we can do the same.",
+            "bugExpected": "Expected result",
+            "bugActual": "Actual result",
+            "bugEnvironment": "Browser, device or server version",
+            "attachments": "Images and files",
+            "attachmentsHint": "Up to 6 files, 10 MB each: screenshots, logs, PDFs or a zip."
           },
           "category": {
             "general": "General",
             "billing": "Billing",
             "technical": "Technical",
             "abuse": "Abuse",
-            "other": "Other"
+            "other": "Other",
+            "bug": "Bug report"
           },
           "status": {
             "open": "Open",
@@ -3512,14 +3520,22 @@
           "thread": {
             "title": "Ticket",
             "updated": "Last update",
-            "neo": "Assistant",
+            "neo": "neo",
             "system": "Panel",
             "staff": "Support",
             "you": "You",
             "reply": "Reply",
             "send": "Send reply",
             "close": "Close ticket",
-            "reopen": "Reopen ticket"
+            "reopen": "Reopen ticket",
+            "attachments": "Attachments",
+            "bug": "Bug details",
+            "bugSteps": "Steps",
+            "bugExpected": "Expected",
+            "bugActual": "Actual",
+            "bugEnvironment": "Environment",
+            "deleteTitle": "Delete ticket",
+            "deleteBody": "This deletes the ticket, its thread and its attachments for good."
           },
           "toast": {
             "created": "Ticket opened."
@@ -3559,7 +3575,9 @@
           },
           "toast": {
             "created": "Idea posted."
-          }
+          },
+          "deleteTitle": "Delete idea",
+          "deleteBody": "This deletes your idea and its votes for good."
         }
       },
       "admin": {
@@ -8707,7 +8725,9 @@
             "assign": "Assign to me",
             "unassign": "Unassign",
             "reply": "Reply as staff",
-            "send": "Send reply"
+            "send": "Send reply",
+            "deleteTitle": "Delete ticket",
+            "deleteBody": "This deletes the ticket, its thread and its attachments for good."
           },
           "priority": {
             "low": "Low",

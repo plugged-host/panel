@@ -2,7 +2,7 @@
 import { z } from 'zod';
 
 export const ticketStatus = z.enum(['open', 'waiting', 'resolved', 'closed']);
-export const ticketCategory = z.enum(['general', 'billing', 'technical', 'abuse', 'other']);
+export const ticketCategory = z.enum(['general', 'billing', 'technical', 'bug', 'abuse', 'other']);
 export const ticketPriority = z.enum(['low', 'normal', 'high']);
 export const ticketAuthorType = z.enum(['user', 'admin', 'neo', 'system']);
 
@@ -14,6 +14,13 @@ export const ticketUserSchema = z.object({
 export const ticketServerSchema = z.object({
   uuid: z.string(),
   name: z.string(),
+});
+
+export const ticketBugSchema = z.object({
+  steps: z.string().nullable(),
+  expected: z.string().nullable(),
+  actual: z.string().nullable(),
+  environment: z.string().nullable(),
 });
 
 export const ticketSummarySchema = z.object({
@@ -30,6 +37,16 @@ export const ticketSummarySchema = z.object({
   updated: z.coerce.date(),
   closed: z.coerce.date().nullable(),
   user: ticketUserSchema.nullable(),
+  bug: ticketBugSchema.nullable(),
+});
+
+export const ticketAttachmentSchema = z.object({
+  uuid: z.string(),
+  name: z.string(),
+  mime: z.string(),
+  size: z.number(),
+  url: z.string(),
+  created: z.coerce.date(),
 });
 
 export const ticketMessageSchema = z.object({
@@ -43,6 +60,7 @@ export const ticketMessageSchema = z.object({
 export const ticketSchema = z.object({
   ticket: ticketSummarySchema,
   messages: z.array(ticketMessageSchema),
+  attachments: z.array(ticketAttachmentSchema),
 });
 
 export const ticketsSchema = z.object({
@@ -54,6 +72,10 @@ export const ticketCreateSchema = z.object({
   category: ticketCategory,
   serverUuid: z.string().nullable(),
   body: z.string().min(1).max(20000),
+  bugSteps: z.string().max(20000).optional(),
+  bugExpected: z.string().max(20000).optional(),
+  bugActual: z.string().max(20000).optional(),
+  bugEnvironment: z.string().max(2000).optional(),
 });
 
 export const ticketReplySchema = z.object({
