@@ -986,3 +986,117 @@ impl Tool for UnsuspendServerTool {
             .with_display("Server unsuspended"))
     }
 }
+
+/// plugged.host: neo hands a ticket to a person. It marks the ticket for staff, writes a system
+/// line in the thread, notifies the admins in the panel, and DMs the opener through rux when a
+/// Discord account is linked.
+pub struct EscalateTicketTool;
+
+#[async_trait::async_trait]
+impl Tool for EscalateTicketTool {
+    fn name(&self) -> &'static str {
+        "escalate_ticket"
+    }
+
+    fn description(&self) -> Cow<'static, str> {
+        "Hand this support ticket to a human. Use it when the request needs billing, account, abuse, security or a decision you cannot make. It notifies the staff and tells the person a person will reply.".into()
+    }
+
+    fn parameters(&self) -> Value {
+        json!({
+            "type": "object",
+            "properties": {
+                "reason": {"type": "string", "description": "Why a person is needed, in one sentence."}
+            },
+            "required": ["reason"]
+        })
+    }
+
+    fn scope(&self) -> ToolScope {
+        ToolScope::Any
+    }
+
+    fn risk(&self, _arguments: &Value) -> ToolRisk {
+        ToolRisk::Write
+    }
+
+    fn summarize(&self, _arguments: &Value) -> String {
+        "Escalate the ticket to a human".into()
+    }
+
+    async fn execute(&self, context: &ToolContext<'_>, arguments: &Value) -> ToolOutcome {
+        let reason = arguments["reason"]
+            .as_str()
+            .map(str::trim)
+            .filter(|reason| !reason.is_empty())
+            .unwrap_or("a person is needed");
+        let ticket_uuid = context.conversation;
+
+        let subject: String = sqlx::query_scalar("SELECT subject FROM tickets WHERE uuid = $1")
+            .bind(ticket_uuid)
+            .fetch_optional(context.state.database.read())
+            .await?
+            .unwrap_or_default();
+        if subject.is_empty() {
+            return Ok(ToolResult::error("This is not a ticket."));
+        }
+        sqlx::query(
+            "UPDATE tickets SET status = 'waiting', priority = 'high', updated = NOW() WHERE uuid = $1",
+        )
+        .bind(ticket_uuid)
+        .execute(context.state.database.write())
+        .await?;
+        sqlx::query(
+            "INSERT INTO ticket_messages (ticket_uuid, author_uuid, author_type, body)
+             VALUES ($1, NULL, 'system', $2)",
+        )
+        .bind(ticket_uuid)
+        .bind(format!("Escalated to a person: {reason}"))
+        .execute(context.state.database.write())
+        .await?;
+
+        crate::notifications::send_admins(
+            context.state,
+            "tickets.manage",
+            None,
+            crate::notifications::ADMIN_TICKET_ESCALATED,
+            json!({ "subject": subject, "reason": reason, "user": context.user.username }),
+        )
+        .await;
+        crate::notifications::send(
+            context.state,
+            context.user.uuid,
+            None,
+            crate::notifications::TICKET_ESCALATED,
+            json!({ "subject": subject }),
+        )
+        .await;
+
+        // rux DMs the opener when their Discord account is linked; a failed DM never fails the tool.
+        let discord_id: Option<String> = sqlx::query_scalar(
+            "SELECT discord->>'id' FROM user_noprofit_accounts WHERE user_uuid = $1 LIMIT 1",
+        )
+        .bind(context.user.uuid)
+        .fetch_optional(context.state.database.read())
+        .await?
+        .flatten();
+        if let Some(discord_id) = discord_id
+            && let Ok(Some(client)) = crate::rux::discord::Rest::load(context.state).await
+        {
+            let _ = client
+                .send_dm(
+                    &discord_id,
+                    &json!({
+                        "content": format!("Your support ticket “{subject}” has been escalated to a person. They will reply in the panel."),
+                        "allowed_mentions": { "parse": [] },
+                    }),
+                )
+                .await;
+        }
+
+        Ok(
+            ToolResult::ok("Escalated to a person; the staff were notified.")
+                .with_display("Ticket escalated to a person"),
+        )
+    }
+}

@@ -1023,6 +1023,10 @@ const baseTranslations = defineTranslations({
             title: 'Support replied: {subject}',
             body: 'A member of the team answered your ticket. Open Account › Support to read it.',
           },
+          ticketEscalated: {
+            title: 'Your ticket was escalated: {subject}',
+            body: 'neo handed your ticket to a person. They will reply in the panel.',
+          },
           // plugged.host: docs/features/server-upgrades.md
           upgradeEnding: {
             title: '{upgrade} ends soon',
@@ -1056,6 +1060,10 @@ const baseTranslations = defineTranslations({
             ticketCreated: {
               title: 'New ticket: {subject}',
               body: '{user} opened a {category} ticket.',
+            },
+            ticketEscalated: {
+              title: 'Ticket escalated: {subject}',
+              body: '{user} needs a person: {reason}',
             },
             suggestionCreated: {
               title: 'New idea: {title}',
@@ -3433,6 +3441,7 @@ const baseTranslations = defineTranslations({
             bugEnvironment: 'Environment',
             deleteTitle: 'Delete ticket',
             deleteBody: 'This deletes the ticket, its thread and its attachments for good.',
+            thinking: 'neo is writing…',
           },
           toast: {
             created: 'Ticket opened.',
@@ -5885,6 +5894,7 @@ const baseTranslations = defineTranslations({
             send: 'Send reply',
             deleteTitle: 'Delete ticket',
             deleteBody: 'This deletes the ticket, its thread and its attachments for good.',
+            thinking: 'neo is writing…',
           },
           priority: {
             low: 'Low',

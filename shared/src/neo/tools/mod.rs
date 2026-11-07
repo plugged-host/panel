@@ -293,6 +293,7 @@ static TOOLS: LazyLock<Vec<Box<dyn Tool>>> = LazyLock::new(|| {
         Box::new(account::ResizeServerTool),
         Box::new(account::DeleteServerTool),
         Box::new(account::UnsuspendServerTool),
+        Box::new(account::EscalateTicketTool),
         // Minecraft servers only
         Box::new(minecraft::MinecraftInfoTool),
         Box::new(minecraft::SearchContentTool),
@@ -454,6 +455,7 @@ mod tests {
                 "resize_server",
                 "delete_server",
                 "unsuspend_server",
+                "escalate_ticket",
                 "minecraft_info",
                 "search_content",
                 "content_versions",

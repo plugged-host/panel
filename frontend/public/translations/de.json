@@ -1251,7 +1251,15 @@
             "suggestionCreated": {
               "title": "Neue Idee: {title}",
               "body": "{user} hat eine Idee gepostet."
+            },
+            "ticketEscalated": {
+              "title": "Ticket escalated: {subject}",
+              "body": "{user} needs a person: {reason}"
             }
+          },
+          "ticketEscalated": {
+            "title": "Your ticket was escalated: {subject}",
+            "body": "neo handed your ticket to a person. They will reply in the panel."
           }
         }
       },
@@ -3524,7 +3532,8 @@
             "bugActual": "Actual",
             "bugEnvironment": "Environment",
             "deleteTitle": "Delete ticket",
-            "deleteBody": "This deletes the ticket, its thread and its attachments for good."
+            "deleteBody": "This deletes the ticket, its thread and its attachments for good.",
+            "thinking": "neo is writing…"
           },
           "toast": {
             "created": "Ticket geöffnet."
@@ -5683,7 +5692,8 @@
             "reply": "Als Team antworten",
             "send": "Antwort senden",
             "deleteTitle": "Delete ticket",
-            "deleteBody": "This deletes the ticket, its thread and its attachments for good."
+            "deleteBody": "This deletes the ticket, its thread and its attachments for good.",
+            "thinking": "neo is writing…"
           },
           "priority": {
             "low": "Niedrig",

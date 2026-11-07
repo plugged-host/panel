@@ -927,53 +927,88 @@ async fn neo_reply(state: &crate::State, ticket_uuid: uuid::Uuid) -> Result<(), 
         }));
     }
 
-    let (neo_settings, _) = crate::rux::ai::providers(state).await?;
-    let chain = crate::neo::chain::Chain {
-        scope: SCOPE,
-        probe_tools: false,
-    };
+    // A placeholder message makes the thread show "neo is writing" and lets deltas grow it.
+    let placeholder: uuid::Uuid = sqlx::query_scalar(
+        "INSERT INTO ticket_messages (ticket_uuid, author_uuid, author_type, body)
+        VALUES ($1, NULL, $2, '') RETURNING uuid",
+    )
+    .bind(ticket_uuid)
+    .bind(AUTHOR_NEO)
+    .fetch_one(state.database.write())
+    .await?;
+
     let mut answer = String::new();
     let mut actions: Vec<String> = Vec::new();
-    let mut last_content = String::new();
+    let mut final_text = String::new();
 
-    for step in 0..4 {
-        let last_step = step == 3;
+    for step in 0..2 {
+        let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel();
+        let db = state.database.clone();
+        let message_uuid = placeholder;
+        let updater = tokio::spawn(async move {
+            let mut text = String::new();
+            let mut last = std::time::Instant::now();
+            while let Some(delta) = rx.recv().await {
+                match delta {
+                    crate::neo::Delta::Text(chunk) => text.push_str(&chunk),
+                    crate::neo::Delta::Thinking(_) => {}
+                    crate::neo::Delta::Reset => text.clear(),
+                }
+                if last.elapsed() >= std::time::Duration::from_millis(400) {
+                    let _ = sqlx::query("UPDATE ticket_messages SET body = $2 WHERE uuid = $1")
+                        .bind(message_uuid)
+                        .bind(&text)
+                        .execute(db.write())
+                        .await;
+                    last = std::time::Instant::now();
+                }
+            }
+            let _ = sqlx::query("UPDATE ticket_messages SET body = $2 WHERE uuid = $1")
+                .bind(message_uuid)
+                .bind(&text)
+                .execute(db.write())
+                .await;
+            text
+        });
+
+        let ask = crate::neo::Ask {
+            conversation: &ticket_uuid.to_string(),
+            messages: messages.clone(),
+            tools: definitions.clone(),
+            tool_choice: if step == 0 { "auto" } else { "none" },
+        };
         let turn = tokio::time::timeout(
             TURN_TIMEOUT,
-            chain.turn(
-                state,
-                &neo_settings,
-                &messages,
-                &definitions,
-                if last_step { "none" } else { "auto" },
-                None,
-            ),
+            crate::neo::turn(state, owner_uuid, ask, Some(&tx)),
         )
         .await;
+        drop(tx);
+        let streamed = updater.await.unwrap_or_default();
         let turn = match turn {
             Ok(Ok(turn)) => turn,
             _ => break,
         };
         if let Some(content) = turn
-            .answer
             .content
             .as_deref()
             .map(str::trim)
             .filter(|c| !c.is_empty())
         {
-            last_content = content.to_string();
+            final_text = content.to_string();
+        } else if !streamed.trim().is_empty() {
+            final_text = streamed.trim().to_string();
         }
-        if turn.answer.tool_calls.is_empty() || last_step {
-            answer = last_content.clone();
+        if turn.tool_calls.is_empty() || step == 1 {
+            answer = final_text.clone();
             break;
         }
 
         messages.push(json!({
             "role": "assistant",
-            "content": turn.answer.content,
-            "tool_calls": turn.answer.tool_calls.clone(),
+            "content": turn.content,
+            "tool_calls": turn.tool_calls.clone(),
         }));
-        for call in &turn.answer.tool_calls {
+        for call in &turn.tool_calls {
             let id = call["id"].as_str().unwrap_or_default();
             let name = call["function"]["name"].as_str().unwrap_or_default();
             let arguments = match &call["function"]["arguments"] {
@@ -1015,23 +1050,32 @@ async fn neo_reply(state: &crate::State, ticket_uuid: uuid::Uuid) -> Result<(), 
     }
 
     if answer.is_empty() {
-        answer = last_content.clone();
+        answer = final_text;
     }
     if answer.is_empty() && !actions.is_empty() {
         answer = format!("I did this for you: {}.", actions.join(", "));
     }
     if answer.is_empty() {
+        sqlx::query("DELETE FROM ticket_messages WHERE uuid = $1")
+            .bind(placeholder)
+            .execute(state.database.write())
+            .await?;
         insert_system(state, ticket_uuid, &app_name).await?;
     } else {
-        sqlx::query(
-            "INSERT INTO ticket_messages (ticket_uuid, author_uuid, author_type, body)
-            VALUES ($1, NULL, $2, $3)",
+        sqlx::query("UPDATE ticket_messages SET body = $2 WHERE uuid = $1")
+            .bind(placeholder)
+            .bind(&answer)
+            .execute(state.database.write())
+            .await?;
+        // A reply from neo is a notification too, not just a row that appears on refresh.
+        crate::notifications::send(
+            state,
+            owner_uuid,
+            server_uuid,
+            crate::notifications::TICKET_REPLY,
+            json!({ "subject": subject }),
         )
-        .bind(ticket_uuid)
-        .bind(AUTHOR_NEO)
-        .bind(answer)
-        .execute(state.database.write())
-        .await?;
+        .await;
     }
 
     Ok(())

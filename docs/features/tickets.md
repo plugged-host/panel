@@ -111,3 +111,13 @@ person answers.
   `unsuspend_server` for a server the user owns; abuse/security suspensions are refused.
 - Owners and admins can delete a ticket (thread and attachments go with it). Owners can delete
   their own ideas.
+
+## Live thread, notifications and escalation
+
+- The open ticket polls every 2 seconds; lists every 10. neo's answer is written into a
+  placeholder message while it is generated (deltas every ~400 ms), so it grows instead of
+  appearing only after a refresh. An empty neo message shows "neo is writing…".
+- Every neo reply and staff reply writes a notification; the bell polls every 10 seconds.
+- neo can call `escalate_ticket`: it marks the ticket waiting/high priority, writes a system line,
+  notifies the admins with `tickets.manage`, notifies the opener, and rux DMs the opener when a
+  Discord account is linked.

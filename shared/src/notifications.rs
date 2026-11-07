@@ -92,6 +92,10 @@ pub const REFERRAL_PAID: &str = "referralPaid";
 pub const TICKET_REPLY: &str = "ticketReply";
 /// For admins with `tickets.manage`: a new ticket (`subject`, `category`, `user`).
 pub const ADMIN_TICKET_CREATED: &str = "admin.ticketCreated";
+/// The ticket was escalated to a person (`subject`).
+pub const TICKET_ESCALATED: &str = "ticketEscalated";
+/// For admins: neo escalated a ticket (`subject`, `reason`, `user`).
+pub const ADMIN_TICKET_ESCALATED: &str = "admin.ticketEscalated";
 /// For admins with `suggestions.manage`: a new idea (`title`, `user`)
 /// (shared/src/suggestions.rs, docs/features/suggestions.md).
 pub const ADMIN_SUGGESTION_CREATED: &str = "admin.suggestionCreated";

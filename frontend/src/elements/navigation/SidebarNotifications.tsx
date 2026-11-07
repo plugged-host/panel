@@ -11,7 +11,7 @@ import { queryKeys } from '@/lib/queryKeys.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 
 /** How often the unread count is asked for, like Filament's bell (30 seconds). */
-export const NOTIFICATIONS_POLL_MS = 30_000;
+export const NOTIFICATIONS_POLL_MS = 10_000;
 
 export default function SidebarNotifications() {
   const { t } = useTranslations();

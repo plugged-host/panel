@@ -80,7 +80,7 @@ export function ThreadModal({
       return;
     }
     load();
-    const timer = window.setInterval(() => load(true), 5_000);
+    const timer = window.setInterval(() => load(true), 2_000);
     return () => window.clearInterval(timer);
   }, [ticket?.uuid]);
 
@@ -227,7 +227,9 @@ export function ThreadModal({
                     {' · '}
                     <FormattedTimestamp timestamp={message.created} />
                   </span>
-                  <p className='whitespace-pre-wrap theme-eco-text'>{message.body}</p>
+                  <p className='whitespace-pre-wrap theme-eco-text'>
+                    {message.body || (message.authorType === 'neo' ? t(`${base}.thread.thinking`, {}) : '')}
+                  </p>
                 </div>
               </div>
             ))}
