@@ -246,7 +246,7 @@ function Dots() {
     <div
       ref={ref}
       aria-hidden
-      className='pointer-events-none absolute inset-0 bg-[radial-gradient(var(--chart-grid-color)_1.5px,transparent_1.5px)]'
+      className='pointer-events-none absolute inset-0'
       style={{ backgroundSize: '24px 24px' }}
     />
   );

@@ -12,11 +12,11 @@ function ExtensionInstallOverlay({ visible }: ExtensionInstallOverlayProps) {
   if (!visible) return null;
 
   return (
-    <div className='fixed inset-0 z-100 flex items-center justify-center backdrop-blur-md bg-black/20 pointer-events-auto'>
+    <div className='fixed inset-0 z-100 flex items-center justify-center bg-black/50 pointer-events-auto'>
       <div className='pointer-events-none'>
-        <div className='bg-(--mantine-color-body) rounded-lg p-8 shadow-2xl border-2 border-dashed border-(--mantine-color-blue-5)'>
+        <div className='bg-(--mantine-color-body) rounded-lg p-8 border border-(--mantine-color-default-border)'>
           <div className='flex flex-col items-center gap-4 z-100'>
-            <FontAwesomeIcon icon={faUpload} className='text-6xl text-(--mantine-color-blue-5) animate-bounce' />
+            <FontAwesomeIcon icon={faUpload} className='text-4xl text-(--mantine-color-blue-5)' />
             <p className='text-xl font-semibold'>{t('pages.admin.extensions.dropzone.title', {})}</p>
             <p className='text-sm text-(--mantine-color-dimmed)'>{t('pages.admin.extensions.dropzone.subtitle', {})}</p>
           </div>

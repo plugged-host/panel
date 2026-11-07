@@ -44,7 +44,7 @@ export default function DatabaseSchemaPanel({
   return (
     <Paper withBorder radius='md' className='flex flex-col overflow-hidden'>
       <div className='flex items-center justify-between px-3 py-2.5 bg-(--mantine-color-default)'>
-        <Text size='xs' fw={600} c='dimmed' tt='uppercase' style={{ letterSpacing: '0.05em' }}>
+        <Text size='xs' fw={600} c='dimmed'>
           {t('pages.server.databases.explorer.schema.title', {})}
         </Text>
         {onCreateTable && (

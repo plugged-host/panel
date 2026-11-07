@@ -24,7 +24,7 @@ const BlockedOverlay = forwardRef<HTMLDivElement, BlockedOverlayProps>(
         ref={ref}
         className={classNames(
           'absolute inset-0 z-30 flex items-center justify-center p-3 pointer-events-none select-none',
-          'rounded-[inherit] backdrop-blur-md',
+          'rounded-[inherit]',
           'border-2 border-dashed',
           className,
         )}
@@ -33,7 +33,7 @@ const BlockedOverlay = forwardRef<HTMLDivElement, BlockedOverlayProps>(
           backgroundColor: 'color-mix(in srgb, var(--mantine-color-body) 95%, transparent)',
         }}
       >
-        <div className='flex flex-row items-center gap-3 min-w-0 rounded-lg px-4 py-3 bg-(--mantine-color-default) border border-(--mantine-color-default-border) shadow-xl'>
+        <div className='flex flex-row items-center gap-3 min-w-0 rounded-lg px-4 py-3 bg-(--mantine-color-default) border border-(--mantine-color-default-border)'>
           <FontAwesomeIcon
             icon={icon}
             className='text-2xl shrink-0'

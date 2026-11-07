@@ -239,9 +239,7 @@ export default function PermissionSelector({
                       <FontAwesomeIcon icon={permissionCategoryIconMapping[category]} />
                     )}
                     <div>
-                      <Title order={5} className='uppercase'>
-                        {category.replaceAll('-', ' ')}
-                      </Title>
+                      <Title order={5}>{category.replaceAll('-', ' ')}</Title>
                       <Text className='mt-1' size='xs' c='dimmed'>
                         {description}
                       </Text>

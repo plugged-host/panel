@@ -316,9 +316,9 @@
   /* plugged.host Theme v2 accent: blue-700 fills, blue-500 as text or a ring */
   --mantine-color-blue-filled: var(--theme-accent);
   --mantine-color-blue-filled-hover: var(--theme-accent-hover);
-  --mantine-color-blue-light: var(--theme-accent-tint);
+  --mantine-color-blue-light: var(--theme-accent-soft);
   --mantine-color-blue-light-color: var(--theme-accent-bright);
-  --mantine-color-blue-light-hover: var(--theme-accent-edge);
+  --mantine-color-blue-light-hover: var(--theme-accent-tint);
   --mantine-color-blue-outline: var(--theme-accent-bright);
   --mantine-color-blue-outline-hover: color-mix(in srgb, var(--theme-accent-bright) 5%, transparent);
   --mantine-color-blue-text: var(--mantine-color-blue-4);
@@ -326,17 +326,17 @@
   --mantine-color-bright: var(--mantine-color-white);
   --mantine-color-cyan-filled: var(--mantine-color-cyan-8);
   --mantine-color-cyan-filled-hover: var(--mantine-color-cyan-9);
-  --mantine-color-cyan-light: rgba(21, 170, 191, 0.15);
+  --mantine-color-cyan-light: rgba(21, 170, 191, 0.1);
   --mantine-color-cyan-light-color: var(--mantine-color-cyan-3);
-  --mantine-color-cyan-light-hover: rgba(21, 170, 191, 0.2);
+  --mantine-color-cyan-light-hover: rgba(21, 170, 191, 0.15);
   --mantine-color-cyan-outline: var(--mantine-color-cyan-4);
   --mantine-color-cyan-outline-hover: rgba(59, 201, 219, 0.05);
   --mantine-color-cyan-text: var(--mantine-color-cyan-4);
   --mantine-color-dark-filled: var(--mantine-color-dark-8);
   --mantine-color-dark-filled-hover: var(--mantine-color-dark-9);
-  --mantine-color-dark-light: rgba(46, 46, 46, 0.15);
+  --mantine-color-dark-light: rgba(46, 46, 46, 0.1);
   --mantine-color-dark-light-color: var(--mantine-color-dark-3);
-  --mantine-color-dark-light-hover: rgba(46, 46, 46, 0.2);
+  --mantine-color-dark-light-hover: rgba(46, 46, 46, 0.15);
   --mantine-color-dark-outline: var(--mantine-color-dark-4);
   --mantine-color-dark-outline-hover: rgba(66, 66, 66, 0.05);
   --mantine-color-dark-text: var(--mantine-color-dark-4);
@@ -353,9 +353,9 @@
   --mantine-color-error: var(--mantine-color-red-8);
   --mantine-color-grape-filled: var(--mantine-color-grape-8);
   --mantine-color-grape-filled-hover: var(--mantine-color-grape-9);
-  --mantine-color-grape-light: rgba(190, 75, 219, 0.15);
+  --mantine-color-grape-light: rgba(190, 75, 219, 0.1);
   --mantine-color-grape-light-color: var(--mantine-color-grape-3);
-  --mantine-color-grape-light-hover: rgba(190, 75, 219, 0.2);
+  --mantine-color-grape-light-hover: rgba(190, 75, 219, 0.15);
   --mantine-color-grape-outline: var(--mantine-color-grape-4);
   --mantine-color-grape-outline-hover: rgba(218, 119, 242, 0.05);
   --mantine-color-grape-text: var(--mantine-color-grape-4);
@@ -370,76 +370,76 @@
   --mantine-color-gray-text: var(--mantine-color-gray-4);
   --mantine-color-green-filled: var(--mantine-color-green-8);
   --mantine-color-green-filled-hover: var(--mantine-color-green-9);
-  --mantine-color-green-light: rgba(64, 192, 87, 0.15);
+  --mantine-color-green-light: rgba(64, 192, 87, 0.1);
   --mantine-color-green-light-color: var(--mantine-color-green-3);
-  --mantine-color-green-light-hover: rgba(64, 192, 87, 0.2);
+  --mantine-color-green-light-hover: rgba(64, 192, 87, 0.15);
   --mantine-color-green-outline: var(--mantine-color-green-4);
   --mantine-color-green-outline-hover: rgba(105, 219, 124, 0.05);
   --mantine-color-green-text: var(--mantine-color-green-4);
   --mantine-color-indigo-filled: var(--mantine-color-indigo-8);
   --mantine-color-indigo-filled-hover: var(--mantine-color-indigo-9);
-  --mantine-color-indigo-light: rgba(76, 110, 245, 0.15);
+  --mantine-color-indigo-light: rgba(76, 110, 245, 0.1);
   --mantine-color-indigo-light-color: var(--mantine-color-indigo-3);
-  --mantine-color-indigo-light-hover: rgba(76, 110, 245, 0.2);
+  --mantine-color-indigo-light-hover: rgba(76, 110, 245, 0.15);
   --mantine-color-indigo-outline: var(--mantine-color-indigo-4);
   --mantine-color-indigo-outline-hover: rgba(116, 143, 252, 0.05);
   --mantine-color-indigo-text: var(--mantine-color-indigo-4);
   --mantine-color-lime-filled: var(--mantine-color-lime-8);
   --mantine-color-lime-filled-hover: var(--mantine-color-lime-9);
-  --mantine-color-lime-light: rgba(130, 201, 30, 0.15);
+  --mantine-color-lime-light: rgba(130, 201, 30, 0.1);
   --mantine-color-lime-light-color: var(--mantine-color-lime-3);
-  --mantine-color-lime-light-hover: rgba(130, 201, 30, 0.2);
+  --mantine-color-lime-light-hover: rgba(130, 201, 30, 0.15);
   --mantine-color-lime-outline: var(--mantine-color-lime-4);
   --mantine-color-lime-outline-hover: rgba(169, 227, 75, 0.05);
   --mantine-color-lime-text: var(--mantine-color-lime-4);
   --mantine-color-orange-filled: var(--mantine-color-orange-8);
   --mantine-color-orange-filled-hover: var(--mantine-color-orange-9);
-  --mantine-color-orange-light: rgba(253, 126, 20, 0.15);
+  --mantine-color-orange-light: rgba(253, 126, 20, 0.1);
   --mantine-color-orange-light-color: var(--mantine-color-orange-3);
-  --mantine-color-orange-light-hover: rgba(253, 126, 20, 0.2);
+  --mantine-color-orange-light-hover: rgba(253, 126, 20, 0.15);
   --mantine-color-orange-outline: var(--mantine-color-orange-4);
   --mantine-color-orange-outline-hover: rgba(255, 169, 77, 0.05);
   --mantine-color-orange-text: var(--mantine-color-orange-4);
   --mantine-color-pink-filled: var(--mantine-color-pink-8);
   --mantine-color-pink-filled-hover: var(--mantine-color-pink-9);
-  --mantine-color-pink-light: rgba(230, 73, 128, 0.15);
+  --mantine-color-pink-light: rgba(230, 73, 128, 0.1);
   --mantine-color-pink-light-color: var(--mantine-color-pink-3);
-  --mantine-color-pink-light-hover: rgba(230, 73, 128, 0.2);
+  --mantine-color-pink-light-hover: rgba(230, 73, 128, 0.15);
   --mantine-color-pink-outline: var(--mantine-color-pink-4);
   --mantine-color-pink-outline-hover: rgba(247, 131, 172, 0.05);
   --mantine-color-pink-text: var(--mantine-color-pink-4);
   --mantine-color-placeholder: var(--mantine-color-dark-3);
   --mantine-color-red-filled: var(--mantine-color-red-8);
   --mantine-color-red-filled-hover: var(--mantine-color-red-9);
-  --mantine-color-red-light: rgba(250, 82, 82, 0.15);
+  --mantine-color-red-light: rgba(250, 82, 82, 0.1);
   --mantine-color-red-light-color: var(--mantine-color-red-3);
-  --mantine-color-red-light-hover: rgba(250, 82, 82, 0.2);
+  --mantine-color-red-light-hover: rgba(250, 82, 82, 0.15);
   --mantine-color-red-outline: var(--mantine-color-red-4);
   --mantine-color-red-outline-hover: rgba(255, 135, 135, 0.05);
   --mantine-color-red-text: var(--mantine-color-red-4);
   --mantine-color-scheme: dark;
   --mantine-color-teal-filled: var(--mantine-color-teal-8);
   --mantine-color-teal-filled-hover: var(--mantine-color-teal-9);
-  --mantine-color-teal-light: rgba(18, 184, 134, 0.15);
+  --mantine-color-teal-light: rgba(18, 184, 134, 0.1);
   --mantine-color-teal-light-color: var(--mantine-color-teal-3);
-  --mantine-color-teal-light-hover: rgba(18, 184, 134, 0.2);
+  --mantine-color-teal-light-hover: rgba(18, 184, 134, 0.15);
   --mantine-color-teal-outline: var(--mantine-color-teal-4);
   --mantine-color-teal-outline-hover: rgba(56, 217, 169, 0.05);
   --mantine-color-teal-text: var(--mantine-color-teal-4);
   --mantine-color-text: var(--mantine-color-dark-0);
   --mantine-color-violet-filled: var(--mantine-color-violet-8);
   --mantine-color-violet-filled-hover: var(--mantine-color-violet-9);
-  --mantine-color-violet-light: rgba(121, 80, 242, 0.15);
+  --mantine-color-violet-light: rgba(121, 80, 242, 0.1);
   --mantine-color-violet-light-color: var(--mantine-color-violet-3);
-  --mantine-color-violet-light-hover: rgba(121, 80, 242, 0.2);
+  --mantine-color-violet-light-hover: rgba(121, 80, 242, 0.15);
   --mantine-color-violet-outline: var(--mantine-color-violet-4);
   --mantine-color-violet-outline-hover: rgba(151, 117, 250, 0.05);
   --mantine-color-violet-text: var(--mantine-color-violet-4);
   --mantine-color-yellow-filled: var(--mantine-color-yellow-8);
   --mantine-color-yellow-filled-hover: var(--mantine-color-yellow-9);
-  --mantine-color-yellow-light: rgba(250, 176, 5, 0.15);
+  --mantine-color-yellow-light: rgba(250, 176, 5, 0.1);
   --mantine-color-yellow-light-color: var(--mantine-color-yellow-3);
-  --mantine-color-yellow-light-hover: rgba(250, 176, 5, 0.2);
+  --mantine-color-yellow-light-hover: rgba(250, 176, 5, 0.15);
   --mantine-color-yellow-outline: var(--mantine-color-yellow-4);
   --mantine-color-yellow-outline-hover: rgba(255, 212, 59, 0.05);
   --mantine-color-yellow-text: var(--mantine-color-yellow-4);
@@ -625,6 +625,10 @@ strong {
     --input-bg: var(--theme-sunken);
     --input-bd: var(--theme-hairline);
     --input-bd-focus: var(--theme-accent-bright);
+  }
+
+  .mantine-Input-input:where(:not([data-variant="unstyled"])):focus {
+    box-shadow: 0 0 0 1px var(--theme-accent-bright);
   }
 
   /* Menus and dropdowns: "bg-[#181a1e]". */
@@ -905,6 +909,13 @@ strong {
     --button-height: 2.75rem;
     --button-padding-x: 1.25rem;
     --button-fz: 0.875rem;
+    box-shadow:
+      0 1px 3px 0 rgb(0 0 0 / 0.1),
+      0 1px 2px -1px rgb(0 0 0 / 0.1);
+  }
+
+  .theme-btn.mantine-Button-root:active {
+    box-shadow: none;
   }
 
   .theme-btn-sm.mantine-Button-root {
@@ -917,6 +928,39 @@ strong {
     --button-height: 1.75rem;
     --button-padding-x: 0.625rem;
     --button-fz: 0.75rem;
+  }
+
+  .theme-btn.mantine-Button-root .theme-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  .theme-btn-sm.mantine-Button-root .theme-icon {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .theme-btn-xs.mantine-Button-root .theme-icon {
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+
+  .mantine-Button-root:disabled,
+  .mantine-Button-root[data-disabled] {
+    opacity: 0.5;
+  }
+
+  /* Filament's icon buttons: 2.25rem default, 2rem small, 1.75rem extra small. */
+  .theme-icon-btn.mantine-ActionIcon-root {
+    --ai-size: 2.25rem;
+  }
+
+  .theme-icon-btn-sm.mantine-ActionIcon-root {
+    --ai-size: 2rem;
+  }
+
+  .theme-icon-btn-xs.mantine-ActionIcon-root {
+    --ai-size: 1.75rem;
   }
 
   /* Gray buttons: "bg-white/10 hover:bg-white/15", no edge. */
@@ -939,6 +983,7 @@ strong {
   .mantine-Badge-root {
     text-transform: none;
     letter-spacing: normal;
+    font-weight: 600;
   }
 
   .mantine-Badge-root:not([data-size]) {
@@ -1182,7 +1227,7 @@ strong {
 
   .mantine-Menu-item {
     min-height: 2.25rem;
-    padding: 0.5rem 0.75rem;
+    padding: 0.5rem 1rem;
     border-radius: 0.375rem;
     color: var(--menu-item-color, var(--theme-text-nav));
     font-size: 0.875rem;
@@ -1778,7 +1823,13 @@ strong {
   flex-direction: column;
   gap: 0.25rem;
   min-width: 0;
-  padding: 0.875rem 1rem !important;
+  padding: 1rem !important;
+}
+
+@media (min-width: 40rem) {
+  .theme-stat {
+    padding: 1.5rem !important;
+  }
 }
 
 .theme-stat-head {
@@ -1814,9 +1865,9 @@ strong {
 .theme-stat-value {
   max-width: 100%;
   color: var(--theme-text);
-  font-size: 1rem;
+  font-size: 1.5rem;
   font-weight: 600;
-  line-height: 1.5rem;
+  line-height: 2rem;
   font-variant-numeric: tabular-nums;
 }
 
@@ -2146,7 +2197,7 @@ strong {
 }
 
 .theme-server-card:hover {
-  background-color: var(--theme-raise-2);
+  background-color: var(--theme-raise);
 }
 
 .theme-server-card:focus-visible {
@@ -2928,6 +2979,11 @@ strong {
 
 .theme-eco-tx + .theme-eco-tx {
   border-block-start: 1px solid var(--theme-hairline);
+}
+
+.theme-eco-tx:hover,
+.theme-eco-row:hover {
+  background-color: var(--theme-raise);
 }
 
 .theme-eco-empty {

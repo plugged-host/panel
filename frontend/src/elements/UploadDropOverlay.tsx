@@ -15,14 +15,11 @@ function UploadDropOverlay({ visible, title, subtitle, blur = false }: UploadDro
 
   return (
     <div
-      className={classNames(
-        'pointer-events-none fixed inset-0 z-100 flex items-center justify-center',
-        blur ? 'backdrop-blur-md bg-black/20' : 'bg-black/50',
-      )}
+      className={classNames('pointer-events-none fixed inset-0 z-100 flex items-center justify-center', 'bg-black/50')}
     >
-      <div className='bg-(--mantine-color-body) rounded-lg p-8 shadow-2xl border-2 border-dashed border-(--mantine-color-blue-5)'>
+      <div className='bg-(--mantine-color-body) rounded-lg p-8 border border-(--mantine-color-default-border)'>
         <div className='flex flex-col items-center gap-4'>
-          <FontAwesomeIcon icon={faUpload} className='text-6xl text-(--mantine-color-blue-5) animate-bounce' />
+          <FontAwesomeIcon icon={faUpload} className='text-4xl text-(--mantine-color-blue-5)' />
           <p className='text-xl font-semibold'>{title}</p>
           <p className='text-sm text-(--mantine-color-dimmed)'>{subtitle}</p>
         </div>

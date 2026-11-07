@@ -47,7 +47,7 @@ function FileMeta({ entry, label }: { entry: z.infer<typeof serverDirectoryEntry
 
   return (
     <div className='flex flex-col grow min-w-0'>
-      <Text size='xs' fw={600} c='dimmed' tt='uppercase'>
+      <Text size='xs' fw={600} c='dimmed'>
         {label}
       </Text>
       <span className='flex flex-row items-center justify-between gap-2'>

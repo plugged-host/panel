@@ -391,7 +391,10 @@ export default function ServerBackups({
               getItemLabel={(group) => group.name}
               renderOverlay={(activeGroup) =>
                 activeGroup ? (
-                  <div style={{ cursor: 'grabbing' }} className='shadow-xl rounded-xl'>
+                  <div
+                    style={{ cursor: 'grabbing' }}
+                    className='rounded-xl border border-(--mantine-color-default-border)'
+                  >
                     <MemoizedBackupGroupItem
                       group={activeGroup}
                       columns={groupColumns}

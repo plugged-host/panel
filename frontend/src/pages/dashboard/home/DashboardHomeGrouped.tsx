@@ -201,7 +201,10 @@ export default function DashboardHomeGrouped() {
           {...dndHandlers}
           renderOverlay={() =>
             activeServerGroup ? (
-              <div style={{ cursor: 'grabbing', opacity: 0.95 }} className='shadow-xl rounded-lg'>
+              <div
+                style={{ cursor: 'grabbing', opacity: 0.95 }}
+                className='rounded-lg border border-(--mantine-color-default-border)'
+              >
                 <MemoizedServerGroupItem
                   serverGroup={activeServerGroup}
                   dragHandleProps={{
@@ -211,7 +214,7 @@ export default function DashboardHomeGrouped() {
                 />
               </div>
             ) : activeServer ? (
-              <div style={{ cursor: 'grabbing' }} className='shadow-xl rounded-xl'>
+              <div style={{ cursor: 'grabbing' }} className='rounded-xl border border-(--mantine-color-default-border)'>
                 <MemoizedServerItem
                   server={activeServer}
                   showContextMenu

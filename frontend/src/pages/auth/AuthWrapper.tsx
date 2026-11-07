@@ -59,7 +59,7 @@ function AuthWrapper(props: Props) {
           <ExtensionSlot components={registry?.prependedComponents ?? []} name='prepended' props={modifiedProps} />
 
           <AppIcon className='mb-5 w-full sm:w-fit' />
-          {title && <h1 className='text-3xl font-bold mb-4'>{title}</h1>}
+          {title && <h1 className='theme-header-heading mb-4'>{title}</h1>}
 
           <ExtensionSlot
             components={registry?.prependedContentComponents ?? []}

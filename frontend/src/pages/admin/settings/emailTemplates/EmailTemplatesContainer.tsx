@@ -162,7 +162,7 @@ export default function EmailTemplatesContainer() {
   const sidebar = (
     <Paper withBorder radius='md' className='flex! flex-col overflow-hidden shrink-0 md:w-72 w-full md:self-start'>
       <div className='px-3 py-2.5 bg-(--mantine-color-default)'>
-        <Text size='xs' fw={600} c='dimmed' tt='uppercase' style={{ letterSpacing: '0.05em' }}>
+        <Text size='xs' fw={600} c='dimmed'>
           {t('pages.admin.settings.tabs.mailTemplates.page.sidebar.templates', {})}
         </Text>
       </div>
@@ -203,7 +203,7 @@ export default function EmailTemplatesContainer() {
         <>
           <Divider />
           <div className='px-3 py-2.5 bg-(--mantine-color-default)'>
-            <Text size='xs' fw={600} c='dimmed' tt='uppercase' style={{ letterSpacing: '0.05em' }}>
+            <Text size='xs' fw={600} c='dimmed'>
               {t('pages.admin.settings.tabs.mailTemplates.page.sidebar.availableVariables', {})}
             </Text>
           </div>

@@ -29,7 +29,7 @@ function Meta({ label, size, modified }: { label: string; size: number; modified
 
   return (
     <div className='flex flex-col grow min-w-0'>
-      <Text size='xs' fw={600} c='dimmed' tt='uppercase'>
+      <Text size='xs' fw={600} c='dimmed'>
         {label}
       </Text>
       <span className='flex flex-row items-center justify-between gap-2'>
@@ -148,7 +148,7 @@ export default function UploadConflictModal({ directory, conflicts, remaining, o
                       />
                     ) : (
                       <div className='flex flex-col grow min-w-0'>
-                        <Text size='xs' fw={600} c='dimmed' tt='uppercase'>
+                        <Text size='xs' fw={600} c='dimmed'>
                           {t('elements.fileUpload.modal.uploadConflict.source', {})}
                         </Text>
                         <Text size='sm'>

@@ -7,7 +7,7 @@ export default function Copyright({ className }: { className?: string }) {
   const release = useGlobalStore((state) => state.settings.app?.release);
 
   return (
-    <div className={classNames('flex flex-col text-xs transition-all text-(--mantine-color-dimmed)', className)}>
+    <div className={classNames('flex flex-col text-xs text-(--mantine-color-dimmed)', className)}>
       <ExtensionSlot
         components={window.extensionContext.extensionRegistry.elements.copyright.prependedComponents}
         name='global-copyright-prepended'
