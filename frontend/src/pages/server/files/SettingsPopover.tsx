@@ -1,7 +1,7 @@
 import { faCog } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ComponentType, ReactNode } from 'react';
-import Button from '@/elements/buttons/Button.tsx';
+import ActionIcon from '@/elements/buttons/ActionIcon.tsx';
 import ExtensionSlot from '@/elements/ExtensionSlot.tsx';
 import Popover from '@/elements/overlays/Popover.tsx';
 import Tooltip from '@/elements/overlays/Tooltip.tsx';
@@ -20,14 +20,13 @@ export default function SettingsPopover({
 }) {
   const { t } = useTranslations();
   const trigger = (
-    <Button
+    <ActionIcon
       variant='light'
       color='indigo'
-      size='compact-xs'
       aria-label={typeof tooltip === 'string' ? tooltip : t('pages.server.files.tooltip.settings', {})}
     >
-      <FontAwesomeIcon size='lg' icon={faCog} />
-    </Button>
+      <FontAwesomeIcon icon={faCog} />
+    </ActionIcon>
   );
 
   return (

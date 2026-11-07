@@ -580,9 +580,9 @@ function ServerFilesComponent() {
       <FileActionBar />
 
       <div className='mb-4 flex flex-col gap-3'>
-        <div className='flex flex-wrap items-end justify-between gap-3'>
+        <div className='theme-files-header-row flex items-end justify-between gap-3'>
           {settingsBesideTitle ? (
-            <div>
+            <div className='min-w-0'>
               <Title order={1}>{pageTitle}</Title>
               <Text size='sm' c='dimmed'>
                 {t('pages.server.files.subtitle', {})}
@@ -592,7 +592,7 @@ function ServerFilesComponent() {
             <div />
           )}
 
-          <Group>
+          <Group justify='flex-end' className='theme-files-actions-row min-w-0 flex-1'>
             <FileToolbar
               onCreateFile={createTreeFile}
               treeView={view === 'tree'}

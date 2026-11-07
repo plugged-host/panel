@@ -8604,3 +8604,19 @@ span.theme-neo-image {
   outline: none !important;
   box-shadow: none !important;
 }
+
+/* plugged.host: the files header stays on one row from 48rem up; only phones may wrap it.
+   The media query is used instead of a JS breakpoint so the first paint cannot flash two rows. */
+.theme-files-header-row,
+.theme-files-toolbar-row,
+.theme-files-actions-row {
+  flex-wrap: wrap;
+}
+
+@media (min-width: 48rem) {
+  .theme-files-header-row,
+  .theme-files-toolbar-row,
+  .theme-files-actions-row {
+    flex-wrap: nowrap !important;
+  }
+}

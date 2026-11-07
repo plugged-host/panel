@@ -108,43 +108,11 @@ export default function FileToolbar({
   ];
 
   return (
-    <Group className='min-w-0 flex-1'>
+    <Group gap='xs' className='theme-files-toolbar-row min-w-0 flex-1'>
       <ExtensionSlot
         components={window.extensionContext.extensionRegistry.pages.server.files.fileToolbar.prependedComponents}
         name='files-fileToolbar-prepended'
       />
-
-      {!treeView && (
-        <Group gap='xs' className='min-w-0'>
-          <Tooltip label={t('pages.server.files.searchPlaceholder', {})}>
-            <ActionIcon
-              variant='light'
-              color='blue'
-              aria-label={t('pages.server.files.searchPlaceholder', {})}
-              onClick={() => {
-                if (searchOpen) onFilterChange('');
-                setSearchOpen((open) => !open);
-              }}
-            >
-              <FontAwesomeIcon icon={faSearch} />
-            </ActionIcon>
-          </Tooltip>
-          <div
-            className={`overflow-hidden transition-all duration-300 ease-out ${
-              searchOpen ? 'w-full opacity-100 sm:w-[clamp(16rem,40vw,32rem)]' : 'w-0 opacity-0'
-            }`}
-          >
-            <TextInput
-              ref={searchRef}
-              placeholder={t('pages.server.files.searchPlaceholder', {})}
-              aria-label={t('pages.server.files.searchPlaceholder', {})}
-              value={filter}
-              onChange={(event) => onFilterChange(event.currentTarget.value)}
-              className='theme-file-search w-full'
-            />
-          </div>
-        </Group>
-      )}
 
       <FileConnectButton iconOnly />
 
@@ -223,6 +191,38 @@ export default function FileToolbar({
             </Button>
           </Tooltip>
         </ServerCan>
+      )}
+
+      {!treeView && (
+        <Group gap='xs' justify='flex-end' className='min-w-0 flex-1'>
+          <div
+            className={`overflow-hidden transition-all duration-300 ease-out ${
+              searchOpen ? 'min-w-0 flex-1 max-w-[32rem] opacity-100' : 'max-w-0 opacity-0'
+            }`}
+          >
+            <TextInput
+              ref={searchRef}
+              placeholder={t('pages.server.files.searchPlaceholder', {})}
+              aria-label={t('pages.server.files.searchPlaceholder', {})}
+              value={filter}
+              onChange={(event) => onFilterChange(event.currentTarget.value)}
+              className='theme-file-search w-full'
+            />
+          </div>
+          <Tooltip label={t('pages.server.files.searchPlaceholder', {})}>
+            <ActionIcon
+              variant='light'
+              color='blue'
+              aria-label={t('pages.server.files.searchPlaceholder', {})}
+              onClick={() => {
+                if (searchOpen) onFilterChange('');
+                setSearchOpen((open) => !open);
+              }}
+            >
+              <FontAwesomeIcon icon={faSearch} />
+            </ActionIcon>
+          </Tooltip>
+        </Group>
       )}
 
       <Tooltip label={t('pages.server.files.button.more', {})}>
