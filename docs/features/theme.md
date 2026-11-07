@@ -119,14 +119,17 @@ The two panels are one design: a change to one of these is a change to both.
   top / 1rem bottom padding with a 2.5rem mark, the same as switched.
 - **Header actions** use a .5rem gap; the page header's title is 1.25rem/600 and its subheading
   .875rem/1.25rem muted, as in switched.
+- **Sidebar rows** share one sliding pill (220ms cubic-bezier(.16,1,.3,1)) that follows the
+  hovered row and returns to the active row on leave; rows stay transparent, only the row under
+  the pill reads bright, and a leading Font Awesome glyph carries the same 10px gap as a Heroicon.
 - **File fields** use `elements/input/FileInput.tsx` (generic over `multiple`) instead of a one-off
   `.field`/`.input` block, so the ticket attachments match every other field.
 
 ### CSS details (2026-11-07)
 
-The smaller values are shared too: body copy 14px; 600-weight buttons, badges and table heads; the
-1px button shadow and .5 disabled fade; 2.25rem icon buttons; 1rem dropdown items; 10% badge/alert
-tints (not 15%); 5% row and card hover (not 10%); the 2px bright input focus ring; stat cards
+The smaller values are shared too: body copy 14px; 600-weight buttons, badges and table heads; flat
+buttons (no shadow) with the .5 disabled fade; 2.25rem icon buttons; 1rem dropdown items; 10%
+badge/alert tints (not 15%); 5% row and card hover (not 10%); the 2px bright input focus ring; stat cards
 (.8125rem muted label, 1.5rem/600 white value, .75rem muted description, 1/1.5rem padding); lists as
 one `white/5` card; the table header `white/5` band, .75rem row padding and 1.5rem edge cells;
 1.5rem empty states; full-height phone modals; and 44px phone inputs.
