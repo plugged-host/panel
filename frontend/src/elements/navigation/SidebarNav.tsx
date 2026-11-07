@@ -39,6 +39,11 @@ export default function SidebarNav({ children }: { children: ReactNode }) {
     }
 
     const box = row.getBoundingClientRect();
+    if (box.width === 0 && box.height === 0) {
+      setIndicator((current) => (current === null ? current : null));
+      return;
+    }
+
     const parent = container.getBoundingClientRect();
     const next = {
       left: box.left - parent.left,
@@ -58,11 +63,32 @@ export default function SidebarNav({ children }: { children: ReactNode }) {
     );
   }, []);
 
+  // The active row can be inside a group the person folded away; the pill then sits on the
+  // group's own row, which is the closest thing still on screen.
+  const activeRow = useCallback(() => {
+    const container = containerRef.current;
+    if (!container) {
+      return null;
+    }
+
+    const active = container.querySelector(ACTIVE_ROW);
+    if (active && active.getBoundingClientRect().height > 0) {
+      return active;
+    }
+
+    const toggle = active?.closest('.theme-sidebar-group')?.querySelector('.theme-sidebar-group-toggle');
+    if (toggle && toggle.getBoundingClientRect().height > 0) {
+      return toggle;
+    }
+
+    return active;
+  }, []);
+
   const showActive = useCallback(() => {
     hoveredRef.current = null;
     setHovering(false);
-    measure(containerRef.current?.querySelector(ACTIVE_ROW) ?? null);
-  }, [measure]);
+    measure(activeRow());
+  }, [activeRow, measure]);
 
   useLayoutEffect(() => {
     showActive();
@@ -76,10 +102,10 @@ export default function SidebarNav({ children }: { children: ReactNode }) {
 
     // A group opening or closing moves the rows after it, and the sidebar resizing moves all of
     // them; keep the pill on whichever row it is meant to be on.
-    const observer = new ResizeObserver(() => measure(hoveredRef.current ?? container.querySelector(ACTIVE_ROW)));
+    const observer = new ResizeObserver(() => measure(hoveredRef.current ?? activeRow()));
     observer.observe(container);
     return () => observer.disconnect();
-  }, [measure]);
+  }, [activeRow, measure]);
 
   const onMouseOver = (event: ReactMouseEvent<HTMLDivElement>) => {
     const row = (event.target as Element).closest(ROW);

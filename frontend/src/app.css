@@ -1520,10 +1520,18 @@ strong {
   }
 
   .theme-sidebar-search .mantine-Button-section[data-position="left"] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
     margin-inline-end: 0.625rem;
     color: var(--theme-text-faint);
   }
 
+  /* The search and bell are rows too: a 1.5rem icon in the same 14px inset as a nav row,
+     so their icon and label line up with the servers below them. */
+  .theme-sidebar-search .mantine-Button-section[data-position="left"] svg,
   .theme-sidebar-search .mantine-Button-section[data-position="left"] .theme-icon {
     width: 1.5rem;
     height: 1.5rem;
