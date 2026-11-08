@@ -45,12 +45,14 @@ stock wings-rs nodes keeps working; the feature's page says what it misses then.
 - `api-clients/wings-api` is the generated client for Wings' API (regenerated from upstream's
   OpenAPI spec). The fork's endpoints are hand-written in `api-clients/wings-api/src/fork.rs`, which
   the generator leaves alone, so a regeneration keeps them.
-- The panel never upgrades Wings itself here: plugged.host's nodes set
-  `ignore_panel_wings_upgrades: true`, so the panel cannot replace the fork with an upstream
-  release.
+- The panel upgrades Wings through the daemon's own endpoints: the fork resolves releases from
+  `plugged-host/wings` tagged `v{VERSION}` and installs `calagopus-wings-<arch>-linux`. plugged.host's
+  nodes keep `ignore_panel_wings_upgrades: false` (the default), so Admin › Nodes › Upgrade works;
+  `true` leaves updates to the node's owner.
 
 ## Running a node
 
-Calagopus's documentation covers installing Wings and enrolling a node. A node can run wings-rs next
-to Pelican's Wings when their ports, config path (`--config`), data directory and Docker network
-differ; the fork's `plugged-host/README.md` shows one such layout.
+Calagopus's documentation covers installing Wings and enrolling a node. The fork's binary is built
+from the `wings-rs` Cargo package and installed as `calagopus-wings`, the name the panel's enrollment
+command uses. A node can run it next to Pelican's Wings when their ports, config path (`--config`),
+data directory and Docker network differ; the fork's `plugged-host/README.md` shows one such layout.

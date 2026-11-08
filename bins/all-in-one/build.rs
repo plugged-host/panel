@@ -129,7 +129,7 @@ fn main() {
 }
 
 fn fetch_release_metadata(arch: &str) -> Option<(String, String)> {
-    let mut resp = ureq::get("https://api.github.com/repos/calagopus/wings/releases/latest")
+    let mut resp = ureq::get("https://api.github.com/repos/plugged-host/wings/releases/latest")
         .header("User-Agent", "rust-build-script")
         .call()
         .ok()?;
@@ -140,7 +140,7 @@ fn fetch_release_metadata(arch: &str) -> Option<(String, String)> {
         arch => arch,
     };
 
-    let expected_name = format!("wings-rs-{release_arch}-linux");
+    let expected_name = format!("calagopus-wings-{release_arch}-linux");
     let asset = release
         .assets
         .into_iter()
