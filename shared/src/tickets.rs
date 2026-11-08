@@ -52,8 +52,10 @@ pub const SUBJECT_MAX: usize = 200;
 pub const BODY_MIN: usize = 1;
 pub const BODY_MAX: usize = 20000;
 
-/// The longest a neo turn may take on a new ticket.
-const TURN_TIMEOUT: Duration = Duration::from_secs(60);
+/// The longest a neo turn may take on a new ticket. The gateway's own chain deadline is 150 s
+/// and a provider may take 90 s before it fails over, so cutting it off sooner would drop answers
+/// the gateway is still working on.
+const TURN_TIMEOUT: Duration = Duration::from_secs(150);
 /// neo's cooldowns and counts for ticket answers are kept apart from the chat's and rux's.
 const SCOPE: &str = "tickets";
 
@@ -835,7 +837,14 @@ async fn neo_reply(state: &crate::State, ticket_uuid: uuid::Uuid) -> Result<(), 
         return Ok(());
     }
 
-    let (app_name, neo_on, ticket_model, ticket_max_steps, ticket_allow_destructive, ticket_instructions) = {
+    let (
+        app_name,
+        neo_on,
+        ticket_model,
+        ticket_max_steps,
+        ticket_allow_destructive,
+        ticket_instructions,
+    ) = {
         let settings = state.settings.get().await?;
         (
             settings.app.name.to_string(),
@@ -884,6 +893,7 @@ async fn neo_reply(state: &crate::State, ticket_uuid: uuid::Uuid) -> Result<(), 
     };
 
     if !neo_on {
+        tracing::warn!(ticket = %ticket_uuid, "neo is not offered, so the ticket got the system acknowledgement");
         insert_system(state, ticket_uuid, &app_name).await?;
         notify_staff_channel(
             state,
@@ -1028,7 +1038,14 @@ async fn neo_reply(state: &crate::State, ticket_uuid: uuid::Uuid) -> Result<(), 
         let streamed = updater.await.unwrap_or_default();
         let turn = match turn {
             Ok(Ok(turn)) => turn,
-            _ => break,
+            Ok(Err(err)) => {
+                tracing::warn!(ticket = %ticket_uuid, step, "neo's ticket turn failed: {err:?}");
+                break;
+            }
+            Err(_) => {
+                tracing::warn!(ticket = %ticket_uuid, step, "neo's ticket turn timed out");
+                break;
+            }
         };
         if let Some(content) = turn
             .content
@@ -1103,6 +1120,7 @@ async fn neo_reply(state: &crate::State, ticket_uuid: uuid::Uuid) -> Result<(), 
         answer = format!("I did this for you: {}.", actions.join(", "));
     }
     if answer.is_empty() {
+        tracing::warn!(ticket = %ticket_uuid, "neo's ticket turn produced no answer");
         sqlx::query("DELETE FROM ticket_messages WHERE uuid = $1")
             .bind(placeholder)
             .execute(state.database.write())
@@ -1164,9 +1182,8 @@ pub async fn notify_staff_channel(
         settings.app.url.trim_end_matches('/'),
         ticket_uuid
     );
-    let content = format!(
-        "Support ticket needs a person: **{subject}** by {username}. {reason}\n{url}"
-    );
+    let content =
+        format!("Support ticket needs a person: **{subject}** by {username}. {reason}\n{url}");
     if let Err(err) = client
         .create_message(
             channel,

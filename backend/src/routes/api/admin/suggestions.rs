@@ -174,7 +174,7 @@ mod suggestion {
             ApiError, GetState,
             models::user::{GetPermissionManager, GetUser},
             response::{ApiResponse, ApiResponseResult},
-            suggestions::{ApiSuggestionThread, AUTHOR_ADMIN},
+            suggestions::{AUTHOR_ADMIN, ApiSuggestionThread},
         };
         use utoipa::ToSchema;
 

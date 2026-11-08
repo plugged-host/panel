@@ -137,11 +137,10 @@ pub async fn sync_discord_role(
     let Some(rest) = context.rest(state) else {
         return;
     };
-    let Some(discord_id) =
-        crate::discord::linked_discord_id(state, &context, user_uuid)
-            .await
-            .ok()
-            .flatten()
+    let Some(discord_id) = crate::discord::linked_discord_id(state, &context, user_uuid)
+        .await
+        .ok()
+        .flatten()
     else {
         return;
     };

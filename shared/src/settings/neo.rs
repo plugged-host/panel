@@ -810,7 +810,10 @@ impl SettingsSerializeExt for AppSettingsNeo {
                 "ticket_allow_destructive",
                 self.ticket_allow_destructive.to_compact_string(),
             )
-            .write_raw_setting("ticket_max_steps", self.ticket_max_steps.to_compact_string())
+            .write_raw_setting(
+                "ticket_max_steps",
+                self.ticket_max_steps.to_compact_string(),
+            )
             .write_raw_setting("ticket_instructions", &*self.ticket_instructions))
     }
 }

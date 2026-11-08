@@ -204,7 +204,11 @@ fn map(row: &sqlx::postgres::PgRow) -> Result<ApiSuggestion, sqlx::Error> {
         preview_url: None,
         author: author_uuid
             .zip(author_username)
-            .map(|(uuid, username)| ApiSuggestionUser { uuid, username, badge: author_badge }),
+            .map(|(uuid, username)| ApiSuggestionUser {
+                uuid,
+                username,
+                badge: author_badge,
+            }),
         merged_into: merged_uuid
             .zip(merged_title)
             .map(|(uuid, title)| ApiSuggestionRef { uuid, title }),
@@ -323,12 +327,15 @@ pub async fn messages(
             let author_uuid: Option<uuid::Uuid> = row.try_get("author_uuid")?;
             let author_username: Option<compact_str::CompactString> =
                 row.try_get("author_username")?;
-            let author_badge: Option<compact_str::CompactString> =
-                row.try_get("author_badge")?;
+            let author_badge: Option<compact_str::CompactString> = row.try_get("author_badge")?;
             Ok(ApiSuggestionMessage {
                 uuid: row.try_get("uuid")?,
                 author: author_uuid.zip(author_username).map(|(uuid, username)| {
-                    ApiSuggestionUser { uuid, username, badge: author_badge }
+                    ApiSuggestionUser {
+                        uuid,
+                        username,
+                        badge: author_badge,
+                    }
                 }),
                 author_type: row.try_get("author_type")?,
                 body: row.try_get("body")?,

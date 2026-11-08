@@ -785,7 +785,10 @@ impl PayloadEconomy {
                     .into_iter()
                     .map(|badge| crate::badges::BadgeConfig {
                         id: badge.id.trim().into(),
-                        label: badge.label.map(|label| label.trim().to_compact_string()).filter(|label| !label.is_empty()),
+                        label: badge
+                            .label
+                            .map(|label| label.trim().to_compact_string())
+                            .filter(|label| !label.is_empty()),
                         color: badge.color.trim().into(),
                         discord_role: badge
                             .discord_role

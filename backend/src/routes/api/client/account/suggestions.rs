@@ -157,7 +157,7 @@ mod comment {
         ApiError, GetState,
         models::user::{GetPermissionManager, GetUser},
         response::{ApiResponse, ApiResponseResult},
-        suggestions::{ApiSuggestionThread, AUTHOR_USER},
+        suggestions::{AUTHOR_USER, ApiSuggestionThread},
     };
     use utoipa::ToSchema;
 
