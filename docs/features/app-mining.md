@@ -17,8 +17,11 @@ runs bundled miners only after an explicit **Start mining** click:
   `pool.supportxmr.com:3333`. The slider maps to thread count and XMRig CPU priority.
 - **GPU:** lolMiner 1.98a mines Ravencoin (KawPow) to the configured RVN wallet through
   `rvn.2miners.com:6060`, once an RVN address is set. At ≤20% the GPU is passed `--devices none`.
-- Both binaries (and `msvcp140.dll`) are embedded in `plugged.host.exe` and extracted to the app's
-  config folder on first Start. XMRig runs without its kernel driver (no MSR/huge pages).
+- XMRig is embedded in `plugged.host.exe` and extracted to the app's config folder on first Start.
+  lolMiner is **not** redistributed (its licence forbids it outside a mining OS): on the first Start
+  with an RVN address, the app downloads the official 1.98a Win64 release, verifies its SHA-256 and
+  extracts `lolMiner.exe`, `msvcp140.dll` and its licence. XMRig runs without its kernel driver (no
+  MSR/huge pages).
 - The app polls XMRig's local HTTP API for hashrate/shares; lolMiner's process state is shown even
   when its API does not answer. Stop, logout, session expiry and normal app exit kill both miners.
 - Defaults live in `StoredConfig`: `mining_percent`, `mining_xmr_wallet`, `mining_rvn_wallet`,
