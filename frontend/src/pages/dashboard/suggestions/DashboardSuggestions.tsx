@@ -182,13 +182,7 @@ function Idea({ suggestion }: { suggestion: Suggestion }) {
             ▲ {suggestion.votes}
           </Button>
           <div className='flex min-w-0 flex-1 flex-col gap-2'>
-            <div className='flex flex-wrap items-center gap-2'>
-              <h3 className='theme-eco-heading'>{suggestion.title}</h3>
-              <Badge color={statusColor[suggestion.status]}>{t(`${base}.status.${suggestion.status}`, {})}</Badge>
-              <Badge color='gray' variant='light'>
-                {t(`${base}.serverType.${suggestion.serverType}`, {})}
-              </Badge>
-            </div>
+            <h3 className='theme-eco-heading'>{suggestion.title}</h3>
             <p
               className='theme-eco-text'
               style={{
@@ -215,7 +209,15 @@ function Idea({ suggestion }: { suggestion: Suggestion }) {
                 {suggestion.comments} {t(`${base}.thread.comments`, {})} · {suggestion.attachments}{' '}
                 {t('pages.account.tickets.thread.attachments', {})}
               </span>
-              <span className='theme-eco-link ml-auto'>{t(`${base}.viewDiscussion`, {})} →</span>
+              <div className='ml-auto flex flex-col items-end gap-1'>
+                <div className='flex flex-wrap items-center justify-end gap-2'>
+                  <Badge color={statusColor[suggestion.status]}>{t(`${base}.status.${suggestion.status}`, {})}</Badge>
+                  <Badge color='gray' variant='light'>
+                    {t(`${base}.serverType.${suggestion.serverType}`, {})}
+                  </Badge>
+                </div>
+                <span className='theme-eco-link'>{t(`${base}.viewDiscussion`, {})} →</span>
+              </div>
             </div>
           </div>
         </div>
