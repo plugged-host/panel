@@ -3536,6 +3536,14 @@ strong {
   padding: 0.25rem 1rem;
   border-radius: 1rem;
   background-color: var(--theme-raise);
+  overflow: hidden;
+}
+
+/* The row's hover/click area runs to the card's edges, not only to the list's inline padding. */
+.theme-eco-list > .theme-eco-row,
+.theme-eco-list > .theme-eco-tx {
+  margin-inline: -1rem;
+  padding-inline: 1rem;
 }
 
 @media (min-width: 640px) {
@@ -3544,6 +3552,12 @@ strong {
   }
 
   .theme-eco-list {
+    padding-inline: 1.5rem;
+  }
+
+  .theme-eco-list > .theme-eco-row,
+  .theme-eco-list > .theme-eco-tx {
+    margin-inline: -1.5rem;
     padding-inline: 1.5rem;
   }
 }

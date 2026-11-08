@@ -1,7 +1,7 @@
 // plugged.host: Account › Support, the account's tickets (docs/features/tickets.md). A full-width
 // list, one filled action (New ticket), and the thread in a modal.
 
-import { faEye, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faEye, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useForm } from '@mantine/form';
 import { useQueryClient } from '@tanstack/react-query';
@@ -11,7 +11,6 @@ import { useNavigate } from 'react-router';
 import { z } from 'zod';
 import { httpErrorToHuman } from '@/api/axios.ts';
 import createTicket from '@/api/me/tickets/createTicket.ts';
-import deleteTicket from '@/api/me/tickets/deleteTicket.ts';
 import getTicket from '@/api/me/tickets/getTicket.ts';
 import getTickets from '@/api/me/tickets/getTickets.ts';
 import replyTicket from '@/api/me/tickets/replyTicket.ts';
@@ -29,7 +28,6 @@ import ServerSelect from '@/elements/input/ServerSelect.tsx';
 import TextArea from '@/elements/input/TextArea.tsx';
 import TextInput from '@/elements/input/TextInput.tsx';
 import Stack from '@/elements/layout/Stack.tsx';
-import ConfirmationModal from '@/elements/modals/ConfirmationModal.tsx';
 import { Modal, ModalFooter } from '@/elements/modals/Modal.tsx';
 import ResourceView from '@/elements/ResourceView.tsx';
 import FormattedTimestamp from '@/elements/time/FormattedTimestamp.tsx';
@@ -200,7 +198,6 @@ export function ThreadModal({
   const [loading, setLoading] = useState(false);
   const [reply, setReply] = useState('');
   const [sending, setSending] = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const load = (silent = false) => {
     if (!uuid) return;
@@ -332,18 +329,21 @@ export function ThreadModal({
           <div className='theme-eco-list'>
             {thread.messages.map((message) => (
               <div key={message.uuid} className='theme-eco-tx'>
-                <div className='flex min-w-0 flex-col'>
-                  <span className='theme-eco-small'>
-                    {message.authorType === 'neo'
-                      ? t(`${base}.thread.neo`, {})
-                      : message.authorType === 'system'
-                        ? t(`${base}.thread.system`, {})
-                        : message.authorType === 'admin'
-                          ? t(`${base}.thread.staff`, {})
-                          : (message.author?.username ?? t(`${base}.thread.you`, {}))}
-                    ·
-                    <FormattedTimestamp timestamp={message.created} />
-                  </span>
+                <div className='flex min-w-0 flex-1 flex-col gap-1'>
+                  <div className='flex flex-wrap items-baseline justify-between gap-2'>
+                    <span className='theme-eco-small'>
+                      {message.authorType === 'neo'
+                        ? t(`${base}.thread.neo`, {})
+                        : message.authorType === 'system'
+                          ? t(`${base}.thread.system`, {})
+                          : message.authorType === 'admin'
+                            ? t(`${base}.thread.staff`, {})
+                            : (message.author?.username ?? t(`${base}.thread.you`, {}))}
+                    </span>
+                    <span className='theme-eco-small'>
+                      <FormattedTimestamp timestamp={message.created} />
+                    </span>
+                  </div>
                   <p className='whitespace-pre-wrap theme-eco-text'>
                     {message.body || (message.authorType === 'neo' ? t(`${base}.thread.thinking`, {}) : '')}
                   </p>
@@ -369,16 +369,6 @@ export function ThreadModal({
                 <Button variant='default' onClick={() => changeStatus('closed')}>
                   {t(`${base}.thread.close`, {})}
                 </Button>
-                <ActionIcon
-                  className='ml-auto'
-                  color='red'
-                  variant='subtle'
-                  aria-label={t('common.button.delete', {})}
-                  title={t('common.button.delete', {})}
-                  onClick={() => setConfirmDelete(true)}
-                >
-                  <FontAwesomeIcon icon={faTrash} />
-                </ActionIcon>
               </div>
             </section>
           ) : (
@@ -386,37 +376,8 @@ export function ThreadModal({
               <Button variant='default' onClick={() => changeStatus('open')}>
                 {t(`${base}.thread.reopen`, {})}
               </Button>
-              <ActionIcon
-                className='ml-auto'
-                color='red'
-                variant='subtle'
-                aria-label={t('common.button.delete', {})}
-                title={t('common.button.delete', {})}
-                onClick={() => setConfirmDelete(true)}
-              >
-                <FontAwesomeIcon icon={faTrash} />
-              </ActionIcon>
             </div>
           )}
-
-          <ConfirmationModal
-            opened={confirmDelete}
-            onClose={() => setConfirmDelete(false)}
-            title={t(`${base}.thread.deleteTitle`, {})}
-            confirm={t('common.button.delete', {})}
-            confirmColor='red'
-            onConfirmed={() => {
-              if (!uuid) return;
-              deleteTicket(uuid)
-                .then(() => {
-                  queryClient.invalidateQueries({ queryKey: queryKeys.user.tickets() });
-                  onClose();
-                })
-                .catch((error) => addToast(httpErrorToHuman(error), 'error'));
-            }}
-          >
-            {t(`${base}.thread.deleteBody`, {})}
-          </ConfirmationModal>
         </Stack>
       ) : null}
     </>
@@ -475,17 +436,17 @@ export default function DashboardTickets() {
             <div className='theme-eco-list'>
               {data.tickets.map((ticket) => (
                 <div key={ticket.uuid} className='theme-eco-tx'>
-                  <div className='flex min-w-0 flex-col gap-2'>
+                  <div className='flex min-w-0 flex-1 flex-col gap-2'>
                     <UnstyledButton
                       className='theme-eco-heading text-start'
                       onClick={() => navigate(`/account/support/${ticket.uuid}`)}
                     >
                       {ticket.subject}
                     </UnstyledButton>
-                    <span className='theme-eco-small'>
-                      {t(`${base}.category.${ticket.category}`, {})}
-                      {ticket.server ? ` · ${ticket.server.name}` : ''}
-                      ·
+                    <span className='theme-eco-small inline-flex flex-wrap items-baseline gap-2'>
+                      <span>{t(`${base}.category.${ticket.category}`, {})}</span>
+                      {ticket.server && <span>· {ticket.server.name}</span>}
+                      <span>·</span>
                       <FormattedTimestamp timestamp={ticket.updated} />
                     </span>
                   </div>

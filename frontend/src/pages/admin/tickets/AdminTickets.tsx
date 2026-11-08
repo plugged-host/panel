@@ -155,7 +155,7 @@ export function ThreadModal({
           {thread.ticket.bug && (
             <div className='theme-eco-list'>
               <div className='theme-eco-tx'>
-                <div className='flex min-w-0 flex-col gap-2'>
+                <div className='flex min-w-0 flex-1 flex-col gap-2'>
                   <span className='theme-eco-small'>{t('pages.account.tickets.thread.bug', {})}</span>
                   {thread.ticket.bug.steps && (
                     <p className='theme-eco-text'>
@@ -215,18 +215,21 @@ export function ThreadModal({
           <div className='theme-eco-list'>
             {thread.messages.map((message) => (
               <div key={message.uuid} className='theme-eco-tx'>
-                <div className='flex min-w-0 flex-col'>
-                  <span className='theme-eco-small'>
-                    {message.authorType === 'neo'
-                      ? t('pages.account.tickets.thread.neo', {})
-                      : message.authorType === 'system'
-                        ? t('pages.account.tickets.thread.system', {})
-                        : message.authorType === 'admin'
-                          ? t('pages.account.tickets.thread.staff', {})
-                          : (message.author?.username ?? t('pages.account.tickets.thread.you', {}))}
-                    ·
-                    <FormattedTimestamp timestamp={message.created} />
-                  </span>
+                <div className='flex min-w-0 flex-1 flex-col gap-1'>
+                  <div className='flex flex-wrap items-baseline justify-between gap-2'>
+                    <span className='theme-eco-small'>
+                      {message.authorType === 'neo'
+                        ? t('pages.account.tickets.thread.neo', {})
+                        : message.authorType === 'system'
+                          ? t('pages.account.tickets.thread.system', {})
+                          : message.authorType === 'admin'
+                            ? t('pages.account.tickets.thread.staff', {})
+                            : (message.author?.username ?? t('pages.account.tickets.thread.you', {}))}
+                    </span>
+                    <span className='theme-eco-small'>
+                      <FormattedTimestamp timestamp={message.created} />
+                    </span>
+                  </div>
                   <p className='whitespace-pre-wrap theme-eco-text'>
                     {message.body || (message.authorType === 'neo' ? t(`${base}.thread.thinking`, {}) : '')}
                   </p>

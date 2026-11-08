@@ -11,7 +11,6 @@ import { useNavigate } from 'react-router';
 import { z } from 'zod';
 import { httpErrorToHuman } from '@/api/axios.ts';
 import createSuggestion from '@/api/me/suggestions/createSuggestion.ts';
-import deleteSuggestion from '@/api/me/suggestions/deleteSuggestion.ts';
 import getSuggestions from '@/api/me/suggestions/getSuggestions.ts';
 import toggleSuggestionVote from '@/api/me/suggestions/toggleSuggestionVote.ts';
 import uploadSuggestionAttachments from '@/api/me/suggestions/uploadSuggestionAttachments.ts';
@@ -24,7 +23,6 @@ import Select from '@/elements/input/Select.tsx';
 import TextArea from '@/elements/input/TextArea.tsx';
 import TextInput from '@/elements/input/TextInput.tsx';
 import Stack from '@/elements/layout/Stack.tsx';
-import ConfirmationModal from '@/elements/modals/ConfirmationModal.tsx';
 import { Modal, ModalFooter } from '@/elements/modals/Modal.tsx';
 import ResourceView from '@/elements/ResourceView.tsx';
 import FormattedTimestamp from '@/elements/time/FormattedTimestamp.tsx';
@@ -36,7 +34,6 @@ import {
   suggestionStatus,
 } from '@/lib/schemas/user/suggestions.ts';
 import { useResource } from '@/plugins/resource/useResource.ts';
-import { useAuth } from '@/providers/AuthProvider.tsx';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 
@@ -141,8 +138,6 @@ function Idea({ suggestion }: { suggestion: Suggestion }) {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [voting, setVoting] = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState(false);
-  const { user } = useAuth();
 
   const vote = () => {
     setVoting(true);
@@ -165,93 +160,66 @@ function Idea({ suggestion }: { suggestion: Suggestion }) {
         }
       }}
     >
-      {suggestion.previewUrl && (
-        <img
-          src={suggestion.previewUrl}
-          alt=''
-          className='mb-4 max-h-64 w-full rounded-lg border border-(--theme-hairline) object-cover'
-        />
-      )}
-      <div className='flex items-start gap-4'>
-        <Button
-          variant={suggestion.voted ? 'light' : 'default'}
-          size='xs'
-          loading={voting}
-          onClick={(event) => {
-            event.stopPropagation();
-            vote();
-          }}
-          aria-label={t(`${base}.vote`, {})}
-        >
-          ▲ {suggestion.votes}
-        </Button>
-        <div className='flex min-w-0 flex-1 flex-col gap-2'>
-          <div className='flex flex-wrap items-center gap-2'>
-            <h3 className='theme-eco-heading'>{suggestion.title}</h3>
-            <Badge color={statusColor[suggestion.status]}>{t(`${base}.status.${suggestion.status}`, {})}</Badge>
-            <Badge color='gray' variant='light'>
-              {t(`${base}.serverType.${suggestion.serverType}`, {})}
-            </Badge>
-          </div>
-          <p
-            className='theme-eco-text'
-            style={{
-              display: '-webkit-box',
-              WebkitLineClamp: 4,
-              WebkitBoxOrient: 'vertical',
-              overflow: 'hidden',
-            }}
-          >
-            {suggestion.body}
-          </p>
-          {suggestion.changelog && suggestion.status === 'shipped' && (
-            <p className='theme-eco-small'>{t(`${base}.changelog`, { entry: suggestion.changelog })}</p>
-          )}
-          {suggestion.mergedInto && (
-            <p className='theme-eco-small'>{t(`${base}.mergedInto`, { title: suggestion.mergedInto.title })}</p>
-          )}
-          <div className='flex flex-wrap items-center gap-3'>
-            <span className='theme-eco-small'>
-              {suggestion.author?.username ?? t(`${base}.anonymous`, {})}
-              ·
-              <FormattedTimestamp timestamp={suggestion.created} />
-            </span>
-            <span className='theme-eco-small'>
-              {suggestion.comments} {t(`${base}.thread.comments`, {})} · {suggestion.attachments}{' '}
-              {t('pages.account.tickets.thread.attachments', {})}
-            </span>
-            <span className='theme-eco-link'>{t(`${base}.viewDiscussion`, {})} →</span>
-          </div>
-        </div>
-        {user?.uuid === suggestion.author?.uuid && (
+      <div className='flex min-w-0 flex-1 flex-col gap-4'>
+        {suggestion.previewUrl && (
+          <img
+            src={suggestion.previewUrl}
+            alt=''
+            className='max-h-64 w-full rounded-lg border border-(--theme-hairline) object-cover'
+          />
+        )}
+        <div className='flex min-w-0 flex-1 items-start gap-4'>
           <Button
-            color='red'
-            variant='outline'
+            variant={suggestion.voted ? 'light' : 'default'}
             size='xs'
+            loading={voting}
             onClick={(event) => {
               event.stopPropagation();
-              setConfirmDelete(true);
+              vote();
             }}
+            aria-label={t(`${base}.vote`, {})}
           >
-            {t('common.button.delete', {})}
+            ▲ {suggestion.votes}
           </Button>
-        )}
+          <div className='flex min-w-0 flex-1 flex-col gap-2'>
+            <div className='flex flex-wrap items-center gap-2'>
+              <h3 className='theme-eco-heading'>{suggestion.title}</h3>
+              <Badge color={statusColor[suggestion.status]}>{t(`${base}.status.${suggestion.status}`, {})}</Badge>
+              <Badge color='gray' variant='light'>
+                {t(`${base}.serverType.${suggestion.serverType}`, {})}
+              </Badge>
+            </div>
+            <p
+              className='theme-eco-text'
+              style={{
+                display: '-webkit-box',
+                WebkitLineClamp: 4,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+              }}
+            >
+              {suggestion.body}
+            </p>
+            {suggestion.changelog && suggestion.status === 'shipped' && (
+              <p className='theme-eco-small'>{t(`${base}.changelog`, { entry: suggestion.changelog })}</p>
+            )}
+            {suggestion.mergedInto && (
+              <p className='theme-eco-small'>{t(`${base}.mergedInto`, { title: suggestion.mergedInto.title })}</p>
+            )}
+            <div className='flex flex-wrap items-center gap-3'>
+              <span className='theme-eco-small inline-flex flex-wrap items-baseline gap-3'>
+                <span>{suggestion.author?.username ?? t(`${base}.anonymous`, {})}</span>
+                <FormattedTimestamp timestamp={suggestion.created} />
+              </span>
+              <span className='theme-eco-small'>
+                {suggestion.comments} {t(`${base}.thread.comments`, {})} · {suggestion.attachments}{' '}
+                {t('pages.account.tickets.thread.attachments', {})}
+              </span>
+              <span className='theme-eco-link ml-auto'>{t(`${base}.viewDiscussion`, {})} →</span>
+            </div>
+          </div>
+        </div>
       </div>
-
-      <ConfirmationModal
-        opened={confirmDelete}
-        onClose={() => setConfirmDelete(false)}
-        title={t(`${base}.deleteTitle`, {})}
-        confirm={t('common.button.delete', {})}
-        confirmColor='red'
-        onConfirmed={() => {
-          deleteSuggestion(suggestion.uuid)
-            .then(() => queryClient.invalidateQueries({ queryKey: queryKeys.user.suggestions() }))
-            .catch((error) => addToast(httpErrorToHuman(error), 'error'));
-        }}
-      >
-        {t(`${base}.deleteBody`, {})}
-      </ConfirmationModal>
     </div>
   );
 }

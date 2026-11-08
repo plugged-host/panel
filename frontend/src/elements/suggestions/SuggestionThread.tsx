@@ -142,9 +142,8 @@ export default function SuggestionThread({
         <Badge color='gray' variant='light'>
           {t(`${base}.serverType.${suggestion.serverType}`, {})}
         </Badge>
-        <Text size='sm' c='dimmed'>
-          {suggestion.author?.username ?? t(`${base}.anonymous`, {})}
-          ·
+        <Text size='sm' c='dimmed' className='inline-flex flex-wrap items-baseline gap-3'>
+          <span>{suggestion.author?.username ?? t(`${base}.anonymous`, {})}</span>
           <FormattedTimestamp timestamp={suggestion.created} />
         </Text>
         {admin ? (
@@ -234,14 +233,17 @@ export default function SuggestionThread({
           <div className='theme-eco-list'>
             {thread.messages.map((message) => (
               <div key={message.uuid} className='theme-eco-tx'>
-                <div className='flex min-w-0 flex-col gap-1'>
-                  <span className='theme-eco-small'>
-                    {message.authorType === 'admin'
-                      ? t(`${base}.thread.staff`, {})
-                      : (message.author?.username ?? t(`${base}.thread.you`, {}))}
-                    ·
-                    <FormattedTimestamp timestamp={message.created} />
-                  </span>
+                <div className='flex min-w-0 flex-1 flex-col gap-1'>
+                  <div className='flex flex-wrap items-baseline justify-between gap-2'>
+                    <span className='theme-eco-small'>
+                      {message.authorType === 'admin'
+                        ? t(`${base}.thread.staff`, {})
+                        : (message.author?.username ?? t(`${base}.thread.you`, {}))}
+                    </span>
+                    <span className='theme-eco-small'>
+                      <FormattedTimestamp timestamp={message.created} />
+                    </span>
+                  </div>
                   <p className='whitespace-pre-wrap theme-eco-text'>{message.body}</p>
                 </div>
               </div>
