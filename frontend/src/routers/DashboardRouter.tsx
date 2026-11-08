@@ -12,6 +12,7 @@ import {
   ArrowTopRightOnSquareIcon,
   CircleStackIcon,
   Cog6ToothIcon,
+  ComputerDesktopIcon,
   EllipsisHorizontalIcon,
   HomeIcon,
   LifebuoyIcon,
@@ -29,6 +30,7 @@ import { isAdmin } from '@/lib/auth/permissions.ts';
 import { resolveString } from '@/lib/lazy.ts';
 import { getAccessibleRoutePaths, to } from '@/lib/routes.ts';
 import CreateServer from '@/pages/dashboard/create/CreateServer.tsx'; // plugged.host
+import DashboardDownloadApp from '@/pages/dashboard/download/DashboardDownloadApp.tsx'; // plugged.host
 import DashboardHomeAll from '@/pages/dashboard/home/DashboardHomeAll.tsx';
 import DashboardHomeGrouped from '@/pages/dashboard/home/DashboardHomeGrouped.tsx';
 import ReviewPrompt from '@/pages/dashboard/home/ReviewPrompt.tsx'; // plugged.host
@@ -65,6 +67,7 @@ function mainIcon(path: string) {
 export default function DashboardRouter({ isNormal }: { isNormal: boolean }) {
   const { t, language } = useTranslations();
   const { user } = useAuth();
+  const settings = useGlobalStore((state) => state.settings);
   const [startOnGroupedServers] = useStartOnGroupedServers();
   const routeOrder = useGlobalStore((state) => state.settings.user?.routeOrder);
 
@@ -224,6 +227,10 @@ export default function DashboardRouter({ isNormal }: { isNormal: boolean }) {
                   iconElement={<ArrowTopRightOnSquareIcon />}
                   name={t('elements.sidebar.accountsHub', {})}
                 />
+                {/* plugged.host: the Windows app, admins on the dev panel (docs/features/app.md) */}
+                {isAdmin(user) && settings.appDownload?.enabled && (
+                  <Sidebar.Link to='/account/download' iconElement={<ComputerDesktopIcon />} name='Download app' />
+                )}
               </Sidebar.Group>
 
               <Sidebar.Group
@@ -322,6 +329,10 @@ export default function DashboardRouter({ isNormal }: { isNormal: boolean }) {
                     .map(({ path, element: Element }) => (
                       <Route key={path} path={`/account/${path}`.replace('//', '/')} element={<Element />} />
                     ))}
+                  {/* plugged.host: the Windows app download, admins on the dev panel */}
+                  {isAdmin(user) && settings.appDownload?.enabled && (
+                    <Route path='/account/download' element={<DashboardDownloadApp />} />
+                  )}
                   {/* plugged.host: the Pelican panel's page paths (legacyRoutes.ts) */}
                   {Object.entries(legacyDashboardRedirects).map(([from, target]) => (
                     <Route key={from} path={from} element={<Navigate to={target} replace />} />

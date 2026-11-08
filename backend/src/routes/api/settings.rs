@@ -148,6 +148,13 @@ mod get {
         open: bool,
     }
 
+    /// plugged.host: the Windows app's admin-only download (docs/features/app.md).
+    #[derive(ToSchema, Serialize)]
+    struct ResponseAppDownload {
+        enabled: bool,
+        version: String,
+    }
+
     #[derive(ToSchema, Serialize)]
     struct Response<'a> {
         time: chrono::DateTime<chrono::Utc>,
@@ -182,6 +189,9 @@ mod get {
         neo: ResponseNeo, // plugged.host
         #[schema(inline)]
         partners: ResponsePartners, // plugged.host
+        /// plugged.host: the desktop app is offered on this panel.
+        #[schema(inline)]
+        app_download: ResponseAppDownload,
     }
 
     #[utoipa::path(get, path = "/", responses(
@@ -308,6 +318,18 @@ mod get {
             partners: ResponsePartners {
                 enabled: settings.partners.enabled,
                 open: shared::partners::offered(&settings),
+            },
+            app_download: ResponseAppDownload {
+                enabled: std::env::var("PLUGGED_APP_INSTALLER")
+                    .ok()
+                    .map(|path| path.trim().to_owned())
+                    .filter(|path| !path.is_empty())
+                    .is_some_and(|path| std::path::Path::new(&path).is_file()),
+                version: std::env::var("PLUGGED_APP_VERSION")
+                    .ok()
+                    .map(|version| version.trim().to_owned())
+                    .filter(|version| !version.is_empty())
+                    .unwrap_or_else(|| "3.1.0".into()),
             },
         })
         .ok()

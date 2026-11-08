@@ -215,4 +215,9 @@ export const publicSettingsSchema = z.object({
     enabled: z.boolean(),
     open: z.boolean(),
   }),
+  // plugged.host: the Windows app's admin-only download (docs/features/app.md)
+  appDownload: z.object({
+    enabled: z.boolean(),
+    version: z.string(),
+  }),
 });

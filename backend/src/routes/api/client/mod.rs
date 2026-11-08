@@ -20,8 +20,9 @@ use tower_cookies::Cookies;
 use utoipa_axum::router::OpenApiRouter;
 
 mod account;
+mod app;
 mod permissions;
-pub mod servers;
+pub mod servers; // plugged.host: the desktop app download
 
 fn check_account_gates(
     user: &User,
@@ -437,6 +438,7 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
     OpenApiRouter::new()
         .nest("/account", account::router(state))
         .nest("/servers", servers::router(state))
+        .nest("/app", app::router(state)) // plugged.host: the desktop app download
         .nest("/permissions", permissions::router(state))
         .route_layer(axum::middleware::from_fn_with_state(state.clone(), auth))
         .with_state(state.clone())

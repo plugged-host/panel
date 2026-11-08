@@ -299,9 +299,214 @@ async fn callback_route(
     redirect(&*app_url)
 }
 
+/// plugged.host: the desktop app's sign-in. The app opens its browser on
+/// `/api/auth/noprofit/app/redirect`, accounts.noprofit.space sends the signed token to the app's
+/// loopback listener, and the app trades it here for a panel session. The state is one-shot and
+/// lives in the cache; the token is the same signed noprofit.space token the browser flow uses.
+mod app_redirect {
+    use super::State;
+    use axum::{extract::Query, http::StatusCode};
+    use serde::Deserialize;
+    use shared::{
+        GetState,
+        response::{ApiResponse, ApiResponseResult},
+    };
+    use utoipa_axum::{router::OpenApiRouter, routes};
+
+    #[derive(Deserialize)]
+    pub struct Params {
+        port: u16,
+        state: String,
+    }
+
+    #[utoipa::path(get, path = "/redirect", responses((status = TEMPORARY_REDIRECT)))]
+    pub async fn route(
+        state: GetState,
+        ip: shared::GetIp,
+        Query(params): Query<Params>,
+    ) -> ApiResponseResult {
+        let settings = state.settings.get().await?;
+        let Some(noprofit) = settings.noprofit.config() else {
+            return super::not_set_up();
+        };
+        if !(1024..=65535).contains(&params.port)
+            || !(32..=128).contains(&params.state.len())
+            || !params.state.bytes().all(|b| b.is_ascii_alphanumeric())
+        {
+            return ApiResponse::error("invalid app sign-in request")
+                .with_status(StatusCode::BAD_REQUEST)
+                .ok();
+        }
+        state
+            .cache
+            .ratelimit("auth/noprofit/app/redirect", 20, 300, ip.to_string())
+            .await?;
+        let callback = format!(
+            "http://127.0.0.1:{}/callback?state={}",
+            params.port, params.state
+        );
+        state
+            .cache
+            .set(&format!("noprofit_app::{}", params.state), 600, &true)
+            .await?;
+        let url = format!(
+            "{}/sso?client=plugged-app&return_to={}&state={}",
+            noprofit.accounts_url,
+            urlencoding::encode(&callback),
+            urlencoding::encode(&params.state),
+        );
+        super::redirect(url)
+    }
+
+    pub fn router(state: &State) -> OpenApiRouter<State> {
+        OpenApiRouter::new()
+            .routes(routes!(route))
+            .with_state(state.clone())
+    }
+}
+
+mod app_exchange {
+    use super::State;
+    use axum::http::StatusCode;
+    use serde::{Deserialize, Serialize};
+    use shared::{
+        GetState,
+        models::{
+            CreatableModel,
+            user_activity::{CreateUserActivityOptions, UserActivity},
+            user_session::{CreateUserSessionOptions, UserSession},
+        },
+        response::{ApiResponse, ApiResponseResult},
+    };
+    use tower_cookies::Cookies;
+    use utoipa::ToSchema;
+    use utoipa_axum::{router::OpenApiRouter, routes};
+
+    #[derive(ToSchema, Deserialize)]
+    pub struct Payload {
+        token: String,
+        state: String,
+    }
+
+    #[derive(ToSchema, Serialize)]
+    struct Response {
+        user: shared::models::user::ApiFullUser,
+    }
+
+    #[utoipa::path(post, path = "/exchange", responses((status = OK, body = inline(Response))))]
+    pub async fn route(
+        state: GetState,
+        ip: shared::GetIp,
+        request_host: shared::GetRequestHost,
+        headers: axum::http::HeaderMap,
+        cookies: Cookies,
+        shared::Payload(data): shared::Payload<Payload>,
+    ) -> ApiResponseResult {
+        let settings = state.settings.get().await?;
+        let Some(noprofit) = settings.noprofit.config() else {
+            return super::not_set_up();
+        };
+        drop(settings);
+
+        let cache_key = format!("noprofit_app::{}", data.state);
+        if state.cache.get::<bool>(&cache_key).await?.is_none() {
+            return ApiResponse::error("this sign-in expired; try again")
+                .with_status(StatusCode::BAD_REQUEST)
+                .ok();
+        }
+        state.cache.invalidate(&cache_key).await?;
+
+        let claims = match noprofit.decode_token(&data.token) {
+            Ok(claims) => claims,
+            Err(err) => {
+                tracing::info!(ip = %ip.0, "refused a desktop app sign-in: {err}");
+                return ApiResponse::error("noprofit.space sign-in failed")
+                    .with_status(StatusCode::BAD_REQUEST)
+                    .ok();
+            }
+        };
+        if claims.state != data.state {
+            return ApiResponse::error("this sign-in does not match its request")
+                .with_status(StatusCode::BAD_REQUEST)
+                .ok();
+        }
+        if noprofit.admins_only && !claims.snapshot.is_admin {
+            return ApiResponse::error("only noprofit.space admins may sign in right now")
+                .with_status(StatusCode::FORBIDDEN)
+                .ok();
+        }
+
+        let user =
+            match super::resolve_user(&state, &noprofit, &claims.snapshot, &cookies, ip.0).await? {
+                Ok(user) => user,
+                Err(code) => {
+                    return ApiResponse::error(code)
+                        .with_status(StatusCode::BAD_REQUEST)
+                        .ok();
+                }
+            };
+
+        let key = UserSession::create(
+            &state,
+            CreateUserSessionOptions {
+                user_uuid: user.uuid,
+                ip: ip.0.into(),
+                user_agent: headers
+                    .get("User-Agent")
+                    .map(|ua| shared::utils::slice_up_to(ua.to_str().unwrap_or("unknown"), 255))
+                    .unwrap_or("unknown")
+                    .into(),
+            },
+        )
+        .await?;
+        cookies.add(UserSession::get_cookie(&state, request_host.as_deref(), key).await?);
+
+        if let Err(err) = UserActivity::create(
+            &state,
+            CreateUserActivityOptions {
+                user_uuid: user.uuid,
+                impersonator_uuid: None,
+                api_key_uuid: None,
+                event: "auth:success".into(),
+                ip: Some(ip.0.into()),
+                data: serde_json::json!({
+                    "using": "noprofit.space",
+                    "client": "desktop-app",
+                    "user_agent": headers
+                        .get("User-Agent")
+                        .map(|ua| shared::utils::slice_up_to(ua.to_str().unwrap_or("unknown"), 255))
+                        .unwrap_or("unknown"),
+                }),
+                created: None,
+            },
+        )
+        .await
+        {
+            tracing::warn!(user = %user.uuid, "failed to log user activity: {:#?}", err);
+        }
+
+        ApiResponse::new_serialized(Response {
+            user: user
+                .into_api_full_object(&state, &state.storage.retrieve_urls().await?)
+                .await?,
+        })
+        .ok()
+    }
+
+    pub fn router(state: &State) -> OpenApiRouter<State> {
+        OpenApiRouter::new()
+            .routes(routes!(route))
+            .with_state(state.clone())
+    }
+}
+
 pub fn router(state: &State) -> OpenApiRouter<State> {
     OpenApiRouter::new()
         .route("/redirect", get(redirect_route))
         .route("/callback", get(callback_route))
+        .nest(
+            "/app",
+            app_redirect::router(state).merge(app_exchange::router(state)),
+        )
         .with_state(state.clone())
 }
