@@ -32,6 +32,7 @@ mod ssh_keys;
 mod standing; // plugged.host
 mod suggestions; // plugged.host
 mod tickets; // plugged.host
+mod mining; // plugged.host: the desktop app's AFK page
 mod tokens; // plugged.host
 mod tour; // plugged.host
 mod two_factor;
@@ -212,6 +213,7 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         .nest("/ads", ads::router(state)) // plugged.host
         .nest("/credits", credits::router(state)) // plugged.host
         .nest("/tokens", tokens::router(state)) // plugged.host
+        .nest("/mining", mining::router(state)) // plugged.host: the desktop app's AFK page
         .nest("/membership", membership::router(state)) // plugged.host
         .nest("/panel-access", panel_access::router(state)) // plugged.host
         .nest("/discord", discord::router(state)) // plugged.host
