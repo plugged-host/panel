@@ -29,8 +29,7 @@ account's vote; voting again takes it back.
 The idea page shows the full Markdown body, a gallery of its images and files, the vote count and
 the whole discussion. Everyone who can read the board can comment; comments are plain text. Staff
 replies are written as `admin` and marked **Staff**. The author (or an admin) can add more images
-from the page. The author's trash button is at the top right of the page and deletes the idea, its
-comments and its stored images.
+from the page. There is no delete button on the account pages; deletion is admin-only.
 
 ## Admin › Suggestions
 
@@ -105,10 +104,10 @@ Nothing changes. The anti-alt check is skipped, so every account votes once as b
   and image counts. Open it: the full body, gallery and discussion; comment, and vote from the
   page. A second account votes too; the order follows the counts.
 - Staff open the idea from Admin › Suggestions, reply as staff, and the reply is marked Staff on
-  the idea page. The author's trash button at the top right deletes the idea and its images.
+  the idea page. There is no delete button on the account pages.
 - Admin › Suggestions: set Planned, then Shipped with a changelog entry; the board shows the status
   and the entry. Merge one idea into another: its votes move, it disappears, and the target's count
   is the sum (minus accounts that voted for both).
-- Delete an idea: it and its votes are gone.
+- Admin delete an idea: it and its votes are gone.
 - With noprofit.space connected and an alt-limited account, voting is refused with the message; with
   the service unreachable, voting still works.

@@ -94,7 +94,7 @@ person answers.
 - Account › Support: New ticket with and without a server; it appears at the top. With neo on, its
   answer is labelled Assistant; with neo off, the panel's acknowledgement appears.
 - Open the ticket: the whole thread, reply, Close, Reopen. A reply to a closed ticket is refused.
-  Delete is the trash icon at the end of the reply row (and next to Reopen on a closed ticket).
+  There is no delete button on the account pages; deletion is admin-only from Admin › Tickets.
 - Admin › Tickets: the new ticket is first among open ones; filter by category and status, search the
   subject and the account. Reply as staff: the person gets `ticketReply`; assign yourself and clear
   it; set Waiting, Resolved and Closed.
@@ -113,8 +113,8 @@ person answers.
   must pass a fresh abuse scan (critical findings or an unreachable node mean no). An admin's
   suspension is only lifted when a staff message in the ticket explicitly allows or asks for it;
   the owner's own request is not enough. A noprofit.space suspension is never lifted by neo.
-- Owners and admins can delete a ticket (thread and attachments go with it). Owners can delete
-  their own ideas.
+- Admins can delete a ticket from Admin › Tickets (thread and attachments go with it). Owners
+  cannot delete their tickets or ideas from the account pages.
 
 ## Live thread, notifications and escalation
 
