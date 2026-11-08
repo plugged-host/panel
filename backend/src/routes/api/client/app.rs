@@ -41,7 +41,7 @@ pub mod get {
     use serde::Serialize;
     use shared::{
         GetState,
-        models::user::GetUser,
+        models::user::{GetPermissionManager, GetUser},
         response::{ApiResponse, ApiResponseResult},
     };
     use utoipa::ToSchema;
@@ -61,8 +61,12 @@ pub mod get {
     }
 
     #[utoipa::path(get, path = "/", responses((status = OK, body = inline(Response))))]
-    pub async fn route(_state: GetState, user: GetUser) -> ApiResponseResult {
-        if !user.admin {
+    pub async fn route(
+        _state: GetState,
+        _user: GetUser,
+        permissions: GetPermissionManager,
+    ) -> ApiResponseResult {
+        if !permissions.is_admin() {
             return ApiResponse::error("not found")
                 .with_status(axum::http::StatusCode::NOT_FOUND)
                 .ok();
@@ -96,8 +100,12 @@ pub mod download {
     };
 
     #[utoipa::path(get, path = "/download", responses((status = OK)))]
-    pub async fn route(_state: GetState, user: GetUser) -> ApiResponseResult {
-        if !user.admin {
+    pub async fn route(
+        _state: GetState,
+        _user: GetUser,
+        permissions: GetPermissionManager,
+    ) -> ApiResponseResult {
+        if !permissions.is_admin() {
             return ApiResponse::error("not found")
                 .with_status(StatusCode::NOT_FOUND)
                 .ok();
