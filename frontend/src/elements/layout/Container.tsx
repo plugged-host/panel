@@ -46,7 +46,7 @@ function Container({ children, isNormal }: LayoutProps) {
         {children}
       </div>
       {/* plugged.host: the footer at the end of the page column, not the window */}
-      <div className='w-full max-w-384 mx-auto px-4 md:px-6 lg:px-8 pb-4 flex flex-col items-end'>
+      <div className='w-full px-4 md:px-6 lg:px-8 pb-4 flex flex-col items-end'>
         {serverName && (
           <span className='text-xs text-(--mantine-color-dimmed)'>
             {t('elements.container.connectedTo', { name: serverName })}

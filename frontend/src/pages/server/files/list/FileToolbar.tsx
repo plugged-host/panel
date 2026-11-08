@@ -194,7 +194,13 @@ export default function FileToolbar({
       )}
 
       {!treeView && (
-        <Group gap='xs' justify='flex-end' wrap='nowrap' className='min-w-[2.25rem] flex-1'>
+        <Group
+          gap='xs'
+          justify='flex-end'
+          wrap='nowrap'
+          data-search-open={searchOpen}
+          className='theme-file-search-row min-w-[2.25rem] flex-1'
+        >
           <div
             className={`overflow-hidden transition-all duration-300 ease-out ${
               searchOpen ? 'min-w-0 flex-1 max-w-[32rem] opacity-100' : 'max-w-0 opacity-0'

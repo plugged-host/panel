@@ -1376,7 +1376,8 @@ strong {
 /* =============================================================================
  * plugged.host: the page shell (ContentContainerHeader, the content containers)
  *
- * ".fi-main": "mx-auto px-8", max-w-screen-2xl, 0.5rem / 2rem block padding;
+ * ".fi-main": "mx-auto px-8", 0.5rem / 2rem block padding. The column fills the window; forms and
+ * prose keep their own narrower max widths instead.
  * ".fi-page-header-main-ctn": "gap-y-8 py-8";
  * ".fi-header-heading": "text-xl font-semibold", ".fi-header-subheading": "text-gray-400";
  * ".fi-header-actions": the page's actions at the end of the title row, "gap-3".
@@ -1384,8 +1385,6 @@ strong {
 
 .theme-main {
   width: 100%;
-  max-width: 96rem;
-  margin-inline: auto;
   padding: 0.5rem 1rem 2rem;
 }
 
@@ -8614,6 +8613,15 @@ span.theme-neo-image {
   border-color: var(--theme-hairline) !important;
   outline: none !important;
   box-shadow: none !important;
+}
+
+/* plugged.host: on phones the search field takes a row of its own under the action tiles, so it
+   is never squeezed between them; the icon stays at the end of the row and the input fills it. */
+@media (max-width: 47.99rem) {
+  .theme-file-search-row[data-search-open="true"] {
+    order: 10;
+    flex-basis: 100%;
+  }
 }
 
 /* plugged.host: the files header stays on one row from 48rem up; only phones may wrap it.
