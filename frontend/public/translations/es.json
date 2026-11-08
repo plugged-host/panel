@@ -6956,10 +6956,10 @@
                 "created": "Subusuario creado."
               },
               "form": {
-                "emailPlaceholder": "Introduce el correo con el que se guardará este subusuario.",
                 "permissions": "Permisos",
                 "ignoredFilesDescription": "Los archivos y directorios que coincidan con estos patrones estarán ocultos para este subusuario. Utiliza patrones glob con el estilo de gitignore (por ejemplo, `*.env`, `secrets/`). Añade el prefijo `!` a un patrón para volver a mostrar una ruta que, de otro modo, quedaría excluida por un patrón más general.",
-                "ignoredFilesInherited": "Las rutas que están ocultas para ti siempre se aplican por encima de estas y no se pueden volver a habilitar."
+                "ignoredFilesInherited": "Las rutas que están ocultas para ti siempre se aplican por encima de estas y no se pueden volver a habilitar.",
+                "usernamePlaceholder": "The username of the account to add."
               }
             },
             "updateSubuser": {

@@ -582,7 +582,7 @@ impl OAuthProviderMapping {
                         state,
                         super::server_subuser::CreateServerSubuserOptions {
                             server: &server,
-                            email: user.email.clone(),
+                            username: user.username.clone(),
                             permissions: permissions.clone(),
                             ignored_files: ignored_files.clone(),
                         },

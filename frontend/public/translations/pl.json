@@ -3547,7 +3547,8 @@
                 "created": "Podużytkownik utworzony."
               },
               "form": {
-                "permissions": "Uprawnienia"
+                "permissions": "Uprawnienia",
+                "usernamePlaceholder": "The username of the account to add."
               }
             }
           }

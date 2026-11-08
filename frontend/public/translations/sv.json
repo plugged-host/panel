@@ -1696,8 +1696,8 @@
                 "created": "Underanvändare skapad."
               },
               "form": {
-                "emailPlaceholder": "Ange den e-postadress som denna underanvändare ska sparas som.",
-                "permissions": "Behörigheter"
+                "permissions": "Behörigheter",
+                "usernamePlaceholder": "The username of the account to add."
               }
             },
             "updateSubuser": {

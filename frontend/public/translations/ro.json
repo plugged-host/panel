@@ -574,8 +574,8 @@
                 "created": "Subutilizator creat."
               },
               "form": {
-                "emailPlaceholder": "Introdu emailul cu care ar trebui salvat acest subutilizator.",
-                "permissions": "Permisiuni"
+                "permissions": "Permisiuni",
+                "usernamePlaceholder": "The username of the account to add."
               }
             },
             "updateSubuser": {

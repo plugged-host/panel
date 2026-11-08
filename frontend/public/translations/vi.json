@@ -8382,10 +8382,10 @@
                 "created": "Người dùng phụ đã được tạo."
               },
               "form": {
-                "emailPlaceholder": "Nhập email mà người dùng phụ này nên được lưu.",
                 "permissions": "Quyền",
                 "ignoredFilesDescription": "Các tệp và thư mục khớp với các mẫu này sẽ bị ẩn khỏi người dùng phụ này. Sử dụng mẫu glob kiểu gitignore (vd: `*.env`, `secrets/`). Đặt `!` trước mẫu để bỏ ẩn đường dẫn mà mẫu rộng hơn sẽ loại trừ.",
-                "ignoredFilesInherited": "Các đường dẫn bị ẩn khỏi bạn luôn được áp dụng đè lên những đường dẫn này và không thể bị chuyển nhượng."
+                "ignoredFilesInherited": "Các đường dẫn bị ẩn khỏi bạn luôn được áp dụng đè lên những đường dẫn này và không thể bị chuyển nhượng.",
+                "usernamePlaceholder": "The username of the account to add."
               }
             },
             "updateSubuser": {

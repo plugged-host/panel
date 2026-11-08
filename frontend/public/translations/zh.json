@@ -5823,9 +5823,9 @@
                 "created": "子使用者已建立。"
               },
               "form": {
-                "emailPlaceholder": "輸入此子使用者應儲存使用的電子郵件。",
                 "permissions": "權限",
-                "ignoredFilesDescription": "符合這些模式的檔案和目錄將對此子使用者隱藏。使用 gitignore 風格的 glob 模式（例如 `*.env`、`secrets/`）。在模式前加上 `!` 可取消隱藏否則會被更廣泛模式排除的路徑。"
+                "ignoredFilesDescription": "符合這些模式的檔案和目錄將對此子使用者隱藏。使用 gitignore 風格的 glob 模式（例如 `*.env`、`secrets/`）。在模式前加上 `!` 可取消隱藏否則會被更廣泛模式排除的路徑。",
+                "usernamePlaceholder": "The username of the account to add."
               }
             },
             "updateSubuser": {

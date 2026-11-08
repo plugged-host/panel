@@ -98,9 +98,8 @@ mod post {
 
     #[derive(ToSchema, Validate, Deserialize)]
     pub struct Payload {
-        #[garde(email)]
-        #[schema(format = "email")]
-        email: compact_str::CompactString,
+        #[garde(length(chars, min = 3, max = 15), pattern("^[a-zA-Z0-9_]+$"))]
+        username: compact_str::CompactString,
         #[garde(custom(shared::permissions::validate_server_permissions))]
         permissions: Vec<compact_str::CompactString>,
         #[garde(
@@ -189,7 +188,7 @@ mod post {
 
         let options = shared::models::server_subuser::CreateServerSubuserOptions {
             server: &server,
-            email: data.email,
+            username: data.username,
             permissions: data.permissions,
             ignored_files: data.ignored_files,
         };
@@ -201,7 +200,7 @@ mod post {
                     .ok();
             }
             Err(err) if err.is_unique_violation() => {
-                return ApiResponse::error("subuser with email already exists")
+                return ApiResponse::error("subuser with username already exists")
                     .with_status(StatusCode::CONFLICT)
                     .ok();
             }

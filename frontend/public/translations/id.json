@@ -5408,10 +5408,10 @@
                 "created": "Subpengguna dibuat."
               },
               "form": {
-                "emailPlaceholder": "Masukkan email yang akan digunakan untuk subpengguna ini.",
                 "permissions": "Izin",
                 "ignoredFilesDescription": "File dan direktori yang cocok dengan pola ini akan disembunyikan dari subpengguna ini. Menggunakan pola glob ala gitignore (mis. `*.env`, `secrets/`). Awali pola dengan `!` untuk menampilkan kembali jalur yang seharusnya dikecualikan oleh pola yang lebih luas.",
-                "ignoredFilesInherited": "Jalur yang disembunyikan dari Anda selalu diterapkan di atas pola ini, dan aksesnya tidak dapat Anda berikan."
+                "ignoredFilesInherited": "Jalur yang disembunyikan dari Anda selalu diterapkan di atas pola ini, dan aksesnya tidak dapat Anda berikan.",
+                "usernamePlaceholder": "The username of the account to add."
               }
             },
             "updateSubuser": {

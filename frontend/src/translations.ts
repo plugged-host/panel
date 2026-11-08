@@ -11291,7 +11291,7 @@ const baseTranslations = defineTranslations({
                 created: 'Subuser created.',
               },
               form: {
-                emailPlaceholder: 'Enter the email that this subuser should be saved as.',
+                usernamePlaceholder: 'The username of the account to add.',
                 permissions: 'Permissions',
                 ignoredFilesDescription:
                   'Files and directories matching these patterns will be hidden from this subuser. Uses gitignore-style glob patterns (e.g. `*.env`, `secrets/`). Prefix a pattern with `!` to un-hide a path that a broader pattern would otherwise exclude.',

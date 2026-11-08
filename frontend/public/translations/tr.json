@@ -5411,10 +5411,10 @@
                 "created": "Alt kullanıcı oluşturuldu."
               },
               "form": {
-                "emailPlaceholder": "Alt kullanıcının kaydedileceği e-posta adresini girin.",
                 "permissions": "Yetkiler",
                 "ignoredFilesDescription": "Bu kalıplarla eşleşen dosya ve dizinler bu alt kullanıcıdan gizlenir. gitignore tarzı glob kalıpları kullanılır (ör. `*.env`, `secrets/`). Daha geniş bir kalıbın gizleyeceği bir yolu yeniden göstermek için kalıbın başına `!` ekleyin.",
-                "ignoredFilesInherited": "Sizden gizlenen yollar her zaman bunlara ek olarak uygulanır ve başkalarına açılamaz."
+                "ignoredFilesInherited": "Sizden gizlenen yollar her zaman bunlara ek olarak uygulanır ve başkalarına açılamaz.",
+                "usernamePlaceholder": "The username of the account to add."
               }
             },
             "updateSubuser": {

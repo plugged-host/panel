@@ -3887,9 +3887,9 @@
                 "created": "Podužívateľ bol vytvorený."
               },
               "form": {
-                "emailPlaceholder": "Zadajte e-mailovú adresu tohto podužívateľa.",
                 "permissions": "Povolenia",
-                "ignoredFilesDescription": "Súbory a adresáre zodpovedajúce týmto vzorom budú pred týmto podužívateľom skryté. Používa vzory glob v štýle gitignore (napr. `*.env`, `secrets/`). Pred vzor pridajte `!`, aby sa odkryla cesta, ktorú by širší vzor inak vylúčil."
+                "ignoredFilesDescription": "Súbory a adresáre zodpovedajúce týmto vzorom budú pred týmto podužívateľom skryté. Používa vzory glob v štýle gitignore (napr. `*.env`, `secrets/`). Pred vzor pridajte `!`, aby sa odkryla cesta, ktorú by širší vzor inak vylúčil.",
+                "usernamePlaceholder": "The username of the account to add."
               }
             },
             "updateSubuser": {

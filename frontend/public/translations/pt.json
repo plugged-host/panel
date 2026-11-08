@@ -5408,10 +5408,10 @@
                 "created": "Subusuário criado."
               },
               "form": {
-                "emailPlaceholder": "Digite o e-mail com que este subusuário deve ser salvo.",
                 "permissions": "Permissões",
                 "ignoredFilesDescription": "Arquivos e pastas que correspondem a estes padrões ficarão ocultos para este subusuário. Usa padrões glob no estilo do gitignore (ex.: `*.env`, `secrets/`). Comece um padrão com `!` para mostrar um caminho que um padrão mais amplo ocultaria.",
-                "ignoredFilesInherited": "Os caminhos ocultos para você sempre se somam a estes e não podem ser liberados para outra pessoa."
+                "ignoredFilesInherited": "Os caminhos ocultos para você sempre se somam a estes e não podem ser liberados para outra pessoa.",
+                "usernamePlaceholder": "The username of the account to add."
               }
             },
             "updateSubuser": {

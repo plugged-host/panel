@@ -6348,10 +6348,10 @@
                 "created": "Underbruger oprettet."
               },
               "form": {
-                "emailPlaceholder": "Indtast den e-mail, denne underbruger skal gemmes som.",
                 "permissions": "Rettigheder",
                 "ignoredFilesDescription": "Filer og mapper, der matcher disse mønstre, skjules for denne underbruger. Bruger glob-mønstre i gitignore-stil (f.eks. `*.env`, `secrets/`). Sæt `!` foran et mønster for at vise en sti igen, som et bredere mønster ellers ville ekskludere.",
-                "ignoredFilesInherited": "De stier, der er skjult for dig, anvendes altid oven i disse og kan ikke gives videre."
+                "ignoredFilesInherited": "De stier, der er skjult for dig, anvendes altid oven i disse og kan ikke gives videre.",
+                "usernamePlaceholder": "The username of the account to add."
               }
             },
             "updateSubuser": {

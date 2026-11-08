@@ -5408,10 +5408,10 @@
                 "created": "Qoʻshimcha foydalanuvchi yaratildi."
               },
               "form": {
-                "emailPlaceholder": "Bu qoʻshimcha foydalanuvchi saqlanadigan e-pochta manzilini kiriting.",
                 "permissions": "Ruxsatlar",
                 "ignoredFilesDescription": "Bu shablonlarga mos keladigan fayl va kataloglar ushbu qoʻshimcha foydalanuvchidan yashiriladi. Shablonlar gitignore uslubidagi glob shablonlari (masalan, `*.env`, `secrets/`). Kengroq shablon yashiradigan yoʻlni qayta koʻrsatish uchun shablon oldiga `!` qoʻying.",
-                "ignoredFilesInherited": "Sizdan yashirilgan yoʻllar har doim bularning ustiga qoʻllanadi va ularga kirish huquqini boshqalarga berib boʻlmaydi."
+                "ignoredFilesInherited": "Sizdan yashirilgan yoʻllar har doim bularning ustiga qoʻllanadi va ularga kirish huquqini boshqalarga berib boʻlmaydi.",
+                "usernamePlaceholder": "The username of the account to add."
               }
             },
             "updateSubuser": {

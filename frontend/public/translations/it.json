@@ -756,8 +756,8 @@
                 "created": "Sottoutente creato."
               },
               "form": {
-                "emailPlaceholder": "Inserisci l'email con cui salvare questo sottoutente.",
-                "permissions": "Permessi"
+                "permissions": "Permessi",
+                "usernamePlaceholder": "The username of the account to add."
               }
             },
             "updateSubuser": {

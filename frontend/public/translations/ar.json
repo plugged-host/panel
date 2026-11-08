@@ -5411,10 +5411,10 @@
                 "created": "تم إنشاء المستخدم الفرعي."
               },
               "form": {
-                "emailPlaceholder": "أدخل البريد الإلكتروني الذي يجب حفظ هذا المستخدم الفرعي به.",
                 "permissions": "الأذونات",
                 "ignoredFilesDescription": "ستُخفى عن هذا المستخدم الفرعي الملفات والمجلدات المطابقة لهذه الأنماط. تُستخدم أنماط glob بأسلوب gitignore (مثل `*.env`، `secrets/`). ابدأ النمط بـ `!` لإظهار مسار كان نمط أوسع سيستبعده.",
-                "ignoredFilesInherited": "تُطبَّق المسارات المخفية عنك دائمًا فوق هذه، ولا يمكن منحها لغيرك."
+                "ignoredFilesInherited": "تُطبَّق المسارات المخفية عنك دائمًا فوق هذه، ولا يمكن منحها لغيرك.",
+                "usernamePlaceholder": "The username of the account to add."
               }
             },
             "updateSubuser": {

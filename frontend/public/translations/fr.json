@@ -7289,10 +7289,10 @@
                 "created": "Sous-utilisateur créé."
               },
               "form": {
-                "emailPlaceholder": "Entrez l'adresse e-mail du sous-utilisateur.",
                 "permissions": "Permissions",
                 "ignoredFilesDescription": "Les fichiers et répertoires correspondant à ces motifs seront masqués pour ce sous-utilisateur. Utilise des motifs glob de style gitignore (ex. `*.env`, `secrets/`). Préfixez un motif avec `!` pour démasquer un chemin qu'un motif plus large exclurait sinon.",
-                "ignoredFilesInherited": "Les chemins qui vous sont masqués s'appliquent toujours en plus de ceux-ci, et vous ne pouvez pas en donner l'accès."
+                "ignoredFilesInherited": "Les chemins qui vous sont masqués s'appliquent toujours en plus de ceux-ci, et vous ne pouvez pas en donner l'accès.",
+                "usernamePlaceholder": "The username of the account to add."
               }
             },
             "updateSubuser": {
