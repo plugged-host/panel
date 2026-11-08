@@ -32,3 +32,12 @@ The desktop flow reuses the Calagopus SSO client's audience. accounts.noprofit.s
 minutes, verifies it once, decodes the token and starts the same session the browser would. Only
 noprofit.space admins can use it while Admin › Settings › Accounts › noprofit.space is "admins
 only".
+
+## Updates
+
+The app compares its own version with `/api/client/app`. When the panel has a newer installer,
+Account › Check for updates (and the check after sign-in) offers it; the app downloads the installer,
+starts it with `--update --dir <install>`, and exits. The installer waits for the old
+`plugged.host.exe` to close, replaces it, keeps the shortcuts and the Add or remove programs entry,
+and relaunches the app. Bump `PLUGGED_APP_VERSION` and copy the new installer to
+`PLUGGED_APP_INSTALLER` to publish an update.
