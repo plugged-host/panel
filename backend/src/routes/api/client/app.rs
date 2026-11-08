@@ -95,7 +95,7 @@ pub mod download {
     };
     use shared::{
         GetState,
-        models::user::GetUser,
+        models::user::{GetPermissionManager, GetUser},
         response::{ApiResponse, ApiResponseResult},
     };
 

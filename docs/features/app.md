@@ -1,6 +1,6 @@
 # The Windows app
 
-Plugged has a native Windows client, `plugged-host/app`, written in Rust (egui). It is not a web
+plugged.host has a native Windows client, `plugged-host/app`, written in Rust (egui). It is not a web
 view: the panel's Theme v2 is drawn natively, and the app talks to the same `/api/client` endpoints
 the browser does. It signs in with noprofit.space through a loopback listener (the browser hands a
 signed token to `127.0.0.1`, the app trades it for a panel session at
@@ -22,7 +22,7 @@ and both routes answer 404. `PLUGGED_APP_VERSION` labels it. `PLUGGED_APP_RELEAS
 on the page. Dev sets them; prod does not, so nothing is offered there.
 
 The installer is built on ryzen by `plugged-host/app/build.sh` and copied to
-`/var/lib/calagopus/app/Plugged-Setup-<version>.exe` on dev.
+`/var/lib/calagopus/app/plugged.host-Setup-<version>.exe` on dev.
 
 ## Sign-in
 

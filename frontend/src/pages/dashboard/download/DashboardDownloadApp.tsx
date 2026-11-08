@@ -33,19 +33,23 @@ export default function DashboardDownloadApp() {
   });
 
   return (
-    <AccountContentContainer title='Download app' subtitle='Plugged for Windows'>
+    <AccountContentContainer title='Download app' subtitle='plugged.host for Windows'>
       <ResourceView resource={info}>
         {(app) =>
           app.enabled ? (
             <div className='flex flex-col gap-6'>
               <section className='theme-eco-card'>
                 <div className='flex flex-wrap items-center gap-5'>
-                  <div className='flex size-16 shrink-0 items-center justify-center rounded-2xl bg-(--theme-accent) text-3xl font-bold text-white'>
-                    P
-                  </div>
+                  <img
+                    src='/plugged.host.png'
+                    alt='plugged.host'
+                    className='size-16 shrink-0 rounded-2xl'
+                  />
                   <div className='flex min-w-0 flex-1 flex-col gap-1'>
-                    <h2 className='theme-eco-heading'>Plugged for Windows</h2>
-                    <p className='theme-eco-muted'>Version {app.version}</p>
+                    <h2 className='theme-eco-heading'>plugged.host for Windows</h2>
+                    <p className='theme-eco-muted'>
+                      Version {app.version} · made by noprofit.space
+                    </p>
                   </div>
                   <Button
                     size='lg'
