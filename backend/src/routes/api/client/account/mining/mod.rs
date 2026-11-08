@@ -52,7 +52,10 @@ pub struct MiningStatus {
     can_claim: bool,
 }
 
-async fn status(state: &shared::State, user: &shared::models::user::User) -> anyhow::Result<MiningStatus> {
+async fn status(
+    state: &shared::State,
+    user: &shared::models::user::User,
+) -> anyhow::Result<MiningStatus> {
     let row = sqlx::query(
         "SELECT tokens, tokens_earned,
             (SELECT MAX(created) FROM user_token_transactions
@@ -84,7 +87,11 @@ async fn status(state: &shared::State, user: &shared::models::user::User) -> any
         daily_cap: cap,
         daily_earned,
         last_claim: last.map(|last| last.and_utc()),
-        next_claim_in: if rate > 0 { (interval - elapsed).max(0) } else { 0 },
+        next_claim_in: if rate > 0 {
+            (interval - elapsed).max(0)
+        } else {
+            0
+        },
         can_claim: rate > 0 && cap > 0 && daily_earned < cap,
     })
 }

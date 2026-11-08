@@ -40,16 +40,10 @@ export default function DashboardDownloadApp() {
             <div className='flex flex-col gap-6'>
               <section className='theme-eco-card'>
                 <div className='flex flex-wrap items-center gap-5'>
-                  <img
-                    src='/plugged.host.png'
-                    alt='plugged.host'
-                    className='size-16 shrink-0 rounded-2xl'
-                  />
+                  <img src='/plugged.host.png' alt='plugged.host' className='size-16 shrink-0 rounded-2xl' />
                   <div className='flex min-w-0 flex-1 flex-col gap-1'>
                     <h2 className='theme-eco-heading'>plugged.host for Windows</h2>
-                    <p className='theme-eco-muted'>
-                      Version {app.version} · made by noprofit.space
-                    </p>
+                    <p className='theme-eco-muted'>Version {app.version} · made by noprofit.space</p>
                   </div>
                   <Button
                     size='lg'

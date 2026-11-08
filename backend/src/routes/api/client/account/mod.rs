@@ -16,6 +16,7 @@ mod discord; // plugged.host
 mod email;
 mod logout;
 mod membership; // plugged.host
+mod mining; // plugged.host: the desktop app's AFK page
 pub(crate) mod neo; // plugged.host
 mod noprofit;
 mod notifications; // plugged.host
@@ -32,7 +33,6 @@ mod ssh_keys;
 mod standing; // plugged.host
 mod suggestions; // plugged.host
 mod tickets; // plugged.host
-mod mining; // plugged.host: the desktop app's AFK page
 mod tokens; // plugged.host
 mod tour; // plugged.host
 mod two_factor;
