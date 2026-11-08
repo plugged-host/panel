@@ -451,7 +451,10 @@ export default function DashboardTickets() {
                   <div className='flex min-w-0 flex-1 flex-col gap-2'>
                     <UnstyledButton
                       className='theme-eco-heading text-start'
-                      onClick={() => navigate(`/account/support/${ticket.uuid}`)}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        navigate(`/account/support/${ticket.uuid}`);
+                      }}
                     >
                       {ticket.subject}
                     </UnstyledButton>
@@ -469,7 +472,10 @@ export default function DashboardTickets() {
                       color='gray'
                       aria-label={t('common.button.view', {})}
                       title={t('common.button.view', {})}
-                      onClick={() => navigate(`/account/support/${ticket.uuid}`)}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        navigate(`/account/support/${ticket.uuid}`);
+                      }}
                     >
                       <FontAwesomeIcon icon={faEye} />
                     </ActionIcon>
