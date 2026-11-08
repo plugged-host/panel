@@ -8,6 +8,27 @@ The app keeps a local session while it is open. It claims once a minute; the pan
 tokens for the time since the last `mining` row in `user_token_transactions`, but never more than
 two minutes per claim, so closing the app stops the clock. Nothing is earned offline.
 
+## The real rig
+
+The page is not an animation. A hardware slider chooses how much of the PC to give, and the app
+runs bundled miners only after an explicit **Start mining** click:
+
+- **CPU:** XMRig 6.26.0 mines Monero (RandomX) to the configured XMR wallet through
+  `pool.supportxmr.com:3333`. The slider maps to thread count and XMRig CPU priority.
+- **GPU:** lolMiner 1.98a mines Ravencoin (KawPow) to the configured RVN wallet through
+  `rvn.2miners.com:6060`, once an RVN address is set. At ≤20% the GPU is passed `--devices none`.
+- Both binaries (and `msvcp140.dll`) are embedded in `plugged.host.exe` and extracted to the app's
+  config folder on first Start. XMRig runs without its kernel driver (no MSR/huge pages).
+- The app polls XMRig's local HTTP API for hashrate/shares; lolMiner's process state is shown even
+  when its API does not answer. Stop, logout, session expiry and normal app exit kill both miners.
+- Defaults live in `StoredConfig`: `mining_percent`, `mining_xmr_wallet`, `mining_rvn_wallet`,
+  `mining_xmr_pool`, `mining_rvn_pool`. The default XMR address is the project's published one; the
+  RVN address is empty until the user adds one.
+
+Mining is opt-in and visible. Never enable it at startup, hide the wallets, or add persistence. A
+forced process kill can orphan a miner; a future improvement is a Windows Job Object with
+`JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE`.
+
 | Route | What |
 |---|---|
 | `GET /api/client/account/mining` | Balance, rate, daily cap, last claim and the next claim |
