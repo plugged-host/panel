@@ -435,7 +435,19 @@ export default function DashboardTickets() {
           ) : (
             <div className='theme-eco-list'>
               {data.tickets.map((ticket) => (
-                <div key={ticket.uuid} className='theme-eco-tx'>
+                <div
+                  key={ticket.uuid}
+                  className='theme-eco-tx cursor-pointer'
+                  role='link'
+                  tabIndex={0}
+                  onClick={() => navigate(`/account/support/${ticket.uuid}`)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      navigate(`/account/support/${ticket.uuid}`);
+                    }
+                  }}
+                >
                   <div className='flex min-w-0 flex-1 flex-col gap-2'>
                     <UnstyledButton
                       className='theme-eco-heading text-start'
