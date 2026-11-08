@@ -209,16 +209,16 @@ function Idea({ suggestion }: { suggestion: Suggestion }) {
                 {suggestion.comments} {t(`${base}.thread.comments`, {})} · {suggestion.attachments}{' '}
                 {t('pages.account.tickets.thread.attachments', {})}
               </span>
-              <div className='ml-auto flex flex-col items-end gap-1'>
-                <div className='flex flex-wrap items-center justify-end gap-2'>
-                  <Badge color={statusColor[suggestion.status]}>{t(`${base}.status.${suggestion.status}`, {})}</Badge>
-                  <Badge color='gray' variant='light'>
-                    {t(`${base}.serverType.${suggestion.serverType}`, {})}
-                  </Badge>
-                </div>
-                <span className='theme-eco-link'>{t(`${base}.viewDiscussion`, {})} →</span>
-              </div>
             </div>
+          </div>
+          <div className='flex shrink-0 flex-col items-end justify-between gap-2 self-stretch'>
+            <div className='flex flex-col items-end gap-1'>
+              <Badge color={statusColor[suggestion.status]}>{t(`${base}.status.${suggestion.status}`, {})}</Badge>
+              <Badge color='gray' variant='light'>
+                {t(`${base}.serverType.${suggestion.serverType}`, {})}
+              </Badge>
+            </div>
+            <span className='theme-eco-link'>{t(`${base}.viewDiscussion`, {})} →</span>
           </div>
         </div>
       </div>
