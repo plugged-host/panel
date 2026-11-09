@@ -6,6 +6,13 @@ the browser does. It signs in with noprofit.space through a loopback listener (t
 signed token to `127.0.0.1`, the app trades it for a panel session at
 `/api/auth/noprofit/app/exchange`).
 
+## In the app
+
+The client's own **App settings** page (More › App settings) shows its version and install folder,
+checks `/api/client/app` for a newer installer, installs it in place, and holds the
+"check on start" and "open at login" switches, the panel connection and the About links. The app
+does not link to its own installer; that page stays in the panel for admins.
+
 ## Download page
 
 Account › More › **Download app** appears for **admins** on a panel where the installer exists.
