@@ -23,8 +23,10 @@ When a ticket is created, `tickets::spawn_neo_reply` runs in the background:
 1. It takes a cache lock for the ticket and stops when a `neo` or `system` message exists already.
 2. It builds facts from the server only (name, game, node, location, address, limits, suspended or
    hibernated, install state). It never reads files or the console.
-3. It asks neo with no tools (`neo::chain::Chain`, scope `tickets`, 60 seconds) and stores the answer
-   as a message of type `neo`. The ticket body and subject are fenced as untrusted data.
+3. It asks neo with the account/server tools, up to *Steps per Ticket Message* model calls. Tools
+   are offered until the last call, which must be the written answer (the last call also gets a
+   final-answer nudge when tools were used), and stores the answer as a message of type `neo`. The
+   ticket body and subject are fenced as untrusted data.
 4. When neo is off, unlinked or unavailable, it writes a short `system` acknowledgement instead.
 
 The UI labels `neo` messages "Assistant" and `system` messages "Panel".

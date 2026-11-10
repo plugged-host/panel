@@ -805,6 +805,12 @@ pub fn spawn_neo_reply(state: &crate::State, ticket_uuid: uuid::Uuid) {
     });
 }
 
+/// Whether a ticket step is the last one, where neo must write the answer instead of calling a
+/// tool.
+fn ticket_step_is_last(step: i32, max_steps: i32) -> bool {
+    step + 1 >= max_steps
+}
+
 async fn neo_reply(state: &crate::State, ticket_uuid: uuid::Uuid) -> Result<(), anyhow::Error> {
     let Ok(_lock) = state
         .cache
@@ -993,6 +999,7 @@ async fn neo_reply(state: &crate::State, ticket_uuid: uuid::Uuid) -> Result<(), 
     let mut final_text = String::new();
 
     for step in 0..ticket_max_steps {
+        let last_step = ticket_step_is_last(step, ticket_max_steps);
         let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel();
         let db = state.database.clone();
         let message_uuid = placeholder;
@@ -1022,11 +1029,22 @@ async fn neo_reply(state: &crate::State, ticket_uuid: uuid::Uuid) -> Result<(), 
             text
         });
 
+        let mut ask_messages = messages.clone();
+        if last_step && messages.iter().any(|message| message["role"].as_str() == Some("tool")) {
+            // The forced-answer step: without this, reasoning models can spend the whole turn
+            // thinking and return no text after a tool call.
+            ask_messages.push(json!({
+                "role": "system",
+                "content": "You have used all the steps available for this ticket message. Do not call any more tools: answer the person now in plain text, saying what you found, what you did and what is left for a person to do.",
+            }));
+        }
         let ask = crate::neo::Ask {
             conversation: &ticket_uuid.to_string(),
-            messages: messages.clone(),
+            messages: ask_messages,
             tools: definitions.clone(),
-            tool_choice: if step == 0 { "auto" } else { "none" },
+            // Offer the tools until the last step, then make the model write the answer. Some
+            // reasoning models otherwise end a turn after a tool call with only their thinking.
+            tool_choice: if last_step { "none" } else { "auto" },
             model: (ticket_model > 0).then(|| ticket_model.to_string()),
         };
         let turn = tokio::time::timeout(
@@ -1057,7 +1075,7 @@ async fn neo_reply(state: &crate::State, ticket_uuid: uuid::Uuid) -> Result<(), 
         } else if !streamed.trim().is_empty() {
             final_text = streamed.trim().to_string();
         }
-        if turn.tool_calls.is_empty() || step == 1 {
+        if turn.tool_calls.is_empty() || last_step {
             answer = final_text.clone();
             break;
         }
@@ -1276,5 +1294,13 @@ mod tests {
         assert_eq!(TicketError::NotFound.status(), 404);
         assert_eq!(TicketError::Closed.status(), 409);
         assert_eq!(TicketError::Invalid("x".into()).status(), 400);
+    }
+
+    #[test]
+    fn only_the_last_ticket_step_forces_the_answer() {
+        assert!(!ticket_step_is_last(0, 3));
+        assert!(!ticket_step_is_last(1, 3));
+        assert!(ticket_step_is_last(2, 3));
+        assert!(ticket_step_is_last(0, 1));
     }
 }

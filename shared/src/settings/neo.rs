@@ -953,6 +953,11 @@ mod tests {
             max_concurrent: None,
             tools_probe: None,
             providers: Some(providers),
+            ticket_model: None,
+            ticket_escalation_channel: None,
+            ticket_allow_destructive: None,
+            ticket_max_steps: None,
+            ticket_instructions: None,
         }
     }
 
