@@ -1,4 +1,5 @@
 // plugged.host: the seasonal theme's decorations (lib/seasonalTheme.ts, docs/features/theme.md#seasonal-themes)
+import { useId } from 'react';
 import { useGlobalStore } from '@/stores/global.ts';
 
 /*
@@ -133,29 +134,30 @@ function Christmas({ slot }: { slot: Slot }) {
   }
 }
 
-function Gta6Vi({ className }: { className?: string }) {
+/*
+ * GTA VI: a neon sunset coast. Original drawings, no game artwork or logos: a striped sunset sun
+ * (amber into hot pink) and palm trees with teal fronds on coral trunks, bright enough to read on
+ * the dark sidebar. useId keeps each sun's gradient and stripe mask its own.
+ */
+function SunsetSun({ className }: { className?: string }) {
+  const id = useId().replace(/[^\w-]/g, '');
+  const sky = `theme-gta6-sun-${id}`;
+  const cut = `theme-gta6-cut-${id}`;
+
   return (
-    <svg className={className} viewBox='0 0 1000 800' aria-hidden='true' focusable='false'>
+    <svg className={className} viewBox='0 0 32 32' aria-hidden='true' focusable='false'>
       <defs>
-        <linearGradient id='theme-gta6-sunset' x1='0' y1='0' x2='0' y2='1'>
-          <stop offset='0%' stopColor='#2B60DA' />
-          <stop offset='48%' stopColor='#FF4CB9' />
-          <stop offset='100%' stopColor='#E6953E' />
+        <linearGradient id={sky} x1='0' y1='0' x2='0' y2='1'>
+          <stop offset='0%' stopColor='#ffd166' />
+          <stop offset='50%' stopColor='#ff8a5b' />
+          <stop offset='100%' stopColor='#ff4cb9' />
         </linearGradient>
+        <mask id={cut}>
+          <rect width='32' height='32' fill='#fff' />
+          <path d='M0 18.6h32v1.1H0zM0 22h32v1.5H0zM0 25.5h32v2H0z' fill='#000' />
+        </mask>
       </defs>
-      <path
-        d='M954.37,63.64H755.96v672.73h198.42V63.64z M738.15,28.01H990v743.98H720.33V42.93L571.04,352.15L368.77,771.07L10,28.01h274.16l84.61,171.97l84.61-171.97H720.33h7.2h10.61z M368.77,689.33L670.87,63.64H475.45L368.77,280.49L262.08,63.64H66.67L368.77,689.33z'
-        fill='#12091f'
-      />
-      <polygon
-        points='368.77,730.2 555.03,344.42 699.2,45.82 464.41,45.82 368.77,240.24 273.12,45.82 38.33,45.82 182.5,344.42'
-        fill='url(#theme-gta6-sunset)'
-      />
-      <rect x='738.15' y='45.82' width='234.04' height='708.35' fill='url(#theme-gta6-sunset)' />
-      <path
-        d='M309.11,365.25c-2.77-10.64-4.9-21.64-6.65-32.85c1.45,15.19,1.21,30.31,0.85,45.41C305.22,373.62,307.15,369.43,309.11,365.25 M496.9,287.59l71.53,8.18l-48.52-51.46l22.16,38.62l-24.04-20.46l7.95,19.62l-42.45-34.65l29.69,39.03l-34.92-26.72L496.9,287.59z M866.18,257.57c0.71,9.44,1.63,19.15,2.72,29.1l-4.94-10.44C864.76,270.01,866.02,263.83,866.18,257.57z M813.92,242.54c-5.24-5.3-10.47-10.57-15.55-15.87c11.13,5.76,22.26,9.91,33.39,10.93C826.94,240.72,820.96,242.22,813.92,242.54z M882.8,290.52c3.33-10.25,7.34-20.38,12.03-30.3c-13.74,6.89-16.32,10.47-18.84,30.38C878.4,290.53,880.7,290.49,882.8,290.52z M923.62,280.49c5.19-2.22,10.58-4.36,16.18-6.41c-8.91-1.42-18.65-3.97-29.24-7.72C915.58,271.01,919.92,275.73,923.62,280.49z M895.51,294.58c6.57-3.88,13.66-7.56,21.24-11.04c-4.89-2.38-10.21-5.24-16.02-8.62l-13.17,15.85c0.98,0.1,1.88,0.25,2.68,0.44C892.79,291.81,894.36,292.9,895.51,294.58z'
-        fill='#12091f'
-      />
+      <circle cx='16' cy='16' r='13' fill={`url(#${sky})`} mask={`url(#${cut})`} />
     </svg>
   );
 }
@@ -163,24 +165,14 @@ function Gta6Vi({ className }: { className?: string }) {
 function PalmTree({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox='0 0 32 34' aria-hidden='true' focusable='false'>
-      <path
-        d='M14 33c1.6-6.5 1.4-13.8-2-20.5 1.3.4 2.4.9 3.2 2 2.5 5.5 1.7 12.5.8 18.5z'
-        fill='#1a0c28'
-        stroke='#ff4cb9'
-        strokeWidth='0.4'
-      />
-      <path d='M12 12.5C7.5 13 3.5 16.5 1.5 21c3-2.2 7-2.8 10.8-2-.8-2-.3-4.5.7-6.5z' fill='#160822' />
-      <path d='M12 12.5C8 9.5 3.5 9 0.5 10.5c3.5.5 6.8 2.5 9.2 5.5.7-1.4 1.5-2.5 2.3-3.5z' fill='#220b33' />
-      <path d='M12 12.5C11.5 7 12.5 3 15 0.8c.2 3.8-.5 7.2-3 11.7z' fill='#1b0829' />
-      <path d='M12 12.5C16.5 9 21.5 8.5 26.5 10c-3.5 1-6.5 3.2-8.5 6.5-.5-1.5-2.2-2.8-6-4z' fill='#220b33' />
-      <path d='M12 12.5C17 13.5 22.5 16.5 25.5 21.5c-3.2-2-7.5-2.6-11-1.5.8-2.5 0-5.5-2.5-7.5z' fill='#160822' />
-      <path
-        d='M12 12.5C9 13.5 5 16 3 19M12 12.5C9 10.5 5 10 2 10.5M12 12.5C12 7.5 13 4 14.5 2M12 12.5C16 10.5 20 10 24 11M12 12.5C16 14 20 16 23 19.5'
-        stroke='#ff4cb9'
-        strokeWidth='0.5'
-        strokeLinecap='round'
-        fill='none'
-      />
+      <path d='M15 33.6c.4-6.6-.5-13-3.3-19.4l1.9-.8c3 6.6 3.9 13.4 3.4 20.2z' fill='#fb7185' />
+      <path d='M12.8 13.6C9 12.4 4.6 13.6 1.6 17.8c3.4-1.8 6.8-2 10.2-1z' fill='#14b8a6' />
+      <path d='M12.8 13.6C10.6 9.6 6.4 7.8 2.2 8.6c3.6 1.2 6.6 3.4 8.6 6z' fill='#2dd4bf' />
+      <path d='M12.8 13.6c.2-4.6 2.6-8.4 6.4-10.2-1.8 3.2-3 6.6-4.6 10.8z' fill='#5eead4' />
+      <path d='M12.8 13.6c3.4-3 8.4-3.8 12.6-1.8-3.8.2-7.4 1.6-10.6 3.8z' fill='#2dd4bf' />
+      <path d='M12.8 13.6c4.6.2 8.8 2.8 10.8 7.2-3-2.4-6.6-3.6-10.4-3.6z' fill='#14b8a6' />
+      <circle cx='12.4' cy='15' r='1' fill='#fbbf24' />
+      <circle cx='14.1' cy='14.8' r='1' fill='#f59e0b' />
     </svg>
   );
 }
@@ -192,19 +184,19 @@ function Gta6({ slot }: { slot: Slot }) {
         <>
           <PalmTree className='theme-season-palm theme-season-logo-start' />
           <PalmTree className='theme-season-palm theme-season-palm-second theme-season-small theme-season-logo-start-second' />
-          <Gta6Vi className='theme-season-logo-end' />
+          <SunsetSun className='theme-season-logo-end' />
         </>
       );
     case 'shelf':
       return (
         <>
           <PalmTree className='theme-season-small theme-season-palm-second' />
-          <Gta6Vi className='theme-season-small' />
+          <SunsetSun />
           <PalmTree className='theme-season-palm' />
         </>
       );
     case 'bar':
-      return <Gta6Vi />;
+      return <SunsetSun />;
   }
 }
 

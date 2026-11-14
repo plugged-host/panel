@@ -8359,50 +8359,36 @@ span.theme-neo-image {
   }
 }
 
+/* GTA VI: a night sky over a low sunset glow at the horizon, with palm silhouettes in the bottom
+   corners on wide screens only. The glow stays under the content's bottom edge and faint, so cards
+   and text keep Theme v2's contrast; phones get the sky and glow without the palms. */
 html[data-season="gta6"] {
-  background-color: #080310;
+  background-color: #0a0713;
   background-image:
-    url("./assets/images/theme-gta6-palms-right.svg"), url("./assets/images/theme-gta6-palms-left.svg"),
-    radial-gradient(ellipse 110% 65% at 85% 8%, rgb(255 76 185 / 0.4) 0%, rgb(255 76 185 / 0.15) 42%, transparent 72%),
-    radial-gradient(ellipse 90% 55% at 50% 95%, rgb(230 149 62 / 0.32) 0%, rgb(255 76 185 / 0.15) 38%, transparent 72%),
-    radial-gradient(ellipse 75% 55% at 15% 12%, rgb(43 96 218 / 0.35) 0%, rgb(136 54 106 / 0.16) 45%, transparent 72%),
-    linear-gradient(180deg, #150727 0%, #1c0a34 25%, #18082c 50%, #0d0417 80%, #07020c 100%);
-  background-position:
-    right bottom,
-    left bottom,
-    center top,
-    center bottom,
-    center top,
-    center top;
-  background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat;
-  background-size:
-    460px auto,
-    360px auto,
-    100% 100%,
-    100% 100%,
-    100% 100%,
-    100% 100%;
+    radial-gradient(ellipse 70% 32% at 50% 100%, rgb(255 138 91 / 0.2) 0%, rgb(255 76 185 / 0.1) 45%, transparent 75%),
+    radial-gradient(ellipse 55% 40% at 0% 0%, rgb(43 96 218 / 0.12) 0%, transparent 70%),
+    linear-gradient(180deg, #120d22 0%, #110b20 55%, #1a0c22 100%);
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
   background-attachment: fixed;
 }
 
 @media (min-width: 64rem) {
   html[data-season="gta6"] {
+    background-image:
+      url("./assets/images/theme-gta6-palms-right.svg"), url("./assets/images/theme-gta6-palms-left.svg"),
+      radial-gradient(ellipse 70% 32% at 50% 100%, rgb(255 138 91 / 0.2) 0%, rgb(255 76 185 / 0.1) 45%, transparent 75%),
+      radial-gradient(ellipse 55% 40% at 0% 0%, rgb(43 96 218 / 0.12) 0%, transparent 70%),
+      linear-gradient(180deg, #120d22 0%, #110b20 55%, #1a0c22 100%);
     background-position:
-      right bottom,
+      right -1rem bottom,
       left 16rem bottom,
-      center top,
-      center bottom,
-      center top,
-      center top;
-  }
-}
-
-@media (max-width: 47.99rem) {
-  html[data-season="gta6"] {
+      center,
+      center,
+      center;
     background-size:
-      220px auto,
-      170px auto,
-      100% 100%,
+      15rem auto,
+      15rem auto,
       100% 100%,
       100% 100%,
       100% 100%;

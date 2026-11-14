@@ -47,16 +47,17 @@ A season keeps the layout, type and components and changes:
 
 | | Halloween | Christmas | GTA VI |
 |---|---|---|---|
-| Accent (over the theme colour, with `accentFor()`'s contrast guards) | Tailwind orange | Tailwind red | Tailwind fuchsia (neon Vice City magenta) |
-| Surfaces (`--theme-bg-*`, `--theme-sidebar`, dropdowns, modals, the raise and hairline tints, muted and faint text, Mantine's dark ramp) | a violet tint on the obsidian | an evergreen tint | a Vice City twilight-indigo obsidian with soft sunset radial glow |
-| By the sidebar's logo | two bats and a jack-o'-lantern | three snowflakes | two swaying palm trees and setting sun |
-| On a shelf over the sidebar's footer | three pumpkins | a tree between two presents | a setting sun between two tropical palm trees |
-| At the end of the phone's top bar | a jack-o'-lantern | a tree | a tropical palm tree |
+| Accent (over the theme colour, with `accentFor()`'s contrast guards) | Tailwind orange | Tailwind red | Tailwind pink (hot pink) |
+| Surfaces (`--theme-bg-*`, `--theme-sidebar`, dropdowns, modals, the raise and hairline tints, muted and faint text, Mantine's dark ramp) | a violet tint on the obsidian | an evergreen tint | a night-indigo obsidian with neutral raise tints; the page gets a faint sunset glow at the horizon and, on wide screens, palm silhouettes in the bottom corners |
+| By the sidebar's logo | two bats and a jack-o'-lantern | three snowflakes | two swaying palm trees and a striped sunset sun |
+| On a shelf over the sidebar's footer | three pumpkins | a tree between two presents | a striped sunset sun between two palm trees |
+| At the end of the phone's top bar | a jack-o'-lantern | a tree | a striped sunset sun |
 
 The drawings are flat inline SVG, `aria-hidden`, without pointer events, and sit in the logo
 block's padding, over the footer and beside the phone's title, never over a control. The bats
 flutter, the snowflakes turn, and the palm trees sway only under `prefers-reduced-motion: no-preference`. They are the
-one exception to "no decorative icons" below, asked for by the owner for these seasons. The root
+one exception to "no decorative icons" below, asked for by the owner for these seasons. GTA VI's
+drawings are original (a sunset, palms); no game artwork or logos. The root
 element carries `data-season` while one is on.
 
 A new season is an entry in `SEASONS` (`seasonalTheme.ts`: accent preset, tokens, dark ramp), its
