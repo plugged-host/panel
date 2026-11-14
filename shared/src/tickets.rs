@@ -1030,7 +1030,11 @@ async fn neo_reply(state: &crate::State, ticket_uuid: uuid::Uuid) -> Result<(), 
         });
 
         let mut ask_messages = messages.clone();
-        if last_step && messages.iter().any(|message| message["role"].as_str() == Some("tool")) {
+        if last_step
+            && messages
+                .iter()
+                .any(|message| message["role"].as_str() == Some("tool"))
+        {
             // The forced-answer step: without this, reasoning models can spend the whole turn
             // thinking and return no text after a tool call.
             ask_messages.push(json!({

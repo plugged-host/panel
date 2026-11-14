@@ -7101,7 +7101,8 @@
                   "seasonalTheme": {
                     "default": "Default",
                     "halloween": "Halloween",
-                    "christmas": "Christmas"
+                    "christmas": "Christmas",
+                    "gta6": "GTA VI"
                   }
                 },
                 "placeholder": {

@@ -38,24 +38,24 @@ the fill until white text on it reaches 4.5:1 contrast and lightens the text sha
 
 ## Seasonal themes
 
-Admin › Settings › General › Metadata › Theme, next to the theme colour: **Default**, **Halloween**
-or **Christmas** (`metadata::seasonal_theme`, public as `app.seasonalTheme`). Default is Theme v2
+Admin › Settings › General › Metadata › Theme, next to the theme colour: **Default**, **Halloween**,
+**Christmas** or **GTA VI** (`metadata::seasonal_theme`, public as `app.seasonalTheme`). Default is Theme v2
 with the theme colour; choosing it again removes everything a season adds. Saving applies it at
 once for the admin; everyone else gets it on their next page load.
 
 A season keeps the layout, type and components and changes:
 
-| | Halloween | Christmas |
-|---|---|---|
-| Accent (over the theme colour, with `accentFor()`'s contrast guards) | Tailwind orange | Tailwind red |
-| Surfaces (`--theme-bg-*`, `--theme-sidebar`, dropdowns, modals, the raise and hairline tints, muted and faint text, Mantine's dark ramp) | a violet tint on the obsidian | an evergreen tint |
-| By the sidebar's logo | two bats and a jack-o'-lantern | three snowflakes |
-| On a shelf over the sidebar's footer | three pumpkins | a tree between two presents |
-| At the end of the phone's top bar | a jack-o'-lantern | a tree |
+| | Halloween | Christmas | GTA VI |
+|---|---|---|---|
+| Accent (over the theme colour, with `accentFor()`'s contrast guards) | Tailwind orange | Tailwind red | Tailwind fuchsia (neon Vice City magenta) |
+| Surfaces (`--theme-bg-*`, `--theme-sidebar`, dropdowns, modals, the raise and hairline tints, muted and faint text, Mantine's dark ramp) | a violet tint on the obsidian | an evergreen tint | a Vice City twilight-indigo obsidian with soft sunset radial glow |
+| By the sidebar's logo | two bats and a jack-o'-lantern | three snowflakes | two swaying palm trees and setting sun |
+| On a shelf over the sidebar's footer | three pumpkins | a tree between two presents | a setting sun between two tropical palm trees |
+| At the end of the phone's top bar | a jack-o'-lantern | a tree | a tropical palm tree |
 
 The drawings are flat inline SVG, `aria-hidden`, without pointer events, and sit in the logo
 block's padding, over the footer and beside the phone's title, never over a control. The bats
-flutter and the snowflakes turn only under `prefers-reduced-motion: no-preference`. They are the
+flutter, the snowflakes turn, and the palm trees sway only under `prefers-reduced-motion: no-preference`. They are the
 one exception to "no decorative icons" below, asked for by the owner for these seasons. The root
 element carries `data-season` while one is on.
 

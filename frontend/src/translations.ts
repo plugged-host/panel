@@ -3845,6 +3845,7 @@ const baseTranslations = defineTranslations({
                     default: 'Default',
                     halloween: 'Halloween',
                     christmas: 'Christmas',
+                    gta6: 'GTA VI',
                   },
                 },
                 placeholder: {

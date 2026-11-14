@@ -311,7 +311,7 @@ export const adminSettingsMetadataSchema = z.object({
   ogImage: z.preprocess(nullableString, z.string().min(1).max(255).nullable()),
   twitterCard: z.enum(['summary', 'summary_large_image']),
   indexable: z.boolean(),
-  seasonalTheme: z.enum(['default', 'halloween', 'christmas']), // plugged.host
+  seasonalTheme: z.enum(['default', 'halloween', 'christmas', 'gta6']), // plugged.host
 });
 
 // plugged.host: noprofit.space (shared/src/settings/noprofit.rs). A stored secret comes back as an

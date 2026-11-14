@@ -2,7 +2,7 @@
 import type { MantineColorsTuple } from '@mantine/core';
 import { type AccentPreset, accentSwatch } from '@/lib/accent.ts';
 
-export type SeasonalTheme = 'default' | 'halloween' | 'christmas';
+export type SeasonalTheme = 'default' | 'halloween' | 'christmas' | 'gta6';
 
 /*
  * A season keeps Theme v2's layout and type and changes three things: the accent (one of the theme
@@ -78,6 +78,36 @@ const SEASONS: Record<Exclude<SeasonalTheme, 'default'>, Season> = {
       '#18201c',
       '#0f1513',
       '#0a0e0c',
+    ],
+  },
+  // GTA VI: official Vice City artwork sunset palette (cobalt, hot pink #FF4CB9, sunset amber #E6953E on twilight obsidian)
+  gta6: {
+    accent: 'fuchsia',
+    tokens: {
+      '--theme-bg-top': '#140c22',
+      '--theme-bg-bottom': '#090510',
+      '--theme-sidebar': '#1a0e2c',
+      '--theme-sunken': 'rgb(14 8 24 / 0.5)',
+      '--theme-dropdown': '#180d29',
+      '--theme-modal': '#1b0f2e',
+      '--theme-raise': 'rgb(255 76 185 / 0.05)',
+      '--theme-raise-2': 'rgb(255 76 185 / 0.1)',
+      '--theme-raise-3': 'rgb(255 76 185 / 0.15)',
+      '--theme-hairline': 'rgb(255 76 185 / 0.08)',
+      '--theme-text-muted': '#baa7c7',
+      '--theme-text-faint': '#887496',
+    },
+    dark: [
+      '#fcfcfd',
+      '#ede8f2',
+      '#baa7c7',
+      '#887496',
+      '#351b4d',
+      '#28133d',
+      '#1a0e2c',
+      '#1b0f2e',
+      '#140c22',
+      '#090510',
     ],
   },
 };

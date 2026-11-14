@@ -25,6 +25,7 @@ pub enum SeasonalTheme {
     Default,
     Halloween,
     Christmas,
+    Gta6,
 }
 
 impl SeasonalTheme {
@@ -33,6 +34,7 @@ impl SeasonalTheme {
             Self::Default => "default",
             Self::Halloween => "halloween",
             Self::Christmas => "christmas",
+            Self::Gta6 => "gta6",
         }
     }
 
@@ -40,6 +42,7 @@ impl SeasonalTheme {
         match value {
             "halloween" => Self::Halloween,
             "christmas" => Self::Christmas,
+            "gta6" | "gta_6" => Self::Gta6,
             _ => Self::Default,
         }
     }

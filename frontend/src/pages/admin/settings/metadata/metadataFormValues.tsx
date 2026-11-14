@@ -90,6 +90,7 @@ export function useMetadataFormFields({
         { label: t('pages.admin.settings.tabs.metadata.page.enum.seasonalTheme.default', {}), value: 'default' },
         { label: t('pages.admin.settings.tabs.metadata.page.enum.seasonalTheme.halloween', {}), value: 'halloween' },
         { label: t('pages.admin.settings.tabs.metadata.page.enum.seasonalTheme.christmas', {}), value: 'christmas' },
+        { label: t('pages.admin.settings.tabs.metadata.page.enum.seasonalTheme.gta6', {}), value: 'gta6' },
       ],
     },
     {
