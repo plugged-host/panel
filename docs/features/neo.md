@@ -107,6 +107,7 @@ settings do not give; noprofit.space is named only while it is connected.
 | Backups, automatic failover | `recovery::*` |
 | Subdomains | `subdomains::*` (active = on with a token) |
 | VS Code | `devboxes::*` (offered, members only, browser version) |
+| The desktop app (plugged.host App): what it is, the download page, updates, SmartScreen, what stays on the website, its crash log | `desktop_app::installer()` (offered while `PLUGGED_APP_INSTALLER` names a file; its version) |
 | Minecraft, FiveM | eggs with the `eula` / `cfx` features, `games::minecraft_*`, `games::fivem_enhanced` |
 | Help, legal and privacy contacts, neo's extra usage | `neo::support_url`, `legal_email`, `privacy_email`, `plus_percent`, `plusplus_percent` |
 | The review page, given only when asked ([reviews.md](reviews.md)) | `reviews::url`, the site's name |

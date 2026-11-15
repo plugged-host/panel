@@ -50,3 +50,10 @@ starts it with `--update --dir <install>`, and exits. The installer waits for th
 `plugged.host.exe` to close, replaces it, keeps the shortcuts and the Add or remove programs entry,
 and relaunches the app. Bump `PLUGGED_APP_VERSION` and copy the new installer to
 `PLUGGED_APP_INSTALLER` to publish an update.
+
+## neo
+
+While the panel offers the installer, neo's knowledge has a section on the app (`shared/src/desktop_app.rs`,
+`prompt::knowledge_text`): what it is and its version, More › Download app, updates, the SmartScreen
+warning, what stays on the website and where its crash log is. Without the installer neo never
+mentions it.

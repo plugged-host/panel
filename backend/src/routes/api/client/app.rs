@@ -6,34 +6,13 @@
 use super::State;
 use utoipa_axum::{router::OpenApiRouter, routes};
 
-fn installer_path() -> Option<std::path::PathBuf> {
-    std::env::var("PLUGGED_APP_INSTALLER")
-        .ok()
-        .map(|path| path.trim().to_owned())
-        .filter(|path| !path.is_empty())
-        .map(std::path::PathBuf::from)
+fn installer() -> Option<(std::path::PathBuf, u64, String)> {
+    shared::desktop_app::installer()
+        .map(|installer| (installer.path, installer.size, installer.filename))
 }
 
 fn version() -> String {
-    std::env::var("PLUGGED_APP_VERSION")
-        .ok()
-        .map(|version| version.trim().to_owned())
-        .filter(|version| !version.is_empty())
-        .unwrap_or_else(|| "3.1.0".into())
-}
-
-fn installer() -> Option<(std::path::PathBuf, u64, String)> {
-    let path = installer_path()?;
-    let metadata = std::fs::metadata(&path).ok()?;
-    if !metadata.is_file() {
-        return None;
-    }
-    let filename = path
-        .file_name()
-        .and_then(|name| name.to_str())
-        .unwrap_or("Plugged-Setup.exe")
-        .to_owned();
-    Some((path, metadata.len(), filename))
+    shared::desktop_app::version()
 }
 
 pub mod get {

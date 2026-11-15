@@ -112,6 +112,12 @@ pub struct EarnFacts {
     pub daily_cap: i64,
 }
 
+/// The desktop app (docs/features/app.md), while the panel offers its installer.
+#[derive(Debug, Clone, Default, PartialEq)]
+pub struct DesktopAppFacts {
+    pub version: String,
+}
+
 /// Devboxes (VS Code on a game server), as neo describes them.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct DevboxFacts {
@@ -193,6 +199,8 @@ pub struct KnowledgeFacts {
     /// plan's `max_*`), when known.
     pub account_limits: Option<Resources>,
     pub devboxes: DevboxFacts,
+    /// plugged.host: the desktop app, while its installer is offered.
+    pub desktop_app: Option<DesktopAppFacts>,
     pub neo: NeoFacts,
     /// Subdomains are offered (on, with a token).
     pub subdomains_active: bool,
@@ -232,6 +240,7 @@ impl KnowledgeFacts {
             earn: Vec::new(),
             account_limits: None,
             devboxes: DevboxFacts::default(),
+            desktop_app: None,
             neo: NeoFacts::from(&AppSettingsNeo::default()),
             subdomains_active: false,
             games: AppSettingsGames::default(),
@@ -289,6 +298,9 @@ impl KnowledgeFacts {
             idle_minutes: settings.devboxes.idle_minutes as i64,
             browser: settings.devboxes.web_ready(),
         };
+        facts.desktop_app = crate::desktop_app::installer().map(|installer| DesktopAppFacts {
+            version: installer.version,
+        });
         facts.neo = NeoFacts::from(&settings.neo);
         facts.neo.extra_tokens = crate::neo::extra_price(settings).unwrap_or(0);
         facts.subdomains_active = settings.subdomains.active();
@@ -1966,6 +1978,27 @@ pub fn knowledge_text(facts: &KnowledgeFacts) -> String {
         );
     }
 
+    if let Some(desktop) = &facts.desktop_app {
+        heading(&mut out, &format!("{app} App"));
+        item(
+            &mut out,
+            &format!(
+                "{app} App is the native desktop app for Windows 10 and 11 (version {}, a public beta): the same account, servers, console, files, settings and neo as the panel, drawn natively instead of in a browser, so it is lighter and faster. The website is just called {app}.",
+                desktop.version
+            ),
+        );
+        item(
+            &mut out,
+            &format!(
+                "Signed-in users download it from More › Download app ({url}/account/download). It signs in with the same account and updates itself (App settings › Check for updates; it also checks after sign-in). The installer is not code-signed yet, so Windows SmartScreen may warn about an unknown publisher: More info, then Run anyway."
+            ),
+        );
+        item(
+            &mut out,
+            "Things that need a browser stay on the website: security keys, linked OAuth accounts, the console pop-out and VS Code in the browser. Links to other sites are copied to the clipboard instead of opening a browser. If the app crashes, its log is crash.log in %APPDATA%\\noprofit\\plugged.host\\config; if its window does not open, the graphics driver needs OpenGL 2.0 or newer.",
+        );
+    }
+
     // Members only: a membership benefit above (with memberships off, nobody gets one).
     if facts.devboxes.offered && !facts.devboxes.members_only {
         heading(&mut out, "VS Code");
@@ -2938,6 +2971,22 @@ mod tests {
         // With noprofit.space the tier is in the plan.
         facts.accounts = Some(accounts_facts("https://accounts.example.com"));
         assert!(!knowledge_text(&facts).contains("higher (Discord is linked"));
+    }
+
+    #[test]
+    fn the_desktop_app_is_described_only_while_offered() {
+        let mut facts = example();
+        assert!(!knowledge_text(&facts).contains("/account/download"));
+
+        facts.desktop_app = Some(DesktopAppFacts {
+            version: "3.1.8".into(),
+        });
+        let knowledge = knowledge_text(&facts);
+        let app = facts.app_name.as_str();
+        assert!(knowledge.contains(&format!("\n{app} App\n")));
+        assert!(knowledge.contains("(version 3.1.8, a public beta)"));
+        assert!(knowledge.contains("/account/download"));
+        assert!(knowledge.contains(r"%APPDATA%\noprofit\plugged.host\config"));
     }
 
     #[test]

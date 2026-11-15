@@ -33,6 +33,7 @@ pub mod crypt;
 pub mod database;
 pub mod deleted_servers; // plugged.host
 pub mod deserialize;
+pub mod desktop_app; // plugged.host
 pub mod devboxes; // plugged.host
 pub mod discord; // plugged.host
 pub mod earn; // plugged.host
