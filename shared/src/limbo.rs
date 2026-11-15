@@ -82,6 +82,8 @@ const CREATE_TIMEOUT_MINUTES: i64 = 15;
 const RETRY_HOURS: i64 = 24;
 /// Failed parks in the last hour (with none that worked) that pause parking.
 const BREAKER_FAILURES: i64 = 3;
+/// Minutes a server limbo stopped has to go down before it is killed.
+const KILL_AFTER_MINUTES: i64 = 10;
 /// Idle servers looked at per run. It has to cover every idle server: servers that are off and
 /// cannot be parked (no storage off the node) stay idle candidates for good, and with 500 (until
 /// 3.1.4) they took the whole window, so running servers idle for less long were never stopped.
@@ -1037,6 +1039,8 @@ struct Candidate {
     uuid: uuid::Uuid,
     node_uuid: uuid::Uuid,
     idle_minutes: i64,
+    /// Minutes since limbo stopped it, while it is `stopped`.
+    stopped_minutes: Option<i64>,
 }
 
 async fn candidates(
@@ -1046,7 +1050,10 @@ async fn candidates(
 ) -> Result<Vec<Candidate>, sqlx::Error> {
     let rows = sqlx::query(
         "SELECT servers.uuid, servers.node_uuid,
-            (EXTRACT(EPOCH FROM NOW() - servers.last_activity) / 60)::BIGINT AS idle_minutes
+            (EXTRACT(EPOCH FROM NOW() - servers.last_activity) / 60)::BIGINT AS idle_minutes,
+            CASE WHEN servers.limbo_state = 'stopped'
+                THEN (EXTRACT(EPOCH FROM NOW() - server_limbo.since) / 60)::BIGINT END
+                AS stopped_minutes
         FROM servers
         JOIN users ON users.uuid = servers.owner_uuid
         LEFT JOIN server_limbo ON server_limbo.server_uuid = servers.uuid
@@ -1091,6 +1098,7 @@ async fn candidates(
                 uuid: row.try_get("uuid")?,
                 node_uuid: row.try_get("node_uuid")?,
                 idle_minutes: row.try_get("idle_minutes")?,
+                stopped_minutes: row.try_get("stopped_minutes")?,
             })
         })
         .collect()
@@ -1102,6 +1110,7 @@ async fn stop(
     node: &Node,
     server_uuid: uuid::Uuid,
     idle_minutes: i64,
+    again: bool,
 ) -> Result<(), anyhow::Error> {
     node.api_client(&state.database)
         .await?
@@ -1126,12 +1135,69 @@ async fn stop(
         server_uuid,
         None,
         "server:limbo.stop",
-        serde_json::json!({ "idle_minutes": idle_minutes }),
+        serde_json::json!({ "idle_minutes": idle_minutes, "again": again }),
     )
     .await;
-    crate::server_upgrades::notify_idle_stop(state, server_uuid, idle_minutes).await;
+    // the owner hears of it once, not again when something (a schedule) started it meanwhile
+    if !again {
+        crate::server_upgrades::notify_idle_stop(state, server_uuid, idle_minutes).await;
+    }
 
     Ok(())
+}
+
+/// Kills a server limbo stopped that is still up `KILL_AFTER_MINUTES` later (its stop command
+/// did not end it). `since` is left alone, so the kill is retried until it is down, and nobody is
+/// told again.
+async fn kill(
+    state: &crate::State,
+    node: &Node,
+    server_uuid: uuid::Uuid,
+    stopped_minutes: i64,
+) -> Result<(), anyhow::Error> {
+    node.api_client(&state.database)
+        .await?
+        .post_servers_server_power(
+            server_uuid,
+            &wings_api::servers_server_power::post::RequestBody {
+                action: wings_api::ServerPowerAction::Kill,
+                wait_seconds: None,
+            },
+        )
+        .await?;
+    log(
+        state,
+        server_uuid,
+        None,
+        "server:limbo.kill",
+        serde_json::json!({ "stopped_minutes": stopped_minutes }),
+    )
+    .await;
+
+    Ok(())
+}
+
+/// What happens to a running idle server, from the minutes since limbo stopped it (`None`: it
+/// did not, or not since it was last used).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Running {
+    /// A first stop.
+    Stop,
+    /// Stopped under `KILL_AFTER_MINUTES` ago: it has time to go down.
+    Wait,
+    /// Stopped `KILL_AFTER_MINUTES` to twice that ago and still up: its stop did not end it.
+    Kill,
+    /// Stopped longer ago and up again (a schedule started it): stopped again, quietly.
+    StopAgain,
+}
+
+pub fn running(stopped_minutes: Option<i64>) -> Running {
+    match stopped_minutes {
+        None => Running::Stop,
+        Some(minutes) if minutes < KILL_AFTER_MINUTES => Running::Wait,
+        Some(minutes) if minutes < 2 * KILL_AFTER_MINUTES => Running::Kill,
+        Some(_) => Running::StopAgain,
+    }
 }
 
 /// Parks in place: `dormant`, still on its node, suspended on Wings (see the module docs).
@@ -1320,10 +1386,26 @@ pub async fn settle(state: &crate::State) -> Result<(), anyhow::Error> {
 
             match action(&limbo, candidate.idle_minutes, running) {
                 Action::Stop if stops > 0 => {
+                    let result = match running(candidate.stopped_minutes) {
+                        Running::Wait => continue,
+                        Running::Kill => {
+                            kill(
+                                state,
+                                &node,
+                                candidate.uuid,
+                                candidate.stopped_minutes.unwrap_or_default(),
+                            )
+                            .await
+                        }
+                        Running::Stop => {
+                            stop(state, &node, candidate.uuid, candidate.idle_minutes, false).await
+                        }
+                        Running::StopAgain => {
+                            stop(state, &node, candidate.uuid, candidate.idle_minutes, true).await
+                        }
+                    };
                     stops -= 1;
-                    if let Err(err) =
-                        stop(state, &node, candidate.uuid, candidate.idle_minutes).await
-                    {
+                    if let Err(err) = result {
                         tracing::warn!(server = %candidate.uuid, "failed to stop an idle server: {err:#}");
                     }
                 }
@@ -2125,6 +2207,18 @@ mod tests {
         assert!(!parks_to(BackupDisk::Restic, None, false));
         // no backup configuration at all: parked in place
         assert!(!can_park(None));
+    }
+
+    #[test]
+    fn a_stopped_server_has_ten_minutes_to_go_down_then_is_killed() {
+        assert_eq!(running(None), Running::Stop);
+        assert_eq!(running(Some(0)), Running::Wait);
+        assert_eq!(running(Some(9)), Running::Wait);
+        assert_eq!(running(Some(10)), Running::Kill);
+        assert_eq!(running(Some(19)), Running::Kill);
+        // up again long after its stop: something started it, a quiet stop again
+        assert_eq!(running(Some(20)), Running::StopAgain);
+        assert_eq!(running(Some(600)), Running::StopAgain);
     }
 
     #[test]

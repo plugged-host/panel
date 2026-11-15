@@ -38,6 +38,12 @@ The windows are minutes so a test panel can park a server within the hour; until
 were hours (`stop_hours`, `park_hours`), and a stored hour value still counts (times 60) until the
 tab is saved again.
 
+A server limbo stopped gets 10 minutes to go down; one still up 10 to 20 minutes after its stop
+(its stop command did not end it, common with FiveM and generic eggs) is killed
+(`server:limbo.kill`), and nobody is told again. One up later than that was started again without
+a person (a schedule): it is stopped again (`server:limbo.stop` with `again`), without a second
+notification. Until 3.1.5 such servers got a stop and a notification every minute.
+
 A node that does not answer is skipped: it says nothing about its servers. At most `max_per_run`
 servers are stopped per run, and at most `max_per_run` parks run at once. Any activity by a person
 clears `stopped`; a stopped server is otherwise an ordinary server.
