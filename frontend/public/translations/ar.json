@@ -3463,7 +3463,7 @@
         },
         "downloadApp": {
           "title": "تنزيل التطبيق",
-          "subtitle": "{app} لنظام Windows",
+          "subtitle": "{app} App",
           "beta": "تجريبي",
           "version": "الإصدار {version}",
           "download": "تنزيل لنظام Windows",

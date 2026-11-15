@@ -3460,7 +3460,7 @@
         },
         "downloadApp": {
           "title": "Unduh aplikasi",
-          "subtitle": "{app} untuk Windows",
+          "subtitle": "{app} App",
           "beta": "Beta",
           "version": "Versi {version}",
           "download": "Unduh untuk Windows",

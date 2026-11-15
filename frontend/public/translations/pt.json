@@ -3460,7 +3460,7 @@
         },
         "downloadApp": {
           "title": "Baixar aplicativo",
-          "subtitle": "{app} para Windows",
+          "subtitle": "{app} App",
           "beta": "Beta",
           "version": "Versão {version}",
           "download": "Baixar para Windows",

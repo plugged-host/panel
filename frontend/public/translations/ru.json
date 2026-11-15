@@ -3463,7 +3463,7 @@
         },
         "downloadApp": {
           "title": "Скачать приложение",
-          "subtitle": "{app} для Windows",
+          "subtitle": "{app} App",
           "beta": "Бета",
           "version": "Версия {version}",
           "download": "Скачать для Windows",

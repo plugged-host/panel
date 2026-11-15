@@ -1,4 +1,4 @@
-# The Windows app
+# The Windows app (plugged.host App)
 
 plugged.host has a native Windows client, `plugged-host/app`, written in Rust (egui). It is not a web
 view: the panel's Theme v2 is drawn natively, and the app talks to the same `/api/client` endpoints

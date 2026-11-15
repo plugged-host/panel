@@ -3460,7 +3460,7 @@
         },
         "downloadApp": {
           "title": "Ilovani yuklab olish",
-          "subtitle": "Windows uchun {app}",
+          "subtitle": "{app} App",
           "beta": "Beta",
           "version": "Versiya {version}",
           "download": "Windows uchun yuklab olish",

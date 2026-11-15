@@ -3463,7 +3463,7 @@
         },
         "downloadApp": {
           "title": "Uygulamayı indir",
-          "subtitle": "Windows için {app}",
+          "subtitle": "{app} App",
           "beta": "Beta",
           "version": "Sürüm {version}",
           "download": "Windows için indir",

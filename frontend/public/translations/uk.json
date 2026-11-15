@@ -3460,7 +3460,7 @@
         },
         "downloadApp": {
           "title": "Завантажити застосунок",
-          "subtitle": "{app} для Windows",
+          "subtitle": "{app} App",
           "beta": "Бета",
           "version": "Версія {version}",
           "download": "Завантажити для Windows",

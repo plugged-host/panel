@@ -3391,7 +3391,7 @@ const baseTranslations = defineTranslations({
         // plugged.host: the Windows app's download page (docs/features/app.md)
         downloadApp: {
           title: 'Download app',
-          subtitle: '{app} for Windows',
+          subtitle: '{app} App',
           beta: 'Beta',
           version: 'Version {version}',
           download: 'Download for Windows',

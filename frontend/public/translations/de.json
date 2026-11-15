@@ -3482,7 +3482,7 @@
         },
         "downloadApp": {
           "title": "App herunterladen",
-          "subtitle": "{app} für Windows",
+          "subtitle": "{app} App",
           "beta": "Beta",
           "version": "Version {version}",
           "download": "Für Windows herunterladen",
