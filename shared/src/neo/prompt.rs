@@ -201,6 +201,10 @@ pub struct KnowledgeFacts {
     pub queue: AppSettingsQueue,
     pub ads: AppSettingsAds,
     pub limbo: AppSettingsLimbo,
+    /// Limbo parks servers off their node: some server's backups leave its node
+    /// (`crate::limbo::parks_off_node`). Without that every server is parked in place (suspended on
+    /// its node).
+    pub limbo_off_node: bool,
     pub subdomains: AppSettingsSubdomains,
     pub recovery: AppSettingsRecovery,
     /// plugged.host: what users buy for one server with tokens (keep-awake pass, boost).
@@ -235,6 +239,7 @@ impl KnowledgeFacts {
             queue: AppSettingsQueue::default(),
             ads: AppSettingsAds::default(),
             limbo: AppSettingsLimbo::default(),
+            limbo_off_node: false,
             subdomains: AppSettingsSubdomains::default(),
             recovery: AppSettingsRecovery::default(),
             upgrades: AppSettingsUpgrades::default(),
@@ -395,6 +400,10 @@ async fn gather(state: &crate::State, user: Option<&User>) -> KnowledgeFacts {
             facts.fivem = fivem;
         }
         Err(err) => tracing::warn!("neo's prompt could not read the eggs' features: {err:#}"),
+    }
+
+    if facts.limbo.enabled {
+        facts.limbo_off_node = crate::limbo::parks_off_node(state).await;
     }
 
     if let (Some(_), Some(user)) = (&facts.accounts, user) {
@@ -1845,14 +1854,21 @@ pub fn knowledge_text(facts: &KnowledgeFacts) -> String {
         } else {
             String::new()
         };
-        item(
-            &mut out,
-            &format!(
+        let text = if facts.limbo_off_node {
+            format!(
                 "Servers nobody uses (no power action, console command, file change, SFTP login or setting by a person) are stopped after {} and parked after {}: backed up off their node and removed from it until their owner restores them{spared}. A parked server's pages show its restore page, where the owner restores it{cost}. It goes back to its own node, with its old address, when that node has room; otherwise the owner picks a location and the address changes.",
                 minutes(limbo.stop_minutes as i64),
                 minutes(limbo.park_minutes as i64)
-            ),
-        );
+            )
+        } else {
+            // no storage off the nodes: parked in place, suspended on their node (limbo.rs)
+            format!(
+                "Servers nobody uses (no power action, console command, file change, SFTP login or setting by a person) are stopped after {} and parked after {}: they stay on their node with all their files and their address, but are locked (suspended) so nothing can start them until their owner restores them{spared}. A parked server's pages show its restore page, where the owner restores it{cost}; it is back at once, on the same node with the same address, and can be started again.",
+                minutes(limbo.stop_minutes as i64),
+                minutes(limbo.park_minutes as i64)
+            )
+        };
+        item(&mut out, &text);
     }
 
     // Backups
@@ -2754,6 +2770,7 @@ mod tests {
         facts.ads.enabled = true;
         facts.ads.room_enabled = true;
         facts.limbo.enabled = true;
+        facts.limbo_off_node = true;
         facts.subdomains_active = true;
         facts.status_page = Some("status.example.com".to_string());
         facts.recovery.failover_mode = FailoverMode::Auto;
@@ -2798,6 +2815,37 @@ mod tests {
             !knowledge.contains(" Plus "),
             "the default name leaked:\n{knowledge}"
         );
+    }
+
+    #[test]
+    fn idle_servers_are_said_to_be_parked_in_place_without_storage_off_the_nodes() {
+        let mut facts = example();
+        facts.limbo.enabled = true;
+        facts.economy.tokens_enabled = true;
+
+        facts.limbo_off_node = false;
+        let knowledge = knowledge_text(&facts);
+        assert!(
+            knowledge.contains("stopped after 48 hours and parked after 72 hours: they stay on their node with all their files"),
+            "no in-place text in:\n{knowledge}"
+        );
+        assert!(knowledge.contains("restoring parked servers"));
+        for promise in [
+            "backed up off their node",
+            "removed from it",
+            "picks a location",
+        ] {
+            assert!(
+                !knowledge.contains(promise),
+                "{promise:?} promised without storage off the nodes:\n{knowledge}"
+            );
+        }
+
+        facts.limbo_off_node = true;
+        let knowledge = knowledge_text(&facts);
+        assert!(knowledge.contains(
+            "stopped after 48 hours and parked after 72 hours: backed up off their node"
+        ));
     }
 
     #[test]

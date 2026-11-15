@@ -1174,12 +1174,34 @@ pub async fn settle(state: &crate::State) -> Result<(), anyhow::Error> {
     Ok(())
 }
 
-/// Tells a server's owner that limbo stopped it for being idle (`crate::limbo`), when it will be
-/// parked, and what a keep-awake pass costs when one is sold. Never fails the caller.
+/// Tells a server's owner that limbo stopped it for being idle (`crate::limbo`), when and how it
+/// will be parked (off its node when its backups leave it, [`crate::limbo::can_park`], else in
+/// place), and what a keep-awake pass costs when one is sold. Never fails the caller.
 pub async fn notify_idle_stop(state: &crate::State, server_uuid: uuid::Uuid, idle_minutes: i64) {
     if let Err(err) = idle_stop_notification(state, server_uuid, idle_minutes).await {
         tracing::warn!(server = %server_uuid, "failed to tell the owner of an idle stop: {err:#}");
     }
+}
+
+/// The data of a `serverIdleStopped` notification: `park` is the hours until the server is parked,
+/// `in_place` whether that parks it on its node (suspended there; its backups do not leave the
+/// node) rather than backing it up and removing it; `tokens`/`days` are the keep-awake pass, when
+/// one is sold.
+fn idle_stop_data(
+    server: &str,
+    idle_minutes: i64,
+    park_minutes: i64,
+    in_place: bool,
+    pass: Option<(i64, i32)>,
+) -> serde_json::Value {
+    serde_json::json!({
+        "server": server,
+        "hours": (idle_minutes / 60).max(1),
+        "park": ((park_minutes - idle_minutes).max(0) + 59) / 60,
+        "in_place": in_place,
+        "tokens": pass.map(|(tokens, _)| tokens),
+        "days": pass.map(|(_, days)| days),
+    })
 }
 
 async fn idle_stop_notification(
@@ -1197,28 +1219,26 @@ async fn idle_stop_notification(
         )
     };
 
-    let Some(row) = sqlx::query("SELECT owner_uuid, name FROM servers WHERE uuid = $1")
-        .bind(server_uuid)
-        .fetch_optional(state.database.read())
-        .await?
-    else {
+    let Some(server) = Server::by_uuid_optional(&state.database, server_uuid).await? else {
         return Ok(());
     };
+    let off_node =
+        crate::limbo::can_park(server.backup_configuration(&state.database).await.as_ref());
 
     let terms = terms(&settings, Kind::KeepAwake);
     let offer = sold(&terms, Kind::KeepAwake, tokens_enabled, limbo_enabled);
     crate::notifications::send(
         state,
-        row.try_get("owner_uuid")?,
+        server.owner.uuid,
         Some(server_uuid),
         crate::notifications::SERVER_IDLE_STOPPED,
-        serde_json::json!({
-            "server": row.try_get::<String, _>("name")?,
-            "hours": (idle_minutes / 60).max(1),
-            "park": ((park_minutes - idle_minutes).max(0) + 59) / 60,
-            "tokens": offer.then_some(terms.tokens),
-            "days": offer.then_some(settings.keep_awake_days.max(1)),
-        }),
+        idle_stop_data(
+            &server.name,
+            idle_minutes,
+            park_minutes,
+            !off_node,
+            offer.then_some((terms.tokens, settings.keep_awake_days.max(1))),
+        ),
     )
     .await;
 
@@ -1228,6 +1248,34 @@ async fn idle_stop_notification(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn an_idle_stop_says_when_and_how_the_server_is_parked() {
+        // backups off the node: 48 h idle, parked at 72 h, a pass sold
+        let data = idle_stop_data("Lobby", 48 * 60, 72 * 60, false, Some((5, 7)));
+        assert_eq!(data["server"], "Lobby");
+        assert_eq!(data["hours"], 48);
+        assert_eq!(data["park"], 24);
+        assert_eq!(data["in_place"], false);
+        assert_eq!(data["tokens"], 5);
+        assert_eq!(data["days"], 7);
+
+        // backups stay on its node (no storage server): parked in place, the rest unchanged
+        let data = idle_stop_data("Lobby", 48 * 60, 72 * 60, true, Some((5, 7)));
+        assert_eq!(data["in_place"], true);
+        assert_eq!(data["park"], 24);
+        assert_eq!(data["hours"], 48);
+        assert_eq!(data["tokens"], 5);
+
+        // no pass sold; under an hour idle still says 1; parking already due rounds to 0
+        let data = idle_stop_data("Lobby", 10, 5, true, None);
+        assert_eq!(data["hours"], 1);
+        assert_eq!(data["park"], 0);
+        assert!(data["tokens"].is_null() && data["days"].is_null());
+
+        // part of an hour left counts as a whole one
+        assert_eq!(idle_stop_data("Lobby", 60, 121, false, None)["park"], 2);
+    }
 
     #[test]
     fn kinds_round_trip_and_only_extra_slots_stack() {

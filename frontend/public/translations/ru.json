@@ -1223,6 +1223,7 @@
             "title": "Сервер остановлен из-за простоя",
             "body": "Сервер {server} остановлен, потому что им никто не пользовался {hours} ч.",
             "park": "Если им никто не воспользуется, примерно через {hours} ч он будет переведён в спящий режим: для него создадут резервную копию и уберут его с узла до восстановления.",
+            "parkInPlace": "Если им никто не воспользуется, примерно через {hours} ч. он будет переведён в спящий режим: он останется на своём узле со всеми файлами, но будет заблокирован до восстановления.",
             "keepAwake": "«Без сна» на {days} дн. · {price}.",
             "action": "Не давать уснуть"
           },
@@ -8991,11 +8992,11 @@
                 "title": "Limbo Settings",
                 "form": {
                   "enabled": "Park Idle Servers",
-                  "enabledDescription": "A server nobody used for a while is stopped, later backed up off its node and removed from it. Its owner restores it from the server page. Admins' servers are never touched.",
+                  "enabledDescription": "A server nobody used for a while is stopped, later parked until its owner restores it from the server page. Parking backs it up off its node and removes it when its backups leave the node (S3, or restic off the node); otherwise it stays on its node, suspended. Admins' servers are never touched.",
                   "stopMinutes": "Stop After (Minutes)",
                   "stopMinutesDescription": "A running server nobody used for this long is stopped.",
                   "parkMinutes": "Park After (Minutes)",
-                  "parkMinutesDescription": "A stopped server nobody used for this long is backed up and removed from its node.",
+                  "parkMinutesDescription": "A stopped server nobody used for this long is parked: backed up and removed from its node when its backups leave the node, else suspended on its node with its files.",
                   "maxPerRun": "Servers per Minute",
                   "maxPerRunDescription": "How many servers are stopped and how many are parked each minute, at most.",
                   "exemptMembers": "Spare Members",

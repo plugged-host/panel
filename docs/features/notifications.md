@@ -56,7 +56,7 @@ open. Reading or deleting notifications is not written to the activity log.
 | `subuserAdded` | The person added | They were made a subuser of a server |
 | `subuserRemoved` | The person removed | They are not a subuser of the server any more (no **Open server**) |
 | `upgradeEnding` | Whoever bought it (the owner once they have no access to the server) | A keep-awake pass or an extra port, database or backup slot ends within 48 hours, once per end date, with what adding time costs and **Add time** to Settings › Upgrades ([server upgrades](server-upgrades.md)) |
-| `serverIdleStopped` | The owner | [Limbo](limbo.md) stopped the server for being idle: how long, when it will be parked, and while one is sold what a keep-awake pass costs, with **Keep it awake** |
+| `serverIdleStopped` | The owner | [Limbo](limbo.md) stopped the server for being idle: how long, when it will be parked (`park`) and whether in place (`in_place`: its backups stay on its node, so it stays there, locked), and while one is sold what a keep-awake pass costs, with **Keep it awake** |
 | `backupCompleted`, `backupFailed` | Whoever asked for that backup's mail on the server's Settings › Notifications ([server settings](server-settings.md)) | A backup made by hand or by a schedule ended |
 
 The last four rows are the Pelican panel's own (upstream Pelican's listeners), which it sent both

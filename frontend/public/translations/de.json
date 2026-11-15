@@ -1227,6 +1227,7 @@
             "title": "Server im Leerlauf gestoppt",
             "body": "{server} wurde gestoppt, weil ihn {hours} Stunden lang niemand genutzt hat.",
             "park": "Nutzt ihn niemand, wird er in etwa {hours} Stunden in den Ruhezustand versetzt: gesichert und von seinem Node entfernt, bis er wiederhergestellt wird.",
+            "parkInPlace": "Nutzt ihn niemand, wird er in etwa {hours} Stunden in den Ruhezustand versetzt: Er bleibt mit allen Dateien auf seinem Node, ist aber gesperrt, bis er wiederhergestellt wird.",
             "keepAwake": "Halte ihn {days} Tage wach · {price}.",
             "action": "Wach halten"
           },
@@ -4827,11 +4828,11 @@
                 "title": "Limbo-Einstellungen",
                 "form": {
                   "enabled": "Ungenutzte Server parken",
-                  "enabledDescription": "Ein Server, den eine Weile niemand benutzt hat, wird gestoppt, später außerhalb seines Nodes gesichert und von ihm entfernt. Der Besitzer stellt ihn auf der Serverseite wieder her. Server von Admins bleiben unberührt.",
+                  "enabledDescription": "Ein Server, den eine Weile niemand benutzt hat, wird gestoppt und später geparkt, bis der Besitzer ihn auf der Serverseite wiederherstellt. Verlassen seine Backups den Node (S3 oder restic außerhalb des Nodes), wird er dabei außerhalb seines Nodes gesichert und von ihm entfernt; sonst bleibt er gesperrt auf seinem Node. Server von Admins bleiben unberührt.",
                   "stopMinutes": "Stoppen nach (Minuten)",
                   "stopMinutesDescription": "Ein laufender Server, den so lange niemand benutzt hat, wird gestoppt.",
                   "parkMinutes": "Parken nach (Minuten)",
-                  "parkMinutesDescription": "Ein gestoppter Server, den so lange niemand benutzt hat, wird gesichert und von seinem Node entfernt.",
+                  "parkMinutesDescription": "Ein gestoppter Server, den so lange niemand benutzt hat, wird geparkt: gesichert und von seinem Node entfernt, wenn seine Backups den Node verlassen, sonst mit seinen Dateien auf seinem Node gesperrt.",
                   "maxPerRun": "Server pro Minute",
                   "maxPerRunDescription": "Wie viele Server pro Minute höchstens gestoppt und wie viele geparkt werden.",
                   "exemptMembers": "Mitglieder verschonen",

@@ -12,7 +12,7 @@ import Badge from '@/elements/data-display/Badge.tsx';
 import LocationList from '@/elements/LocationList.tsx';
 import ConfirmationModal from '@/elements/modals/ConfirmationModal.tsx';
 import ResourceView from '@/elements/ResourceView.tsx';
-import { isInLimbo } from '@/lib/domain/limbo.ts';
+import { isInLimbo, isParked } from '@/lib/domain/limbo.ts';
 import { tierName } from '@/lib/economy.ts';
 import { formatTimestamp } from '@/lib/format/time.ts';
 import { queryKeys } from '@/lib/queryKeys.ts';
@@ -177,7 +177,7 @@ export default function ServerLimbo() {
     <ServerContentContainer
       title={t(`${page}.title`, {})}
       contentRight={
-        state === 'parked' ? (
+        isParked(state) ? (
           <Button disabled={needsLocation && !locationUuid} onClick={() => setConfirming(true)}>
             {t(`${page}.button.restore`, {})}
           </Button>
@@ -203,7 +203,7 @@ export default function ServerLimbo() {
 
       <ResourceView resource={resource}>
         {(view) =>
-          view.state === 'parked' ? (
+          isParked(view.state) ? (
             <Parked limbo={view} locationUuid={locationUuid} setLocationUuid={setLocationUuid} />
           ) : view.state === 'parking' ? (
             <section className='theme-eco-card'>

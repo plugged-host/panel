@@ -81,8 +81,9 @@ pub const ADMIN_PARTNER_SUSPENDED: &str = "admin.partnerSuspended";
 /// Server upgrades (shared/src/server_upgrades.rs, docs/features/server-upgrades.md): a keep-awake
 /// pass or an extra slot ends within 48 hours (`upgrade`, `until`, `tokens` to renew or null).
 pub const UPGRADE_ENDING: &str = "upgradeEnding";
-/// Limbo stopped the server for being idle (`hours` idle, `park` hours until it is parked; `tokens`
-/// and `days` of a keep-awake pass while one is sold).
+/// Limbo stopped the server for being idle (`hours` idle, `park` hours until it is parked,
+/// `in_place` when that parks it on its node because its backups stay there; `tokens` and `days`
+/// of a keep-awake pass while one is sold).
 pub const SERVER_IDLE_STOPPED: &str = "serverIdleStopped";
 /// A friend the account brought earned the referral threshold: `amount` tokens paid
 /// (shared/src/referrals.rs, docs/features/referrals.md).

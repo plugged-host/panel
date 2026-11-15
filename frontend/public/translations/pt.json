@@ -1223,6 +1223,7 @@
             "title": "Servidor parado por inatividade",
             "body": "{server} foi parado porque ninguém o usou por {hours} horas.",
             "park": "Se ninguém o usar, ele será hibernado em cerca de {hours} horas: é feito um backup dele, e ele é removido do node até ser restaurado.",
+            "parkInPlace": "A menos que alguém o use, ele será hibernado em cerca de {hours} horas: fica no seu node com todos os arquivos, mas bloqueado até ser restaurado.",
             "keepAwake": "Mantenha-o ativo por {days} dias · {price}.",
             "action": "Manter ativo"
           },
@@ -8991,11 +8992,11 @@
                 "title": "Limbo Settings",
                 "form": {
                   "enabled": "Park Idle Servers",
-                  "enabledDescription": "A server nobody used for a while is stopped, later backed up off its node and removed from it. Its owner restores it from the server page. Admins' servers are never touched.",
+                  "enabledDescription": "A server nobody used for a while is stopped, later parked until its owner restores it from the server page. Parking backs it up off its node and removes it when its backups leave the node (S3, or restic off the node); otherwise it stays on its node, suspended. Admins' servers are never touched.",
                   "stopMinutes": "Stop After (Minutes)",
                   "stopMinutesDescription": "A running server nobody used for this long is stopped.",
                   "parkMinutes": "Park After (Minutes)",
-                  "parkMinutesDescription": "A stopped server nobody used for this long is backed up and removed from its node.",
+                  "parkMinutesDescription": "A stopped server nobody used for this long is parked: backed up and removed from its node when its backups leave the node, else suspended on its node with its files.",
                   "maxPerRun": "Servers per Minute",
                   "maxPerRunDescription": "How many servers are stopped and how many are parked each minute, at most.",
                   "exemptMembers": "Spare Members",

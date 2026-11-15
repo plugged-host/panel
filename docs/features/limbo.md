@@ -4,6 +4,10 @@ A server nobody uses is stopped, and later parked: backed up off its node and re
 the node's disk and room go to servers people play on. Its owner restores it from the server page.
 Start gate 10 ([start-gates.md](start-gates.md)), in `shared/src/limbo.rs`.
 
+Parking off the node needs storage off the nodes (S3, Proxmox Backup Server, or restic with a
+repository that is not a path on the node). **Without it, a server is parked in place** (below):
+it stays on its node, suspended there, until its owner pays to restore it.
+
 ## The idle clock
 
 `servers.last_activity` is the newest server activity a person caused: a power action, a console
@@ -27,8 +31,8 @@ off by default) and looks at servers that are:
 
 | Idle for | Running | Does |
 |---|---|---|
-| `stop_minutes` (2880, two days) | yes | Stops it (`stopped`, `server:limbo.stop`) and tells the owner (`serverIdleStopped`: when it will be parked, and what a keep-awake pass costs while one is sold) |
-| `park_minutes` (4320, three days) | no | Parks it (below) |
+| `stop_minutes` (2880, two days) | yes | Stops it (`stopped`, `server:limbo.stop`) and tells the owner (`serverIdleStopped`: when it will be parked and whether in place, and what a keep-awake pass costs while one is sold) |
+| `park_minutes` (4320, three days) | no | Parks it: off its node (below) when its backups leave it, else in place |
 
 The windows are minutes so a test panel can park a server within the hour; until 2026-10-24 they
 were hours (`stop_hours`, `park_hours`), and a stored hour value still counts (times 60) until the
@@ -37,6 +41,40 @@ tab is saved again.
 A node that does not answer is skipped: it says nothing about its servers. At most `max_per_run`
 servers are stopped per run, and at most `max_per_run` parks run at once. Any activity by a person
 clears `stopped`; a stopped server is otherwise an ordinary server.
+
+## Parked in place (no storage server)
+
+Whether a server is parked off its node is `limbo::can_park`: its backup configuration (its own,
+else its node's, else its location's) leaves the node (`node_failover::off_node`, the same rule as
+failover) and is not in maintenance. Any other server (no configuration, a local, ZFS or Btrfs one,
+restic on a path of the node) is **parked in place** (`limbo::park_in_place`) after `park_minutes`
+instead:
+
+- `servers.limbo_state` becomes `dormant` and `server_limbo.parked` is set (no final backup).
+  `server:limbo.park` with `in_place: true`.
+- Wings is told the server is suspended (`into_remote_api_object` sends `suspended` for a dormant
+  server; a node that does not answer gets it when it fetches its servers again), so neither a
+  start nor a schedule runs it. `servers.suspended` is not touched: it is not a suspension, the
+  owner sees the limbo page, not the suspended one.
+- It stays on its node with its files, allocations and address, and keeps its room there (the room
+  queries leave out only `parked`), so it always fits back. Abuse scans, ads, backup policies,
+  transfers and Lighten Load leave it alone like any server in limbo.
+- Its pages show the limbo page (gate 10, 409 on the rest of its API) with Restore server and the
+  same token cost; no location is asked for. A restore (`limbo::restore_in_place`) charges the
+  tokens and makes it an ordinary server again in one transaction (idle clock restarted), then
+  Wings lifts the suspension; the owner starts it as usual. When Wings cannot be told, it is
+  dormant again, the tokens go back (`limbo_refund`) and the page says the node does not answer.
+  It never passes `restoring`, so the task's restore steps, which remove a half-made copy from a
+  node, never touch it.
+- **Delete After (Days)** applies from `parked` like for any parked server: the server is deleted
+  from its node with its files.
+
+The stop's notification says which parking it gets (`serverIdleStopped`, `in_place`): "it stays on
+its node with all its files, but is locked until it is restored" instead of "backed up and removed
+from its node". neo's knowledge describes in-place parking while no server at all parks off its
+node (`limbo::parks_off_node`, checked at most every 5 minutes), else the off-node one.
+
+The admin list and the server list show a dormant server as Parked; the API reports `dormant`.
 
 ## Parking
 
@@ -164,7 +202,7 @@ limbo node, its location or the server backs them up.
 
 | Route | Permission | Does |
 |---|---|---|
-| `GET /api/client/servers/{server}/limbo` | `control.start` or `control.restart` | `{limbo}`: `state` (`stopped`, `parking`, `parked`, `restoring`, `unpacking` or `null`), `last_activity`, `parked`, `cost`, `tokens` (the user's, `null` with tokens off), `home_available`, `home_location_uuid`, `locations` (as on Create Server), `error` |
+| `GET /api/client/servers/{server}/limbo` | `control.start` or `control.restart` | `{limbo}`: `state` (`stopped`, `parking`, `parked`, `dormant`, `restoring`, `unpacking` or `null`; a `dormant` server has `home_available` true and no `locations`), `last_activity`, `parked`, `cost`, `tokens` (the user's, `null` with tokens off), `home_available`, `home_location_uuid`, `locations` (as on Create Server), `error` |
 | `POST /api/client/servers/{server}/limbo` | `control.start` or `control.restart` | `{location_uuid?}`: restores the server, home without a location; 409 when it is not parked, its node has no room and no location was picked, the location cannot take it, or the user has too few tokens |
 
 ## Settings
@@ -173,9 +211,9 @@ Admin › Settings › Hosting › Limbo (`shared/src/settings/limbo.rs`):
 
 | Setting | Default | Range |
 |---|---|---|
-| Park Idle Servers | off | |
-| Stop After (Hours) | 48 | 1 to 8760 |
-| Park After (Hours) | 72 | 1 to 8760 |
+| Park Idle Servers (`enabled`) | off | |
+| Stop After (Minutes) | 2880 | 1 to 525600 |
+| Park After (Minutes) | 4320 | 1 to 525600; off the node or in place, by the server's backups |
 | Servers per Minute | 3 | 1 to 100 |
 | Spare Members | off | Members' servers are stopped, parked and deleted like everyone's while it is off |
 | Delete After (Days) | 0 (never) | 0 to 3650 |
@@ -186,7 +224,7 @@ Admin › Settings › Hosting › Limbo (`shared/src/settings/limbo.rs`):
 ## Tables
 
 - `servers.last_activity` (the idle clock), `servers.limbo_state` (`stopped`, `parking`, `parked`,
-  `restoring`, `unpacking`, or `NULL`).
+  `dormant` (parked in place), `restoring`, `unpacking`, or `NULL`).
 - `server_limbo`: one row per server that was ever in limbo: `since` (the current state's start),
   `backup_uuid` (the final backup), `parked` (set once Wings deleted the server), `paid` and
   `payer_uuid` (the restore under way), `error` and `failed` (the last failure), `updated`;
@@ -215,7 +253,7 @@ back; `/upgrades` is reachable while the server is parked).
 
 ## Check
 
-- Admin › Settings › Hosting › Limbo: on, Stop After 1, Park After 2. Leave a test server running
+- Admin › Settings › Hosting › Limbo: on, Stop After 60, Park After 120. Leave a test server running
   and untouched (it needs an off-node backup configuration): after an hour it is stopped and its
   activity shows `server:limbo.stop`; after two it is parked. The server list says Parked, every
   page of the server shows the limbo page, the node's free memory went up.
@@ -230,6 +268,12 @@ back; `/upgrades` is reachable while the server is parked).
 - Start a server while it is being parked: it starts, and its backup list keeps the final backup,
   unlocked.
 - As an admin, restoring costs nothing; admins' own servers are never stopped.
+- In place: a test server whose location uses a local backup configuration, Stop After 60, Park
+  After 120. After an hour it is stopped and the notification says it stays on its node, locked;
+  after two it is Parked, its pages show the limbo page without a location list, and Wings reports
+  it suspended (a schedule does not start it). Restore server with enough tokens: the tokens go
+  down, the page goes to the console at once, the server starts with its files and address. Stop
+  Wings on its node and restore again: "the node … does not answer", tokens back, still parked.
 - After an import of a Pelican panel with parked servers: Admin › Nodes shows the limbo node(s)
   with Role Limbo; a server on one shows the limbo page (not suspended). Restore it: Admin ›
   Overview › Capacity shows a move Started By "Limbo Restore", the card says it is on its way, the

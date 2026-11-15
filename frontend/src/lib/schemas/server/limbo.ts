@@ -2,7 +2,7 @@
 import { z } from 'zod';
 import { serverCreateLocationSchema } from '@/lib/schemas/server/create.ts';
 
-export const serverLimboStateSchema = z.enum(['stopped', 'parking', 'parked', 'restoring', 'unpacking']);
+export const serverLimboStateSchema = z.enum(['stopped', 'parking', 'parked', 'dormant', 'restoring', 'unpacking']);
 
 export const serverLimboSchema = z.object({
   state: serverLimboStateSchema.nullable(),

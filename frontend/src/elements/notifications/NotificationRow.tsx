@@ -426,12 +426,21 @@ export function notificationText(translations: Translations, notification: Notif
     }
     case 'serverIdleStopped': {
       const tokens = typeof data.tokens === 'number' ? data.tokens : null;
+      const park = typeof data.park === 'number' ? data.park : null;
+      // parked on its node (suspended there) when its backups do not leave the node
+      const inPlace = data.in_place === true;
 
       return {
         title: t('elements.notifications.kinds.serverIdleStopped.title', {}),
         body: t('elements.notifications.kinds.serverIdleStopped.body', { server, hours: count(data.hours) }),
         details: [
-          t('elements.notifications.kinds.serverIdleStopped.park', { hours: Math.max(1, count(data.park)) }),
+          ...(park !== null
+            ? [
+                t(`elements.notifications.kinds.serverIdleStopped.${inPlace ? 'parkInPlace' : 'park'}`, {
+                  hours: Math.max(1, park),
+                }),
+              ]
+            : []),
           ...(tokens !== null
             ? [
                 t('elements.notifications.kinds.serverIdleStopped.keepAwake', {

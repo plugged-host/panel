@@ -44,7 +44,12 @@ export function serverCondition(
   }
 
   if (isInLimbo(server.limboState)) {
-    const limbo = server.limboState === 'parking' || server.limboState === 'parked' ? server.limboState : 'restoring';
+    const limbo =
+      server.limboState === 'parking'
+        ? 'parking'
+        : server.limboState === 'parked' || server.limboState === 'dormant'
+          ? 'parked'
+          : 'restoring';
 
     return {
       label: t(`common.server.state.${limbo}`, {}),

@@ -1038,6 +1038,8 @@ const baseTranslations = defineTranslations({
             title: 'Server stopped while idle',
             body: '{server} was stopped because nobody used it for {hours} hours.',
             park: 'Unless someone uses it, it is hibernated in about {hours} hours: backed up and removed from its node until it is restored.',
+            parkInPlace:
+              'Unless someone uses it, it is hibernated in about {hours} hours: it stays on its node with all its files, but is locked until it is restored.',
             keepAwake: 'Keep it awake for {days} days · {price}.',
             action: 'Keep it awake',
           },
@@ -4899,12 +4901,12 @@ const baseTranslations = defineTranslations({
                 form: {
                   enabled: 'Park Idle Servers',
                   enabledDescription:
-                    "A server nobody used for a while is stopped, later backed up off its node and removed from it. Its owner restores it from the server page. Admins' servers are never touched.",
+                    "A server nobody used for a while is stopped, later parked until its owner restores it from the server page. Parking backs it up off its node and removes it when its backups leave the node (S3, or restic off the node); otherwise it stays on its node, suspended. Admins' servers are never touched.",
                   stopMinutes: 'Stop After (Minutes)',
                   stopMinutesDescription: 'A running server nobody used for this long is stopped.',
                   parkMinutes: 'Park After (Minutes)',
                   parkMinutesDescription:
-                    'A stopped server nobody used for this long is backed up and removed from its node.',
+                    'A stopped server nobody used for this long is parked: backed up and removed from its node when its backups leave the node, else suspended on its node with its files.',
                   maxPerRun: 'Servers per Minute',
                   maxPerRunDescription: 'How many servers are stopped and how many are parked each minute, at most.',
                   exemptMembers: 'Spare Members',

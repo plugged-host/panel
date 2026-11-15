@@ -73,7 +73,7 @@ for 30 days · 2 tokens.") once the limit is reached, for whoever may add one th
 
 `settle_limbo` leaves out servers with a running pass (`limbo::candidates`), and so does deleting
 servers parked too long (`limbo::purge_due`). Limbo's stop tells the owner (`serverIdleStopped`,
-[notifications.md](notifications.md)): how long it was idle, when it will be parked, and what a pass
+[notifications.md](notifications.md)): how long it was idle, when and how it will be parked, and what a pass
 costs while one is sold, with a link to the server's Settings › Upgrades. The console of a server
 limbo stopped (`limbo_state` `stopped`, while it is off) offers a pass, and so does a parked
 server's limbo page.

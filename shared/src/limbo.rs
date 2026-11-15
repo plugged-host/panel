@@ -22,6 +22,12 @@
 //!    its backups go to the deleted servers' hold like any deleted server's. The limbo page says
 //!    when, and a restore is refused once the time has passed.
 //!
+//! A server whose backups stay on its node (no storage server: [`can_park`] is false) is parked
+//! **in place** instead (`dormant`, [`park_in_place`]): it stays on its node with its files, Wings
+//! is told it is suspended (so neither a start nor a schedule runs it), and the node keeps its
+//! room. Its restore costs the same tokens and only lifts the suspension ([`restore_in_place`]).
+//! [`parks_off_node`] tells the panel-wide texts (neo) which kind of parking servers get.
+//!
 //! A server with a keep-awake pass running ([`crate::server_upgrades`]) is neither stopped, parked
 //! nor deleted. A stop tells the owner, with what a pass costs.
 //!
@@ -44,12 +50,15 @@ use crate::{
     economy::{Currency, change},
     models::{
         ByUuid, CreatableModel, EventEmittingModel,
+        backup_configuration::BackupConfiguration,
         node::Node,
         node_allocation::NodeAllocation,
         server::{Server, ServerEvent, ServerStatus, rehome::RehomeOptions},
         server_activity::{CreateServerActivityOptions, ServerActivity},
         server_allocation::ServerAllocation,
-        server_backup::{CreateServerBackupOptions, ServerBackup, ServerBackupRestoreOptions},
+        server_backup::{
+            BackupDisk, CreateServerBackupOptions, ServerBackup, ServerBackupRestoreOptions,
+        },
         user::User,
     },
     server_transfers::{Picked, TransferError, TransferRequest},
@@ -73,6 +82,10 @@ const CREATE_TIMEOUT_MINUTES: i64 = 15;
 const RETRY_HOURS: i64 = 24;
 /// Failed parks in the last hour (with none that worked) that pause parking.
 const BREAKER_FAILURES: i64 = 3;
+/// Idle servers looked at per run. It has to cover every idle server: servers that are off and
+/// cannot be parked (no storage off the node) stay idle candidates for good, and with 500 (until
+/// 3.1.4) they took the whole window, so running servers idle for less long were never stopped.
+const MAX_CANDIDATES: i64 = 20_000;
 
 /// The role of a node that keeps parked servers' files (`nodes.role`, see the module docs). It is
 /// never picked for players' servers (those go to `game` nodes), and limbo parks nothing there.
@@ -144,6 +157,9 @@ pub enum LimboState {
     /// Deleted from Wings; the row and the backup wait for a restore. Or kept as it is on a
     /// `limbo` node (NODE_ROLE), where a restore moves it from.
     Parked,
+    /// Parked in place: still on its node with its files, suspended on Wings until it is restored
+    /// (its backups do not leave the node). Counts toward its node's room like any server there.
+    Dormant,
     /// Being created on a node again.
     Restoring,
     /// Its final backup being restored.
@@ -156,6 +172,7 @@ impl LimboState {
             Self::Stopped => "stopped",
             Self::Parking => "parking",
             Self::Parked => "parked",
+            Self::Dormant => "dormant",
             Self::Restoring => "restoring",
             Self::Unpacking => "unpacking",
         }
@@ -166,6 +183,7 @@ impl LimboState {
             "stopped" => Some(Self::Stopped),
             "parking" => Some(Self::Parking),
             "parked" => Some(Self::Parked),
+            "dormant" => Some(Self::Dormant),
             "restoring" => Some(Self::Restoring),
             "unpacking" => Some(Self::Unpacking),
             _ => None,
@@ -176,6 +194,17 @@ impl LimboState {
     /// its limbo page, a start and deleting it waits.
     pub fn away(self) -> bool {
         !matches!(self, Self::Stopped)
+    }
+
+    /// Parked, off its node or in place: waits for a restore, and may be deleted after
+    /// `delete_after_days`.
+    pub fn parked(self) -> bool {
+        matches!(self, Self::Parked | Self::Dormant)
+    }
+
+    /// Wings has to be told the server is suspended: it is parked in place.
+    pub fn suspends(self) -> bool {
+        matches!(self, Self::Dormant)
     }
 }
 
@@ -221,7 +250,8 @@ pub fn deletes_at(
 const PURGE_BATCH: i64 = 20;
 
 /// Deletes servers parked for longer than `delete_after_days` (run by `settle`, also with limbo
-/// off). Only `parked` ones: a restore under way stops the clock. Not suspended ones: their
+/// off). Only `parked` and `dormant` ones (a dormant one is deleted from its node with its
+/// files): a restore under way stops the clock. Not suspended ones: their
 /// owner is shown the suspension's deletion time, and nothing deletes them before it
 /// (docs/features/suspension.md#purge). A server whose node cannot delete it is tried again next
 /// run.
@@ -237,7 +267,7 @@ pub async fn purge_due(state: &crate::State) -> Result<usize, anyhow::Error> {
         r#"
         SELECT servers.uuid FROM servers
         JOIN server_limbo ON server_limbo.server_uuid = servers.uuid
-        WHERE servers.limbo_state = 'parked' AND server_limbo.parked IS NOT NULL
+        WHERE servers.limbo_state IN ('parked', 'dormant') AND server_limbo.parked IS NOT NULL
             AND NOT servers.suspended
             AND server_limbo.parked <= NOW() - make_interval(days => $1)
             AND NOT EXISTS (
@@ -258,7 +288,9 @@ pub async fn purge_due(state: &crate::State) -> Result<usize, anyhow::Error> {
     let mut deleted = 0;
     for server_uuid in due {
         let server = match Server::by_uuid_optional(&state.database, server_uuid).await? {
-            Some(server) if server.limbo == Some(LimboState::Parked) && !server.suspended => server,
+            Some(server) if server.limbo.is_some_and(LimboState::parked) && !server.suspended => {
+                server
+            }
             _ => continue,
         };
 
@@ -303,6 +335,80 @@ pub fn action(settings: &AppSettingsLimbo, idle_minutes: i64, running: bool) -> 
     } else {
         Action::Nothing
     }
+}
+
+/// Whether a server whose backups go to `disk` (with this restic repository) can be parked off its
+/// node: its final backup has to leave the node, and the configuration must not be in maintenance.
+/// Any other server is parked in place.
+pub fn parks_to(disk: BackupDisk, restic_repository: Option<&str>, maintenance: bool) -> bool {
+    crate::node_failover::off_node(disk, restic_repository) && !maintenance
+}
+
+/// Whether a server with this backup configuration (`None`: it has none) can be parked off its
+/// node.
+pub fn can_park(configuration: Option<&BackupConfiguration>) -> bool {
+    configuration.is_some_and(|configuration| {
+        parks_to(
+            configuration.backup_disk,
+            configuration
+                .backup_configs
+                .restic
+                .as_ref()
+                .map(|restic| restic.repository.as_str()),
+            configuration.maintenance_enabled,
+        )
+    })
+}
+
+/// How long [`parks_off_node`] trusts its last answer.
+const PARKS_OFF_NODE_TTL: std::time::Duration = std::time::Duration::from_secs(300);
+static PARKS_OFF_NODE: std::sync::Mutex<Option<(std::time::Instant, bool)>> =
+    std::sync::Mutex::new(None);
+
+/// Whether limbo parks any server off its node: some server off the limbo nodes has a backup
+/// configuration (its own, else its node's, else its location's) that [`parks_to`] allows. False
+/// on a panel without storage off the nodes, where every server is parked in place. Cached for a
+/// few minutes; false when the database cannot tell (nothing more than in place is promised then).
+pub async fn parks_off_node(state: &crate::State) -> bool {
+    if let Ok(cached) = PARKS_OFF_NODE.lock()
+        && let Some((at, parks)) = *cached
+        && at.elapsed() < PARKS_OFF_NODE_TTL
+    {
+        return parks;
+    }
+
+    let parks = match sqlx::query_as::<_, (BackupDisk, Option<String>, bool)>(
+        "SELECT DISTINCT backup_configurations.backup_disk,
+            backup_configurations.backup_configs->'restic'->>'repository',
+            backup_configurations.maintenance_enabled
+        FROM servers
+        JOIN nodes ON nodes.uuid = servers.node_uuid
+        JOIN locations ON locations.uuid = nodes.location_uuid
+        JOIN backup_configurations ON backup_configurations.uuid = COALESCE(
+            servers.backup_configuration_uuid,
+            nodes.backup_configuration_uuid,
+            locations.backup_configuration_uuid
+        )
+        WHERE nodes.role IS DISTINCT FROM $1",
+    )
+    .bind(NODE_ROLE)
+    .fetch_all(state.database.read())
+    .await
+    {
+        Ok(rows) => rows.iter().any(|(disk, repository, maintenance)| {
+            parks_to(*disk, repository.as_deref(), *maintenance)
+        }),
+        Err(err) => {
+            tracing::warn!("failed to check whether limbo parks servers off their node: {err:#}");
+            return false;
+        }
+    };
+
+    if let Ok(mut cached) = PARKS_OFF_NODE.lock() {
+        *cached = Some((std::time::Instant::now(), parks));
+    }
+
+    parks
 }
 
 /// Keeps `servers.last_activity`: every server activity a person caused (not the panel's own,
@@ -969,12 +1075,13 @@ async fn candidates(
                         OR user_memberships.bundle_plus_until > NOW())
             ))
         ORDER BY servers.last_activity
-        LIMIT 500",
+        LIMIT $5",
     )
     .bind(settings.stop_minutes.min(settings.park_minutes))
     .bind(RETRY_HOURS as i32)
     .bind(exempt_members)
     .bind(NODE_ROLE)
+    .bind(MAX_CANDIDATES)
     .fetch_all(state.database.read())
     .await?;
 
@@ -1027,26 +1134,81 @@ async fn stop(
     Ok(())
 }
 
-/// Starts parking an idle server that is off: its final backup, locked. False when its backups
-/// stay on its node (it cannot be parked).
+/// Parks in place: `dormant`, still on its node, suspended on Wings (see the module docs).
+async fn park_in_place(
+    state: &crate::State,
+    server: &Server,
+    idle_minutes: i64,
+) -> Result<bool, anyhow::Error> {
+    let mut transaction = state.database.write().begin().await?;
+    // only while it is still idle and untouched (activity clears `stopped`, never sets it)
+    let claimed = sqlx::query(
+        "UPDATE servers SET limbo_state = 'dormant'
+        WHERE uuid = $1 AND (limbo_state IS NULL OR limbo_state = 'stopped') AND NOT suspended",
+    )
+    .bind(server.uuid)
+    .execute(&mut *transaction)
+    .await?
+    .rows_affected()
+        == 1;
+    if !claimed {
+        return Ok(false);
+    }
+    set_state(&mut *transaction, server.uuid, Some(LimboState::Dormant)).await?;
+    sqlx::query(
+        "UPDATE server_limbo SET parked = NOW(), backup_uuid = NULL, paid = 0, payer_uuid = NULL,
+            error = NULL, failed = NULL
+        WHERE server_uuid = $1",
+    )
+    .bind(server.uuid)
+    .execute(&mut *transaction)
+    .await?;
+    transaction.commit().await?;
+    Server::invalidate_cached(&state.database, server.uuid).await;
+
+    // Wings suspends it (`into_remote_api_object`); one that does not answer gets it when it
+    // fetches its servers again, and the start gate holds every start through the panel meanwhile
+    match Server::by_uuid_optional(&state.database, server.uuid).await? {
+        Some(fresh) => {
+            if let Err(err) = fresh.sync(state).await {
+                tracing::warn!(server = %server.uuid, "failed to suspend a server parked in place on its node: {err:#}");
+            }
+        }
+        None => return Ok(true),
+    }
+
+    log(
+        state,
+        server.uuid,
+        None,
+        "server:limbo.park",
+        serde_json::json!({
+            "node": server.node.uuid,
+            "in_place": true,
+            "idle_minutes": idle_minutes,
+        }),
+    )
+    .await;
+    tracing::info!(server = %server.uuid, node = %server.node.uuid, "parked an idle server in place");
+
+    Ok(true)
+}
+
+/// Parks an idle server that is off: off its node (its final backup, locked; the task removes it
+/// from Wings once the backup is done) when its backups leave the node, else in place. False when
+/// nothing happened (it was used or suspended meanwhile).
 async fn park(
     state: &crate::State,
     server: &Server,
     idle_minutes: i64,
 ) -> Result<bool, anyhow::Error> {
-    let Some(configuration) = server.backup_configuration(&state.database).await else {
-        return Ok(false);
-    };
-    let repository = configuration
-        .backup_configs
-        .restic
-        .as_ref()
-        .map(|restic| restic.repository.clone());
-    if !crate::node_failover::off_node(configuration.backup_disk, repository.as_deref())
-        || configuration.maintenance_enabled
-    {
-        return Ok(false);
+    let configuration = server.backup_configuration(&state.database).await;
+    if !can_park(configuration.as_ref()) {
+        return park_in_place(state, server, idle_minutes).await;
     }
+    let Some(configuration) = configuration else {
+        return park_in_place(state, server, idle_minutes).await;
+    };
 
     let metadata = ServerBackup::generate_metadata(state, server).await?;
     let backup = ServerBackup::create(
@@ -1542,6 +1704,127 @@ async fn restore_by_move(
     Ok(())
 }
 
+/// [`restore`] of a server parked in place: paid and back to an ordinary server in one
+/// transaction (its idle clock restarted), then Wings lifts the suspension. When Wings cannot be
+/// told, it is parked in place again and the tokens go back. It never passes `restoring`, so the
+/// task's restore steps (which remove a half-made copy from the node) never touch it.
+async fn restore_in_place(
+    state: &crate::State,
+    server: &Server,
+    user: &User,
+    cost: i64,
+    parked: Option<chrono::NaiveDateTime>,
+) -> Result<(), LimboError> {
+    let mut transaction = state.database.write().begin().await?;
+    if cost > 0
+        && change(
+            &mut transaction,
+            Currency::Tokens,
+            user.uuid,
+            -cost,
+            TYPE_RESTORE,
+            &server.name,
+            serde_json::json!({ "server": server.uuid }),
+        )
+        .await?
+        .is_none()
+    {
+        return Err(LimboError::Short);
+    }
+    let claimed = sqlx::query(
+        "UPDATE servers SET limbo_state = NULL, last_activity = NOW()
+        WHERE uuid = $1 AND limbo_state = 'dormant'",
+    )
+    .bind(server.uuid)
+    .execute(&mut *transaction)
+    .await?
+    .rows_affected()
+        == 1;
+    if !claimed {
+        return Err(LimboError::NotParked);
+    }
+    set_state(&mut *transaction, server.uuid, None).await?;
+    sqlx::query(
+        "UPDATE server_limbo SET parked = NULL, paid = 0, payer_uuid = NULL, error = NULL,
+            failed = NULL
+        WHERE server_uuid = $1",
+    )
+    .bind(server.uuid)
+    .execute(&mut *transaction)
+    .await?;
+    transaction.commit().await?;
+    Server::invalidate_cached(&state.database, server.uuid).await;
+
+    let synced = match Server::by_uuid_optional(&state.database, server.uuid).await? {
+        Some(fresh) => fresh.sync(state).await,
+        None => return Err(LimboError::NotParked),
+    };
+    if let Err(err) = synced {
+        // Wings still has it suspended: parked in place again, as it was, the tokens back
+        let mut transaction = state.database.write().begin().await?;
+        sqlx::query(
+            "UPDATE servers SET limbo_state = 'dormant' WHERE uuid = $1 AND limbo_state IS NULL",
+        )
+        .bind(server.uuid)
+        .execute(&mut *transaction)
+        .await?;
+        set_state(&mut *transaction, server.uuid, Some(LimboState::Dormant)).await?;
+        sqlx::query(
+            "UPDATE server_limbo SET parked = COALESCE($2, NOW()), error = $3, failed = NOW()
+            WHERE server_uuid = $1",
+        )
+        .bind(server.uuid)
+        .bind(parked)
+        .bind("the server's node did not answer")
+        .execute(&mut *transaction)
+        .await?;
+        if cost > 0 {
+            change(
+                &mut transaction,
+                Currency::Tokens,
+                user.uuid,
+                cost,
+                TYPE_REFUND,
+                &server.name,
+                serde_json::json!({ "server": server.uuid }),
+            )
+            .await?;
+        }
+        transaction.commit().await?;
+        Server::invalidate_cached(&state.database, server.uuid).await;
+        log(
+            state,
+            server.uuid,
+            None,
+            "server:limbo.restore-failed",
+            serde_json::json!({ "error": format!("{err:#}"), "refunded": cost, "in_place": true }),
+        )
+        .await;
+
+        return Err(LimboError::FilesUnreachable);
+    }
+
+    log(
+        state,
+        server.uuid,
+        Some(user.uuid),
+        "server:limbo.restore",
+        serde_json::json!({ "node": server.node.uuid, "cost": cost, "in_place": true }),
+    )
+    .await;
+    log(
+        state,
+        server.uuid,
+        None,
+        "server:limbo.restored",
+        serde_json::json!({ "node": server.node.uuid, "in_place": true }),
+    )
+    .await;
+    tracing::info!(server = %server.uuid, "restored a server parked in place");
+
+    Ok(())
+}
+
 /// Restores a parked server, home or (`location_uuid`) to a node of that location; `user` pays
 /// unless `admin`.
 pub async fn restore(
@@ -1551,7 +1834,7 @@ pub async fn restore(
     location_uuid: Option<uuid::Uuid>,
     admin: bool,
 ) -> Result<(), LimboError> {
-    if server.limbo != Some(LimboState::Parked) {
+    if !server.limbo.is_some_and(LimboState::parked) {
         return Err(LimboError::NotParked);
     }
 
@@ -1570,6 +1853,10 @@ pub async fn restore(
     } else {
         cost(&limbo, details.parked, now)
     };
+
+    if server.limbo == Some(LimboState::Dormant) {
+        return restore_in_place(state, server, user, cost, details.parked).await;
+    }
 
     let current = server.node.fetch_cached(&state.database).await?;
     if way(&current.role, details.backup_uuid.is_some()) == Way::Move {
@@ -1712,11 +1999,15 @@ pub async fn view(
         None
     };
 
-    let parked = server.limbo == Some(LimboState::Parked);
+    let parked = server.limbo.is_some_and(LimboState::parked);
+    let in_place = server.limbo == Some(LimboState::Dormant);
     let node = server.node.fetch_cached(&state.database).await?;
-    // parked on a limbo node, home is the location of the node it came from
+    // parked on a limbo node, home is the location of the node it came from; parked in place, it
+    // never left (its node kept its room)
     let (home_available, home_location_uuid) = if !parked {
         (false, node.location.uuid)
+    } else if in_place {
+        (true, node.location.uuid)
     } else if way(&node.role, details.backup_uuid.is_some()) == Way::Move {
         match move_home(state, server, &details).await? {
             Some((home, room)) => (room, home.location.uuid),
@@ -1743,7 +2034,7 @@ pub async fn view(
         tokens,
         home_available,
         home_location_uuid,
-        locations: if parked {
+        locations: if parked && !in_place {
             crate::server_creation::locations(state, &server.owner).await?
         } else {
             Vec::new()
@@ -1770,11 +2061,18 @@ mod tests {
             LimboState::Stopped,
             LimboState::Parking,
             LimboState::Parked,
+            LimboState::Dormant,
             LimboState::Restoring,
             LimboState::Unpacking,
         ] {
             assert_eq!(LimboState::parse(Some(state.as_str())), Some(state));
             assert_eq!(state.away(), state != LimboState::Stopped);
+            assert_eq!(
+                state.parked(),
+                matches!(state, LimboState::Parked | LimboState::Dormant)
+            );
+            // only a server parked in place is suspended on Wings
+            assert_eq!(state.suspends(), state == LimboState::Dormant);
         }
         assert_eq!(LimboState::parse(None), None);
         assert_eq!(LimboState::parse(Some("limbo")), None);
@@ -1802,6 +2100,31 @@ mod tests {
         };
         assert_eq!(deletes_at(&week, Some(at(0))), Some(at(7 * 24)));
         assert_eq!(deletes_at(&week, None), None);
+    }
+
+    #[test]
+    fn only_a_server_whose_backups_leave_its_node_is_parked_off_it() {
+        assert!(parks_to(BackupDisk::S3, None, false));
+        assert!(parks_to(BackupDisk::ProxmoxBackupServer, None, false));
+        assert!(parks_to(
+            BackupDisk::Restic,
+            Some("s3:http://storage.example.com:9000/copies"),
+            false
+        ));
+        // in maintenance: no backup can be taken
+        assert!(!parks_to(BackupDisk::S3, None, true));
+        // backups that stay on the node (no storage server)
+        assert!(!parks_to(BackupDisk::Local, None, false));
+        assert!(!parks_to(BackupDisk::Zfs, None, false));
+        assert!(!parks_to(BackupDisk::Btrfs, None, false));
+        assert!(!parks_to(
+            BackupDisk::Restic,
+            Some("/var/lib/restic"),
+            false
+        ));
+        assert!(!parks_to(BackupDisk::Restic, None, false));
+        // no backup configuration at all: parked in place
+        assert!(!can_park(None));
     }
 
     #[test]

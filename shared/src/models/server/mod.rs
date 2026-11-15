@@ -1948,7 +1948,9 @@ impl Server {
                     name: self.name,
                     description: self.description.unwrap_or_default(),
                 },
-                suspended: self.suspended,
+                // plugged.host: a server parked in place is suspended on its node (limbo.rs)
+                suspended: self.suspended
+                    || self.limbo.is_some_and(crate::limbo::LimboState::suspends),
                 invocation: self.startup,
                 entrypoint: None,
                 skip_egg_scripts: false,
