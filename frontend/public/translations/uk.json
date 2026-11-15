@@ -1048,7 +1048,8 @@
         },
         "more": "More",
         "accountSettings": "Account settings",
-        "accountsHub": "Accounts Panel"
+        "accountsHub": "Accounts Panel",
+        "downloadApp": "Завантажити застосунок"
       },
       "notifications": {
         "title": "Сповіщення",
@@ -3456,6 +3457,27 @@
             "title": "Попередні заявки",
             "reason": "Причина: {reason}"
           }
+        },
+        "downloadApp": {
+          "title": "Завантажити застосунок",
+          "subtitle": "{app} для Windows",
+          "beta": "Бета",
+          "version": "Версія {version}",
+          "download": "Завантажити для Windows",
+          "intro": "Нативний клієнт для {app}. Він працює з панеллю напряму, показує консоль у реальному часі й відкривається значно швидше за браузер.",
+          "betaNotice": "Це відкрита бета-версія. Якщо щось не працює, повідомте нам через підтримку.",
+          "unsigned": "Інсталятор ще не підписаний, тому Windows може попередити про невідомого видавця. Натисніть «Докладніше», а потім «Усе одно запустити».",
+          "platform": "Платформа",
+          "size": "Розмір",
+          "installer": "Інсталятор",
+          "featuresTitle": "Що ви отримуєте",
+          "featureNative": "Справжнє нативне вікно, а не загорнутий сайт",
+          "featureConsole": "Консоль у реальному часі та графіки ресурсів",
+          "featureManage": "Файли, резервні копії, розклади й налаштування в одному місці",
+          "featureSignIn": "Вхід через noprofit.space",
+          "releaseNotes": "Примітки до випуску",
+          "unavailableTitle": "Недоступно на цій панелі",
+          "unavailableText": "Ця панель не пропонує настільний застосунок."
         },
         "devboxOpen": {
           "title": "VS Code",

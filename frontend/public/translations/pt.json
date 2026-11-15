@@ -1048,7 +1048,8 @@
         },
         "more": "More",
         "accountSettings": "Account settings",
-        "accountsHub": "Accounts Panel"
+        "accountsHub": "Accounts Panel",
+        "downloadApp": "Baixar aplicativo"
       },
       "notifications": {
         "title": "Notificações",
@@ -3456,6 +3457,27 @@
             "title": "Inscrições anteriores",
             "reason": "Motivo: {reason}"
           }
+        },
+        "downloadApp": {
+          "title": "Baixar aplicativo",
+          "subtitle": "{app} para Windows",
+          "beta": "Beta",
+          "version": "Versão {version}",
+          "download": "Baixar para Windows",
+          "intro": "O cliente nativo do {app}. Ele fala diretamente com o painel, mantém o console ao vivo e abre em uma fração do tempo de um navegador.",
+          "betaNotice": "Esta é uma beta pública. Se algo não funcionar, avise-nos pelo Suporte.",
+          "unsigned": "O instalador ainda não tem assinatura de código, então o Windows pode avisar sobre um editor desconhecido. Escolha Mais informações e depois Executar assim mesmo.",
+          "platform": "Plataforma",
+          "size": "Tamanho",
+          "installer": "Instalador",
+          "featuresTitle": "O que você ganha",
+          "featureNative": "Uma janela nativa de verdade, não um site empacotado",
+          "featureConsole": "Console ao vivo e gráficos de recursos",
+          "featureManage": "Arquivos, backups, agendamentos e configurações no mesmo lugar",
+          "featureSignIn": "Entra com noprofit.space",
+          "releaseNotes": "Notas da versão",
+          "unavailableTitle": "Indisponível neste painel",
+          "unavailableText": "Este painel não oferece o aplicativo para desktop."
         },
         "devboxOpen": {
           "title": "VS Code",

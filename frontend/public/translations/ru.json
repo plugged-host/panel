@@ -1048,7 +1048,8 @@
         },
         "more": "More",
         "accountSettings": "Account settings",
-        "accountsHub": "Accounts Panel"
+        "accountsHub": "Accounts Panel",
+        "downloadApp": "Скачать приложение"
       },
       "notifications": {
         "title": "Уведомления",
@@ -3459,6 +3460,27 @@
             "title": "Прошлые заявки",
             "reason": "Причина: {reason}"
           }
+        },
+        "downloadApp": {
+          "title": "Скачать приложение",
+          "subtitle": "{app} для Windows",
+          "beta": "Бета",
+          "version": "Версия {version}",
+          "download": "Скачать для Windows",
+          "intro": "Нативный клиент для {app}. Он работает с панелью напрямую, показывает консоль в реальном времени и открывается в разы быстрее браузера.",
+          "betaNotice": "Это открытая бета-версия. Если что-то не работает, сообщите нам через поддержку.",
+          "unsigned": "Установщик пока не подписан, поэтому Windows может предупредить о неизвестном издателе. Нажмите «Подробнее», затем «Выполнить в любом случае».",
+          "platform": "Платформа",
+          "size": "Размер",
+          "installer": "Установщик",
+          "featuresTitle": "Что вы получаете",
+          "featureNative": "Настоящее нативное окно, а не обёрнутый сайт",
+          "featureConsole": "Консоль в реальном времени и графики ресурсов",
+          "featureManage": "Файлы, резервные копии, расписания и настройки в одном месте",
+          "featureSignIn": "Вход через noprofit.space",
+          "releaseNotes": "Примечания к выпуску",
+          "unavailableTitle": "Недоступно на этой панели",
+          "unavailableText": "Эта панель не предлагает настольное приложение."
         },
         "devboxOpen": {
           "title": "VS Code",

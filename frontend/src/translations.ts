@@ -827,6 +827,7 @@ const baseTranslations = defineTranslations({
         more: 'More',
         accountSettings: 'Account settings',
         accountsHub: 'Accounts Panel',
+        downloadApp: 'Download app', // plugged.host: docs/features/app.md
         modal: {
           logout: {
             title: 'Logout',
@@ -3386,6 +3387,30 @@ const baseTranslations = defineTranslations({
             title: 'Earlier applications',
             reason: 'Reason: {reason}',
           },
+        },
+        // plugged.host: the Windows app's download page (docs/features/app.md)
+        downloadApp: {
+          title: 'Download app',
+          subtitle: '{app} for Windows',
+          beta: 'Beta',
+          version: 'Version {version}',
+          download: 'Download for Windows',
+          intro:
+            'The native client for {app}. It talks to the panel directly, keeps the console live and opens in a fraction of the time a browser does.',
+          betaNotice: 'This is a public beta. If something does not work, tell us through Support.',
+          unsigned:
+            'The installer is not code-signed yet, so Windows may warn about an unknown publisher. Choose More info, then Run anyway.',
+          platform: 'Platform',
+          size: 'Size',
+          installer: 'Installer',
+          featuresTitle: 'What you get',
+          featureNative: 'A real native window, not a wrapped website',
+          featureConsole: 'Live console and resource charts',
+          featureManage: 'Files, backups, schedules and settings in the same place',
+          featureSignIn: 'Signs in with noprofit.space',
+          releaseNotes: 'Release notes',
+          unavailableTitle: 'Not available on this panel',
+          unavailableText: 'This panel does not offer the desktop app.',
         },
         // plugged.host: Account › Support, support tickets (docs/features/tickets.md)
         tickets: {

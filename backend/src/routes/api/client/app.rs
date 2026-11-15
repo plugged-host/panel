@@ -1,8 +1,7 @@
-//! plugged.host: the Windows app's admin-only download (docs/features/app.md).
+//! plugged.host: the Windows app's download and update check (docs/features/app.md).
 //!
 //! The installer is a file on the box, not an uploaded asset. `PLUGGED_APP_INSTALLER` names it;
-//! unset (as on prod) turns the feature off. The app row is only rendered for admins, and both
-//! routes below check that again.
+//! unset turns the feature off. Every signed-in user may read and download it.
 
 use super::State;
 use utoipa_axum::{router::OpenApiRouter, routes};
@@ -41,7 +40,7 @@ pub mod get {
     use serde::Serialize;
     use shared::{
         GetState,
-        models::user::{GetPermissionManager, GetUser},
+        models::user::GetUser,
         response::{ApiResponse, ApiResponseResult},
     };
     use utoipa::ToSchema;
@@ -61,16 +60,7 @@ pub mod get {
     }
 
     #[utoipa::path(get, path = "/", responses((status = OK, body = inline(Response))))]
-    pub async fn route(
-        _state: GetState,
-        _user: GetUser,
-        permissions: GetPermissionManager,
-    ) -> ApiResponseResult {
-        if !permissions.is_admin() {
-            return ApiResponse::error("not found")
-                .with_status(axum::http::StatusCode::NOT_FOUND)
-                .ok();
-        }
+    pub async fn route(_state: GetState, _user: GetUser) -> ApiResponseResult {
         let (enabled, filename, size) = match super::installer() {
             Some((_path, size, filename)) => (true, filename, size),
             None => (false, String::new(), 0),
@@ -95,28 +85,20 @@ pub mod download {
     };
     use shared::{
         GetState,
-        models::user::{GetPermissionManager, GetUser},
+        models::user::GetUser,
         response::{ApiResponse, ApiResponseResult},
     };
 
     #[utoipa::path(get, path = "/download", responses((status = OK)))]
-    pub async fn route(
-        _state: GetState,
-        _user: GetUser,
-        permissions: GetPermissionManager,
-    ) -> ApiResponseResult {
-        if !permissions.is_admin() {
-            return ApiResponse::error("not found")
-                .with_status(StatusCode::NOT_FOUND)
-                .ok();
-        }
-        let Some((path, _size, filename)) = super::installer() else {
+    pub async fn route(_state: GetState, _user: GetUser) -> ApiResponseResult {
+        let Some((path, size, filename)) = super::installer() else {
             return ApiResponse::error("the desktop app is not available on this panel")
                 .with_status(StatusCode::NOT_FOUND)
                 .ok();
         };
-        let bytes = match tokio::fs::read(&path).await {
-            Ok(bytes) => bytes,
+        // streamed: the installer is ~30 MB and every signed-in user may fetch it
+        let file = match tokio::fs::File::open(&path).await {
+            Ok(file) => file,
             Err(err) => {
                 tracing::error!(path = %path.display(), "failed to read the app installer: {err}");
                 return ApiResponse::error("the installer could not be read")
@@ -124,7 +106,8 @@ pub mod download {
                     .ok();
             }
         };
-        ApiResponse::new(Body::from(bytes))
+        ApiResponse::new(Body::from_stream(tokio_util::io::ReaderStream::new(file)))
+            .with_header(header::CONTENT_LENGTH.as_str(), &size.to_string())
             .with_header(
                 header::CONTENT_TYPE.as_str(),
                 "application/vnd.microsoft.portable-executable",

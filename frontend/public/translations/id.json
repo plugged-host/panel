@@ -1048,7 +1048,8 @@
         },
         "more": "More",
         "accountSettings": "Account settings",
-        "accountsHub": "Accounts Panel"
+        "accountsHub": "Accounts Panel",
+        "downloadApp": "Unduh aplikasi"
       },
       "notifications": {
         "title": "Notifikasi",
@@ -3456,6 +3457,27 @@
             "title": "Pendaftaran sebelumnya",
             "reason": "Alasan: {reason}"
           }
+        },
+        "downloadApp": {
+          "title": "Unduh aplikasi",
+          "subtitle": "{app} untuk Windows",
+          "beta": "Beta",
+          "version": "Versi {version}",
+          "download": "Unduh untuk Windows",
+          "intro": "Klien native untuk {app}. Aplikasi ini terhubung langsung ke panel, menjaga konsol tetap langsung, dan terbuka jauh lebih cepat daripada browser.",
+          "betaNotice": "Ini adalah beta publik. Jika ada yang tidak berfungsi, beri tahu kami melalui Dukungan.",
+          "unsigned": "Penginstal belum ditandatangani secara digital, jadi Windows mungkin memperingatkan tentang penerbit yang tidak dikenal. Pilih Info selengkapnya, lalu Tetap jalankan.",
+          "platform": "Platform",
+          "size": "Ukuran",
+          "installer": "Penginstal",
+          "featuresTitle": "Yang Anda dapatkan",
+          "featureNative": "Jendela native sungguhan, bukan situs web yang dibungkus",
+          "featureConsole": "Konsol langsung dan grafik sumber daya",
+          "featureManage": "File, cadangan, jadwal, dan pengaturan di satu tempat",
+          "featureSignIn": "Masuk dengan noprofit.space",
+          "releaseNotes": "Catatan rilis",
+          "unavailableTitle": "Tidak tersedia di panel ini",
+          "unavailableText": "Panel ini tidak menyediakan aplikasi desktop."
         },
         "devboxOpen": {
           "title": "VS Code",

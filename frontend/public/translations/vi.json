@@ -1048,7 +1048,8 @@
         },
         "more": "More",
         "accountSettings": "Account settings",
-        "accountsHub": "Accounts Panel"
+        "accountsHub": "Accounts Panel",
+        "downloadApp": "Tải ứng dụng"
       },
       "notifications": {
         "title": "Thông báo",
@@ -3459,6 +3460,27 @@
             "title": "Các đơn trước đây",
             "reason": "Lý do: {reason}"
           }
+        },
+        "downloadApp": {
+          "title": "Tải ứng dụng",
+          "subtitle": "{app} cho Windows",
+          "beta": "Beta",
+          "version": "Phiên bản {version}",
+          "download": "Tải cho Windows",
+          "intro": "Ứng dụng gốc cho {app}. Ứng dụng kết nối trực tiếp với bảng điều khiển, giữ bảng console trực tiếp và mở nhanh hơn trình duyệt rất nhiều.",
+          "betaNotice": "Đây là bản beta công khai. Nếu có gì không hoạt động, hãy báo cho chúng tôi qua Hỗ trợ.",
+          "unsigned": "Trình cài đặt chưa được ký mã, nên Windows có thể cảnh báo về nhà phát hành không xác định. Chọn Thông tin thêm, rồi Vẫn chạy.",
+          "platform": "Nền tảng",
+          "size": "Kích thước",
+          "installer": "Trình cài đặt",
+          "featuresTitle": "Bạn nhận được gì",
+          "featureNative": "Một cửa sổ gốc thật sự, không phải trang web được đóng gói",
+          "featureConsole": "Console trực tiếp và biểu đồ tài nguyên",
+          "featureManage": "Tệp, bản sao lưu, lịch trình và cài đặt ở cùng một nơi",
+          "featureSignIn": "Đăng nhập bằng noprofit.space",
+          "releaseNotes": "Ghi chú phát hành",
+          "unavailableTitle": "Không có trên bảng điều khiển này",
+          "unavailableText": "Bảng điều khiển này không cung cấp ứng dụng máy tính."
         },
         "devboxOpen": {
           "title": "VS Code",

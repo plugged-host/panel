@@ -11,22 +11,24 @@ signed token to `127.0.0.1`, the app trades it for a panel session at
 The client's own **App settings** page (More › App settings) shows its version and install folder,
 checks `/api/client/app` for a newer installer, installs it in place, and holds the
 "check on start" and "open at login" switches, the panel connection and the About links. The app
-does not link to its own installer; that page stays in the panel for admins.
+does not link to its own installer; that page stays in the panel.
 
 ## Download page
 
-Account › More › **Download app** appears for **admins** on a panel where the installer exists.
-The public settings carry `appDownload: { enabled, version }`; the row is rendered only when both
-`isAdmin(user)` and `enabled` are true.
+More › **Download app** appears for **every signed-in user** on a panel where the installer
+exists (the public beta). The public settings carry `appDownload: { enabled, version }`; the row
+and the page are rendered when `enabled` is true. The page marks the app as a beta and says the
+installer is not code-signed yet (Windows SmartScreen asks for More info › Run anyway). Its strings
+are `pages.account.downloadApp` and `elements.sidebar.downloadApp`.
 
 | Route | What |
 |---|---|
-| `GET /api/client/app` | The installer's version, filename and size (admins only; 404 otherwise) |
-| `GET /api/client/app/download` | The installer, as an attachment (admins only) |
+| `GET /api/client/app` | The installer's version, filename and size (`enabled: false` without one) |
+| `GET /api/client/app/download` | The installer, streamed as an attachment (404 without one) |
 
 `PLUGGED_APP_INSTALLER` names the file on the box; when it is unset or missing, the feature is off
 and both routes answer 404. `PLUGGED_APP_VERSION` labels it. `PLUGGED_APP_RELEASE_NOTES` is shown
-on the page. Dev sets them; prod does not, so nothing is offered there.
+on the page. Unset them to take the download away again.
 
 The installer is built on ryzen by `plugged-host/app/build.sh` and copied to
 `/var/lib/calagopus/app/plugged.host-Setup-<version>.exe` on dev.

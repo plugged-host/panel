@@ -1048,7 +1048,8 @@
         },
         "more": "More",
         "accountSettings": "Account settings",
-        "accountsHub": "Accounts Panel"
+        "accountsHub": "Accounts Panel",
+        "downloadApp": "Uygulamayı indir"
       },
       "notifications": {
         "title": "Bildirimler",
@@ -3459,6 +3460,27 @@
             "title": "Önceki başvurular",
             "reason": "Neden: {reason}"
           }
+        },
+        "downloadApp": {
+          "title": "Uygulamayı indir",
+          "subtitle": "Windows için {app}",
+          "beta": "Beta",
+          "version": "Sürüm {version}",
+          "download": "Windows için indir",
+          "intro": "{app} için yerel istemci. Panelle doğrudan konuşur, konsolu canlı tutar ve bir tarayıcının çok kısa bir sürede açılır.",
+          "betaNotice": "Bu herkese açık bir beta sürümüdür. Bir şey çalışmazsa Destek üzerinden bize bildirin.",
+          "unsigned": "Yükleyici henüz kod imzalı değil, bu yüzden Windows bilinmeyen bir yayıncı uyarısı gösterebilir. Ek bilgi’yi, ardından Yine de çalıştır’ı seçin.",
+          "platform": "Platform",
+          "size": "Boyut",
+          "installer": "Yükleyici",
+          "featuresTitle": "Neler sunuyor",
+          "featureNative": "Paketlenmiş bir web sitesi değil, gerçek bir yerel pencere",
+          "featureConsole": "Canlı konsol ve kaynak grafikleri",
+          "featureManage": "Dosyalar, yedekler, zamanlamalar ve ayarlar tek bir yerde",
+          "featureSignIn": "noprofit.space ile giriş",
+          "releaseNotes": "Sürüm notları",
+          "unavailableTitle": "Bu panelde kullanılamıyor",
+          "unavailableText": "Bu panel masaüstü uygulamasını sunmuyor."
         },
         "devboxOpen": {
           "title": "VS Code",

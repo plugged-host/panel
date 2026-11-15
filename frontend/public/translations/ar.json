@@ -1048,7 +1048,8 @@
         },
         "more": "More",
         "accountSettings": "Account settings",
-        "accountsHub": "Accounts Panel"
+        "accountsHub": "Accounts Panel",
+        "downloadApp": "تنزيل التطبيق"
       },
       "notifications": {
         "title": "الإشعارات",
@@ -3459,6 +3460,27 @@
             "title": "الطلبات السابقة",
             "reason": "السبب: {reason}"
           }
+        },
+        "downloadApp": {
+          "title": "تنزيل التطبيق",
+          "subtitle": "{app} لنظام Windows",
+          "beta": "تجريبي",
+          "version": "الإصدار {version}",
+          "download": "تنزيل لنظام Windows",
+          "intro": "العميل الأصلي لـ {app}. يتصل باللوحة مباشرة، ويُبقي وحدة التحكم مباشرة، ويفتح في جزء صغير من الوقت الذي يستغرقه المتصفح.",
+          "betaNotice": "هذا إصدار تجريبي عام. إذا لم يعمل شيء ما، فأخبرنا عبر الدعم.",
+          "unsigned": "المثبّت غير موقّع رقميًا بعد، لذا قد يحذّرك Windows من ناشر غير معروف. اختر «مزيد من المعلومات» ثم «التشغيل على أي حال».",
+          "platform": "المنصة",
+          "size": "الحجم",
+          "installer": "المثبّت",
+          "featuresTitle": "ما الذي تحصل عليه",
+          "featureNative": "نافذة أصلية حقيقية، وليست موقعًا مغلّفًا",
+          "featureConsole": "وحدة تحكم مباشرة ومخططات للموارد",
+          "featureManage": "الملفات والنسخ الاحتياطية والجداول والإعدادات في مكان واحد",
+          "featureSignIn": "تسجيل الدخول باستخدام noprofit.space",
+          "releaseNotes": "ملاحظات الإصدار",
+          "unavailableTitle": "غير متاح على هذه اللوحة",
+          "unavailableText": "لا تقدّم هذه اللوحة تطبيق سطح المكتب."
         },
         "devboxOpen": {
           "title": "VS Code",

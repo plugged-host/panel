@@ -227,9 +227,13 @@ export default function DashboardRouter({ isNormal }: { isNormal: boolean }) {
                   iconElement={<ArrowTopRightOnSquareIcon />}
                   name={t('elements.sidebar.accountsHub', {})}
                 />
-                {/* plugged.host: the Windows app, admins on the dev panel (docs/features/app.md) */}
-                {isAdmin(user) && settings.appDownload?.enabled && (
-                  <Sidebar.Link to='/account/download' iconElement={<ComputerDesktopIcon />} name='Download app' />
+                {/* plugged.host: the Windows app, wherever the panel has its installer (docs/features/app.md) */}
+                {settings.appDownload?.enabled && (
+                  <Sidebar.Link
+                    to='/account/download'
+                    iconElement={<ComputerDesktopIcon />}
+                    name={t('elements.sidebar.downloadApp', {})}
+                  />
                 )}
               </Sidebar.Group>
 
@@ -329,8 +333,8 @@ export default function DashboardRouter({ isNormal }: { isNormal: boolean }) {
                     .map(({ path, element: Element }) => (
                       <Route key={path} path={`/account/${path}`.replace('//', '/')} element={<Element />} />
                     ))}
-                  {/* plugged.host: the Windows app download, admins on the dev panel */}
-                  {isAdmin(user) && settings.appDownload?.enabled && (
+                  {/* plugged.host: the Windows app download, wherever the panel has its installer */}
+                  {settings.appDownload?.enabled && (
                     <Route path='/account/download' element={<DashboardDownloadApp />} />
                   )}
                   {/* plugged.host: the Pelican panel's page paths (legacyRoutes.ts) */}

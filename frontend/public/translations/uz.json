@@ -1048,7 +1048,8 @@
         },
         "more": "More",
         "accountSettings": "Account settings",
-        "accountsHub": "Accounts Panel"
+        "accountsHub": "Accounts Panel",
+        "downloadApp": "Ilovani yuklab olish"
       },
       "notifications": {
         "title": "Bildirishnomalar",
@@ -3456,6 +3457,27 @@
             "title": "Oldingi arizalar",
             "reason": "Sabab: {reason}"
           }
+        },
+        "downloadApp": {
+          "title": "Ilovani yuklab olish",
+          "subtitle": "Windows uchun {app}",
+          "beta": "Beta",
+          "version": "Versiya {version}",
+          "download": "Windows uchun yuklab olish",
+          "intro": "{app} uchun mahalliy mijoz. U panel bilan bevosita ishlaydi, konsolni jonli saqlaydi va brauzerdan ancha tez ochiladi.",
+          "betaNotice": "Bu ochiq beta versiya. Biror narsa ishlamasa, Qoʻllab-quvvatlash orqali bizga xabar bering.",
+          "unsigned": "Oʻrnatuvchi hali kod bilan imzolanmagan, shuning uchun Windows nomaʼlum nashriyot haqida ogohlantirishi mumkin. “Batafsil”ni, soʻng “Baribir ishga tushirish”ni tanlang.",
+          "platform": "Platforma",
+          "size": "Hajmi",
+          "installer": "Oʻrnatuvchi",
+          "featuresTitle": "Nimalarga ega boʻlasiz",
+          "featureNative": "Oʻralgan sayt emas, haqiqiy mahalliy oyna",
+          "featureConsole": "Jonli konsol va resurs grafiklari",
+          "featureManage": "Fayllar, zaxira nusxalar, jadvallar va sozlamalar bir joyda",
+          "featureSignIn": "noprofit.space orqali kirish",
+          "releaseNotes": "Reliz yozuvlari",
+          "unavailableTitle": "Bu panelda mavjud emas",
+          "unavailableText": "Bu panel ish stoli ilovasini taklif qilmaydi."
         },
         "devboxOpen": {
           "title": "VS Code",

@@ -1048,7 +1048,8 @@
         },
         "more": "More",
         "accountSettings": "Account settings",
-        "accountsHub": "Accounts Panel"
+        "accountsHub": "Accounts Panel",
+        "downloadApp": "Télécharger l'application"
       },
       "notifications": {
         "title": "Notifications",
@@ -3459,6 +3460,27 @@
             "title": "Candidatures précédentes",
             "reason": "Motif : {reason}"
           }
+        },
+        "downloadApp": {
+          "title": "Télécharger l'application",
+          "subtitle": "{app} pour Windows",
+          "beta": "Bêta",
+          "version": "Version {version}",
+          "download": "Télécharger pour Windows",
+          "intro": "Le client natif de {app}. Il parle directement au panel, garde la console en direct et s'ouvre en une fraction du temps d'un navigateur.",
+          "betaNotice": "Ceci est une bêta publique. Si quelque chose ne fonctionne pas, dites-le-nous via le Support.",
+          "unsigned": "L'installateur n'est pas encore signé, Windows peut donc signaler un éditeur inconnu. Choisissez Informations complémentaires, puis Exécuter quand même.",
+          "platform": "Plateforme",
+          "size": "Taille",
+          "installer": "Installateur",
+          "featuresTitle": "Ce que vous obtenez",
+          "featureNative": "Une vraie fenêtre native, pas un site web emballé",
+          "featureConsole": "Console en direct et graphiques des ressources",
+          "featureManage": "Fichiers, sauvegardes, planifications et paramètres au même endroit",
+          "featureSignIn": "Connexion avec noprofit.space",
+          "releaseNotes": "Notes de version",
+          "unavailableTitle": "Indisponible sur ce panel",
+          "unavailableText": "Ce panel ne propose pas l'application de bureau."
         },
         "devboxOpen": {
           "title": "VS Code",

@@ -1048,7 +1048,8 @@
         },
         "more": "Mehr",
         "accountSettings": "Kontoeinstellungen",
-        "accountsHub": "Konten-Panel"
+        "accountsHub": "Konten-Panel",
+        "downloadApp": "App herunterladen"
       },
       "notifications": {
         "title": "Benachrichtigungen",
@@ -3478,6 +3479,27 @@
             "title": "Frühere Bewerbungen",
             "reason": "Grund: {reason}"
           }
+        },
+        "downloadApp": {
+          "title": "App herunterladen",
+          "subtitle": "{app} für Windows",
+          "beta": "Beta",
+          "version": "Version {version}",
+          "download": "Für Windows herunterladen",
+          "intro": "Der native Client für {app}. Er spricht direkt mit dem Panel, hält die Konsole live und startet in einem Bruchteil der Zeit eines Browsers.",
+          "betaNotice": "Dies ist eine öffentliche Beta. Wenn etwas nicht funktioniert, melde es uns über den Support.",
+          "unsigned": "Der Installer ist noch nicht code-signiert, daher warnt Windows eventuell vor einem unbekannten Herausgeber. Wähle „Weitere Informationen“ und dann „Trotzdem ausführen“.",
+          "platform": "Plattform",
+          "size": "Größe",
+          "installer": "Installer",
+          "featuresTitle": "Was du bekommst",
+          "featureNative": "Ein echtes natives Fenster, keine verpackte Website",
+          "featureConsole": "Live-Konsole und Ressourcen-Diagramme",
+          "featureManage": "Dateien, Backups, Zeitpläne und Einstellungen an einem Ort",
+          "featureSignIn": "Anmeldung mit noprofit.space",
+          "releaseNotes": "Versionshinweise",
+          "unavailableTitle": "Auf diesem Panel nicht verfügbar",
+          "unavailableText": "Dieses Panel bietet die Desktop-App nicht an."
         },
         "tickets": {
           "title": "Support",
