@@ -1191,7 +1191,7 @@ pub enum Running {
     StopAgain,
 }
 
-pub fn running(stopped_minutes: Option<i64>) -> Running {
+pub fn after_stop(stopped_minutes: Option<i64>) -> Running {
     match stopped_minutes {
         None => Running::Stop,
         Some(minutes) if minutes < KILL_AFTER_MINUTES => Running::Wait,
@@ -1386,7 +1386,7 @@ pub async fn settle(state: &crate::State) -> Result<(), anyhow::Error> {
 
             match action(&limbo, candidate.idle_minutes, running) {
                 Action::Stop if stops > 0 => {
-                    let result = match running(candidate.stopped_minutes) {
+                    let result = match after_stop(candidate.stopped_minutes) {
                         Running::Wait => continue,
                         Running::Kill => {
                             kill(
@@ -2211,14 +2211,14 @@ mod tests {
 
     #[test]
     fn a_stopped_server_has_ten_minutes_to_go_down_then_is_killed() {
-        assert_eq!(running(None), Running::Stop);
-        assert_eq!(running(Some(0)), Running::Wait);
-        assert_eq!(running(Some(9)), Running::Wait);
-        assert_eq!(running(Some(10)), Running::Kill);
-        assert_eq!(running(Some(19)), Running::Kill);
+        assert_eq!(after_stop(None), Running::Stop);
+        assert_eq!(after_stop(Some(0)), Running::Wait);
+        assert_eq!(after_stop(Some(9)), Running::Wait);
+        assert_eq!(after_stop(Some(10)), Running::Kill);
+        assert_eq!(after_stop(Some(19)), Running::Kill);
         // up again long after its stop: something started it, a quiet stop again
-        assert_eq!(running(Some(20)), Running::StopAgain);
-        assert_eq!(running(Some(600)), Running::StopAgain);
+        assert_eq!(after_stop(Some(20)), Running::StopAgain);
+        assert_eq!(after_stop(Some(600)), Running::StopAgain);
     }
 
     #[test]
