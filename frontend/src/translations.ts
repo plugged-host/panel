@@ -2043,6 +2043,8 @@ const baseTranslations = defineTranslations({
           title: 'Create server',
           subtitle: 'Choose your setup, then deploy.',
           button: 'Create server',
+          paidButton: 'Create Paid Server', // plugged.host: docs/features/dedicated.md
+          paidNeedsFunds: 'Add Funds on noprofit.space to get a paid server.',
           disabled: 'Creating servers is turned off.',
           noPlan: 'Your account has no plan to create servers with.',
           nothingOffered: 'There are no games you can deploy right now. Please contact the panel admin.',

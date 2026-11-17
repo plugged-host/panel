@@ -2197,6 +2197,8 @@
           "title": "Tạo máy chủ",
           "subtitle": "Chọn cấu hình của bạn, rồi triển khai.",
           "button": "Tạo máy chủ",
+          "paidButton": "Tạo máy chủ trả phí",
+          "paidNeedsFunds": "Nạp Funds trên noprofit.space để có máy chủ trả phí.",
           "disabled": "Tính năng tạo máy chủ đang bị tắt.",
           "noPlan": "Tài khoản của bạn không có gói nào để tạo máy chủ.",
           "nothingOffered": "Hiện không có game nào bạn có thể triển khai. Vui lòng liên hệ quản trị viên panel.",

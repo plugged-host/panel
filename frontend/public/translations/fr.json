@@ -2197,6 +2197,8 @@
           "title": "Créer un serveur",
           "subtitle": "Choisissez votre configuration, puis déployez.",
           "button": "Créer un serveur",
+          "paidButton": "Créer un serveur payant",
+          "paidNeedsFunds": "Ajoute des Funds sur noprofit.space pour obtenir un serveur payant.",
           "disabled": "La création de serveurs est désactivée.",
           "noPlan": "Votre compte n'a aucune offre permettant de créer des serveurs.",
           "nothingOffered": "Aucun jeu ne peut être déployé pour le moment. Veuillez contacter l'administrateur du panel.",

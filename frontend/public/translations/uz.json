@@ -2197,6 +2197,8 @@
           "title": "Server yaratish",
           "subtitle": "Sozlamalarni tanlang, soʻng joylashtiring.",
           "button": "Server yaratish",
+          "paidButton": "Pullik server yaratish",
+          "paidNeedsFunds": "Pullik server olish uchun noprofit.space'da Funds qo'shing.",
           "disabled": "Server yaratish oʻchirilgan.",
           "noPlan": "Hisobingizda server yaratish uchun tarif yoʻq.",
           "nothingOffered": "Hozir joylashtira oladigan oʻyinlar yoʻq. Iltimos, panel administratoriga murojaat qiling.",

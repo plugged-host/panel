@@ -10,7 +10,9 @@ Dedicated plans are kept apart from the free ones everywhere:
 - **Admin › Dedicated Plans** (`/admin/dedicated-plans`, `plans.*`) lists, creates and edits only
   them, sized in CPU threads with a price, locations and nodes; Admin › Plans only the free ones.
 - **Players** get a page of their own under the dedicated name (`/account/dedicated`, in the
-  sidebar while a public dedicated plan exists). The create page only links to it. A paid server
+  sidebar while a public dedicated plan exists). The server list has **Create Paid Server** next to
+  Create server, greyed out with "Add Funds on noprofit.space" for an account without noprofit.space
+  Funds (enabled when noprofit.space is not connected). The create page only links to it. A paid server
   wears the dedicated name as a badge in the server list.
 - Only admins create their servers (Admin › Servers › Create, with the plan). Players never type a
   size or create one themselves: they order a public plan with a support ticket. A non-public plan

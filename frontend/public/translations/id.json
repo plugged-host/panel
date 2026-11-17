@@ -2197,6 +2197,8 @@
           "title": "Buat server",
           "subtitle": "Pilih konfigurasi Anda, lalu deploy.",
           "button": "Buat server",
+          "paidButton": "Buat server berbayar",
+          "paidNeedsFunds": "Tambahkan Funds di noprofit.space untuk mendapatkan server berbayar.",
           "disabled": "Pembuatan server dinonaktifkan.",
           "noPlan": "Akun Anda tidak memiliki paket untuk membuat server.",
           "nothingOffered": "Saat ini tidak ada game yang bisa Anda deploy. Silakan hubungi admin panel.",

@@ -2197,6 +2197,8 @@
           "title": "Sunucu oluştur",
           "subtitle": "Yapılandırmanızı seçin, ardından sunucunuzu oluşturun.",
           "button": "Sunucu oluştur",
+          "paidButton": "Ücretli sunucu oluştur",
+          "paidNeedsFunds": "Ücretli sunucu almak için noprofit.space üzerinde Funds ekle.",
           "disabled": "Sunucu oluşturma kapalı.",
           "noPlan": "Hesabınızın sunucu oluşturabileceği bir planı yok.",
           "nothingOffered": "Şu anda oluşturabileceğiniz bir oyun yok. Lütfen panel yöneticisiyle iletişime geçin.",

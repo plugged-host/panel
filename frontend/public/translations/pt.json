@@ -2197,6 +2197,8 @@
           "title": "Criar servidor",
           "subtitle": "Escolha sua configuração e depois implante.",
           "button": "Criar servidor",
+          "paidButton": "Criar servidor pago",
+          "paidNeedsFunds": "Adicione Funds no noprofit.space para ter um servidor pago.",
           "disabled": "A criação de servidores está desativada.",
           "noPlan": "Sua conta não tem um plano para criar servidores.",
           "nothingOffered": "Não há jogos que você possa implantar no momento. Por favor, entre em contato com o administrador do painel.",

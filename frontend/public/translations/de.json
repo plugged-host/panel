@@ -2196,6 +2196,8 @@
           "title": "Server erstellen",
           "subtitle": "Wähle deine Konfiguration und starte den Server.",
           "button": "Server erstellen",
+          "paidButton": "Bezahlten Server erstellen",
+          "paidNeedsFunds": "Lade Funds auf noprofit.space auf, um einen bezahlten Server zu bekommen.",
           "disabled": "Das Erstellen von Servern ist ausgeschaltet.",
           "noPlan": "Dein Konto hat kein Paket, um Server zu erstellen.",
           "nothingOffered": "Es gibt derzeit keine Spiele, die du erstellen kannst. Bitte wende dich an einen Panel Admin.",
