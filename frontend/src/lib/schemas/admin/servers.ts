@@ -113,6 +113,8 @@ export const adminServerCreateSchema = z.lazy(() =>
         value: z.string().max(4096),
       }),
     ),
+    // plugged.host: a dedicated plan: its size, on threads of its own (docs/features/dedicated.md)
+    planUuid: z.uuid().nullable().optional(),
   }),
 );
 

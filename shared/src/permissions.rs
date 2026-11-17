@@ -699,6 +699,31 @@ pub(crate) static BASE_ADMIN_PERMISSIONS: LazyLock<IndexMap<&'static str, Permis
                             "subdomains",
                             "Allows viewing and deleting a server's subdomains and changing its subdomain limit.",
                         ),
+                        // plugged.host: what players may not do on a server, for staff (docs/features/management.md)
+                        (
+                            "resize",
+                            "Allows resizing any server from its settings past its owner's allowance, also while players may not resize.",
+                        ),
+                        (
+                            "remove",
+                            "Allows deleting any server from its settings while players may not delete theirs.",
+                        ),
+                        (
+                            "move",
+                            "Allows moving any server to another location from its page while moves are off, cooling down or the server is suspended.",
+                        ),
+                        (
+                            "limbo",
+                            "Allows restoring any server from limbo without tokens and to any location.",
+                        ),
+                        (
+                            "start-gates",
+                            "Allows schedules that start a server and starting a server right after its reinstall, past the start queue and the waiting room.",
+                        ),
+                        (
+                            "startup",
+                            "Allows setting any custom startup command; only its syntax is checked, not the abuse rules.",
+                        ),
                     ]),
                 },
             ),

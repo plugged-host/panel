@@ -34,6 +34,7 @@ import { useResource } from '@/plugins/resource/useResource.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useGlobalStore } from '@/stores/global.ts';
+import DedicatedPlans from './DedicatedPlans.tsx'; // plugged.host
 
 type Options = z.infer<typeof serverCreateOptionsSchema>;
 type Location = z.infer<typeof serverCreateLocationSchema>;
@@ -542,6 +543,8 @@ function CreateServerForm({ options }: { options: Options }) {
           </Button>
         </div>
 
+        <DedicatedPlans plans={options.dedicatedPlans} />
+
         <AdPageSlot />
       </div>
     </AccountContentContainer>
@@ -579,7 +582,10 @@ export default function CreateServer() {
       {standing ? (
         <StandingNotice standing={standing} />
       ) : blocked ? (
-        <Text c='dimmed'>{blocked}</Text>
+        <div className='flex flex-col gap-6'>
+          <Text c='dimmed'>{blocked}</Text>
+          {options && <DedicatedPlans plans={options.dedicatedPlans} />}
+        </div>
       ) : (
         <ResourceView resource={resource}>{() => null}</ResourceView>
       )}

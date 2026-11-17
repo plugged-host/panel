@@ -309,6 +309,7 @@ impl StartGate for QueueGate {
 
         if !queue.enabled
             || queue.exempt(user.admin, user.role.as_ref().map(|role| role.uuid))
+            || server.dedicated // its threads are its own (docs/features/dedicated.md)
             || (matches!(action, wings_api::ServerPowerAction::Restart) && !queue.include_restart)
             || server.suspended
             || server.status.is_some()

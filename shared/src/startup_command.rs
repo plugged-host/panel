@@ -171,6 +171,7 @@ pub async fn check(
     user: &User,
     server: &Server,
     command: &str,
+    trusted: bool,
 ) -> Result<Outcome, anyhow::Error> {
     if server
         .egg
@@ -228,8 +229,8 @@ pub async fn check(
         crate::neo::offered(&settings)
     };
 
-    // admins are never refused: neo only tunes their command
-    if user.admin {
+    // admins (and staff with servers.startup) are never refused: neo only tunes their command
+    if trusted {
         if !(tune && neo_offered) {
             return Ok(Outcome::passed("admin"));
         }

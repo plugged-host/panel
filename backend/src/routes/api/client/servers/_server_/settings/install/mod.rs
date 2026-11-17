@@ -51,7 +51,8 @@ mod post {
             permissions.has_server_permission("control.start")?;
         }
         // plugged.host: a start after the install would skip the start gates (start_gates.rs)
-        let start_on_completion = data.start_on_completion && permissions.is_admin();
+        let start_on_completion =
+            data.start_on_completion && permissions.can_override("servers.start-gates");
 
         tokio::spawn(async move {
             server

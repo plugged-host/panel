@@ -2251,6 +2251,17 @@
             "blocked": "Trạng thái tài khoản của bạn: {level}. Hiện tại bạn không thể tạo máy chủ.",
             "blockedUntil": "Trạng thái tài khoản của bạn: {level}. Bạn không thể tạo máy chủ cho đến {date}.",
             "view": "Xem trạng thái tài khoản"
+          },
+          "dedicated": {
+            "description": "Gói {name} là gói trả phí: luồng CPU và bộ nhớ chỉ dành riêng cho máy chủ của bạn. Đặt một gói và đội ngũ sẽ thiết lập cho bạn.",
+            "perMonth": "{price} / tháng",
+            "size": "{threads} luồng CPU riêng · {memory} MB Bộ nhớ · {disk} MB Dung lượng đĩa",
+            "soldOut": "Hết hàng",
+            "soldOutAt": "{location} (hết hàng)",
+            "order": "Đặt qua hỗ trợ",
+            "orderSubject": "Đơn {name}: {plan}",
+            "orderBody": "Tôi muốn đặt gói {name} {plan}.",
+            "orderLocations": "Vị trí: {locations}. Vị trí tôi muốn:"
           }
         },
         "home": {

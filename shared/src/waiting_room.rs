@@ -199,6 +199,7 @@ impl StartGate for RoomGate {
         if !ads.enabled
             || !ads.room_enabled
             || user.admin
+            || server.dedicated // paid for (docs/features/dedicated.md)
             || server.suspended
             || server.status.is_some()
             || !server_over(&ads, server)

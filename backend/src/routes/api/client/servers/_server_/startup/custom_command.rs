@@ -79,7 +79,14 @@ mod post {
             )
             .await?;
 
-        let outcome = shared::startup_command::check(&state, &user, &server, &data.command).await?;
+        let outcome = shared::startup_command::check(
+            &state,
+            &user,
+            &server,
+            &data.command,
+            permissions.can_override("servers.startup"),
+        )
+        .await?;
         let summary = outcome
             .verdict
             .as_ref()

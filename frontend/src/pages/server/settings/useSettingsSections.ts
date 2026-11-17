@@ -1,9 +1,11 @@
 // plugged.host: what the server's Settings page shows a person and the answers it waits for, shared by
 // the page and its sections; useCanDeleteServer also by InstallStuck and ServerStateGuard
 // (docs/features/server-settings.md)
+
 import getServerNotifications from '@/api/server/settings/getServerNotifications.ts';
 import getServerResize from '@/api/server/settings/getServerResize.ts';
 import getServerSoftware from '@/api/server/settings/getServerSoftware.ts';
+import { isAdmin } from '@/lib/auth/permissions.ts';
 import { queryKeys } from '@/lib/queryKeys.ts';
 import { useResource } from '@/plugins/resource/useResource.ts';
 import { useServerCan } from '@/plugins/usePermissions.ts';
@@ -35,10 +37,10 @@ export function useResizeOptions() {
   const resource = useResource({
     queryKey: queryKeys.server(server.uuid).settings.resize(),
     queryFn: () => getServerResize(server.uuid),
-    enabled: canResize && (allowResizing || !!user?.admin),
+    enabled: canResize && (allowResizing || isAdmin(user, 'servers.resize')), // plugged.host: staff too
     silent: true,
   });
-  const usable = canResize && !!resource.data && (resource.data.enabled || !!user?.admin);
+  const usable = canResize && !!resource.data && (resource.data.enabled || isAdmin(user, 'servers.resize'));
 
   return { resource, usable };
 }
@@ -83,11 +85,12 @@ export function useBehaviourShown() {
   return canOther || (canTrash && allowChangingTrashSettings);
 }
 
-// deleting needs the permission and a panel that lets players delete their servers (admins always may)
+// deleting needs the permission and a panel that lets players delete their servers (admins and staff with
+// servers.remove always may)
 export function useCanDeleteServer() {
   const { user } = useAuth();
   const allowDeleting = useGlobalStore((state) => state.settings.games.allowDeleting);
   const canDelete = useServerCan('settings.delete');
 
-  return canDelete && (allowDeleting || !!user?.admin);
+  return canDelete && (allowDeleting || isAdmin(user, 'servers.remove'));
 }

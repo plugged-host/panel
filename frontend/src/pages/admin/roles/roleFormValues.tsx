@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { type FieldDef } from '@/elements/form-engine/index.ts';
 import PermissionSelector from '@/elements/PermissionSelector.tsx';
 import { adminRoleUpdateSchema } from '@/lib/schemas/admin/roles.ts';
-import { apiPermissionsSchema } from '@/lib/schemas/generic.ts';
+import { apiPermissionsSchema, permissionMapSchema } from '@/lib/schemas/generic.ts';
 import { roleSchema } from '@/lib/schemas/user.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 
@@ -24,6 +24,37 @@ export const roleToFormValues = (role: z.infer<typeof roleSchema>): Partial<Role
   adminPermissions: role.adminPermissions,
   serverPermissions: role.serverPermissions,
 });
+
+// plugged.host: what the staff preset leaves out: the panel's settings (economy, neo, ads, …) and what
+// works like them, node tokens, commands past the abuse rules and changing roles (docs/features/management.md)
+const STAFF_EXCLUDED_GROUPS = ['settings', 'email-templates', 'extensions', 'oauth-providers'];
+const STAFF_EXCLUDED_PERMISSIONS = [
+  'roles.create',
+  'roles.update',
+  'roles.delete',
+  'nodes.read-token',
+  'nodes.reset-token',
+  'nodes.upgrade',
+  'servers.startup',
+];
+
+export const SETTINGS_PERMISSIONS = ['settings.update', 'email-templates.update', 'extensions.manage'];
+
+// plugged.host: every admin permission but the excluded ones, and every server permission
+export function staffPreset(availablePermissions: z.infer<typeof apiPermissionsSchema>) {
+  const all = (map: z.infer<typeof permissionMapSchema>) =>
+    Object.entries(map).flatMap(([group, { permissions }]) =>
+      Object.keys(permissions).map((permission) => `${group}.${permission}`),
+    );
+
+  return {
+    adminPermissions: all(availablePermissions.adminPermissions).filter(
+      (permission) =>
+        !STAFF_EXCLUDED_GROUPS.includes(permission.split('.')[0]) && !STAFF_EXCLUDED_PERMISSIONS.includes(permission),
+    ),
+    serverPermissions: all(availablePermissions.serverPermissions),
+  };
+}
 
 export function useRoleFormFields(
   availablePermissions: z.infer<typeof apiPermissionsSchema>,

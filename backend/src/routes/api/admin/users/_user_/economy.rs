@@ -53,7 +53,10 @@ mod put {
     use shared::{
         ApiError, GetState,
         economy::{AdminChange, ApiAdminEconomy, EconomyError},
-        models::{admin_activity::GetAdminActivityLogger, user::GetPermissionManager},
+        models::{
+            admin_activity::GetAdminActivityLogger,
+            user::{GetPermissionManager, GetUser},
+        },
         response::{ApiResponse, ApiResponseResult},
     };
     use utoipa::ToSchema;
@@ -99,6 +102,7 @@ mod put {
     pub async fn route(
         state: GetState,
         permissions: GetPermissionManager,
+        caller: GetUser,
         user: GetParamUser,
         activity_logger: GetAdminActivityLogger,
         shared::Payload(data): shared::Payload<Payload>,
@@ -111,6 +115,12 @@ mod put {
 
         permissions.has_admin_permission("users.economy")?;
         permissions.can_modify_user(&user)?;
+        // staff never pay themselves (docs/features/management.md)
+        if caller.uuid == user.uuid && !permissions.is_admin() {
+            return ApiResponse::error("you cannot change your own balance")
+                .with_status(StatusCode::FORBIDDEN)
+                .ok();
+        }
 
         let logged = serde_json::json!({
             "uuid": user.uuid,

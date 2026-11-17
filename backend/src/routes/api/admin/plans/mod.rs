@@ -105,6 +105,13 @@ mod post {
     ) -> ApiResponseResult {
         permissions.has_admin_permission("plans.create")?;
 
+        // plugged.host: a dedicated plan is whole threads (docs/features/dedicated.md)
+        if data.dedicated && !shared::dedicated::valid_cpu(data.cpu) {
+            return ApiResponse::error("a dedicated plan's cpu is whole threads (100 each)")
+                .with_status(StatusCode::BAD_REQUEST)
+                .ok();
+        }
+
         let plan = match Plan::create(&state, data).await {
             Ok(plan) => plan,
             Err(err) if err.is_unique_violation() => {
@@ -124,6 +131,8 @@ mod post {
                     "cpu": plan.cpu,
                     "memory": plan.memory,
                     "disk": plan.disk,
+                    "dedicated": plan.dedicated,
+                    "price": plan.price,
                 }),
             )
             .await;

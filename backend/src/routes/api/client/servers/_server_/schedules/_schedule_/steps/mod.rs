@@ -139,7 +139,9 @@ mod post {
         }
 
         // plugged.host: a schedule runs on Wings, past the start gates (shared/src/start_gates.rs)
-        if !permissions.is_admin() && shared::start_gates::schedule_step_starts(&data.action) {
+        if !permissions.can_override("servers.start-gates")
+            && shared::start_gates::schedule_step_starts(&data.action)
+        {
             return ApiResponse::error("a schedule cannot start the server")
                 .with_status(StatusCode::FORBIDDEN)
                 .ok();

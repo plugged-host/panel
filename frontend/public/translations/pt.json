@@ -2251,6 +2251,17 @@
             "blocked": "Situação da sua conta: {level}. Você não pode criar servidores no momento.",
             "blockedUntil": "Situação da sua conta: {level}. Você não pode criar servidores até {date}.",
             "view": "Ver a situação da conta"
+          },
+          "dedicated": {
+            "description": "Os planos {name} são pagos: as threads de CPU e a memória são só do seu servidor. Peça um e a equipe configura para você.",
+            "perMonth": "{price} / mês",
+            "size": "{threads} threads de CPU dedicadas · {memory} MB de Memória · {disk} MB de Espaço em Disco",
+            "soldOut": "Esgotado",
+            "soldOutAt": "{location} (esgotado)",
+            "order": "Pedir pelo suporte",
+            "orderSubject": "Pedido {name}: {plan}",
+            "orderBody": "Gostaria de pedir o plano {name} {plan}.",
+            "orderLocations": "Locais: {locations}. O que eu quero:"
           }
         },
         "home": {

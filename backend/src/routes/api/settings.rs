@@ -95,6 +95,8 @@ mod get {
         subdomains_enabled: bool,
         /// Servers have a VS Code page (docs/features/devboxes.md).
         devboxes_enabled: bool,
+        /// What paid servers on dedicated plans are called (docs/features/dedicated.md).
+        dedicated_name: compact_str::CompactString,
     }
 
     /// plugged.host: whether the welcome tour runs (docs/features/welcome-tour.md).
@@ -288,6 +290,7 @@ mod get {
                 transfer_enabled: settings.games.transfer_enabled,
                 subdomains_enabled: settings.subdomains.active(),
                 devboxes_enabled: shared::devboxes::offered(&settings),
+                dedicated_name: settings.games.dedicated_name.clone(),
             },
             tour: ResponseTour {
                 enabled: settings.tour.enabled,

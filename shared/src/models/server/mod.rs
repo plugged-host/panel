@@ -185,6 +185,10 @@ pub struct Server {
     pub description: Option<compact_str::CompactString>,
     /// plugged.host: the stored path of its icon (icon.rs)
     pub icon: Option<String>,
+    /// plugged.host: a paid server on a dedicated plan: its CPU threads and memory are its own
+    /// (shared/src/dedicated.rs); the plan it was made from, while that plan exists
+    pub dedicated: bool,
+    pub plan_uuid: Option<uuid::Uuid>,
 
     pub memory: i64,
     pub memory_overhead: i64,
@@ -280,6 +284,14 @@ impl BaseModel for Server {
                 compact_str::format_compact!("{prefix}description"),
             ),
             ("servers.icon", compact_str::format_compact!("{prefix}icon")), // plugged.host
+            (
+                "servers.dedicated",
+                compact_str::format_compact!("{prefix}dedicated"),
+            ), // plugged.host
+            (
+                "servers.plan_uuid",
+                compact_str::format_compact!("{prefix}plan_uuid"),
+            ), // plugged.host
             (
                 "servers.memory",
                 compact_str::format_compact!("{prefix}memory"),
@@ -431,6 +443,8 @@ impl BaseModel for Server {
             description: row
                 .try_get(compact_str::format_compact!("{prefix}description").as_str())?,
             icon: row.try_get(compact_str::format_compact!("{prefix}icon").as_str())?, // plugged.host
+            dedicated: row.try_get(compact_str::format_compact!("{prefix}dedicated").as_str())?, // plugged.host
+            plan_uuid: row.try_get(compact_str::format_compact!("{prefix}plan_uuid").as_str())?, // plugged.host
             memory: row.try_get(compact_str::format_compact!("{prefix}memory").as_str())?,
             memory_overhead: row
                 .try_get(compact_str::format_compact!("{prefix}memory_overhead").as_str())?,
@@ -2185,7 +2199,9 @@ impl super::IntoAdminApiObject for Server {
                 suspension: self
                     .suspension
                     .map(suspension::ServerSuspension::into_admin_api_object), // plugged.host
-                limbo_state: self.limbo, // plugged.host
+                limbo_state: self.limbo,      // plugged.host
+                is_dedicated: self.dedicated, // plugged.host
+                plan_uuid: self.plan_uuid,    // plugged.host
                 is_transferring: self.destination_node.is_some(),
                 name: self.name,
                 description: self.description,
@@ -2310,7 +2326,8 @@ impl super::IntoApiObject for Server {
                 suspension: self
                     .suspension
                     .map(|suspension| suspension.into_api_object(help_url)), // plugged.host
-                limbo_state: self.limbo, // plugged.host
+                limbo_state: self.limbo,      // plugged.host
+                is_dedicated: self.dedicated, // plugged.host
                 is_owner: self.owner.uuid == user.uuid,
                 is_transferring: self.destination_node.is_some(),
                 name: self.name,
@@ -3445,6 +3462,9 @@ pub struct AdminApiServer {
     pub suspension: Option<suspension::AdminApiServerSuspension>, // plugged.host
     /// plugged.host: idle servers stopped and parked (docs/features/limbo.md)
     pub limbo_state: Option<crate::limbo::LimboState>,
+    /// plugged.host: a paid server on a dedicated plan, and that plan (docs/features/dedicated.md)
+    pub is_dedicated: bool,
+    pub plan_uuid: Option<uuid::Uuid>,
     pub is_transferring: bool,
 
     pub name: compact_str::CompactString,
@@ -3496,6 +3516,8 @@ pub struct ApiServer {
     pub suspension: Option<suspension::ApiServerSuspension>, // plugged.host
     /// plugged.host: idle servers stopped and parked (docs/features/limbo.md)
     pub limbo_state: Option<crate::limbo::LimboState>,
+    /// plugged.host: a paid server on a dedicated plan (docs/features/dedicated.md)
+    pub is_dedicated: bool,
     pub is_transferring: bool,
     pub permissions: Vec<compact_str::CompactString>,
     pub ignored_files: Vec<compact_str::CompactString>,

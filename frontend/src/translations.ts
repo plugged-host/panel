@@ -2100,6 +2100,19 @@ const baseTranslations = defineTranslations({
             blockedUntil: 'Your account standing is {level}, so you cannot create servers until {date}.',
             view: 'View your standing',
           },
+          // plugged.host: paid plans with CPU threads and memory of their own (docs/features/dedicated.md)
+          dedicated: {
+            description:
+              "{name} plans are paid: their CPU threads and memory are your server's alone. Order one and the team sets it up for you.",
+            perMonth: '{price} / month',
+            size: '{threads} dedicated CPU threads · {memory} MB Memory · {disk} MB Disk Space',
+            soldOut: 'Sold out',
+            soldOutAt: '{location} (sold out)',
+            order: 'Order through support',
+            orderSubject: '{name} order: {plan}',
+            orderBody: 'I would like to order the {name} plan {plan}.',
+            orderLocations: 'Locations: {locations}. Which one I want:',
+          },
         },
         home: {
           empty: {
@@ -4405,6 +4418,9 @@ const baseTranslations = defineTranslations({
                     'What all servers of an account may use together. 0 puts no limit on that resource. Lowering it shrinks the servers of accounts that are then over it, evenly.',
                   allowanceNoprofit:
                     'noprofit.space is connected: every account gets its plan from there, these values are not used.',
+                  dedicatedName: 'Dedicated Plans Name',
+                  dedicatedNameDescription:
+                    'What players see paid servers on dedicated plans called (Admin › Plans): their CPU threads and memory are theirs alone.',
                   catalog: 'Games',
                 },
                 catalog: {
@@ -6566,14 +6582,28 @@ const baseTranslations = defineTranslations({
           table: {
             cpu: 'CPU',
             public: 'Public',
+            dedicated: 'Dedicated',
           },
           form: {
             cpu: 'CPU (%)',
             cpuDescription: 'Percent of one CPU thread: 100 is one thread, 200 two.',
+            cpuDedicatedDescription: 'Whole CPU threads, 100 each: 400 is four threads of its own.',
             sort: 'Sort Order',
             sortDescription: 'Order on the create page, lowest first.',
             public: 'Public',
             publicDescription: 'Players can pick this plan when they create a server.',
+            publicDedicatedDescription:
+              'Players see this plan with its price on the create page and order it with a support ticket. Off: a custom plan only admins use, for one customer.',
+            dedicatedSection: 'Dedicated',
+            dedicated: 'Dedicated (paid)',
+            dedicatedDescription:
+              "The server's CPU threads and memory are its alone: it goes on a dedicated node of the locations and nodes below, pinned to threads no other server has, and only where the node's memory is not handed out yet. Disk is shared. Players never create it themselves: an admin creates it for them on Admin › Servers with this plan.",
+            price: 'Price (EUR a month)',
+            priceDescription: 'Shown to players. The panel charges nothing itself; empty shows no price.',
+            locations: 'Locations',
+            locationsDescription: 'Where its servers can go. Empty: any location with a dedicated node.',
+            nodes: 'Nodes',
+            nodesDescription: 'Only these dedicated nodes. Empty: every dedicated node of the locations.',
           },
           modal: {
             delete: {
@@ -6778,10 +6808,11 @@ const baseTranslations = defineTranslations({
                   deploymentPausedDescription: 'A paused node takes no new servers until it is unpaused.',
                   role: 'Role',
                   roleDescription:
-                    "Game nodes take players' servers. Internal nodes are only used by admins and are never picked for players. A limbo node keeps the servers that were parked on it until they are restored, and takes nothing new.",
+                    "Game nodes take players' servers. Internal nodes are only used by admins and are never picked for players. A limbo node keeps the servers that were parked on it until they are restored, and takes nothing new. A dedicated node only takes servers of dedicated plans, each pinned to CPU threads of its own, and never hands out more memory than it has.",
                   roleGame: 'Game',
                   roleInternal: 'Internal',
                   roleLimbo: 'Limbo',
+                  roleDedicated: 'Dedicated',
                   tags: 'Tags',
                   tagsDescription:
                     'Short labels for grouping nodes, such as nvme or ddos-protected: letters, digits, dashes, underscores and dots.',
@@ -7664,6 +7695,10 @@ const baseTranslations = defineTranslations({
                   pinnedCpus: 'Pinned CPUs',
                   pinnedCpusDescription: 'The CPU cores this server is pinned to.',
                   pinnedCpusTooltip: 'By index, e.g. 0, 1, 2. Leave empty to allow all cores.',
+                  // plugged.host: docs/features/dedicated.md
+                  dedicatedPlan: 'Dedicated Plan',
+                  dedicatedPlanDescription:
+                    "A paid plan: its size, on a dedicated node of the plan, pinned to threads the panel picks there. The server is not counted in its owner's allowance.",
                   predefinedDockerImages: 'Predefined Docker Images',
                   predefinedDockerImagesPlaceholder: 'No predefined image selected',
                   startupCommandCustom: 'Custom',
@@ -9539,6 +9574,13 @@ const baseTranslations = defineTranslations({
                 alert: {
                   impersonate:
                     'This role has the `users.impersonate` permission, which allows users with this role to impersonate any other user, including administrators. Be cautious when assigning this permission to roles with less trusted users.',
+                  // plugged.host
+                  settings:
+                    "This role can change the panel's settings (economy, neo, ads, mail and the rest). Staff who should not touch them need neither `settings.update`, `email-templates.update` nor `extensions.manage`: **Staff Preset** leaves them out.",
+                },
+                // plugged.host
+                button: {
+                  staffPreset: 'Staff Preset',
                 },
                 form: {
                   requireTwoFactor: 'Require Two Factor',

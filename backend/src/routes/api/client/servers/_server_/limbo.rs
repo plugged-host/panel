@@ -48,7 +48,13 @@ mod get {
         super::may_start(&permissions)?;
 
         ApiResponse::new_serialized(Response {
-            limbo: shared::limbo::view(&state, &server, &user, user.admin).await?,
+            limbo: shared::limbo::view(
+                &state,
+                &server,
+                &user,
+                permissions.can_override("servers.limbo"),
+            )
+            .await?,
         })
         .ok()
     }
@@ -102,7 +108,15 @@ mod post {
     ) -> ApiResponseResult {
         super::may_start(&permissions)?;
 
-        match shared::limbo::restore(&state, &server, &user, data.location_uuid, user.admin).await {
+        match shared::limbo::restore(
+            &state,
+            &server,
+            &user,
+            data.location_uuid,
+            permissions.can_override("servers.limbo"),
+        )
+        .await
+        {
             Ok(()) => {}
             Err(LimboError::Other(err)) => return Err(err.into()),
             Err(err) => {
@@ -117,7 +131,13 @@ mod post {
         let server = shared::models::server::Server::by_uuid(&state.database, server.uuid).await?;
 
         ApiResponse::new_serialized(Response {
-            limbo: shared::limbo::view(&state, &server, &user, user.admin).await?,
+            limbo: shared::limbo::view(
+                &state,
+                &server,
+                &user,
+                permissions.can_override("servers.limbo"),
+            )
+            .await?,
         })
         .ok()
     }

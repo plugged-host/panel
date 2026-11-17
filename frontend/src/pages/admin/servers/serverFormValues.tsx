@@ -69,6 +69,7 @@ export const serverCreateEmptyFormValues: ServerCreateFormValues = {
   allocationUuid: null,
   allocationUuids: [],
   variables: [],
+  planUuid: null, // plugged.host
 };
 
 export const serverUpdateEmptyFormValues: ServerUpdateFormValues = {

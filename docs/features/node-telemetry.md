@@ -42,7 +42,7 @@ Both tables go when their node is deleted.
 
 | Field | Edited in | Means |
 |---|---|---|
-| `nodes.role` | Node form | `game` takes players' servers; `internal` is for admins only (tests, builds, a node being set up) and is never picked for players; `limbo` keeps the servers an imported Pelican panel parked on it until they are restored, and is never picked for anything new ([limbo.md](limbo.md#parked-on-a-node)) |
+| `nodes.role` | Node form | `game` takes players' servers; `internal` is for admins only (tests, builds, a node being set up) and is never picked for players; `limbo` keeps the servers an imported Pelican panel parked on it until they are restored, and is never picked for anything new ([limbo.md](limbo.md#parked-on-a-node)); `dedicated` only takes servers of dedicated plans, each pinned to threads of its own ([dedicated.md](dedicated.md)) |
 | `nodes.tags` | Node form | Short labels (`nvme`, `ddos-protected`), stored lower case, sorted, without duplicates; at most 32 of 1 to 64 letters, digits, `-`, `_`, `.` |
 | `nodes.srv_target` | Node form | The host name server subdomains' SRV records point to; empty uses the node's address |
 | `nodes.cpu_model`, `nodes.memory_type` | Node form (Resources) | The processor (`Xeon E5-2651 v3`, up to 64 characters) and memory (`DDR4`, up to 32) the [status page](status.md#files) names for the node; empty names none. Typed by an admin: stock Wings reports neither |

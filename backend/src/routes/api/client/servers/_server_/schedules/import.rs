@@ -120,7 +120,7 @@ mod post {
             }
 
             // plugged.host: a schedule runs on Wings, past the start gates (shared/src/start_gates.rs)
-            if !permissions.is_admin()
+            if !permissions.can_override("servers.start-gates")
                 && shared::start_gates::schedule_step_starts(&schedule_step.action)
             {
                 transaction.rollback().await.ok();

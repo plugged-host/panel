@@ -267,11 +267,36 @@ impl PermissionManager {
         self.user_admin
     }
 
+    /// plugged.host: whether the caller may act past a rule that binds players, through the admin
+    /// permission that lifts it (`servers.resize`, `servers.limbo`, …): an administrator, or a role
+    /// (staff without the settings, docs/features/management.md) or api key holding it.
+    #[inline]
+    pub fn can_override(&self, permission: &str) -> bool {
+        self.has_admin_permission(permission).is_ok()
+    }
+
     /// Administrators may only be written to by other administrators signed in with a session,
     /// no matter which admin permissions a role or api key grants.
     pub fn can_modify_user(&self, user: &super::User) -> Result<(), ApiResponse> {
-        if self.is_unrestricted_admin() || !user.admin {
+        if self.is_unrestricted_admin() {
             return Ok(());
+        }
+        if !user.admin {
+            // plugged.host: staff only change users whose whole role they hold themselves, so a
+            // role with users.update cannot take over an account that can do more
+            // (docs/features/management.md)
+            if self.user_admin
+                || user.role.as_ref().is_none_or(|role| {
+                    self.can_grant(&role.admin_permissions, &role.server_permissions)
+                })
+            {
+                return Ok(());
+            }
+
+            return Err(ApiResponse::error(
+                "you cannot modify a user whose role can do more than yours",
+            )
+            .with_status(StatusCode::FORBIDDEN));
         }
 
         Err(ApiResponse::error("you cannot modify an administrator")
@@ -607,10 +632,10 @@ mod tests {
 
     // PermissionManager::can_modify_user
     #[test]
-    fn anyone_may_modify_a_non_admin() {
+    fn anyone_may_modify_a_user_without_a_role() {
         assert!(
             manager(CredentialScope::Session)
-                .can_modify_user(&user(false, Some((&["roles.read"], &[]))))
+                .can_modify_user(&user(false, None))
                 .is_ok()
         );
         assert!(
@@ -638,6 +663,50 @@ mod tests {
             role.can_modify_user(&user(true, None)).unwrap_err().status,
             StatusCode::FORBIDDEN
         );
+    }
+
+    #[test]
+    fn staff_only_modify_a_role_they_hold_whole() {
+        let mut role = manager(CredentialScope::Session);
+        role.role_admin_permissions = permissions(&["users.update", "servers.read"]);
+        role.role_server_permissions = permissions(&["files.read"]);
+
+        assert!(
+            role.can_modify_user(&user(false, Some((&["servers.read"], &["files.read"]))))
+                .is_ok()
+        );
+        assert_eq!(
+            role.can_modify_user(&user(false, Some((&["settings.update"], &[]))))
+                .unwrap_err()
+                .status,
+            StatusCode::FORBIDDEN
+        );
+        assert!(
+            role.can_modify_user(&user(false, Some((&[], &["files.delete"]))))
+                .is_err()
+        );
+
+        let mut admin = manager(api_key(&[], &["users.update"], &[]));
+        admin.user_admin = true;
+        assert!(
+            admin
+                .can_modify_user(&user(false, Some((&["settings.update"], &[]))))
+                .is_ok()
+        );
+    }
+
+    // PermissionManager::can_override
+    #[test]
+    fn an_override_needs_its_admin_permission() {
+        let mut role = manager(CredentialScope::Session);
+        role.role_admin_permissions = permissions(&["servers.resize"]);
+        assert!(role.can_override("servers.resize"));
+        assert!(!role.can_override("servers.limbo"));
+
+        let mut admin = manager(CredentialScope::Session);
+        admin.user_admin = true;
+        assert!(admin.can_override("servers.startup"));
+        assert!(!manager(CredentialScope::Session).can_override("servers.resize"));
     }
 
     // PermissionManager::missing_server_permission

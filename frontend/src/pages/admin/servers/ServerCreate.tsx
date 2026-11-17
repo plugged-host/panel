@@ -18,6 +18,7 @@ import getEggVariables from '@/api/admin/nests/eggs/variables/getEggVariables.ts
 import getNests from '@/api/admin/nests/getNests.ts';
 import getAvailableNodeAllocations from '@/api/admin/nodes/allocations/getAvailableNodeAllocations.ts';
 import getNodes from '@/api/admin/nodes/getNodes.ts';
+import getPlans from '@/api/admin/plans/getPlans.ts';
 import createServer from '@/api/admin/servers/createServer.ts';
 import getUsers from '@/api/admin/users/getUsers.ts';
 import { getEmptyPaginationSet, httpErrorToHuman } from '@/api/axios.ts';
@@ -46,6 +47,7 @@ import { fullUserSchema } from '@/lib/schemas/user.ts';
 import EggRepositoryCatalogModal, {
   EggRepositoryCatalogInstallResult,
 } from '@/pages/admin/egg-repositories/eggs/modals/EggRepositoryCatalogModal.tsx';
+import { useResource } from '@/plugins/resource/useResource.ts';
 import { useResourceForm } from '@/plugins/resource/useResourceForm.ts';
 import { useSearchableResource } from '@/plugins/resource/useSearchableResource.ts';
 import { useAdminCan } from '@/plugins/usePermissions.ts';
@@ -64,6 +66,7 @@ export default function ServerCreate() {
   const canReadNests = useAdminCan('nests.read');
   const canReadEggs = useAdminCan('eggs.read');
   const canReadBackupConfigurations = useAdminCan('backup-configurations.read');
+  const canReadPlans = useAdminCan('plans.read'); // plugged.host
 
   const [isValid, setIsValid] = useState(false);
   const [openModal, setOpenModal] = useState<'confirm-no-allocation' | null>(null);
@@ -84,6 +87,29 @@ export default function ServerCreate() {
     resourceName: t('pages.admin.servers.resourceName', {}),
     toResetOnStay: ['allocationUuid', 'allocationUuids'],
   });
+
+  // plugged.host: a dedicated plan fills in its size; the panel picks the server's threads on the
+  // node (docs/features/dedicated.md)
+  const { data: dedicatedPlans } = useResource({
+    queryKey: [...queryKeys.admin.plans.all(), 'dedicated'],
+    queryFn: async () => (await getPlans(1, undefined, 100)).data.filter((plan) => plan.dedicated),
+    enabled: canReadPlans,
+    silent: true,
+  });
+  const [planUuid, setPlanUuid] = useState<string | null>(null);
+  const pickPlan = (uuid: string | null) => {
+    setPlanUuid(uuid);
+    form.setFieldValue('planUuid', uuid);
+    const plan = dedicatedPlans?.find((plan) => plan.uuid === uuid);
+    if (plan) {
+      form.setFieldValue('limits.cpu', plan.cpu);
+      form.setFieldValue('limits.memory', plan.memory);
+      form.setFieldValue('limits.memoryOverhead', 0);
+      form.setFieldValue('limits.swap', 0);
+      form.setFieldValue('limits.disk', plan.disk);
+      form.setFieldValue('pinnedCpus', []);
+    }
+  };
 
   const doSave = (stay: boolean) => {
     if (!form.getValues().allocationUuid) {
@@ -294,6 +320,18 @@ export default function ServerCreate() {
               title={t('pages.admin.servers.tabs.general.page.card.resourceLimits', {})}
               icon={<FontAwesomeIcon icon={faStopwatch} />}
             >
+              {/* plugged.host: docs/features/dedicated.md */}
+              {!!dedicatedPlans?.length && (
+                <Select
+                  mb='md'
+                  clearable
+                  label={t('pages.admin.servers.tabs.general.page.form.dedicatedPlan', {})}
+                  description={t('pages.admin.servers.tabs.general.page.form.dedicatedPlanDescription', {})}
+                  data={dedicatedPlans.map((plan) => ({ label: plan.name, value: plan.uuid }))}
+                  value={planUuid}
+                  onChange={pickPlan}
+                />
+              )}
               <FormEngine form={form} fields={resourceLimitsFields} />
             </TitleCard>
 

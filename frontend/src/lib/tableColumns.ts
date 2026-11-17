@@ -228,6 +228,7 @@ export const planTableColumns = (): string[] => {
     t('common.form.memory', {}),
     t('common.form.disk', {}),
     t('pages.admin.plans.table.public', {}),
+    t('pages.admin.plans.table.dedicated', {}), // plugged.host
     t('common.table.columns.created', {}),
   ];
 };

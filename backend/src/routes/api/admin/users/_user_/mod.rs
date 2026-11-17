@@ -253,7 +253,7 @@ mod patch {
     use shared::{
         ApiError, GetState,
         models::{
-            UpdatableModel,
+            ByUuid, UpdatableModel,
             admin_activity::GetAdminActivityLogger,
             user::{GetPermissionManager, GetUser, UpdateUserOptions},
             user_email_verification::UserEmailVerification,
@@ -295,13 +295,28 @@ mod patch {
                     .with_status(StatusCode::FORBIDDEN)
                     .ok();
             }
-            if data
-                .role_uuid
-                .is_some_and(|role_uuid| role_uuid != user.role.as_ref().map(|role| role.uuid))
+            if let Some(role_uuid) = data.role_uuid
+                && role_uuid != user.role.as_ref().map(|role| role.uuid)
             {
-                return ApiResponse::error("you cannot change a user's role")
-                    .with_status(StatusCode::FORBIDDEN)
-                    .ok();
+                // plugged.host: staff hand out only roles they hold whole, to others than
+                // themselves (can_modify_user covers the role it had; docs/features/management.md)
+                let new_role = match role_uuid {
+                    Some(role_uuid) => {
+                        shared::models::role::Role::by_uuid_optional(&state.database, role_uuid)
+                            .await?
+                    }
+                    None => None,
+                };
+                if caller.uuid == user.uuid
+                    || role_uuid.is_some() && new_role.is_none()
+                    || new_role.as_ref().is_some_and(|role| {
+                        !permissions.can_grant(&role.admin_permissions, &role.server_permissions)
+                    })
+                {
+                    return ApiResponse::error("you cannot change a user's role")
+                        .with_status(StatusCode::FORBIDDEN)
+                        .ok();
+                }
             }
 
             if caller.uuid != user.uuid || !permissions.scope().is_session() {

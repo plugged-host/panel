@@ -14,7 +14,8 @@ A plan is a server size players pick from: CPU (percent of one thread), memory a
 name, a description, a sort order and whether players see it. Picking one fills in the size; players
 may also type their own CPU, memory and disk instead, within their allowance. Admin › Plans lists, creates, edits and
 deletes them (`plans` table, `shared/src/models/plan.rs`). Deleting a plan changes no server: a
-server keeps its limits, the plan is only what it was created with.
+server keeps its limits, the plan is only what it was created with. A **dedicated** plan is a paid
+one players order instead of picking it here ([dedicated.md](dedicated.md)).
 
 ## Games
 

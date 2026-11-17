@@ -1213,6 +1213,12 @@ export const plansTable = pgTable(
     disk: bigint({ mode: 'number' }).notNull(),
     sort: integer().default(0).notNull(),
     public: boolean().default(true).notNull(),
+    // plugged.host: a paid plan whose CPU threads and memory are the server's alone, on the
+    // dedicated nodes it lists (shared/src/dedicated.rs); price in cents a month
+    dedicated: boolean().default(false).notNull(),
+    price: integer(),
+    location_uuids: uuid().array().default([]).notNull(),
+    node_uuids: uuid().array().default([]).notNull(),
     created: timestamp().defaultNow().notNull(),
   },
   (cols) => [uniqueIndex('plans_name_idx').on(cols.name)],
@@ -1833,6 +1839,9 @@ export const serversTable = pgTable(
     suspended_at: timestamp(),
     suspended_by: uuid().references((): PgColumn => usersTable.uuid, { onDelete: 'set null' }),
     suspension_delete_at: timestamp(),
+    // plugged.host: a paid server on a dedicated plan and the plan it came from (shared/src/dedicated.rs)
+    dedicated: boolean().default(false).notNull(),
+    plan_uuid: uuid().references(() => plansTable.uuid, { onDelete: 'set null' }),
     // plugged.host: the idle clock and where the server is in limbo (shared/src/limbo.rs)
     last_activity: timestamp().defaultNow().notNull(),
     limbo_state: varchar({ length: 16 }),

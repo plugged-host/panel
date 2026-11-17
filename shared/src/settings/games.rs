@@ -111,6 +111,8 @@ pub struct AppSettingsGames {
     pub allowance_cpu: i32,
     pub allowance_memory: i64,
     pub allowance_disk: i64,
+    /// What players see paid servers on dedicated plans called (docs/features/dedicated.md).
+    pub dedicated_name: compact_str::CompactString,
 
     /// CurseForge's API key for the Minecraft pages; without it CurseForge is not offered
     /// (docs/features/minecraft.md). Stored encrypted, shown as a placeholder.
@@ -155,6 +157,7 @@ impl Default for AppSettingsGames {
             allowance_cpu: 0,
             allowance_memory: 0,
             allowance_disk: 0,
+            dedicated_name: "Dedicated".into(),
             minecraft_curseforge_key: None,
             minecraft_spigot: true,
             minecraft_user_agent: compact_str::CompactString::default(),
@@ -220,6 +223,8 @@ pub struct PayloadGames {
     allowance_memory: Option<i64>,
     #[garde(inner(range(min = 0)))]
     allowance_disk: Option<i64>,
+    #[garde(inner(length(chars, min = 1, max = 64)))]
+    dedicated_name: Option<compact_str::CompactString>,
     /// An empty string or the placeholder keeps the stored key, `null` removes it.
     #[garde(inner(inner(length(chars, max = 255))))]
     #[serde(default, with = "::serde_with::rust::double_option")]
@@ -321,6 +326,10 @@ impl PayloadGames {
             minecraft_log_check,
             fivem_enhanced
         );
+
+        if let Some(name) = self.dedicated_name {
+            settings.dedicated_name = name.trim().into();
+        }
 
         match self.minecraft_curseforge_key {
             Some(Some(key))
@@ -428,7 +437,8 @@ impl SettingsSerializeExt for AppSettingsGames {
                 "allowance_memory",
                 self.allowance_memory.to_compact_string(),
             )
-            .write_raw_setting("allowance_disk", self.allowance_disk.to_compact_string()))
+            .write_raw_setting("allowance_disk", self.allowance_disk.to_compact_string())
+            .write_raw_setting("dedicated_name", &*self.dedicated_name))
     }
 }
 
@@ -479,6 +489,10 @@ impl SettingsDeserializeExt for AppSettingsGamesDeserializer {
             allowance_cpu: parsed!(allowance_cpu),
             allowance_memory: parsed!(allowance_memory),
             allowance_disk: parsed!(allowance_disk),
+            dedicated_name: deserializer
+                .take_raw_setting("dedicated_name")
+                .filter(|name| !name.trim().is_empty())
+                .unwrap_or(defaults.dedicated_name),
             minecraft_curseforge_key,
             minecraft_spigot: parsed!(minecraft_spigot),
             minecraft_user_agent: deserializer
@@ -537,6 +551,7 @@ mod tests {
             allowance_cpu: None,
             allowance_memory: None,
             allowance_disk: None,
+            dedicated_name: None,
             minecraft_curseforge_key: None,
             minecraft_spigot: None,
             minecraft_user_agent: None,

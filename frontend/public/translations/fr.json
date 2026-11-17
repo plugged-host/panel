@@ -2251,6 +2251,17 @@
             "blocked": "Statut de votre compte : {level}. Vous ne pouvez pas créer de serveurs pour le moment.",
             "blockedUntil": "Statut de votre compte : {level}. Vous ne pouvez pas créer de serveurs avant le {date}.",
             "view": "Voir le statut du compte"
+          },
+          "dedicated": {
+            "description": "Les offres {name} sont payantes : leurs threads CPU et leur mémoire sont réservés à ton serveur. Commande-en une et l'équipe la met en place pour toi.",
+            "perMonth": "{price} / mois",
+            "size": "{threads} threads CPU dédiés · {memory} Mo de mémoire · {disk} Mo d'espace disque",
+            "soldOut": "Épuisé",
+            "soldOutAt": "{location} (épuisé)",
+            "order": "Commander via le support",
+            "orderSubject": "Commande {name} : {plan}",
+            "orderBody": "Je voudrais commander l'offre {name} {plan}.",
+            "orderLocations": "Emplacements : {locations}. Celui que je veux :"
           }
         },
         "home": {

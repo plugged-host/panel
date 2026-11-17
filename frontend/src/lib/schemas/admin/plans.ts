@@ -11,6 +11,11 @@ export const adminPlanSchema = z.looseObject({
   disk: z.number().int().min(1),
   sort: z.number().int(),
   public: z.boolean(),
+  // a paid plan with CPU threads and memory of its own (docs/features/dedicated.md); price in cents a month
+  dedicated: z.boolean().default(false),
+  price: z.number().int().min(0).max(100_000_000).nullable().default(null),
+  locationUuids: z.array(z.string()).max(100).default([]),
+  nodeUuids: z.array(z.string()).max(100).default([]),
   created: z.string(),
 });
 

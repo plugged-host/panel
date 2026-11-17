@@ -38,8 +38,12 @@ mod get {
         permissions.has_server_permission("settings.transfer")?;
 
         ApiResponse::new_serialized(Response {
-            transfer: shared::server_transfers::options(&state, &server, permissions.is_admin())
-                .await?,
+            transfer: shared::server_transfers::options(
+                &state,
+                &server,
+                permissions.can_override("servers.move"),
+            )
+            .await?,
         })
         .ok()
     }
@@ -100,7 +104,7 @@ mod post {
             &server,
             &user,
             data.location_uuid,
-            permissions.is_admin(),
+            permissions.can_override("servers.move"),
         )
         .await
         {

@@ -104,7 +104,14 @@ mod post {
         let from = shared::server_resize::current(&server);
         let to = Resources::new(data.cpu, data.memory, data.disk);
 
-        match shared::server_resize::resize(&state, &mut server, to, permissions.is_admin()).await {
+        match shared::server_resize::resize(
+            &state,
+            &mut server,
+            to,
+            permissions.can_override("servers.resize"),
+        )
+        .await
+        {
             Ok(()) => {}
             Err(ResizeError::Other(err)) => return Err(err.into()),
             Err(err) => {

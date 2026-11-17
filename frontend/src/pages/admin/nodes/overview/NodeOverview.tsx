@@ -208,7 +208,9 @@ export default function NodeOverview({ node }: { node: Node }) {
                     ? t('pages.admin.nodes.tabs.general.page.form.roleInternal', {})
                     : node.role === 'limbo'
                       ? t('pages.admin.nodes.tabs.general.page.form.roleLimbo', {})
-                      : t('pages.admin.nodes.tabs.general.page.form.roleGame', {})}
+                      : node.role === 'dedicated'
+                        ? t('pages.admin.nodes.tabs.general.page.form.roleDedicated', {})
+                        : t('pages.admin.nodes.tabs.general.page.form.roleGame', {})}
                 </Text>
               </InfoRow>
               {node.tags.length > 0 && (

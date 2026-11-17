@@ -29,6 +29,9 @@ export default ({ plan }: { plan: z.infer<typeof adminPlanSchema> }) => {
 
       <TableData>{plan.public ? t('common.yes', {}) : t('common.no', {})}</TableData>
 
+      {/* plugged.host: docs/features/dedicated.md */}
+      <TableData>{plan.dedicated ? t('common.yes', {}) : t('common.no', {})}</TableData>
+
       <TableData>
         <FormattedTimestamp timestamp={plan.created} />
       </TableData>

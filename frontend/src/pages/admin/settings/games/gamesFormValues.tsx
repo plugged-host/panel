@@ -27,6 +27,7 @@ export const gamesEmptyFormValues: GamesFormValues = {
   allowanceCpu: 0,
   allowanceMemory: 0,
   allowanceDisk: 0,
+  dedicatedName: 'Dedicated',
 };
 
 // The section also holds the Minecraft tab's fields, which that tab saves.
@@ -171,6 +172,14 @@ export function useGamesFormFields(
     },
     { type: 'size', name: 'allowanceMemory', label: t('common.form.memory', {}), required: true, mode: 'mb', min: 0 },
     { type: 'size', name: 'allowanceDisk', label: t('common.form.disk', {}), required: true, mode: 'mb', min: 0 },
+    // plugged.host: paid servers on dedicated plans (docs/features/dedicated.md)
+    {
+      type: 'text',
+      name: 'dedicatedName',
+      label: t(`${page}.dedicatedName`, {}),
+      description: t(`${page}.dedicatedNameDescription`, {}),
+      required: true,
+    },
     {
       type: 'divider',
       name: 'catalogDivider',

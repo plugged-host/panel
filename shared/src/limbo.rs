@@ -1062,6 +1062,7 @@ async fn candidates(
             AND servers.destination_node_uuid IS NULL
             AND (servers.limbo_state IS NULL OR servers.limbo_state = 'stopped')
             AND NOT users.admin
+            AND NOT servers.dedicated
             AND NOT EXISTS (SELECT 1 FROM devboxes WHERE devboxes.server_uuid = servers.uuid)
             AND NOT EXISTS (
                 SELECT 1 FROM nodes WHERE nodes.uuid = servers.node_uuid AND nodes.role = $4

@@ -7,7 +7,7 @@ import { useForm } from '@mantine/form';
 import { useQueryClient } from '@tanstack/react-query';
 import { zod4Resolver } from 'mantine-form-zod-resolver';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 import { z } from 'zod';
 import { httpErrorToHuman } from '@/api/axios.ts';
 import createTicket from '@/api/me/tickets/createTicket.ts';
@@ -54,10 +54,13 @@ function CreateModal({
   opened,
   onClose,
   onCreated,
+  prefill,
 }: {
   opened: boolean;
   onClose: () => void;
   onCreated: (uuid: string) => void;
+  // an order from another page (a dedicated plan, docs/features/dedicated.md)
+  prefill?: { subject: string; body: string } | null;
 }) {
   const { t } = useTranslations();
   const { addToast } = useToast();
@@ -79,6 +82,12 @@ function CreateModal({
     },
     validate: zod4Resolver(ticketCreateSchema),
   });
+
+  useEffect(() => {
+    if (prefill) {
+      form.setValues({ subject: prefill.subject.slice(0, 200), category: 'billing', body: prefill.body });
+    }
+  }, [prefill]);
 
   const submit = (values: z.infer<typeof ticketCreateSchema>) => {
     setLoading(true);
@@ -403,8 +412,15 @@ export function ThreadModal({
 
 export default function DashboardTickets() {
   const { t } = useTranslations();
-  const [creating, setCreating] = useState(false);
   const navigate = useNavigate();
+  // ?subject=…&body=… opens a billing ticket with them filled in (an order from the create page)
+  const [searchParams] = useSearchParams();
+  const [prefill] = useState(() =>
+    searchParams.get('subject')
+      ? { subject: searchParams.get('subject')!, body: searchParams.get('body') ?? '' }
+      : null,
+  );
+  const [creating, setCreating] = useState(!!prefill);
 
   const resource = useResource({
     queryKey: queryKeys.user.tickets(),
@@ -426,6 +442,7 @@ export default function DashboardTickets() {
         opened={creating}
         onClose={() => setCreating(false)}
         onCreated={(uuid) => navigate(`/account/support/${uuid}`)}
+        prefill={prefill}
       />
 
       <ResourceView resource={resource}>

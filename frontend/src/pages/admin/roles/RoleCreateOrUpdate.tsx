@@ -25,7 +25,13 @@ import { useResourceForm } from '@/plugins/resource/useResourceForm.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useGlobalStore } from '@/stores/global.ts';
-import { roleEmptyFormValues, roleToFormValues, useRoleFormFields } from './roleFormValues.tsx';
+import {
+  roleEmptyFormValues,
+  roleToFormValues,
+  SETTINGS_PERMISSIONS,
+  staffPreset,
+  useRoleFormFields,
+} from './roleFormValues.tsx';
 
 type RoleFormValues = z.infer<typeof adminRoleUpdateSchema>;
 
@@ -102,6 +108,13 @@ export default function RoleCreateOrUpdate({ contextRole }: { contextRole?: z.in
         </Alert>
       )}
 
+      {/* plugged.host: staff without the settings (docs/features/management.md) */}
+      {form.getValues().adminPermissions.some((permission) => SETTINGS_PERMISSIONS.includes(permission)) && (
+        <Alert color='yellow' icon={<FontAwesomeIcon icon={faExclamationTriangle} />} mb='md'>
+          {t('pages.admin.roles.tabs.general.page.alert.settings', {}).md()}
+        </Alert>
+      )}
+
       {permissionsLoading ? (
         <Spinner.Centered />
       ) : (
@@ -119,6 +132,17 @@ export default function RoleCreateOrUpdate({ contextRole }: { contextRole?: z.in
                 </Button>
               )}
             </AdminCan>
+            {/* plugged.host: fills in everything staff may hold; the settings stay out */}
+            <Button
+              variant='default'
+              onClick={() => {
+                const preset = staffPreset(availablePermissions);
+                form.setFieldValue('adminPermissions', preset.adminPermissions);
+                form.setFieldValue('serverPermissions', preset.serverPermissions);
+              }}
+            >
+              {t('pages.admin.roles.tabs.general.page.button.staffPreset', {})}
+            </Button>
             {contextRole && (
               <AdminCan action='roles.create'>
                 <Button variant='default' onClick={() => setOpenModal('duplicate')} loading={loading}>

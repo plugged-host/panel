@@ -85,7 +85,7 @@ export function useUserFormFields({
       type: 'select',
       name: 'roleUuid',
       label: t('pages.admin.users.tabs.general.page.form.role', {}),
-      when: () => isRootAdmin,
+      when: () => isRootAdmin || (canReadRoles && editingOtherUser), // plugged.host: staff hand out roles they hold (docs/features/management.md)
       options: roles.items.map((role) => ({ label: role.name, value: role.uuid })),
       props: {
         placeholder: t('common.none', {}),

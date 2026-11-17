@@ -313,7 +313,8 @@ pub async fn settle_user(
 
     let servers = if any(taking) {
         let server_uuids: Vec<uuid::Uuid> = sqlx::query_scalar(
-            "SELECT uuid FROM servers WHERE owner_uuid = $1 ORDER BY created, uuid",
+            // servers of dedicated plans keep their size (docs/features/dedicated.md)
+            "SELECT uuid FROM servers WHERE owner_uuid = $1 AND NOT dedicated ORDER BY created, uuid",
         )
         .bind(user_uuid)
         .fetch_all(state.database.write())

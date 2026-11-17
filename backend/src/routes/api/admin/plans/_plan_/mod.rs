@@ -178,6 +178,15 @@ mod patch {
     ) -> ApiResponseResult {
         permissions.has_admin_permission("plans.update")?;
 
+        // plugged.host: a dedicated plan is whole threads (docs/features/dedicated.md)
+        if data.dedicated.unwrap_or(plan.dedicated)
+            && !shared::dedicated::valid_cpu(data.cpu.unwrap_or(plan.cpu))
+        {
+            return ApiResponse::error("a dedicated plan's cpu is whole threads (100 each)")
+                .with_status(StatusCode::BAD_REQUEST)
+                .ok();
+        }
+
         match plan.update(&state, data).await {
             Ok(_) => {}
             Err(err) if err.is_unique_violation() => {
@@ -197,6 +206,8 @@ mod patch {
                     "cpu": plan.cpu,
                     "memory": plan.memory,
                     "disk": plan.disk,
+                    "dedicated": plan.dedicated,
+                    "price": plan.price,
                 }),
             )
             .await;

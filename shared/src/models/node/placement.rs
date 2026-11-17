@@ -8,8 +8,14 @@ use sqlx::Row;
 /// The roles a node can have. A `game` node takes players' servers; an `internal` node is only
 /// used by admins (tests, builds, a node being set up) and is never picked for players' servers;
 /// a `limbo` node keeps the files of servers parked on it (the Pelican panel's limbo node, kept by
-/// an import, docs/features/limbo.md#parked-on-a-node) and is never picked for anything new.
-pub const ROLES: &[&str] = &["game", "internal", crate::limbo::NODE_ROLE];
+/// an import, docs/features/limbo.md#parked-on-a-node) and is never picked for anything new; a
+/// `dedicated` node only takes servers of dedicated plans (docs/features/dedicated.md).
+pub const ROLES: &[&str] = &[
+    "game",
+    "internal",
+    crate::limbo::NODE_ROLE,
+    crate::dedicated::NODE_ROLE,
+];
 
 pub const MAX_TAGS: usize = 32;
 pub const MAX_TAG_LENGTH: usize = 64;

@@ -29,6 +29,15 @@ pub struct Plan {
     pub sort: i32,
     pub public: bool,
 
+    /// A paid plan: the server's CPU threads (`cpu` is whole threads, 100 each) and memory are its
+    /// alone, on a dedicated node of [`Self::node_uuids`] (any dedicated node when empty) in
+    /// [`Self::location_uuids`] (any location when empty). docs/features/dedicated.md
+    pub dedicated: bool,
+    /// What it costs, in cents a month; shown to players, nothing is charged by the panel.
+    pub price: Option<i32>,
+    pub location_uuids: Vec<uuid::Uuid>,
+    pub node_uuids: Vec<uuid::Uuid>,
+
     pub created: chrono::NaiveDateTime,
 
     extension_data: super::ModelExtensionData,
@@ -71,6 +80,19 @@ impl BaseModel for Plan {
                 compact_str::format_compact!("{prefix}public"),
             ),
             (
+                "plans.dedicated",
+                compact_str::format_compact!("{prefix}dedicated"),
+            ),
+            ("plans.price", compact_str::format_compact!("{prefix}price")),
+            (
+                "plans.location_uuids",
+                compact_str::format_compact!("{prefix}location_uuids"),
+            ),
+            (
+                "plans.node_uuids",
+                compact_str::format_compact!("{prefix}node_uuids"),
+            ),
+            (
                 "plans.created",
                 compact_str::format_compact!("{prefix}created"),
             ),
@@ -91,6 +113,11 @@ impl BaseModel for Plan {
             disk: row.try_get(compact_str::format_compact!("{prefix}disk").as_str())?,
             sort: row.try_get(compact_str::format_compact!("{prefix}sort").as_str())?,
             public: row.try_get(compact_str::format_compact!("{prefix}public").as_str())?,
+            dedicated: row.try_get(compact_str::format_compact!("{prefix}dedicated").as_str())?,
+            price: row.try_get(compact_str::format_compact!("{prefix}price").as_str())?,
+            location_uuids: row
+                .try_get(compact_str::format_compact!("{prefix}location_uuids").as_str())?,
+            node_uuids: row.try_get(compact_str::format_compact!("{prefix}node_uuids").as_str())?,
             created: row.try_get(compact_str::format_compact!("{prefix}created").as_str())?,
             extension_data: Self::map_extensions(prefix, row)?,
         })
@@ -128,19 +155,54 @@ impl Plan {
         .await
     }
 
-    /// The plans players can pick, in their order.
+    /// The plans players can pick, in their order (the free ones: a dedicated plan is ordered,
+    /// see [`Self::all_public_dedicated`]).
     pub async fn all_public(
+        database: &crate::database::Database,
+    ) -> Result<Vec<Self>, crate::database::DatabaseError> {
+        Self::public_where(database, false).await
+    }
+
+    /// plugged.host: the dedicated plans players are shown with their price, in their order.
+    pub async fn all_public_dedicated(
+        database: &crate::database::Database,
+    ) -> Result<Vec<Self>, crate::database::DatabaseError> {
+        Self::public_where(database, true).await
+    }
+
+    /// plugged.host: every dedicated plan, public or made for one customer, for Admin › Servers.
+    pub async fn all_dedicated(
         database: &crate::database::Database,
     ) -> Result<Vec<Self>, crate::database::DatabaseError> {
         let rows = sqlx::query(sqlx::AssertSqlSafe(format!(
             r#"
             SELECT {}
             FROM plans
-            WHERE plans.public
+            WHERE plans.dedicated
             ORDER BY plans.sort, plans.memory, plans.uuid
             "#,
             Self::columns_sql(None)
         )))
+        .fetch_all(database.read())
+        .await?;
+
+        rows.into_iter().map(|row| Self::map(None, &row)).collect()
+    }
+
+    async fn public_where(
+        database: &crate::database::Database,
+        dedicated: bool,
+    ) -> Result<Vec<Self>, crate::database::DatabaseError> {
+        let rows = sqlx::query(sqlx::AssertSqlSafe(format!(
+            r#"
+            SELECT {}
+            FROM plans
+            WHERE plans.public AND plans.dedicated = $1
+            ORDER BY plans.sort, plans.memory, plans.uuid
+            "#,
+            Self::columns_sql(None)
+        )))
+        .bind(dedicated)
         .fetch_all(database.read())
         .await?;
 
@@ -170,6 +232,10 @@ impl IntoAdminApiObject for Plan {
                 disk: self.disk,
                 sort: self.sort,
                 public: self.public,
+                dedicated: self.dedicated,
+                price: self.price,
+                location_uuids: self.location_uuids,
+                node_uuids: self.node_uuids,
                 created: self.created.and_utc(),
             },
             api_object,
@@ -248,6 +314,19 @@ pub struct CreatePlanOptions {
     #[garde(skip)]
     #[serde(default = "default_public")]
     pub public: bool,
+    #[garde(skip)]
+    #[serde(default)]
+    pub dedicated: bool,
+    #[garde(inner(range(min = 0, max = 100_000_000)))]
+    #[schema(minimum = 0)]
+    #[serde(default)]
+    pub price: Option<i32>,
+    #[garde(length(max = 100))]
+    #[serde(default)]
+    pub location_uuids: Vec<uuid::Uuid>,
+    #[garde(length(max = 100))]
+    #[serde(default)]
+    pub node_uuids: Vec<uuid::Uuid>,
 }
 
 #[async_trait::async_trait]
@@ -280,7 +359,11 @@ impl CreatableModel for Plan {
             .set("memory", options.memory)
             .set("disk", options.disk)
             .set("sort", options.sort)
-            .set("public", options.public);
+            .set("public", options.public)
+            .set("dedicated", options.dedicated)
+            .set("price", options.price)
+            .set("location_uuids", &options.location_uuids)
+            .set("node_uuids", &options.node_uuids);
 
         let row = query_builder
             .returning(&Self::columns_sql(None))
@@ -320,6 +403,20 @@ pub struct UpdatePlanOptions {
     pub sort: Option<i32>,
     #[garde(skip)]
     pub public: Option<bool>,
+    #[garde(skip)]
+    pub dedicated: Option<bool>,
+    #[garde(inner(inner(range(min = 0, max = 100_000_000))))]
+    #[schema(minimum = 0)]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        with = "::serde_with::rust::double_option"
+    )]
+    pub price: Option<Option<i32>>,
+    #[garde(inner(length(max = 100)))]
+    pub location_uuids: Option<Vec<uuid::Uuid>>,
+    #[garde(inner(length(max = 100)))]
+    pub node_uuids: Option<Vec<uuid::Uuid>>,
 }
 
 #[async_trait::async_trait]
@@ -354,6 +451,10 @@ impl UpdatableModel for Plan {
             .set("disk", options.disk)
             .set("sort", options.sort)
             .set("public", options.public)
+            .set("dedicated", options.dedicated)
+            .set("price", options.price)
+            .set("location_uuids", options.location_uuids.as_ref())
+            .set("node_uuids", options.node_uuids.as_ref())
             .where_eq("uuid", self.uuid);
 
         query_builder.execute(&mut **transaction).await?;
@@ -378,6 +479,18 @@ impl UpdatableModel for Plan {
         }
         if let Some(public) = options.public {
             self.public = public;
+        }
+        if let Some(dedicated) = options.dedicated {
+            self.dedicated = dedicated;
+        }
+        if let Some(price) = options.price {
+            self.price = price;
+        }
+        if let Some(location_uuids) = options.location_uuids {
+            self.location_uuids = location_uuids;
+        }
+        if let Some(node_uuids) = options.node_uuids {
+            self.node_uuids = node_uuids;
         }
 
         self.run_after_update_handlers(state, transaction).await?;
@@ -435,6 +548,12 @@ pub struct AdminApiPlan {
 
     pub sort: i32,
     pub public: bool,
+
+    /// plugged.host: docs/features/dedicated.md
+    pub dedicated: bool,
+    pub price: Option<i32>,
+    pub location_uuids: Vec<uuid::Uuid>,
+    pub node_uuids: Vec<uuid::Uuid>,
 
     pub created: chrono::DateTime<chrono::Utc>,
 }

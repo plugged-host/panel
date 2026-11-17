@@ -40,7 +40,9 @@ pub mod delete {
     ) -> ApiResponseResult {
         permissions.has_server_permission("settings.delete")?;
 
-        if !permissions.is_admin() && !state.settings.get().await?.games.allow_deleting {
+        if !permissions.can_override("servers.remove")
+            && !state.settings.get().await?.games.allow_deleting
+        {
             return ApiResponse::error("deleting servers is turned off")
                 .with_status(StatusCode::FORBIDDEN)
                 .ok();

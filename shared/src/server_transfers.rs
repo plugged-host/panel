@@ -925,8 +925,9 @@ pub async fn options(
     };
 
     let blocked = blocked(Blockers {
-        enabled,
-        admin,
+        // a server of a dedicated plan only moves by hand (docs/features/dedicated.md)
+        enabled: enabled && !server.dedicated,
+        admin: admin && !server.dedicated,
         busy: active || server.destination_node.is_some(),
         suspended: server.suspended,
         installing: matches!(
@@ -1305,8 +1306,10 @@ async fn request_with(
         return Err(TransferError::Disabled);
     }
     // the move's routes skip the server's state check, so that a running move stays visible
-    // a parked server (limbo) has no files on a node to move
+    // a parked server (limbo) has no files on a node to move; a server of a dedicated plan only
+    // moves by hand, to a node and threads an admin picks (docs/features/dedicated.md)
     if (server.suspended && !admin)
+        || server.dedicated
         || server.status.is_some()
         || server.limbo.is_some_and(|limbo| limbo.away())
     {

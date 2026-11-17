@@ -54,6 +54,8 @@ pub enum ResizeError {
     Allowance(Refusal),
     /// The node has no room for the bigger server (`memory` or `disk`).
     NodeFull(&'static str),
+    /// A server of a dedicated plan keeps the plan's size (docs/features/dedicated.md).
+    Dedicated,
     Other(anyhow::Error),
 }
 
@@ -67,6 +69,7 @@ impl ResizeError {
             Self::NodeFull(resource) => {
                 format!("the server's node has no {resource} left for this, move the server first")
             }
+            Self::Dedicated => "a dedicated server keeps its plan's size".into(),
             Self::Other(err) => err.to_string(),
         }
     }
@@ -76,7 +79,7 @@ impl ResizeError {
             Self::Disabled => 403,
             Self::Busy => 429,
             Self::Invalid => 400,
-            Self::Allowance(_) | Self::NodeFull(_) => 409,
+            Self::Allowance(_) | Self::NodeFull(_) | Self::Dedicated => 409,
             Self::Other(_) => 500,
         }
     }
@@ -160,7 +163,7 @@ pub fn node_fits(
 
 /// What the server may be resized to now.
 pub async fn options(state: &crate::State, server: &Server) -> Result<ApiResize, anyhow::Error> {
-    let enabled = state.settings.get().await?.games.allow_resizing;
+    let enabled = state.settings.get().await?.games.allow_resizing && !server.dedicated;
     let current = current(server);
     let allowance = crate::allowance::for_user(state, server.owner.uuid).await?;
 
@@ -198,6 +201,9 @@ pub async fn resize(
     to: Resources,
     admin: bool,
 ) -> Result<(), ResizeError> {
+    if server.dedicated {
+        return Err(ResizeError::Dedicated);
+    }
     if !admin && !state.settings.get().await?.games.allow_resizing {
         return Err(ResizeError::Disabled);
     }

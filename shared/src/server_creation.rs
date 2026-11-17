@@ -106,6 +106,8 @@ pub struct ApiCreateOptions {
     pub games: Vec<ApiGame>,
     pub locations: Vec<ApiCreateLocation>,
     pub plans: Vec<ApiCreatePlan>,
+    /// The paid plans ordered from the team (docs/features/dedicated.md).
+    pub dedicated_plans: Vec<crate::dedicated::ApiDedicatedPlan>,
     /// The account's standing when it keeps the player from creating servers
     /// (docs/features/standing.md); asked without a size only.
     pub standing: Option<crate::standing::Standing>,
@@ -285,6 +287,11 @@ pub async fn options(
         games,
         locations,
         plans,
+        // asked without a size only, like the standing
+        dedicated_plans: match size {
+            Some(_) => Vec::new(),
+            None => crate::dedicated::offers(state).await?,
+        },
         standing,
     })
 }
@@ -537,7 +544,7 @@ async fn create_locked(
         Some(plan_uuid) => {
             let plan = Plan::by_uuid_optional(&state.database, plan_uuid)
                 .await?
-                .filter(|plan| plan.public)
+                .filter(|plan| plan.public && !plan.dedicated) // dedicated plans are ordered
                 .ok_or(CreateError::UnknownPlan)?;
 
             Resources::new(plan.cpu as i64, plan.memory, plan.disk)

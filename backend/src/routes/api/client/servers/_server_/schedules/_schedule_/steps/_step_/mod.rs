@@ -81,7 +81,7 @@ mod patch {
         }
 
         // plugged.host: a schedule runs on Wings, past the start gates (shared/src/start_gates.rs)
-        if !permissions.is_admin()
+        if !permissions.can_override("servers.start-gates")
             && data
                 .action
                 .as_ref()

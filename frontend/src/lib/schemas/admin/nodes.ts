@@ -34,7 +34,7 @@ export const adminNodeSchema = z.looseObject({
   memory: z.number().min(0),
   disk: z.number().min(0),
   // plugged.host: shared/src/models/node/placement.rs
-  role: z.enum(['game', 'internal', 'limbo']),
+  role: z.enum(['game', 'internal', 'limbo', 'dedicated']),
   tags: z.array(z.string().min(1).max(64)).max(32),
   srvTarget: z.preprocess(nullableString, hostnameSchema.nullable()),
   // the hardware the public status page names

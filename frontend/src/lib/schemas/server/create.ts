@@ -53,12 +53,27 @@ export const serverCreatePlanSchema = z.object({
   available: z.boolean(),
 });
 
+// plugged.host: a paid plan ordered from the team (docs/features/dedicated.md)
+export const serverCreateDedicatedPlanSchema = z.object({
+  uuid: z.string(),
+  name: z.string(),
+  description: z.string().nullable(),
+  threads: z.number(),
+  memory: z.number(),
+  disk: z.number(),
+  price: z.number().nullable(),
+  locations: z.array(
+    z.object({ uuid: z.string(), name: z.string(), flag: z.string().nullable(), available: z.boolean() }),
+  ),
+});
+
 export const serverCreateOptionsSchema = z.object({
   enabled: z.boolean(),
   allowance: serverCreateAllowanceSchema,
   games: z.array(serverCreateGameSchema),
   locations: z.array(serverCreateLocationSchema),
   plans: z.array(serverCreatePlanSchema),
+  dedicatedPlans: z.array(serverCreateDedicatedPlanSchema).default([]), // plugged.host
   // the account's standing when it keeps the player from creating (docs/features/standing.md)
   standing: accountStandingSchema.nullable().catch(null),
 });

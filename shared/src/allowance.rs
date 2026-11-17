@@ -184,7 +184,8 @@ pub fn add_where_limited(limit: Resources, extra: Resources) -> Resources {
     )
 }
 
-/// What the account's servers use, and how many it has.
+/// What the account's servers use, and how many it has; servers of dedicated plans are paid for
+/// apart and count for nothing here (docs/features/dedicated.md).
 pub async fn usage(
     database: &crate::database::Database,
     owner_uuid: uuid::Uuid,
@@ -196,7 +197,7 @@ pub async fn usage(
             COALESCE(SUM(memory), 0)::BIGINT AS memory,
             COALESCE(SUM(disk), 0)::BIGINT AS disk
         FROM servers
-        WHERE owner_uuid = $1
+        WHERE owner_uuid = $1 AND NOT dedicated
         "#,
     )
     .bind(owner_uuid)

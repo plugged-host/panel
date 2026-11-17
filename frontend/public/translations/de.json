@@ -2250,6 +2250,17 @@
             "blocked": "Dein Kontostatus: {level}. Du kannst gerade keine Server erstellen.",
             "blockedUntil": "Dein Kontostatus: {level}. Du kannst bis {date} keine Server erstellen.",
             "view": "Kontostatus ansehen"
+          },
+          "dedicated": {
+            "description": "{name}-Pläne sind kostenpflichtig: ihre CPU-Threads und ihr Arbeitsspeicher gehören nur deinem Server. Bestell einen, und das Team richtet ihn für dich ein.",
+            "perMonth": "{price} / Monat",
+            "size": "{threads} dedizierte CPU-Threads · {memory} MB Arbeitsspeicher · {disk} MB Speicherplatz",
+            "soldOut": "Ausverkauft",
+            "soldOutAt": "{location} (ausverkauft)",
+            "order": "Über den Support bestellen",
+            "orderSubject": "{name}-Bestellung: {plan}",
+            "orderBody": "Ich möchte den {name}-Plan {plan} bestellen.",
+            "orderLocations": "Standorte: {locations}. Welchen ich möchte:"
           }
         },
         "home": {
@@ -4412,6 +4423,8 @@
                   "allowanceCpu": "CPU (%)",
                   "allowanceDescription": "Was alle Server eines Kontos zusammen nutzen dürfen. 0 begrenzt diese Ressource nicht. Eine Senkung verkleinert die Server der Konten, die danach darüber liegen, gleichmäßig.",
                   "allowanceNoprofit": "noprofit.space ist verbunden: Jedes Konto bekommt sein Paket von dort, diese Werte werden nicht genutzt.",
+                  "dedicatedName": "Name der dedizierten Pläne",
+                  "dedicatedNameDescription": "Wie Spieler bezahlte Server mit dedizierten Plänen (Admin › Pläne) sehen: ihre CPU-Threads und ihr Arbeitsspeicher gehören nur ihnen.",
                   "catalog": "Spiele"
                 },
                 "catalog": {
@@ -6341,15 +6354,27 @@
           "titleUpdate": "{name} bearbeiten",
           "table": {
             "cpu": "CPU",
-            "public": "Öffentlich"
+            "public": "Öffentlich",
+            "dedicated": "Dediziert"
           },
           "form": {
             "cpu": "CPU (%)",
             "cpuDescription": "Prozent eines CPU-Threads: 100 ist ein Thread, 200 zwei.",
+            "cpuDedicatedDescription": "Ganze CPU-Threads, je 100: 400 sind vier eigene Threads.",
             "sort": "Reihenfolge",
             "sortDescription": "Reihenfolge auf der Erstellen-Seite, die niedrigste zuerst.",
             "public": "Öffentlich",
-            "publicDescription": "Spieler können dieses Paket wählen, wenn sie einen Server erstellen."
+            "publicDescription": "Spieler können dieses Paket wählen, wenn sie einen Server erstellen.",
+            "publicDedicatedDescription": "Spieler sehen diesen Plan mit seinem Preis auf der Erstellen-Seite und bestellen ihn mit einem Support-Ticket. Aus: ein eigener Plan, den nur Admins für einen Kunden nutzen.",
+            "dedicatedSection": "Dediziert",
+            "dedicated": "Dediziert (bezahlt)",
+            "dedicatedDescription": "CPU-Threads und Arbeitsspeicher gehören nur dem Server: Er kommt auf eine dedizierte Node der Standorte und Nodes unten, an Threads gebunden, die kein anderer Server hat, und nur dorthin, wo der Arbeitsspeicher der Node noch nicht vergeben ist. Der Speicherplatz wird geteilt. Spieler erstellen ihn nie selbst: Ein Admin erstellt ihn für sie unter Admin › Server mit diesem Plan.",
+            "price": "Preis (EUR pro Monat)",
+            "priceDescription": "Wird Spielern angezeigt. Das Panel berechnet selbst nichts; leer zeigt keinen Preis.",
+            "locations": "Standorte",
+            "locationsDescription": "Wo seine Server hinkommen können. Leer: jeder Standort mit einer dedizierten Node.",
+            "nodes": "Nodes",
+            "nodesDescription": "Nur diese dedizierten Nodes. Leer: jede dedizierte Node der Standorte."
           },
           "modal": {
             "delete": {
@@ -6544,10 +6569,11 @@
                   "deploymentPaused": "Bereitstellung pausiert",
                   "deploymentPausedDescription": "Ein pausierter Node nimmt keine neuen Server an, bis die Pause aufgehoben wird.",
                   "role": "Rolle",
-                  "roleDescription": "Game-Nodes nehmen die Server der Spieler auf. Interne Nodes nutzen nur Admins, sie werden nie für Spieler ausgewählt. Eine Limbo-Node behält die Server, die auf ihr geparkt wurden, bis sie wiederhergestellt sind, und nimmt nichts Neues auf.",
+                  "roleDescription": "Game-Nodes nehmen die Server der Spieler auf. Interne Nodes nutzen nur Admins, sie werden nie für Spieler ausgewählt. Eine Limbo-Node behält die Server, die auf ihr geparkt wurden, bis sie wiederhergestellt sind, und nimmt nichts Neues auf. Eine dedizierte Node nimmt nur Server dedizierter Pläne auf, jeden an eigene CPU-Threads gebunden, und vergibt nie mehr Arbeitsspeicher, als sie hat.",
                   "roleGame": "Game",
                   "roleInternal": "Intern",
                   "roleLimbo": "Limbo",
+                  "roleDedicated": "Dediziert",
                   "tags": "Tags",
                   "tagsDescription": "Kurze Labels zum Gruppieren von Nodes, etwa nvme oder ddos-protected: Buchstaben, Ziffern, Bindestriche, Unterstriche und Punkte."
                 },
@@ -7388,6 +7414,8 @@
                   "pinnedCpus": "Angeheftete CPUs",
                   "pinnedCpusDescription": "Die CPU-Kerne, an die dieser Server angeheftet ist.",
                   "pinnedCpusTooltip": "Nach Index, z. B. 0, 1, 2. Leer lassen, um alle Kerne zuzulassen.",
+                  "dedicatedPlan": "Dedizierter Plan",
+                  "dedicatedPlanDescription": "Ein bezahlter Plan: seine Größe, auf einer dedizierten Node des Plans, an Threads gebunden, die das Panel dort auswählt. Der Server zählt nicht zum Kontingent seines Besitzers.",
                   "predefinedDockerImages": "Vordefinierte Docker-Images",
                   "predefinedDockerImagesPlaceholder": "Kein vordefiniertes Image ausgewählt",
                   "startupCommandCustom": "Benutzerdefiniert",
@@ -9177,7 +9205,11 @@
                 "titleCreate": "Rolle erstellen",
                 "titleUpdate": "Rolle aktualisieren",
                 "alert": {
-                  "impersonate": "Diese Rolle hat die `users.impersonate` Berechtigung, die es Benutzern mit dieser Rolle erlaubt, sich als jeder andere Benutzer auszugeben, einschließlich Administratoren. Sei vorsichtig, wenn du diese Berechtigung Rollen mit weniger vertrauenswürdigen Benutzern zuweist."
+                  "impersonate": "Diese Rolle hat die `users.impersonate` Berechtigung, die es Benutzern mit dieser Rolle erlaubt, sich als jeder andere Benutzer auszugeben, einschließlich Administratoren. Sei vorsichtig, wenn du diese Berechtigung Rollen mit weniger vertrauenswürdigen Benutzern zuweist.",
+                  "settings": "Diese Rolle kann die Einstellungen des Panels ändern (Economy, neo, Werbung, Mail und den Rest). Mitarbeiter, die sie nicht anfassen sollen, brauchen weder `settings.update` noch `email-templates.update` oder `extensions.manage`: **Mitarbeiter-Vorlage** lässt sie weg."
+                },
+                "button": {
+                  "staffPreset": "Mitarbeiter-Vorlage"
                 },
                 "form": {
                   "requireTwoFactor": "Zwei-Faktor erforderlich",

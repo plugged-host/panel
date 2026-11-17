@@ -31,6 +31,7 @@ pub mod captcha;
 pub mod censor;
 pub mod crypt;
 pub mod database;
+pub mod dedicated; // plugged.host
 pub mod deleted_servers; // plugged.host
 pub mod deserialize;
 pub mod desktop_app; // plugged.host

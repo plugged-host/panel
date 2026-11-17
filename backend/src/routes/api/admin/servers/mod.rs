@@ -84,9 +84,11 @@ mod post {
     use shared::{
         ApiError, GetState,
         models::{
-            CreatableModel, IntoAdminApiObject,
+            ByUuid, CreatableModel, IntoAdminApiObject,
             admin_activity::GetAdminActivityLogger,
             nest_egg_variable::NestEggVariable,
+            node::Node,
+            plan::Plan,
             server::{
                 AdminApiServer, AdminApiServerLimits, ApiServerFeatureLimits, CreateServerOptions,
                 Server, TrashSettings, validate_labels,
@@ -170,6 +172,12 @@ mod post {
         #[schema(inline)]
         #[garde(dive)]
         variables: Vec<PayloadVariable>,
+
+        /// plugged.host: a dedicated plan: the server gets its size and threads of its own on the
+        /// node, which must be one of the plan's dedicated nodes (docs/features/dedicated.md)
+        #[garde(skip)]
+        #[serde(default)]
+        plan_uuid: Option<uuid::Uuid>,
     }
 
     #[derive(ToSchema, Serialize)]
@@ -187,7 +195,7 @@ mod post {
         state: GetState,
         permissions: GetPermissionManager,
         activity_logger: GetAdminActivityLogger,
-        shared::Payload(data): shared::Payload<Payload>,
+        shared::Payload(mut data): shared::Payload<Payload>,
     ) -> ApiResponseResult {
         if let Err(errors) = shared::utils::validate_data(&data) {
             return ApiResponse::new_serialized(ApiError::new_strings_value(errors))
@@ -196,6 +204,48 @@ mod post {
         }
 
         permissions.has_admin_permission("servers.create")?;
+
+        // plugged.host: a server of a dedicated plan takes the plan's size, pinned to threads no
+        // other server of the node has; the node stays locked until it exists
+        let dedicated = match data.plan_uuid {
+            Some(plan_uuid) => {
+                let Some(plan) = Plan::by_uuid_optional(&state.database, plan_uuid)
+                    .await?
+                    .filter(|plan| plan.dedicated)
+                else {
+                    return ApiResponse::error("dedicated plan not found")
+                        .with_status(StatusCode::NOT_FOUND)
+                        .ok();
+                };
+                let Some(node) = Node::by_uuid_optional(&state.database, data.node_uuid).await?
+                else {
+                    return ApiResponse::error("node not found")
+                        .with_status(StatusCode::NOT_FOUND)
+                        .ok();
+                };
+
+                let lock = shared::dedicated::lock(&state, node.uuid).await?;
+                match shared::dedicated::reserve(&state, &plan, &node).await {
+                    Ok(pinned) => {
+                        data.pinned_cpus = pinned;
+                        data.limits.cpu = plan.cpu;
+                        data.limits.memory = plan.memory;
+                        data.limits.memory_overhead = 0;
+                        data.limits.swap = 0;
+                        data.limits.disk = plan.disk;
+                    }
+                    Err(shared::dedicated::DedicatedError::Other(err)) => return Err(err.into()),
+                    Err(err) => {
+                        return ApiResponse::error(err.message())
+                            .with_status(StatusCode::CONFLICT)
+                            .ok();
+                    }
+                }
+
+                Some((plan.uuid, lock))
+            }
+            None => None,
+        };
 
         let variables = NestEggVariable::all_by_egg_uuid(&state.database, data.egg_uuid).await?;
 
@@ -274,7 +324,7 @@ mod post {
             feature_limits: data.feature_limits.clone(),
             variables: server_variables,
         };
-        let server = match Server::create(&state, options).await {
+        let mut server = match Server::create(&state, options).await {
             Ok(server) => server,
             Err(err) if err.is_unique_violation() => {
                 return ApiResponse::error(
@@ -285,6 +335,17 @@ mod post {
             }
             Err(err) => return ApiResponse::from(err).ok(),
         };
+
+        // plugged.host: docs/features/dedicated.md
+        if let Some((plan_uuid, _lock)) = dedicated {
+            sqlx::query("UPDATE servers SET dedicated = TRUE, plan_uuid = $2 WHERE uuid = $1")
+                .bind(server.uuid)
+                .bind(plan_uuid)
+                .execute(state.database.write())
+                .await?;
+            server.dedicated = true;
+            server.plan_uuid = Some(plan_uuid);
+        }
 
         activity_logger
             .log(
@@ -306,6 +367,7 @@ mod post {
                     "description": server.description,
                     "limits": data.limits,
                     "pinned_cpus": server.pinned_cpus,
+                    "plan_uuid": server.plan_uuid, // plugged.host
                     "startup": server.startup,
                     "image": server.image,
                     "labels": server.labels,
