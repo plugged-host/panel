@@ -2252,17 +2252,19 @@
             "blockedUntil": "Hesap durumunuz: {level}. {date} tarihine kadar sunucu oluşturamazsınız.",
             "view": "Hesap durumunu görüntüle"
           },
-          "dedicated": {
-            "description": "{name} planları ücretlidir: CPU iş parçacıkları ve belleği yalnızca sunucuna aittir. Bir tane sipariş et, ekip senin için kursun.",
-            "perMonth": "{price} / ay",
-            "size": "{threads} ayrılmış CPU iş parçacığı · {memory} MB Bellek · {disk} MB Disk Alanı",
-            "soldOut": "Tükendi",
-            "soldOutAt": "{location} (tükendi)",
-            "order": "Destek üzerinden sipariş ver",
-            "orderSubject": "{name} siparişi: {plan}",
-            "orderBody": "{name} planı {plan} sipariş etmek istiyorum.",
-            "orderLocations": "Konumlar: {locations}. İstediğim:"
-          }
+          "dedicatedLink": "Yalnızca sana ait CPU iş parçacıkları ve bellek mi? {name} planlarına göz at."
+        },
+        "dedicated": {
+          "description": "{name} planları ücretlidir: CPU iş parçacıkları ve belleği yalnızca sunucuna aittir. Bir tane sipariş et, ekip senin için kursun.",
+          "perMonth": "{price} / ay",
+          "size": "{threads} ayrılmış CPU iş parçacığı · {memory} MB Bellek · {disk} MB Disk Alanı",
+          "soldOut": "Tükendi",
+          "soldOutAt": "{location} (tükendi)",
+          "order": "Destek üzerinden sipariş ver",
+          "orderSubject": "{name} siparişi: {plan}",
+          "orderBody": "{name} planı {plan} sipariş etmek istiyorum.",
+          "orderLocations": "Konumlar: {locations}. İstediğim:",
+          "empty": "Şu anda ayrılmış plan yok."
         },
         "home": {
           "empty": {

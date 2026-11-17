@@ -15,6 +15,7 @@ import { NavLink } from 'react-router';
 import { z } from 'zod';
 import ActionIcon from '@/elements/buttons/ActionIcon.tsx';
 import CopyOnClick from '@/elements/CopyOnClick.tsx';
+import Badge from '@/elements/data-display/Badge.tsx'; // plugged.host
 import Spinner from '@/elements/feedback/Spinner.tsx';
 import Checkbox from '@/elements/input/Checkbox.tsx';
 import ConfirmationModal from '@/elements/modals/ConfirmationModal.tsx';
@@ -31,6 +32,7 @@ import { useBulkPowerActions } from '@/plugins/server/useBulkPowerActions.ts';
 import { useServerStats, useServerStatsUnavailable } from '@/plugins/server/useServerStats.ts';
 import { useAuth } from '@/providers/AuthProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
+import { useGlobalStore } from '@/stores/global.ts'; // plugged.host
 import { useUserStore } from '@/stores/user.ts';
 import ServerAddGroupModal from './modals/ServerAddGroupModal.tsx';
 
@@ -124,6 +126,7 @@ export default function ServerItem({
         : condition.label;
 
   const limbo = isInLimbo(server.limboState); // plugged.host: docs/features/limbo.md
+  const dedicatedName = useGlobalStore((state) => state.settings.games?.dedicatedName) || 'Dedicated'; // plugged.host
   const icon = server.icon ?? server.eggIcon; // plugged.host: its own icon, else its game's
   const showUsage = !!stats && !server.isSuspended && !server.isTransferring && !server.status && !limbo;
   const cpuLimit = server.limits.cpu + server.limits.burstCpu; // plugged.host: burst cores above the paid CPU
@@ -284,6 +287,12 @@ export default function ServerItem({
                             className='shrink-0 text-(--mantine-color-yellow-text)'
                           />
                         </Tooltip>
+                      )}
+                      {/* plugged.host: a paid server stands apart (docs/features/dedicated.md) */}
+                      {server.isDedicated && (
+                        <Badge size='xs' variant='light' className='shrink-0'>
+                          {dedicatedName}
+                        </Badge>
                       )}
                     </h2>
                     <p className='theme-server-state'>

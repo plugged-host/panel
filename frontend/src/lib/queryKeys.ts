@@ -452,6 +452,7 @@ const user = {
     createOptions: () => ['user', 'servers', 'create'] as const, // plugged.host
     createOptionsFor: (cpu: number, memory: number, disk: number) =>
       ['user', 'servers', 'create', { cpu, memory, disk }] as const, // plugged.host: locations with room for this size
+    dedicated: () => ['user', 'servers', 'create', 'dedicated'] as const, // plugged.host: the paid plans
   },
   serverGroups: {
     all: () => ['user', 'server-groups'] as const,

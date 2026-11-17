@@ -229,6 +229,24 @@ pub async fn room(
     Ok(room)
 }
 
+/// Whether any public dedicated plan is offered: players get the dedicated plans page and its
+/// sidebar entry (`/api/settings`, `games.dedicated_offered`). Cached for a minute; false when it
+/// cannot be told.
+pub async fn offered(state: &crate::State) -> bool {
+    let database = state.database.clone();
+    state
+        .cache
+        .cached("dedicated::offered", 60, || async move {
+            sqlx::query_scalar::<_, bool>(
+                "SELECT EXISTS (SELECT 1 FROM plans WHERE plans.dedicated AND plans.public)",
+            )
+            .fetch_one(database.read())
+            .await
+        })
+        .await
+        .unwrap_or(false)
+}
+
 /// A location a dedicated plan's servers can go to.
 #[derive(serde::Serialize, utoipa::ToSchema)]
 pub struct ApiDedicatedLocation {

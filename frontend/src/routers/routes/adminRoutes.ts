@@ -18,6 +18,7 @@ import {
   faHeartPulse,
   faLayerGroup,
   faLightbulb, // plugged.host
+  faMicrochip, // plugged.host
   faRectangleAd, // plugged.host
   faScroll,
   faServer,
@@ -49,6 +50,9 @@ const AdminNodes = lazy(() => import('@/pages/admin/nodes/AdminNodes.tsx'));
 const AdminOAuthProviders = lazy(() => import('@/pages/admin/oauth-providers/AdminOAuthProviders.tsx'));
 const AdminPartners = lazy(() => import('@/pages/admin/partners/AdminPartners.tsx')); // plugged.host
 const AdminPlans = lazy(() => import('@/pages/admin/plans/AdminPlans.tsx')); // plugged.host
+const AdminDedicatedPlans = lazy(() =>
+  import('@/pages/admin/plans/AdminPlans.tsx').then((module) => ({ default: module.AdminDedicatedPlans })),
+); // plugged.host
 const AdminRoles = lazy(() => import('@/pages/admin/roles/AdminRoles.tsx'));
 const AdminServers = lazy(() => import('@/pages/admin/servers/AdminServers.tsx'));
 
@@ -117,6 +121,15 @@ const routes: AdminRouteDefinition[] = [
     icon: faLayerGroup,
     path: '/plans/*',
     element: AdminPlans,
+    permission: ['plans.*'],
+    category: 'infrastructure',
+  },
+  // plugged.host: the paid plans, apart from the free ones (docs/features/dedicated.md)
+  {
+    name: () => getTranslations().t('pages.admin.plans.dedicatedTitle', {}),
+    icon: faMicrochip,
+    path: '/dedicated-plans/*',
+    element: AdminDedicatedPlans,
     permission: ['plans.*'],
     category: 'infrastructure',
   },

@@ -2100,19 +2100,22 @@ const baseTranslations = defineTranslations({
             blockedUntil: 'Your account standing is {level}, so you cannot create servers until {date}.',
             view: 'View your standing',
           },
-          // plugged.host: paid plans with CPU threads and memory of their own (docs/features/dedicated.md)
-          dedicated: {
-            description:
-              "{name} plans are paid: their CPU threads and memory are your server's alone. Order one and the team sets it up for you.",
-            perMonth: '{price} / month',
-            size: '{threads} dedicated CPU threads · {memory} MB Memory · {disk} MB Disk Space',
-            soldOut: 'Sold out',
-            soldOutAt: '{location} (sold out)',
-            order: 'Order through support',
-            orderSubject: '{name} order: {plan}',
-            orderBody: 'I would like to order the {name} plan {plan}.',
-            orderLocations: 'Locations: {locations}. Which one I want:',
-          },
+          // plugged.host: the paid plans have their own page (docs/features/dedicated.md)
+          dedicatedLink: 'Want CPU threads and memory of your own? See the {name} plans.',
+        },
+        // plugged.host: the paid plans' own page, with CPU threads and memory of their own (docs/features/dedicated.md)
+        dedicated: {
+          description:
+            "{name} plans are paid: their CPU threads and memory are your server's alone. Order one and the team sets it up for you.",
+          perMonth: '{price} / month',
+          size: '{threads} dedicated CPU threads · {memory} MB Memory · {disk} MB Disk Space',
+          soldOut: 'Sold out',
+          soldOutAt: '{location} (sold out)',
+          order: 'Order through support',
+          orderSubject: '{name} order: {plan}',
+          orderBody: 'I would like to order the {name} plan {plan}.',
+          orderLocations: 'Locations: {locations}. Which one I want:',
+          empty: 'No dedicated plans are offered right now.',
         },
         home: {
           empty: {
@@ -6579,25 +6582,29 @@ const baseTranslations = defineTranslations({
           resourceName: 'Plan',
           titleCreate: 'Create Plan',
           titleUpdate: 'Update {name}',
+          // plugged.host: docs/features/dedicated.md
+          dedicatedTitle: 'Dedicated Plans',
+          dedicatedSubtitle:
+            "Paid plans whose CPU threads and memory are the server's alone, on dedicated nodes. Players order them; an admin creates their servers on Admin › Servers.",
+          titleCreateDedicated: 'Create Dedicated Plan',
           table: {
             cpu: 'CPU',
             public: 'Public',
-            dedicated: 'Dedicated',
+            threads: 'CPU Threads',
+            threadsValue: '{threads} threads',
+            price: 'Price a Month',
           },
           form: {
             cpu: 'CPU (%)',
             cpuDescription: 'Percent of one CPU thread: 100 is one thread, 200 two.',
-            cpuDedicatedDescription: 'Whole CPU threads, 100 each: 400 is four threads of its own.',
+            threads: 'CPU Threads',
+            threadsDescription: 'Threads of its own: the panel pins the server to free whole cores of the node.',
             sort: 'Sort Order',
             sortDescription: 'Order on the create page, lowest first.',
             public: 'Public',
             publicDescription: 'Players can pick this plan when they create a server.',
             publicDedicatedDescription:
-              'Players see this plan with its price on the create page and order it with a support ticket. Off: a custom plan only admins use, for one customer.',
-            dedicatedSection: 'Dedicated',
-            dedicated: 'Dedicated (paid)',
-            dedicatedDescription:
-              "The server's CPU threads and memory are its alone: it goes on a dedicated node of the locations and nodes below, pinned to threads no other server has, and only where the node's memory is not handed out yet. Disk is shared. Players never create it themselves: an admin creates it for them on Admin › Servers with this plan.",
+              'Players see this plan with its price on their dedicated plans page and order it with a support ticket. Off: a custom plan only admins use, for one customer.',
             price: 'Price (EUR a month)',
             priceDescription: 'Shown to players. The panel charges nothing itself; empty shows no price.',
             locations: 'Locations',

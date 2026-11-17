@@ -2252,17 +2252,19 @@
             "blockedUntil": "Status akun Anda: {level}. Anda tidak dapat membuat server hingga {date}.",
             "view": "Lihat status akun"
           },
-          "dedicated": {
-            "description": "Paket {name} berbayar: thread CPU dan memorinya hanya milik servermu. Pesan satu dan tim akan menyiapkannya untukmu.",
-            "perMonth": "{price} / bulan",
-            "size": "{threads} thread CPU khusus · {memory} MB Memori · {disk} MB Ruang Disk",
-            "soldOut": "Habis",
-            "soldOutAt": "{location} (habis)",
-            "order": "Pesan lewat dukungan",
-            "orderSubject": "Pesanan {name}: {plan}",
-            "orderBody": "Saya ingin memesan paket {name} {plan}.",
-            "orderLocations": "Lokasi: {locations}. Yang saya inginkan:"
-          }
+          "dedicatedLink": "Ingin thread CPU dan memori milikmu sendiri? Lihat paket {name}."
+        },
+        "dedicated": {
+          "description": "Paket {name} berbayar: thread CPU dan memorinya hanya milik servermu. Pesan satu dan tim akan menyiapkannya untukmu.",
+          "perMonth": "{price} / bulan",
+          "size": "{threads} thread CPU khusus · {memory} MB Memori · {disk} MB Ruang Disk",
+          "soldOut": "Habis",
+          "soldOutAt": "{location} (habis)",
+          "order": "Pesan lewat dukungan",
+          "orderSubject": "Pesanan {name}: {plan}",
+          "orderBody": "Saya ingin memesan paket {name} {plan}.",
+          "orderLocations": "Lokasi: {locations}. Yang saya inginkan:",
+          "empty": "Belum ada paket khusus yang ditawarkan."
         },
         "home": {
           "empty": {

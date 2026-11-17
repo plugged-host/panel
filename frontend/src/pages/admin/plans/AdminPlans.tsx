@@ -1,4 +1,5 @@
-// plugged.host: Admin › Plans, the resource presets players create servers with
+// plugged.host: Admin › Plans, the resource presets players create servers with, and Admin › Dedicated
+// Plans, the paid ones (docs/features/dedicated.md): one page each, never mixed
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Route, Routes, useNavigate, useParams } from 'react-router';
@@ -16,9 +17,9 @@ import { useSearchablePaginatedTable } from '@/plugins/resource/useSearchablePag
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import AdminPermissionGuard from '@/routers/guards/AdminPermissionGuard.tsx';
 import PlanCreateOrUpdate from './PlanCreateOrUpdate.tsx';
-import PlanRow from './PlanRow.tsx';
+import PlanRow, { planBasePath } from './PlanRow.tsx';
 
-function PlansContainer() {
+function PlansContainer({ dedicated }: { dedicated: boolean }) {
   const { t } = useTranslations();
   const navigate = useNavigate();
 
@@ -31,19 +32,20 @@ function PlansContainer() {
     setPage,
     setPerPage,
   } = useSearchablePaginatedTable({
-    queryKey: queryKeys.admin.plans.all(),
-    fetcher: getPlans,
+    queryKey: [...queryKeys.admin.plans.all(), { dedicated }],
+    fetcher: (page, search, perPage) => getPlans(page, search, perPage, dedicated),
   });
 
   return (
     <AdminContentContainer
-      title={t('pages.admin.plans.title', {})}
+      title={dedicated ? t('pages.admin.plans.dedicatedTitle', {}) : t('pages.admin.plans.title', {})}
+      subtitle={dedicated ? t('pages.admin.plans.dedicatedSubtitle', {}) : undefined}
       search={search}
       setSearch={setSearch}
       contentRight={
         <AdminCan action='plans.create'>
           <Button
-            onClick={() => navigate('/admin/plans/new')}
+            onClick={() => navigate(`${planBasePath(dedicated)}/new`)}
             color='blue'
             leftSection={<FontAwesomeIcon icon={faPlus} />}
           >
@@ -53,7 +55,7 @@ function PlansContainer() {
       }
     >
       <Table
-        columns={planTableColumns()}
+        columns={planTableColumns(dedicated)}
         loading={loading}
         error={error}
         pagination={plans}
@@ -61,14 +63,14 @@ function PlansContainer() {
         onPerPageSelect={setPerPage}
       >
         {plans?.data.map((plan) => (
-          <PlanRow key={plan.uuid} plan={plan} />
+          <PlanRow key={plan.uuid} plan={plan} dedicated={dedicated} />
         ))}
       </Table>
     </AdminContentContainer>
   );
 }
 
-function PlanView() {
+function PlanView({ dedicated }: { dedicated: boolean }) {
   const params = useParams<'id'>();
 
   const resource = useResource({
@@ -76,17 +78,26 @@ function PlanView() {
     queryFn: () => getPlan(params.id!),
   });
 
-  return <ResourceView resource={resource}>{(plan) => <PlanCreateOrUpdate contextPlan={plan} />}</ResourceView>;
+  return (
+    <ResourceView resource={resource}>
+      {(plan) => <PlanCreateOrUpdate contextPlan={plan} dedicated={dedicated} />}
+    </ResourceView>
+  );
 }
 
-export default function AdminPlans() {
+export default function AdminPlans({ dedicated = false }: { dedicated?: boolean }) {
   return (
     <Routes>
-      <Route path='/' element={<PlansContainer />} />
-      <Route path='/:id' element={<PlanView />} />
+      <Route path='/' element={<PlansContainer dedicated={dedicated} />} />
+      <Route path='/:id' element={<PlanView dedicated={dedicated} />} />
       <Route element={<AdminPermissionGuard permission='plans.create' />}>
-        <Route path='/new' element={<PlanCreateOrUpdate />} />
+        <Route path='/new' element={<PlanCreateOrUpdate dedicated={dedicated} />} />
       </Route>
     </Routes>
   );
+}
+
+// plugged.host: Admin › Dedicated Plans
+export function AdminDedicatedPlans() {
+  return <AdminPlans dedicated />;
 }

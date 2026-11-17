@@ -8,9 +8,10 @@ export default async (
   page: number,
   search?: string,
   perPage?: number,
+  dedicated?: boolean, // the free plans or the dedicated (paid) ones only
 ): Promise<Pagination<z.infer<typeof adminPlanSchema>>> => {
   const { data } = await axiosInstance.get('/api/admin/plans', {
-    params: { page, per_page: perPage, search },
+    params: { page, per_page: perPage, search, dedicated },
   });
   return parsePaginationFromApi(adminPlanSchema, data.plans);
 };

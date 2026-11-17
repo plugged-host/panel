@@ -5,11 +5,20 @@ is shared like on every node. plugged.host calls them "plugged.host Paid". The n
 Admin › Settings › Hosting › Games › Dedicated Plans Name (`games::dedicated_name`, default
 "Dedicated").
 
-Only admins make dedicated plans (Admin › Plans), and only admins create their servers (Admin ›
-Servers › Create, with the plan). Players never type a size or create one themselves. A public
-dedicated plan is shown with its price on the create page and ordered with a support ticket. A
-non-public one is a custom plan an admin uses for one customer. The panel charges nothing: the price
-is shown, billing happens elsewhere.
+Dedicated plans are kept apart from the free ones everywhere:
+
+- **Admin › Dedicated Plans** (`/admin/dedicated-plans`, `plans.*`) lists, creates and edits only
+  them, sized in CPU threads with a price, locations and nodes; Admin › Plans only the free ones.
+- **Players** get a page of their own under the dedicated name (`/account/dedicated`, in the
+  sidebar while a public dedicated plan exists). The create page only links to it. A paid server
+  wears the dedicated name as a badge in the server list.
+- Only admins create their servers (Admin › Servers › Create, with the plan). Players never type a
+  size or create one themselves: they order a public plan with a support ticket. A non-public plan
+  is a custom plan an admin uses for one customer.
+
+The panel charges nothing yet: the price is shown, billing happens elsewhere. noprofit.space can
+take an account's Funds for it (`calagopus/funds/{spend,refund}`, its `docs/features/funds.md`);
+the panel does not call it yet.
 
 ## Plans
 
@@ -64,10 +73,13 @@ server). A dedicated server:
 |---|---|---|
 | `GET/POST /api/admin/plans`, `GET/PATCH/DELETE /api/admin/plans/{plan}` | `plans.*` | Plans with `dedicated`, `price`, `location_uuids`, `node_uuids` |
 | `POST /api/admin/servers` | `servers.create` | `plan_uuid` of a dedicated plan: the plan's size, threads picked on `node_uuid` (404 for an unknown plan, 409 with the reason when the node is not the plan's, has no threads or memory left, or has no telemetry yet) |
-| `GET /api/client/servers/create` | `servers.deploy` | `dedicated_plans`: the public dedicated plans with threads, memory, disk, price and their locations (`available` when a node there has room) |
+| `GET /api/admin/plans?dedicated=true\|false` | `plans.read` | Only the dedicated or only the free plans |
+| `GET /api/client/servers/create/dedicated` | `servers.read` | `plans`: the public dedicated plans with threads, memory, disk, price and their locations (`available` when a node there has room) |
+| `GET /api/client/servers/create` | `servers.deploy` | `dedicated_offered`: whether the page links to the dedicated plans |
+| `GET /api/settings` | none | `games.dedicated_name`, `games.dedicated_offered` (cached for a minute): the sidebar entry |
 
-The create page shows them under the dedicated name. **Order through support** opens a billing
-ticket filled in with the plan and its locations (`/account/support?subject=…&body=…`).
+On the dedicated plans page, **Order through support** opens a billing ticket filled in with the
+plan and its locations (`/account/support?subject=…&body=…`).
 
 ## Without noprofit.space
 
@@ -76,11 +88,11 @@ Nothing changes: dedicated plans need no noprofit.space account.
 ## Check
 
 - Admin › Nodes: set a node's role to Dedicated. It takes no new free servers.
-- Admin › Plans: create a dedicated plan with 2 threads (cpu 200), 4096 MB, a price, public. It is
-  missing from the free plans on the create page and shown under the dedicated name with its price.
-  Order it: the support form opens filled in.
+- Admin › Dedicated Plans: create a plan with 2 threads, 4096 MB, a price, public. It is not on
+  Admin › Plans or among the free plans on the create page; the sidebar gets the dedicated name's
+  page (within a minute), which shows it with its price. Order it: the support form opens filled in.
 - Admin › Servers › Create: pick the plan and the dedicated node. The server gets two pinned threads
   (a whole core); a second one gets another core. Fill the node's memory: the next create says the
   node has no free memory.
-- The owner's allowance does not count the server; its settings page offers no resize; its transfer
-  page says moves are off.
+- The owner's allowance does not count the server; it has the dedicated name's badge in the server
+  list; its settings page offers no resize; its transfer page says moves are off.

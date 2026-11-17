@@ -2252,17 +2252,19 @@
             "blockedUntil": "حالة حسابك: {level}. لا يمكنك إنشاء خوادم حتى {date}.",
             "view": "عرض حالة الحساب"
           },
-          "dedicated": {
-            "description": "خطط {name} مدفوعة: خيوط المعالج والذاكرة فيها لخادمك وحده. اطلب واحدة وسيجهّزها الفريق لك.",
-            "perMonth": "{price} / شهر",
-            "size": "{threads} خيوط معالج مخصصة · {memory} ميغابايت ذاكرة · {disk} ميغابايت مساحة قرص",
-            "soldOut": "نفدت",
-            "soldOutAt": "{location} (نفدت)",
-            "order": "اطلب عبر الدعم",
-            "orderSubject": "طلب {name}: {plan}",
-            "orderBody": "أود طلب خطة {name} {plan}.",
-            "orderLocations": "المواقع: {locations}. الموقع الذي أريده:"
-          }
+          "dedicatedLink": "هل تريد خيوط معالج وذاكرة خاصة بك؟ اطّلع على خطط {name}."
+        },
+        "dedicated": {
+          "description": "خطط {name} مدفوعة: خيوط المعالج والذاكرة فيها لخادمك وحده. اطلب واحدة وسيجهّزها الفريق لك.",
+          "perMonth": "{price} / شهر",
+          "size": "{threads} خيوط معالج مخصصة · {memory} ميغابايت ذاكرة · {disk} ميغابايت مساحة قرص",
+          "soldOut": "نفدت",
+          "soldOutAt": "{location} (نفدت)",
+          "order": "اطلب عبر الدعم",
+          "orderSubject": "طلب {name}: {plan}",
+          "orderBody": "أود طلب خطة {name} {plan}.",
+          "orderLocations": "المواقع: {locations}. الموقع الذي أريده:",
+          "empty": "لا توجد خطط مخصصة حاليًا."
         },
         "home": {
           "empty": {

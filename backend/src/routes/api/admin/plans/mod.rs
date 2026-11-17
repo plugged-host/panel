@@ -18,6 +18,12 @@ mod get {
     };
     use utoipa::ToSchema;
 
+    /// plugged.host: the free plans or the dedicated (paid) ones only (docs/features/dedicated.md)
+    #[derive(serde::Deserialize)]
+    pub struct Filter {
+        dedicated: Option<bool>,
+    }
+
     #[derive(ToSchema, Serialize)]
     struct Response {
         #[schema(inline)]
@@ -41,11 +47,16 @@ mod get {
             "search" = Option<String>, Query,
             description = "Search term for items",
         ),
+        (
+            "dedicated" = Option<bool>, Query,
+            description = "Only the dedicated (paid) plans, or only the free ones",
+        ),
     ))]
     pub async fn route(
         state: GetState,
         permissions: GetPermissionManager,
         Query(params): Query<PaginationParamsWithSearch>,
+        Query(filter): Query<Filter>,
     ) -> ApiResponseResult {
         if let Err(errors) = shared::utils::validate_data(&params) {
             return ApiResponse::new_serialized(ApiError::new_strings_value(errors))
@@ -60,6 +71,7 @@ mod get {
             params.page,
             params.per_page,
             params.search.as_deref(),
+            filter.dedicated,
         )
         .await?;
 

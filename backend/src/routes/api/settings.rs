@@ -97,6 +97,8 @@ mod get {
         devboxes_enabled: bool,
         /// What paid servers on dedicated plans are called (docs/features/dedicated.md).
         dedicated_name: compact_str::CompactString,
+        /// A public dedicated plan is offered: players get the dedicated plans page.
+        dedicated_offered: bool,
     }
 
     /// plugged.host: whether the welcome tour runs (docs/features/welcome-tour.md).
@@ -200,6 +202,8 @@ mod get {
         (status = OK, body = inline(Response)),
     ))]
     pub async fn route(state: GetState) -> ApiResponseResult {
+        // plugged.host: asked before the settings guard is held (docs/features/dedicated.md)
+        let dedicated_offered = shared::dedicated::offered(&state).await;
         let settings = state.settings.get().await?;
         // plugged.host: noprofit.space owns sign-in when connected
         let noprofit_connected = settings.noprofit.connected();
@@ -291,6 +295,7 @@ mod get {
                 subdomains_enabled: settings.subdomains.active(),
                 devboxes_enabled: shared::devboxes::offered(&settings),
                 dedicated_name: settings.games.dedicated_name.clone(),
+                dedicated_offered,
             },
             tour: ResponseTour {
                 enabled: settings.tour.enabled,

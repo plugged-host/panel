@@ -12,6 +12,7 @@ import {
   faKeyboard,
   faLightbulb, // plugged.host
   faLock, // plugged.host
+  faMicrochip, // plugged.host
   faStar, // plugged.host
   faStore, // plugged.host
   faUnlockKeyhole,
@@ -45,6 +46,7 @@ const DashboardSshKeys = lazy(() => import('@/pages/dashboard/ssh-keys/Dashboard
 const DashboardStore = lazy(() => import('@/pages/dashboard/store/DashboardStore.tsx')); // plugged.host
 const DashboardSuggestions = lazy(() => import('@/pages/dashboard/suggestions/DashboardSuggestions.tsx')); // plugged.host
 const DashboardSuggestion = lazy(() => import('@/pages/dashboard/suggestions/DashboardSuggestion.tsx')); // plugged.host
+const DashboardDedicated = lazy(() => import('@/pages/dashboard/dedicated/DashboardDedicated.tsx')); // plugged.host
 const DashboardTickets = lazy(() => import('@/pages/dashboard/tickets/DashboardTickets.tsx')); // plugged.host
 const DashboardTicket = lazy(() => import('@/pages/dashboard/tickets/DashboardTicket.tsx')); // plugged.host
 const DashboardTokens = lazy(() => import('@/pages/dashboard/tokens/DashboardTokens.tsx')); // plugged.host
@@ -128,6 +130,14 @@ const routes: RouteDefinition[] = [
     path: '/store',
     element: DashboardStore,
     filter: () => !!useGlobalStore.getState().settings.economy?.creditsEnabled,
+  },
+  // plugged.host: the paid plans, apart from the free ones (docs/features/dedicated.md)
+  {
+    name: () => useGlobalStore.getState().settings.games?.dedicatedName || 'Dedicated',
+    icon: faMicrochip,
+    path: '/dedicated',
+    element: DashboardDedicated,
+    filter: () => !!useGlobalStore.getState().settings.games?.dedicatedOffered,
   },
   {
     name: () => getTranslations().t('pages.account.tokens.title', {}),

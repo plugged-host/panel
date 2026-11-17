@@ -1,4 +1,4 @@
-// plugged.host: Admin › Plans, one plan's form
+// plugged.host: Admin › Plans and Admin › Dedicated Plans, one plan's form
 import { useState } from 'react';
 import { z } from 'zod';
 import getLocation from '@/api/admin/locations/getLocation.ts';
@@ -21,6 +21,7 @@ import { adminPlanSchema, adminPlanUpdateSchema } from '@/lib/schemas/admin/plan
 import { useHydrateForm } from '@/plugins/form/useHydrateForm.ts';
 import { useResourceForm } from '@/plugins/resource/useResourceForm.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
+import { planBasePath } from './PlanRow.tsx';
 
 type PlanFormValues = z.infer<typeof adminPlanUpdateSchema>;
 
@@ -52,13 +53,15 @@ const planToFormValues = (plan: z.infer<typeof adminPlanSchema>): Partial<PlanFo
   nodeUuids: plan.nodeUuids,
 });
 
-export default ({ contextPlan }: { contextPlan?: z.infer<typeof adminPlanSchema> }) => {
+export default ({ contextPlan, dedicated }: { contextPlan?: z.infer<typeof adminPlanSchema>; dedicated: boolean }) => {
   const { t } = useTranslations();
   const [openModal, setOpenModal] = useState<'delete' | null>(null);
 
   const form = useFormEngine<PlanFormValues>('admin.plans.createOrUpdate', {
     schema: adminPlanUpdateSchema,
-    initialValues: planEmptyFormValues,
+    initialValues: dedicated
+      ? { ...planEmptyFormValues, cpu: 200, memory: 4096, dedicated: true }
+      : planEmptyFormValues,
   });
 
   const { loading, doCreateOrUpdate, doDelete } = useResourceForm<PlanFormValues, z.infer<typeof adminPlanSchema>>({
@@ -67,54 +70,47 @@ export default ({ contextPlan }: { contextPlan?: z.infer<typeof adminPlanSchema>
     updateFn: contextPlan ? () => updatePlan(contextPlan.uuid, form.getTransformedValues()) : undefined,
     deleteFn: contextPlan ? () => deletePlan(contextPlan.uuid) : undefined,
     doUpdate: !!contextPlan,
-    basePath: '/admin/plans',
+    basePath: planBasePath(dedicated),
     resourceName: t('pages.admin.plans.resourceName', {}),
   });
 
   useHydrateForm(form, contextPlan, planToFormValues);
 
+  // a dedicated plan (docs/features/dedicated.md) is sized in whole threads and has a price, its
+  // locations and nodes; a free plan has none of them
   const fields: FieldDef<PlanFormValues>[] = [
     { type: 'text', name: 'name', label: t('common.form.name', {}), required: true },
     { type: 'textarea', name: 'description', label: t('common.form.description', {}), rows: 3 },
-    {
-      type: 'number',
-      name: 'cpu',
-      label: t('pages.admin.plans.form.cpu', {}),
-      description: form.getValues().dedicated
-        ? t('pages.admin.plans.form.cpuDedicatedDescription', {})
-        : t('pages.admin.plans.form.cpuDescription', {}),
-      required: true,
-      props: { min: 1, step: form.getValues().dedicated ? 100 : 1 },
-    },
+    dedicated
+      ? {
+          type: 'custom',
+          name: 'cpu',
+          render: (f) => (
+            <NumberInput
+              withAsterisk
+              label={t('pages.admin.plans.form.threads', {})}
+              description={t('pages.admin.plans.form.threadsDescription', {})}
+              min={1}
+              allowDecimal={false}
+              value={f.getValues().cpu / 100}
+              onChange={(value) => f.setFieldValue('cpu', Math.max(1, Math.round(Number(value) || 1)) * 100)}
+            />
+          ),
+        }
+      : {
+          type: 'number',
+          name: 'cpu',
+          label: t('pages.admin.plans.form.cpu', {}),
+          description: t('pages.admin.plans.form.cpuDescription', {}),
+          required: true,
+          props: { min: 1 },
+        },
     { type: 'size', name: 'memory', label: t('common.form.memory', {}), required: true, mode: 'mb', min: 1 },
     { type: 'size', name: 'disk', label: t('common.form.disk', {}), required: true, mode: 'mb', min: 1 },
     {
-      type: 'number',
-      name: 'sort',
-      label: t('pages.admin.plans.form.sort', {}),
-      description: t('pages.admin.plans.form.sortDescription', {}),
-      required: true,
-    },
-    {
-      type: 'switch',
-      name: 'public',
-      label: t('pages.admin.plans.form.public', {}),
-      description: form.getValues().dedicated
-        ? t('pages.admin.plans.form.publicDedicatedDescription', {})
-        : t('pages.admin.plans.form.publicDescription', {}),
-    },
-    // plugged.host: paid plans with CPU threads and memory of their own (docs/features/dedicated.md)
-    { type: 'divider', name: 'dedicatedDivider', label: t('pages.admin.plans.form.dedicatedSection', {}) },
-    {
-      type: 'switch',
-      name: 'dedicated',
-      label: t('pages.admin.plans.form.dedicated', {}),
-      description: t('pages.admin.plans.form.dedicatedDescription', {}),
-    },
-    {
       type: 'custom',
       name: 'price',
-      when: (values) => values.dedicated,
+      when: () => dedicated,
       render: (f) => (
         <NumberInput
           label={t('pages.admin.plans.form.price', {})}
@@ -130,10 +126,25 @@ export default ({ contextPlan }: { contextPlan?: z.infer<typeof adminPlanSchema>
       ),
     },
     {
+      type: 'number',
+      name: 'sort',
+      label: t('pages.admin.plans.form.sort', {}),
+      description: t('pages.admin.plans.form.sortDescription', {}),
+      required: true,
+    },
+    {
+      type: 'switch',
+      name: 'public',
+      label: t('pages.admin.plans.form.public', {}),
+      description: dedicated
+        ? t('pages.admin.plans.form.publicDedicatedDescription', {})
+        : t('pages.admin.plans.form.publicDescription', {}),
+    },
+    {
       type: 'custom',
       name: 'locationUuids',
       colSpan: 'full',
-      when: (values) => values.dedicated,
+      when: () => dedicated,
       render: (f) => (
         <SearchableUuidMultiSelect
           label={t('pages.admin.plans.form.locations', {})}
@@ -151,7 +162,7 @@ export default ({ contextPlan }: { contextPlan?: z.infer<typeof adminPlanSchema>
       type: 'custom',
       name: 'nodeUuids',
       colSpan: 'full',
-      when: (values) => values.dedicated,
+      when: () => dedicated,
       render: (f) => (
         <SearchableUuidMultiSelect
           label={t('pages.admin.plans.form.nodes', {})}
@@ -172,7 +183,9 @@ export default ({ contextPlan }: { contextPlan?: z.infer<typeof adminPlanSchema>
       title={
         contextPlan
           ? t('pages.admin.plans.titleUpdate', { name: contextPlan.name })
-          : t('pages.admin.plans.titleCreate', {})
+          : dedicated
+            ? t('pages.admin.plans.titleCreateDedicated', {})
+            : t('pages.admin.plans.titleCreate', {})
       }
       titleOrder={2}
     >

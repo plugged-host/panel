@@ -188,8 +188,48 @@ pub mod post {
     }
 }
 
+/// The paid plans with CPU threads and memory of their own, apart from the free ones: players see
+/// them on their own page and order them (docs/features/dedicated.md).
+mod dedicated {
+    pub mod get {
+        use serde::Serialize;
+        use shared::{
+            GetState,
+            models::user::GetPermissionManager,
+            response::{ApiResponse, ApiResponseResult},
+        };
+        use utoipa::ToSchema;
+
+        #[derive(ToSchema, Serialize)]
+        struct Response {
+            plans: Vec<shared::dedicated::ApiDedicatedPlan>,
+        }
+
+        #[utoipa::path(get, path = "/", responses(
+            (status = OK, body = inline(Response)),
+        ))]
+        pub async fn route(
+            state: GetState,
+            permissions: GetPermissionManager,
+        ) -> ApiResponseResult {
+            permissions.has_user_permission("servers.read")?;
+
+            ApiResponse::new_serialized(Response {
+                plans: shared::dedicated::offers(&state).await?,
+            })
+            .ok()
+        }
+    }
+}
+
 pub fn router(state: &State) -> OpenApiRouter<State> {
     OpenApiRouter::new()
         .routes(routes!(get::route))
+        .nest(
+            "/dedicated",
+            OpenApiRouter::new()
+                .routes(routes!(dedicated::get::route))
+                .with_state(state.clone()),
+        )
         .with_state(state.clone())
 }

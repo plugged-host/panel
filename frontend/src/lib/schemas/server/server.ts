@@ -68,6 +68,7 @@ export const serverSchema = z.looseObject({
   isSuspended: z.boolean(),
   suspension: serverSuspensionSchema.nullable(), // plugged.host
   limboState: serverLimboStateSchema.nullable().default(null), // plugged.host
+  isDedicated: z.boolean().default(false), // plugged.host: a paid server on a dedicated plan
   isOwner: z.boolean(),
   isTransferring: z.boolean(),
   permissions: z.array(z.string()),

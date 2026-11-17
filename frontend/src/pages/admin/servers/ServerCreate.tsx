@@ -92,7 +92,7 @@ export default function ServerCreate() {
   // node (docs/features/dedicated.md)
   const { data: dedicatedPlans } = useResource({
     queryKey: [...queryKeys.admin.plans.all(), 'dedicated'],
-    queryFn: async () => (await getPlans(1, undefined, 100)).data.filter((plan) => plan.dedicated),
+    queryFn: async () => (await getPlans(1, undefined, 100, true)).data,
     enabled: canReadPlans,
     silent: true,
   });

@@ -2251,17 +2251,19 @@
             "blockedUntil": "Dein Kontostatus: {level}. Du kannst bis {date} keine Server erstellen.",
             "view": "Kontostatus ansehen"
           },
-          "dedicated": {
-            "description": "{name}-Pläne sind kostenpflichtig: ihre CPU-Threads und ihr Arbeitsspeicher gehören nur deinem Server. Bestell einen, und das Team richtet ihn für dich ein.",
-            "perMonth": "{price} / Monat",
-            "size": "{threads} dedizierte CPU-Threads · {memory} MB Arbeitsspeicher · {disk} MB Speicherplatz",
-            "soldOut": "Ausverkauft",
-            "soldOutAt": "{location} (ausverkauft)",
-            "order": "Über den Support bestellen",
-            "orderSubject": "{name}-Bestellung: {plan}",
-            "orderBody": "Ich möchte den {name}-Plan {plan} bestellen.",
-            "orderLocations": "Standorte: {locations}. Welchen ich möchte:"
-          }
+          "dedicatedLink": "Eigene CPU-Threads und eigener Arbeitsspeicher? Sieh dir die {name}-Pläne an."
+        },
+        "dedicated": {
+          "description": "{name}-Pläne sind kostenpflichtig: ihre CPU-Threads und ihr Arbeitsspeicher gehören nur deinem Server. Bestell einen, und das Team richtet ihn für dich ein.",
+          "perMonth": "{price} / Monat",
+          "size": "{threads} dedizierte CPU-Threads · {memory} MB Arbeitsspeicher · {disk} MB Speicherplatz",
+          "soldOut": "Ausverkauft",
+          "soldOutAt": "{location} (ausverkauft)",
+          "order": "Über den Support bestellen",
+          "orderSubject": "{name}-Bestellung: {plan}",
+          "orderBody": "Ich möchte den {name}-Plan {plan} bestellen.",
+          "orderLocations": "Standorte: {locations}. Welchen ich möchte:",
+          "empty": "Keine dedizierten Pläne im Angebot."
         },
         "home": {
           "title": "Servers",
@@ -6352,23 +6354,26 @@
           "resourceName": "Paket",
           "titleCreate": "Paket erstellen",
           "titleUpdate": "{name} bearbeiten",
+          "dedicatedTitle": "Dedizierte Pläne",
+          "dedicatedSubtitle": "Bezahlte Pläne, deren CPU-Threads und Arbeitsspeicher nur dem Server gehören, auf dedizierten Nodes. Spieler bestellen sie; ein Admin erstellt ihre Server unter Admin › Server.",
+          "titleCreateDedicated": "Dedizierten Plan erstellen",
           "table": {
             "cpu": "CPU",
             "public": "Öffentlich",
-            "dedicated": "Dediziert"
+            "threads": "CPU-Threads",
+            "threadsValue": "{threads} Threads",
+            "price": "Preis pro Monat"
           },
           "form": {
             "cpu": "CPU (%)",
             "cpuDescription": "Prozent eines CPU-Threads: 100 ist ein Thread, 200 zwei.",
-            "cpuDedicatedDescription": "Ganze CPU-Threads, je 100: 400 sind vier eigene Threads.",
+            "threads": "CPU-Threads",
+            "threadsDescription": "Eigene Threads: Das Panel bindet den Server an freie ganze Kerne der Node.",
             "sort": "Reihenfolge",
             "sortDescription": "Reihenfolge auf der Erstellen-Seite, die niedrigste zuerst.",
             "public": "Öffentlich",
             "publicDescription": "Spieler können dieses Paket wählen, wenn sie einen Server erstellen.",
-            "publicDedicatedDescription": "Spieler sehen diesen Plan mit seinem Preis auf der Erstellen-Seite und bestellen ihn mit einem Support-Ticket. Aus: ein eigener Plan, den nur Admins für einen Kunden nutzen.",
-            "dedicatedSection": "Dediziert",
-            "dedicated": "Dediziert (bezahlt)",
-            "dedicatedDescription": "CPU-Threads und Arbeitsspeicher gehören nur dem Server: Er kommt auf eine dedizierte Node der Standorte und Nodes unten, an Threads gebunden, die kein anderer Server hat, und nur dorthin, wo der Arbeitsspeicher der Node noch nicht vergeben ist. Der Speicherplatz wird geteilt. Spieler erstellen ihn nie selbst: Ein Admin erstellt ihn für sie unter Admin › Server mit diesem Plan.",
+            "publicDedicatedDescription": "Spieler sehen diesen Plan mit seinem Preis auf ihrer Seite der dedizierten Pläne und bestellen ihn mit einem Support-Ticket. Aus: ein eigener Plan, den nur Admins für einen Kunden nutzen.",
             "price": "Preis (EUR pro Monat)",
             "priceDescription": "Wird Spielern angezeigt. Das Panel berechnet selbst nichts; leer zeigt keinen Preis.",
             "locations": "Standorte",

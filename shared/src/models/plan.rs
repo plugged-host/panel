@@ -138,19 +138,21 @@ impl Plan {
         page: i64,
         per_page: i64,
         search: Option<&str>,
+        dedicated: Option<bool>,
     ) -> Result<super::Pagination<Self>, crate::database::DatabaseError> {
         super::PaginatedQueryBuilder::new(
             Self::columns_sql(None),
             format!(
                 r#"
                 FROM plans
-                WHERE {search}
+                WHERE {search} AND ($2::boolean IS NULL OR plans.dedicated = $2)
                 "#,
                 search = super::search_sql(1, &["plans.name"], &["plans.uuid"]),
             ),
             "plans.sort, plans.memory, plans.uuid",
         )
         .bind(search)
+        .bind(dedicated)
         .fetch(database, page, per_page)
         .await
     }

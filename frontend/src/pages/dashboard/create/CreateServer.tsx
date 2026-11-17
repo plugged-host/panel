@@ -34,7 +34,6 @@ import { useResource } from '@/plugins/resource/useResource.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useGlobalStore } from '@/stores/global.ts';
-import DedicatedPlans from './DedicatedPlans.tsx'; // plugged.host
 
 type Options = z.infer<typeof serverCreateOptionsSchema>;
 type Location = z.infer<typeof serverCreateLocationSchema>;
@@ -120,6 +119,22 @@ function left(limit: number, used: number): number | null {
 
 function isAmount(value: Amount): value is number {
   return typeof value === 'number' && Number.isInteger(value) && value >= 1;
+}
+
+/** The paid plans live on their own page; one line points there (docs/features/dedicated.md). */
+function DedicatedLink({ offered }: { offered: boolean }) {
+  const { t } = useTranslations();
+  const name = useGlobalStore((state) => state.settings.games?.dedicatedName) || 'Dedicated';
+
+  if (!offered) {
+    return null;
+  }
+
+  return (
+    <Link to='/account/dedicated' className='theme-eco-link text-sm'>
+      {t(`${page}.dedicatedLink`, { name })}
+    </Link>
+  );
 }
 
 /** Why the account cannot create servers for now: its standing (docs/features/standing.md). */
@@ -543,7 +558,7 @@ function CreateServerForm({ options }: { options: Options }) {
           </Button>
         </div>
 
-        <DedicatedPlans plans={options.dedicatedPlans} />
+        <DedicatedLink offered={options.dedicatedOffered} />
 
         <AdPageSlot />
       </div>
@@ -584,7 +599,7 @@ export default function CreateServer() {
       ) : blocked ? (
         <div className='flex flex-col gap-6'>
           <Text c='dimmed'>{blocked}</Text>
-          {options && <DedicatedPlans plans={options.dedicatedPlans} />}
+          {options && <DedicatedLink offered={options.dedicatedOffered} />}
         </div>
       ) : (
         <ResourceView resource={resource}>{() => null}</ResourceView>

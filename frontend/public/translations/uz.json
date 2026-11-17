@@ -2252,17 +2252,19 @@
             "blockedUntil": "Hisobingiz holati: {level}. {date} gacha server yarata olmaysiz.",
             "view": "Hisob holatini koʻrish"
           },
-          "dedicated": {
-            "description": "{name} rejalari pullik: ularning CPU oqimlari va xotirasi faqat sizning serveringizga tegishli. Birini buyurtma qiling, jamoa uni siz uchun sozlaydi.",
-            "perMonth": "{price} / oy",
-            "size": "{threads} ta ajratilgan CPU oqimi · {memory} MB xotira · {disk} MB disk joyi",
-            "soldOut": "Tugagan",
-            "soldOutAt": "{location} (tugagan)",
-            "order": "Qo'llab-quvvatlash orqali buyurtma berish",
-            "orderSubject": "{name} buyurtmasi: {plan}",
-            "orderBody": "Men {name} rejasi {plan} ni buyurtma qilmoqchiman.",
-            "orderLocations": "Joylashuvlar: {locations}. Men xohlagani:"
-          }
+          "dedicatedLink": "O'zingizga tegishli CPU oqimlari va xotira kerakmi? {name} rejalarini ko'ring."
+        },
+        "dedicated": {
+          "description": "{name} rejalari pullik: ularning CPU oqimlari va xotirasi faqat sizning serveringizga tegishli. Birini buyurtma qiling, jamoa uni siz uchun sozlaydi.",
+          "perMonth": "{price} / oy",
+          "size": "{threads} ta ajratilgan CPU oqimi · {memory} MB xotira · {disk} MB disk joyi",
+          "soldOut": "Tugagan",
+          "soldOutAt": "{location} (tugagan)",
+          "order": "Qo'llab-quvvatlash orqali buyurtma berish",
+          "orderSubject": "{name} buyurtmasi: {plan}",
+          "orderBody": "Men {name} rejasi {plan} ni buyurtma qilmoqchiman.",
+          "orderLocations": "Joylashuvlar: {locations}. Men xohlagani:",
+          "empty": "Hozircha ajratilgan rejalar yo'q."
         },
         "home": {
           "empty": {

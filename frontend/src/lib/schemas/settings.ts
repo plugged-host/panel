@@ -170,6 +170,7 @@ export const publicSettingsSchema = z.object({
     subdomainsEnabled: z.boolean(),
     devboxesEnabled: z.boolean(),
     dedicatedName: z.string(),
+    dedicatedOffered: z.boolean().default(false),
   }),
   // plugged.host: the welcome tour runs
   tour: z.object({

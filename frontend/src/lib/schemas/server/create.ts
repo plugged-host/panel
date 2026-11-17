@@ -73,7 +73,7 @@ export const serverCreateOptionsSchema = z.object({
   games: z.array(serverCreateGameSchema),
   locations: z.array(serverCreateLocationSchema),
   plans: z.array(serverCreatePlanSchema),
-  dedicatedPlans: z.array(serverCreateDedicatedPlanSchema).default([]), // plugged.host
+  dedicatedOffered: z.boolean().default(false), // plugged.host: the paid plans have their own page
   // the account's standing when it keeps the player from creating (docs/features/standing.md)
   standing: accountStandingSchema.nullable().catch(null),
 });
