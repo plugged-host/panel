@@ -477,7 +477,9 @@ have ("9 / 15 to Plus", over a thin bar; "Enough for Plus" once the balance cove
 the Membership page; none with the second membership (it gives everything) or with memberships or
 tokens off (`membership_goal` in the balance, `economy::membership_goal`). It reads
 `GET /api/client/account/balance` once a minute and after a purchase, a redeemed link or a
-membership change. Suspended users don't see it.
+membership change. Suspended users don't see it. With noprofit.space, the account's Funds (real money
+held there) join the balance row as an amount in euros once they are not zero, as plain text
+([noprofit.md](../noprofit.md#funds)).
 
 ## Admins
 

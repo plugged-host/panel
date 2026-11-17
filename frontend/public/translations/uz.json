@@ -1044,7 +1044,8 @@
           "goal": "{tokens} / {cost} — {name} uchun",
           "goalReady": "{name} uchun yetarli",
           "openMembership": "Aʼzolik sahifasini ochish",
-          "streak": "Bugungi seriya jetonlari sizni kutmoqda"
+          "streak": "Bugungi seriya jetonlari sizni kutmoqda",
+          "funds": "{amount} mablag‘"
         },
         "more": "More",
         "accountSettings": "Account settings",
@@ -2398,6 +2399,7 @@
               "title": "noprofit.space",
               "description": "Siz **{email}** noprofit.space hisobingiz bilan kirasiz. E-pochtangiz, parolingiz va ikki bosqichli autentifikatsiyangiz oʻsha yerda boshqariladi.",
               "credits": "Kreditlar",
+              "funds": "Mablag‘lar",
               "plan": "Tarif",
               "planValue": "{cpu}% CPU, {memory} xotira, {disk} disk",
               "discord": "Discord",

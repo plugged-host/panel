@@ -1044,7 +1044,8 @@
           "goal": "{tokens} / {cost} bis {name}",
           "goalReady": "Genug für {name}",
           "openMembership": "Mitgliedschaftsseite öffnen",
-          "streak": "Deine Serien-Tokens für heute warten"
+          "streak": "Deine Serien-Tokens für heute warten",
+          "funds": "{amount} Guthaben"
         },
         "more": "Mehr",
         "accountSettings": "Kontoeinstellungen",
@@ -2400,6 +2401,7 @@
               "title": "noprofit.space",
               "description": "Du meldest dich mit deinem noprofit.space-Account **{username}** an. Dein Passwort und die Zwei-Faktor-Authentifizierung verwaltest du dort.",
               "credits": "Credits",
+              "funds": "Guthaben",
               "ultra": "Ultra",
               "plan": "Plan",
               "planValue": "{cpu} % CPU, {memory} Arbeitsspeicher, {disk} Speicherplatz",

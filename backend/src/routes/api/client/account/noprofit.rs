@@ -19,6 +19,8 @@ mod get {
         ultra: bool,
         is_admin: bool,
         credits: i64,
+        /// Euro cents.
+        funds: i64,
         #[schema(value_type = Option<Object>)]
         plan: Option<serde_json::Value>,
         #[schema(value_type = Option<Object>)]
@@ -53,6 +55,7 @@ mod get {
                 ultra: link.ultra,
                 is_admin: link.is_admin,
                 credits: link.credits,
+                funds: link.funds,
                 plan: link.plan,
                 discord: link.discord,
                 synced: link.synced,

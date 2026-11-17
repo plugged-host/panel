@@ -968,6 +968,9 @@ pub struct ApiBalance {
     pub membership_goal: Option<ApiMembershipGoal>,
     /// plugged.host: today's streak tokens wait to be claimed on the Tokens page (shared/src/streak.rs).
     pub streak_claimable: bool,
+    /// plugged.host: the account's Funds on noprofit.space (real money, euro cents); `None`
+    /// without noprofit.space (docs/noprofit.md#funds).
+    pub funds: Option<i64>,
 }
 
 /// A membership the sidebar counts tokens toward.
@@ -1031,13 +1034,17 @@ pub async fn balance(state: &crate::State, user: &User) -> Result<ApiBalance, an
     };
 
     let (local_credits, tokens, _) = balances(&state.database, user.uuid).await?;
+    let link = if connected {
+        crate::noprofit::Link::by_user_uuid(&state.database, user.uuid).await?
+    } else {
+        None
+    };
     let credits = if connected {
-        crate::noprofit::Link::by_user_uuid(&state.database, user.uuid)
-            .await?
-            .map_or(0, |link| link.credits)
+        link.as_ref().map_or(0, |link| link.credits)
     } else {
         local_credits
     };
+    let funds = connected.then(|| link.as_ref().map_or(0, |link| link.funds));
 
     Ok(ApiBalance {
         credits: credits_enabled.then_some(credits),
@@ -1045,6 +1052,7 @@ pub async fn balance(state: &crate::State, user: &User) -> Result<ApiBalance, an
         allowance: crate::allowance::for_user(state, user.uuid).await?,
         membership_goal,
         streak_claimable: crate::streak::claimable(state, user.uuid).await?,
+        funds,
     })
 }
 

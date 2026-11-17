@@ -1044,7 +1044,8 @@
           "goal": "{tokens} / {cost} để có {name}",
           "goalReady": "Đủ để có {name}",
           "openMembership": "Mở trang Hội Viên",
-          "streak": "Token chuỗi hôm nay đang chờ bạn"
+          "streak": "Token chuỗi hôm nay đang chờ bạn",
+          "funds": "Số dư {amount}"
         },
         "more": "More",
         "accountSettings": "Account settings",
@@ -2401,6 +2402,7 @@
               "title": "noprofit.space",
               "description": "Bạn đăng nhập bằng tài khoản noprofit.space **{email}**. Email, mật khẩu và xác thực hai lớp của bạn được quản lý tại đó.",
               "credits": "Credit",
+              "funds": "Số dư",
               "plan": "Gói",
               "planValue": "{cpu}% CPU, {memory} bộ nhớ, {disk} ổ đĩa",
               "discord": "Discord",

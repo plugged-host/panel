@@ -847,6 +847,8 @@ const baseTranslations = defineTranslations({
           openMembership: 'Open the Membership page',
           // plugged.host: the daily streak waits to be claimed
           streak: 'Today’s streak tokens are waiting',
+          // plugged.host: the account's Funds on noprofit.space (real money), shown once there are any
+          funds: '{amount} Funds',
         },
       },
       // plugged.host: the notification inbox, the Pelican panel's bell (elements/notifications,
@@ -2255,6 +2257,8 @@ const baseTranslations = defineTranslations({
               description:
                 'You sign in with your noprofit.space account **{username}**. Your password and two-factor authentication are managed there.',
               credits: 'Credits',
+              // plugged.host: real money on the noprofit.space account
+              funds: 'Funds',
               ultra: 'Ultra',
               plan: 'Plan',
               planValue: '{cpu}% CPU, {memory} memory, {disk} disk',

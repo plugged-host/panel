@@ -1044,7 +1044,8 @@
           "goal": "{name} için {tokens} / {cost}",
           "goalReady": "{name} için yeterli",
           "openMembership": "Üyelik sayfasını aç",
-          "streak": "Bugünkü seri jetonlarınız sizi bekliyor"
+          "streak": "Bugünkü seri jetonlarınız sizi bekliyor",
+          "funds": "{amount} bakiye"
         },
         "more": "More",
         "accountSettings": "Account settings",
@@ -2401,6 +2402,7 @@
               "title": "noprofit.space",
               "description": "noprofit.space hesabınızla (**{email}**) giriş yapıyorsunuz. E-posta adresiniz, şifreniz ve iki faktörlü doğrulamanız orada yönetilir.",
               "credits": "Kredi",
+              "funds": "Bakiye",
               "plan": "Plan",
               "planValue": "%{cpu} CPU, {memory} bellek, {disk} disk",
               "discord": "Discord",

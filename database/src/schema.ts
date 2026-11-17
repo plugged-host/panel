@@ -488,6 +488,8 @@ export const userNoprofitAccountsTable = pgTable(
     is_admin: boolean().default(false).notNull(),
     avatar: text(),
     credits: bigint({ mode: 'number' }).default(0).notNull(),
+    // plugged.host: the account's Funds on the central service (real money, euro cents)
+    funds: bigint({ mode: 'number' }).default(0).notNull(),
     plan: jsonb(),
     discord: jsonb(),
     deleted: timestamp(),

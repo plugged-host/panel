@@ -1044,7 +1044,8 @@
           "goal": "{tokens} / {cost} للحصول على {name}",
           "goalReady": "يكفي لـ {name}",
           "openMembership": "فتح صفحة العضوية",
-          "streak": "توكن سلسلة اليوم بانتظارك"
+          "streak": "توكن سلسلة اليوم بانتظارك",
+          "funds": "الرصيد {amount}"
         },
         "more": "More",
         "accountSettings": "Account settings",
@@ -2401,6 +2402,7 @@
               "title": "noprofit.space",
               "description": "تسجّل الدخول بحساب noprofit.space الخاص بك **{email}**. تتم إدارة بريدك الإلكتروني وكلمة المرور والمصادقة الثنائية هناك.",
               "credits": "كريدت",
+              "funds": "الرصيد",
               "plan": "الخطة",
               "planValue": "{cpu}% CPU، {memory} ذاكرة، {disk} قرص",
               "discord": "Discord",

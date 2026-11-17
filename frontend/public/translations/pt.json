@@ -1044,7 +1044,8 @@
           "goal": "{tokens} / {cost} para o {name}",
           "goalReady": "Dá para o {name}",
           "openMembership": "Abrir a página Assinatura",
-          "streak": "Os tokens da sequência de hoje estão esperando por você"
+          "streak": "Os tokens da sequência de hoje estão esperando por você",
+          "funds": "{amount} em fundos"
         },
         "more": "More",
         "accountSettings": "Account settings",
@@ -2398,6 +2399,7 @@
               "title": "noprofit.space",
               "description": "Você entra com sua conta do noprofit.space **{email}**. Seu e-mail, sua senha e a autenticação de dois fatores são gerenciados lá.",
               "credits": "Créditos",
+              "funds": "Fundos",
               "plan": "Plano",
               "planValue": "{cpu}% de CPU, {memory} de memória, {disk} de disco",
               "discord": "Discord",

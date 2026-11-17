@@ -1,0 +1,1 @@
+ALTER TABLE "user_noprofit_accounts" ADD COLUMN "funds" bigint DEFAULT 0 NOT NULL;

@@ -4,6 +4,7 @@ import TitleCard from '@/elements/data-display/TitleCard.tsx';
 import Group from '@/elements/layout/Group.tsx';
 import Stack from '@/elements/layout/Stack.tsx';
 import { bytesToString, mbToBytes } from '@/lib/format/size.ts';
+import { intlLocale } from '@/lib/languages.ts';
 import { noprofitAccountSchema } from '@/lib/schemas/noprofit.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 
@@ -15,7 +16,7 @@ export default function NoprofitContainer({
   account: z.infer<typeof noprofitAccountSchema>;
   accountsUrl: string | null;
 }) {
-  const { t } = useTranslations();
+  const { t, language } = useTranslations();
 
   return (
     <TitleCard title={t('pages.account.account.containers.noprofit.title', {})} className='h-full order-10'>
@@ -32,6 +33,13 @@ export default function NoprofitContainer({
             {t('pages.account.account.containers.noprofit.credits', {})}
           </dt>
           <dd className='font-mono'>{account.credits.toLocaleString()}</dd>
+
+          <dt className='text-(--mantine-color-dimmed)'>{t('pages.account.account.containers.noprofit.funds', {})}</dt>
+          <dd className='font-mono'>
+            {new Intl.NumberFormat(intlLocale(language), { style: 'currency', currency: 'EUR' }).format(
+              account.funds / 100,
+            )}
+          </dd>
 
           {account.plan && (
             <>

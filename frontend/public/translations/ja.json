@@ -918,7 +918,8 @@
           "goal": "{tokens} / {cost} to {name}",
           "goalReady": "Enough for {name}",
           "openMembership": "Open the Membership page",
-          "streak": "Today’s streak tokens are waiting"
+          "streak": "Today’s streak tokens are waiting",
+          "funds": "残高 {amount}"
         }
       },
       "lockedConfigPaths": {
@@ -2399,6 +2400,7 @@
               "title": "noprofit.space",
               "description": "You sign in with your noprofit.space account **{username}**. Your password and two-factor authentication are managed there.",
               "credits": "Credits",
+              "funds": "残高",
               "ultra": "Ultra",
               "plan": "Plan",
               "planValue": "{cpu}% CPU, {memory} memory, {disk} disk",

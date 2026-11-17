@@ -1044,7 +1044,8 @@
           "goal": "{tokens} / {cost} menuju {name}",
           "goalReady": "Cukup untuk {name}",
           "openMembership": "Buka halaman Keanggotaan",
-          "streak": "Token runtunan hari ini sudah menunggu Anda"
+          "streak": "Token runtunan hari ini sudah menunggu Anda",
+          "funds": "Dana {amount}"
         },
         "more": "More",
         "accountSettings": "Account settings",
@@ -2398,6 +2399,7 @@
               "title": "noprofit.space",
               "description": "Anda masuk dengan akun noprofit.space Anda **{email}**. Email, kata sandi, dan autentikasi dua faktor Anda dikelola di sana.",
               "credits": "Kredit",
+              "funds": "Dana",
               "plan": "Paket",
               "planValue": "{cpu}% CPU, {memory} memori, {disk} disk",
               "discord": "Discord",

@@ -20,6 +20,8 @@ export const noprofitAccountSchema = z.object({
   ultra: z.boolean().default(false),
   isAdmin: z.boolean(),
   credits: z.number(),
+  // plugged.host: real money on the account, in euro cents
+  funds: z.number().default(0),
   plan: noprofitPlanSchema.nullable().catch(null),
   discord: noprofitDiscordSchema.nullable().catch(null),
   synced: z.string(),

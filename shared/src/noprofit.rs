@@ -922,6 +922,10 @@ pub struct Snapshot {
     pub avatar: Option<String>,
     #[serde(default)]
     pub credits: i64,
+    /// The account's Funds (real money held by the central service), in euro cents. Shown only;
+    /// nothing on the panel spends it yet.
+    #[serde(default)]
+    pub funds: i64,
     /// `{cpu, memory, disk, base_*, max_*, total_*, elsewhere_*, cut_*}`: CPU in %, memory and
     /// disk in MiB. cpu/memory/disk are this panel's share of the account's pool, `total_*` the
     /// whole pool, `elsewhere_*` what its other services use, `cut_*` what lower bases took from
@@ -979,6 +983,8 @@ pub struct Link {
     pub is_admin: bool,
     pub avatar: Option<String>,
     pub credits: i64,
+    /// Euro cents ([`Snapshot::funds`]).
+    pub funds: i64,
     pub plan: Option<serde_json::Value>,
     pub discord: Option<serde_json::Value>,
     pub deleted: Option<chrono::NaiveDateTime>,
@@ -986,7 +992,7 @@ pub struct Link {
     pub created: chrono::NaiveDateTime,
 }
 
-const LINK_COLUMNS: &str = "user_uuid, account_id, username, ultra, is_admin, avatar, credits, plan, discord, deleted, synced, created";
+const LINK_COLUMNS: &str = "user_uuid, account_id, username, ultra, is_admin, avatar, credits, funds, plan, discord, deleted, synced, created";
 
 impl Link {
     pub async fn by_user_uuid(
@@ -1047,8 +1053,8 @@ impl Link {
         let old_plan: Option<serde_json::Value> = sqlx::query_scalar(
             "WITH old AS (SELECT plan FROM user_noprofit_accounts WHERE user_uuid = $1)
             INSERT INTO user_noprofit_accounts
-                (user_uuid, account_id, username, ultra, is_admin, avatar, credits, plan, discord, deleted, synced)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NULL, NOW())
+                (user_uuid, account_id, username, ultra, is_admin, avatar, credits, plan, discord, funds, deleted, synced)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NULL, NOW())
             ON CONFLICT (user_uuid) DO UPDATE SET
                 account_id = EXCLUDED.account_id,
                 username = EXCLUDED.username,
@@ -1058,6 +1064,7 @@ impl Link {
                 credits = EXCLUDED.credits,
                 plan = EXCLUDED.plan,
                 discord = EXCLUDED.discord,
+                funds = EXCLUDED.funds,
                 deleted = NULL,
                 synced = NOW()
             RETURNING (SELECT plan FROM old)",
@@ -1071,6 +1078,7 @@ impl Link {
         .bind(snapshot.credits)
         .bind(&snapshot.plan)
         .bind(&snapshot.discord)
+        .bind(snapshot.funds)
         .fetch_one(database.write())
         .await?;
 

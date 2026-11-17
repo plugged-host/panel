@@ -1044,7 +1044,8 @@
           "goal": "{tokens} / {cost} pour {name}",
           "goalReady": "Assez pour {name}",
           "openMembership": "Ouvrir la page Adhésion",
-          "streak": "Les jetons de série du jour vous attendent"
+          "streak": "Les jetons de série du jour vous attendent",
+          "funds": "{amount} de fonds"
         },
         "more": "More",
         "accountSettings": "Account settings",
@@ -2401,6 +2402,7 @@
               "title": "noprofit.space",
               "description": "Vous vous connectez avec votre compte noprofit.space **{email}**. Votre e-mail, votre mot de passe et votre authentification à deux facteurs sont gérés là-bas.",
               "credits": "Crédits",
+              "funds": "Fonds",
               "plan": "Offre",
               "planValue": "{cpu}% CPU, {memory} de mémoire, {disk} de disque",
               "discord": "Discord",

@@ -1044,7 +1044,8 @@
           "goal": "{tokens} / {cost} до {name}",
           "goalReady": "Хватает на {name}",
           "openMembership": "Открыть страницу «Подписка»",
-          "streak": "Сегодняшние токены за серию ждут вас"
+          "streak": "Сегодняшние токены за серию ждут вас",
+          "funds": "{amount} средств"
         },
         "more": "More",
         "accountSettings": "Account settings",
@@ -2401,6 +2402,7 @@
               "title": "noprofit.space",
               "description": "Вы входите через аккаунт noprofit.space **{email}**. Электронная почта, пароль и двухфакторная аутентификация управляются там.",
               "credits": "Кредиты",
+              "funds": "Средства",
               "plan": "Тариф",
               "planValue": "{cpu}% CPU, память {memory}, диск {disk}",
               "discord": "Discord",

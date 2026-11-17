@@ -116,11 +116,20 @@ Before a suggestion vote is counted and before a referral reward is paid, `limit
 person's vote or reward already counted: the vote is refused and the reward is skipped. A failed
 call never blocks the person.
 
+## Funds
+
+Funds are real money (euros) on the noprofit.space account, bought there; they are separate from
+credits (free extra resources) and tokens. The snapshot's `funds` (euro cents) is stored on the
+link row and shown: on the account page's noprofit.space card, and in the sidebar's balance row once
+it is not zero (`funds` in `GET /api/client/account/balance`, `null` without noprofit.space).
+noprofit.space pushes the account after every change to its Funds. Nothing on the panel spends Funds
+yet.
+
 ## Tables
 
 | Table | What it holds |
 |---|---|
-| `user_noprofit_accounts` | The link between a panel user and a noprofit.space account, and the last snapshot (username, Ultra, admin, avatar, credits, plan, Discord, when it was deleted, whether the sync suspended the user then). `email` stays as a nullable column for Laravel compatibility and is always `NULL` |
+| `user_noprofit_accounts` | The link between a panel user and a noprofit.space account, and the last snapshot (username, Ultra, admin, avatar, credits, Funds, plan, Discord, when it was deleted, whether the sync suspended the user then). `email` stays as a nullable column for Laravel compatibility and is always `NULL` |
 | `user_noprofit_credit_changes` | Credit changes made here for noprofit.space: amount, type, description, when it was sent, what it applied and the balance after, attempts and the last error |
 
 ## Wire format

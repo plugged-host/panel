@@ -303,4 +303,6 @@ export const userBalanceSchema = z.object({
     })
     .nullable()
     .default(null),
+  // plugged.host: the account's Funds on noprofit.space (real money, euro cents); null without it
+  funds: z.number().nullable().default(null),
 });

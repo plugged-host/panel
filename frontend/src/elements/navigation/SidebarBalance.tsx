@@ -17,7 +17,14 @@ import { useGlobalStore } from '@/stores/global.ts';
 export function balanceCardShown(balance: z.infer<typeof userBalanceSchema>): boolean {
   const { limit } = balance.allowance;
 
-  return limit.cpu > 0 || limit.memory > 0 || limit.disk > 0 || balance.tokens !== null || balance.credits !== null;
+  return (
+    limit.cpu > 0 ||
+    limit.memory > 0 ||
+    limit.disk > 0 ||
+    balance.tokens !== null ||
+    balance.credits !== null ||
+    (balance.funds ?? 0) !== 0
+  );
 }
 
 interface UsageRow {
@@ -121,6 +128,11 @@ export default function SidebarBalance() {
   ].filter((pill) => pill.value !== null);
 
   const number = new Intl.NumberFormat(intlLocale(language));
+  // plugged.host: the account's Funds on noprofit.space (real money), only once there are any
+  const funds =
+    balance.funds !== null && balance.funds !== 0
+      ? new Intl.NumberFormat(intlLocale(language), { style: 'currency', currency: 'EUR' }).format(balance.funds / 100)
+      : null;
 
   // plugged.host: tokens toward the cheapest membership the account does not have (none with the
   // second membership, or with memberships off)
@@ -155,7 +167,7 @@ export default function SidebarBalance() {
         </Part>
       )}
 
-      {pills.length > 0 && (
+      {(pills.length > 0 || funds) && (
         <div className={classNames('theme-balance-pills', goal && 'theme-balance-pills-goal')}>
           {pills.map((pill) => (
             <Part
@@ -174,6 +186,12 @@ export default function SidebarBalance() {
               )}
             </Part>
           ))}
+
+          {funds && (
+            <div className='theme-balance-item'>
+              <BalanceAmount text={t('elements.sidebar.balance.funds', { amount: funds })} value={funds} />
+            </div>
+          )}
 
           {goal && (
             <Part
