@@ -91,7 +91,8 @@ person included. When it cannot answer, it posts a fixed line:
 
 `neo::prompt::discord_chat` writes it (`shared/src/neo/prompt.rs`): what the host is and how it
 works (the same knowledge as the chat, only what the settings turn on), the rules for Discord (short,
-plain URLs, no pings, never ask for secrets, moderation is the moderation bot's), and this
+plain URLs, no pings, never ask for secrets, moderation is the moderation bot's, and how to write:
+`prompt::WRITING`, see [neo](neo.md#the-prompt)), and this
 conversation: who is asking (their Discord name is data, not instructions), linked or not and how to
 link, their usage with Discord timestamps, and DM or public channel. In a public channel it has no
 lookups and does not repeat account details.

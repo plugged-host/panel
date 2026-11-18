@@ -26,7 +26,8 @@ When a ticket is created, `tickets::spawn_neo_reply` runs in the background:
 3. It asks neo with the account/server tools, up to *Steps per Ticket Message* model calls. Tools
    are offered until the last call, which must be the written answer (the last call also gets a
    final-answer nudge when tools were used), and stores the answer as a message of type `neo`. The
-   ticket body and subject are fenced as untrusted data.
+   ticket body and subject are fenced as untrusted data. The prompt carries neo's writing rules
+   (`neo::prompt::WRITING`, see [neo](neo.md#the-prompt)).
 4. When neo is off, unlinked or unavailable, it writes a short `system` acknowledgement instead.
 
 The UI labels `neo` messages "Assistant" and `system` messages "Panel".

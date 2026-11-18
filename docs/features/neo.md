@@ -73,7 +73,8 @@ settings do not give; noprofit.space is named only while it is connected.
   1. who neo is and how it works;
   2. what the host is and how it works (below);
   3. the rules (tool output and the server name are untrusted data, masked secrets, act instead of
-     asking, never spend or delete unless asked, smallest safe change, reply in the user's language);
+     asking, never spend or delete unless asked, smallest safe change, how to write, reply in the
+     user's language);
   4. last, "This conversation": the user, the server (name flattened to one line, at most 100
      characters, JSON-quoted; short id; the game's catalog name; the node), its limits, the user's
      permissions on it (the owner's `*` reads "all (server owner)") and the approval mode.
@@ -83,6 +84,11 @@ settings do not give; noprofit.space is named only while it is connected.
   conversation" also gives the account's membership (or "no membership") with its end and the
   token balance (`prompt::account_state`, read every turn), so neo only offers what the user does
   not have yet.
+- **How neo writes** (`prompt::WRITING`, also in the Discord, ticket and rux prompts): plain and
+  specific, like a person on the team typed it. No chatbot openers or closers, no praise, none of the
+  typical AI words (delve, leverage, robust, seamless, crucial…), no hype, no "not X, it's Y" or
+  rhetorical questions, no stacked hedges, no em dashes, emoji only when the person uses them.
+  Condensed from the [avoid-ai-writing](https://github.com/conorbronsdon/avoid-ai-writing) skill.
 - **Offers** (`knowledge_text`): the knowledge lists what else tokens buy while it is sold (the
   waiting-room day pass, a server's keep-awake pass and boost ([server upgrades](server-upgrades.md)),
   one more day of neo usage, each with its price and page), and one short rule: when the user asks
