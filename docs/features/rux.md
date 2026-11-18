@@ -69,7 +69,8 @@ Each order runs in its own task (`agent.rs`):
    in, or for a DM the one picked for that DM (`switch_server`, kept a day; the main server until
    then, and for a moderator the first server they moderate).
 3. The model gets the system prompt (`prompt.rs`: who rux is, the server, who is talking, the time
-   in the settings' zone, the rules of acting, the server's roles), the conversation of the last
+   in the settings' zone, the rules of acting, how to write (neo's `prompt::WRITING`: plain, no
+   chatbot phrasing, see [neo](neo.md#the-prompt)), the server's roles), the conversation of the last
    History minutes, the order with the message it replies to and up to its images, and the tools
    that person may use.
 4. The loop: a model turn, its tool calls run, their output fed back (fenced, cut at 6000
