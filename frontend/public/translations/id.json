@@ -1468,14 +1468,22 @@
             "by": {
               "manual": "Server ini ditangguhkan oleh administrator pada {date}.",
               "abuse": "Server ini ditangguhkan oleh pemeriksaan penyalahgunaan otomatis pada {date}.",
-              "noprofit": "Server ini ditangguhkan pada {date} karena akun noprofit.space pemiliknya telah dihapus."
+              "noprofit": "Server ini ditangguhkan pada {date} karena akun noprofit.space pemiliknya telah dihapus.",
+              "unpaid": "Server berbayar ini ditangguhkan pada {date} karena bulannya tidak dapat dibayar."
             },
             "reason": "Alasan: {reason}",
             "deletesIn": "Server ini akan dihapus {time} ({date}), kecuali penangguhan dicabut sebelum itu.",
             "notEarlier": "Kami tidak menangguhkan server karena kesalahan, dan server Anda tidak akan dihapus sebelum tanggal ini.",
             "help": "Jika menurut Anda ini sebuah kesalahan, hubungi administrator panel dan sertakan nama server.",
             "helpLink": "Jika menurut Anda ini sebuah kesalahan, mintalah bantuan dan sertakan nama server.",
-            "getHelp": "Dapatkan bantuan"
+            "getHelp": "Dapatkan bantuan",
+            "unpaid": {
+              "price": "Biaya bulan ini {price}.",
+              "priceFunds": "Biaya bulan ini {price}. Funds kamu: {funds}.",
+              "short": "Funds kamu tidak cukup untuk bulan ini.",
+              "payNow": "Bayar sekarang",
+              "paid": "Dibayar. Server kamu tidak lagi ditangguhkan."
+            }
           },
           "contentNodeMaintenance": "Server ini berada di node yang sedang dalam pemeliharaan dan tidak dapat diakses.",
           "contentTransferring": "Server ini sedang dipindahkan dan tidak dapat diakses hingga pemindahan selesai.",
@@ -2258,15 +2266,28 @@
         },
         "dedicated": {
           "description": "Paket {name} berbayar: thread CPU dan memorinya hanya milik servermu. Pesan satu dan tim akan menyiapkannya untukmu.",
+          "descriptionSelfService": "Paket {name} berbayar: thread CPU dan memorinya hanya untuk server kamu. Bayar bulan pertama dengan Funds noprofit.space kamu dan server langsung dibuat.",
           "perMonth": "{price} / bulan",
           "size": "{threads} thread CPU khusus · {memory} MB Memori · {disk} MB Ruang Disk",
           "soldOut": "Habis",
           "soldOutAt": "{location} (habis)",
           "order": "Pesan lewat dukungan",
+          "orderPaid": "Pesan",
           "orderSubject": "Pesanan {name}: {plan}",
           "orderBody": "Saya ingin memesan paket {name} {plan}.",
           "orderLocations": "Lokasi: {locations}. Yang saya inginkan:",
-          "empty": "Belum ada paket khusus yang ditawarkan."
+          "empty": "Belum ada paket khusus yang ditawarkan.",
+          "addFunds": "Tambahkan Funds di noprofit.space",
+          "modal": {
+            "title": "Pesan {plan}",
+            "price": "Harga: {price} per bulan",
+            "funds": "Funds kamu: {funds}",
+            "fundsLoading": "Memeriksa Funds kamu…",
+            "renewal": "Bulan pertama dibayar sekarang. Setiap bulan berikutnya diperpanjang dari Funds kamu; kamu bisa membatalkan perpanjangan di pengaturan server.",
+            "short": "Funds kamu tidak cukup untuk bulan pertama.",
+            "pay": "Bayar {price} dan buat",
+            "paid": "{price} dibayar. Server kamu sedang dibuat."
+          }
         },
         "home": {
           "empty": {
@@ -6454,6 +6475,24 @@
               "bought": "{title} berlaku hingga {time}.",
               "boughtNoEnd": "{title} dibeli.",
               "color": "Warna kartu disimpan."
+            }
+          },
+          "billing": {
+            "title": "Tagihan",
+            "note": "Server ini dibayar setiap bulan dengan Funds noprofit.space kamu.",
+            "price": "{price} per bulan, dibayar hingga {date}",
+            "renews": "Diperpanjang dari Funds kamu.",
+            "ends": "Berakhir pada {date}.",
+            "ownerOnly": "Hanya pemilik server yang dapat mengubah perpanjangannya.",
+            "cancel": "Batalkan perpanjangan",
+            "keep": "Pertahankan",
+            "confirm": {
+              "title": "Batalkan perpanjangan?",
+              "body": "Server tetap berjalan hingga akhir bulan yang sudah dibayar ({date}). Setelah itu server ditangguhkan, lalu dihapus 3 hari kemudian. Sampai saat itu kamu masih bisa mempertahankannya."
+            },
+            "toast": {
+              "cancelled": "Perpanjangan dibatalkan. Server berjalan hingga {date}.",
+              "kept": "Server kembali diperpanjang dari Funds kamu."
             }
           },
           "danger": {

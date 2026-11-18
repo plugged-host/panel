@@ -2,6 +2,7 @@
 // the page and its sections; useCanDeleteServer also by InstallStuck and ServerStateGuard
 // (docs/features/server-settings.md)
 
+import getServerBilling from '@/api/server/billing/getServerBilling.ts';
 import getServerNotifications from '@/api/server/settings/getServerNotifications.ts';
 import getServerResize from '@/api/server/settings/getServerResize.ts';
 import getServerSoftware from '@/api/server/settings/getServerSoftware.ts';
@@ -19,6 +20,7 @@ export const SETTINGS_SECTIONS = [
   'sftp',
   'resources',
   'upgrades', // docs/features/server-upgrades.md
+  'billing', // docs/features/dedicated.md
   'version',
   'behaviour',
   'notifications',
@@ -72,6 +74,18 @@ export function useNotificationSettings(silent = false) {
     queryFn: () => getServerNotifications(server.uuid),
     enabled: canRead,
     silent,
+  });
+}
+
+// a paid server's month and renewal (docs/features/dedicated.md); only a dedicated server may have one
+export function useServerBilling() {
+  const server = useServerStore((state) => state.server);
+
+  return useResource({
+    queryKey: queryKeys.server(server.uuid).billing(),
+    queryFn: () => getServerBilling(server.uuid),
+    enabled: server.isDedicated,
+    silent: true,
   });
 }
 

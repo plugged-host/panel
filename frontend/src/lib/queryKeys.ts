@@ -302,6 +302,7 @@ const server = (serverUuid: string) => ({
   transferStatus: () => ['server', serverUuid, 'transfer', 'status'] as const, // plugged.host
   queue: () => ['server', serverUuid, 'queue'] as const, // plugged.host
   limbo: () => ['server', serverUuid, 'limbo'] as const, // plugged.host
+  billing: () => ['server', serverUuid, 'billing'] as const, // plugged.host: docs/features/dedicated.md
   waitingRoom: () => ['server', serverUuid, 'waiting-room'] as const, // plugged.host
   subdomains: () => ['server', serverUuid, 'subdomains'] as const, // plugged.host
   devbox: () => ['server', serverUuid, 'devbox'] as const, // plugged.host

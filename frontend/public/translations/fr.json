@@ -1468,14 +1468,22 @@
             "by": {
               "manual": "Ce serveur a été suspendu par un administrateur le {date}.",
               "abuse": "Ce serveur a été suspendu par les vérifications automatiques anti-abus le {date}.",
-              "noprofit": "Ce serveur a été suspendu le {date} car le compte noprofit.space de son propriétaire a été supprimé."
+              "noprofit": "Ce serveur a été suspendu le {date} car le compte noprofit.space de son propriétaire a été supprimé.",
+              "unpaid": "Ce serveur payant a été suspendu le {date} car son mois n'a pas pu être payé."
             },
             "reason": "Raison : {reason}",
             "deletesIn": "Ce serveur sera supprimé {time} ({date}), sauf si la suspension est levée d'ici là.",
             "notEarlier": "Nous ne suspendons pas de serveurs par erreur, et votre serveur ne sera pas supprimé avant cette date.",
             "help": "Si vous pensez qu'il s'agit d'une erreur, contactez les administrateurs du panel en indiquant le nom du serveur.",
             "helpLink": "Si vous pensez qu'il s'agit d'une erreur, demandez de l'aide en indiquant le nom du serveur.",
-            "getHelp": "Obtenir de l'aide"
+            "getHelp": "Obtenir de l'aide",
+            "unpaid": {
+              "price": "Le mois coûte {price}.",
+              "priceFunds": "Le mois coûte {price}. Tes Funds : {funds}.",
+              "short": "Tes Funds ne couvrent pas le mois.",
+              "payNow": "Payer maintenant",
+              "paid": "Payé. Ton serveur n'est plus suspendu."
+            }
           },
           "contentNodeMaintenance": "Ce serveur est sur un nœud actuellement en maintenance et n'est pas accessible.",
           "contentTransferring": "Ce serveur est en cours de transfert et ne sera pas accessible tant que le transfert n'est pas terminé.",
@@ -2258,15 +2266,28 @@
         },
         "dedicated": {
           "description": "Les offres {name} sont payantes : leurs threads CPU et leur mémoire sont réservés à ton serveur. Commande-en une et l'équipe la met en place pour toi.",
+          "descriptionSelfService": "Les offres {name} sont payantes : leurs threads CPU et leur mémoire sont réservés à ton serveur. Paie le premier mois avec tes Funds noprofit.space et ton serveur est créé tout de suite.",
           "perMonth": "{price} / mois",
           "size": "{threads} threads CPU dédiés · {memory} Mo de mémoire · {disk} Mo d'espace disque",
           "soldOut": "Épuisé",
           "soldOutAt": "{location} (épuisé)",
           "order": "Commander via le support",
+          "orderPaid": "Commander",
           "orderSubject": "Commande {name} : {plan}",
           "orderBody": "Je voudrais commander l'offre {name} {plan}.",
           "orderLocations": "Emplacements : {locations}. Celui que je veux :",
-          "empty": "Aucune offre dédiée pour le moment."
+          "empty": "Aucune offre dédiée pour le moment.",
+          "addFunds": "Ajouter des Funds sur noprofit.space",
+          "modal": {
+            "title": "Commander {plan}",
+            "price": "Prix : {price} par mois",
+            "funds": "Tes Funds : {funds}",
+            "fundsLoading": "Vérification de tes Funds…",
+            "renewal": "Le premier mois est payé maintenant. Chaque mois suivant est renouvelé avec tes Funds ; tu peux annuler le renouvellement dans les paramètres du serveur.",
+            "short": "Tes Funds ne couvrent pas le premier mois.",
+            "pay": "Payer {price} et créer",
+            "paid": "{price} payés. Ton serveur est en cours de création."
+          }
         },
         "home": {
           "empty": {
@@ -12021,6 +12042,24 @@
               "bought": "{title} : actif jusqu'au {time}.",
               "boughtNoEnd": "{title} : acheté.",
               "color": "Couleur de carte enregistrée."
+            }
+          },
+          "billing": {
+            "title": "Facturation",
+            "note": "Ce serveur est payé chaque mois avec tes Funds noprofit.space.",
+            "price": "{price} par mois, payé jusqu'au {date}",
+            "renews": "Renouvelé avec tes Funds.",
+            "ends": "Se termine le {date}.",
+            "ownerOnly": "Seul le propriétaire du serveur peut modifier son renouvellement.",
+            "cancel": "Annuler le renouvellement",
+            "keep": "Le garder",
+            "confirm": {
+              "title": "Annuler le renouvellement ?",
+              "body": "Le serveur continue de fonctionner jusqu'à la fin de son mois payé ({date}). Ensuite il est suspendu, puis supprimé 3 jours plus tard. D'ici là, tu peux le garder."
+            },
+            "toast": {
+              "cancelled": "Renouvellement annulé. Le serveur fonctionne jusqu'au {date}.",
+              "kept": "Le serveur est de nouveau renouvelé avec tes Funds."
             }
           },
           "danger": {

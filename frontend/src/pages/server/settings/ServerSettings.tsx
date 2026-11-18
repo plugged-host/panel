@@ -7,6 +7,7 @@ import { useServerCan } from '@/plugins/usePermissions.ts'; // plugged.host
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useServerUpgrades } from '../upgrades/useServerUpgrades.ts'; // plugged.host
 import BehaviourSection from './BehaviourSection.tsx'; // plugged.host
+import BillingSection from './BillingSection.tsx'; // plugged.host: docs/features/dedicated.md
 import DangerSection from './DangerSection.tsx'; // plugged.host
 import InformationSection from './InformationSection.tsx'; // plugged.host
 import NotificationsSection from './NotificationsSection.tsx'; // plugged.host
@@ -18,6 +19,7 @@ import {
   useBehaviourShown,
   useNotificationSettings,
   useResizeOptions,
+  useServerBilling,
   useSoftwareOptions,
 } from './useSettingsSections.ts'; // plugged.host
 import VersionSection from './VersionSection.tsx'; // plugged.host
@@ -40,13 +42,15 @@ export default function ServerSettings() {
   const software = useSoftwareOptions();
   const notifications = useNotificationSettings(true);
   const upgrades = useServerUpgrades(); // plugged.host: docs/features/server-upgrades.md
+  const billing = useServerBilling(); // plugged.host: docs/features/dedicated.md
   // the page waits for the first answers that decide which sections it has or fill them, so nothing
   // moves once it shows and an address with a section opens at the right place
   const settling =
     (resize.resource.loading && resize.resource.data === undefined) ||
     (software.resource.loading && software.resource.data === undefined) ||
     (notifications.loading && notifications.data === undefined) ||
-    (upgrades.resource.loading && upgrades.resource.data === undefined);
+    (upgrades.resource.loading && upgrades.resource.data === undefined) ||
+    (billing.loading && billing.data === undefined);
 
   // plugged.host: the section the address names, brought to the top once the page shows; looked up in
   // this page's own column, as a second copy of the page (in a window) has the same ids
@@ -79,6 +83,7 @@ export default function ServerSettings() {
           {canSftp && <SftpSection />}
           <ResourcesSection />
           <UpgradesSection />
+          <BillingSection />
           <VersionSection />
           {canBehaviour && <BehaviourSection />}
           {canNotifications && <NotificationsSection />}

@@ -21,7 +21,7 @@ directly into the source. Read [`docs/README.md`](docs/README.md) first; the det
    the next deploy ([languages](docs/features/languages.md)). `pnpm build:translations && pnpm
    coverage:translations` must pass.
 5. **Database.** Change `database/src/schema.ts` and generate the migration (`kit:generate --name
-   <feature>`); never hand-write schema SQL or edit a migration that is on `main`. Runtime `sqlx`
+   <feature>`); never hand-write schema SQL or edit a migration that is on `dev` or `main`. Runtime `sqlx`
    only (`sqlx::query*`, never `query!`), `sqlx::AssertSqlSafe` around formatted SQL, values always bound.
 6. **Settings, not environment.** Anything an admin may change is a field in a settings section with
    an Admin › Settings tab; secrets are encrypted settings. Env is for what is needed before the
@@ -36,7 +36,9 @@ directly into the source. Read [`docs/README.md`](docs/README.md) first; the det
 10. **Public repository.** No secrets, real host names, IP addresses or SSH ports in code, docs,
     commits or examples. Placeholders only (`panel.example.com`, `192.0.2.10`, `<secret>`).
 11. **Upstream does not accept AI-written code.** Never open pull requests to `calagopus/panel`.
-12. **One branch.** Work on `main`; no feature branches.
+12. **Two branches, never more.** `dev` is what the dev panel runs: work lands there first. `main`
+    is what production runs: `dev` is merged into it for a release. No other branches (no feature or
+    fix branches).
 
 ## Checks before committing
 

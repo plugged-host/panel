@@ -1468,14 +1468,22 @@
             "by": {
               "manual": "Dieser Server wurde am {date} von einem Administrator suspendiert.",
               "abuse": "Dieser Server wurde am {date} von der automatischen Missbrauchsprüfung suspendiert.",
-              "noprofit": "Dieser Server wurde am {date} suspendiert, weil das noprofit.space-Konto seines Besitzers gelöscht wurde."
+              "noprofit": "Dieser Server wurde am {date} suspendiert, weil das noprofit.space-Konto seines Besitzers gelöscht wurde.",
+              "unpaid": "Dieser bezahlte Server wurde am {date} suspendiert, weil sein Monat nicht bezahlt werden konnte."
             },
             "reason": "Grund: {reason}",
             "deletesIn": "Dieser Server wird {time} gelöscht ({date}), sofern die Suspendierung nicht vorher aufgehoben wird.",
             "notEarlier": "Wir suspendieren keine Server aus Versehen, und dein Server wird nicht vor diesem Zeitpunkt gelöscht.",
             "help": "Wenn du denkst, dass das ein Fehler ist, wende dich an die Administratoren des Panels und nenne den Namen des Servers.",
             "helpLink": "Wenn du denkst, dass das ein Fehler ist, bitte um Hilfe und nenne den Namen des Servers.",
-            "getHelp": "Hilfe holen"
+            "getHelp": "Hilfe holen",
+            "unpaid": {
+              "price": "Der Monat kostet {price}.",
+              "priceFunds": "Der Monat kostet {price}. Deine Funds: {funds}.",
+              "short": "Deine Funds reichen nicht für den Monat.",
+              "payNow": "Jetzt bezahlen",
+              "paid": "Bezahlt. Dein Server ist nicht mehr suspendiert."
+            }
           },
           "contentNodeMaintenance": "Dieser Server befindet sich auf einer Node, die derzeit gewartet wird, und ist nicht zugänglich.",
           "contentTransferring": "Dieser Server wird derzeit übertragen und kann erst nach Abschluss der Übertragung aufgerufen werden.",
@@ -2257,15 +2265,28 @@
         },
         "dedicated": {
           "description": "{name}-Pläne sind kostenpflichtig: ihre CPU-Threads und ihr Arbeitsspeicher gehören nur deinem Server. Bestell einen, und das Team richtet ihn für dich ein.",
+          "descriptionSelfService": "{name}-Pläne sind kostenpflichtig: ihre CPU-Threads und ihr Arbeitsspeicher gehören nur deinem Server. Bezahl den ersten Monat mit deinen noprofit.space-Funds, und dein Server wird sofort erstellt.",
           "perMonth": "{price} / Monat",
           "size": "{threads} dedizierte CPU-Threads · {memory} MB Arbeitsspeicher · {disk} MB Speicherplatz",
           "soldOut": "Ausverkauft",
           "soldOutAt": "{location} (ausverkauft)",
           "order": "Über den Support bestellen",
+          "orderPaid": "Bestellen",
           "orderSubject": "{name}-Bestellung: {plan}",
           "orderBody": "Ich möchte den {name}-Plan {plan} bestellen.",
           "orderLocations": "Standorte: {locations}. Welchen ich möchte:",
-          "empty": "Keine dedizierten Pläne im Angebot."
+          "empty": "Keine dedizierten Pläne im Angebot.",
+          "addFunds": "Funds auf noprofit.space aufladen",
+          "modal": {
+            "title": "{plan} bestellen",
+            "price": "Preis: {price} pro Monat",
+            "funds": "Deine Funds: {funds}",
+            "fundsLoading": "Deine Funds werden geprüft…",
+            "renewal": "Der erste Monat wird jetzt bezahlt. Jeder weitere Monat verlängert sich aus deinen Funds; die Verlängerung kannst du in den Servereinstellungen kündigen.",
+            "short": "Deine Funds reichen nicht für den ersten Monat.",
+            "pay": "{price} bezahlen und erstellen",
+            "paid": "{price} bezahlt. Dein Server wird erstellt."
+          }
         },
         "home": {
           "title": "Servers",
@@ -7345,7 +7366,8 @@
                   "kind": {
                     "manual": "Ein Admin",
                     "abuse": "Missbrauchsprüfung",
-                    "noprofit": "noprofit.space (Konto gelöscht)"
+                    "noprofit": "noprofit.space (Konto gelöscht)",
+                    "unpaid": "Unbezahlt (bezahlter Server)"
                   },
                   "label": {
                     "kind": "Suspendiert von",
@@ -12043,6 +12065,24 @@
               "bought": "{title} läuft bis {time}.",
               "boughtNoEnd": "{title} gekauft.",
               "color": "Kartenfarbe gespeichert."
+            }
+          },
+          "billing": {
+            "title": "Abrechnung",
+            "note": "Dieser Server wird monatlich mit deinen noprofit.space-Funds bezahlt.",
+            "price": "{price} pro Monat, bezahlt bis {date}",
+            "renews": "Verlängert sich aus deinen Funds.",
+            "ends": "Endet am {date}.",
+            "ownerOnly": "Nur der Besitzer des Servers kann seine Verlängerung ändern.",
+            "cancel": "Verlängerung kündigen",
+            "keep": "Behalten",
+            "confirm": {
+              "title": "Verlängerung kündigen?",
+              "body": "Der Server läuft bis zum Ende seines bezahlten Monats ({date}) weiter. Danach wird er suspendiert und 3 Tage später gelöscht. Bis dahin kannst du ihn behalten."
+            },
+            "toast": {
+              "cancelled": "Verlängerung gekündigt. Der Server läuft bis {date}.",
+              "kept": "Der Server verlängert sich wieder aus deinen Funds."
             }
           },
           "danger": {

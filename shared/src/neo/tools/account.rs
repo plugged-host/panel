@@ -1108,6 +1108,11 @@ impl Tool for UnsuspendServerTool {
                     "This server is suspended because the owner's noprofit.space account is suspended or deleted. That has to be resolved at noprofit.space; I can't lift it here.",
                 ));
             }
+            crate::models::server::suspension::SuspensionKind::Unpaid => {
+                return Ok(ToolResult::error(
+                    "This paid server is suspended because its month was not paid. It comes back by itself once the owner adds Funds on noprofit.space and pays from the server's Settings page.",
+                ));
+            }
         }
 
         sqlx::query(

@@ -67,6 +67,22 @@ export const serverCreateDedicatedPlanSchema = z.object({
   ),
 });
 
+// the plans, and whether those with a price are ordered here and paid with noprofit.space Funds
+export const serverCreateDedicatedPlansSchema = z.object({
+  plans: z.array(serverCreateDedicatedPlanSchema),
+  selfService: z.boolean().default(false),
+});
+
+// a paid plan ordered here: its first month comes from the account's noprofit.space Funds
+export const serverCreateDedicatedOrderSchema = z.object({
+  planUuid: z.string(),
+  locationUuid: z.string(),
+  name: z.string().trim().min(1).max(191),
+  eggUuid: z.string(),
+  variant: z.string().nullable(),
+  eula: z.boolean(),
+});
+
 export const serverCreateOptionsSchema = z.object({
   enabled: z.boolean(),
   allowance: serverCreateAllowanceSchema,

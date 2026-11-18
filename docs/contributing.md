@@ -87,7 +87,8 @@ A change is complete when it has, in the same commit:
 - Imperative subject under ~72 characters (`Add the start queue`), a body that says why and what a
   reviewer should check.
 - One feature or fix per commit; a phase may be several commits.
-- `main` is the only branch. Commit, then push.
+- Two branches, never more: `dev` (the dev panel; commit and push here) and `main` (production;
+  `dev` is merged into it for a release). No feature or fix branches.
 - Never commit secrets, host names or addresses of real machines, or SSH ports. Documentation and
   examples use placeholders (`panel.example.com`, `<password>`, `192.0.2.10`).
 

@@ -1468,14 +1468,22 @@
             "by": {
               "manual": "Este servidor foi suspenso por um administrador em {date}.",
               "abuse": "Este servidor foi suspenso pelas verificações automáticas de abuso em {date}.",
-              "noprofit": "Este servidor foi suspenso em {date} porque a conta do noprofit.space do proprietário dele foi excluída."
+              "noprofit": "Este servidor foi suspenso em {date} porque a conta do noprofit.space do proprietário dele foi excluída.",
+              "unpaid": "Este servidor pago foi suspenso em {date} porque o mês dele não pôde ser pago."
             },
             "reason": "Motivo: {reason}",
             "deletesIn": "Este servidor será excluído {time} ({date}), a menos que a suspensão seja removida antes disso.",
             "notEarlier": "Não suspendemos servidores por engano, e seu servidor não será excluído antes desta data.",
             "help": "Se você acha que isso é um engano, entre em contato com os administradores do painel e informe o nome do servidor.",
             "helpLink": "Se você acha que isso é um engano, peça ajuda e informe o nome do servidor.",
-            "getHelp": "Obter ajuda"
+            "getHelp": "Obter ajuda",
+            "unpaid": {
+              "price": "O mês custa {price}.",
+              "priceFunds": "O mês custa {price}. Seus Funds: {funds}.",
+              "short": "Seus Funds não cobrem o mês.",
+              "payNow": "Pagar agora",
+              "paid": "Pago. Seu servidor não está mais suspenso."
+            }
           },
           "contentNodeMaintenance": "Este servidor está em um node que está em manutenção no momento e não pode ser acessado.",
           "contentTransferring": "Este servidor está sendo transferido e não pode ser acessado até que a transferência seja concluída.",
@@ -2258,15 +2266,28 @@
         },
         "dedicated": {
           "description": "Os planos {name} são pagos: as threads de CPU e a memória são só do seu servidor. Peça um e a equipe configura para você.",
+          "descriptionSelfService": "Os planos {name} são pagos: as threads de CPU e a memória são só do seu servidor. Pague o primeiro mês com seus Funds do noprofit.space e o servidor é criado na hora.",
           "perMonth": "{price} / mês",
           "size": "{threads} threads de CPU dedicadas · {memory} MB de Memória · {disk} MB de Espaço em Disco",
           "soldOut": "Esgotado",
           "soldOutAt": "{location} (esgotado)",
           "order": "Pedir pelo suporte",
+          "orderPaid": "Pedir",
           "orderSubject": "Pedido {name}: {plan}",
           "orderBody": "Gostaria de pedir o plano {name} {plan}.",
           "orderLocations": "Locais: {locations}. O que eu quero:",
-          "empty": "Nenhum plano dedicado disponível no momento."
+          "empty": "Nenhum plano dedicado disponível no momento.",
+          "addFunds": "Adicionar Funds no noprofit.space",
+          "modal": {
+            "title": "Pedir {plan}",
+            "price": "Preço: {price} por mês",
+            "funds": "Seus Funds: {funds}",
+            "fundsLoading": "Verificando seus Funds…",
+            "renewal": "O primeiro mês é pago agora. Cada mês seguinte é renovado com seus Funds; você pode cancelar a renovação nas configurações do servidor.",
+            "short": "Seus Funds não cobrem o primeiro mês.",
+            "pay": "Pagar {price} e criar",
+            "paid": "{price} pago. Seu servidor está sendo criado."
+          }
         },
         "home": {
           "empty": {
@@ -6454,6 +6475,24 @@
               "bought": "{title} vale até {time}.",
               "boughtNoEnd": "Compra concluída: {title}.",
               "color": "Cor do card salva."
+            }
+          },
+          "billing": {
+            "title": "Cobrança",
+            "note": "Este servidor é pago todo mês com seus Funds do noprofit.space.",
+            "price": "{price} por mês, pago até {date}",
+            "renews": "Renova com seus Funds.",
+            "ends": "Termina em {date}.",
+            "ownerOnly": "Só o proprietário do servidor pode alterar a renovação.",
+            "cancel": "Cancelar renovação",
+            "keep": "Manter",
+            "confirm": {
+              "title": "Cancelar a renovação?",
+              "body": "O servidor continua funcionando até o fim do mês pago ({date}). Depois ele é suspenso e excluído 3 dias mais tarde. Até lá, você pode mantê-lo."
+            },
+            "toast": {
+              "cancelled": "Renovação cancelada. O servidor funciona até {date}.",
+              "kept": "O servidor voltou a renovar com seus Funds."
             }
           },
           "danger": {

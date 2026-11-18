@@ -990,6 +990,15 @@ pub async fn define_background_tasks(
             async |state| shared::economy::settle_memberships(&state).await,
         )
         .await;
+    // plugged.host: paid servers' months paid again from their owners' Funds, or suspended
+    // (shared::dedicated, docs/features/dedicated.md)
+    background_task_builder
+        .add_cron_task(
+            "settle_paid_servers",
+            croner::Cron::from_str("45 */5 * * * *").unwrap(),
+            async |state| shared::dedicated::settle(&state).await,
+        )
+        .await;
     // plugged.host: server upgrades that ran out ended (limits back, boosts synced), ends-soon
     // notifications (shared::server_upgrades)
     background_task_builder

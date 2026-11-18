@@ -257,7 +257,8 @@ pub struct ApiDedicatedLocation {
     pub available: bool,
 }
 
-/// A public dedicated plan as players see it: ordered through a support ticket, set up by an admin.
+/// A public dedicated plan as players see it. With a price and noprofit.space connected, players
+/// order it themselves and pay monthly with Funds ([`order`]); otherwise through a support ticket.
 #[derive(serde::Serialize, utoipa::ToSchema)]
 pub struct ApiDedicatedPlan {
     pub uuid: uuid::Uuid,
@@ -336,6 +337,432 @@ pub async fn offers(state: &crate::State) -> Result<Vec<ApiDedicatedPlan>, anyho
     Ok(offers)
 }
 
+// ---------------------------------------------------------------------------------------------
+// Paid by the player: ordered here, paid monthly with noprofit.space Funds
+
+/// Days a paid month runs.
+pub const MONTH_DAYS: i64 = 30;
+/// Days an unpaid server stays suspended before it is deleted (`suspension::purge_due`).
+pub const GRACE_DAYS: i64 = 3;
+
+#[derive(Debug)]
+pub enum OrderError {
+    /// Not a public dedicated plan with a price.
+    NotOffered,
+    /// noprofit.space is not connected or the account is not linked to it: no Funds to pay with.
+    NoFunds,
+    /// The account has fewer Funds than a month costs.
+    Short,
+    /// noprofit.space did not answer.
+    Unavailable,
+    /// No node of the plan in the location has room for it now.
+    SoldOut,
+    Create(crate::server_creation::CreateError),
+}
+
+impl OrderError {
+    pub fn message(&self) -> String {
+        match self {
+            Self::NotOffered => "this plan cannot be ordered".into(),
+            Self::NoFunds => "paid plans are paid with noprofit.space Funds".into(),
+            Self::Short => "not enough Funds: add Funds on noprofit.space".into(),
+            Self::Unavailable => "noprofit.space did not answer, try again in a moment".into(),
+            Self::SoldOut => "this plan is sold out in this location".into(),
+            Self::Create(err) => err.message(),
+        }
+    }
+
+    pub fn status(&self) -> u16 {
+        match self {
+            Self::NotOffered => 400,
+            Self::NoFunds | Self::Short => 402,
+            Self::Unavailable => 503,
+            Self::SoldOut => 409,
+            Self::Create(err) => err.status(),
+        }
+    }
+}
+
+impl From<anyhow::Error> for OrderError {
+    fn from(err: anyhow::Error) -> Self {
+        Self::Create(crate::server_creation::CreateError::Other(err))
+    }
+}
+
+/// A paid server's month, as its players see it (`/api/client/servers/{server}/billing`).
+#[derive(serde::Serialize, utoipa::ToSchema)]
+pub struct ApiSubscription {
+    /// Euro cents a month.
+    pub price: i32,
+    pub paid_until: chrono::DateTime<chrono::Utc>,
+    /// Paid again from the owner's Funds when the month ends; off, the server ends then.
+    pub renews: bool,
+    /// The month is unpaid: the server is suspended since then and deleted at `delete_at`.
+    pub unpaid_since: Option<chrono::DateTime<chrono::Utc>>,
+    pub delete_at: Option<chrono::DateTime<chrono::Utc>>,
+}
+
+#[derive(sqlx::FromRow)]
+struct Subscription {
+    server_uuid: uuid::Uuid,
+    user_uuid: uuid::Uuid,
+    price: i32,
+    paid_until: chrono::NaiveDateTime,
+    renews: bool,
+    unpaid_since: Option<chrono::NaiveDateTime>,
+}
+
+const SUBSCRIPTION_COLUMNS: &str =
+    "server_uuid, user_uuid, price, paid_until, renews, unpaid_since";
+
+async fn subscription_row(
+    state: &crate::State,
+    server_uuid: uuid::Uuid,
+) -> Result<Option<Subscription>, sqlx::Error> {
+    sqlx::query_as(sqlx::AssertSqlSafe(format!(
+        "SELECT {SUBSCRIPTION_COLUMNS} FROM server_subscriptions WHERE server_uuid = $1"
+    )))
+    .bind(server_uuid)
+    .fetch_optional(state.database.write())
+    .await
+}
+
+/// The server's paid month, `None` for a server nobody pays for here (free, or made by an admin).
+pub async fn subscription(
+    state: &crate::State,
+    server_uuid: uuid::Uuid,
+) -> Result<Option<ApiSubscription>, anyhow::Error> {
+    Ok(subscription_row(state, server_uuid)
+        .await?
+        .map(|row| ApiSubscription {
+            price: row.price,
+            paid_until: row.paid_until.and_utc(),
+            renews: row.renews,
+            unpaid_since: row.unpaid_since.map(|at| at.and_utc()),
+            delete_at: row
+                .unpaid_since
+                .map(|at| (at + chrono::Duration::days(GRACE_DAYS)).and_utc()),
+        }))
+}
+
+/// noprofit.space and the account's link to it: what Funds are paid with.
+async fn payer(
+    state: &crate::State,
+    user_uuid: uuid::Uuid,
+) -> Result<Option<(crate::noprofit::Config, crate::noprofit::Link)>, anyhow::Error> {
+    let Some(config) = state.settings.get().await?.noprofit.config() else {
+        return Ok(None);
+    };
+    let link = crate::noprofit::Link::by_user_uuid(&state.database, user_uuid)
+        .await?
+        .filter(|link| link.deleted.is_none());
+
+    Ok(link.map(|link| (config, link)))
+}
+
+fn euros(cents: i32) -> String {
+    format!("€{}.{:02}", cents / 100, cents % 100)
+}
+
+/// Orders a public dedicated plan for `user`: takes the first month from their Funds, then makes
+/// the server (crate::server_creation::create_dedicated). A server that cannot be made gives the
+/// month back.
+pub async fn order(
+    state: &crate::State,
+    user: &crate::models::user::User,
+    request: crate::server_creation::CreateRequest,
+) -> Result<crate::models::server::Server, OrderError> {
+    use crate::models::ByUuid;
+    use crate::server_creation::CreateError;
+
+    let plan = match request.plan_uuid {
+        Some(plan_uuid) => Plan::by_uuid_optional(&state.database, plan_uuid)
+            .await
+            .map_err(anyhow::Error::from)?,
+        None => None,
+    };
+    let Some((plan, price)) = plan
+        .filter(|plan| plan.dedicated && plan.public)
+        .and_then(|plan| {
+            plan.price
+                .filter(|price| *price > 0)
+                .map(|price| (plan, price))
+        })
+    else {
+        return Err(OrderError::NotOffered);
+    };
+    if user.suspended || user.frozen {
+        return Err(OrderError::Create(CreateError::AccountBlocked));
+    }
+    let Some((noprofit, link)) = payer(state, user.uuid).await? else {
+        return Err(OrderError::NoFunds);
+    };
+
+    let Some(_lock) = crate::allowance::lock(state, user.uuid).await else {
+        return Err(OrderError::Create(CreateError::Busy));
+    };
+
+    // sold out: nothing is charged
+    let available = offers(state).await?.into_iter().any(|offer| {
+        offer.uuid == plan.uuid
+            && offer
+                .locations
+                .iter()
+                .any(|location| location.uuid == request.location_uuid && location.available)
+    });
+    if !available {
+        return Err(OrderError::SoldOut);
+    }
+
+    let order_uuid = uuid::Uuid::new_v4();
+    let description = format!(
+        "{}: {} for {} days",
+        request.name.trim(),
+        plan.name,
+        MONTH_DAYS
+    );
+    match noprofit
+        .spend_funds(
+            &state.client,
+            link.account_id,
+            price as i64,
+            &description,
+            &format!("dedicated:order:{order_uuid}"),
+        )
+        .await
+    {
+        Ok(Some(_)) => {}
+        Ok(None) => return Err(OrderError::Short),
+        Err(err) => {
+            tracing::warn!(user = %user.uuid, "noprofit.space did not take the Funds for a paid server: {err:#}");
+            return Err(OrderError::Unavailable);
+        }
+    }
+
+    let server = match crate::server_creation::create_dedicated(state, user, request, &plan).await {
+        Ok(server) => server,
+        Err(err) => {
+            if let Err(refund) = noprofit
+                .refund_funds(
+                    &state.client,
+                    link.account_id,
+                    price as i64,
+                    &format!("Refund: {description} (the server could not be made)"),
+                    &format!("dedicated:refund:{order_uuid}"),
+                )
+                .await
+            {
+                tracing::error!(user = %user.uuid, account = link.account_id, price, order = %order_uuid,
+                    "a paid server could not be made and its Funds could not be given back, refund them by hand: {refund:#}");
+            }
+
+            return Err(OrderError::Create(err));
+        }
+    };
+
+    if let Err(err) = sqlx::query(
+        "INSERT INTO server_subscriptions (server_uuid, user_uuid, plan_uuid, price, paid_until)
+        VALUES ($1, $2, $3, $4, NOW() + make_interval(days => $5))",
+    )
+    .bind(server.uuid)
+    .bind(user.uuid)
+    .bind(plan.uuid)
+    .bind(price)
+    .bind(MONTH_DAYS as i32)
+    .execute(state.database.write())
+    .await
+    {
+        tracing::error!(server = %server.uuid, "a paid server was made but its month was not recorded: {err:#}");
+    }
+
+    Ok(server)
+}
+
+/// What paying a month came to.
+#[derive(Debug, PartialEq, Eq)]
+pub enum Renewal {
+    Paid,
+    Short,
+    /// noprofit.space is not connected, the account not linked, or noprofit.space did not answer.
+    Unavailable,
+}
+
+/// Pays the month that ended (`paid_until`) from the owner's Funds, once: the key is the server
+/// and that end. A paid server that was suspended for it is back.
+async fn pay(state: &crate::State, row: &Subscription) -> Result<Renewal, anyhow::Error> {
+    use crate::models::{ByUuid, UpdatableModel};
+
+    let Some((noprofit, link)) = payer(state, row.user_uuid).await? else {
+        return Ok(Renewal::Unavailable);
+    };
+    let Some(mut server) =
+        crate::models::server::Server::by_uuid_optional(&state.database, row.server_uuid).await?
+    else {
+        return Ok(Renewal::Unavailable);
+    };
+
+    let key = format!(
+        "dedicated:renew:{}:{}",
+        row.server_uuid,
+        row.paid_until.and_utc().timestamp()
+    );
+    let description = format!("{}: {} more days", server.name, MONTH_DAYS);
+    match noprofit
+        .spend_funds(
+            &state.client,
+            link.account_id,
+            row.price as i64,
+            &description,
+            &key,
+        )
+        .await
+    {
+        Ok(Some(_)) => {}
+        Ok(None) => return Ok(Renewal::Short),
+        Err(err) => {
+            tracing::warn!(server = %row.server_uuid, "noprofit.space did not take a paid server's month: {err:#}");
+            return Ok(Renewal::Unavailable);
+        }
+    }
+
+    // on time, the next month follows on; late, it starts now
+    sqlx::query(
+        "UPDATE server_subscriptions
+        SET paid_until = GREATEST(paid_until, NOW()) + make_interval(days => $2), unpaid_since = NULL, renews = TRUE
+        WHERE server_uuid = $1 AND paid_until = $3",
+    )
+    .bind(row.server_uuid)
+    .bind(MONTH_DAYS as i32)
+    .bind(row.paid_until)
+    .execute(state.database.write())
+    .await?;
+
+    if server.suspension.as_ref().is_some_and(|suspension| {
+        suspension.kind == crate::models::server::suspension::SuspensionKind::Unpaid
+    }) {
+        let options = crate::models::server::UpdateServerOptions {
+            suspended: Some(false),
+            ..Default::default()
+        };
+        if let Err(err) = server.update(state, options).await {
+            tracing::warn!(server = %row.server_uuid, "failed to lift a paid server's unpaid suspension: {err:#?}");
+        }
+    }
+
+    Ok(Renewal::Paid)
+}
+
+/// The month ended unpaid (too few Funds, or not renewed): the server is suspended and deleted
+/// after [`GRACE_DAYS`] unless it is paid first.
+async fn lapse(
+    state: &crate::State,
+    row: &Subscription,
+    reason: String,
+) -> Result<(), anyhow::Error> {
+    use crate::models::ByUuid;
+
+    sqlx::query(
+        "UPDATE server_subscriptions SET unpaid_since = NOW()
+        WHERE server_uuid = $1 AND unpaid_since IS NULL",
+    )
+    .bind(row.server_uuid)
+    .execute(state.database.write())
+    .await?;
+
+    if let Some(mut server) =
+        crate::models::server::Server::by_uuid_optional(&state.database, row.server_uuid).await?
+    {
+        server
+            .suspend(
+                state,
+                crate::models::server::suspension::Suspend {
+                    kind: crate::models::server::suspension::SuspensionKind::Unpaid,
+                    reason: Some(reason),
+                    by: None,
+                    delete_at: Some(chrono::Utc::now() + chrono::Duration::days(GRACE_DAYS)),
+                },
+            )
+            .await?;
+    }
+
+    Ok(())
+}
+
+/// The `settle_paid_servers` task: every paid server whose month ended is paid again from its
+/// owner's Funds, or suspended (and deleted [`GRACE_DAYS`] later by the suspension purge). An
+/// unpaid one is tried again each time, so Funds added later bring it back by themselves.
+pub async fn settle(state: &crate::State) -> Result<(), anyhow::Error> {
+    if state.settings.get().await?.noprofit.config().is_none() {
+        return Ok(());
+    }
+
+    let due: Vec<Subscription> = sqlx::query_as(sqlx::AssertSqlSafe(format!(
+        "SELECT {SUBSCRIPTION_COLUMNS} FROM server_subscriptions
+        WHERE paid_until <= NOW()
+        ORDER BY paid_until
+        LIMIT 200"
+    )))
+    .fetch_all(state.database.read())
+    .await?;
+
+    for row in due {
+        let result = if row.renews {
+            match pay(state, &row).await {
+                Ok(Renewal::Short) if row.unpaid_since.is_none() => {
+                    lapse(
+                        state,
+                        &row,
+                        format!(
+                            "Its month ({}) could not be paid: add Funds on noprofit.space and it comes back.",
+                            euros(row.price)
+                        ),
+                    )
+                    .await
+                }
+                Ok(_) => Ok(()),
+                Err(err) => Err(err),
+            }
+        } else if row.unpaid_since.is_none() {
+            lapse(
+                state,
+                &row,
+                "Its renewal was cancelled: renew it from this page to keep it.".into(),
+            )
+            .await
+        } else {
+            Ok(())
+        };
+
+        if let Err(err) = result {
+            tracing::warn!(server = %row.server_uuid, "failed to settle a paid server's month: {err:#}");
+        }
+    }
+
+    Ok(())
+}
+
+/// The owner turns renewal on or off. Turning it on for a month that already ended pays it now.
+pub async fn set_renews(
+    state: &crate::State,
+    server_uuid: uuid::Uuid,
+    renews: bool,
+) -> Result<Option<Renewal>, anyhow::Error> {
+    sqlx::query("UPDATE server_subscriptions SET renews = $2 WHERE server_uuid = $1")
+        .bind(server_uuid)
+        .bind(renews)
+        .execute(state.database.write())
+        .await?;
+
+    let Some(row) = subscription_row(state, server_uuid).await? else {
+        return Ok(None);
+    };
+    if renews && row.paid_until <= chrono::Utc::now().naive_utc() {
+        return Ok(Some(pay(state, &row).await?));
+    }
+
+    Ok(None)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -384,6 +811,20 @@ mod tests {
     #[test]
     fn zero_threads_is_nothing() {
         assert_eq!(pick_threads(8, &used(&[]), 0), Some(Vec::new()));
+    }
+
+    #[test]
+    fn prices_read_as_euros() {
+        assert_eq!(euros(1000), "€10.00");
+        assert_eq!(euros(499), "€4.99");
+        assert_eq!(euros(5), "€0.05");
+    }
+
+    #[test]
+    fn order_errors_have_a_status() {
+        assert_eq!(OrderError::Short.status(), 402);
+        assert_eq!(OrderError::SoldOut.status(), 409);
+        assert_eq!(OrderError::NotOffered.status(), 400);
     }
 
     #[test]

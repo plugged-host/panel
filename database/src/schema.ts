@@ -2122,6 +2122,27 @@ export const serverLimboTable = pgTable('server_limbo', {
   home_ports: integer().array().default([]).notNull(),
 });
 
+// plugged.host: a paid server its player ordered and pays for monthly with noprofit.space Funds
+// (shared/src/dedicated.rs, docs/features/dedicated.md). `price` (euro cents) is what each month
+// costs, as at the order; `paid_until` the end of the paid month. Without `renews` it ends there.
+// `unpaid_since`: the month could not be paid (or it was not renewed) and the server is suspended
+// until it is.
+export const serverSubscriptionsTable = pgTable('server_subscriptions', {
+  server_uuid: uuid()
+    .references(() => serversTable.uuid, { onDelete: 'cascade' })
+    .primaryKey()
+    .notNull(),
+  user_uuid: uuid()
+    .references(() => usersTable.uuid, { onDelete: 'cascade' })
+    .notNull(),
+  plan_uuid: uuid().references(() => plansTable.uuid, { onDelete: 'set null' }),
+  price: integer().notNull(),
+  paid_until: timestamp().notNull(),
+  renews: boolean().default(true).notNull(),
+  unpaid_since: timestamp(),
+  created: timestamp().defaultNow().notNull(),
+});
+
 // plugged.host: what users bought with tokens for one server (shared/src/server_upgrades.rs,
 // docs/features/server-upgrades.md): a keep-awake pass, a boost, an extra port, database or backup
 // slot (`amount` added to the server's limit while it runs), a card colour (no end). `tokens` is all

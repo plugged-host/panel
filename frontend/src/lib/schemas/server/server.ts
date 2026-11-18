@@ -8,7 +8,7 @@ import { eggConfigurationRouteItemSchema } from '../generic.ts';
 export const serverStatus = z.enum(['installing', 'install_failed', 'restoring_backup', 'backup_restore_failed']);
 
 // plugged.host: why and until when a server is suspended (shared/src/models/server/suspension.rs)
-export const serverSuspensionKind = z.enum(['manual', 'abuse', 'noprofit']);
+export const serverSuspensionKind = z.enum(['manual', 'abuse', 'noprofit', 'unpaid']);
 
 export const serverSuspensionSchema = z.object({
   kind: serverSuspensionKind,

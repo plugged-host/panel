@@ -1,19 +1,22 @@
 // plugged.host: the paid plans whose CPU threads and memory are the server's alone, on a page of their
-// own apart from the free ones, ordered from the team with a support ticket and set up by an admin
-// (docs/features/dedicated.md)
+// own apart from the free ones: with noprofit.space connected a plan with a price is ordered here and
+// paid with Funds (DedicatedOrderModal.tsx), else ordered from the team with a support ticket and set
+// up by an admin (docs/features/dedicated.md)
+import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { z } from 'zod';
 import getDedicatedPlans from '@/api/server/getDedicatedPlans.ts';
+import { formatEuro } from '@/elements/AddFundsLink.tsx';
 import AccountContentContainer from '@/elements/containers/AccountContentContainer.tsx';
 import Choice from '@/elements/input/Choice.tsx';
 import ResourceView from '@/elements/ResourceView.tsx';
 import Text from '@/elements/typography/Text.tsx';
-import { intlLocale } from '@/lib/languages.ts';
 import { queryKeys } from '@/lib/queryKeys.ts';
 import { serverCreateDedicatedPlanSchema } from '@/lib/schemas/server/create.ts';
 import { useResource } from '@/plugins/resource/useResource.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useGlobalStore } from '@/stores/global.ts';
+import DedicatedOrderModal from './DedicatedOrderModal.tsx';
 
 type DedicatedPlan = z.infer<typeof serverCreateDedicatedPlanSchema>;
 
@@ -29,8 +32,11 @@ export default function DashboardDedicated() {
     queryFn: getDedicatedPlans,
   });
 
-  const price = (cents: number) =>
-    new Intl.NumberFormat(intlLocale(language), { style: 'currency', currency: 'EUR' }).format(cents / 100);
+  // the plan being ordered here, paid with Funds
+  const [ordering, setOrdering] = useState<{ plan: DedicatedPlan; price: number } | null>(null);
+  const selfService = resource.data?.selfService ?? false;
+
+  const price = (cents: number) => formatEuro(cents, language);
 
   const size = (plan: DedicatedPlan) =>
     t(`${page}.size`, {
@@ -40,6 +46,11 @@ export default function DashboardDedicated() {
     });
 
   const order = (plan: DedicatedPlan) => {
+    if (selfService && plan.price !== null) {
+      setOrdering({ plan, price: plan.price });
+      return;
+    }
+
     const body = [
       t(`${page}.orderBody`, { name, plan: plan.name }),
       size(plan),
@@ -54,9 +65,15 @@ export default function DashboardDedicated() {
   };
 
   return (
-    <AccountContentContainer title={name} subtitle={t(`${page}.description`, { name })}>
+    <AccountContentContainer
+      title={name}
+      subtitle={t(selfService ? `${page}.descriptionSelfService` : `${page}.description`, { name })}
+    >
+      {ordering && (
+        <DedicatedOrderModal plan={ordering.plan} price={ordering.price} onClose={() => setOrdering(null)} />
+      )}
       <ResourceView resource={resource}>
-        {(plans) =>
+        {({ plans }) =>
           plans.length === 0 ? (
             <Text c='dimmed'>{t(`${page}.empty`, {})}</Text>
           ) : (
@@ -67,7 +84,6 @@ export default function DashboardDedicated() {
                 return (
                   <Choice
                     key={plan.uuid}
-                    locked
                     selected={false}
                     disabled={!available}
                     onSelect={() => available && order(plan)}
@@ -88,7 +104,11 @@ export default function DashboardDedicated() {
                       </span>
                     )}
                     <span className='theme-choice-text'>
-                      {available ? t(`${page}.order`, {}) : t(`${page}.soldOut`, {})}
+                      {!available
+                        ? t(`${page}.soldOut`, {})
+                        : selfService && plan.price !== null
+                          ? t(`${page}.orderPaid`, {})
+                          : t(`${page}.order`, {})}
                     </span>
                   </Choice>
                 );

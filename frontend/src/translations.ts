@@ -1282,6 +1282,7 @@ const baseTranslations = defineTranslations({
               manual: 'This server was suspended by an administrator on {date}.',
               abuse: 'This server was suspended by the automated abuse checks on {date}.',
               noprofit: "This server was suspended on {date} because its owner's noprofit.space account was deleted.",
+              unpaid: 'This paid server was suspended on {date} because its month could not be paid.', // plugged.host
             },
             reason: 'Reason: {reason}',
             deletesIn: 'This server will be deleted {time} ({date}), unless the suspension is lifted before then.',
@@ -1289,6 +1290,14 @@ const baseTranslations = defineTranslations({
             help: "If you think this is a mistake, contact the panel's administrators and include the server's name.",
             helpLink: "If you think this is a mistake, ask for help and include the server's name.",
             getHelp: 'Get help',
+            // plugged.host: an unpaid paid server, paid now from noprofit.space Funds (docs/features/dedicated.md)
+            unpaid: {
+              price: 'The month costs {price}.',
+              priceFunds: 'The month costs {price}. Your Funds: {funds}.',
+              short: "Your Funds don't cover the month.",
+              payNow: 'Pay now',
+              paid: 'Paid. Your server is no longer suspended.',
+            },
           },
           contentNodeMaintenance:
             'This server is on a node that is currently under maintenance and cannot be accessed.',
@@ -2109,15 +2118,31 @@ const baseTranslations = defineTranslations({
         dedicated: {
           description:
             "{name} plans are paid: their CPU threads and memory are your server's alone. Order one and the team sets it up for you.",
+          descriptionSelfService:
+            "{name} plans are paid: their CPU threads and memory are your server's alone. Pay the first month with your noprofit.space Funds and your server is created right away.",
           perMonth: '{price} / month',
           size: '{threads} dedicated CPU threads · {memory} MB Memory · {disk} MB Disk Space',
           soldOut: 'Sold out',
           soldOutAt: '{location} (sold out)',
           order: 'Order through support',
+          orderPaid: 'Order',
           orderSubject: '{name} order: {plan}',
           orderBody: 'I would like to order the {name} plan {plan}.',
           orderLocations: 'Locations: {locations}. Which one I want:',
           empty: 'No dedicated plans are offered right now.',
+          addFunds: 'Add Funds on noprofit.space',
+          // ordered here and paid with noprofit.space Funds (DedicatedOrderModal.tsx)
+          modal: {
+            title: 'Order {plan}',
+            price: 'Price: {price} a month',
+            funds: 'Your Funds: {funds}',
+            fundsLoading: 'Checking your Funds…',
+            renewal:
+              'The first month is paid now. Each next month renews from your Funds; you can cancel the renewal in the server settings.',
+            short: "Your Funds don't cover the first month.",
+            pay: 'Pay {price} and create',
+            paid: 'Paid {price}. Your server is being created.',
+          },
         },
         home: {
           empty: {
@@ -7627,6 +7652,7 @@ const baseTranslations = defineTranslations({
                     manual: 'An admin',
                     abuse: 'Abuse checks',
                     noprofit: 'noprofit.space (account deleted)',
+                    unpaid: 'Unpaid (paid server)', // plugged.host
                   },
                   label: {
                     kind: 'Suspended By',
@@ -12516,6 +12542,25 @@ const baseTranslations = defineTranslations({
               bought: '{title} runs until {time}.',
               boughtNoEnd: '{title} bought.',
               color: 'Card colour saved.',
+            },
+          },
+          // plugged.host: a server paid monthly with noprofit.space Funds (docs/features/dedicated.md)
+          billing: {
+            title: 'Billing',
+            note: 'This server is paid monthly with your noprofit.space Funds.',
+            price: '{price} a month, paid until {date}',
+            renews: 'Renews from your Funds.',
+            ends: 'Ends on {date}.',
+            ownerOnly: "Only the server's owner can change its renewal.",
+            cancel: 'Cancel renewal',
+            keep: 'Keep it',
+            confirm: {
+              title: 'Cancel renewal?',
+              body: 'The server keeps running until the end of its paid month ({date}). Then it is suspended, and deleted 3 days later. Until then you can keep it.',
+            },
+            toast: {
+              cancelled: 'Renewal cancelled. The server runs until {date}.',
+              kept: 'The server renews from your Funds again.',
             },
           },
           danger: {

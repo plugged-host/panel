@@ -35,6 +35,7 @@ mod logs;
 mod minecraft; // plugged.host
 // plugged.host: mounts removed (docs/upstream.md)
 // mod mounts;
+mod billing; // plugged.host
 mod limbo; // plugged.host
 mod power;
 mod queue; // plugged.host
@@ -85,6 +86,9 @@ pub async fn auth(
         "/api/client/servers/{server}/transfer",
         "/api/client/servers/{server}/transfer/cancel",
         "/api/client/servers/{server}/transfer/status",
+        // plugged.host: a paid server suspended for its unpaid month is paid from here
+        // (docs/features/dedicated.md)
+        "/api/client/servers/{server}/billing",
     ];
 
     // plugged.host: a new Minecraft server's setup is answered while its install runs, and the
@@ -214,6 +218,7 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         .nest("/websocket", websocket::router(state))
         .nest("/command", command::router(state))
         .nest("/limbo", limbo::router(state)) // plugged.host
+        .nest("/billing", billing::router(state)) // plugged.host
         .nest("/power", power::router(state))
         .nest("/queue", queue::router(state)) // plugged.host
         .nest("/waiting-room", waiting_room::router(state)) // plugged.host

@@ -1468,14 +1468,22 @@
             "by": {
               "manual": "Bu sunucu {date} tarihinde bir yönetici tarafından askıya alındı.",
               "abuse": "Bu sunucu {date} tarihinde otomatik kötüye kullanım kontrolleri tarafından askıya alındı.",
-              "noprofit": "Bu sunucu, sahibinin noprofit.space hesabı silindiği için {date} tarihinde askıya alındı."
+              "noprofit": "Bu sunucu, sahibinin noprofit.space hesabı silindiği için {date} tarihinde askıya alındı.",
+              "unpaid": "Bu ücretli sunucu, ayı ödenemediği için {date} tarihinde askıya alındı."
             },
             "reason": "Sebep: {reason}",
             "deletesIn": "Askıya alma daha önce kaldırılmazsa bu sunucu {time} silinecek ({date}).",
             "notEarlier": "Sunucuları yanlışlıkla askıya almayız ve sunucunuz bu tarihten önce silinmez.",
             "help": "Bunun bir hata olduğunu düşünüyorsanız panel yöneticileriyle iletişime geçin ve sunucunun adını belirtin.",
             "helpLink": "Bunun bir hata olduğunu düşünüyorsanız yardım isteyin ve sunucunun adını belirtin.",
-            "getHelp": "Yardım al"
+            "getHelp": "Yardım al",
+            "unpaid": {
+              "price": "Aylık ücret {price}.",
+              "priceFunds": "Aylık ücret {price}. Funds bakiyen: {funds}.",
+              "short": "Funds bakiyen bu ayı karşılamıyor.",
+              "payNow": "Şimdi öde",
+              "paid": "Ödendi. Sunucun artık askıda değil."
+            }
           },
           "contentNodeMaintenance": "Bu sunucu bakımda olan bir node üzerinde ve erişilemez.",
           "contentTransferring": "Bu sunucu şu anda taşınıyor ve işlem bitene kadar erişilemez.",
@@ -2258,15 +2266,28 @@
         },
         "dedicated": {
           "description": "{name} planları ücretlidir: CPU iş parçacıkları ve belleği yalnızca sunucuna aittir. Bir tane sipariş et, ekip senin için kursun.",
+          "descriptionSelfService": "{name} planları ücretlidir: CPU iş parçacıkları ve belleği yalnızca senin sunucuna aittir. İlk ayı noprofit.space Funds'ınla öde, sunucun hemen oluşturulsun.",
           "perMonth": "{price} / ay",
           "size": "{threads} ayrılmış CPU iş parçacığı · {memory} MB Bellek · {disk} MB Disk Alanı",
           "soldOut": "Tükendi",
           "soldOutAt": "{location} (tükendi)",
           "order": "Destek üzerinden sipariş ver",
+          "orderPaid": "Sipariş ver",
           "orderSubject": "{name} siparişi: {plan}",
           "orderBody": "{name} planı {plan} sipariş etmek istiyorum.",
           "orderLocations": "Konumlar: {locations}. İstediğim:",
-          "empty": "Şu anda ayrılmış plan yok."
+          "empty": "Şu anda ayrılmış plan yok.",
+          "addFunds": "noprofit.space üzerinde Funds ekle",
+          "modal": {
+            "title": "{plan} siparişi",
+            "price": "Fiyat: aylık {price}",
+            "funds": "Funds bakiyen: {funds}",
+            "fundsLoading": "Funds bakiyen kontrol ediliyor…",
+            "renewal": "İlk ay şimdi ödenir. Sonraki her ay Funds bakiyenden yenilenir; yenilemeyi sunucu ayarlarından iptal edebilirsin.",
+            "short": "Funds bakiyen ilk ayı karşılamıyor.",
+            "pay": "{price} öde ve oluştur",
+            "paid": "{price} ödendi. Sunucun oluşturuluyor."
+          }
         },
         "home": {
           "empty": {
@@ -6454,6 +6475,24 @@
               "bought": "{title}, {time} tarihine kadar geçerli.",
               "boughtNoEnd": "{title} satın alındı.",
               "color": "Kart rengi kaydedildi."
+            }
+          },
+          "billing": {
+            "title": "Faturalandırma",
+            "note": "Bu sunucu her ay noprofit.space Funds bakiyenden ödenir.",
+            "price": "Aylık {price}, {date} tarihine kadar ödendi",
+            "renews": "Funds bakiyenden yenilenir.",
+            "ends": "{date} tarihinde sona erer.",
+            "ownerOnly": "Yenilemeyi yalnızca sunucunun sahibi değiştirebilir.",
+            "cancel": "Yenilemeyi iptal et",
+            "keep": "Devam ettir",
+            "confirm": {
+              "title": "Yenileme iptal edilsin mi?",
+              "body": "Sunucu, ödenmiş ayının sonuna ({date}) kadar çalışmaya devam eder. Ardından askıya alınır ve 3 gün sonra silinir. O zamana kadar sunucuyu tutabilirsin."
+            },
+            "toast": {
+              "cancelled": "Yenileme iptal edildi. Sunucu {date} tarihine kadar çalışır.",
+              "kept": "Sunucu yeniden Funds bakiyenden yenilenecek."
             }
           },
           "danger": {

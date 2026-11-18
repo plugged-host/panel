@@ -1468,14 +1468,22 @@
             "by": {
               "manual": "Bu server administrator tomonidan muzlatilgan ({date}).",
               "abuse": "Bu server suiisteʼmolni avtomatik tekshirish natijasida muzlatilgan ({date}).",
-              "noprofit": "Bu server egasining noprofit.space hisobi oʻchirilgani sababli muzlatilgan ({date})."
+              "noprofit": "Bu server egasining noprofit.space hisobi oʻchirilgani sababli muzlatilgan ({date}).",
+              "unpaid": "Bu pullik server oyi uchun to'lov amalga oshmagani sababli muzlatilgan ({date})."
             },
             "reason": "Sabab: {reason}",
             "deletesIn": "Agar muzlatish bungacha bekor qilinmasa, bu server {time} oʻchiriladi ({date}).",
             "notEarlier": "Biz serverlarni xato tufayli muzlatmaymiz va serveringiz bu sanadan oldin oʻchirilmaydi.",
             "help": "Agar bu xato deb hisoblasangiz, panel administratorlariga murojaat qiling va server nomini koʻrsating.",
             "helpLink": "Agar bu xato deb hisoblasangiz, yordam soʻrang va server nomini koʻrsating.",
-            "getHelp": "Yordam olish"
+            "getHelp": "Yordam olish",
+            "unpaid": {
+              "price": "Oy narxi {price}.",
+              "priceFunds": "Oy narxi {price}. Funds balansingiz: {funds}.",
+              "short": "Funds balansingiz bu oyga yetmaydi.",
+              "payNow": "Hozir to'lash",
+              "paid": "To'landi. Serveringiz endi muzlatilmagan."
+            }
           },
           "contentNodeMaintenance": "Bu server hozir texnik xizmatdagi tugunda joylashgan, shu sababli unga kirib boʻlmaydi.",
           "contentTransferring": "Bu server hozir koʻchirilmoqda, koʻchirish tugamaguncha unga kirib boʻlmaydi.",
@@ -2258,15 +2266,28 @@
         },
         "dedicated": {
           "description": "{name} rejalari pullik: ularning CPU oqimlari va xotirasi faqat sizning serveringizga tegishli. Birini buyurtma qiling, jamoa uni siz uchun sozlaydi.",
+          "descriptionSelfService": "{name} rejalari pullik: ularning CPU oqimlari va xotirasi faqat sizning serveringizga tegishli. Birinchi oyni noprofit.space'dagi Funds bilan to'lang, server darhol yaratiladi.",
           "perMonth": "{price} / oy",
           "size": "{threads} ta ajratilgan CPU oqimi · {memory} MB xotira · {disk} MB disk joyi",
           "soldOut": "Tugagan",
           "soldOutAt": "{location} (tugagan)",
           "order": "Qo'llab-quvvatlash orqali buyurtma berish",
+          "orderPaid": "Buyurtma berish",
           "orderSubject": "{name} buyurtmasi: {plan}",
           "orderBody": "Men {name} rejasi {plan} ni buyurtma qilmoqchiman.",
           "orderLocations": "Joylashuvlar: {locations}. Men xohlagani:",
-          "empty": "Hozircha ajratilgan rejalar yo'q."
+          "empty": "Hozircha ajratilgan rejalar yo'q.",
+          "addFunds": "noprofit.space'da Funds qo'shing",
+          "modal": {
+            "title": "{plan} buyurtmasi",
+            "price": "Narxi: oyiga {price}",
+            "funds": "Funds balansingiz: {funds}",
+            "fundsLoading": "Funds balansingiz tekshirilmoqda…",
+            "renewal": "Birinchi oy hozir to'lanadi. Keyingi har oy Funds balansingizdan uzaytiriladi; uzaytirishni server sozlamalarida bekor qilishingiz mumkin.",
+            "short": "Funds balansingiz birinchi oyga yetmaydi.",
+            "pay": "{price} to'lash va yaratish",
+            "paid": "{price} to'landi. Serveringiz yaratilmoqda."
+          }
         },
         "home": {
           "empty": {
@@ -6454,6 +6475,24 @@
               "bought": "{title} {time} gacha amal qiladi.",
               "boughtNoEnd": "{title} sotib olindi.",
               "color": "Karta rangi saqlandi."
+            }
+          },
+          "billing": {
+            "title": "To'lov",
+            "note": "Bu server har oy noprofit.space'dagi Funds balansingizdan to'lanadi.",
+            "price": "Oyiga {price}, {date} gacha to'langan",
+            "renews": "Funds balansingizdan uzaytiriladi.",
+            "ends": "{date} da tugaydi.",
+            "ownerOnly": "Uzaytirishni faqat server egasi o'zgartira oladi.",
+            "cancel": "Uzaytirishni bekor qilish",
+            "keep": "Saqlab qolish",
+            "confirm": {
+              "title": "Uzaytirish bekor qilinsinmi?",
+              "body": "Server to'langan oyi oxirigacha ({date}) ishlashda davom etadi. Keyin u muzlatiladi va 3 kundan so'ng o'chiriladi. Ungacha uni saqlab qolishingiz mumkin."
+            },
+            "toast": {
+              "cancelled": "Uzaytirish bekor qilindi. Server {date} gacha ishlaydi.",
+              "kept": "Server yana Funds balansingizdan uzaytiriladi."
             }
           },
           "danger": {

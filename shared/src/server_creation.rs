@@ -498,7 +498,34 @@ pub async fn create(
         return Err(CreateError::Busy);
     };
 
-    create_locked(state, user, request, game).await
+    create_locked(state, user, request, game, None).await
+}
+
+/// plugged.host: a server of a dedicated (paid) plan, made for the player who paid for it
+/// (crate::dedicated::order): the plan's size on a dedicated node of the plan in the location,
+/// pinned to threads of its own. Not limited by the allowance, the location's tier or whether
+/// players may create free servers. Call it under the player's [`crate::allowance::lock`].
+pub async fn create_dedicated(
+    state: &crate::State,
+    user: &User,
+    request: CreateRequest,
+    plan: &Plan,
+) -> Result<Server, CreateError> {
+    let game = state
+        .settings
+        .get()
+        .await?
+        .games
+        .game(request.egg_uuid)
+        .cloned();
+    if user.suspended || user.frozen {
+        return Err(CreateError::AccountBlocked);
+    }
+    if valid_name(&request.name).is_none() {
+        return Err(CreateError::InvalidName);
+    }
+
+    create_locked(state, user, request, game, Some(plan)).await
 }
 
 async fn create_locked(
@@ -506,6 +533,7 @@ async fn create_locked(
     user: &User,
     request: CreateRequest,
     game: Option<Game>,
+    dedicated: Option<&Plan>, // plugged.host: docs/features/dedicated.md
 ) -> Result<Server, CreateError> {
     let game = game.ok_or(CreateError::UnknownGame)?;
     let egg = NestEgg::by_uuid_optional(&state.database, game.egg_uuid)
@@ -534,13 +562,24 @@ async fn create_locked(
         .await?
         .filter(|location| location.public)
         .ok_or(CreateError::UnknownLocation)?;
-    if !tier_unlocked(state, user, location.tier.as_deref()).await? {
-        return Err(CreateError::LocationLocked);
+    match dedicated {
+        // a paid server goes to the plan's locations, whatever their tier
+        Some(plan) => {
+            if !plan.location_uuids.is_empty() && !plan.location_uuids.contains(&location.uuid) {
+                return Err(CreateError::UnknownLocation);
+            }
+        }
+        None => {
+            if !tier_unlocked(state, user, location.tier.as_deref()).await? {
+                return Err(CreateError::LocationLocked);
+            }
+        }
     }
 
     // a plan only fills in the size; without one the player's own values, within the allowance
-    let size = match request.plan_uuid {
-        Some(plan_uuid) => {
+    let size = match (dedicated, request.plan_uuid) {
+        (Some(plan), _) => Resources::new(plan.cpu as i64, plan.memory, plan.disk),
+        (None, Some(plan_uuid)) => {
             let plan = Plan::by_uuid_optional(&state.database, plan_uuid)
                 .await?
                 .filter(|plan| plan.public && !plan.dedicated) // dedicated plans are ordered
@@ -548,11 +587,14 @@ async fn create_locked(
 
             Resources::new(plan.cpu as i64, plan.memory, plan.disk)
         }
-        None => custom_size(request.size)?,
+        (None, None) => custom_size(request.size)?,
     };
 
-    let allowance = crate::allowance::for_user(state, user.uuid).await?;
-    allowance.check_new(size).map_err(CreateError::Allowance)?;
+    // a paid server is not part of the free allowance
+    if dedicated.is_none() {
+        let allowance = crate::allowance::for_user(state, user.uuid).await?;
+        allowance.check_new(size).map_err(CreateError::Allowance)?;
+    }
 
     let limits = AdminApiServerLimits {
         cpu: i32::try_from(size.cpu).map_err(|_| CreateError::InvalidSize)?,
@@ -585,8 +627,47 @@ async fn create_locked(
     )
     .await?
     .into_iter()
-    .filter(|node| node.role == GAME_ROLE)
+    .filter(|node| match dedicated {
+        Some(plan) => crate::dedicated::allows(plan, node),
+        None => node.role == GAME_ROLE,
+    })
     .collect::<Vec<_>>();
+
+    // plugged.host: a dedicated plan's server goes to the first of its nodes with the threads and
+    // memory, held (crate::dedicated::lock) until the server exists
+    let mut held = None;
+    let nodes = match dedicated {
+        Some(plan) => {
+            let mut picked = None;
+            let mut reason = None;
+            for node in &nodes {
+                let lock = crate::dedicated::lock(state, node.uuid).await?;
+                match crate::dedicated::reserve(state, plan, node).await {
+                    Ok(threads) => {
+                        held = Some((lock, threads));
+                        picked = Some(node.clone());
+                        break;
+                    }
+                    Err(crate::dedicated::DedicatedError::Other(err)) => return Err(err.into()),
+                    Err(err) => reason = Some(err.message().to_string()),
+                }
+            }
+
+            match picked {
+                Some(node) => vec![node],
+                None => {
+                    return Err(CreateError::NoNode(
+                        reason.unwrap_or_else(|| "the plan has no node in this location".into()),
+                    ));
+                }
+            }
+        }
+        None => nodes,
+    };
+    let pinned_cpus = held
+        .as_ref()
+        .map(|(_, threads)| threads.clone())
+        .unwrap_or_default();
 
     let egg_configurations = EggConfiguration::all_cached(&state.database).await?;
     let variables = NestEggVariable::all_by_egg_uuid(&state.database, egg.uuid).await?;
@@ -659,7 +740,7 @@ async fn create_locked(
                 name: request.name.trim().into(),
                 description: None,
                 limits,
-                pinned_cpus: Vec::new(),
+                pinned_cpus: pinned_cpus.clone(), // plugged.host: docs/features/dedicated.md
                 startup: startup.clone(),
                 image: image.clone(),
                 labels: Default::default(),
@@ -689,6 +770,20 @@ async fn create_locked(
             Err(err) => return Err(err.into()),
         }
     };
+
+    // plugged.host: docs/features/dedicated.md
+    let mut server = server;
+    if let Some(plan) = dedicated {
+        sqlx::query("UPDATE servers SET dedicated = TRUE, plan_uuid = $2 WHERE uuid = $1")
+            .bind(server.uuid)
+            .bind(plan.uuid)
+            .execute(state.database.write())
+            .await
+            .map_err(anyhow::Error::from)?;
+        server.dedicated = true;
+        server.plan_uuid = Some(plan.uuid);
+    }
+    drop(held);
 
     if request.eula {
         state

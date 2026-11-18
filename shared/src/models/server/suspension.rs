@@ -15,6 +15,8 @@ pub enum SuspensionKind {
     Abuse,
     /// noprofit.space (the account was banned or deleted there).
     Noprofit,
+    /// A paid server's month was not paid (shared/src/dedicated.rs): lifted once it is.
+    Unpaid,
 }
 
 impl SuspensionKind {
@@ -23,6 +25,7 @@ impl SuspensionKind {
             Self::Manual => "manual",
             Self::Abuse => "abuse",
             Self::Noprofit => "noprofit",
+            Self::Unpaid => "unpaid",
         }
     }
 
@@ -32,6 +35,7 @@ impl SuspensionKind {
         match value {
             Some("abuse") => Self::Abuse,
             Some("noprofit") => Self::Noprofit,
+            Some("unpaid") => Self::Unpaid,
             _ => Self::Manual,
         }
     }

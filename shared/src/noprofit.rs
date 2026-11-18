@@ -473,6 +473,73 @@ impl Config {
         }
     }
 
+    /// Takes `amount` euro cents of Funds (real money) off the account for something this panel
+    /// sells for money (a dedicated plan's month, docs/features/dedicated.md). Sent again with the
+    /// same `key`, nothing more is taken. `None` when the account has too few Funds.
+    pub async fn spend_funds(
+        &self,
+        client: &reqwest::Client,
+        account_id: i64,
+        amount: i64,
+        description: &str,
+        key: &str,
+    ) -> Result<Option<i64>, anyhow::Error> {
+        self.change_funds(client, "spend", account_id, amount, description, key)
+            .await
+    }
+
+    /// Gives `amount` euro cents of Funds back (a paid server that could not be made), once per
+    /// `key`.
+    pub async fn refund_funds(
+        &self,
+        client: &reqwest::Client,
+        account_id: i64,
+        amount: i64,
+        description: &str,
+        key: &str,
+    ) -> Result<i64, anyhow::Error> {
+        self.change_funds(client, "refund", account_id, amount, description, key)
+            .await?
+            .ok_or_else(|| anyhow::anyhow!("noprofit.space refused a Funds refund"))
+    }
+
+    async fn change_funds(
+        &self,
+        client: &reqwest::Client,
+        change: &str,
+        account_id: i64,
+        amount: i64,
+        description: &str,
+        key: &str,
+    ) -> Result<Option<i64>, anyhow::Error> {
+        let path = format!("/api/v1/internal/calagopus/funds/{change}");
+
+        let response = self
+            .post(
+                client,
+                &path,
+                &serde_json::json!({
+                    "account_id": account_id,
+                    "amount": amount,
+                    "description": description.chars().take(255).collect::<String>(),
+                    "idempotency_key": key,
+                }),
+            )
+            .await?;
+        let status = response.status();
+
+        #[derive(Deserialize)]
+        struct Changed {
+            funds: i64,
+        }
+
+        match status {
+            status if status.is_success() => Ok(Some(response.json::<Changed>().await?.funds)),
+            reqwest::StatusCode::UNPROCESSABLE_ENTITY => Ok(None),
+            status => anyhow::bail!("noprofit.space answered {status} to a Funds {change}"),
+        }
+    }
+
     /// Whether the central service considers this account an alt for a vote or reward. A failed
     /// call is no verdict: callers must not block the person for it.
     pub async fn alt_check(

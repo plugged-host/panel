@@ -203,6 +203,9 @@ mod dedicated {
         #[derive(ToSchema, Serialize)]
         struct Response {
             plans: Vec<shared::dedicated::ApiDedicatedPlan>,
+            /// Plans with a price are ordered here and paid with noprofit.space Funds; without
+            /// noprofit.space through a support ticket.
+            self_service: bool,
         }
 
         #[utoipa::path(get, path = "/", responses(
@@ -214,8 +217,127 @@ mod dedicated {
         ) -> ApiResponseResult {
             permissions.has_user_permission("servers.read")?;
 
+            let self_service = state.settings.get().await?.noprofit.connected();
+
             ApiResponse::new_serialized(Response {
                 plans: shared::dedicated::offers(&state).await?,
+                self_service,
+            })
+            .ok()
+        }
+    }
+
+    pub mod post {
+        use axum::http::StatusCode;
+        use garde::Validate;
+        use serde::{Deserialize, Serialize};
+        use shared::{
+            ApiError, GetState,
+            models::{
+                IntoApiObject,
+                user::{GetPermissionManager, GetUser},
+                user_activity::GetUserActivityLogger,
+            },
+            response::{ApiResponse, ApiResponseResult},
+            server_creation::CreateRequest,
+        };
+        use utoipa::ToSchema;
+
+        #[derive(ToSchema, Validate, Deserialize)]
+        pub struct Payload {
+            #[garde(skip)]
+            plan_uuid: uuid::Uuid,
+            #[garde(skip)]
+            location_uuid: uuid::Uuid,
+            #[garde(length(chars, min = 1, max = 191))]
+            #[schema(min_length = 1, max_length = 191)]
+            name: compact_str::CompactString,
+            #[garde(skip)]
+            egg_uuid: uuid::Uuid,
+            #[garde(inner(length(chars, min = 1, max = 64)))]
+            #[serde(default)]
+            variant: Option<compact_str::CompactString>,
+            #[garde(skip)]
+            #[serde(default)]
+            eula: bool,
+        }
+
+        #[derive(ToSchema, Serialize)]
+        struct Response {
+            server: shared::models::server::ApiServer,
+        }
+
+        /// Orders a paid plan: its first month is taken from the account's noprofit.space Funds
+        /// and the server is made (given back when it cannot be).
+        #[utoipa::path(post, path = "/", responses(
+            (status = OK, body = inline(Response)),
+            (status = BAD_REQUEST, body = ApiError),
+            (status = PAYMENT_REQUIRED, body = ApiError),
+            (status = CONFLICT, body = ApiError),
+        ), request_body = inline(Payload))]
+        pub async fn route(
+            state: GetState,
+            permissions: GetPermissionManager,
+            user: GetUser,
+            activity_logger: GetUserActivityLogger,
+            shared::Payload(data): shared::Payload<Payload>,
+        ) -> ApiResponseResult {
+            if let Err(errors) = shared::utils::validate_data(&data) {
+                return ApiResponse::new_serialized(ApiError::new_strings_value(errors))
+                    .with_status(StatusCode::BAD_REQUEST)
+                    .ok();
+            }
+
+            permissions.has_user_permission("servers.deploy")?;
+
+            let server = match shared::dedicated::order(
+                &state,
+                &user,
+                CreateRequest {
+                    name: data.name.trim().into(),
+                    egg_uuid: data.egg_uuid,
+                    location_uuid: data.location_uuid,
+                    plan_uuid: Some(data.plan_uuid),
+                    size: None,
+                    variant: data.variant,
+                    eula: data.eula,
+                },
+            )
+            .await
+            {
+                Ok(server) => server,
+                Err(shared::dedicated::OrderError::Create(
+                    shared::server_creation::CreateError::Other(err),
+                )) => return Err(err.into()),
+                Err(err) => {
+                    return ApiResponse::error(err.message())
+                        .with_status(
+                            StatusCode::from_u16(err.status()).unwrap_or(StatusCode::BAD_REQUEST),
+                        )
+                        .ok();
+                }
+            };
+
+            activity_logger
+                .log(
+                    "server:create",
+                    serde_json::json!({
+                        "uuid": server.uuid,
+                        "name": server.name,
+                        "egg_uuid": server.egg.uuid,
+                        "node_uuid": server.node.uuid,
+                        "location_uuid": data.location_uuid,
+                        "plan_uuid": data.plan_uuid,
+                        "dedicated": true,
+                        "cpu": server.cpu,
+                        "memory": server.memory,
+                        "disk": server.disk,
+                    }),
+                )
+                .await;
+
+            ApiResponse::new_serialized(Response {
+                server: server.into_api_object(&state, &user).await?,
             })
             .ok()
         }
@@ -228,7 +350,7 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
         .nest(
             "/dedicated",
             OpenApiRouter::new()
-                .routes(routes!(dedicated::get::route))
+                .routes(routes!(dedicated::get::route, dedicated::post::route))
                 .with_state(state.clone()),
         )
         .with_state(state.clone())

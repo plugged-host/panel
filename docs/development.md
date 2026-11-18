@@ -106,7 +106,7 @@ build machine with `plugged-host/check.sh` (and formats with `plugged-host/forma
 Rules:
 
 - Name the migration after the feature, without a prefix (`status`, `server_suspensions`).
-- Never edit a migration that is on `main`: the panel matches applied migrations by snapshot id and
+- Never edit a migration that is on `dev` or `main`: the panel matches applied migrations by snapshot id and
   will not run a changed one again. Write a new one.
 - After merging upstream, generate once more and fix the chain if upstream's migrations and ours
   forked ([upstream.md](upstream.md#the-migration-chain)).

@@ -1468,14 +1468,22 @@
             "by": {
               "manual": "Máy chủ này đã bị quản trị viên đình chỉ vào {date}.",
               "abuse": "Máy chủ này đã bị hệ thống kiểm tra lạm dụng tự động đình chỉ vào {date}.",
-              "noprofit": "Máy chủ này đã bị đình chỉ vào {date} vì tài khoản noprofit.space của chủ sở hữu đã bị xóa."
+              "noprofit": "Máy chủ này đã bị đình chỉ vào {date} vì tài khoản noprofit.space của chủ sở hữu đã bị xóa.",
+              "unpaid": "Máy chủ trả phí này đã bị đình chỉ vào {date} vì không thể thanh toán tháng của nó."
             },
             "reason": "Lý do: {reason}",
             "deletesIn": "Máy chủ này sẽ bị xóa {time} ({date}), trừ khi lệnh đình chỉ được gỡ trước thời điểm đó.",
             "notEarlier": "Chúng tôi không đình chỉ máy chủ do nhầm lẫn, và máy chủ của bạn sẽ không bị xóa trước thời điểm này.",
             "help": "Nếu bạn cho rằng đây là nhầm lẫn, hãy liên hệ quản trị viên của panel và gửi kèm tên máy chủ.",
             "helpLink": "Nếu bạn cho rằng đây là nhầm lẫn, hãy nhờ hỗ trợ và gửi kèm tên máy chủ.",
-            "getHelp": "Nhận trợ giúp"
+            "getHelp": "Nhận trợ giúp",
+            "unpaid": {
+              "price": "Tháng này giá {price}.",
+              "priceFunds": "Tháng này giá {price}. Funds của bạn: {funds}.",
+              "short": "Funds của bạn không đủ cho tháng này.",
+              "payNow": "Thanh toán ngay",
+              "paid": "Đã thanh toán. Máy chủ của bạn không còn bị đình chỉ."
+            }
           },
           "contentNodeMaintenance": "Máy chủ này đang trên một node đang bảo trì và không thể truy cập cho đến khi bảo trì hoàn tất.",
           "contentTransferring": "Máy chủ này đang được di chuyển đến một node khác và không thể truy cập cho đến khi quá trình di chuyển hoàn tất.",
@@ -2258,15 +2266,28 @@
         },
         "dedicated": {
           "description": "Gói {name} là gói trả phí: luồng CPU và bộ nhớ chỉ dành riêng cho máy chủ của bạn. Đặt một gói và đội ngũ sẽ thiết lập cho bạn.",
+          "descriptionSelfService": "Các gói {name} là trả phí: luồng CPU và bộ nhớ chỉ dành riêng cho máy chủ của bạn. Thanh toán tháng đầu bằng Funds trên noprofit.space và máy chủ sẽ được tạo ngay.",
           "perMonth": "{price} / tháng",
           "size": "{threads} luồng CPU riêng · {memory} MB Bộ nhớ · {disk} MB Dung lượng đĩa",
           "soldOut": "Hết hàng",
           "soldOutAt": "{location} (hết hàng)",
           "order": "Đặt qua hỗ trợ",
+          "orderPaid": "Đặt mua",
           "orderSubject": "Đơn {name}: {plan}",
           "orderBody": "Tôi muốn đặt gói {name} {plan}.",
           "orderLocations": "Vị trí: {locations}. Vị trí tôi muốn:",
-          "empty": "Hiện chưa có gói riêng nào."
+          "empty": "Hiện chưa có gói riêng nào.",
+          "addFunds": "Nạp Funds trên noprofit.space",
+          "modal": {
+            "title": "Đặt mua {plan}",
+            "price": "Giá: {price} mỗi tháng",
+            "funds": "Funds của bạn: {funds}",
+            "fundsLoading": "Đang kiểm tra Funds của bạn…",
+            "renewal": "Tháng đầu được thanh toán ngay. Mỗi tháng tiếp theo sẽ gia hạn từ Funds của bạn; bạn có thể hủy gia hạn trong cài đặt máy chủ.",
+            "short": "Funds của bạn không đủ cho tháng đầu.",
+            "pay": "Thanh toán {price} và tạo",
+            "paid": "Đã thanh toán {price}. Máy chủ của bạn đang được tạo."
+          }
         },
         "home": {
           "empty": {
@@ -12021,6 +12042,24 @@
               "bought": "{title} có hiệu lực đến {time}.",
               "boughtNoEnd": "Đã mua {title}.",
               "color": "Đã lưu màu thẻ."
+            }
+          },
+          "billing": {
+            "title": "Thanh toán",
+            "note": "Máy chủ này được thanh toán hằng tháng bằng Funds trên noprofit.space của bạn.",
+            "price": "{price} mỗi tháng, đã thanh toán đến {date}",
+            "renews": "Gia hạn từ Funds của bạn.",
+            "ends": "Kết thúc vào {date}.",
+            "ownerOnly": "Chỉ chủ sở hữu máy chủ mới có thể thay đổi việc gia hạn.",
+            "cancel": "Hủy gia hạn",
+            "keep": "Giữ lại",
+            "confirm": {
+              "title": "Hủy gia hạn?",
+              "body": "Máy chủ vẫn chạy đến hết tháng đã thanh toán ({date}). Sau đó máy chủ bị đình chỉ và bị xóa 3 ngày sau. Trước thời điểm đó bạn vẫn có thể giữ lại."
+            },
+            "toast": {
+              "cancelled": "Đã hủy gia hạn. Máy chủ chạy đến {date}.",
+              "kept": "Máy chủ sẽ lại được gia hạn từ Funds của bạn."
             }
           },
           "danger": {
