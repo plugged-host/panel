@@ -822,11 +822,11 @@ const baseTranslations = defineTranslations({
           openMenu: 'Open Menu',
         },
         // plugged.host: the account's own page in the Account group (Pelican's "Profile Settings")
-        profileSettings: 'Profile Settings',
+        profileSettings: 'Profile settings', // plugged.host: sentence case like Account settings
         // plugged.host v3.1: the short sidebar
         more: 'More',
         accountSettings: 'Account settings',
-        accountsHub: 'Accounts Panel',
+        accountsHub: 'Accounts panel', // plugged.host: sentence case, as switched.cloud's
         downloadApp: 'Download app', // plugged.host: docs/features/app.md
         modal: {
           logout: {

@@ -1028,10 +1028,10 @@
           "review": "Review {app} on {site}",
           "openMenu": "Open Menu"
         },
-        "profileSettings": "Profile Settings",
+        "profileSettings": "Profile settings",
         "more": "More",
         "accountSettings": "Account settings",
-        "accountsHub": "Accounts Panel",
+        "accountsHub": "Accounts panel",
         "downloadApp": "Download app",
         "modal": {
           "logout": {
