@@ -4,7 +4,6 @@
 // An offer the balance does not cover says how much is missing and leads to the Tokens page; a
 // membership that runs can renew by itself; a membership can be bought for someone else; a sale
 // that covers the memberships shows a banner and struck-through prices, as in the store.
-import { Button as MantineButton } from '@mantine/core';
 import { useQueryClient } from '@tanstack/react-query';
 import { FormEvent, Fragment, ReactNode, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
@@ -594,24 +593,7 @@ export default function DashboardMembership() {
                     </Notification>
                   )}
 
-                  {/* plugged.host: noprofit.space Ultra, the one subscription for both products.
-                      The same callout as switched.cloud: a tinted banner with one secondary action. */}
-                  <Alert className='theme-ultra-alert' color='blue' title={t(`${page}.ultra.title`, {})}>
-                    <div className='flex flex-col items-start gap-3'>
-                      <span>{t(`${page}.ultra.body`, {})}</span>
-                      <MantineButton
-                        component='a'
-                        href='https://accounts.noprofit.space/ultra'
-                        target='_blank'
-                        rel='noopener noreferrer'
-                        variant='default'
-                        size='sm'
-                        fw={600}
-                      >
-                        {t(`${page}.ultra.cta`, {})}
-                      </MantineButton>
-                    </div>
-                  </Alert>
+                  {/* plugged.host: no Ultra banner: Ultra is no longer sold (noprofit.space, 2026-11-24) */}
 
                   <div className='theme-plus-plans'>
                     <PlanCard

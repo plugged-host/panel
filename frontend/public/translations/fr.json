@@ -2219,7 +2219,7 @@
       "account": {
         "createServer": {
           "title": "Créer un serveur",
-          "subtitle": "Choisissez votre configuration, puis déployez.",
+          "subtitle": "Choisissez votre configuration, puis créez le serveur.",
           "button": "Créer un serveur",
           "paidButton": "Obtenir un serveur payant",
           "disabled": "La création de serveurs est désactivée.",
@@ -2261,8 +2261,12 @@
           "disk": "Espace disque",
           "eula": "J'accepte le contrat de licence utilisateur final (EULA) de Minecraft",
           "eulaDescription": "En créant ce serveur, vous acceptez l'EULA de Minecraft (https://aka.ms/MinecraftEULA). Nous l'acceptons automatiquement sur votre serveur pour qu'il démarre immédiatement, sans pause.",
-          "deploy": "Déployer le serveur",
-          "deploying": "Déploiement du serveur...",
+          "deploy": "Créer le serveur",
+          "deploying": "Création du serveur...",
+          "summary": {
+            "uses": "Utilise {cpu} de CPU, {memory} de mémoire et {disk} de disque de votre offre",
+            "left": "Reste dans votre offre : {cpu} de CPU, {memory} de mémoire, {disk} de disque"
+          },
           "reason": {
             "limit": "Cela dépasserait votre limite de ressources ou de serveurs.",
             "game": "Veuillez choisir un jeu.",
@@ -2303,6 +2307,7 @@
           "size": "{threads} threads CPU dédiés · {memory} Mo de mémoire · {disk} Mo d'espace disque",
           "spec": {
             "threads": "{threads} threads CPU dédiés",
+            "threadOne": "{threads} thread CPU dédié",
             "memory": "{memory} de mémoire dédiée",
             "disk": "{disk} de disque"
           },

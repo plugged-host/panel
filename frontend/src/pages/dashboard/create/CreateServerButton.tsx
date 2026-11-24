@@ -1,5 +1,5 @@
 // plugged.host: the server list's way to the create page, while players may create servers, and to
-// the Paid page while a paid plan is on sale (docs/features/dedicated.md)
+// the Paid page with its lowest price while a paid plan is on sale (docs/features/dedicated.md)
 import { useNavigate } from 'react-router';
 import Button from '@/elements/buttons/Button.tsx';
 import usePaidOffer from '@/pages/dashboard/dedicated/usePaidOffer.ts';
@@ -10,7 +10,7 @@ export default function CreateServerButton({ centered = false }: { centered?: bo
   const { t } = useTranslations();
   const navigate = useNavigate();
   const createEnabled = useGlobalStore((state) => state.settings.games?.createEnabled);
-  const { offered } = usePaidOffer();
+  const { offered, from } = usePaidOffer();
 
   if (!createEnabled && !offered) {
     return null;
@@ -27,6 +27,9 @@ export default function CreateServerButton({ centered = false }: { centered?: bo
         <Button variant='default' onClick={() => navigate('/account/dedicated')}>
           {t('pages.account.createServer.paidButton', {})}
         </Button>
+      )}
+      {offered && from && (
+        <span className='theme-eco-text'>{t('pages.account.dedicated.upsell.from', { price: from })}</span>
       )}
     </div>
   );

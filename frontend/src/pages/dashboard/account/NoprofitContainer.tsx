@@ -26,8 +26,15 @@ export default function NoprofitContainer({
         </div>
 
         <dl className='grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm'>
-          <dt className='text-(--mantine-color-dimmed)'>{t('pages.account.account.containers.noprofit.ultra', {})}</dt>
-          <dd>{account.ultra ? t('common.ultra', {}) : t('common.none', {})}</dd>
+          {/* plugged.host: Ultra is no longer sold; the row stays only while an account still has it */}
+          {account.ultra && (
+            <>
+              <dt className='text-(--mantine-color-dimmed)'>
+                {t('pages.account.account.containers.noprofit.ultra', {})}
+              </dt>
+              <dd>{t('common.ultra', {})}</dd>
+            </>
+          )}
 
           <dt className='text-(--mantine-color-dimmed)'>
             {t('pages.account.account.containers.noprofit.credits', {})}

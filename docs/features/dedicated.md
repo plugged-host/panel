@@ -10,8 +10,9 @@ Dedicated plans are kept apart from the free ones everywhere:
 
 - **Admin › Paid Plans** (`/admin/dedicated-plans`, `plans.*`) lists, creates and edits only
   them, sized in CPU threads with a price, locations and nodes; Admin › Plans only the free ones.
-- **Players** get the Paid page (`/account/dedicated`, [below](#the-paid-page)), in the sidebar while
-  a public dedicated plan exists or the account owns a paid server (`paid_servers` on the account).
+- **Players** get the Paid page (`/account/dedicated`, [below](#the-paid-page)), in the sidebar right
+  after Servers (as on switched.cloud) while a public dedicated plan exists or the account owns a
+  paid server (`paid_servers` on the account).
 - With noprofit.space connected, players **order a public plan with a price themselves** and pay
   it monthly with their noprofit.space Funds ([Paid by the player](#paid-by-the-player)). Without
   noprofit.space, or for a plan without a price, they order it with a support ticket and an admin
@@ -33,7 +34,7 @@ with the lowest price of those plans (`games.dedicated_from`, one cached query a
 
 ## The Paid page
 
-Top to bottom: what Paid adds (dedicated CPU threads, dedicated memory, no start queue and no
+Top to bottom, in the same order and cards as switched.cloud's: what Paid adds, checked (dedicated CPU threads, dedicated memory, no start queue and no
 waiting room, never parked by Limbo and outside the free allowance); **Your Funds** with Add Funds
 (noprofit.space's Funds page) and "Every month is taken from your Funds when the last one ends.
 Cancel any time." (without noprofit.space: plans are ordered through support); **Your paid servers**

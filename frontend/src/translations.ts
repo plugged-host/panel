@@ -2068,7 +2068,7 @@ const baseTranslations = defineTranslations({
         // plugged.host
         createServer: {
           title: 'Create server',
-          subtitle: 'Choose your setup, then deploy.',
+          subtitle: 'Choose your setup, then create the server.',
           button: 'Create server',
           paidButton: 'Get a paid server', // plugged.host: docs/features/dedicated.md
           disabled: 'Creating servers is turned off.',
@@ -2112,8 +2112,13 @@ const baseTranslations = defineTranslations({
           eula: 'I agree to the Minecraft End User License Agreement (EULA)',
           eulaDescription:
             'By creating this server, you agree to the Minecraft EULA (https://aka.ms/MinecraftEULA). The EULA will be automatically accepted on your server so it starts immediately without pausing.',
-          deploy: 'Deploy server',
-          deploying: 'Deploying server...',
+          deploy: 'Create server',
+          deploying: 'Creating server...',
+          // the create page's footer: what the server takes from the plan and what is left (as switched.cloud's)
+          summary: {
+            uses: 'Uses {cpu} CPU, {memory} memory and {disk} disk of your plan',
+            left: 'Left in your plan: {cpu} CPU, {memory} memory, {disk} disk',
+          },
           reason: {
             limit: 'This would exceed your resource or server limit.',
             game: 'Please select a game.',
@@ -2157,6 +2162,7 @@ const baseTranslations = defineTranslations({
           size: '{threads} dedicated CPU threads · {memory} MB Memory · {disk} MB Disk Space',
           spec: {
             threads: '{threads} dedicated CPU threads',
+            threadOne: '{threads} dedicated CPU thread',
             memory: '{memory} dedicated memory',
             disk: '{disk} disk',
           },

@@ -23,6 +23,7 @@ import TextInput from '@/elements/input/TextInput.tsx';
 import Tooltip from '@/elements/overlays/Tooltip.tsx';
 import ResourceView from '@/elements/ResourceView.tsx';
 import Text from '@/elements/typography/Text.tsx';
+import { bytesToString, mbToBytes } from '@/lib/format/size.ts';
 import { formatDateTime } from '@/lib/format/time.ts';
 import { closestLocation, useLocationPings } from '@/lib/locationPing.ts';
 import { queryKeys } from '@/lib/queryKeys.ts';
@@ -142,8 +143,8 @@ function PaidCard({ offered }: { offered: boolean }) {
             <p className='theme-row-body'>{t('pages.account.dedicated.upsell.from', { price: paid.from })}</p>
           )}
         </div>
-        <div className='theme-row-action'>
-          <Button variant='default' className='w-full' onClick={() => navigate('/account/dedicated')}>
+        <div className='theme-row-action sm:justify-end'>
+          <Button variant='default' onClick={() => navigate('/account/dedicated')}>
             {t('pages.account.dedicated.upsell.seePlans', {})}
           </Button>
         </div>
@@ -363,6 +364,27 @@ function CreateServerForm({ options }: { options: Options }) {
   useHotkeys([['mod+S', submit]], []);
 
   const deploy = t(`${page}.deploy`, {});
+  // the footer's summary: the size taken from the plan, and what is left of a plan with limits
+  const sizeOf = (values: { cpu: number; memory: number; disk: number }) => ({
+    cpu: `${values.cpu}%`,
+    memory: bytesToString(mbToBytes(values.memory)),
+    disk: bytesToString(mbToBytes(values.disk)),
+  });
+  const sized = isAmount(cpu) && isAmount(memory) && isAmount(disk);
+  const summary = {
+    uses: sized ? t(`${page}.summary.uses`, sizeOf({ cpu, memory, disk })) : null,
+    left:
+      sized && remaining.cpu !== null && remaining.memory !== null && remaining.disk !== null
+        ? t(
+            `${page}.summary.left`,
+            sizeOf({
+              cpu: Math.max(remaining.cpu - cpu, 0),
+              memory: Math.max(remaining.memory - memory, 0),
+              disk: Math.max(remaining.disk - disk, 0),
+            }),
+          )
+        : null,
+  };
   const amountInput = (resource: Resource, suffix: string) => (
     <NumberInput
       label={t(`${page}.${resource}`, {})}
@@ -381,18 +403,7 @@ function CreateServerForm({ options }: { options: Options }) {
   );
 
   return (
-    <AccountContentContainer
-      title={t(`${page}.title`, {})}
-      subtitle={t(`${page}.subtitle`, {})}
-      contentRight={
-        // secondary: the page's one primary is the deploy button under the form
-        <Tooltip label={reason} disabled={!reason}>
-          <Button variant='default' disabled={!!reason || loading} onClick={submit}>
-            {deploy}
-          </Button>
-        </Tooltip>
-      }
-    >
+    <AccountContentContainer title={t(`${page}.title`, {})} subtitle={t(`${page}.subtitle`, {})}>
       <div className='theme-create-page'>
         <PaidCard offered={options.dedicatedOffered} />
 
@@ -559,20 +570,30 @@ function CreateServerForm({ options }: { options: Options }) {
           </TitleCard>
         )}
 
+        {/* plugged.host: one footer row, as switched.cloud's: what the server takes from the plan and what
+            is left on the left, the page's one button on the right */}
         <div className='theme-deploy'>
-          {reason && <span className='theme-deploy-reason'>{reason}</span>}
-          {storeOffer && (
-            <Link to='/account/store' className='theme-eco-link text-sm'>
-              {t(`${page}.offers.store`, {})}
-            </Link>
-          )}
-          <Button
-            disabled={!!reason}
-            leftSection={loading ? <Loader size={16} color='currentColor' /> : undefined}
-            onClick={submit}
-          >
-            {loading ? t(`${page}.deploying`, {}) : deploy}
-          </Button>
+          <div className='theme-deploy-summary'>
+            {summary.uses && <span>{summary.uses}</span>}
+            {summary.left && <span>{summary.left}</span>}
+            {reason && <span className='theme-deploy-reason'>{reason}</span>}
+            {storeOffer && (
+              <Link to='/account/store' className='theme-eco-link text-sm'>
+                {t(`${page}.offers.store`, {})}
+              </Link>
+            )}
+          </div>
+          <Tooltip label={reason} disabled={!reason}>
+            <span>
+              <Button
+                disabled={!!reason}
+                leftSection={loading ? <Loader size={16} color='currentColor' /> : undefined}
+                onClick={submit}
+              >
+                {loading ? t(`${page}.deploying`, {}) : deploy}
+              </Button>
+            </span>
+          </Tooltip>
         </div>
 
         <AdPageSlot />

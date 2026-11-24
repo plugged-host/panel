@@ -13,6 +13,7 @@ import {
   CircleStackIcon,
   Cog6ToothIcon,
   ComputerDesktopIcon,
+  CpuChipIcon,
   EllipsisHorizontalIcon,
   HomeIcon,
   LifebuoyIcon,
@@ -43,14 +44,17 @@ import { legacyDashboardRedirects } from '@/routers/routes/legacyRoutes.ts'; // 
 import { useGlobalStore } from '@/stores/global.ts';
 
 // plugged.host: the account pages the Pelican panel's sidebar shows as rows of their own, in its
-// order (Resource Store, Plus, Tokens, Backups); the others fold under Account.
-const MAIN_PATHS = ['/store', '/membership', '/tokens', '/backups'];
+// order (Paid right after Servers as on switched.cloud, Resource Store, Plus, Tokens, Backups); the
+// others fold under Account.
+const MAIN_PATHS = ['/dedicated', '/store', '/membership', '/tokens', '/backups'];
 // plugged.host v3.1: the secondary rows live under one More disclosure.
 const MORE_PATHS = ['/support', '/suggestions', '/panel-access', '/discord', '/partners'];
 
 /// The shared Heroicon set, the same SVGs the switched.cloud sidebar renders.
 function mainIcon(path: string) {
   switch (path) {
+    case '/dedicated':
+      return <CpuChipIcon />;
     case '/store':
       return <ShoppingBagIcon />;
     case '/membership':

@@ -67,7 +67,7 @@ theme, as Theme v2's were.
 | Fonts | `frontend/src/assets/fonts/` (self-hosted, Latin + Latin Extended) |
 | Icons | `frontend/src/lib/icons/` + `frontend/vite-plugins/tabler-icons.ts` |
 | Sidebar (logo block, groups, avatar row, mobile toggle) | `frontend/src/elements/navigation/Sidebar.tsx` |
-| Dashboard sidebar rows: Pelican's order (Home, Resource Store, the first membership, Tokens, Backups), then the account's pages folded into an "Account" row with an arrow, Admin last | `frontend/src/routers/DashboardRouter.tsx`, the folding row `frontend/src/elements/navigation/SidebarGroup.tsx` (`Sidebar.Group`) |
+| Dashboard sidebar rows: Pelican's order (Home, then Paid while it shows (as on switched.cloud), Resource Store, the first membership, Tokens, Backups), then the account's pages folded into an "Account" row with an arrow, Admin last | `frontend/src/routers/DashboardRouter.tsx`, the folding row `frontend/src/elements/navigation/SidebarGroup.tsx` (`Sidebar.Group`) |
 | Server list cards | `frontend/src/pages/dashboard/home/ServerItem.tsx` (container queries: one card per row on narrow screens, as many as fit on wide ones) |
 | Server list page, as Pelican's (no All/Grouped tabs; a toolbar row with Create server at its start and the search at its end; the pagination with a per-page choice underneath; bulk selection with S + click only) | `frontend/src/pages/dashboard/home/DashboardHomeAll.tsx`, `.theme-toolbar*`, `.theme-list-foot` in `app.css` |
 | A server's condition (label and status-bar colour, Pelican's `Server::condition`) and the card's numbers (70 % / 90 % marks, "1.2 / 2 GiB", "2h 14m") | `frontend/src/lib/domain/serverCondition.ts`, `frontend/src/lib/format/serverUsage.ts` |
@@ -140,7 +140,8 @@ Tabler map. Both panels now use the same outline set at 24px/1.75 stroke.
 
 - The sidebar shows the logo, grouped rows and the avatar row; on a phone it opens from the square
   button at the top.
-- The dashboard sidebar lists Home, Resource Store, the membership, Tokens and Backups first, then
+- The dashboard sidebar lists Home, Paid (while a plan is on sale or the account owns a paid
+  server), Resource Store, the membership, Tokens and Backups first, then
   "Account" with an arrow: a click folds its pages open or shut, and the choice is kept after a
   reload. On one of the account's pages it is open. Admin (admins only) is the last row.
 - Admin › Settings › General › Metadata: pick a swatch, then a custom colour such as `#facc15`.

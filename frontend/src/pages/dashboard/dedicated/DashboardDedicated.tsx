@@ -2,6 +2,8 @@
 // paid servers with their months, and the plans. With noprofit.space connected a plan with a price is
 // ordered here and paid with Funds (DedicatedOrderModal.tsx), else ordered from the team with a support
 // ticket and set up by an admin (docs/features/dedicated.md)
+import { faCircleCheck } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
@@ -54,12 +56,12 @@ function FundsCard({ selfService }: { selfService: boolean }) {
   return (
     <section className='theme-eco-card'>
       <div className='flex flex-col gap-1'>
-        <div className='flex flex-wrap items-baseline gap-x-3 gap-y-1'>
-          <h3 className='theme-eco-heading'>{t(`${page}.funds.title`, {})}</h3>
-          <span className='theme-eco-heading'>{funds === null ? '…' : formatEuro(funds, language)}</span>
-          <AddFundsLink />
-        </div>
+        <h3 className='theme-eco-heading'>{t(`${page}.funds.title`, {})}</h3>
+        <span className='theme-eco-value'>{funds === null ? '…' : formatEuro(funds, language)}</span>
+      </div>
+      <div className='flex flex-col items-start gap-3'>
         <p className='theme-eco-text'>{t(`${page}.funds.note`, {})}</p>
+        <AddFundsLink />
       </div>
     </section>
   );
@@ -156,11 +158,18 @@ export default function DashboardDedicated() {
       <ResourceView resource={resource}>
         {({ plans, servers }) => (
           <div className='flex flex-col gap-6'>
-            <section className='flex flex-col gap-2'>
+            <section className='theme-eco-card'>
               <h2 className='theme-eco-heading'>{t(`${page}.benefits.title`, {})}</h2>
-              <ul className='theme-eco-text list-disc ps-5'>
+              <ul className='grid gap-x-6 gap-y-2 md:grid-cols-2'>
                 {BENEFITS.map((benefit) => (
-                  <li key={benefit}>{t(`${page}.benefits.${benefit}`, {})}</li>
+                  <li key={benefit} className='theme-eco-text flex items-center gap-3'>
+                    <FontAwesomeIcon
+                      icon={faCircleCheck}
+                      className='shrink-0'
+                      style={{ color: 'var(--theme-accent-bright)' }}
+                    />
+                    {t(`${page}.benefits.${benefit}`, {})}
+                  </li>
                 ))}
               </ul>
             </section>
@@ -189,7 +198,11 @@ export default function DashboardDedicated() {
                             </p>
                           )}
                           <ul className='theme-eco-text flex flex-col gap-1'>
-                            <li>{t(`${page}.spec.threads`, { threads: String(plan.threads) })}</li>
+                            <li>
+                              {t(plan.threads === 1 ? `${page}.spec.threadOne` : `${page}.spec.threads`, {
+                                threads: String(plan.threads),
+                              })}
+                            </li>
                             <li>{t(`${page}.spec.memory`, { memory: bytesToString(mbToBytes(plan.memory)) })}</li>
                             <li>{t(`${page}.spec.disk`, { disk: bytesToString(mbToBytes(plan.disk)) })}</li>
                             {plan.locations.length > 0 && (
@@ -206,7 +219,7 @@ export default function DashboardDedicated() {
                           </ul>
                         </div>
                         <Tooltip label={t(`${page}.soldOut`, {})} disabled={available}>
-                          <span>
+                          <span className='block'>
                             <Button className='w-full' disabled={!available} onClick={() => order(plan)}>
                               {selfService && plan.price !== null ? t(`${page}.orderPaid`, {}) : t(`${page}.order`, {})}
                             </Button>

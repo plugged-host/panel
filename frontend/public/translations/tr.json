@@ -2263,6 +2263,10 @@
           "eulaDescription": "Bu sunucuyu oluşturarak Minecraft EULA'yı (https://aka.ms/MinecraftEULA) kabul etmiş olursunuz. EULA sunucunuzda otomatik olarak kabul edilir, böylece sunucu beklemeden hemen başlar.",
           "deploy": "Sunucuyu oluştur",
           "deploying": "Sunucu oluşturuluyor...",
+          "summary": {
+            "uses": "Planınızdan {cpu} CPU, {memory} bellek ve {disk} disk kullanır",
+            "left": "Planınızda kalan: {cpu} CPU, {memory} bellek, {disk} disk"
+          },
           "reason": {
             "limit": "Bu, kaynak veya sunucu sınırınızı aşar.",
             "game": "Lütfen bir oyun seçin.",
@@ -2303,6 +2307,7 @@
           "size": "{threads} ayrılmış CPU iş parçacığı · {memory} MB Bellek · {disk} MB Disk Alanı",
           "spec": {
             "threads": "{threads} ayrılmış CPU iş parçacığı",
+            "threadOne": "{threads} ayrılmış CPU iş parçacığı",
             "memory": "{memory} ayrılmış bellek",
             "disk": "{disk} disk"
           },

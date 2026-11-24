@@ -2219,7 +2219,7 @@
       "account": {
         "createServer": {
           "title": "Buat server",
-          "subtitle": "Pilih konfigurasi Anda, lalu deploy.",
+          "subtitle": "Pilih konfigurasi Anda, lalu buat server.",
           "button": "Buat server",
           "paidButton": "Dapatkan server berbayar",
           "disabled": "Pembuatan server dinonaktifkan.",
@@ -2261,8 +2261,12 @@
           "disk": "Ruang Disk",
           "eula": "Saya menyetujui Perjanjian Lisensi Pengguna Akhir (EULA) Minecraft",
           "eulaDescription": "Dengan membuat server ini, Anda menyetujui Minecraft EULA (https://aka.ms/MinecraftEULA). EULA akan otomatis diterima di server Anda agar server langsung berjalan tanpa jeda.",
-          "deploy": "Deploy server",
-          "deploying": "Sedang men-deploy server...",
+          "deploy": "Buat server",
+          "deploying": "Membuat server...",
+          "summary": {
+            "uses": "Memakai {cpu} CPU, {memory} memori, dan {disk} disk dari paket Anda",
+            "left": "Sisa di paket Anda: {cpu} CPU, {memory} memori, {disk} disk"
+          },
           "reason": {
             "limit": "Ini akan melebihi batas sumber daya atau server Anda.",
             "game": "Silakan pilih game.",
@@ -2303,6 +2307,7 @@
           "size": "{threads} thread CPU khusus · {memory} MB Memori · {disk} MB Ruang Disk",
           "spec": {
             "threads": "{threads} thread CPU khusus",
+            "threadOne": "{threads} thread CPU khusus",
             "memory": "{memory} memori khusus",
             "disk": "{disk} disk"
           },

@@ -2219,7 +2219,7 @@
       "account": {
         "createServer": {
           "title": "Server yaratish",
-          "subtitle": "Sozlamalarni tanlang, soʻng joylashtiring.",
+          "subtitle": "Sozlamalarni tanlang, soʻng serverni yarating.",
           "button": "Server yaratish",
           "paidButton": "Pullik server olish",
           "disabled": "Server yaratish oʻchirilgan.",
@@ -2261,8 +2261,12 @@
           "disk": "Disk maydoni",
           "eula": "Minecraft oxirgi foydalanuvchi litsenziya shartnomasiga (EULA) roziman",
           "eulaDescription": "Bu serverni yaratish orqali siz Minecraft EULA (https://aka.ms/MinecraftEULA) shartlariga rozilik bildirasiz. EULA serveringizda avtomatik qabul qilinadi, shuning uchun u toʻxtab qolmasdan darhol ishga tushadi.",
-          "deploy": "Serverni joylashtirish",
-          "deploying": "Server joylashtirilmoqda...",
+          "deploy": "Server yaratish",
+          "deploying": "Server yaratilmoqda...",
+          "summary": {
+            "uses": "Rejangizdan {cpu} CPU, {memory} xotira va {disk} disk oladi",
+            "left": "Rejangizda qoldi: {cpu} CPU, {memory} xotira, {disk} disk"
+          },
           "reason": {
             "limit": "Bu resurs yoki server limitingizdan oshib ketadi.",
             "game": "Iltimos, oʻyinni tanlang.",
@@ -2303,6 +2307,7 @@
           "size": "{threads} ta ajratilgan CPU oqimi · {memory} MB xotira · {disk} MB disk joyi",
           "spec": {
             "threads": "{threads} ta ajratilgan CPU oqimi",
+            "threadOne": "{threads} ta ajratilgan CPU oqimi",
             "memory": "{memory} ajratilgan xotira",
             "disk": "{disk} disk"
           },

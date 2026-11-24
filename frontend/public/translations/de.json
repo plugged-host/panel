@@ -2218,7 +2218,7 @@
       "account": {
         "createServer": {
           "title": "Server erstellen",
-          "subtitle": "Wähle deine Konfiguration und starte den Server.",
+          "subtitle": "Wähle deine Konfiguration und erstelle den Server.",
           "button": "Server erstellen",
           "paidButton": "Bezahlten Server holen",
           "disabled": "Das Erstellen von Servern ist ausgeschaltet.",
@@ -2262,6 +2262,10 @@
           "eulaDescription": "Mit dem Erstellen dieses Servers stimmst du der Minecraft-EULA zu (https://aka.ms/MinecraftEULA). Die EULA wird automatisch auf dem Server akzeptiert, damit er direkt startet.",
           "deploy": "Server erstellen",
           "deploying": "Server wird erstellt...",
+          "summary": {
+            "uses": "Nutzt {cpu} CPU, {memory} Arbeitsspeicher und {disk} Speicherplatz deines Plans",
+            "left": "Übrig in deinem Plan: {cpu} CPU, {memory} Arbeitsspeicher, {disk} Speicherplatz"
+          },
           "reason": {
             "limit": "Das würde dein Ressourcen- oder Serverlimit übersteigen.",
             "game": "Bitte wähle ein Spiel.",
@@ -2302,6 +2306,7 @@
           "size": "{threads} dedizierte CPU-Threads · {memory} MB Arbeitsspeicher · {disk} MB Speicherplatz",
           "spec": {
             "threads": "{threads} eigene CPU-Threads",
+            "threadOne": "{threads} eigener CPU-Thread",
             "memory": "{memory} eigener Arbeitsspeicher",
             "disk": "{disk} Speicherplatz"
           },

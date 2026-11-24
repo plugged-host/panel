@@ -125,12 +125,14 @@ when it is on. It is laid out like the Pelican panel's create page, one section 
   Memory and Disk Space (MB) inputs. A plan fills them in; editing them keeps the plan selected
   only while all three are its own.
 - **The EULA** (Minecraft), ticked by default.
-- The deploy row: why it cannot be deployed yet (the allowance or server limit, the game, the
-  location, the name, the EULA) and "Deploy server". When the allowance is what stops it (a
-  resource used up, or the size over what is left, not the server count) and credits are on, a
-  link "Get more in the Resource Store" sits beside the reason, while Offers Where a Limit Is Felt
-  is on ([promos.md](promos.md#offers)). The same button sits in the header as the
-  secondary action, with the reason as its tooltip; Ctrl/Cmd+S deploys too. A refused create shows
+- The footer row, as switched.cloud's: at its start what the server takes from the plan ("Uses 100%
+  CPU, 2 GiB memory and 10 GiB disk of your plan"), what is left of a plan with limits ("Left in
+  your plan: …"), and why it cannot be created yet (the allowance or server limit, the game, the
+  location, the name, the EULA); at its end the page's only "Create server" button, with the
+  reason as its tooltip. When the allowance is what stops it (a resource used up, or the size over
+  what is left, not the server count) and credits are on, a link "Get more in the Resource Store"
+  sits under the reason, while Offers Where a Limit Is Felt is on ([promos.md](promos.md#offers)).
+  Ctrl/Cmd+S creates too. A refused create shows
   "Could not create server" with the reason. It opens the new server's console.
 
 ## Ping

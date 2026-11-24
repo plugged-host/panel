@@ -2219,7 +2219,7 @@
       "account": {
         "createServer": {
           "title": "Tạo máy chủ",
-          "subtitle": "Chọn cấu hình của bạn, rồi triển khai.",
+          "subtitle": "Chọn cấu hình của bạn, rồi tạo máy chủ.",
           "button": "Tạo máy chủ",
           "paidButton": "Lấy máy chủ trả phí",
           "disabled": "Tính năng tạo máy chủ đang bị tắt.",
@@ -2261,8 +2261,12 @@
           "disk": "Dung Lượng Ổ Đĩa",
           "eula": "Tôi đồng ý với Thỏa Thuận Cấp Phép Người Dùng Cuối Minecraft (EULA)",
           "eulaDescription": "Khi tạo máy chủ này, bạn đồng ý với EULA Minecraft (https://aka.ms/MinecraftEULA). EULA sẽ được tự động chấp nhận trên máy chủ của bạn để máy chủ khởi động ngay mà không bị dừng lại.",
-          "deploy": "Triển khai máy chủ",
-          "deploying": "Đang triển khai máy chủ...",
+          "deploy": "Tạo máy chủ",
+          "deploying": "Đang tạo máy chủ...",
+          "summary": {
+            "uses": "Dùng {cpu} CPU, {memory} bộ nhớ và {disk} ổ đĩa trong gói của bạn",
+            "left": "Còn lại trong gói: {cpu} CPU, {memory} bộ nhớ, {disk} ổ đĩa"
+          },
           "reason": {
             "limit": "Việc này sẽ vượt quá giới hạn tài nguyên hoặc số máy chủ của bạn.",
             "game": "Vui lòng chọn một game.",
@@ -2303,6 +2307,7 @@
           "size": "{threads} luồng CPU riêng · {memory} MB Bộ nhớ · {disk} MB Dung lượng đĩa",
           "spec": {
             "threads": "{threads} luồng CPU riêng",
+            "threadOne": "{threads} luồng CPU riêng",
             "memory": "{memory} bộ nhớ riêng",
             "disk": "{disk} ổ đĩa"
           },
