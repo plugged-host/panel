@@ -89,6 +89,7 @@ pub async fn auth(
         // plugged.host: a paid server suspended for its unpaid month is paid from here
         // (docs/features/dedicated.md)
         "/api/client/servers/{server}/billing",
+        "/api/client/servers/{server}/billing/pay",
     ];
 
     // plugged.host: a new Minecraft server's setup is answered while its install runs, and the

@@ -99,6 +99,9 @@ mod get {
         dedicated_name: compact_str::CompactString,
         /// A public dedicated plan is offered: players get the dedicated plans page.
         dedicated_offered: bool,
+        /// The lowest monthly price of the public dedicated plans (euro cents), for "from €4.99 /
+        /// month" where players are led to them; `None` when none has a price.
+        dedicated_from: Option<i32>,
     }
 
     /// plugged.host: whether the welcome tour runs (docs/features/welcome-tour.md).
@@ -203,7 +206,7 @@ mod get {
     ))]
     pub async fn route(state: GetState) -> ApiResponseResult {
         // plugged.host: asked before the settings guard is held (docs/features/dedicated.md)
-        let dedicated_offered = shared::dedicated::offered(&state).await;
+        let dedicated = shared::dedicated::offer(&state).await;
         let settings = state.settings.get().await?;
         // plugged.host: noprofit.space owns sign-in when connected
         let noprofit_connected = settings.noprofit.connected();
@@ -294,8 +297,9 @@ mod get {
                 transfer_enabled: settings.games.transfer_enabled,
                 subdomains_enabled: settings.subdomains.active(),
                 devboxes_enabled: shared::devboxes::offered(&settings),
-                dedicated_name: settings.games.dedicated_name.clone(),
-                dedicated_offered,
+                dedicated_name: shared::dedicated::product_name(&settings),
+                dedicated_offered: dedicated.offered,
+                dedicated_from: dedicated.from,
             },
             tour: ResponseTour {
                 enabled: settings.tour.enabled,

@@ -1,6 +1,6 @@
-// plugged.host: a paid server's month, paid with noprofit.space Funds, and its renewal
-// (shared/src/dedicated.rs, docs/features/dedicated.md). Reachable while it is suspended for an
-// unpaid month, so its owner can pay.
+// plugged.host: a paid server's month, paid with noprofit.space Funds, its renewal and paying the
+// next month ahead (shared/src/dedicated.rs, docs/features/dedicated.md). Reachable while it is
+// suspended for an unpaid month, so its owner can pay.
 use super::State;
 use utoipa_axum::{router::OpenApiRouter, routes};
 
@@ -129,9 +129,86 @@ mod post {
     }
 }
 
+mod pay {
+    use axum::http::StatusCode;
+    use serde::Serialize;
+    use shared::{
+        ApiError, GetState,
+        dedicated::Renewal,
+        models::{
+            server::{GetServer, GetServerActivityLogger},
+            user::GetUser,
+        },
+        response::{ApiResponse, ApiResponseResult},
+    };
+    use utoipa::ToSchema;
+
+    #[derive(ToSchema, Serialize)]
+    struct Response {
+        subscription: Option<shared::dedicated::ApiSubscription>,
+    }
+
+    /// Pays the next month now from the owner's Funds (or the unpaid one, which lifts the unpaid
+    /// suspension). The settle task never takes that month again.
+    #[utoipa::path(post, path = "/pay", responses(
+        (status = OK, body = inline(Response)),
+        (status = FORBIDDEN, body = ApiError),
+        (status = NOT_FOUND, body = ApiError),
+        (status = PAYMENT_REQUIRED, body = ApiError),
+        (status = CONFLICT, body = ApiError),
+        (status = SERVICE_UNAVAILABLE, body = ApiError),
+    ), params(
+        (
+            "server" = uuid::Uuid,
+            description = "The server ID",
+            example = "123e4567-e89b-12d3-a456-426614174000",
+        ),
+    ))]
+    pub async fn route(
+        state: GetState,
+        user: GetUser,
+        server: GetServer,
+        activity_logger: GetServerActivityLogger,
+    ) -> ApiResponseResult {
+        // it is the owner's money
+        if server.owner.uuid != user.uuid {
+            return ApiResponse::error("only the server's owner can change what it is paid with")
+                .with_status(StatusCode::FORBIDDEN)
+                .ok();
+        }
+
+        let (status, message) = match shared::dedicated::pay_ahead(&state, server.uuid).await? {
+            None => (StatusCode::NOT_FOUND, "this server is not paid for here"),
+            Some(Renewal::Short) => (
+                StatusCode::PAYMENT_REQUIRED,
+                "not enough Funds: add Funds on noprofit.space",
+            ),
+            Some(Renewal::Unavailable) => (
+                StatusCode::SERVICE_UNAVAILABLE,
+                "noprofit.space did not answer, try again in a moment",
+            ),
+            Some(Renewal::NotDue) => (StatusCode::CONFLICT, "the next month is paid already"),
+            Some(Renewal::Paid) => (StatusCode::OK, ""),
+        };
+        if status != StatusCode::OK {
+            return ApiResponse::error(message).with_status(status).ok();
+        }
+
+        activity_logger
+            .log("server:billing.pay", serde_json::json!({}))
+            .await;
+
+        ApiResponse::new_serialized(Response {
+            subscription: shared::dedicated::subscription(&state, server.uuid).await?,
+        })
+        .ok()
+    }
+}
+
 pub fn router(state: &State) -> OpenApiRouter<State> {
     OpenApiRouter::new()
         .routes(routes!(get::route))
         .routes(routes!(post::route))
+        .routes(routes!(pay::route))
         .with_state(state.clone())
 }

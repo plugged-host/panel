@@ -40,6 +40,14 @@ pub const MEMBERSHIP_RENEW_FAILED: &str = "membershipRenewFailed";
 pub const MEMBERSHIP_GIFTED: &str = "membershipGifted";
 /// Paid panel access ends within the ends-soon notice's hours (`panel_access::remind_ending`).
 pub const PANEL_ACCESS_ENDS_SOON: &str = "panelAccessEndsSoon";
+/// A paid server's month ends within `dedicated::REMIND_DAYS` (`dedicated::remind`): it renews
+/// from Funds that do not cover `price` (`renews`, `funds`), or it ends (`renews` false).
+pub const PAID_SERVER_ENDS_SOON: &str = "paidServerEndsSoon";
+/// A paid server's next month was paid from Funds (`price`, `until`).
+pub const PAID_SERVER_RENEWED: &str = "paidServerRenewed";
+/// A paid server's month was not paid (too few Funds, or renewal off): it is suspended and deleted
+/// at `delete_at` unless paid.
+pub const PAID_SERVER_UNPAID: &str = "paidServerUnpaid";
 /// A failover (or a drill) restored the server on another node.
 pub const FAILOVER_DONE: &str = "failoverDone";
 /// A failover moved the server and then could not restore it.
@@ -442,6 +450,72 @@ pub async fn panel_access_ends_soon(
     .await;
 }
 
+/// A paid server's month ends soon (`dedicated::remind`): `price` euro cents renew it from
+/// `funds` that do not cover it, or it ends (`renews` false).
+#[allow(clippy::too_many_arguments)]
+pub async fn paid_server_ends_soon(
+    state: &crate::State,
+    user_uuid: uuid::Uuid,
+    server_uuid: uuid::Uuid,
+    server: &str,
+    renews: bool,
+    price: i32,
+    funds: i64,
+    until: chrono::NaiveDateTime,
+) {
+    send(
+        state,
+        user_uuid,
+        Some(server_uuid),
+        PAID_SERVER_ENDS_SOON,
+        json!({
+            "server": server,
+            "renews": renews,
+            "price": price,
+            "funds": funds,
+            "until": until.and_utc(),
+        }),
+    )
+    .await;
+}
+
+/// A paid server's month was paid from Funds (`dedicated::pay`): it now runs `until`.
+pub async fn paid_server_renewed(
+    state: &crate::State,
+    user_uuid: uuid::Uuid,
+    server: &Server,
+    price: i32,
+    until: chrono::NaiveDateTime,
+) {
+    send(
+        state,
+        user_uuid,
+        Some(server.uuid),
+        PAID_SERVER_RENEWED,
+        json!({ "server": server.name, "price": price, "until": until.and_utc() }),
+    )
+    .await;
+}
+
+/// A paid server's month was not paid (`dedicated::lapse`): suspended, deleted at `delete_at`.
+/// `renews`: it comes back by itself once the Funds cover it; off, only when renewal is turned on.
+pub async fn paid_server_unpaid(
+    state: &crate::State,
+    user_uuid: uuid::Uuid,
+    server: &Server,
+    renews: bool,
+    delete_at: chrono::DateTime<chrono::Utc>,
+) {
+    send(
+        state,
+        user_uuid,
+        Some(server.uuid),
+        PAID_SERVER_UNPAID,
+        json!({ "server": server.name, "renews": renews, "delete_at": delete_at }),
+    )
+    .await;
+}
+
 /// A failover or a drill restored the server on another node (`node_failover::check_restore`).
 pub async fn failover_done(
     state: &crate::State,
@@ -792,6 +866,9 @@ mod tests {
             MEMBERSHIP_RENEW_FAILED,
             MEMBERSHIP_GIFTED,
             PANEL_ACCESS_ENDS_SOON,
+            PAID_SERVER_ENDS_SOON,
+            PAID_SERVER_RENEWED,
+            PAID_SERVER_UNPAID,
             FAILOVER_DONE,
             FAILOVER_FAILED,
             MODPACK_INSTALLED,

@@ -195,7 +195,7 @@ mod dedicated {
         use serde::Serialize;
         use shared::{
             GetState,
-            models::user::GetPermissionManager,
+            models::user::{GetPermissionManager, GetUser},
             response::{ApiResponse, ApiResponseResult},
         };
         use utoipa::ToSchema;
@@ -206,6 +206,8 @@ mod dedicated {
             /// Plans with a price are ordered here and paid with noprofit.space Funds; without
             /// noprofit.space through a support ticket.
             self_service: bool,
+            /// The account's own paid servers with their months.
+            servers: Vec<shared::dedicated::ApiPaidServer>,
         }
 
         #[utoipa::path(get, path = "/", responses(
@@ -214,6 +216,7 @@ mod dedicated {
         pub async fn route(
             state: GetState,
             permissions: GetPermissionManager,
+            user: GetUser,
         ) -> ApiResponseResult {
             permissions.has_user_permission("servers.read")?;
 
@@ -222,6 +225,7 @@ mod dedicated {
             ApiResponse::new_serialized(Response {
                 plans: shared::dedicated::offers(&state).await?,
                 self_service,
+                servers: shared::dedicated::servers_of(&state, user.uuid).await?,
             })
             .ok()
         }

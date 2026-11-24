@@ -1,0 +1,1 @@
+ALTER TABLE "server_subscriptions" ADD COLUMN "reminded_until" timestamp;

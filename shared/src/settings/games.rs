@@ -111,7 +111,8 @@ pub struct AppSettingsGames {
     pub allowance_cpu: i32,
     pub allowance_memory: i64,
     pub allowance_disk: i64,
-    /// What players see paid servers on dedicated plans called (docs/features/dedicated.md).
+    /// What players see paid servers on dedicated plans called (docs/features/dedicated.md); empty:
+    /// the panel's name and "Paid" ([`crate::dedicated::product_name`]).
     pub dedicated_name: compact_str::CompactString,
 
     /// CurseForge's API key for the Minecraft pages; without it CurseForge is not offered
@@ -157,7 +158,8 @@ impl Default for AppSettingsGames {
             allowance_cpu: 0,
             allowance_memory: 0,
             allowance_disk: 0,
-            dedicated_name: "Dedicated".into(),
+            // empty: the panel's name and "Paid" (dedicated::product_name)
+            dedicated_name: compact_str::CompactString::default(),
             minecraft_curseforge_key: None,
             minecraft_spigot: true,
             minecraft_user_agent: compact_str::CompactString::default(),
@@ -223,7 +225,8 @@ pub struct PayloadGames {
     allowance_memory: Option<i64>,
     #[garde(inner(range(min = 0)))]
     allowance_disk: Option<i64>,
-    #[garde(inner(length(chars, min = 1, max = 64)))]
+    /// Empty: the panel's name and "Paid".
+    #[garde(inner(length(chars, max = 64)))]
     dedicated_name: Option<compact_str::CompactString>,
     /// An empty string or the placeholder keeps the stored key, `null` removes it.
     #[garde(inner(inner(length(chars, max = 255))))]

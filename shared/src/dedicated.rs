@@ -229,22 +229,49 @@ pub async fn room(
     Ok(room)
 }
 
-/// Whether any public dedicated plan is offered: players get the dedicated plans page and its
-/// sidebar entry (`/api/settings`, `games.dedicated_offered`). Cached for a minute; false when it
-/// cannot be told.
-pub async fn offered(state: &crate::State) -> bool {
+/// What the panel tells everyone about the paid plans (`/api/settings`): whether any public
+/// dedicated plan is offered (the Paid page, its sidebar entry and the spots that lead there) and
+/// the lowest monthly price among them ("from €4.99 / month").
+#[derive(Debug, Default, Clone, Copy, serde::Serialize, serde::Deserialize)]
+pub struct Offer {
+    pub offered: bool,
+    /// Euro cents a month, `None` when no public plan has a price.
+    pub from: Option<i32>,
+}
+
+/// [`Offer`], cached for a minute; nothing offered when it cannot be told.
+pub async fn offer(state: &crate::State) -> Offer {
     let database = state.database.clone();
     state
         .cache
-        .cached("dedicated::offered", 60, || async move {
-            sqlx::query_scalar::<_, bool>(
-                "SELECT EXISTS (SELECT 1 FROM plans WHERE plans.dedicated AND plans.public)",
+        .cached("dedicated::offer", 60, || async move {
+            let (offered, from): (bool, Option<i32>) = sqlx::query_as(
+                "SELECT COUNT(*) > 0, MIN(price) FILTER (WHERE price > 0)
+                FROM plans WHERE plans.dedicated AND plans.public",
             )
             .fetch_one(database.read())
-            .await
+            .await?;
+
+            Ok::<_, sqlx::Error>(Offer { offered, from })
         })
         .await
-        .unwrap_or(false)
+        .unwrap_or_default()
+}
+
+/// Whether any public dedicated plan is offered ([`offer`]).
+pub async fn offered(state: &crate::State) -> bool {
+    offer(state).await.offered
+}
+
+/// What paid servers are called when the setting is empty: the panel's name and "Paid"
+/// (`games::dedicated_name`).
+pub fn product_name(settings: &crate::settings::AppSettings) -> compact_str::CompactString {
+    let name = settings.games.dedicated_name.trim();
+    if name.is_empty() {
+        compact_str::format_compact!("{} Paid", settings.app.name.trim())
+    } else {
+        name.into()
+    }
 }
 
 /// A location a dedicated plan's servers can go to.
@@ -445,6 +472,95 @@ pub async fn subscription(
         }))
 }
 
+/// One of the account's paid servers, for the Paid page.
+#[derive(serde::Serialize, utoipa::ToSchema)]
+pub struct ApiPaidServer {
+    pub uuid: uuid::Uuid,
+    pub uuid_short: compact_str::CompactString,
+    pub name: compact_str::CompactString,
+    /// The plan's name, while the plan exists.
+    pub plan: Option<compact_str::CompactString>,
+    #[serde(flatten)]
+    #[schema(inline)]
+    pub subscription: ApiSubscription,
+}
+
+/// The paid servers `user_uuid` owns, the soonest to end first.
+pub async fn servers_of(
+    state: &crate::State,
+    user_uuid: uuid::Uuid,
+) -> Result<Vec<ApiPaidServer>, anyhow::Error> {
+    let rows = sqlx::query(
+        "SELECT servers.uuid, servers.uuid_short, servers.name, plans.name AS plan,
+            server_subscriptions.price, server_subscriptions.paid_until,
+            server_subscriptions.renews, server_subscriptions.unpaid_since
+        FROM server_subscriptions
+        JOIN servers ON servers.uuid = server_subscriptions.server_uuid
+        LEFT JOIN plans ON plans.uuid = server_subscriptions.plan_uuid
+        WHERE servers.owner_uuid = $1
+        ORDER BY server_subscriptions.paid_until, servers.name",
+    )
+    .bind(user_uuid)
+    .fetch_all(state.database.read())
+    .await?;
+
+    let mut servers = Vec::with_capacity(rows.len());
+    for row in rows {
+        let unpaid_since: Option<chrono::NaiveDateTime> = row.try_get("unpaid_since")?;
+        servers.push(ApiPaidServer {
+            uuid: row.try_get("uuid")?,
+            uuid_short: compact_str::format_compact!(
+                "{:08x}",
+                row.try_get::<i32, _>("uuid_short")?
+            ),
+            name: row.try_get("name")?,
+            plan: row.try_get("plan")?,
+            subscription: ApiSubscription {
+                price: row.try_get("price")?,
+                paid_until: row
+                    .try_get::<chrono::NaiveDateTime, _>("paid_until")?
+                    .and_utc(),
+                renews: row.try_get("renews")?,
+                unpaid_since: unpaid_since.map(|at| at.and_utc()),
+                delete_at: unpaid_since
+                    .map(|at| (at + chrono::Duration::days(GRACE_DAYS)).and_utc()),
+            },
+        });
+    }
+
+    Ok(servers)
+}
+
+/// Whether `user_uuid` owns a paid server: the Paid page stays in their sidebar while no plan is
+/// on sale.
+pub async fn owns_paid_server(
+    database: &crate::database::Database,
+    user_uuid: uuid::Uuid,
+) -> Result<bool, sqlx::Error> {
+    sqlx::query_scalar(
+        "SELECT EXISTS (SELECT 1 FROM server_subscriptions
+            JOIN servers ON servers.uuid = server_subscriptions.server_uuid
+            WHERE servers.owner_uuid = $1)",
+    )
+    .bind(user_uuid)
+    .fetch_one(database.read())
+    .await
+}
+
+/// The Funds noprofit.space answered with after a spend, so the panel shows them before the next
+/// sync.
+async fn store_funds(state: &crate::State, user_uuid: uuid::Uuid, funds: i64) {
+    if let Err(err) =
+        sqlx::query("UPDATE user_noprofit_accounts SET funds = $2 WHERE user_uuid = $1")
+            .bind(user_uuid)
+            .bind(funds)
+            .execute(state.database.write())
+            .await
+    {
+        tracing::warn!(user = %user_uuid, "failed to store the Funds left after a payment: {err:#}");
+    }
+}
+
 /// noprofit.space and the account's link to it: what Funds are paid with.
 async fn payer(
     state: &crate::State,
@@ -531,7 +647,7 @@ pub async fn order(
         )
         .await
     {
-        Ok(Some(_)) => {}
+        Ok(Some(funds)) => store_funds(state, user.uuid, funds).await,
         Ok(None) => return Err(OrderError::Short),
         Err(err) => {
             tracing::warn!(user = %user.uuid, "noprofit.space did not take the Funds for a paid server: {err:#}");
@@ -583,12 +699,16 @@ pub async fn order(
 pub enum Renewal {
     Paid,
     Short,
+    /// Paying ahead: more than a month is paid already.
+    NotDue,
     /// noprofit.space is not connected, the account not linked, or noprofit.space did not answer.
     Unavailable,
 }
 
-/// Pays the month that ended (`paid_until`) from the owner's Funds, once: the key is the server
-/// and that end. A paid server that was suspended for it is back.
+/// Pays the month that starts at `paid_until` from the owner's Funds, once: the key is the server
+/// and that end, so the settle task, a renewal turned back on and "Pay next month now" never take
+/// the same month twice. Paid on time (or ahead), the month follows on; paid late, it starts now.
+/// A paid server that was suspended for it is back.
 async fn pay(state: &crate::State, row: &Subscription) -> Result<Renewal, anyhow::Error> {
     use crate::models::{ByUuid, UpdatableModel};
 
@@ -617,7 +737,7 @@ async fn pay(state: &crate::State, row: &Subscription) -> Result<Renewal, anyhow
         )
         .await
     {
-        Ok(Some(_)) => {}
+        Ok(Some(funds)) => store_funds(state, row.user_uuid, funds).await,
         Ok(None) => return Ok(Renewal::Short),
         Err(err) => {
             tracing::warn!(server = %row.server_uuid, "noprofit.space did not take a paid server's month: {err:#}");
@@ -625,16 +745,17 @@ async fn pay(state: &crate::State, row: &Subscription) -> Result<Renewal, anyhow
         }
     }
 
-    // on time, the next month follows on; late, it starts now
-    sqlx::query(
+    // on time or ahead, the next month follows on; late, it starts now
+    let paid_until: Option<chrono::NaiveDateTime> = sqlx::query_scalar(
         "UPDATE server_subscriptions
-        SET paid_until = GREATEST(paid_until, NOW()) + make_interval(days => $2), unpaid_since = NULL, renews = TRUE
-        WHERE server_uuid = $1 AND paid_until = $3",
+        SET paid_until = GREATEST(paid_until, NOW()) + make_interval(days => $2), unpaid_since = NULL
+        WHERE server_uuid = $1 AND paid_until = $3
+        RETURNING paid_until",
     )
     .bind(row.server_uuid)
     .bind(MONTH_DAYS as i32)
     .bind(row.paid_until)
-    .execute(state.database.write())
+    .fetch_optional(state.database.write())
     .await?;
 
     if server.suspension.as_ref().is_some_and(|suspension| {
@@ -649,6 +770,18 @@ async fn pay(state: &crate::State, row: &Subscription) -> Result<Renewal, anyhow
         }
     }
 
+    // only the one that moved the month on tells the owner (the same month paid twice is once)
+    if let Some(paid_until) = paid_until {
+        crate::notifications::paid_server_renewed(
+            state,
+            row.user_uuid,
+            &server,
+            row.price,
+            paid_until,
+        )
+        .await;
+    }
+
     Ok(Renewal::Paid)
 }
 
@@ -661,17 +794,19 @@ async fn lapse(
 ) -> Result<(), anyhow::Error> {
     use crate::models::ByUuid;
 
-    sqlx::query(
+    let lapsed = sqlx::query(
         "UPDATE server_subscriptions SET unpaid_since = NOW()
         WHERE server_uuid = $1 AND unpaid_since IS NULL",
     )
     .bind(row.server_uuid)
     .execute(state.database.write())
-    .await?;
+    .await?
+    .rows_affected();
 
     if let Some(mut server) =
         crate::models::server::Server::by_uuid_optional(&state.database, row.server_uuid).await?
     {
+        let delete_at = chrono::Utc::now() + chrono::Duration::days(GRACE_DAYS);
         server
             .suspend(
                 state,
@@ -679,10 +814,21 @@ async fn lapse(
                     kind: crate::models::server::suspension::SuspensionKind::Unpaid,
                     reason: Some(reason),
                     by: None,
-                    delete_at: Some(chrono::Utc::now() + chrono::Duration::days(GRACE_DAYS)),
+                    delete_at: Some(delete_at),
                 },
             )
             .await?;
+
+        if lapsed > 0 {
+            crate::notifications::paid_server_unpaid(
+                state,
+                row.user_uuid,
+                &server,
+                row.renews,
+                delete_at,
+            )
+            .await;
+        }
     }
 
     Ok(())
@@ -738,7 +884,103 @@ pub async fn settle(state: &crate::State) -> Result<(), anyhow::Error> {
         }
     }
 
+    remind(state).await
+}
+
+/// Days before a month ends that its owner hears about it ([`remind`]).
+pub const REMIND_DAYS: i32 = 3;
+
+/// [`REMIND_DAYS`] before a month ends, once per month (`reminded_until`): the owner of a paid
+/// server that renews but whose Funds do not cover it, or that does not renew and ends then.
+async fn remind(state: &crate::State) -> Result<(), anyhow::Error> {
+    let due: Vec<Subscription> = sqlx::query_as(sqlx::AssertSqlSafe(format!(
+        "SELECT {SUBSCRIPTION_COLUMNS} FROM server_subscriptions
+        WHERE paid_until > NOW()
+            AND paid_until <= NOW() + make_interval(days => $1)
+            AND unpaid_since IS NULL
+            AND reminded_until IS DISTINCT FROM paid_until
+        ORDER BY paid_until
+        LIMIT 200"
+    )))
+    .bind(REMIND_DAYS)
+    .fetch_all(state.database.write())
+    .await?;
+
+    for row in due {
+        // marked first, so it goes out once even when sending it fails
+        let marked = sqlx::query(
+            "UPDATE server_subscriptions SET reminded_until = paid_until
+            WHERE server_uuid = $1 AND paid_until = $2",
+        )
+        .bind(row.server_uuid)
+        .bind(row.paid_until)
+        .execute(state.database.write())
+        .await?
+        .rows_affected();
+        if marked == 0 {
+            continue;
+        }
+
+        let funds = crate::noprofit::Link::by_user_uuid(&state.database, row.user_uuid)
+            .await?
+            .filter(|link| link.deleted.is_none())
+            .map_or(0, |link| link.funds);
+        if !needs_reminder(row.renews, funds, row.price) {
+            continue;
+        }
+
+        let name: Option<compact_str::CompactString> =
+            sqlx::query_scalar("SELECT name FROM servers WHERE uuid = $1")
+                .bind(row.server_uuid)
+                .fetch_optional(state.database.read())
+                .await?;
+        let Some(name) = name else {
+            continue;
+        };
+
+        crate::notifications::paid_server_ends_soon(
+            state,
+            row.user_uuid,
+            row.server_uuid,
+            &name,
+            row.renews,
+            row.price,
+            funds,
+            row.paid_until,
+        )
+        .await;
+    }
+
     Ok(())
+}
+
+/// Whether a month that ends soon is worth a word: it ends (renewal off), or renews from Funds
+/// that do not cover it.
+fn needs_reminder(renews: bool, funds: i64, price: i32) -> bool {
+    !renews || funds < price as i64
+}
+
+/// "Pay next month now": pays the month after the paid one from the owner's Funds now (or the
+/// unpaid one, which brings the server back). With the same key as the settle task, so that month
+/// is never taken twice. [`Renewal::NotDue`] while more than a month is paid already.
+pub async fn pay_ahead(
+    state: &crate::State,
+    server_uuid: uuid::Uuid,
+) -> Result<Option<Renewal>, anyhow::Error> {
+    let Some(row) = subscription_row(state, server_uuid).await? else {
+        return Ok(None);
+    };
+    if !may_pay_ahead(row.paid_until, chrono::Utc::now().naive_utc()) {
+        return Ok(Some(Renewal::NotDue));
+    }
+
+    Ok(Some(pay(state, &row).await?))
+}
+
+/// At most one month is paid ahead: once the paid time reaches past a month from now, there is
+/// nothing to pay yet.
+fn may_pay_ahead(paid_until: chrono::NaiveDateTime, now: chrono::NaiveDateTime) -> bool {
+    paid_until <= now + chrono::Duration::days(MONTH_DAYS)
 }
 
 /// The owner turns renewal on or off. Turning it on for a month that already ended pays it now.
@@ -825,6 +1067,30 @@ mod tests {
         assert_eq!(OrderError::Short.status(), 402);
         assert_eq!(OrderError::SoldOut.status(), 409);
         assert_eq!(OrderError::NotOffered.status(), 400);
+    }
+
+    #[test]
+    fn reminders_only_when_it_ends_or_funds_are_short() {
+        assert!(needs_reminder(false, 10_000, 499));
+        assert!(needs_reminder(true, 498, 499));
+        assert!(!needs_reminder(true, 499, 499));
+    }
+
+    #[test]
+    fn one_month_is_paid_ahead_at_most() {
+        let now = chrono::NaiveDate::from_ymd_opt(2026, 11, 24)
+            .unwrap()
+            .and_hms_opt(12, 0, 0)
+            .unwrap();
+        // just ordered: the next month may be paid
+        assert!(may_pay_ahead(now + chrono::Duration::days(MONTH_DAYS), now));
+        // unpaid: paying brings it back
+        assert!(may_pay_ahead(now - chrono::Duration::days(1), now));
+        // a month and more paid already
+        assert!(!may_pay_ahead(
+            now + chrono::Duration::days(MONTH_DAYS) + chrono::Duration::minutes(1),
+            now
+        ));
     }
 
     #[test]

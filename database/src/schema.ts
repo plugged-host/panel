@@ -2126,7 +2126,7 @@ export const serverLimboTable = pgTable('server_limbo', {
 // (shared/src/dedicated.rs, docs/features/dedicated.md). `price` (euro cents) is what each month
 // costs, as at the order; `paid_until` the end of the paid month. Without `renews` it ends there.
 // `unpaid_since`: the month could not be paid (or it was not renewed) and the server is suspended
-// until it is.
+// until it is. `reminded_until`: the `paid_until` its ends-soon notification was sent for.
 export const serverSubscriptionsTable = pgTable('server_subscriptions', {
   server_uuid: uuid()
     .references(() => serversTable.uuid, { onDelete: 'cascade' })
@@ -2140,6 +2140,7 @@ export const serverSubscriptionsTable = pgTable('server_subscriptions', {
   paid_until: timestamp().notNull(),
   renews: boolean().default(true).notNull(),
   unpaid_since: timestamp(),
+  reminded_until: timestamp(),
   created: timestamp().defaultNow().notNull(),
 });
 

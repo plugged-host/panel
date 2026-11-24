@@ -928,9 +928,12 @@ impl User {
         } else {
             None
         };
+        // plugged.host: docs/features/dedicated.md
+        let paid_servers = crate::dedicated::owns_paid_server(&state.database, self.uuid).await?;
 
         let api_object = finish_extendible!(
             ApiFullUser {
+                paid_servers, // plugged.host
                 uuid: self.uuid,
                 username: self.username,
                 role,
@@ -1558,6 +1561,9 @@ pub struct ApiUser {
 pub struct ApiFullUser {
     /// plugged.host: the profile badge shown next to the name (shared/src/badges.rs).
     pub badge: Option<compact_str::CompactString>,
+    /// plugged.host: the account owns a paid server, so its Paid page stays in the sidebar
+    /// (docs/features/dedicated.md).
+    pub paid_servers: bool,
 
     pub uuid: uuid::Uuid,
 
