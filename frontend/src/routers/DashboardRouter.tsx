@@ -206,7 +206,7 @@ export default function DashboardRouter({ isNormal }: { isNormal: boolean }) {
                 id='more'
                 iconElement={<EllipsisHorizontalIcon />}
                 name={t('elements.sidebar.more', {})}
-                activeMatches={MORE_PATHS.map((path) => ({ path, end: false }))}
+                activeMatches={MORE_PATHS.map((path) => ({ path: to(path, '/account'), end: false }))}
               >
                 {moreRoutes.map(
                   (route) =>

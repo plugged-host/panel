@@ -891,7 +891,7 @@
       },
       "economyTransactions": {
         "empty": "Nothing yet.",
-        "balanceAfter": "{balance} after",
+        "balanceAfter": "balance {balance}",
         "earnedWith": "Earned with {provider}",
         "detail": "{type}: {detail}",
         "columns": {
@@ -2796,9 +2796,9 @@
         },
         "sshKeys": {
           "title": "SSH Keys",
-          "subtitle": "{current} of {max} maximum ssh keys created.",
+          "subtitle": "{current} of {max} SSH keys used.",
           "tooltip": {
-            "limitReached": "You are limited to {max} ssh keys."
+            "limitReached": "You can have up to {max} SSH keys."
           },
           "table": {
             "columns": {

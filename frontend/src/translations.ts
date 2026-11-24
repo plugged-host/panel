@@ -676,7 +676,7 @@ const baseTranslations = defineTranslations({
       // plugged.host
       economyTransactions: {
         empty: 'Nothing yet.',
-        balanceAfter: '{balance} after',
+        balanceAfter: 'balance {balance}', // plugged.host: as switched.cloud's history rows
         earnedWith: 'Earned with {provider}',
         detail: '{type}: {detail}',
         columns: {
@@ -2676,9 +2676,9 @@ const baseTranslations = defineTranslations({
         },
         sshKeys: {
           title: 'SSH Keys',
-          subtitle: '{current} of {max} maximum ssh keys created.',
+          subtitle: '{current} of {max} SSH keys used.', // plugged.host: capitalised as switched.cloud's page
           tooltip: {
-            limitReached: 'You are limited to {max} ssh keys.',
+            limitReached: 'You can have up to {max} SSH keys.', // plugged.host
           },
           table: {
             columns: {

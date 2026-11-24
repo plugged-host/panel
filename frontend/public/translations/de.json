@@ -891,7 +891,7 @@
       },
       "economyTransactions": {
         "empty": "Noch nichts.",
-        "balanceAfter": "danach {balance}",
+        "balanceAfter": "Kontostand {balance}",
         "earnedWith": "Mit {provider} verdient",
         "detail": "{type}: {detail}",
         "columns": {
