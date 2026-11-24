@@ -367,8 +367,9 @@ function CreateServerForm({ options }: { options: Options }) {
   // the footer's summary: the size taken from the plan, and what is left of a plan with limits
   const sizeOf = (values: { cpu: number; memory: number; disk: number }) => ({
     cpu: `${values.cpu}%`,
-    memory: bytesToString(mbToBytes(values.memory)),
-    disk: bytesToString(mbToBytes(values.disk)),
+    // nothing left reads "0 MiB", not "0 Bytes"
+    memory: values.memory > 0 ? bytesToString(mbToBytes(values.memory)) : '0 MiB',
+    disk: values.disk > 0 ? bytesToString(mbToBytes(values.disk)) : '0 MiB',
   });
   const sized = isAmount(cpu) && isAmount(memory) && isAmount(disk);
   const summary = {
