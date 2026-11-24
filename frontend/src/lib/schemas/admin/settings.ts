@@ -423,7 +423,7 @@ export const adminSettingsGamesSchema = z.object({
   allowanceCpu: z.number().int().min(0),
   allowanceMemory: z.number().int().min(0),
   allowanceDisk: z.number().int().min(0),
-  dedicatedName: z.string().trim().min(1).max(64),
+  dedicatedName: z.string().trim().max(64), // empty: the panel's name and "Paid"
 });
 
 // plugged.host: Admin › Settings › Hosting › Minecraft, part of the games section; an empty key

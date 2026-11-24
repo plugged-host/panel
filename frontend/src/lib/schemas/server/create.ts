@@ -1,5 +1,6 @@
 // plugged.host: what the create page offers (shared/src/server_creation.rs, docs/features/create-server.md)
 import { z } from 'zod';
+import { paidServerSchema } from '@/lib/schemas/server/billing.ts'; // plugged.host
 import { accountStandingSchema } from '@/lib/schemas/standing.ts';
 
 const resourcesSchema = z.object({
@@ -67,10 +68,12 @@ export const serverCreateDedicatedPlanSchema = z.object({
   ),
 });
 
-// the plans, and whether those with a price are ordered here and paid with noprofit.space Funds
+// the plans, whether those with a price are ordered here and paid with noprofit.space Funds, and
+// the account's own paid servers with their months
 export const serverCreateDedicatedPlansSchema = z.object({
   plans: z.array(serverCreateDedicatedPlanSchema),
   selfService: z.boolean().default(false),
+  servers: z.array(paidServerSchema).default([]),
 });
 
 // a paid plan ordered here: its first month comes from the account's noprofit.space Funds

@@ -29,6 +29,7 @@ import { queryKeys } from '@/lib/queryKeys.ts';
 import { randomWord } from '@/lib/randomWord.ts';
 import { serverCreateLocationSchema, serverCreateOptionsSchema } from '@/lib/schemas/server/create.ts';
 import { standingLevelKey } from '@/lib/standing.ts';
+import usePaidOffer from '@/pages/dashboard/dedicated/usePaidOffer.ts';
 import { SETUP_PATH } from '@/pages/server/minecraft/setup/useMinecraftSetup.ts';
 import { useResource } from '@/plugins/resource/useResource.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
@@ -122,18 +123,32 @@ function isAmount(value: Amount): value is number {
 }
 
 /** The paid plans live on their own page; one line points there (docs/features/dedicated.md). */
-function DedicatedLink({ offered }: { offered: boolean }) {
+function PaidCard({ offered }: { offered: boolean }) {
   const { t } = useTranslations();
-  const name = useGlobalStore((state) => state.settings.games?.dedicatedName) || 'Dedicated';
+  const navigate = useNavigate();
+  const paid = usePaidOffer();
 
-  if (!offered) {
+  if (!offered || !paid.offered) {
     return null;
   }
 
   return (
-    <Link to='/account/dedicated' className='theme-eco-link text-sm'>
-      {t(`${page}.dedicatedLink`, { name })}
-    </Link>
+    <section className='theme-eco-card'>
+      <div className='theme-row'>
+        <div className='flex min-w-0 flex-col gap-1'>
+          <h3 className='theme-eco-heading'>{paid.name}</h3>
+          <p className='theme-row-body'>{t('pages.account.dedicated.upsell.card', {})}</p>
+          {paid.from && (
+            <p className='theme-row-body'>{t('pages.account.dedicated.upsell.from', { price: paid.from })}</p>
+          )}
+        </div>
+        <div className='theme-row-action'>
+          <Button variant='default' className='w-full' onClick={() => navigate('/account/dedicated')}>
+            {t('pages.account.dedicated.upsell.seePlans', {})}
+          </Button>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -379,6 +394,8 @@ function CreateServerForm({ options }: { options: Options }) {
       }
     >
       <div className='theme-create-page'>
+        <PaidCard offered={options.dedicatedOffered} />
+
         <TitleCard title={t(`${page}.details`, {})}>
           <TextInput
             label={t(`${page}.name`, {})}
@@ -558,8 +575,6 @@ function CreateServerForm({ options }: { options: Options }) {
           </Button>
         </div>
 
-        <DedicatedLink offered={options.dedicatedOffered} />
-
         <AdPageSlot />
       </div>
     </AccountContentContainer>
@@ -599,7 +614,7 @@ export default function CreateServer() {
       ) : blocked ? (
         <div className='flex flex-col gap-6'>
           <Text c='dimmed'>{blocked}</Text>
-          {options && <DedicatedLink offered={options.dedicatedOffered} />}
+          {options && <PaidCard offered={options.dedicatedOffered} />}
         </div>
       ) : (
         <ResourceView resource={resource}>{() => null}</ResourceView>

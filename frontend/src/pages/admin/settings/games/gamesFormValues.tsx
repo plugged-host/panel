@@ -27,7 +27,7 @@ export const gamesEmptyFormValues: GamesFormValues = {
   allowanceCpu: 0,
   allowanceMemory: 0,
   allowanceDisk: 0,
-  dedicatedName: 'Dedicated',
+  dedicatedName: '',
 };
 
 // The section also holds the Minecraft tab's fields, which that tab saves.
@@ -178,7 +178,6 @@ export function useGamesFormFields(
       name: 'dedicatedName',
       label: t(`${page}.dedicatedName`, {}),
       description: t(`${page}.dedicatedNameDescription`, {}),
-      required: true,
     },
     {
       type: 'divider',

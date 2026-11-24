@@ -1064,6 +1064,7 @@
         "viewBackups": "Zaxira nusxalarni koʻrish",
         "renew": "Yangilash",
         "viewMembership": "Aʼzolikni koʻrish",
+        "viewBilling": "Toʻlovni koʻrish",
         "showMore": "Koʻproq koʻrsatish",
         "empty": "Bildirishnomalar yoʻq",
         "emptyHint": "Keyinroq yana tekshirib koʻring.",
@@ -1114,6 +1115,21 @@
             "body": "Panelga pullik kirish muddatingiz {date} da tugaydi.",
             "covered": "Balansingiz navbatdagi {cost} toʻlovga yetadi.",
             "short": "Qayta toʻlash {cost} turadi."
+          },
+          "paidServerEndsSoon": {
+            "title": "Pullik server tez orada uzaytiriladi",
+            "body": "{server} tez orada uzaytiriladi: {date} kuni {price} evaziga uzaytiriladi, Funds balansingiz {funds}. Undan oldin Funds qoʻshing.",
+            "endsTitle": "Pullik server tez orada tugaydi",
+            "ends": "{server} {date} kuni tugaydi."
+          },
+          "paidServerRenewed": {
+            "title": "{server} uzaytirildi",
+            "body": "Funds balansingizdan {price} yechildi. {date} gacha toʻlangan."
+          },
+          "paidServerUnpaid": {
+            "title": "{server} toʻlanmagan",
+            "body": "{server} toʻlanmaguncha toʻxtatilgan va {date} kuni oʻchiriladi. Funds qoʻshing, u oʻzi qaytadi.",
+            "bodyEnded": "{server} uzaytirish oʻchirilgani uchun tugadi. U toʻxtatilgan va uzaytirishni qayta yoqmasangiz {date} kuni oʻchiriladi."
           },
           "failoverDone": {
             "title": "Server tiklandi",
@@ -2205,8 +2221,7 @@
           "title": "Server yaratish",
           "subtitle": "Sozlamalarni tanlang, soʻng joylashtiring.",
           "button": "Server yaratish",
-          "paidButton": "Pullik server yaratish",
-          "paidNeedsFunds": "Pullik server olish uchun noprofit.space'da Funds qo'shing.",
+          "paidButton": "Pullik server olish",
           "disabled": "Server yaratish oʻchirilgan.",
           "noPlan": "Hisobingizda server yaratish uchun tarif yoʻq.",
           "nothingOffered": "Hozir joylashtira oladigan oʻyinlar yoʻq. Iltimos, panel administratoriga murojaat qiling.",
@@ -2261,14 +2276,36 @@
             "blocked": "Hisobingiz holati: {level}. Hozir server yarata olmaysiz.",
             "blockedUntil": "Hisobingiz holati: {level}. {date} gacha server yarata olmaysiz.",
             "view": "Hisob holatini koʻrish"
-          },
-          "dedicatedLink": "O'zingizga tegishli CPU oqimlari va xotira kerakmi? {name} rejalarini ko'ring."
+          }
         },
         "dedicated": {
           "description": "{name} rejalari pullik: ularning CPU oqimlari va xotirasi faqat sizning serveringizga tegishli. Birini buyurtma qiling, jamoa uni siz uchun sozlaydi.",
-          "descriptionSelfService": "{name} rejalari pullik: ularning CPU oqimlari va xotirasi faqat sizning serveringizga tegishli. Birinchi oyni noprofit.space'dagi Funds bilan to'lang, server darhol yaratiladi.",
+          "subtitle": "Oʻz CPU oqimlari va xotirasiga ega serverlar, har oy noprofit.space’dagi Funds balansingizdan toʻlanadi.",
+          "benefits": {
+            "title": "Nimalarga ega boʻlasiz",
+            "threads": "Ajratilgan CPU oqimlari",
+            "memory": "Ajratilgan xotira",
+            "queue": "Ishga tushirish navbati va kutish xonasi yoʻq",
+            "limbo": "Limbo uni hech qachon toʻxtatib qoʻymaydi, va u bepul limitingizga kirmaydi"
+          },
+          "funds": {
+            "title": "Funds balansingiz",
+            "note": "Har oy oldingisi tugaganda Funds balansingizdan yechiladi. Istalgan vaqtda bekor qilish mumkin.",
+            "support": "Pullik tariflar qoʻllab-quvvatlash orqali buyurtma qilinadi: tarifni tanlang, murojaatni yuboring, jamoa serveringizni sozlaydi."
+          },
+          "servers": {
+            "title": "Pullik serverlaringiz"
+          },
+          "plans": {
+            "title": "Tariflar"
+          },
           "perMonth": "{price} / oy",
           "size": "{threads} ta ajratilgan CPU oqimi · {memory} MB xotira · {disk} MB disk joyi",
+          "spec": {
+            "threads": "{threads} ta ajratilgan CPU oqimi",
+            "memory": "{memory} ajratilgan xotira",
+            "disk": "{disk} disk"
+          },
           "soldOut": "Tugagan",
           "soldOutAt": "{location} (tugagan)",
           "order": "Qo'llab-quvvatlash orqali buyurtma berish",
@@ -2276,17 +2313,25 @@
           "orderSubject": "{name} buyurtmasi: {plan}",
           "orderBody": "Men {name} rejasi {plan} ni buyurtma qilmoqchiman.",
           "orderLocations": "Joylashuvlar: {locations}. Men xohlagani:",
-          "empty": "Hozircha ajratilgan rejalar yo'q.",
-          "addFunds": "noprofit.space'da Funds qo'shing",
+          "empty": "Hozircha hisobingiz uchun tariflar yoʻq. Kerak boʻlsa, qoʻllab-quvvatlashga murojaat oching.",
+          "history": "noprofit.space’dagi toʻlovlar tarixi",
+          "addFunds": "Funds qoʻshish",
+          "upsell": {
+            "card": "Oʻzingizga tegishli CPU oqimlari va xotira. Ishga tushirish navbati yoʻq, kutish xonasi yoʻq.",
+            "from": "{price} / oydan boshlab",
+            "seePlans": "Tariflarni koʻrish",
+            "wait": "Pullik serverlar bu yerda hech qachon kutmaydi. {name} {price} / oydan boshlab.",
+            "waitNoPrice": "Pullik serverlar bu yerda hech qachon kutmaydi."
+          },
           "modal": {
             "title": "{plan} buyurtmasi",
-            "price": "Narxi: oyiga {price}",
             "funds": "Funds balansingiz: {funds}",
             "fundsLoading": "Funds balansingiz tekshirilmoqda…",
-            "renewal": "Birinchi oy hozir to'lanadi. Keyingi har oy Funds balansingizdan uzaytiriladi; uzaytirishni server sozlamalarida bekor qilishingiz mumkin.",
-            "short": "Funds balansingiz birinchi oyga yetmaydi.",
+            "left": "Toʻlovdan keyin qoladi: {rest}",
+            "renewal": "Birinchi oy hozir toʻlanadi. Keyingi har oy Funds balansingizdan uzaytiriladi; uzaytirishni istalgan vaqtda oʻchirishingiz mumkin.",
+            "short": "Sizga yana {missing} Funds kerak.",
             "pay": "{price} to'lash va yaratish",
-            "paid": "{price} to'landi. Serveringiz yaratilmoqda."
+            "paid": "{price} toʻlandi. Serveringiz sozlanmoqda."
           }
         },
         "home": {
@@ -2296,6 +2341,7 @@
           },
           "emptyGroup": "Bu guruh boʻsh. Server qoʻshish uchun uni shu yerga sudrab olib keling.",
           "emptyAccess": "Sizda hech qanday serverga kirish huquqi yoʻq!",
+          "paidBadge": "Pullik",
           "review": {
             "title": "{app} bilan tajribangiz qanday?",
             "body": "Boshqa oʻyinchilarga {site} saytidagi sharhda tajribangiz haqida aytib bering, yaxshimi yoki yomonmi.",
@@ -6480,19 +6526,29 @@
           "billing": {
             "title": "To'lov",
             "note": "Bu server har oy noprofit.space'dagi Funds balansingizdan to'lanadi.",
-            "price": "Oyiga {price}, {date} gacha to'langan",
-            "renews": "Funds balansingizdan uzaytiriladi.",
+            "price": "Funds balansingizdan {price} / oy.",
+            "paidUntil": "{date} gacha toʻlangan. Funds balansingizdan uzaytiriladi.",
             "ends": "{date} da tugaydi.",
-            "ownerOnly": "Uzaytirishni faqat server egasi o'zgartira oladi.",
-            "cancel": "Uzaytirishni bekor qilish",
-            "keep": "Saqlab qolish",
+            "unpaid": "{since} dan beri toʻlanmagan: toʻlanmasa {date} kuni oʻchiriladi.",
+            "ownerOnly": "Toʻlovni faqat egasi oʻzgartira oladi.",
+            "renewalOn": "Uzaytirish: yoqilgan",
+            "renewalOff": "Uzaytirish: oʻchirilgan",
+            "payAhead": "Keyingi oyni hozir toʻlash",
+            "allServers": "Barcha pullik serverlar",
             "confirm": {
-              "title": "Uzaytirish bekor qilinsinmi?",
-              "body": "Server to'langan oyi oxirigacha ({date}) ishlashda davom etadi. Keyin u muzlatiladi va 3 kundan so'ng o'chiriladi. Ungacha uni saqlab qolishingiz mumkin."
+              "title": "Uzaytirish oʻchirilsinmi?",
+              "body": "{name} {date} gacha ishlashda davom etadi. Keyin u toʻxtatiladi va toʻlanmasa 3 kundan keyin oʻchiriladi.",
+              "button": "Oʻchirish"
+            },
+            "confirmPay": {
+              "title": "Keyingi oy hozir toʻlansinmi?",
+              "body": "Funds balansingizdan hozir {price} yechiladi va {name} {date} gacha toʻlangan boʻladi.",
+              "button": "{price} toʻlash"
             },
             "toast": {
-              "cancelled": "Uzaytirish bekor qilindi. Server {date} gacha ishlaydi.",
-              "kept": "Server yana Funds balansingizdan uzaytiriladi."
+              "off": "Uzaytirish oʻchirilgan. Server {date} gacha ishlaydi.",
+              "on": "Uzaytirish yoqilgan. Server Funds balansingizdan uzaytiriladi.",
+              "paid": "{price} toʻlandi. {date} gacha toʻlangan."
             }
           },
           "danger": {

@@ -1064,6 +1064,7 @@
         "viewBackups": "Ver backups",
         "renew": "Renovar",
         "viewMembership": "Ver assinatura",
+        "viewBilling": "Ver cobrança",
         "showMore": "Mostrar mais",
         "empty": "Sem notificações",
         "emptyHint": "Volte mais tarde.",
@@ -1114,6 +1115,21 @@
             "body": "Seu acesso pago ao painel termina em {date}.",
             "covered": "Seu saldo cobre os próximos {cost}.",
             "short": "Pagar de novo custa {cost}."
+          },
+          "paidServerEndsSoon": {
+            "title": "Servidor pago renova em breve",
+            "body": "{server} renova em breve: em {date} ele renova por {price}, e seus Funds são {funds}. Adicione Funds antes disso.",
+            "endsTitle": "Servidor pago termina em breve",
+            "ends": "{server} termina em {date}."
+          },
+          "paidServerRenewed": {
+            "title": "{server} renovado",
+            "body": "{price} foi descontado dos seus Funds. Pago até {date}."
+          },
+          "paidServerUnpaid": {
+            "title": "{server} não foi pago",
+            "body": "{server} está parado até ser pago e será excluído em {date}. Adicione Funds e ele volta sozinho.",
+            "bodyEnded": "{server} terminou porque a renovação está desligada. Ele está parado e será excluído em {date}, a menos que você ligue a renovação de novo."
           },
           "failoverDone": {
             "title": "Servidor recuperado",
@@ -2205,8 +2221,7 @@
           "title": "Criar servidor",
           "subtitle": "Escolha sua configuração e depois implante.",
           "button": "Criar servidor",
-          "paidButton": "Criar servidor pago",
-          "paidNeedsFunds": "Adicione Funds no noprofit.space para ter um servidor pago.",
+          "paidButton": "Ter um servidor pago",
           "disabled": "A criação de servidores está desativada.",
           "noPlan": "Sua conta não tem um plano para criar servidores.",
           "nothingOffered": "Não há jogos que você possa implantar no momento. Por favor, entre em contato com o administrador do painel.",
@@ -2261,14 +2276,36 @@
             "blocked": "Situação da sua conta: {level}. Você não pode criar servidores no momento.",
             "blockedUntil": "Situação da sua conta: {level}. Você não pode criar servidores até {date}.",
             "view": "Ver a situação da conta"
-          },
-          "dedicatedLink": "Quer threads de CPU e memória só suas? Veja os planos {name}."
+          }
         },
         "dedicated": {
           "description": "Os planos {name} são pagos: as threads de CPU e a memória são só do seu servidor. Peça um e a equipe configura para você.",
-          "descriptionSelfService": "Os planos {name} são pagos: as threads de CPU e a memória são só do seu servidor. Pague o primeiro mês com seus Funds do noprofit.space e o servidor é criado na hora.",
+          "subtitle": "Servidores com threads de CPU e memória próprios, pagos todo mês com seus Funds do noprofit.space.",
+          "benefits": {
+            "title": "O que você ganha",
+            "threads": "Threads de CPU dedicados",
+            "memory": "Memória dedicada",
+            "queue": "Sem fila de início e sem sala de espera",
+            "limbo": "Nunca estacionado pelo Limbo, e fora da sua cota gratuita"
+          },
+          "funds": {
+            "title": "Seus Funds",
+            "note": "Cada mês é descontado dos seus Funds quando o anterior termina. Cancele quando quiser.",
+            "support": "Planos pagos são pedidos pelo suporte: escolha um plano, envie o ticket e a equipe prepara seu servidor."
+          },
+          "servers": {
+            "title": "Seus servidores pagos"
+          },
+          "plans": {
+            "title": "Planos"
+          },
           "perMonth": "{price} / mês",
           "size": "{threads} threads de CPU dedicadas · {memory} MB de Memória · {disk} MB de Espaço em Disco",
+          "spec": {
+            "threads": "{threads} threads de CPU dedicados",
+            "memory": "{memory} de memória dedicada",
+            "disk": "{disk} de disco"
+          },
           "soldOut": "Esgotado",
           "soldOutAt": "{location} (esgotado)",
           "order": "Pedir pelo suporte",
@@ -2276,17 +2313,25 @@
           "orderSubject": "Pedido {name}: {plan}",
           "orderBody": "Gostaria de pedir o plano {name} {plan}.",
           "orderLocations": "Locais: {locations}. O que eu quero:",
-          "empty": "Nenhum plano dedicado disponível no momento.",
-          "addFunds": "Adicionar Funds no noprofit.space",
+          "empty": "Não há planos para sua conta agora. Abra um ticket de suporte se precisar de um.",
+          "history": "Histórico de pagamentos no noprofit.space",
+          "addFunds": "Adicionar Funds",
+          "upsell": {
+            "card": "Threads de CPU e memória só seus. Sem fila de início, sem sala de espera.",
+            "from": "A partir de {price} / mês",
+            "seePlans": "Ver planos",
+            "wait": "Servidores pagos nunca esperam aqui. {name} a partir de {price} / mês.",
+            "waitNoPrice": "Servidores pagos nunca esperam aqui."
+          },
           "modal": {
             "title": "Pedir {plan}",
-            "price": "Preço: {price} por mês",
             "funds": "Seus Funds: {funds}",
             "fundsLoading": "Verificando seus Funds…",
-            "renewal": "O primeiro mês é pago agora. Cada mês seguinte é renovado com seus Funds; você pode cancelar a renovação nas configurações do servidor.",
-            "short": "Seus Funds não cobrem o primeiro mês.",
+            "left": "Sobra depois de pagar: {rest}",
+            "renewal": "O primeiro mês é pago agora. Cada mês seguinte é renovado com seus Funds; desligue a renovação quando quiser.",
+            "short": "Faltam {missing} em Funds.",
             "pay": "Pagar {price} e criar",
-            "paid": "{price} pago. Seu servidor está sendo criado."
+            "paid": "{price} pago. Seu servidor está sendo preparado."
           }
         },
         "home": {
@@ -2296,6 +2341,7 @@
           },
           "emptyGroup": "Este grupo está vazio. Arraste um servidor para cá para adicioná-lo.",
           "emptyAccess": "Você não tem acesso a nenhum servidor!",
+          "paidBadge": "Pago",
           "review": {
             "title": "Como está sendo sua experiência com {app}?",
             "body": "Conte a outros jogadores como está sendo, numa avaliação em {site}, seja ela boa ou ruim.",
@@ -6480,19 +6526,29 @@
           "billing": {
             "title": "Cobrança",
             "note": "Este servidor é pago todo mês com seus Funds do noprofit.space.",
-            "price": "{price} por mês, pago até {date}",
-            "renews": "Renova com seus Funds.",
+            "price": "{price} / mês dos seus Funds.",
+            "paidUntil": "Pago até {date}. Renova com seus Funds.",
             "ends": "Termina em {date}.",
-            "ownerOnly": "Só o proprietário do servidor pode alterar a renovação.",
-            "cancel": "Cancelar renovação",
-            "keep": "Manter",
+            "unpaid": "Não pago desde {since}: será excluído em {date} se não for pago.",
+            "ownerOnly": "Só o dono pode mudar a cobrança.",
+            "renewalOn": "Renovação: Ligada",
+            "renewalOff": "Renovação: Desligada",
+            "payAhead": "Pagar o próximo mês agora",
+            "allServers": "Todos os servidores pagos",
             "confirm": {
-              "title": "Cancelar a renovação?",
-              "body": "O servidor continua funcionando até o fim do mês pago ({date}). Depois ele é suspenso e excluído 3 dias mais tarde. Até lá, você pode mantê-lo."
+              "title": "Desligar a renovação?",
+              "body": "{name} continua rodando até {date}. Depois é parado e excluído 3 dias depois, se não for pago.",
+              "button": "Desligar"
+            },
+            "confirmPay": {
+              "title": "Pagar o próximo mês agora?",
+              "body": "{price} é descontado dos seus Funds agora, e {name} fica pago até {date}.",
+              "button": "Pagar {price}"
             },
             "toast": {
-              "cancelled": "Renovação cancelada. O servidor funciona até {date}.",
-              "kept": "O servidor voltou a renovar com seus Funds."
+              "off": "A renovação está desligada. O servidor roda até {date}.",
+              "on": "A renovação está ligada. O servidor renova com seus Funds.",
+              "paid": "{price} pago. Pago até {date}."
             }
           },
           "danger": {

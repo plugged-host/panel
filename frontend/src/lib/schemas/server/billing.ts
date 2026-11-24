@@ -16,3 +16,13 @@ export const serverBillingSchema = z.object({
 });
 
 export type ServerSubscription = z.infer<typeof serverSubscriptionSchema>;
+
+// one of the account's paid servers, for the Paid page
+export const paidServerSchema = serverSubscriptionSchema.extend({
+  uuid: z.string(),
+  uuidShort: z.string(),
+  name: z.string(),
+  plan: z.string().nullable(),
+});
+
+export type PaidServer = z.infer<typeof paidServerSchema>;

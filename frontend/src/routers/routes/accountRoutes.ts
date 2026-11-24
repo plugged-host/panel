@@ -23,6 +23,7 @@ import { lazy } from 'react';
 import type { RouteDefinition } from 'shared';
 import { getTranslations } from '@/providers/TranslationProvider.tsx';
 import { useGlobalStore } from '@/stores/global.ts';
+import { useUserStore } from '@/stores/user.ts'; // plugged.host
 
 // plugged.host: each account page is its own chunk, so opening the dashboard does not download
 // every page it can lead to.
@@ -133,11 +134,12 @@ const routes: RouteDefinition[] = [
   },
   // plugged.host: the paid plans, apart from the free ones (docs/features/dedicated.md)
   {
-    name: () => useGlobalStore.getState().settings.games?.dedicatedName || 'Dedicated',
+    name: () => useGlobalStore.getState().settings.games?.dedicatedName || 'Paid',
     icon: faMicrochip,
     path: '/dedicated',
     element: DashboardDedicated,
-    filter: () => !!useGlobalStore.getState().settings.games?.dedicatedOffered,
+    // while a plan is on sale, and for the owners of paid servers in any case
+    filter: () => !!useGlobalStore.getState().settings.games?.dedicatedOffered || useUserStore.getState().paidServers,
   },
   {
     name: () => getTranslations().t('pages.account.tokens.title', {}),

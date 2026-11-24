@@ -1064,6 +1064,7 @@
         "viewBackups": "Xem bản sao lưu",
         "renew": "Gia hạn",
         "viewMembership": "Xem gói hội viên",
+        "viewBilling": "Xem thanh toán",
         "showMore": "Xem thêm",
         "empty": "Không có thông báo",
         "emptyHint": "Vui lòng kiểm tra lại sau.",
@@ -1114,6 +1115,21 @@
             "body": "Quyền truy cập bảng điều khiển đã trả phí của bạn hết hạn vào {date}.",
             "covered": "Số dư của bạn đủ cho khoản {cost} tiếp theo.",
             "short": "Thanh toán lần nữa tốn {cost}."
+          },
+          "paidServerEndsSoon": {
+            "title": "Máy chủ trả phí sắp gia hạn",
+            "body": "{server} sắp gia hạn: vào {date} sẽ gia hạn với giá {price}, Funds của bạn là {funds}. Hãy nạp Funds trước đó.",
+            "endsTitle": "Máy chủ trả phí sắp kết thúc",
+            "ends": "{server} kết thúc vào {date}."
+          },
+          "paidServerRenewed": {
+            "title": "Đã gia hạn {server}",
+            "body": "Đã trừ {price} từ Funds của bạn. Đã thanh toán đến {date}."
+          },
+          "paidServerUnpaid": {
+            "title": "{server} chưa được thanh toán",
+            "body": "{server} bị dừng cho đến khi được thanh toán và sẽ bị xóa vào {date}. Nạp Funds và máy chủ sẽ tự quay lại.",
+            "bodyEnded": "{server} đã kết thúc vì gia hạn đang tắt. Máy chủ bị dừng và sẽ bị xóa vào {date} trừ khi bạn bật lại gia hạn."
           },
           "failoverDone": {
             "title": "Đã khôi phục máy chủ",
@@ -2205,8 +2221,7 @@
           "title": "Tạo máy chủ",
           "subtitle": "Chọn cấu hình của bạn, rồi triển khai.",
           "button": "Tạo máy chủ",
-          "paidButton": "Tạo máy chủ trả phí",
-          "paidNeedsFunds": "Nạp Funds trên noprofit.space để có máy chủ trả phí.",
+          "paidButton": "Lấy máy chủ trả phí",
           "disabled": "Tính năng tạo máy chủ đang bị tắt.",
           "noPlan": "Tài khoản của bạn không có gói nào để tạo máy chủ.",
           "nothingOffered": "Hiện không có game nào bạn có thể triển khai. Vui lòng liên hệ quản trị viên panel.",
@@ -2261,14 +2276,36 @@
             "blocked": "Trạng thái tài khoản của bạn: {level}. Hiện tại bạn không thể tạo máy chủ.",
             "blockedUntil": "Trạng thái tài khoản của bạn: {level}. Bạn không thể tạo máy chủ cho đến {date}.",
             "view": "Xem trạng thái tài khoản"
-          },
-          "dedicatedLink": "Muốn luồng CPU và bộ nhớ của riêng bạn? Xem các gói {name}."
+          }
         },
         "dedicated": {
           "description": "Gói {name} là gói trả phí: luồng CPU và bộ nhớ chỉ dành riêng cho máy chủ của bạn. Đặt một gói và đội ngũ sẽ thiết lập cho bạn.",
-          "descriptionSelfService": "Các gói {name} là trả phí: luồng CPU và bộ nhớ chỉ dành riêng cho máy chủ của bạn. Thanh toán tháng đầu bằng Funds trên noprofit.space và máy chủ sẽ được tạo ngay.",
+          "subtitle": "Máy chủ có luồng CPU và bộ nhớ riêng, thanh toán hằng tháng từ Funds trên noprofit.space của bạn.",
+          "benefits": {
+            "title": "Bạn nhận được gì",
+            "threads": "Luồng CPU riêng",
+            "memory": "Bộ nhớ riêng",
+            "queue": "Không có hàng chờ khởi động và phòng chờ",
+            "limbo": "Không bao giờ bị Limbo cất đi, và nằm ngoài hạn mức miễn phí của bạn"
+          },
+          "funds": {
+            "title": "Funds của bạn",
+            "note": "Mỗi tháng được trừ từ Funds của bạn khi tháng trước kết thúc. Hủy bất cứ lúc nào.",
+            "support": "Gói trả phí được đặt qua hỗ trợ: chọn gói, gửi yêu cầu, và đội ngũ sẽ thiết lập máy chủ cho bạn."
+          },
+          "servers": {
+            "title": "Máy chủ trả phí của bạn"
+          },
+          "plans": {
+            "title": "Gói"
+          },
           "perMonth": "{price} / tháng",
           "size": "{threads} luồng CPU riêng · {memory} MB Bộ nhớ · {disk} MB Dung lượng đĩa",
+          "spec": {
+            "threads": "{threads} luồng CPU riêng",
+            "memory": "{memory} bộ nhớ riêng",
+            "disk": "{disk} ổ đĩa"
+          },
           "soldOut": "Hết hàng",
           "soldOutAt": "{location} (hết hàng)",
           "order": "Đặt qua hỗ trợ",
@@ -2276,17 +2313,25 @@
           "orderSubject": "Đơn {name}: {plan}",
           "orderBody": "Tôi muốn đặt gói {name} {plan}.",
           "orderLocations": "Vị trí: {locations}. Vị trí tôi muốn:",
-          "empty": "Hiện chưa có gói riêng nào.",
-          "addFunds": "Nạp Funds trên noprofit.space",
+          "empty": "Hiện chưa có gói nào cho tài khoản của bạn. Hãy mở yêu cầu hỗ trợ nếu bạn cần.",
+          "history": "Lịch sử thanh toán trên noprofit.space",
+          "addFunds": "Nạp Funds",
+          "upsell": {
+            "card": "Luồng CPU và bộ nhớ của riêng bạn. Không hàng chờ khởi động, không phòng chờ.",
+            "from": "Từ {price} / tháng",
+            "seePlans": "Xem các gói",
+            "wait": "Máy chủ trả phí không bao giờ phải chờ ở đây. {name} từ {price} / tháng.",
+            "waitNoPrice": "Máy chủ trả phí không bao giờ phải chờ ở đây."
+          },
           "modal": {
             "title": "Đặt mua {plan}",
-            "price": "Giá: {price} mỗi tháng",
             "funds": "Funds của bạn: {funds}",
             "fundsLoading": "Đang kiểm tra Funds của bạn…",
-            "renewal": "Tháng đầu được thanh toán ngay. Mỗi tháng tiếp theo sẽ gia hạn từ Funds của bạn; bạn có thể hủy gia hạn trong cài đặt máy chủ.",
-            "short": "Funds của bạn không đủ cho tháng đầu.",
+            "left": "Còn lại sau khi thanh toán: {rest}",
+            "renewal": "Tháng đầu được thanh toán ngay. Mỗi tháng tiếp theo sẽ gia hạn từ Funds của bạn; bạn có thể tắt gia hạn bất cứ lúc nào.",
+            "short": "Bạn cần thêm {missing} Funds.",
             "pay": "Thanh toán {price} và tạo",
-            "paid": "Đã thanh toán {price}. Máy chủ của bạn đang được tạo."
+            "paid": "Đã thanh toán {price}. Máy chủ của bạn đang được thiết lập."
           }
         },
         "home": {
@@ -2296,6 +2341,7 @@
           },
           "emptyGroup": "Nhóm này đang trống. Kéo một máy chủ vào đây để thêm.",
           "emptyAccess": "Bạn không có quyền truy cập máy chủ nào!",
+          "paidBadge": "Trả phí",
           "review": {
             "title": "Trải nghiệm của bạn với {app} thế nào?",
             "body": "Hãy kể cho những người chơi khác về trải nghiệm của bạn trong một bài đánh giá trên {site}, dù tốt hay chưa tốt.",
@@ -12047,19 +12093,29 @@
           "billing": {
             "title": "Thanh toán",
             "note": "Máy chủ này được thanh toán hằng tháng bằng Funds trên noprofit.space của bạn.",
-            "price": "{price} mỗi tháng, đã thanh toán đến {date}",
-            "renews": "Gia hạn từ Funds của bạn.",
+            "price": "{price} / tháng từ Funds của bạn.",
+            "paidUntil": "Đã thanh toán đến {date}. Gia hạn từ Funds của bạn.",
             "ends": "Kết thúc vào {date}.",
-            "ownerOnly": "Chỉ chủ sở hữu máy chủ mới có thể thay đổi việc gia hạn.",
-            "cancel": "Hủy gia hạn",
-            "keep": "Giữ lại",
+            "unpaid": "Chưa thanh toán từ {since}: sẽ bị xóa vào {date} nếu không được thanh toán.",
+            "ownerOnly": "Chỉ chủ sở hữu mới có thể thay đổi thanh toán.",
+            "renewalOn": "Gia hạn: Bật",
+            "renewalOff": "Gia hạn: Tắt",
+            "payAhead": "Thanh toán tháng sau ngay",
+            "allServers": "Tất cả máy chủ trả phí",
             "confirm": {
-              "title": "Hủy gia hạn?",
-              "body": "Máy chủ vẫn chạy đến hết tháng đã thanh toán ({date}). Sau đó máy chủ bị đình chỉ và bị xóa 3 ngày sau. Trước thời điểm đó bạn vẫn có thể giữ lại."
+              "title": "Tắt gia hạn?",
+              "body": "{name} tiếp tục chạy đến {date}. Sau đó máy chủ bị dừng và bị xóa 3 ngày sau nếu không được thanh toán.",
+              "button": "Tắt"
+            },
+            "confirmPay": {
+              "title": "Thanh toán tháng sau ngay?",
+              "body": "{price} sẽ được trừ từ Funds của bạn ngay, và {name} được thanh toán đến {date}.",
+              "button": "Thanh toán {price}"
             },
             "toast": {
-              "cancelled": "Đã hủy gia hạn. Máy chủ chạy đến {date}.",
-              "kept": "Máy chủ sẽ lại được gia hạn từ Funds của bạn."
+              "off": "Gia hạn đang tắt. Máy chủ chạy đến {date}.",
+              "on": "Gia hạn đang bật. Máy chủ gia hạn từ Funds của bạn.",
+              "paid": "Đã thanh toán {price}. Đã thanh toán đến {date}."
             }
           },
           "danger": {

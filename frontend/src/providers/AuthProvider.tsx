@@ -34,6 +34,13 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<z.infer<typeof fullUserSchema> | null>(null);
   const [impersonating, setImpersonating] = useState(getImpersonatedUser() !== null);
 
+  // plugged.host: read by the Paid page's sidebar entry before the account's pages render
+  // (accountRoutes.ts, docs/features/dedicated.md)
+  const paidServers = !!user?.paidServers;
+  if (useUserStore.getState().paidServers !== paidServers) {
+    useUserStore.setState({ paidServers });
+  }
+
   useEffect(() => {
     if (user) {
       startTransition(() => {

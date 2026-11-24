@@ -18,6 +18,7 @@ import ConfirmationModal from '@/elements/modals/ConfirmationModal.tsx';
 import ResourceView from '@/elements/ResourceView.tsx';
 import { queryKeys } from '@/lib/queryKeys.ts';
 import { serverStartQueueSchema } from '@/lib/schemas/server/queue.ts';
+import PaidWaitLine from '@/pages/dashboard/dedicated/PaidWaitLine.tsx';
 import { useResource } from '@/plugins/resource/useResource.ts';
 import { formatWaited, useLeaveWaitingPage, useWaitClock } from '@/plugins/server/useWaitingPage.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
@@ -157,7 +158,6 @@ function Waiting({ queue, refetch }: { queue: Queue; refetch: () => void }) {
           </span>
         </div>
       </section>
-
       {/* why: the node's own reading, the one the release goes by */}
       {(queue.memoryPercent !== null || queue.cpuPercent !== null) && (
         <section className='theme-eco-card'>
@@ -173,9 +173,7 @@ function Waiting({ queue, refetch }: { queue: Queue; refetch: () => void }) {
           </div>
         </section>
       )}
-
       <AdStack part='above' />
-
       {queue.priority > 0 ? (
         <Notification
           className='theme-callout'
@@ -207,7 +205,7 @@ function Waiting({ queue, refetch }: { queue: Queue; refetch: () => void }) {
           </div>
         </section>
       ) : null}
-
+      <PaidWaitLine leave={leavePage} /> {/* plugged.host: docs/features/dedicated.md */}
       {queue.moveNode ? (
         <section className='theme-eco-card'>
           <ConfirmationModal
@@ -237,9 +235,7 @@ function Waiting({ queue, refetch }: { queue: Queue; refetch: () => void }) {
       ) : queue.moveTooBig ? (
         <p className='theme-eco-small'>{t(`${page}.move.tooBig`, {})}</p>
       ) : null}
-
       <AdStack part='below' />
-
       {/* leaving properly: quiet, at the bottom, and a link rather than a button (Filament's gray
           link: ".theme-link-action" of the table header and record actions block) */}
       <div className='flex flex-col items-center gap-1 pb-2 text-center'>

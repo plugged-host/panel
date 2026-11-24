@@ -92,7 +92,7 @@ export default function DedicatedOrderModal({
       return t(`${create}.reason.name`, { name: t(`${create}.name`, {}), max: String(NAME_MAX) });
     }
     if (game.eula && !eula) return t(`${create}.eula`, {});
-    if (short) return t(`${page}.modal.short`, {});
+    if (short) return t(`${page}.modal.short`, { missing: formatEuro(price - (funds ?? 0), language) });
 
     return null;
   })();
@@ -205,26 +205,35 @@ export default function DedicatedOrderModal({
             />
           )}
 
+          {/* the summary: the price, the Funds, what is left or missing, and how renewal works */}
           <Stack gap={4}>
-            <Text size='sm'>{t(`${page}.modal.price`, { price: priceText })}</Text>
+            <Text size='sm' fw={600}>
+              {t(`${page}.perMonth`, { price: priceText })}
+            </Text>
             <Text size='sm' c='dimmed'>
               {funds === null
                 ? t(`${page}.modal.fundsLoading`, {})
                 : t(`${page}.modal.funds`, { funds: formatEuro(funds, language) })}
             </Text>
+            {funds !== null && !short && (
+              <Text size='sm' c='dimmed'>
+                {t(`${page}.modal.left`, { rest: formatEuro(funds - price, language) })}
+              </Text>
+            )}
+            {short && (
+              <>
+                <Text size='sm'>
+                  {t(`${page}.modal.short`, { missing: formatEuro(price - (funds ?? 0), language) })}
+                </Text>
+                <div>
+                  <AddFundsLink />
+                </div>
+              </>
+            )}
             <Text size='sm' c='dimmed'>
               {t(`${page}.modal.renewal`, {})}
             </Text>
           </Stack>
-
-          {short && (
-            <Stack gap={4}>
-              <Text size='sm'>{t(`${page}.modal.short`, {})}</Text>
-              <div>
-                <AddFundsLink />
-              </div>
-            </Stack>
-          )}
         </Stack>
       )}
 

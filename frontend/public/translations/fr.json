@@ -1064,6 +1064,7 @@
         "viewBackups": "Afficher les sauvegardes",
         "renew": "Renouveler",
         "viewMembership": "Voir l'adhésion",
+        "viewBilling": "Voir la facturation",
         "showMore": "Afficher plus",
         "empty": "Aucune notification",
         "emptyHint": "Revenez plus tard.",
@@ -1114,6 +1115,21 @@
             "body": "Votre accès payant au panneau se termine le {date}.",
             "covered": "Votre solde couvre le prochain paiement de {cost}.",
             "short": "Payer à nouveau coûte {cost}."
+          },
+          "paidServerEndsSoon": {
+            "title": "Un serveur payant se renouvelle bientôt",
+            "body": "{server} se renouvelle bientôt : le {date} il se renouvelle pour {price}, et tes Funds sont de {funds}. Ajoute des Funds avant.",
+            "endsTitle": "Un serveur payant se termine bientôt",
+            "ends": "{server} se termine le {date}."
+          },
+          "paidServerRenewed": {
+            "title": "{server} renouvelé",
+            "body": "{price} ont été pris sur tes Funds. Payé jusqu’au {date}."
+          },
+          "paidServerUnpaid": {
+            "title": "{server} n’est pas payé",
+            "body": "{server} est arrêté jusqu’à ce qu’il soit payé, et supprimé le {date}. Ajoute des Funds et il revient tout seul.",
+            "bodyEnded": "{server} s’est terminé parce que son renouvellement est désactivé. Il est arrêté, et supprimé le {date} sauf si tu réactives le renouvellement."
           },
           "failoverDone": {
             "title": "Serveur rétabli",
@@ -2205,8 +2221,7 @@
           "title": "Créer un serveur",
           "subtitle": "Choisissez votre configuration, puis déployez.",
           "button": "Créer un serveur",
-          "paidButton": "Créer un serveur payant",
-          "paidNeedsFunds": "Ajoute des Funds sur noprofit.space pour obtenir un serveur payant.",
+          "paidButton": "Obtenir un serveur payant",
           "disabled": "La création de serveurs est désactivée.",
           "noPlan": "Votre compte n'a aucune offre permettant de créer des serveurs.",
           "nothingOffered": "Aucun jeu ne peut être déployé pour le moment. Veuillez contacter l'administrateur du panel.",
@@ -2261,14 +2276,36 @@
             "blocked": "Statut de votre compte : {level}. Vous ne pouvez pas créer de serveurs pour le moment.",
             "blockedUntil": "Statut de votre compte : {level}. Vous ne pouvez pas créer de serveurs avant le {date}.",
             "view": "Voir le statut du compte"
-          },
-          "dedicatedLink": "Des threads CPU et une mémoire rien qu'à toi ? Découvre les offres {name}."
+          }
         },
         "dedicated": {
           "description": "Les offres {name} sont payantes : leurs threads CPU et leur mémoire sont réservés à ton serveur. Commande-en une et l'équipe la met en place pour toi.",
-          "descriptionSelfService": "Les offres {name} sont payantes : leurs threads CPU et leur mémoire sont réservés à ton serveur. Paie le premier mois avec tes Funds noprofit.space et ton serveur est créé tout de suite.",
+          "subtitle": "Des serveurs avec leurs propres threads CPU et leur propre mémoire, payés chaque mois avec tes Funds noprofit.space.",
+          "benefits": {
+            "title": "Ce que tu obtiens",
+            "threads": "Des threads CPU dédiés",
+            "memory": "De la mémoire dédiée",
+            "queue": "Pas de file de démarrage ni de salle d’attente",
+            "limbo": "Jamais mis de côté par Limbo, et hors de ton quota gratuit"
+          },
+          "funds": {
+            "title": "Tes Funds",
+            "note": "Chaque mois est pris sur tes Funds quand le précédent se termine. Annulable à tout moment.",
+            "support": "Les offres payantes se commandent via le support : choisis une offre, envoie le ticket, et l’équipe prépare ton serveur."
+          },
+          "servers": {
+            "title": "Tes serveurs payants"
+          },
+          "plans": {
+            "title": "Offres"
+          },
           "perMonth": "{price} / mois",
           "size": "{threads} threads CPU dédiés · {memory} Mo de mémoire · {disk} Mo d'espace disque",
+          "spec": {
+            "threads": "{threads} threads CPU dédiés",
+            "memory": "{memory} de mémoire dédiée",
+            "disk": "{disk} de disque"
+          },
           "soldOut": "Épuisé",
           "soldOutAt": "{location} (épuisé)",
           "order": "Commander via le support",
@@ -2276,17 +2313,25 @@
           "orderSubject": "Commande {name} : {plan}",
           "orderBody": "Je voudrais commander l'offre {name} {plan}.",
           "orderLocations": "Emplacements : {locations}. Celui que je veux :",
-          "empty": "Aucune offre dédiée pour le moment.",
-          "addFunds": "Ajouter des Funds sur noprofit.space",
+          "empty": "Aucune offre pour ton compte pour le moment. Ouvre un ticket au support si tu en as besoin.",
+          "history": "Historique des paiements sur noprofit.space",
+          "addFunds": "Ajouter des Funds",
+          "upsell": {
+            "card": "Des threads CPU et de la mémoire rien qu’à toi. Pas de file de démarrage, pas de salle d’attente.",
+            "from": "À partir de {price} / mois",
+            "seePlans": "Voir les offres",
+            "wait": "Les serveurs payants n’attendent jamais ici. {name} à partir de {price} / mois.",
+            "waitNoPrice": "Les serveurs payants n’attendent jamais ici."
+          },
           "modal": {
             "title": "Commander {plan}",
-            "price": "Prix : {price} par mois",
             "funds": "Tes Funds : {funds}",
             "fundsLoading": "Vérification de tes Funds…",
-            "renewal": "Le premier mois est payé maintenant. Chaque mois suivant est renouvelé avec tes Funds ; tu peux annuler le renouvellement dans les paramètres du serveur.",
-            "short": "Tes Funds ne couvrent pas le premier mois.",
+            "left": "Reste après paiement : {rest}",
+            "renewal": "Le premier mois est payé maintenant. Chaque mois suivant se renouvelle avec tes Funds ; désactive le renouvellement quand tu veux.",
+            "short": "Il te manque {missing} de Funds.",
             "pay": "Payer {price} et créer",
-            "paid": "{price} payés. Ton serveur est en cours de création."
+            "paid": "{price} payés. Ton serveur est en cours de préparation."
           }
         },
         "home": {
@@ -2296,6 +2341,7 @@
           },
           "emptyGroup": "Ce groupe est vide. Faites glisser un serveur ici pour l'ajouter.",
           "emptyAccess": "Vous n'avez accès à aucun serveur !",
+          "paidBadge": "Payant",
           "review": {
             "title": "Comment se passe votre expérience avec {app} ?",
             "body": "Dites aux autres joueurs comment cela se passe dans un avis sur {site}, en bien comme en mal.",
@@ -12047,19 +12093,29 @@
           "billing": {
             "title": "Facturation",
             "note": "Ce serveur est payé chaque mois avec tes Funds noprofit.space.",
-            "price": "{price} par mois, payé jusqu'au {date}",
-            "renews": "Renouvelé avec tes Funds.",
+            "price": "{price} / mois pris sur tes Funds.",
+            "paidUntil": "Payé jusqu’au {date}. Se renouvelle avec tes Funds.",
             "ends": "Se termine le {date}.",
-            "ownerOnly": "Seul le propriétaire du serveur peut modifier son renouvellement.",
-            "cancel": "Annuler le renouvellement",
-            "keep": "Le garder",
+            "unpaid": "Non payé depuis le {since} : supprimé le {date} s’il n’est pas payé.",
+            "ownerOnly": "Seul le propriétaire peut modifier sa facturation.",
+            "renewalOn": "Renouvellement : activé",
+            "renewalOff": "Renouvellement : désactivé",
+            "payAhead": "Payer le mois suivant maintenant",
+            "allServers": "Tous les serveurs payants",
             "confirm": {
-              "title": "Annuler le renouvellement ?",
-              "body": "Le serveur continue de fonctionner jusqu'à la fin de son mois payé ({date}). Ensuite il est suspendu, puis supprimé 3 jours plus tard. D'ici là, tu peux le garder."
+              "title": "Désactiver le renouvellement ?",
+              "body": "{name} continue de tourner jusqu’au {date}. Ensuite il est arrêté, puis supprimé 3 jours plus tard s’il n’est pas payé.",
+              "button": "Désactiver"
+            },
+            "confirmPay": {
+              "title": "Payer le mois suivant maintenant ?",
+              "body": "{price} sont pris sur tes Funds maintenant, et {name} est payé jusqu’au {date}.",
+              "button": "Payer {price}"
             },
             "toast": {
-              "cancelled": "Renouvellement annulé. Le serveur fonctionne jusqu'au {date}.",
-              "kept": "Le serveur est de nouveau renouvelé avec tes Funds."
+              "off": "Le renouvellement est désactivé. Le serveur tourne jusqu’au {date}.",
+              "on": "Le renouvellement est activé. Le serveur se renouvelle avec tes Funds.",
+              "paid": "{price} payés. Payé jusqu’au {date}."
             }
           },
           "danger": {

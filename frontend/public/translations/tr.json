@@ -1064,6 +1064,7 @@
         "viewBackups": "Yedekleri görüntüle",
         "renew": "Yenile",
         "viewMembership": "Üyeliği görüntüle",
+        "viewBilling": "Faturalandırmayı gör",
         "showMore": "Daha fazla göster",
         "empty": "Bildirim yok",
         "emptyHint": "Lütfen daha sonra tekrar kontrol edin.",
@@ -1114,6 +1115,21 @@
             "body": "Ücretli panel erişiminiz {date} tarihinde sona eriyor.",
             "covered": "Bakiyeniz sonraki {cost} tutarını karşılıyor.",
             "short": "Yeniden ödemek {cost} tutar."
+          },
+          "paidServerEndsSoon": {
+            "title": "Ücretli sunucu yakında yenileniyor",
+            "body": "{server} yakında yenileniyor: {date} tarihinde {price} karşılığında yenilenir, Funds bakiyen {funds}. O zamana kadar Funds ekle.",
+            "endsTitle": "Ücretli sunucu yakında bitiyor",
+            "ends": "{server} {date} tarihinde bitiyor."
+          },
+          "paidServerRenewed": {
+            "title": "{server} yenilendi",
+            "body": "Funds bakiyenden {price} alındı. {date} tarihine kadar ödendi."
+          },
+          "paidServerUnpaid": {
+            "title": "{server} ödenmedi",
+            "body": "{server} ödenene kadar durduruldu ve {date} tarihinde silinecek. Funds ekle, kendiliğinden geri gelir.",
+            "bodyEnded": "{server} yenilemesi kapalı olduğu için bitti. Durduruldu ve yenilemeyi tekrar açmazsan {date} tarihinde silinecek."
           },
           "failoverDone": {
             "title": "Sunucu kurtarıldı",
@@ -2205,8 +2221,7 @@
           "title": "Sunucu oluştur",
           "subtitle": "Yapılandırmanızı seçin, ardından sunucunuzu oluşturun.",
           "button": "Sunucu oluştur",
-          "paidButton": "Ücretli sunucu oluştur",
-          "paidNeedsFunds": "Ücretli sunucu almak için noprofit.space üzerinde Funds ekle.",
+          "paidButton": "Ücretli sunucu al",
           "disabled": "Sunucu oluşturma kapalı.",
           "noPlan": "Hesabınızın sunucu oluşturabileceği bir planı yok.",
           "nothingOffered": "Şu anda oluşturabileceğiniz bir oyun yok. Lütfen panel yöneticisiyle iletişime geçin.",
@@ -2261,14 +2276,36 @@
             "blocked": "Hesap durumunuz: {level}. Şu anda sunucu oluşturamazsınız.",
             "blockedUntil": "Hesap durumunuz: {level}. {date} tarihine kadar sunucu oluşturamazsınız.",
             "view": "Hesap durumunu görüntüle"
-          },
-          "dedicatedLink": "Yalnızca sana ait CPU iş parçacıkları ve bellek mi? {name} planlarına göz at."
+          }
         },
         "dedicated": {
           "description": "{name} planları ücretlidir: CPU iş parçacıkları ve belleği yalnızca sunucuna aittir. Bir tane sipariş et, ekip senin için kursun.",
-          "descriptionSelfService": "{name} planları ücretlidir: CPU iş parçacıkları ve belleği yalnızca senin sunucuna aittir. İlk ayı noprofit.space Funds'ınla öde, sunucun hemen oluşturulsun.",
+          "subtitle": "Kendi CPU iş parçacıkları ve belleği olan sunucular, her ay noprofit.space Funds bakiyenden ödenir.",
+          "benefits": {
+            "title": "Neler alırsın",
+            "threads": "Ayrılmış CPU iş parçacıkları",
+            "memory": "Ayrılmış bellek",
+            "queue": "Başlatma kuyruğu ve bekleme odası yok",
+            "limbo": "Limbo onu asla park etmez ve ücretsiz kotanın dışındadır"
+          },
+          "funds": {
+            "title": "Funds bakiyen",
+            "note": "Her ay, bir önceki bittiğinde Funds bakiyenden alınır. İstediğin zaman iptal edebilirsin.",
+            "support": "Ücretli planlar destek üzerinden sipariş edilir: bir plan seç, talebi gönder, ekip sunucunu kursun."
+          },
+          "servers": {
+            "title": "Ücretli sunucuların"
+          },
+          "plans": {
+            "title": "Planlar"
+          },
           "perMonth": "{price} / ay",
           "size": "{threads} ayrılmış CPU iş parçacığı · {memory} MB Bellek · {disk} MB Disk Alanı",
+          "spec": {
+            "threads": "{threads} ayrılmış CPU iş parçacığı",
+            "memory": "{memory} ayrılmış bellek",
+            "disk": "{disk} disk"
+          },
           "soldOut": "Tükendi",
           "soldOutAt": "{location} (tükendi)",
           "order": "Destek üzerinden sipariş ver",
@@ -2276,17 +2313,25 @@
           "orderSubject": "{name} siparişi: {plan}",
           "orderBody": "{name} planı {plan} sipariş etmek istiyorum.",
           "orderLocations": "Konumlar: {locations}. İstediğim:",
-          "empty": "Şu anda ayrılmış plan yok.",
-          "addFunds": "noprofit.space üzerinde Funds ekle",
+          "empty": "Şu anda hesabın için plan yok. Gerekirse bir destek talebi aç.",
+          "history": "noprofit.space üzerinde ödeme geçmişi",
+          "addFunds": "Funds ekle",
+          "upsell": {
+            "card": "Sana ait CPU iş parçacıkları ve bellek. Başlatma kuyruğu yok, bekleme odası yok.",
+            "from": "{price} / ay başlayan fiyatlarla",
+            "seePlans": "Planları gör",
+            "wait": "Ücretli sunucular burada asla beklemez. {name} {price} / ay başlayan fiyatlarla.",
+            "waitNoPrice": "Ücretli sunucular burada asla beklemez."
+          },
           "modal": {
             "title": "{plan} siparişi",
-            "price": "Fiyat: aylık {price}",
             "funds": "Funds bakiyen: {funds}",
             "fundsLoading": "Funds bakiyen kontrol ediliyor…",
-            "renewal": "İlk ay şimdi ödenir. Sonraki her ay Funds bakiyenden yenilenir; yenilemeyi sunucu ayarlarından iptal edebilirsin.",
-            "short": "Funds bakiyen ilk ayı karşılamıyor.",
+            "left": "Ödemeden sonra kalan: {rest}",
+            "renewal": "İlk ay şimdi ödenir. Sonraki her ay Funds bakiyenden yenilenir; yenilemeyi istediğin zaman kapatabilirsin.",
+            "short": "{missing} daha Funds gerekiyor.",
             "pay": "{price} öde ve oluştur",
-            "paid": "{price} ödendi. Sunucun oluşturuluyor."
+            "paid": "{price} ödendi. Sunucun kuruluyor."
           }
         },
         "home": {
@@ -2296,6 +2341,7 @@
           },
           "emptyGroup": "Bu grup boş. Eklemek için buraya bir sunucu sürükleyin.",
           "emptyAccess": "Hiçbir sunucuya erişiminiz yok!",
+          "paidBadge": "Ücretli",
           "review": {
             "title": "{app} ile deneyiminiz nasıl?",
             "body": "Diğer oyunculara {site} üzerinde bir yorumla deneyiminizi anlatın, iyi ya da kötü.",
@@ -6480,19 +6526,29 @@
           "billing": {
             "title": "Faturalandırma",
             "note": "Bu sunucu her ay noprofit.space Funds bakiyenden ödenir.",
-            "price": "Aylık {price}, {date} tarihine kadar ödendi",
-            "renews": "Funds bakiyenden yenilenir.",
+            "price": "Funds bakiyenden {price} / ay.",
+            "paidUntil": "{date} tarihine kadar ödendi. Funds bakiyenden yenilenir.",
             "ends": "{date} tarihinde sona erer.",
-            "ownerOnly": "Yenilemeyi yalnızca sunucunun sahibi değiştirebilir.",
-            "cancel": "Yenilemeyi iptal et",
-            "keep": "Devam ettir",
+            "unpaid": "{since} tarihinden beri ödenmedi: ödenmezse {date} tarihinde silinir.",
+            "ownerOnly": "Faturalandırmayı yalnızca sahibi değiştirebilir.",
+            "renewalOn": "Yenileme: Açık",
+            "renewalOff": "Yenileme: Kapalı",
+            "payAhead": "Sonraki ayı şimdi öde",
+            "allServers": "Tüm ücretli sunucular",
             "confirm": {
-              "title": "Yenileme iptal edilsin mi?",
-              "body": "Sunucu, ödenmiş ayının sonuna ({date}) kadar çalışmaya devam eder. Ardından askıya alınır ve 3 gün sonra silinir. O zamana kadar sunucuyu tutabilirsin."
+              "title": "Yenileme kapatılsın mı?",
+              "body": "{name} {date} tarihine kadar çalışmaya devam eder. Sonra durdurulur ve ödenmezse 3 gün sonra silinir.",
+              "button": "Kapat"
+            },
+            "confirmPay": {
+              "title": "Sonraki ay şimdi ödensin mi?",
+              "body": "Funds bakiyenden şimdi {price} alınır ve {name} {date} tarihine kadar ödenmiş olur.",
+              "button": "{price} öde"
             },
             "toast": {
-              "cancelled": "Yenileme iptal edildi. Sunucu {date} tarihine kadar çalışır.",
-              "kept": "Sunucu yeniden Funds bakiyenden yenilenecek."
+              "off": "Yenileme kapalı. Sunucu {date} tarihine kadar çalışır.",
+              "on": "Yenileme açık. Sunucu Funds bakiyenden yenilenir.",
+              "paid": "{price} ödendi. {date} tarihine kadar ödendi."
             }
           },
           "danger": {

@@ -4,6 +4,7 @@ import classNames from 'classnames';
 import { ReactNode } from 'react';
 import { Link } from 'react-router';
 import { z } from 'zod';
+import { formatEuro } from '@/elements/AddFundsLink.tsx';
 import CloseButton from '@/elements/buttons/CloseButton.tsx';
 import Tooltip from '@/elements/overlays/Tooltip.tsx';
 import FormattedTimestamp from '@/elements/time/FormattedTimestamp.tsx';
@@ -216,6 +217,52 @@ export function notificationText(translations: Translations, notification: Notif
             : t('elements.notifications.kinds.panelAccessEndsSoon.short', { cost }),
         ],
         page: { path: '/account/panel-access', label: t('elements.notifications.renew', {}) },
+      };
+    }
+    // plugged.host: a paid server's month (docs/features/dedicated.md)
+    case 'paidServerEndsSoon': {
+      const until = formatDateTime(text(data.until));
+      const billing = { path: '/settings#billing', label: t('elements.notifications.viewBilling', {}) };
+
+      return data.renews === true
+        ? {
+            title: t('elements.notifications.kinds.paidServerEndsSoon.title', {}),
+            body: t('elements.notifications.kinds.paidServerEndsSoon.body', {
+              server,
+              date: until,
+              price: formatEuro(count(data.price), language),
+              funds: formatEuro(count(data.funds), language),
+            }),
+            details: [],
+            serverPage: billing,
+          }
+        : {
+            title: t('elements.notifications.kinds.paidServerEndsSoon.endsTitle', {}),
+            body: t('elements.notifications.kinds.paidServerEndsSoon.ends', { server, date: until }),
+            details: [],
+            serverPage: billing,
+          };
+    }
+    case 'paidServerRenewed':
+      return {
+        title: t('elements.notifications.kinds.paidServerRenewed.title', { server }),
+        body: t('elements.notifications.kinds.paidServerRenewed.body', {
+          price: formatEuro(count(data.price), language),
+          date: formatDateTime(text(data.until)),
+        }),
+        details: [],
+        serverPage: { path: '/settings#billing', label: t('elements.notifications.viewBilling', {}) },
+      };
+    case 'paidServerUnpaid': {
+      const date = formatDateTime(text(data.delete_at ?? data.deleteAt));
+
+      return {
+        title: t('elements.notifications.kinds.paidServerUnpaid.title', { server }),
+        body:
+          data.renews === false
+            ? t('elements.notifications.kinds.paidServerUnpaid.bodyEnded', { server, date })
+            : t('elements.notifications.kinds.paidServerUnpaid.body', { server, date }),
+        details: [],
       };
     }
     case 'failoverDone': {

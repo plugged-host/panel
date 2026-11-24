@@ -1064,6 +1064,7 @@
         "viewBackups": "Lihat cadangan",
         "renew": "Perpanjang",
         "viewMembership": "Lihat keanggotaan",
+        "viewBilling": "Lihat tagihan",
         "showMore": "Tampilkan lebih banyak",
         "empty": "Tidak ada notifikasi",
         "emptyHint": "Silakan periksa kembali nanti.",
@@ -1114,6 +1115,21 @@
             "body": "Akses panel berbayar Anda berakhir pada {date}.",
             "covered": "Saldo Anda cukup untuk {cost} berikutnya.",
             "short": "Membayar lagi berbiaya {cost}."
+          },
+          "paidServerEndsSoon": {
+            "title": "Server berbayar segera diperpanjang",
+            "body": "{server} segera diperpanjang: pada {date} diperpanjang seharga {price}, Funds kamu {funds}. Tambahkan Funds sebelum itu.",
+            "endsTitle": "Server berbayar segera berakhir",
+            "ends": "{server} berakhir pada {date}."
+          },
+          "paidServerRenewed": {
+            "title": "{server} diperpanjang",
+            "body": "{price} diambil dari Funds kamu. Dibayar sampai {date}."
+          },
+          "paidServerUnpaid": {
+            "title": "{server} belum dibayar",
+            "body": "{server} dihentikan sampai dibayar, dan dihapus pada {date}. Tambahkan Funds dan server kembali dengan sendirinya.",
+            "bodyEnded": "{server} berakhir karena perpanjangannya mati. Server dihentikan, dan dihapus pada {date} kecuali kamu menyalakan perpanjangan lagi."
           },
           "failoverDone": {
             "title": "Server dipulihkan",
@@ -2205,8 +2221,7 @@
           "title": "Buat server",
           "subtitle": "Pilih konfigurasi Anda, lalu deploy.",
           "button": "Buat server",
-          "paidButton": "Buat server berbayar",
-          "paidNeedsFunds": "Tambahkan Funds di noprofit.space untuk mendapatkan server berbayar.",
+          "paidButton": "Dapatkan server berbayar",
           "disabled": "Pembuatan server dinonaktifkan.",
           "noPlan": "Akun Anda tidak memiliki paket untuk membuat server.",
           "nothingOffered": "Saat ini tidak ada game yang bisa Anda deploy. Silakan hubungi admin panel.",
@@ -2261,14 +2276,36 @@
             "blocked": "Status akun Anda: {level}. Anda tidak dapat membuat server saat ini.",
             "blockedUntil": "Status akun Anda: {level}. Anda tidak dapat membuat server hingga {date}.",
             "view": "Lihat status akun"
-          },
-          "dedicatedLink": "Ingin thread CPU dan memori milikmu sendiri? Lihat paket {name}."
+          }
         },
         "dedicated": {
           "description": "Paket {name} berbayar: thread CPU dan memorinya hanya milik servermu. Pesan satu dan tim akan menyiapkannya untukmu.",
-          "descriptionSelfService": "Paket {name} berbayar: thread CPU dan memorinya hanya untuk server kamu. Bayar bulan pertama dengan Funds noprofit.space kamu dan server langsung dibuat.",
+          "subtitle": "Server dengan thread CPU dan memori sendiri, dibayar setiap bulan dari Funds noprofit.space kamu.",
+          "benefits": {
+            "title": "Yang kamu dapatkan",
+            "threads": "Thread CPU khusus",
+            "memory": "Memori khusus",
+            "queue": "Tanpa antrean mulai dan tanpa ruang tunggu",
+            "limbo": "Tidak pernah diparkir oleh Limbo, dan di luar jatah gratis kamu"
+          },
+          "funds": {
+            "title": "Funds kamu",
+            "note": "Setiap bulan diambil dari Funds kamu saat bulan sebelumnya berakhir. Bisa dibatalkan kapan saja.",
+            "support": "Paket berbayar dipesan lewat dukungan: pilih paket, kirim tiketnya, dan tim akan menyiapkan server kamu."
+          },
+          "servers": {
+            "title": "Server berbayar kamu"
+          },
+          "plans": {
+            "title": "Paket"
+          },
           "perMonth": "{price} / bulan",
           "size": "{threads} thread CPU khusus · {memory} MB Memori · {disk} MB Ruang Disk",
+          "spec": {
+            "threads": "{threads} thread CPU khusus",
+            "memory": "{memory} memori khusus",
+            "disk": "{disk} disk"
+          },
           "soldOut": "Habis",
           "soldOutAt": "{location} (habis)",
           "order": "Pesan lewat dukungan",
@@ -2276,17 +2313,25 @@
           "orderSubject": "Pesanan {name}: {plan}",
           "orderBody": "Saya ingin memesan paket {name} {plan}.",
           "orderLocations": "Lokasi: {locations}. Yang saya inginkan:",
-          "empty": "Belum ada paket khusus yang ditawarkan.",
-          "addFunds": "Tambahkan Funds di noprofit.space",
+          "empty": "Belum ada paket untuk akun kamu saat ini. Buka tiket dukungan jika kamu membutuhkannya.",
+          "history": "Riwayat pembayaran di noprofit.space",
+          "addFunds": "Tambahkan Funds",
+          "upsell": {
+            "card": "Thread CPU dan memori milikmu sendiri. Tanpa antrean mulai, tanpa ruang tunggu.",
+            "from": "Mulai {price} / bulan",
+            "seePlans": "Lihat paket",
+            "wait": "Server berbayar tidak pernah menunggu di sini. {name} mulai {price} / bulan.",
+            "waitNoPrice": "Server berbayar tidak pernah menunggu di sini."
+          },
           "modal": {
             "title": "Pesan {plan}",
-            "price": "Harga: {price} per bulan",
             "funds": "Funds kamu: {funds}",
             "fundsLoading": "Memeriksa Funds kamu…",
-            "renewal": "Bulan pertama dibayar sekarang. Setiap bulan berikutnya diperpanjang dari Funds kamu; kamu bisa membatalkan perpanjangan di pengaturan server.",
-            "short": "Funds kamu tidak cukup untuk bulan pertama.",
+            "left": "Sisa setelah membayar: {rest}",
+            "renewal": "Bulan pertama dibayar sekarang. Setiap bulan berikutnya diperpanjang dari Funds kamu; matikan perpanjangan kapan saja.",
+            "short": "Kamu butuh {missing} Funds lagi.",
             "pay": "Bayar {price} dan buat",
-            "paid": "{price} dibayar. Server kamu sedang dibuat."
+            "paid": "{price} dibayar. Server kamu sedang disiapkan."
           }
         },
         "home": {
@@ -2296,6 +2341,7 @@
           },
           "emptyGroup": "Grup ini kosong. Seret server ke sini untuk menambahkannya.",
           "emptyAccess": "Anda tidak memiliki akses ke server mana pun!",
+          "paidBadge": "Berbayar",
           "review": {
             "title": "Bagaimana pengalaman Anda dengan {app}?",
             "body": "Ceritakan kepada pemain lain bagaimana pengalaman Anda lewat ulasan di {site}, baik atau buruk.",
@@ -6480,19 +6526,29 @@
           "billing": {
             "title": "Tagihan",
             "note": "Server ini dibayar setiap bulan dengan Funds noprofit.space kamu.",
-            "price": "{price} per bulan, dibayar hingga {date}",
-            "renews": "Diperpanjang dari Funds kamu.",
+            "price": "{price} / bulan dari Funds kamu.",
+            "paidUntil": "Dibayar sampai {date}. Diperpanjang dari Funds kamu.",
             "ends": "Berakhir pada {date}.",
-            "ownerOnly": "Hanya pemilik server yang dapat mengubah perpanjangannya.",
-            "cancel": "Batalkan perpanjangan",
-            "keep": "Pertahankan",
+            "unpaid": "Belum dibayar sejak {since}: dihapus pada {date} kecuali dibayar.",
+            "ownerOnly": "Hanya pemilik yang bisa mengubah tagihannya.",
+            "renewalOn": "Perpanjangan: Aktif",
+            "renewalOff": "Perpanjangan: Mati",
+            "payAhead": "Bayar bulan depan sekarang",
+            "allServers": "Semua server berbayar",
             "confirm": {
-              "title": "Batalkan perpanjangan?",
-              "body": "Server tetap berjalan hingga akhir bulan yang sudah dibayar ({date}). Setelah itu server ditangguhkan, lalu dihapus 3 hari kemudian. Sampai saat itu kamu masih bisa mempertahankannya."
+              "title": "Matikan perpanjangan?",
+              "body": "{name} tetap berjalan sampai {date}. Setelah itu dihentikan, dan dihapus 3 hari kemudian kecuali dibayar.",
+              "button": "Matikan"
+            },
+            "confirmPay": {
+              "title": "Bayar bulan depan sekarang?",
+              "body": "{price} diambil dari Funds kamu sekarang, dan {name} dibayar sampai {date}.",
+              "button": "Bayar {price}"
             },
             "toast": {
-              "cancelled": "Perpanjangan dibatalkan. Server berjalan hingga {date}.",
-              "kept": "Server kembali diperpanjang dari Funds kamu."
+              "off": "Perpanjangan mati. Server berjalan sampai {date}.",
+              "on": "Perpanjangan aktif. Server diperpanjang dari Funds kamu.",
+              "paid": "{price} dibayar. Dibayar sampai {date}."
             }
           },
           "danger": {

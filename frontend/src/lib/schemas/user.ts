@@ -52,6 +52,8 @@ export const fullUserSchema = z.lazy(() =>
     frozen: z.boolean(),
     suspended: z.boolean(),
     language: z.string(),
+    // plugged.host: the account owns a paid server: its Paid page stays in the sidebar
+    paidServers: z.boolean().optional(),
   }),
 );
 

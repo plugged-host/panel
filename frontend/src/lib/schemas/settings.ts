@@ -171,6 +171,8 @@ export const publicSettingsSchema = z.object({
     devboxesEnabled: z.boolean(),
     dedicatedName: z.string(),
     dedicatedOffered: z.boolean().default(false),
+    // the lowest monthly price of the paid plans, euro cents (docs/features/dedicated.md)
+    dedicatedFrom: z.number().nullable().default(null),
   }),
   // plugged.host: the welcome tour runs
   tour: z.object({

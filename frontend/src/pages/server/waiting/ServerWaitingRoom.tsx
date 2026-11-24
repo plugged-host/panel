@@ -18,6 +18,7 @@ import { formatDateTime } from '@/lib/format/time.ts';
 import { openUrl } from '@/lib/network/url.ts';
 import { queryKeys } from '@/lib/queryKeys.ts';
 import { serverWaitingRoomSchema } from '@/lib/schemas/server/waitingRoom.ts';
+import PaidWaitLine from '@/pages/dashboard/dedicated/PaidWaitLine.tsx';
 import { useResource } from '@/plugins/resource/useResource.ts';
 import { useHoldPage, useLeaveWaitingPage, useWaitClock } from '@/plugins/server/useWaitingPage.ts';
 import { useToast } from '@/providers/ToastProvider.tsx';
@@ -164,9 +165,8 @@ function Waiting({ room, refetch, refresh }: { room: Room; refetch: () => void; 
           <div className='theme-wait-fill' style={{ width: `${percent}%` }} />
         </div>
       </section>
-
       <SkipTheWait room={room} refresh={refresh} />
-
+      <PaidWaitLine /> {/* plugged.host: docs/features/dedicated.md */}
       <AdStack part='above' />
       <AdStack part='below' />
     </div>

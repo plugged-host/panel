@@ -866,6 +866,7 @@ const baseTranslations = defineTranslations({
         // plugged.host: a notification about the account, not a server (memberships, panel access)
         renew: 'Renew',
         viewMembership: 'View membership',
+        viewBilling: 'View billing', // plugged.host: a paid server's month (docs/features/dedicated.md)
         showMore: 'Show more',
         empty: 'No notifications',
         emptyHint: 'Please check again later.',
@@ -917,6 +918,23 @@ const baseTranslations = defineTranslations({
             body: 'Your paid panel access ends on {date}.',
             covered: 'Your balance covers the next {cost}.',
             short: 'Paying again costs {cost}.',
+          },
+          // plugged.host: a paid server's month (docs/features/dedicated.md)
+          paidServerEndsSoon: {
+            title: 'Paid server renews soon',
+            body: '{server} renews soon: on {date} it renews for {price}, your Funds are {funds}. Add Funds before then.',
+            endsTitle: 'Paid server ends soon',
+            ends: '{server} ends on {date}.',
+          },
+          paidServerRenewed: {
+            title: '{server} renewed',
+            body: '{price} was taken from your Funds. Paid until {date}.',
+          },
+          paidServerUnpaid: {
+            title: '{server} is not paid',
+            body: '{server} is stopped until it is paid, and deleted on {date}. Add Funds and it comes back by itself.',
+            bodyEnded:
+              '{server} ended because its renewal is off. It is stopped, and deleted on {date} unless you turn renewal back on.',
           },
           failoverDone: {
             title: 'Server recovered',
@@ -2052,8 +2070,7 @@ const baseTranslations = defineTranslations({
           title: 'Create server',
           subtitle: 'Choose your setup, then deploy.',
           button: 'Create server',
-          paidButton: 'Create Paid Server', // plugged.host: docs/features/dedicated.md
-          paidNeedsFunds: 'Add Funds on noprofit.space to get a paid server.',
+          paidButton: 'Get a paid server', // plugged.host: docs/features/dedicated.md
           disabled: 'Creating servers is turned off.',
           noPlan: 'Your account has no plan to create servers with.',
           nothingOffered: 'There are no games you can deploy right now. Please contact the panel admin.',
@@ -2111,17 +2128,38 @@ const baseTranslations = defineTranslations({
             blockedUntil: 'Your account standing is {level}, so you cannot create servers until {date}.',
             view: 'View your standing',
           },
-          // plugged.host: the paid plans have their own page (docs/features/dedicated.md)
-          dedicatedLink: 'Want CPU threads and memory of your own? See the {name} plans.',
         },
         // plugged.host: the paid plans' own page, with CPU threads and memory of their own (docs/features/dedicated.md)
         dedicated: {
           description:
             "{name} plans are paid: their CPU threads and memory are your server's alone. Order one and the team sets it up for you.",
-          descriptionSelfService:
-            "{name} plans are paid: their CPU threads and memory are your server's alone. Pay the first month with your noprofit.space Funds and your server is created right away.",
+          subtitle: 'Servers with CPU threads and memory of their own, paid monthly from your noprofit.space Funds.',
+          benefits: {
+            title: 'What you get',
+            threads: 'Dedicated CPU threads',
+            memory: 'Dedicated memory',
+            queue: 'No start queue and no waiting room',
+            limbo: 'Never parked by Limbo, and outside your free allowance',
+          },
+          funds: {
+            title: 'Your Funds',
+            note: 'Every month is taken from your Funds when the last one ends. Cancel any time.',
+            support:
+              'Paid plans are ordered through support: pick a plan, send the ticket, and the team sets up your server.',
+          },
+          servers: {
+            title: 'Your paid servers',
+          },
+          plans: {
+            title: 'Plans',
+          },
           perMonth: '{price} / month',
           size: '{threads} dedicated CPU threads · {memory} MB Memory · {disk} MB Disk Space',
+          spec: {
+            threads: '{threads} dedicated CPU threads',
+            memory: '{memory} dedicated memory',
+            disk: '{disk} disk',
+          },
           soldOut: 'Sold out',
           soldOutAt: '{location} (sold out)',
           order: 'Order through support',
@@ -2129,19 +2167,27 @@ const baseTranslations = defineTranslations({
           orderSubject: '{name} order: {plan}',
           orderBody: 'I would like to order the {name} plan {plan}.',
           orderLocations: 'Locations: {locations}. Which one I want:',
-          empty: 'No dedicated plans are offered right now.',
-          addFunds: 'Add Funds on noprofit.space',
+          empty: 'No plans for your account right now. Open a support ticket if you need one.',
+          history: 'Payment history on noprofit.space',
+          addFunds: 'Add Funds',
+          // where free players meet Paid: the create page, the start queue, the waiting room
+          upsell: {
+            card: 'CPU threads and memory of your own. No start queue, no waiting room.',
+            from: 'From {price} / month',
+            seePlans: 'See plans',
+            wait: 'Paid servers never wait here. {name} from {price} / month.',
+            waitNoPrice: 'Paid servers never wait here.',
+          },
           // ordered here and paid with noprofit.space Funds (DedicatedOrderModal.tsx)
           modal: {
             title: 'Order {plan}',
-            price: 'Price: {price} a month',
             funds: 'Your Funds: {funds}',
             fundsLoading: 'Checking your Funds…',
-            renewal:
-              'The first month is paid now. Each next month renews from your Funds; you can cancel the renewal in the server settings.',
-            short: "Your Funds don't cover the first month.",
+            left: 'Left after paying: {rest}',
+            renewal: 'The first month is paid now. Each next month renews from your Funds; turn renewal off any time.',
+            short: 'You need {missing} more Funds.',
             pay: 'Pay {price} and create',
-            paid: 'Paid {price}. Your server is being created.',
+            paid: 'Paid {price}. Your server is being set up.',
           },
         },
         home: {
@@ -2152,6 +2198,7 @@ const baseTranslations = defineTranslations({
           },
           emptyGroup: 'This group is empty. Drag a server here to add it.',
           emptyAccess: "You don't have access to any servers!",
+          paidBadge: 'Paid', // plugged.host: a paid server in the list (docs/features/dedicated.md)
           // plugged.host: the review prompt, the same neutral ask for everyone (docs/features/reviews.md)
           review: {
             title: 'How is {app} working for you?',
@@ -4448,9 +4495,9 @@ const baseTranslations = defineTranslations({
                     'What all servers of an account may use together. 0 puts no limit on that resource. Lowering it shrinks the servers of accounts that are then over it, evenly.',
                   allowanceNoprofit:
                     'noprofit.space is connected: every account gets its plan from there, these values are not used.',
-                  dedicatedName: 'Dedicated Plans Name',
+                  dedicatedName: 'Paid Plans Name',
                   dedicatedNameDescription:
-                    'What players see paid servers on dedicated plans called (Admin › Plans): their CPU threads and memory are theirs alone.',
+                    "What players see paid servers on dedicated plans called (Admin › Paid Plans). Empty: the panel's name and Paid.",
                   catalog: 'Games',
                 },
                 catalog: {
@@ -6610,10 +6657,10 @@ const baseTranslations = defineTranslations({
           titleCreate: 'Create Plan',
           titleUpdate: 'Update {name}',
           // plugged.host: docs/features/dedicated.md
-          dedicatedTitle: 'Dedicated Plans',
+          dedicatedTitle: 'Paid Plans',
           dedicatedSubtitle:
-            "Paid plans whose CPU threads and memory are the server's alone, on dedicated nodes. Players order them; an admin creates their servers on Admin › Servers.",
-          titleCreateDedicated: 'Create Dedicated Plan',
+            "Plans whose CPU threads and memory are the server's alone, on dedicated nodes. With noprofit.space, players order a public plan with a price on their Paid page and pay it monthly from their Funds; without it they order through support and an admin creates the server on Admin › Servers.",
+          titleCreateDedicated: 'Create Paid Plan',
           table: {
             cpu: 'CPU',
             public: 'Public',
@@ -6631,9 +6678,10 @@ const baseTranslations = defineTranslations({
             public: 'Public',
             publicDescription: 'Players can pick this plan when they create a server.',
             publicDedicatedDescription:
-              'Players see this plan with its price on their dedicated plans page and order it with a support ticket. Off: a custom plan only admins use, for one customer.',
+              'Players see this plan with its price on their Paid page and order it there (through support without noprofit.space). Off: a custom plan only admins use, for one customer.',
             price: 'Price (EUR a month)',
-            priceDescription: 'Shown to players. The panel charges nothing itself; empty shows no price.',
+            priceDescription:
+              "Taken every month from the player's noprofit.space Funds. Empty: no price, and the plan is ordered through support.",
             locations: 'Locations',
             locationsDescription: 'Where its servers can go. Empty: any location with a dedicated node.',
             nodes: 'Nodes',
@@ -7731,7 +7779,7 @@ const baseTranslations = defineTranslations({
                   pinnedCpusDescription: 'The CPU cores this server is pinned to.',
                   pinnedCpusTooltip: 'By index, e.g. 0, 1, 2. Leave empty to allow all cores.',
                   // plugged.host: docs/features/dedicated.md
-                  dedicatedPlan: 'Dedicated Plan',
+                  dedicatedPlan: 'Paid Plan',
                   dedicatedPlanDescription:
                     "A paid plan: its size, on a dedicated node of the plan, pinned to threads the panel picks there. The server is not counted in its owner's allowance.",
                   predefinedDockerImages: 'Predefined Docker Images',
@@ -12548,19 +12596,29 @@ const baseTranslations = defineTranslations({
           billing: {
             title: 'Billing',
             note: 'This server is paid monthly with your noprofit.space Funds.',
-            price: '{price} a month, paid until {date}',
-            renews: 'Renews from your Funds.',
+            price: '{price} / month from your Funds.',
+            paidUntil: 'Paid until {date}. Renews from your Funds.',
             ends: 'Ends on {date}.',
-            ownerOnly: "Only the server's owner can change its renewal.",
-            cancel: 'Cancel renewal',
-            keep: 'Keep it',
+            unpaid: 'Not paid since {since}: deleted on {date} unless paid.',
+            ownerOnly: 'Only the owner can change its billing.',
+            renewalOn: 'Renewal: On',
+            renewalOff: 'Renewal: Off',
+            payAhead: 'Pay next month now',
+            allServers: 'All paid servers',
             confirm: {
-              title: 'Cancel renewal?',
-              body: 'The server keeps running until the end of its paid month ({date}). Then it is suspended, and deleted 3 days later. Until then you can keep it.',
+              title: 'Turn renewal off?',
+              body: '{name} keeps running until {date}. Then it is stopped, and deleted 3 days later unless paid.',
+              button: 'Turn off',
+            },
+            confirmPay: {
+              title: 'Pay next month now?',
+              body: '{price} is taken from your Funds now, and {name} is paid until {date}.',
+              button: 'Pay {price}',
             },
             toast: {
-              cancelled: 'Renewal cancelled. The server runs until {date}.',
-              kept: 'The server renews from your Funds again.',
+              off: 'Renewal is off. The server runs until {date}.',
+              on: 'Renewal is on. The server renews from your Funds.',
+              paid: 'Paid {price}. Paid until {date}.',
             },
           },
           danger: {

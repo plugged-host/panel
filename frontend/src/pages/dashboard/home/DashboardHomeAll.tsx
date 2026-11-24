@@ -163,7 +163,9 @@ export default function DashboardHomeAll() {
           <NoItems />
         ) : (
           <div className='theme-server-empty' data-tour='servers-empty'>
-            <EmptyState flush title={t('pages.account.home.emptyAccess', {})} />
+            <EmptyState flush title={t('pages.account.home.emptyAccess', {})}>
+              <CreateServerButton centered /> {/* plugged.host: both ways to a server */}
+            </EmptyState>
           </div>
         )
       ) : (

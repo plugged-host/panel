@@ -1064,6 +1064,7 @@
         "viewBackups": "Backups anzeigen",
         "renew": "Verlängern",
         "viewMembership": "Mitgliedschaft ansehen",
+        "viewBilling": "Abrechnung ansehen",
         "showMore": "Mehr anzeigen",
         "empty": "Keine Benachrichtigungen",
         "emptyHint": "Schau später noch einmal vorbei.",
@@ -1114,6 +1115,21 @@
             "body": "Dein bezahlter Panel-Zugang endet am {date}.",
             "covered": "Dein Guthaben deckt die nächste Zahlung von {cost}.",
             "short": "Eine erneute Zahlung kostet {cost}."
+          },
+          "paidServerEndsSoon": {
+            "title": "Bezahlter Server verlängert sich bald",
+            "body": "{server} verlängert sich bald: am {date} für {price}, deine Funds betragen {funds}. Lade vorher Funds auf.",
+            "endsTitle": "Bezahlter Server endet bald",
+            "ends": "{server} endet am {date}."
+          },
+          "paidServerRenewed": {
+            "title": "{server} verlängert",
+            "body": "{price} wurden von deinen Funds abgebucht. Bezahlt bis {date}."
+          },
+          "paidServerUnpaid": {
+            "title": "{server} ist nicht bezahlt",
+            "body": "{server} ist gestoppt, bis er bezahlt ist, und wird am {date} gelöscht. Lade Funds auf, dann kommt er von selbst zurück.",
+            "bodyEnded": "{server} ist beendet, weil seine Verlängerung aus ist. Er ist gestoppt und wird am {date} gelöscht, außer du schaltest die Verlängerung wieder ein."
           },
           "failoverDone": {
             "title": "Server wiederhergestellt",
@@ -2204,8 +2220,7 @@
           "title": "Server erstellen",
           "subtitle": "Wähle deine Konfiguration und starte den Server.",
           "button": "Server erstellen",
-          "paidButton": "Bezahlten Server erstellen",
-          "paidNeedsFunds": "Lade Funds auf noprofit.space auf, um einen bezahlten Server zu bekommen.",
+          "paidButton": "Bezahlten Server holen",
           "disabled": "Das Erstellen von Servern ist ausgeschaltet.",
           "noPlan": "Dein Konto hat kein Paket, um Server zu erstellen.",
           "nothingOffered": "Es gibt derzeit keine Spiele, die du erstellen kannst. Bitte wende dich an einen Panel Admin.",
@@ -2260,14 +2275,36 @@
             "blocked": "Dein Kontostatus: {level}. Du kannst gerade keine Server erstellen.",
             "blockedUntil": "Dein Kontostatus: {level}. Du kannst bis {date} keine Server erstellen.",
             "view": "Kontostatus ansehen"
-          },
-          "dedicatedLink": "Eigene CPU-Threads und eigener Arbeitsspeicher? Sieh dir die {name}-Pläne an."
+          }
         },
         "dedicated": {
           "description": "{name}-Pläne sind kostenpflichtig: ihre CPU-Threads und ihr Arbeitsspeicher gehören nur deinem Server. Bestell einen, und das Team richtet ihn für dich ein.",
-          "descriptionSelfService": "{name}-Pläne sind kostenpflichtig: ihre CPU-Threads und ihr Arbeitsspeicher gehören nur deinem Server. Bezahl den ersten Monat mit deinen noprofit.space-Funds, und dein Server wird sofort erstellt.",
+          "subtitle": "Server mit eigenen CPU-Threads und eigenem Arbeitsspeicher, monatlich aus deinen noprofit.space-Funds bezahlt.",
+          "benefits": {
+            "title": "Was du bekommst",
+            "threads": "Eigene CPU-Threads",
+            "memory": "Eigener Arbeitsspeicher",
+            "queue": "Keine Startwarteschlange und kein Warteraum",
+            "limbo": "Nie von Limbo geparkt und außerhalb deines kostenlosen Kontingents"
+          },
+          "funds": {
+            "title": "Deine Funds",
+            "note": "Jeder Monat wird von deinen Funds abgebucht, wenn der letzte endet. Jederzeit kündbar.",
+            "support": "Bezahlte Pläne werden über den Support bestellt: Wähl einen Plan, schick das Ticket ab, und das Team richtet deinen Server ein."
+          },
+          "servers": {
+            "title": "Deine bezahlten Server"
+          },
+          "plans": {
+            "title": "Pläne"
+          },
           "perMonth": "{price} / Monat",
           "size": "{threads} dedizierte CPU-Threads · {memory} MB Arbeitsspeicher · {disk} MB Speicherplatz",
+          "spec": {
+            "threads": "{threads} eigene CPU-Threads",
+            "memory": "{memory} eigener Arbeitsspeicher",
+            "disk": "{disk} Speicherplatz"
+          },
           "soldOut": "Ausverkauft",
           "soldOutAt": "{location} (ausverkauft)",
           "order": "Über den Support bestellen",
@@ -2275,17 +2312,25 @@
           "orderSubject": "{name}-Bestellung: {plan}",
           "orderBody": "Ich möchte den {name}-Plan {plan} bestellen.",
           "orderLocations": "Standorte: {locations}. Welchen ich möchte:",
-          "empty": "Keine dedizierten Pläne im Angebot.",
-          "addFunds": "Funds auf noprofit.space aufladen",
+          "empty": "Gerade gibt es keine Pläne für dein Konto. Eröffne ein Support-Ticket, wenn du einen brauchst.",
+          "history": "Zahlungsverlauf auf noprofit.space",
+          "addFunds": "Funds aufladen",
+          "upsell": {
+            "card": "Eigene CPU-Threads und eigener Arbeitsspeicher. Keine Startwarteschlange, kein Warteraum.",
+            "from": "Ab {price} / Monat",
+            "seePlans": "Pläne ansehen",
+            "wait": "Bezahlte Server warten hier nie. {name} ab {price} / Monat.",
+            "waitNoPrice": "Bezahlte Server warten hier nie."
+          },
           "modal": {
             "title": "{plan} bestellen",
-            "price": "Preis: {price} pro Monat",
             "funds": "Deine Funds: {funds}",
             "fundsLoading": "Deine Funds werden geprüft…",
-            "renewal": "Der erste Monat wird jetzt bezahlt. Jeder weitere Monat verlängert sich aus deinen Funds; die Verlängerung kannst du in den Servereinstellungen kündigen.",
-            "short": "Deine Funds reichen nicht für den ersten Monat.",
+            "left": "Danach übrig: {rest}",
+            "renewal": "Der erste Monat wird jetzt bezahlt. Jeder weitere Monat verlängert sich aus deinen Funds; die Verlängerung kannst du jederzeit ausschalten.",
+            "short": "Dir fehlen noch {missing} Funds.",
             "pay": "{price} bezahlen und erstellen",
-            "paid": "{price} bezahlt. Dein Server wird erstellt."
+            "paid": "{price} bezahlt. Dein Server wird eingerichtet."
           }
         },
         "home": {
@@ -2395,6 +2440,7 @@
           },
           "emptyGroup": "Diese Gruppe ist leer. Ziehe einen Server hierher, um ihn hinzuzufügen.",
           "emptyAccess": "Es gibt keine Server, auf die du zugreifen darfst.",
+          "paidBadge": "Bezahlt",
           "review": {
             "title": "Wie läuft es mit {app}?",
             "body": "Erzähl anderen Spielern in einer Bewertung auf {site}, wie es für dich läuft, ob gut oder schlecht.",
@@ -4448,8 +4494,8 @@
                   "allowanceCpu": "CPU (%)",
                   "allowanceDescription": "Was alle Server eines Kontos zusammen nutzen dürfen. 0 begrenzt diese Ressource nicht. Eine Senkung verkleinert die Server der Konten, die danach darüber liegen, gleichmäßig.",
                   "allowanceNoprofit": "noprofit.space ist verbunden: Jedes Konto bekommt sein Paket von dort, diese Werte werden nicht genutzt.",
-                  "dedicatedName": "Name der dedizierten Pläne",
-                  "dedicatedNameDescription": "Wie Spieler bezahlte Server mit dedizierten Plänen (Admin › Pläne) sehen: ihre CPU-Threads und ihr Arbeitsspeicher gehören nur ihnen.",
+                  "dedicatedName": "Name der bezahlten Pläne",
+                  "dedicatedNameDescription": "Wie Spieler bezahlte Server auf dedizierten Plänen genannt sehen (Admin › Bezahlte Pläne). Leer: der Name des Panels und Paid.",
                   "catalog": "Spiele"
                 },
                 "catalog": {
@@ -6377,9 +6423,9 @@
           "resourceName": "Paket",
           "titleCreate": "Paket erstellen",
           "titleUpdate": "{name} bearbeiten",
-          "dedicatedTitle": "Dedizierte Pläne",
-          "dedicatedSubtitle": "Bezahlte Pläne, deren CPU-Threads und Arbeitsspeicher nur dem Server gehören, auf dedizierten Nodes. Spieler bestellen sie; ein Admin erstellt ihre Server unter Admin › Server.",
-          "titleCreateDedicated": "Dedizierten Plan erstellen",
+          "dedicatedTitle": "Bezahlte Pläne",
+          "dedicatedSubtitle": "Pläne, deren CPU-Threads und Arbeitsspeicher nur dem Server gehören, auf dedizierten Nodes. Mit noprofit.space bestellen Spieler einen öffentlichen Plan mit Preis auf ihrer Paid-Seite und bezahlen ihn monatlich aus ihren Funds; ohne bestellen sie über den Support, und ein Admin erstellt den Server unter Admin › Server.",
+          "titleCreateDedicated": "Bezahlten Plan erstellen",
           "table": {
             "cpu": "CPU",
             "public": "Öffentlich",
@@ -6396,9 +6442,9 @@
             "sortDescription": "Reihenfolge auf der Erstellen-Seite, die niedrigste zuerst.",
             "public": "Öffentlich",
             "publicDescription": "Spieler können dieses Paket wählen, wenn sie einen Server erstellen.",
-            "publicDedicatedDescription": "Spieler sehen diesen Plan mit seinem Preis auf ihrer Seite der dedizierten Pläne und bestellen ihn mit einem Support-Ticket. Aus: ein eigener Plan, den nur Admins für einen Kunden nutzen.",
+            "publicDedicatedDescription": "Spieler sehen diesen Plan mit seinem Preis auf ihrer Paid-Seite und bestellen ihn dort (ohne noprofit.space über den Support). Aus: ein eigener Plan, den nur Admins für einen Kunden nutzen.",
             "price": "Preis (EUR pro Monat)",
-            "priceDescription": "Wird Spielern angezeigt. Das Panel berechnet selbst nichts; leer zeigt keinen Preis.",
+            "priceDescription": "Wird jeden Monat von den noprofit.space-Funds des Spielers abgebucht. Leer: kein Preis, und der Plan wird über den Support bestellt.",
             "locations": "Standorte",
             "locationsDescription": "Wo seine Server hinkommen können. Leer: jeder Standort mit einer dedizierten Node.",
             "nodes": "Nodes",
@@ -7443,7 +7489,7 @@
                   "pinnedCpus": "Angeheftete CPUs",
                   "pinnedCpusDescription": "Die CPU-Kerne, an die dieser Server angeheftet ist.",
                   "pinnedCpusTooltip": "Nach Index, z. B. 0, 1, 2. Leer lassen, um alle Kerne zuzulassen.",
-                  "dedicatedPlan": "Dedizierter Plan",
+                  "dedicatedPlan": "Bezahlter Plan",
                   "dedicatedPlanDescription": "Ein bezahlter Plan: seine Größe, auf einer dedizierten Node des Plans, an Threads gebunden, die das Panel dort auswählt. Der Server zählt nicht zum Kontingent seines Besitzers.",
                   "predefinedDockerImages": "Vordefinierte Docker-Images",
                   "predefinedDockerImagesPlaceholder": "Kein vordefiniertes Image ausgewählt",
@@ -12070,19 +12116,29 @@
           "billing": {
             "title": "Abrechnung",
             "note": "Dieser Server wird monatlich mit deinen noprofit.space-Funds bezahlt.",
-            "price": "{price} pro Monat, bezahlt bis {date}",
-            "renews": "Verlängert sich aus deinen Funds.",
+            "price": "{price} / Monat aus deinen Funds.",
+            "paidUntil": "Bezahlt bis {date}. Verlängert sich aus deinen Funds.",
             "ends": "Endet am {date}.",
-            "ownerOnly": "Nur der Besitzer des Servers kann seine Verlängerung ändern.",
-            "cancel": "Verlängerung kündigen",
-            "keep": "Behalten",
+            "unpaid": "Nicht bezahlt seit {since}: wird am {date} gelöscht, falls er nicht bezahlt wird.",
+            "ownerOnly": "Nur der Besitzer kann die Abrechnung ändern.",
+            "renewalOn": "Verlängerung: An",
+            "renewalOff": "Verlängerung: Aus",
+            "payAhead": "Nächsten Monat jetzt bezahlen",
+            "allServers": "Alle bezahlten Server",
             "confirm": {
-              "title": "Verlängerung kündigen?",
-              "body": "Der Server läuft bis zum Ende seines bezahlten Monats ({date}) weiter. Danach wird er suspendiert und 3 Tage später gelöscht. Bis dahin kannst du ihn behalten."
+              "title": "Verlängerung ausschalten?",
+              "body": "{name} läuft bis {date} weiter. Danach wird er gestoppt und 3 Tage später gelöscht, falls er nicht bezahlt wird.",
+              "button": "Ausschalten"
+            },
+            "confirmPay": {
+              "title": "Nächsten Monat jetzt bezahlen?",
+              "body": "{price} werden jetzt von deinen Funds abgebucht, und {name} ist bis {date} bezahlt.",
+              "button": "{price} bezahlen"
             },
             "toast": {
-              "cancelled": "Verlängerung gekündigt. Der Server läuft bis {date}.",
-              "kept": "Der Server verlängert sich wieder aus deinen Funds."
+              "off": "Die Verlängerung ist aus. Der Server läuft bis {date}.",
+              "on": "Die Verlängerung ist an. Der Server verlängert sich aus deinen Funds.",
+              "paid": "{price} bezahlt. Bezahlt bis {date}."
             }
           },
           "danger": {
