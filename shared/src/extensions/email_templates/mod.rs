@@ -418,8 +418,10 @@ mod tests {
         environment.set_auto_escape_callback(|_| minijinja::AutoEscape::Html);
         environment.add_global(
             "settings",
+            // plugged.host: the fields the stock templates read, as the real settings always carry them
             minijinja::Value::from(minijinja::value::Serde(serde_json::json!({
-                "app": { "name": "Panel & Co", "url": "https://panel.example.com" }
+                "app": { "name": "Panel & Co", "url": "https://panel.example.com", "banner_light": null },
+                "metadata": { "theme_color": "#3a5bff" }
             }))),
         );
         environment.add_global("language", "en");

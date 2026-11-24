@@ -103,10 +103,11 @@
   }
 
   /* Server status colors - for status indicators (circles, cards, etc.) */
-  --color-server-status-running: #22c55e;
-  --color-server-status-offline: #ef4444;
-  --color-server-status-starting: #eab308;
-  --color-server-status-stopping: #eab308;
+  /* plugged.host: the brand kit's status colours (success, danger, warning) */
+  --color-server-status-running: #1fb57a;
+  --color-server-status-offline: #fd5973;
+  --color-server-status-starting: #f2a93b;
+  --color-server-status-stopping: #f2a93b;
 }
 
 /* Custom utility classes for server status colors */
@@ -340,17 +341,18 @@
   --mantine-color-dark-outline: var(--mantine-color-dark-4);
   --mantine-color-dark-outline-hover: rgba(66, 66, 66, 0.05);
   --mantine-color-dark-text: var(--mantine-color-dark-4);
-  /* Theme v2 gray buttons: "bg-white/10 hover:bg-white/15" */
-  --mantine-color-default: var(--theme-raise-2);
+  /* plugged.host: plain buttons are flat surface-2, line on hover, no edge (the brand kit's) */
+  --mantine-color-default: var(--theme-surface-2);
   /* Filament's dark edges: "border-white/10", "ring-white/10" */
   --mantine-color-default-border: rgb(255 255 255 / 0.1);
   --mantine-color-default-color: var(--mantine-color-white);
-  --mantine-color-default-hover: var(--theme-raise-3);
+  --mantine-color-default-hover: var(--theme-line);
   --mantine-color-dimmed: var(--mantine-color-dark-2);
   --mantine-color-disabled: var(--mantine-color-dark-6);
   --mantine-color-disabled-border: var(--mantine-color-dark-4);
   --mantine-color-disabled-color: var(--mantine-color-dark-3);
-  --mantine-color-error: var(--mantine-color-red-8);
+  /* plugged.host: the design system's danger text on dark */
+  --mantine-color-error: var(--theme-danger);
   --mantine-color-grape-filled: var(--mantine-color-grape-8);
   --mantine-color-grape-filled-hover: var(--mantine-color-grape-9);
   --mantine-color-grape-light: rgba(190, 75, 219, 0.1);
@@ -363,19 +365,20 @@
   --mantine-color-gray-filled-hover: var(--mantine-color-gray-9);
   /* Theme v2 neutral badges and gray buttons: "bg-white/10 text-gray-100", "hover:bg-white/15" */
   --mantine-color-gray-light: var(--theme-raise-2);
-  --mantine-color-gray-light-color: #f3f4f6;
+  --mantine-color-gray-light-color: var(--theme-text);
   --mantine-color-gray-light-hover: var(--theme-raise-3);
   --mantine-color-gray-outline: var(--mantine-color-gray-4);
   --mantine-color-gray-outline-hover: rgba(206, 212, 218, 0.05);
   --mantine-color-gray-text: var(--mantine-color-gray-4);
-  --mantine-color-green-filled: var(--mantine-color-green-8);
-  --mantine-color-green-filled-hover: var(--mantine-color-green-9);
-  --mantine-color-green-light: rgba(64, 192, 87, 0.1);
-  --mantine-color-green-light-color: var(--mantine-color-green-3);
-  --mantine-color-green-light-hover: rgba(64, 192, 87, 0.15);
-  --mantine-color-green-outline: var(--mantine-color-green-4);
-  --mantine-color-green-outline-hover: rgba(105, 219, 124, 0.05);
-  --mantine-color-green-text: var(--mantine-color-green-4);
+  /* plugged.host: the brand kit's success: the base colour fills, its text colour on success-soft */
+  --mantine-color-green-filled: var(--mantine-color-green-6);
+  --mantine-color-green-filled-hover: var(--mantine-color-green-7);
+  --mantine-color-green-light: var(--theme-success-soft);
+  --mantine-color-green-light-color: var(--theme-success);
+  --mantine-color-green-light-hover: color-mix(in srgb, var(--theme-success) 12%, var(--theme-success-soft));
+  --mantine-color-green-outline: var(--theme-success);
+  --mantine-color-green-outline-hover: color-mix(in srgb, var(--theme-success) 5%, transparent);
+  --mantine-color-green-text: var(--theme-success);
   --mantine-color-indigo-filled: var(--mantine-color-indigo-8);
   --mantine-color-indigo-filled-hover: var(--mantine-color-indigo-9);
   --mantine-color-indigo-light: rgba(76, 110, 245, 0.1);
@@ -409,14 +412,15 @@
   --mantine-color-pink-outline-hover: rgba(247, 131, 172, 0.05);
   --mantine-color-pink-text: var(--mantine-color-pink-4);
   --mantine-color-placeholder: var(--mantine-color-dark-3);
-  --mantine-color-red-filled: var(--mantine-color-red-8);
-  --mantine-color-red-filled-hover: var(--mantine-color-red-9);
-  --mantine-color-red-light: rgba(250, 82, 82, 0.1);
-  --mantine-color-red-light-color: var(--mantine-color-red-3);
-  --mantine-color-red-light-hover: rgba(250, 82, 82, 0.15);
-  --mantine-color-red-outline: var(--mantine-color-red-4);
-  --mantine-color-red-outline-hover: rgba(255, 135, 135, 0.05);
-  --mantine-color-red-text: var(--mantine-color-red-4);
+  /* plugged.host: the brand kit's danger: the base colour fills, its text colour on danger-soft */
+  --mantine-color-red-filled: var(--mantine-color-red-6);
+  --mantine-color-red-filled-hover: var(--mantine-color-red-7);
+  --mantine-color-red-light: var(--theme-danger-soft);
+  --mantine-color-red-light-color: var(--theme-danger);
+  --mantine-color-red-light-hover: color-mix(in srgb, var(--theme-danger) 12%, var(--theme-danger-soft));
+  --mantine-color-red-outline: var(--theme-danger);
+  --mantine-color-red-outline-hover: color-mix(in srgb, var(--theme-danger) 5%, transparent);
+  --mantine-color-red-text: var(--theme-danger);
   --mantine-color-scheme: dark;
   --mantine-color-teal-filled: var(--mantine-color-teal-8);
   --mantine-color-teal-filled-hover: var(--mantine-color-teal-9);
@@ -435,19 +439,20 @@
   --mantine-color-violet-outline: var(--mantine-color-violet-4);
   --mantine-color-violet-outline-hover: rgba(151, 117, 250, 0.05);
   --mantine-color-violet-text: var(--mantine-color-violet-4);
-  --mantine-color-yellow-filled: var(--mantine-color-yellow-8);
-  --mantine-color-yellow-filled-hover: var(--mantine-color-yellow-9);
-  --mantine-color-yellow-light: rgba(250, 176, 5, 0.1);
-  --mantine-color-yellow-light-color: var(--mantine-color-yellow-3);
-  --mantine-color-yellow-light-hover: rgba(250, 176, 5, 0.15);
-  --mantine-color-yellow-outline: var(--mantine-color-yellow-4);
-  --mantine-color-yellow-outline-hover: rgba(255, 212, 59, 0.05);
-  --mantine-color-yellow-text: var(--mantine-color-yellow-4);
+  /* plugged.host: the brand kit's warning: the base colour fills, its text colour on warning-soft */
+  --mantine-color-yellow-filled: var(--mantine-color-yellow-6);
+  --mantine-color-yellow-filled-hover: var(--mantine-color-yellow-7);
+  --mantine-color-yellow-light: var(--theme-warning-soft);
+  --mantine-color-yellow-light-color: var(--theme-warning);
+  --mantine-color-yellow-light-hover: color-mix(in srgb, var(--theme-warning) 12%, var(--theme-warning-soft));
+  --mantine-color-yellow-outline: var(--theme-warning);
+  --mantine-color-yellow-outline-hover: color-mix(in srgb, var(--theme-warning) 5%, transparent);
+  --mantine-color-yellow-text: var(--theme-warning);
   --mantine-primary-color-contrast: var(--mantine-color-white);
 
   /* Chart colors */
   --chart-grid-color: rgba(255, 255, 255, 0.08);
-  --chart-tick-color: #9ca3af;
+  --chart-tick-color: #a2a5a9;
   --chart-series-1: #22d3ee;
   --chart-series-2: #facc15;
   --chart-series-3: #a78bfa;
@@ -455,7 +460,7 @@
 }
 
 /* containment on body stops its background propagating to the canvas, so html paints it.
-   plugged.host Theme v2's page floor: "bg-gradient-to-b from-[#101319] to-[#0b0d10]", fixed so
+   plugged.host Theme v2's page floor: a gradient from --theme-bg-top to --theme-bg-bottom, fixed so
    it does not repeat down a long page. */
 html {
   scrollbar-gutter: stable;
@@ -574,39 +579,66 @@ strong {
  * plugged.host Theme v2
  *
  * The tokens are the Pelican panel theme's (plugged-host-theme-v2/resources/css/theme.css on
- * the plugins' 2.2 branch, where they are called --phv2-*; --theme-* here); keep the two in step. Dark only: App.tsx forces the dark scheme.
+ * the plugins' 2.2 branch, where they are called --phv2-*; --theme-* here), with the plugged.host
+ * brand kit's colours since the Socket rebrand (docs/features/theme.md). Dark only: App.tsx forces
+ * the dark scheme.
  * Mantine's palette (theme.ts) and the dark variables above already point at these, so what
  * follows is only what Mantine's theme object cannot say: surfaces, the sidebar and inputs.
  * ============================================================================= */
 
 :root {
-  /* accent: blue-700 / blue-800 fills, blue-500 / blue-400 for text and rings */
-  --theme-accent: #1d4ed8;
-  --theme-accent-hover: #1e40af;
-  --theme-accent-bright: #3b82f6;
-  --theme-accent-glow: #60a5fa;
-  --theme-accent-soft: rgb(29 78 216 / 0.1);
-  --theme-accent-tint: rgb(29 78 216 / 0.15);
-  --theme-accent-edge: rgb(29 78 216 / 0.2);
-  --theme-accent-icon: rgb(59 130 246 / 0.5);
+  /* accent, Socket blue: brand 500 / 600 fills, brand 400 / 300 for text and rings on dark */
+  --theme-accent: #3a5bff;
+  --theme-accent-hover: #2449d8;
+  --theme-accent-bright: #688cfc;
+  --theme-accent-glow: #95b2fd;
+  --theme-accent-soft: rgb(58 91 255 / 0.1);
+  --theme-accent-tint: rgb(58 91 255 / 0.15);
+  --theme-accent-edge: rgb(58 91 255 / 0.2);
+  --theme-accent-icon: rgb(104 140 252 / 0.5);
 
-  /* surfaces */
-  --theme-bg-top: #101319;
-  --theme-bg-bottom: #0b0d10;
-  --theme-sidebar: #1c1e23;
-  --theme-sunken: rgb(15 17 22 / 0.5);
-  --theme-dropdown: #181a1e;
-  --theme-modal: #1a1c20;
+  /* Tailwind's blue utilities that upstream's components use are the accent too, on Theme v2's
+     scale (700 fill, 800 hover, 500 text, 400 glow); lib/accent.ts swaps them with the accent. */
+  --color-blue-50: #eef3ff;
+  --color-blue-100: #dce6ff;
+  --color-blue-200: #bed0fe;
+  --color-blue-300: #95b2fd;
+  --color-blue-400: #95b2fd;
+  --color-blue-500: #688cfc;
+  --color-blue-600: #3a5bff;
+  --color-blue-700: #3a5bff;
+  --color-blue-800: #2449d8;
+  --color-blue-900: #012d97;
+  --color-blue-950: #001b4c;
+
+  /* surfaces: the brand kit's plain cool greys; the blue is the accent only, never a tint */
+  --theme-bg-top: #111315;
+  --theme-bg-bottom: #0b0c0e;
+  --theme-surface: #181a1c;
+  --theme-surface-2: #292c2f;
+  --theme-line: #414448;
+  --theme-sidebar: var(--theme-surface);
+  --theme-sunken: rgb(11 12 14 / 0.5);
+  --theme-dropdown: var(--theme-surface);
+  --theme-modal: var(--theme-surface);
   --theme-raise: rgb(255 255 255 / 0.05);
   --theme-raise-2: rgb(255 255 255 / 0.1);
   --theme-raise-3: rgb(255 255 255 / 0.15);
   --theme-hairline: rgb(255 255 255 / 0.05);
 
-  /* text ramp */
-  --theme-text: #ffffff;
-  --theme-text-nav: #d1d5db;
-  --theme-text-muted: #9ca3af;
-  --theme-text-faint: #71717a;
+  /* text ramp: grey 50, 300, 400, 500 */
+  --theme-text: #f8f9fa;
+  --theme-text-nav: #cbced1;
+  --theme-text-muted: #a2a5a9;
+  --theme-text-faint: #777b7f;
+
+  /* status on dark (the design system's accessible text colours and their -soft backgrounds) */
+  --theme-success: #1fb57a;
+  --theme-success-soft: #092e1e;
+  --theme-warning: #f2a93b;
+  --theme-warning-soft: #352205;
+  --theme-danger: #fd5973;
+  --theme-danger-soft: #43141b;
 
   color-scheme: dark;
 }
@@ -1026,7 +1058,7 @@ strong {
 
   .mantine-Button-root[data-variant="default"]:disabled,
   .mantine-Button-root[data-variant="default"][data-disabled] {
-    background-color: var(--theme-raise-2);
+    background-color: var(--theme-surface-2);
     color: var(--theme-text);
   }
 
@@ -1043,7 +1075,7 @@ strong {
     --ai-size: 1.75rem;
   }
 
-  /* Gray buttons: "bg-white/10 hover:bg-white/15", no edge. */
+  /* Plain buttons: flat surface-2, line on hover, no edge or ring. */
   .mantine-Button-root[data-variant="default"],
   .mantine-ActionIcon-root[data-variant="default"] {
     border-color: transparent;
@@ -1189,7 +1221,7 @@ strong {
 
   /* The head's white/5 band; sticky, so it needs a solid colour: white/5 on the page floor. */
   .theme-table .mantine-Table-thead .mantine-Table-th {
-    background-color: #191b1f;
+    background-color: #1a1b1d;
   }
 
   /* -- Pagination: "rounded-lg ring-1 ring-white/20" items, the current one "bg-white/5" with
@@ -1479,6 +1511,13 @@ strong {
   .theme-sidebar-logo img {
     width: auto;
     height: 2.5rem;
+  }
+
+  /* A banner (the logo lockup) is 2rem tall, the brand kit's lockup next to 2.5rem rows. */
+  .theme-sidebar-logo img.theme-sidebar-banner {
+    height: 2rem;
+    max-width: 100%;
+    margin-block: 0.25rem;
   }
 
   /* Every row: "min-h-11 px-3.5 py-2 gap-2.5 rounded-xl text-sm font-medium text-gray-300",

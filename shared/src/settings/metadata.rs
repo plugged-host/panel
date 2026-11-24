@@ -139,10 +139,10 @@ impl SettingsDeserializeExt for AppSettingsMetadataDeserializer {
             description: deserializer
                 .take_raw_setting("description")
                 .and_then(|s| s.into_optional()),
-            // plugged.host: the theme colour is Theme v2's accent; its blue fill by default.
+            // plugged.host: the theme colour is Theme v2's accent; Socket blue by default.
             theme_color: deserializer
                 .take_raw_setting("theme_color")
-                .unwrap_or_else(|| "#1d4ed8".into()),
+                .unwrap_or_else(|| "#3a5bff".into()),
             // plugged.host
             seasonal_theme: deserializer
                 .take_raw_setting("seasonal_theme")

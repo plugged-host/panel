@@ -49,8 +49,8 @@ export const createSettingsSlice: StateCreator<AdminStore, [], [], SettingsSlice
   },
   metadata: {
     description: null,
-    // plugged.host: Theme v2's accent, its blue by default (lib/accent.ts).
-    themeColor: '#1d4ed8',
+    // plugged.host: Theme v2's accent, Socket blue by default (lib/accent.ts).
+    themeColor: '#3a5bff',
     ogImage: null,
     twitterCard: 'summary_large_image',
     indexable: true,

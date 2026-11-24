@@ -5,7 +5,7 @@ import type { MantineColorsTuple } from '@mantine/core';
  * Support\Accent on the 2.2 branch of the plugins), set here by the panel's theme colour
  * (Admin › Settings › General › Metadata).
  *
- * theme.ts and app.css are written in blue: Mantine's blue palette and the --theme-accent*
+ * theme.ts and app.css are written in Socket blue: Mantine's blue palette and the --theme-accent*
  * properties, plus Tailwind's blue utilities that upstream's components use. Any other accent
  * overrides exactly those (App.tsx); blue, the default, overrides nothing, so the panel stays what
  * the stylesheet says.
@@ -251,11 +251,11 @@ export type AccentPreset = keyof typeof PALETTES;
 
 export const ACCENT_PRESETS = Object.keys(PALETTES) as AccentPreset[];
 
-/** Theme v2's own fill (blue-700), the default. */
-export const DEFAULT_ACCENT = '#1d4ed8';
+/** Theme v2's own fill, Socket blue (the brand kit's blue 500), the default. */
+export const DEFAULT_ACCENT = '#3a5bff';
 
 /** What accent text sits on most: the sidebar, --theme-sidebar. */
-const SURFACE = '#1c1e23';
+const SURFACE = '#181a1c';
 
 const MIN_CONTRAST = 4.5;
 

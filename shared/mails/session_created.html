@@ -34,6 +34,15 @@
 					border-bottom: 1px solid #eaebed;
 				"
 			>
+				<!-- plugged.host: the light banner, when one is set, stands in for the name (a PNG: mail clients show no SVG) -->
+				{% if settings.app.banner_light %}
+				<img
+					src="{% if settings.app.banner_light[:1] == '/' %}{{ settings.app.url|trim('/') }}{% endif %}{{ settings.app.banner_light }}"
+					alt="{{ settings.app.name }}"
+					height="32"
+					style="display: inline-block; height: 32px; width: auto; border: 0"
+				/>
+				{% else %}
 				<h1
 					style="
 						margin: 0;
@@ -44,6 +53,7 @@
 				>
 					{{ settings.app.name }}
 				</h1>
+				{% endif %}
 			</div>
 
 			<div style="padding: 32px">
@@ -123,12 +133,13 @@
 				</table>
 
 				<div style="text-align: center; margin-bottom: 32px">
+					<!-- plugged.host: the panel's theme colour (Admin › Settings › General › Metadata) -->
 					<a
 						href="{{ sessions_link }}"
 						style="
 							display: inline-block;
 							padding: 14px 28px;
-							background-color: #2563eb;
+							background-color: {{ settings.metadata.theme_color|default('#3a5bff') }};
 							color: #ffffff;
 							text-decoration: none;
 							font-size: 16px;

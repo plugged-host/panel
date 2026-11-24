@@ -118,7 +118,9 @@ export default function App({
   }, []);
 
   useEffect(() => {
-    if (settings?.app?.icon) {
+    // plugged.host: the shipped icon has its own favicon cut for 16-32 px in index.html; only a
+    // custom icon replaces it.
+    if (settings?.app?.icon && settings.app.icon !== '/plugged.host.png') {
       const icons = document.getElementsByClassName('app-icon');
 
       for (const icon of icons) {

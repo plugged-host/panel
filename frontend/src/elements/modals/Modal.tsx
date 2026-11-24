@@ -10,7 +10,7 @@ export const Modal = makeComponentHookable(
         // plugged.host: Filament's overlay, "bg-gray-950/75" without a blur.
         overlayProps={{
           backgroundOpacity: 0.75,
-          color: '#0b0d10',
+          color: '#0b0c0e',
         }}
         removeScrollProps={{ removeScrollBar: false }}
         ref={ref}

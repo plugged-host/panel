@@ -1,43 +1,87 @@
 import { Badge, Button, MantineColorsTuple, MantineThemeOverride, Modal, Tabs, ThemeIcon } from '@mantine/core';
 
 /*
- * plugged.host Theme v2 on Mantine. The values are the ones the Pelican panel's theme uses
- * (plugged-host-theme-v2/resources/css/theme.css on the 2.2 branch of the plugins); app.css
- * carries the same tokens as --theme-* (--phv2-* there), the dark colour-scheme variables and the parts Mantine's
- * theme object does not reach.
+ * plugged.host Theme v2 on Mantine. The layout values are the ones the Pelican panel's theme uses
+ * (plugged-host-theme-v2/resources/css/theme.css on the 2.2 branch of the plugins); the colours
+ * are the plugged.host brand kit's (Socket blue as the accent only, plain cool greys and the shared
+ * status colours, docs/features/theme.md). app.css carries the same tokens as --theme-*, the dark
+ * colour-scheme variables and the parts Mantine's theme object does not reach.
  *
- * The accent is two-tier, as in Theme v2: blue-700 (#1d4ed8) fills, blue-500 (#3b82f6) is the
- * same accent as text or a ring on a dark surface, where blue-700 would be unreadable. The theme
- * colour (Admin › Settings › General › Metadata) swaps it for another one (lib/accent.ts, App.tsx).
+ * The accent is two-tier: Socket blue (#3a5bff, white text 5.1:1) fills, blue-400 (#688cfc) is the
+ * same accent as text or a ring on a dark surface. The theme colour (Admin › Settings › General ›
+ * Metadata) swaps it for another one (lib/accent.ts, App.tsx).
  */
 
-// Tailwind blue, shifted one rung darker from 200 up so the filled shade (6) is blue-700.
+// Socket blue in Mantine's slots: 0-3 tints, 4 text and rings on dark (brand 400), 6 the fill
+// (brand 500), 7 its hover (brand 600).
 const blue: MantineColorsTuple = [
-  '#eff6ff',
-  '#dbeafe',
-  '#93c5fd',
-  '#60a5fa',
-  '#3b82f6',
-  '#2563eb',
-  '#1d4ed8',
-  '#1e40af',
-  '#1e3a8a',
-  '#172554',
+  '#eef3ff',
+  '#dce6ff',
+  '#bed0fe',
+  '#95b2fd',
+  '#688cfc',
+  '#3a5bff',
+  '#3a5bff',
+  '#2449d8',
+  '#012d97',
+  '#001b4c',
 ];
 
-// Mantine's dark ramp mapped onto Theme v2: text, nav text, muted, faint, then the surfaces
-// (borders, hover, sidebar, modals, page floor).
+// Mantine's dark ramp mapped onto Theme v2 with the brand kit's plain greys (never tinted toward
+// the blue): text, nav text, muted, faint, then line, surface-2, surface, modals, page floor.
 const dark: MantineColorsTuple = [
-  '#f3f4f6',
-  '#d1d5db',
-  '#9ca3af',
-  '#71717a',
-  '#2c2e34',
-  '#26282e',
-  '#1c1e23',
-  '#1a1c20',
-  '#101319',
-  '#0b0d10',
+  '#f1f2f4',
+  '#cbced1',
+  '#a2a5a9',
+  '#777b7f',
+  '#414448',
+  '#292c2f',
+  '#181a1c',
+  '#151719',
+  '#111315',
+  '#0b0c0e',
+];
+
+// The brand's status colours (success, warning, danger), shared with Zaleris and switched.cloud,
+// each as a ramp with the base colour as the fill (6) and the design system's accessible text
+// colour on dark as 4; app.css sets their light (badge) variants to the -soft backgrounds.
+const green: MantineColorsTuple = [
+  '#e3fcee',
+  '#d4f6e2',
+  '#bbebd0',
+  '#96dbb6',
+  '#1fb57a',
+  '#1fb57a',
+  '#1fb57a',
+  '#0c9361',
+  '#07764d',
+  '#03452b',
+];
+
+const yellow: MantineColorsTuple = [
+  '#fff5e9',
+  '#ffeed9',
+  '#ffe2bf',
+  '#fdd199',
+  '#f2a93b',
+  '#f2a93b',
+  '#f2a93b',
+  '#c5861f',
+  '#a06a0b',
+  '#5c3a01',
+];
+
+const red: MantineColorsTuple = [
+  '#fff0f1',
+  '#fee2e4',
+  '#fecacd',
+  '#fea6ad',
+  '#fd5973',
+  '#ef4565',
+  '#ef4565',
+  '#c6304f',
+  '#a51e3d',
+  '#68011f',
 ];
 
 const sans = "'Space Grotesk', ui-sans-serif, system-ui, sans-serif";
@@ -45,7 +89,7 @@ const sans = "'Space Grotesk', ui-sans-serif, system-ui, sans-serif";
 export const themeV2: MantineThemeOverride = {
   primaryColor: 'blue',
   primaryShade: 6,
-  colors: { blue, dark },
+  colors: { blue, dark, green, yellow, red },
   fontFamily: sans,
   // Filament's copy is "text-sm" almost everywhere: Mantine's default text size (md) follows it,
   // so Text, paragraphs and inputs agree with the 14px body (app.css).
@@ -65,15 +109,17 @@ export const themeV2: MantineThemeOverride = {
       h6: { fontSize: '0.875rem', lineHeight: '1.25rem' },
     },
   },
+  // The brand kit's radii: 6px small parts, 10px buttons and inputs, 16px cards.
+  radius: { sm: '6px', md: '10px', lg: '16px' },
   defaultRadius: 'md',
   cursorType: 'pointer',
   components: {
-    // Theme v2 buttons are pills ("rounded-full"); badges are rounded-lg and tinted, never solid
+    // Buttons have the brand kit's 10px corners; badges are rounded-lg and tinted, never solid
     // (Filament's "bg-custom-400/10 text-custom-400").
-    Button: Button.extend({ defaultProps: { radius: 'xl' } }),
+    Button: Button.extend({ defaultProps: { radius: 'md' } }),
     Badge: Badge.extend({ defaultProps: { radius: 'md', variant: 'light' } }),
     // Filament's modal overlay: "bg-gray-950/75", no blur.
-    Modal: Modal.extend({ defaultProps: { overlayProps: { backgroundOpacity: 0.75, color: '#0b0d10', blur: 0 } } }),
+    Modal: Modal.extend({ defaultProps: { overlayProps: { backgroundOpacity: 0.75, color: '#0b0c0e', blur: 0 } } }),
     // Underlined tabs (inside cards and modals): the bright accent as the line, like Filament's
     // contained tabs ("border-primary-500 text-primary-500").
     Tabs: Tabs.extend({ defaultProps: { color: 'blue.4' } }),

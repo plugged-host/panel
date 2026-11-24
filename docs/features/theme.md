@@ -1,8 +1,60 @@
 # Theme v2
 
-The panel looks like plugged.host's Pelican panel (its "Theme v2"): a royal-blue accent on obsidian
-surfaces, Space Grotesk for text and JetBrains Mono for numbers and code, Tabler's outline icons,
-a flat sidebar with grouped rows, and the user's avatar row at its foot. It is dark only.
+The panel looks like plugged.host's Pelican panel (its "Theme v2") in the plugged.host brand kit's
+colours: a Socket-blue accent on plain grey surfaces, Space Grotesk for text and JetBrains Mono
+for numbers and code, Tabler's outline icons, a flat sidebar with grouped rows, and the user's
+avatar row at its foot. It is dark only.
+
+## Brand
+
+The brand kit (the Socket mark, the logo files, the colour scales) is kept outside this repository;
+the panel carries copies of what it shows. Its values here:
+
+| | Value | Where |
+|---|---|---|
+| Accent fill (white text 5.1:1) and hover | `#3a5bff`, `#2449d8` | `--theme-accent`, `--theme-accent-hover`, Mantine `blue.6` / `blue.7` |
+| Accent as text or ring on dark | `#688cfc` (blue 400), glow `#95b2fd` | `--theme-accent-bright`, `--theme-accent-glow`, Mantine `blue.4` |
+| Surfaces (plain cool greys, never tinted toward the blue) | floor `#0b0c0e` to `#111315`, surface `#181a1c` (sidebar, menus, modals), surface-2 `#292c2f` (plain buttons), line `#414448` (their hover) | `--theme-bg-*`, `--theme-surface*`, `--theme-line`, `--theme-sidebar`, Mantine `dark` |
+| Text | `#f8f9fa`, `#cbced1`, `#a2a5a9`, `#777b7f` | `--theme-text*`, Mantine `dark.0-3` |
+| Status text on dark, on its soft background | success `#1fb57a` on `#092e1e`, warning `#f2a93b` on `#352205`, danger `#fd5973` on `#43141b` (all 4.5:1 or more); the base colours `#1fb57a`, `#f2a93b`, `#ef4565` fill | `--theme-{success,warning,danger}{,-soft}`, Mantine `green`, `yellow`, `red` (base at 6, text at 4; their light variant is the soft pair), `--color-server-status-*` |
+| Radii | 6px small parts, 10px buttons and inputs, 16px cards | Mantine `radius`, `defaultRadius`, Button's default |
+
+Blue is the accent only: the primary button, links, the active row or tab, the logo. Surfaces,
+borders and text stay grey, and plain (default-variant) buttons are flat surface-2 with no edge or
+ring. The signal lime of the kit (`#d2f55a`, one highlight per screen) is not used yet. Cards keep
+Theme v2's white/5 fill without a border (the kit's cards have a 1px line).
+
+Logo files in `frontend/public/`:
+
+| File | Used for |
+|---|---|
+| `plugged.host.png` (256 px app tile) | the default `app::icon`: the sign-in page without a banner, avatars without a picture, the Download app page, the setup wizard |
+| `favicon-16x16.png`, `favicon-32x32.png`, `favicon.ico` | the kit's favicon cut (heavier slots for 16-32 px); `App.tsx` replaces them only when `app::icon` is not the default |
+| `apple-touch-icon.png` (full bleed), `android-chrome-*.png` | home-screen icons, `site.webmanifest`, the default Open Graph image |
+| `plugged.host-logo-on-ink.svg` | the lockup on dark: set it as **Banner** (Admin › Settings › General › Application), the sidebar's logo and the sign-in page's |
+| `plugged.host-logo.png` (2x, 64 px tall) and `plugged.host-logo.svg` | the lockup on light: set the PNG as **Banner (Light Mode)**; the mails show it in their header (mail clients show no SVG) |
+
+The wordmark is outlined in the files: never retype "plugged.host" as text in a logo spot. The
+rasters are made from the kit's SVGs with headless Chromium (no renderer is needed at build time).
+The panel's restart page (`plugged-host/maintenance.html`) carries the on-ink lockup inline.
+
+### Your own brand
+
+The panel is open source and every brand spot is a setting, so a host running it under its own
+name changes no code:
+
+| Spot | Setting (Admin › Settings › General) |
+|---|---|
+| Name (page titles, mails, the sign-in page without a banner) | Application › Name |
+| Sidebar and sign-in logo | Application › Banner (dark); without one, the icon |
+| Mail header | Application › Banner (Light Mode), a PNG; without one, the name as text |
+| Favicon, the sign-in icon, avatars without a picture | Application › Icon; any value but the default replaces the favicons too |
+| Accent (buttons, links, active rows, mail buttons) | Metadata › Theme Color |
+| Open Graph image | Metadata › Preview Image (default: `android-chrome-512x512.png`) |
+
+The files in `frontend/public/` are only plugged.host's defaults: a fork may replace them, but
+settings are enough. The ink surfaces, the status colours and the radii are fixed parts of the
+theme, as Theme v2's were.
 
 ## Where it lives
 
@@ -33,8 +85,10 @@ Admin › Settings › General › Metadata › Theme Color sets it: one of Tail
 swatches) or any colour. The theme is two-tier: a darker fill (buttons, active rows) and a lighter
 shade for text and rings on dark surfaces. `accentFor()` builds both from the chosen colour, darkens
 the fill until white text on it reaches 4.5:1 contrast and lightens the text shade until it reaches
-4.5:1 on the sidebar. Blue, the default, changes nothing. The public settings carry it as
-`app.themeColor`.
+4.5:1 on the sidebar. Blue, the default (`#3a5bff`), changes nothing. A panel that saved its
+settings before the Socket rebrand stores the old default, `#1d4ed8`, and keeps that blue until an
+admin picks the blue swatch again. The mails' buttons take the same colour. The public settings
+carry it as `app.themeColor`.
 
 ## Seasonal themes
 

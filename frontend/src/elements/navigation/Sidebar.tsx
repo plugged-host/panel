@@ -312,7 +312,12 @@ function Logo() {
 
   return (
     <NavLink to='/' className='theme-sidebar-logo' aria-label={settings.app.name} onClick={() => closeMobileMenu?.()}>
-      <img src={settings.app.banner ?? settings.app.icon} alt={settings.app.name} />
+      {/* plugged.host: a banner (the lockup) is wider than the icon, so it sits lower (.theme-sidebar-banner) */}
+      <img
+        src={settings.app.banner ?? settings.app.icon}
+        className={settings.app.banner ? 'theme-sidebar-banner' : undefined}
+        alt={settings.app.name}
+      />
       {/* plugged.host */}
       <SeasonalDecor slot='logo' />
     </NavLink>

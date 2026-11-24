@@ -627,6 +627,77 @@ mod tests {
         assert!(!body.contains("<script>"));
     }
 
+    // plugged.host: the mails' header shows the light banner in place of the name when one is set
+    #[test]
+    fn mail_header_uses_the_light_banner() {
+        let template = include_str!("../mails/connection_test.html");
+        let render_with = |app: serde_json::Value| {
+            render(
+                &serde_json::json!({ "app": app }),
+                "en",
+                &variables(&[]),
+                "s",
+                template,
+                &minijinja::context! {},
+            )
+            .unwrap()
+            .body
+        };
+
+        let relative = render_with(serde_json::json!({
+            "name": "Panel", "url": "https://panel.example.com/", "banner_light": "/logo.png",
+        }));
+        assert!(
+            relative.contains("src=\"https:&#x2f;&#x2f;panel.example.com&#x2f;logo.png\""),
+            "{relative}"
+        );
+        assert!(!relative.contains("<h1"));
+
+        let absolute = render_with(serde_json::json!({
+            "name": "Panel", "url": "https://panel.example.com", "banner_light": "https://cdn.example.com/logo.png",
+        }));
+        assert!(
+            absolute.contains("src=\"https:&#x2f;&#x2f;cdn.example.com&#x2f;logo.png\""),
+            "{absolute}"
+        );
+
+        let none = render_with(serde_json::json!({
+            "name": "Panel", "url": "https://panel.example.com", "banner_light": null,
+        }));
+        assert!(none.contains("<h1"));
+        assert!(!none.contains("<img"));
+    }
+
+    // plugged.host: mail buttons take the panel's theme colour
+    #[test]
+    fn mail_buttons_use_the_theme_colour() {
+        let template = include_str!("../mails/password_reset.html");
+        let render_with = |settings: serde_json::Value| {
+            render(
+                &settings,
+                "en",
+                &variables(&[]),
+                "s",
+                template,
+                &minijinja::context! {},
+            )
+            .unwrap()
+            .body
+        };
+
+        let themed = render_with(serde_json::json!({
+            "app": { "name": "Panel", "url": "https://panel.example.com" },
+            "metadata": { "theme_color": "#0c9aae" },
+        }));
+        assert!(themed.contains("background-color: #0c9aae;"), "{themed}");
+
+        let unset = render_with(serde_json::json!({
+            "app": { "name": "Panel", "url": "https://panel.example.com" },
+            "metadata": {},
+        }));
+        assert!(unset.contains("background-color: #3a5bff;"), "{unset}");
+    }
+
     #[test]
     fn variable_render_errors_name_the_variable() {
         let err = render(
