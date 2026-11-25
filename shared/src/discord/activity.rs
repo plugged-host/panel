@@ -12,7 +12,11 @@ use std::collections::HashMap;
 pub const KEEP_DAYS: i32 = 60;
 
 /// One more message from `discord_id` on `guild_id` today (UTC).
-pub async fn record(state: &crate::State, guild_id: &str, discord_id: &str) -> Result<(), sqlx::Error> {
+pub async fn record(
+    state: &crate::State,
+    guild_id: &str,
+    discord_id: &str,
+) -> Result<(), sqlx::Error> {
     sqlx::query(
         "INSERT INTO discord_message_counts (guild_id, discord_id, day, messages)
         VALUES ($1, $2, (NOW() AT TIME ZONE 'UTC')::date, 1)
@@ -44,10 +48,15 @@ pub async fn counts(
     .fetch_all(state.database.read())
     .await?;
 
-    let mut counts: HashMap<String, HashMap<String, i64>> =
-        guild_ids.iter().map(|id| (id.clone(), HashMap::new())).collect();
+    let mut counts: HashMap<String, HashMap<String, i64>> = guild_ids
+        .iter()
+        .map(|id| (id.clone(), HashMap::new()))
+        .collect();
     for (guild_id, discord_id, messages) in rows {
-        counts.entry(guild_id).or_default().insert(discord_id, messages);
+        counts
+            .entry(guild_id)
+            .or_default()
+            .insert(discord_id, messages);
     }
 
     Ok(counts)

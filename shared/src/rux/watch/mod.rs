@@ -166,7 +166,8 @@ pub async fn on_message(
         let state = state.clone();
         let (guild_id, author_id) = (incoming.guild_id.clone(), incoming.author_id.clone());
         tokio::spawn(async move {
-            if let Err(err) = crate::discord::activity::record(&state, &guild_id, &author_id).await {
+            if let Err(err) = crate::discord::activity::record(&state, &guild_id, &author_id).await
+            {
                 tracing::debug!("rux: could not count a message: {err:#}");
             }
         });

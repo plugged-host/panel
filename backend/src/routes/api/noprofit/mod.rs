@@ -251,7 +251,10 @@ mod discord {
             #[derive(ToSchema, Validate, Deserialize)]
             pub struct Payload {
                 /// The Discord servers to count on (ids).
-                #[garde(length(min = 1, max = 50), inner(length(min = 15, max = 20), pattern("^[0-9]+$")))]
+                #[garde(
+                    length(min = 1, max = 50),
+                    inner(length(min = 15, max = 20), pattern("^[0-9]+$"))
+                )]
                 guild_ids: Vec<String>,
                 /// The last this many days, today included (1 to 60).
                 #[garde(range(min = 1, max = 60))]
