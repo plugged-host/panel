@@ -218,7 +218,7 @@ export default function DashboardDedicated() {
                             )}
                           </ul>
                         </div>
-                        <Tooltip label={t(`${page}.soldOut`, {})} disabled={available}>
+                        <Tooltip label={t(`${page}.soldOut`, {})} disabled={available} innerClassName='w-full'>
                           <div>
                             <Button fullWidth disabled={!available} onClick={() => order(plan)}>
                               {selfService && plan.price !== null ? t(`${page}.orderPaid`, {}) : t(`${page}.order`, {})}
