@@ -1484,7 +1484,7 @@
             "by": {
               "manual": "Ce serveur a été suspendu par un administrateur le {date}.",
               "abuse": "Ce serveur a été suspendu par les vérifications automatiques anti-abus le {date}.",
-              "noprofit": "Ce serveur a été suspendu le {date} car le compte noprofit.space de son propriétaire a été supprimé.",
+              "noprofit": "Ce serveur a été suspendu le {date} car le compte Zaleris de son propriétaire a été supprimé.",
               "unpaid": "Ce serveur payant a été suspendu le {date} car son mois n'a pas pu être payé."
             },
             "reason": "Raison : {reason}",
@@ -1815,7 +1815,7 @@
           "modelNotAllowed": "{model} nécessite {plan}. Choisissez un autre modèle ci-dessous.",
           "modelUnavailable": "Le modèle choisi n'est pas disponible pour le moment. Choisissez un autre modèle ci-dessous.",
           "unavailable": "{name} n'est pas disponible pour le moment. Veuillez réessayer dans un instant.",
-          "unlinked": "{name} a besoin que votre compte noprofit.space soit connecté.",
+          "unlinked": "{name} a besoin que votre compte Zaleris soit connecté.",
           "refused": "{name} n'a pas pu vous aider avec cette demande.",
           "rateLimited": "Vous envoyez des messages très rapidement. Patientez un instant et réessayez.",
           "connection": "La connexion à {name} a été perdue. Veuillez réessayer.",
@@ -1847,14 +1847,14 @@
           "autoApprove": "Laisser {name} faire des modifications sans demander",
           "autoApproveHint": "Quand cette option est désactivée (recommandé), {name} demande avant de modifier ou supprimer des fichiers, d'exécuter des commandes dans la console, ou de démarrer et arrêter un serveur. La lecture ne demande jamais d'accord.",
           "usage": "Utilisation",
-          "usageHintNoprofit": "Les limites viennent de votre compte noprofit.space.",
+          "usageHintNoprofit": "Les limites viennent de votre compte Zaleris.",
           "usageHint": "Chaque barre se remplit à mesure que vous utilisez {name} et se vide quand sa période se réinitialise.",
           "hours": "Période de {hours} heures",
           "days": "Période de {days} jours",
           "weekly": "Hebdomadaire",
           "resets": "se réinitialise {time}",
           "notStarted": "pas encore commencée",
-          "unlinked": "{name} n'est pas encore connecté à votre compte noprofit.space.",
+          "unlinked": "{name} n'est pas encore connecté à votre compte Zaleris.",
           "unavailable": "L'utilisation n'est pas disponible pour le moment.",
           "unlimitedModels": "Les modèles sans barre ici n'ont pas de limite d'utilisation.",
           "history": "Historique des discussions",
@@ -2070,18 +2070,18 @@
             "userAlreadyExists": "Un compte avec ce nom d'utilisateur ou cette adresse e-mail existe déjà.",
             "securityKeyRequired": "Ce compte exige l'authentification à deux facteurs, connectez-vous plutôt avec une clé de sécurité.",
             "passwordLoginDisabled": "La connexion par mot de passe est désactivée sur ce panel, utilisez plutôt l'une des options ci-dessous.",
-            "noprofitFailed": "La connexion avec noprofit.space n'a pas fonctionné. Veuillez réessayer.",
+            "noprofitFailed": "La connexion avec Zaleris n'a pas fonctionné. Veuillez réessayer.",
             "noprofitExpired": "Cette connexion a pris trop de temps ou a déjà été utilisée. Veuillez réessayer.",
-            "noprofitAdminsOnly": "Ce panel n'est pas encore ouvert : pour l'instant, seuls les administrateurs de noprofit.space peuvent se connecter.",
-            "noprofitEmailTaken": "Un compte du panel avec votre e-mail noprofit.space existe déjà. Demandez à un administrateur de l'associer.",
-            "noprofitUsernameTaken": "A panel account with your noprofit.space username already exists. Ask an administrator to link it."
+            "noprofitAdminsOnly": "Ce panel n'est pas encore ouvert : pour l'instant, seuls les administrateurs de Zaleris peuvent se connecter.",
+            "noprofitEmailTaken": "Un compte du panel avec votre e-mail Zaleris existe déjà. Demandez à un administrateur de l'associer.",
+            "noprofitUsernameTaken": "A panel account with your Zaleris username already exists. Ask an administrator to link it."
           },
           "noprofit": {
             "title": "Se connecter",
-            "redirecting": "Redirection vers noprofit.space…",
+            "redirecting": "Redirection vers Zaleris…",
             "retry": "Réessayer",
             "localLink": "Connexion administrateur",
-            "backLink": "Retour à la connexion noprofit.space"
+            "backLink": "Retour à la connexion Zaleris"
           },
           "passkey": {
             "error": {
@@ -2284,7 +2284,7 @@
         },
         "dedicated": {
           "description": "Les offres {name} sont payantes : leurs threads CPU et leur mémoire sont réservés à ton serveur. Commande-en une et l'équipe la met en place pour toi.",
-          "subtitle": "Des serveurs avec leurs propres threads CPU et leur propre mémoire, payés chaque mois avec tes Funds noprofit.space.",
+          "subtitle": "Des serveurs avec leurs propres threads CPU et leur propre mémoire, payés chaque mois avec tes Funds Zaleris.",
           "benefits": {
             "title": "Ce que tu obtiens",
             "threads": "Des threads CPU dédiés",
@@ -2319,7 +2319,7 @@
           "orderBody": "Je voudrais commander l'offre {name} {plan}.",
           "orderLocations": "Emplacements : {locations}. Celui que je veux :",
           "empty": "Aucune offre pour ton compte pour le moment. Ouvre un ticket au support si tu en as besoin.",
-          "history": "Historique des paiements sur noprofit.space",
+          "history": "Historique des paiements sur Zaleris",
           "addFunds": "Ajouter des Funds",
           "upsell": {
             "card": "Des threads CPU et de la mémoire rien qu’à toi. Pas de file de démarrage, pas de salle d’attente.",
@@ -2486,8 +2486,8 @@
           },
           "containers": {
             "noprofit": {
-              "title": "noprofit.space",
-              "description": "Vous vous connectez avec votre compte noprofit.space **{email}**. Votre e-mail, votre mot de passe et votre authentification à deux facteurs sont gérés là-bas.",
+              "title": "Zaleris",
+              "description": "Vous vous connectez avec votre compte Zaleris **{email}**. Votre e-mail, votre mot de passe et votre authentification à deux facteurs sont gérés là-bas.",
               "credits": "Crédits",
               "funds": "Fonds",
               "plan": "Offre",
@@ -2495,7 +2495,7 @@
               "discord": "Discord",
               "discordNotLinked": "Non associé",
               "button": {
-                "manage": "Gérer sur noprofit.space"
+                "manage": "Gérer sur Zaleris"
               },
               "ultra": "Ultra"
             },
@@ -3364,9 +3364,9 @@
             "plusplus": "{name} acheté."
           },
           "ultra": {
-            "title": "noprofit.space Ultra covers both products",
+            "title": "Zaleris Ultra covers both products",
             "body": "One monthly subscription for plugged.host and switched.cloud: Premium on both, 2x resources, highest queue priority and early access. Tokens and credits stay separate.",
-            "cta": "See noprofit.space Ultra"
+            "cta": "See Zaleris Ultra"
           }
         },
         "discord": {
@@ -3377,7 +3377,7 @@
             "body": "Invitez des amis sur le serveur Discord de {app} et boostez-le pour gagner des crédits : {credits} pour chaque ami qui reste. Associez votre compte Discord pour commencer.",
             "bodyNoCredits": "Associez votre compte Discord pour que les amis que vous invitez sur le serveur Discord de {app} soient comptabilisés.",
             "link": "Associer Discord",
-            "linkNoprofit": "Associer Discord sur noprofit.space"
+            "linkNoprofit": "Associer Discord sur Zaleris"
           },
           "join": "Rejoindre le serveur Discord",
           "open": "Ouvrir le serveur Discord",
@@ -3395,8 +3395,8 @@
           },
           "noprofit": {
             "title": "Serveurs Discord",
-            "text": "Votre compte noprofit.space reçoit les récompenses pour votre présence sur ses serveurs Discord et pour vos boosts.",
-            "open": "Ouvrir noprofit.space"
+            "text": "Votre compte Zaleris reçoit les récompenses pour votre présence sur ses serveurs Discord et pour vos boosts.",
+            "open": "Ouvrir Zaleris"
           },
           "invites": {
             "title": "Inviter des amis",
@@ -3467,7 +3467,7 @@
             "notLinked": "Pas encore associé",
             "done": "Fait",
             "link": "Associer Discord",
-            "linkNoprofit": "Associer Discord sur noprofit.space",
+            "linkNoprofit": "Associer Discord sur Zaleris",
             "bot": "{bot} est sur le serveur",
             "botHint": "Il lit seulement le nombre de membres, vos rôles et les salons, il n'a donc besoin d'aucune permission.",
             "addBot": "Ajouter {bot}",
@@ -3566,7 +3566,7 @@
           "featureNative": "Une vraie fenêtre native, pas un site web emballé",
           "featureConsole": "Console en direct et graphiques des ressources",
           "featureManage": "Fichiers, sauvegardes, planifications et paramètres au même endroit",
-          "featureSignIn": "Connexion avec noprofit.space",
+          "featureSignIn": "Connexion avec Zaleris",
           "releaseNotes": "Notes de version",
           "unavailableTitle": "Indisponible sur ce panel",
           "unavailableText": "Ce panel ne propose pas l'application de bureau."
@@ -4358,36 +4358,36 @@
               }
             },
             "noprofit": {
-              "title": "noprofit.space",
+              "title": "Zaleris",
               "page": {
-                "title": "noprofit.space Settings",
+                "title": "Zaleris Settings",
                 "form": {
-                  "enabled": "Sign in with noprofit.space",
-                  "enabledDescription": "Everyone signs in at noprofit.space. Registration is off, password sign-in is left to admins without a noprofit.space account, and the panel's own OAuth providers and security keys are off.",
+                  "enabled": "Sign in with Zaleris",
+                  "enabledDescription": "Everyone signs in at Zaleris. Registration is off, password sign-in is left to admins without a Zaleris account, and the panel's own OAuth providers and security keys are off.",
                   "accountsUrl": "Accounts URL",
                   "ssoClient": "Sign-in Client",
-                  "ssoClientDescription": "The client noprofit.space knows this panel as.",
+                  "ssoClientDescription": "The client Zaleris knows this panel as.",
                   "ssoSecret": "Sign-in Secret",
                   "apiSecret": "API Secret",
                   "neoSecret": "neo Gateway Secret",
-                  "neoSecretDescription": "The secret of noprofit.space's neo gateway (its NEO_GATEWAY_SECRET). With it, neo runs on noprofit.space's neo gateway, with its models and limits, instead of the models in Settings › AI › neo.",
+                  "neoSecretDescription": "The secret of Zaleris's neo gateway (its NEO_GATEWAY_SECRET). With it, neo runs on Zaleris's neo gateway, with its models and limits, instead of the models in Settings › AI › neo.",
                   "clearNeoSecret": "Remove the Stored neo Secret",
                   "clearNeoSecretDescription": "neo then runs on the models in Settings › AI › neo again.",
                   "secretStored": "A secret is stored. Type a new one to replace it.",
                   "secretMissing": "Not set. At least 32 characters.",
                   "adminsOnly": "Admins Only",
-                  "adminsOnlyDescription": "Only noprofit.space admins may sign in.",
+                  "adminsOnlyDescription": "Only Zaleris admins may sign in.",
                   "linkByUsername": "Link by Username",
                   "linkByUsernameDescription": "A first sign-in takes over the unlinked panel user with the same username instead of refusing it.",
                   "deletedAccountDays": "Delete Gone Accounts After (Days)",
-                  "deletedAccountDaysDescription": "When noprofit.space no longer has an account (deleted there without reaching this panel), its user and servers are suspended, then deleted after this many days. 0: never.",
+                  "deletedAccountDaysDescription": "When Zaleris no longer has an account (deleted there without reaching this panel), its user and servers are suspended, then deleted after this many days. 0: never.",
                   "ssoAudience": "Token Audience",
                   "ssoAudienceDescription": "Empty: the sign-in client followed by \":sso\".",
                   "ssoCallbackUrl": "Callback URL",
                   "ssoCallbackUrlDescription": "Empty: the panel URL followed by /api/auth/noprofit/callback."
                 },
                 "toast": {
-                  "updated": "noprofit.space settings updated."
+                  "updated": "Zaleris settings updated."
                 }
               }
             },
@@ -4436,7 +4436,7 @@
                   "cpuMinutes": "CPU Minutes",
                   "cpuMinutesDescription": "Minutes at the threshold before the full check runs. Full CPU alone never suspends.",
                   "standingLimitedAt": "Limited From (Suspensions)",
-                  "standingLimitedAtDescription": "Every abuse suspension is a strike on the server's owner; one is a warning. From this many, the account cannot create servers for the days below after its latest one. With noprofit.space connected, its standing is used instead of these settings.",
+                  "standingLimitedAtDescription": "Every abuse suspension is a strike on the server's owner; one is a warning. From this many, the account cannot create servers for the days below after its latest one. With Zaleris connected, its standing is used instead of these settings.",
                   "standingLimitedDays": "Limited For (Days)",
                   "standingLimitedDaysDescription": "Days after the latest suspension a limited account cannot create servers.",
                   "standingVeryLimitedAt": "Very Limited From (Suspensions)",
@@ -4489,7 +4489,7 @@
                   "allowance": "Allowance per Account",
                   "allowanceCpu": "CPU (%)",
                   "allowanceDescription": "What all servers of an account may use together. 0 puts no limit on that resource. Lowering it shrinks the servers of accounts that are then over it, evenly.",
-                  "allowanceNoprofit": "noprofit.space is connected: every account gets its plan from there, these values are not used.",
+                  "allowanceNoprofit": "Zaleris is connected: every account gets its plan from there, these values are not used.",
                   "catalog": "Games"
                 },
                 "catalog": {
@@ -4597,16 +4597,16 @@
                   "inviteUrl": "Invite Link",
                   "inviteUrlDescription": "Where players join the server (https://discord.gg/…). Empty hides every invite link and button.",
                   "oauthProvider": "Discord Sign-in",
-                  "oauthProviderDescription": "The OAuth provider (Admin › OAuth Providers) that signs in with Discord: a player's Discord account is the one they link through it. Not used while noprofit.space is connected.",
+                  "oauthProviderDescription": "The OAuth provider (Admin › OAuth Providers) that signs in with Discord: a player's Discord account is the one they link through it. Not used while Zaleris is connected.",
                   "oauthProviderPlaceholder": "Choose the provider",
                   "tier": "Discord Tier",
-                  "tierDescription": "Added to the allowance of everyone in the server, where the allowance has a limit (without noprofit.space; with it, its plans do this). CPU in % (100 is one thread), memory and disk in MiB. 0 adds nothing.",
+                  "tierDescription": "Added to the allowance of everyone in the server, where the allowance has a limit (without Zaleris; with it, its plans do this). CPU in % (100 is one thread), memory and disk in MiB. 0 adds nothing.",
                   "tierCpu": "CPU",
                   "tierMemory": "Memory",
                   "tierDisk": "Disk",
                   "invites": "Invite Rewards",
                   "creditsPerInvite": "Credits per Invite",
-                  "creditsPerInviteDescription": "For every member who joins through someone's invite and stays. Paid while credits are on, without noprofit.space.",
+                  "creditsPerInviteDescription": "For every member who joins through someone's invite and stays. Paid while credits are on, without Zaleris.",
                   "minAccountAgeDays": "Minimum Account Age",
                   "minAccountAgeDaysDescription": "Days. A Discord account younger than this when it joins pays nothing (against alts).",
                   "inviteMaturityHours": "Hold",
@@ -4668,8 +4668,8 @@
                     "bot_off": "The Discord tab's moderation bot is off.",
                     "no_token": "The Discord tab's moderation bot has no token.",
                     "no_server": "No Discord server id (here or on the Discord tab).",
-                    "switched_off": "rux is switched off on noprofit.space (Admin › rux).",
-                    "no_accounts": "Nobody can be told an admin: without noprofit.space, Discord accounts are linked through the Discord tab's sign-in provider, and none is set.",
+                    "switched_off": "rux is switched off on Zaleris (Admin › rux).",
+                    "no_accounts": "Nobody can be told an admin: without Zaleris, Discord accounts are linked through the Discord tab's sign-in provider, and none is set.",
                     "no_ai": "rux has no AI providers (neo's: set one up in neo's settings): rux cannot think."
                   },
                   "starting": "rux is starting",
@@ -4696,7 +4696,7 @@
                 "form": {
                   "bot": "Bot",
                   "botDescription": "rux takes orders from Discord accounts linked to {admins} (and moderation orders from members of the roles they make moderators), by DM, @mention or \"hey rux\". Its switch and token are the moderation bot's, on the Discord tab.",
-                  "adminsNoprofit": "a noprofit.space admin",
+                  "adminsNoprofit": "a Zaleris admin",
                   "adminsPanel": "an admin of this panel (one who linked Discord)",
                   "name": "Name",
                   "nameDescription": "What members call it (\"hey rux\") and what it calls itself. Letters, digits, dashes and underscores.",
@@ -4756,7 +4756,7 @@
                   "warnBanDescription": "Like 24h; rux lifts the ban afterwards.",
                   "ai": "AI",
                   "aiDescription": "neo's providers, with neo's failover. Orders: {orders}. Message checks: {checks} (never the premium models; when these cannot answer, messages are not checked). A change in neo's settings reaches rux within a minute. It calls them directly, so no neo limits apply.",
-                  "aiNoprofit": "They come from noprofit.space.",
+                  "aiNoprofit": "They come from Zaleris.",
                   "aiNone": "none configured yet",
                   "watchGuidelines": "Watched Channels Also Enforce the Basic Guidelines",
                   "watchGuidelinesDescription": "Scams, slurs, harassment, sexual content and advertising: deleted and warned.",
@@ -4774,9 +4774,9 @@
                   "ruleCooldownSecondsDescription": "Seconds between two actions of one standing rule on the same member.",
                   "trustedDomains": "Our Own Sites",
                   "trustedDomainsDescription": "Domains the checks treat as this host's own on every server, never a scam or an advert, each with its subdomains (e.g. example.com). The panel's address and the Discord invite always count.",
-                  "noprofit": "noprofit.space",
-                  "noprofitSecret": "Secret of noprofit.space's rux Routes",
-                  "noprofitSecretDescription": "Empty: the noprofit.space API secret. Set it when noprofit.space signs rux's routes with another secret.",
+                  "noprofit": "Zaleris",
+                  "noprofitSecret": "Secret of Zaleris's rux Routes",
+                  "noprofitSecretDescription": "Empty: the Zaleris API secret. Set it when Zaleris signs rux's routes with another secret.",
                   "secretStored": "A secret is stored. Leave this empty to keep it, or type a new one to replace it.",
                   "secretMissing": "No secret of its own yet."
                 },
@@ -5176,12 +5176,12 @@
                   "secretStored": "Stored. Leave empty to keep it.",
                   "secretMissing": "Not set.",
                   "creditsEnabled": "Credits",
-                  "creditsEnabledDescription": "Credits buy CPU, memory and disk in the Resource Store, and the second membership. With noprofit.space connected they are its credits. Turned off, the store is hidden; balances are kept.",
+                  "creditsEnabledDescription": "Credits buy CPU, memory and disk in the Resource Store, and the second membership. With Zaleris connected they are its credits. Turned off, the store is hidden; balances are kept.",
                   "startingCredits": "Starting Credits",
-                  "startingCreditsDescription": "Credits every account gets once, the first time its balance is shown (without noprofit.space).",
+                  "startingCreditsDescription": "Credits every account gets once, the first time its balance is shown (without Zaleris).",
                   "discountSection": "Sale",
                   "storeDiscount": "Discount (%)",
-                  "storeDiscountDescription": "Taken off every price the sale covers while it runs, with or without noprofit.space. 0 turns it off.",
+                  "storeDiscountDescription": "Taken off every price the sale covers while it runs, with or without Zaleris. 0 turns it off.",
                   "storeDiscountName": "Name",
                   "storeDiscountNameDescription": "What the store calls the sale, such as Halloween special. Empty: Sale.",
                   "storeDiscountStarts": "Starts",
@@ -5237,7 +5237,7 @@
                   "giftsPerDayDescription": "Per buyer, over the last 24 hours.",
                   "bundleSection": "Included With the Second Membership",
                   "bundleEnabled": "Include a Membership on Another Panel",
-                  "bundleEnabledDescription": "While the second membership runs, the panel below gives the account its membership too, such as switched.cloud Plus with Premium, and the other way round its second membership includes the first one here (it posts to /api/memberships/bundle). Each panel tells the other within a minute of every change and once a day for every membership that runs. Needs noprofit.space: both panels know the account by its noprofit.space account.",
+                  "bundleEnabledDescription": "While the second membership runs, the panel below gives the account its membership too, such as switched.cloud Plus with Premium, and the other way round its second membership includes the first one here (it posts to /api/memberships/bundle). Each panel tells the other within a minute of every change and once a day for every membership that runs. Needs Zaleris: both panels know the account by its Zaleris account.",
                   "bundleUrl": "Panel URL",
                   "bundleUrlDescription": "Where the other panel is, starting with https://.",
                   "bundleName": "Name",
@@ -5247,7 +5247,7 @@
                   "bundleSecret": "Shared Secret",
                   "bundleSecretDescription": "At least 32 characters, the same on the other panel; it signs every request.",
                   "storeSection": "Prices",
-                  "storeNote": "Without noprofit.space: what a step costs and where prices climb. With noprofit.space its store and prices are used.",
+                  "storeNote": "Without Zaleris: what a step costs and where prices climb. With Zaleris its store and prices are used.",
                   "cpuStep": "CPU Step (%)",
                   "stepDescription": "How much one step adds; 0 does not sell it. Memory and disk in MiB.",
                   "cpuPrice": "CPU Step Price (Credits)",
@@ -5435,7 +5435,7 @@
               "page": {
                 "title": "neo",
                 "onPanel": "Provider settings and limits below are stored on this panel.",
-                "onNoprofit": "noprofit.space runs neo (its neo gateway secret is set in Settings › Accounts › noprofit.space), with noprofit.space's models and limits. The models and limits below are not used meanwhile.",
+                "onNoprofit": "Zaleris runs neo (its neo gateway secret is set in Settings › Accounts › Zaleris), with Zaleris's models and limits. The models and limits below are not used meanwhile.",
                 "form": {
                   "panel": "neo on This Panel",
                   "enabled": "Enable neo",
@@ -5838,7 +5838,7 @@
                   "suspended": "Suspendu",
                   "suspendedDescription": "Les utilisateurs suspendus ne peuvent pas accéder au panel de manière significative.",
                   "role": "Rôle",
-                  "identityLocked": "Managed on noprofit.space, where this user signs in."
+                  "identityLocked": "Managed on Zaleris, where this user signs in."
                 },
                 "modal": {
                   "delete": {
@@ -5918,8 +5918,8 @@
               "page": {
                 "title": "Credits, Tokens and Memberships",
                 "summary": "{credits} credits, {tokens} tokens ({earned} earned).",
-                "noprofit": "Credits and the Resource Store are noprofit.space’s: change credits there.",
-                "noprofitSent": "Credits and the Resource Store are noprofit.space’s: a credit change made here is sent to the account there.",
+                "noprofit": "Credits and the Resource Store are Zaleris’s: change credits there.",
+                "noprofitSent": "Credits and the Resource Store are Zaleris’s: a credit change made here is sent to the account there.",
                 "plusLapsed": "{name} not running; first bought",
                 "noPlus": "No {name}.",
                 "plusplusRuns": "{name} runs until",
@@ -7164,7 +7164,7 @@
                   "kind": {
                     "manual": "An admin",
                     "abuse": "Abuse checks",
-                    "noprofit": "noprofit.space (account deleted)"
+                    "noprofit": "Zaleris (account deleted)"
                   },
                   "label": {
                     "kind": "Suspended By",
@@ -11886,7 +11886,7 @@
             "copyHost": "Copier l'hôte",
             "copyUsername": "Copier le nom d'utilisateur",
             "launch": "Ouvrir dans le client SFTP",
-            "noprofitPassword": "Votre mot de passe noprofit.space"
+            "noprofitPassword": "Votre mot de passe Zaleris"
           },
           "resize": {
             "title": "Ressources",
@@ -12097,7 +12097,7 @@
           },
           "billing": {
             "title": "Facturation",
-            "note": "Ce serveur est payé chaque mois avec tes Funds noprofit.space.",
+            "note": "Ce serveur est payé chaque mois avec tes Funds Zaleris.",
             "price": "{price} / mois pris sur tes Funds.",
             "paidUntil": "Payé jusqu’au {date}. Se renouvelle avec tes Funds.",
             "ends": "Se termine le {date}.",

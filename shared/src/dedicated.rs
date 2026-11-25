@@ -391,9 +391,9 @@ impl OrderError {
     pub fn message(&self) -> String {
         match self {
             Self::NotOffered => "this plan cannot be ordered".into(),
-            Self::NoFunds => "paid plans are paid with noprofit.space Funds".into(),
-            Self::Short => "not enough Funds: add Funds on noprofit.space".into(),
-            Self::Unavailable => "noprofit.space did not answer, try again in a moment".into(),
+            Self::NoFunds => "paid plans are paid with Zaleris Funds".into(),
+            Self::Short => "not enough Funds: add Funds on Zaleris".into(),
+            Self::Unavailable => "Zaleris did not answer, try again in a moment".into(),
             Self::SoldOut => "this plan is sold out in this location".into(),
             Self::Create(err) => err.message(),
         }
@@ -650,7 +650,7 @@ pub async fn order(
         Ok(Some(funds)) => store_funds(state, user.uuid, funds).await,
         Ok(None) => return Err(OrderError::Short),
         Err(err) => {
-            tracing::warn!(user = %user.uuid, "noprofit.space did not take the Funds for a paid server: {err:#}");
+            tracing::warn!(user = %user.uuid, "Zaleris did not take the Funds for a paid server: {err:#}");
             return Err(OrderError::Unavailable);
         }
     }
@@ -740,7 +740,7 @@ async fn pay(state: &crate::State, row: &Subscription) -> Result<Renewal, anyhow
         Ok(Some(funds)) => store_funds(state, row.user_uuid, funds).await,
         Ok(None) => return Ok(Renewal::Short),
         Err(err) => {
-            tracing::warn!(server = %row.server_uuid, "noprofit.space did not take a paid server's month: {err:#}");
+            tracing::warn!(server = %row.server_uuid, "Zaleris did not take a paid server's month: {err:#}");
             return Ok(Renewal::Unavailable);
         }
     }
@@ -854,17 +854,15 @@ pub async fn settle(state: &crate::State) -> Result<(), anyhow::Error> {
     for row in due {
         let result = if row.renews {
             match pay(state, &row).await {
-                Ok(Renewal::Short) if row.unpaid_since.is_none() => {
-                    lapse(
-                        state,
-                        &row,
-                        format!(
-                            "Its month ({}) could not be paid: add Funds on noprofit.space and it comes back.",
-                            euros(row.price)
-                        ),
-                    )
-                    .await
-                }
+                Ok(Renewal::Short) if row.unpaid_since.is_none() => lapse(
+                    state,
+                    &row,
+                    format!(
+                        "Its month ({}) could not be paid: add Funds on Zaleris and it comes back.",
+                        euros(row.price)
+                    ),
+                )
+                .await,
                 Ok(_) => Ok(()),
                 Err(err) => Err(err),
             }

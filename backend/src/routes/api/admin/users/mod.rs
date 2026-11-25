@@ -108,7 +108,7 @@ mod post {
         // plugged.host: accounts come from noprofit.space while it is connected (a panel-made
         // user could not sign in); emergency admins are made with the `users create` command
         if state.settings.get().await?.noprofit.connected() {
-            return ApiResponse::error("users are created by signing in with noprofit.space")
+            return ApiResponse::error("users are created by signing in with Zaleris")
                 .with_status(StatusCode::CONFLICT)
                 .ok();
         }

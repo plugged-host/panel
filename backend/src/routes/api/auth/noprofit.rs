@@ -51,7 +51,7 @@ pub(crate) async fn off_while_connected(
 
     match state.settings.get_as(|s| s.noprofit.connected()).await {
         Ok(false) => next.run(req).await,
-        Ok(true) => ApiResponse::error("sign-in is managed by noprofit.space")
+        Ok(true) => ApiResponse::error("sign-in is managed by Zaleris")
             .with_status(StatusCode::NOT_FOUND)
             .into_response(),
         Err(err) => ApiResponse::from(err).into_response(),
@@ -59,7 +59,7 @@ pub(crate) async fn off_while_connected(
 }
 
 fn not_set_up() -> ApiResponseResult {
-    ApiResponse::error("noprofit.space sign-in is not set up")
+    ApiResponse::error("Zaleris sign-in is not set up")
         .with_status(StatusCode::NOT_FOUND)
         .ok()
 }
@@ -231,7 +231,7 @@ async fn callback_route(
     let claims = match noprofit.decode_token(&token) {
         Ok(claims) => claims,
         Err(err) => {
-            tracing::info!(ip = %ip.0, "refused a noprofit.space sign-in: {err}");
+            tracing::info!(ip = %ip.0, "refused a Zaleris sign-in: {err}");
             return fail("noprofit_failed");
         }
     };
@@ -284,7 +284,7 @@ async fn callback_route(
             event: "auth:success".into(),
             ip: Some(ip.0.into()),
             data: serde_json::json!({
-                "using": "noprofit.space",
+                "using": "Zaleris",
                 "account_id": snapshot.account_id,
                 "user_agent": user_agent(&headers),
             }),
@@ -420,7 +420,7 @@ mod app_exchange {
             Ok(claims) => claims,
             Err(err) => {
                 tracing::info!(ip = %ip.0, "refused a desktop app sign-in: {err}");
-                return ApiResponse::error("noprofit.space sign-in failed")
+                return ApiResponse::error("Zaleris sign-in failed")
                     .with_status(StatusCode::BAD_REQUEST)
                     .ok();
             }
@@ -431,7 +431,7 @@ mod app_exchange {
                 .ok();
         }
         if noprofit.admins_only && !claims.snapshot.is_admin {
-            return ApiResponse::error("only noprofit.space admins may sign in right now")
+            return ApiResponse::error("only Zaleris admins may sign in right now")
                 .with_status(StatusCode::FORBIDDEN)
                 .ok();
         }
@@ -470,7 +470,7 @@ mod app_exchange {
                 event: "auth:success".into(),
                 ip: Some(ip.0.into()),
                 data: serde_json::json!({
-                    "using": "noprofit.space",
+                    "using": "Zaleris",
                     "client": "desktop-app",
                     "user_agent": headers
                         .get("User-Agent")

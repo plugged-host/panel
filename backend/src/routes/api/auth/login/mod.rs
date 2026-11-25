@@ -116,7 +116,7 @@ mod post {
         let settings = state.settings.get().await?;
 
         if settings.noprofit.connected() && !user.admin {
-            return ApiResponse::error("sign in with noprofit.space")
+            return ApiResponse::error("sign in with Zaleris")
                 .with_status(StatusCode::BAD_REQUEST)
                 .ok();
         }

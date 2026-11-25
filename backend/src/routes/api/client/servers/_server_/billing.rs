@@ -110,12 +110,12 @@ mod post {
 
         match renewal {
             Some(Renewal::Short) => {
-                return ApiResponse::error("not enough Funds: add Funds on noprofit.space")
+                return ApiResponse::error("not enough Funds: add Funds on Zaleris")
                     .with_status(StatusCode::PAYMENT_REQUIRED)
                     .ok();
             }
             Some(Renewal::Unavailable) => {
-                return ApiResponse::error("noprofit.space did not answer, try again in a moment")
+                return ApiResponse::error("Zaleris did not answer, try again in a moment")
                     .with_status(StatusCode::SERVICE_UNAVAILABLE)
                     .ok();
             }
@@ -181,11 +181,11 @@ mod pay {
             None => (StatusCode::NOT_FOUND, "this server is not paid for here"),
             Some(Renewal::Short) => (
                 StatusCode::PAYMENT_REQUIRED,
-                "not enough Funds: add Funds on noprofit.space",
+                "not enough Funds: add Funds on Zaleris",
             ),
             Some(Renewal::Unavailable) => (
                 StatusCode::SERVICE_UNAVAILABLE,
-                "noprofit.space did not answer, try again in a moment",
+                "Zaleris did not answer, try again in a moment",
             ),
             Some(Renewal::NotDue) => (StatusCode::CONFLICT, "the next month is paid already"),
             Some(Renewal::Paid) => (StatusCode::OK, ""),

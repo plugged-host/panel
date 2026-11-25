@@ -213,11 +213,11 @@ async fn fetch(state: &crate::State, config: &crate::noprofit::Config) -> Result
     let response = request
         .send()
         .await
-        .map_err(|err| format!("noprofit.space could not be reached: {err}"))?;
+        .map_err(|err| format!("Zaleris could not be reached: {err}"))?;
     let status = response.status();
     let answer: Value = response.json().await.unwrap_or(Value::Null);
     if !status.is_success() || !answer["providers"].is_array() {
-        return Err(format!("noprofit.space answered HTTP {}", status.as_u16()));
+        return Err(format!("Zaleris answered HTTP {}", status.as_u16()));
     }
 
     Ok(answer)
@@ -282,7 +282,7 @@ async fn noprofit_answer(state: &crate::State, config: &crate::noprofit::Config)
         }
         Err(reason) => {
             MEMORY.lock().retry_at = now + RETRY_AFTER;
-            tracing::warn!("rux: could not fetch neo's providers from noprofit.space: {reason}");
+            tracing::warn!("rux: could not fetch neo's providers from Zaleris: {reason}");
             current.map(|copy| copy.answer)
         }
     }

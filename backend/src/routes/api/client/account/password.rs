@@ -59,7 +59,7 @@ mod put {
             .await?
             .is_some()
         {
-            return ApiResponse::error("managed on noprofit.space")
+            return ApiResponse::error("managed on Zaleris")
                 .with_status(StatusCode::CONFLICT)
                 .ok();
         }

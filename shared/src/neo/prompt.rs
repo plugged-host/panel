@@ -25,7 +25,11 @@ use crate::{
 use std::{fmt::Write as _, sync::LazyLock};
 
 /// How noprofit.space is named, only ever while it is connected.
-const NOPROFIT_NAME: &str = "noprofit.space";
+const NOPROFIT_NAME: &str = "Zaleris";
+
+/// Where its Terms and Privacy Policy are (the site keeps the noprofit.space address until the
+/// move to zaleris.com).
+const NOPROFIT_SITE: &str = "noprofit.space";
 
 /// The longest server or Discord name quoted in a prompt, in characters.
 const MAX_NAME: usize = 100;
@@ -1165,8 +1169,9 @@ pub fn knowledge_text(facts: &KnowledgeFacts) -> String {
     if let Some(np) = noprofit {
         let _ = write!(
             service,
-            "Terms: {0}/terms, privacy: {0}/privacy (they cover {0} and {app}",
-            np.name
+            "Terms: {site}/terms, privacy: {site}/privacy (they cover {name} and {app}",
+            site = NOPROFIT_SITE,
+            name = np.name
         );
         if !facts.neo.legal_email.is_empty() {
             let _ = write!(service, "; legal questions to {}", facts.neo.legal_email);
@@ -2915,11 +2920,11 @@ mod tests {
         facts.account_limits = Some(Resources::new(400, 8192, 51200));
         let knowledge = knowledge_text(&facts);
 
-        assert!(knowledge.contains("handled on noprofit.space (accounts.example.com)"));
+        assert!(knowledge.contains("handled on Zaleris (accounts.example.com)"));
         assert!(knowledge.contains(
-            "Terms: noprofit.space/terms, privacy: noprofit.space/privacy (they cover noprofit.space and Example Host; legal questions to legal@example.com)"
+            "Terms: noprofit.space/terms, privacy: noprofit.space/privacy (they cover Zaleris and Example Host; legal questions to legal@example.com)"
         ));
-        assert!(knowledge.contains("the noprofit.space account's plan"));
+        assert!(knowledge.contains("the Zaleris account's plan"));
         assert!(knowledge.contains("full price at 400% CPU / 8 GB RAM / 50 GB disk"));
         assert!(!knowledge.contains("/account/security-keys"));
         assert!(!knowledge_text(&example()).contains("noprofit"));
@@ -3106,9 +3111,11 @@ mod tests {
             },
         )]));
         let linked = discord_text(&chat);
-        assert!(linked.contains(r#"linked to the noprofit.space account "Bob B", which has not used Example Host's panel yet"#));
+        assert!(linked.contains(
+            r#"linked to the Zaleris account "Bob B", which has not used Example Host's panel yet"#
+        ));
         assert!(linked.contains("40% of the 5-hour limit (resets <t:1792854000:R>)"));
-        assert!(linked.contains("or noprofit.space at https://accounts.example.com"));
+        assert!(linked.contains("or Zaleris at https://accounts.example.com"));
     }
 
     #[test]

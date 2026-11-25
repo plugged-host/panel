@@ -89,7 +89,7 @@ async fn call(
     };
     let Some(headers) = headers(config, secret, method.as_str(), path, &raw) else {
         return Err(Unavailable(
-            "noprofit.space is not configured for rux on this panel (no rux or API secret)".into(),
+            "Zaleris is not configured for rux on this panel (no rux or API secret)".into(),
         ));
     };
 
@@ -107,7 +107,7 @@ async fn call(
     let response = request
         .send()
         .await
-        .map_err(|err| Unavailable(format!("noprofit.space could not be reached: {err}")))?;
+        .map_err(|err| Unavailable(format!("Zaleris could not be reached: {err}")))?;
     let status = response.status();
     let json = response.json::<Value>().await.unwrap_or(Value::Null);
 
@@ -202,12 +202,9 @@ impl Client {
                 .or(json["message"].as_str())
                 .unwrap_or_default();
             return Err(Unavailable(if error.is_empty() {
-                format!("noprofit.space answered HTTP {}.", status.as_u16())
+                format!("Zaleris answered HTTP {}.", status.as_u16())
             } else {
-                format!(
-                    "noprofit.space answered HTTP {} ({error}).",
-                    status.as_u16()
-                )
+                format!("Zaleris answered HTTP {} ({error}).", status.as_u16())
             }));
         }
 
@@ -256,9 +253,7 @@ pub struct SettingsCopy {
 /// the settings rux needs (`enabled`, `guild_id`) is refused, so the last copy stays.
 pub fn parse_settings(answer: &Value, fetched_at: i64) -> Result<SettingsCopy, String> {
     let Some(configured) = answer["configured"].as_bool() else {
-        return Err(
-            "noprofit.space answered without saying whether it keeps rux's settings".into(),
-        );
+        return Err("Zaleris answered without saying whether it keeps rux's settings".into());
     };
     let settings = &answer["settings"];
     if configured
@@ -266,7 +261,7 @@ pub fn parse_settings(answer: &Value, fetched_at: i64) -> Result<SettingsCopy, S
             || !settings["enabled"].is_boolean()
             || !settings["guild_id"].is_string())
     {
-        return Err("noprofit.space answered without rux's settings".into());
+        return Err("Zaleris answered without rux's settings".into());
     }
     let text = |value: &Value| {
         value
@@ -320,10 +315,10 @@ async fn store_copy(state: &crate::State, source: &str, copy: &SettingsCopy) {
                 .set(COPY_KEY, COPY_TTL, &encrypted.to_string())
                 .await
             {
-                tracing::warn!("rux: could not keep noprofit.space's settings: {err:#}");
+                tracing::warn!("rux: could not keep Zaleris's settings: {err:#}");
             }
         }
-        Err(err) => tracing::warn!("rux: could not encrypt noprofit.space's settings: {err:#}"),
+        Err(err) => tracing::warn!("rux: could not encrypt Zaleris's settings: {err:#}"),
     }
 }
 
@@ -344,7 +339,7 @@ async fn fetch(
     .await
     .map_err(|err| err.0)?;
     if !status.is_success() {
-        return Err(format!("noprofit.space answered HTTP {}", status.as_u16()));
+        return Err(format!("Zaleris answered HTTP {}", status.as_u16()));
     }
 
     parse_settings(&json, chrono::Utc::now().timestamp())
@@ -401,7 +396,7 @@ async fn refresh(
                     .await;
                 tracing::warn!(
                     last_fetched_at = current.as_ref().map(|copy| copy.fetched_at),
-                    "rux: could not fetch rux's settings from noprofit.space ({reason}); using the last ones fetched"
+                    "rux: could not fetch rux's settings from Zaleris ({reason}); using the last ones fetched"
                 );
             }
             current

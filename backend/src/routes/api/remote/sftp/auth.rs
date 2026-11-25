@@ -125,11 +125,9 @@ mod post {
                                 .ok();
                         }
                         None => {
-                            return ApiResponse::error(
-                                "noprofit.space could not check the password",
-                            )
-                            .with_status(StatusCode::EXPECTATION_FAILED)
-                            .ok();
+                            return ApiResponse::error("Zaleris could not check the password")
+                                .with_status(StatusCode::EXPECTATION_FAILED)
+                                .ok();
                         }
                     }
                 } else {

@@ -1319,7 +1319,7 @@ async fn linked_discord(
 
     if context.connected {
         if refresh && let Err(err) = crate::noprofit::refresh_user(state, user_uuid).await {
-            tracing::warn!(user = %user_uuid, "failed to refresh the noprofit.space snapshot: {err:#}");
+            tracing::warn!(user = %user_uuid, "failed to refresh the Zaleris snapshot: {err:#}");
         }
 
         return Ok(
@@ -1969,7 +1969,7 @@ async fn pay(
     match noprofit {
         Some(false) => {
             return Err(PartnerError::BadRequest(
-                "credits are noprofit.space's and its account sync is off",
+                "credits are Zaleris's and its account sync is off",
             ));
         }
         Some(true) => {
@@ -1977,7 +1977,7 @@ async fn pay(
                 crate::noprofit::pending_balance(transaction, user_uuid).await?
             else {
                 return Err(PartnerError::BadRequest(
-                    "the partner has no noprofit.space account",
+                    "the partner has no Zaleris account",
                 ));
             };
             crate::noprofit::queue_credit_change(
@@ -2026,7 +2026,7 @@ async fn push_payments(state: &crate::State, noprofit: Option<bool>, application
     if noprofit.is_some()
         && let Err(err) = crate::noprofit::push_credit_changes(state).await
     {
-        tracing::warn!(application = %application_uuid, "failed to send partner credits to noprofit.space: {err:#}");
+        tracing::warn!(application = %application_uuid, "failed to send partner credits to Zaleris: {err:#}");
     }
 }
 
@@ -2720,7 +2720,7 @@ fn monthly_amount(
     }
     if credits > 0 && noprofit_payments(settings) == Some(false) {
         return Err(PartnerError::BadRequest(
-            "credits are noprofit.space's and its account sync is off: give 0 credits a month",
+            "credits are Zaleris's and its account sync is off: give 0 credits a month",
         ));
     }
 
@@ -2766,9 +2766,9 @@ pub async fn approve(
     )
     .await
     {
-        Err(PartnerError::BadRequest("the partner has no noprofit.space account")) => {
+        Err(PartnerError::BadRequest("the partner has no Zaleris account")) => {
             return Err(PartnerError::BadRequest(
-                "the applicant has no noprofit.space account: approve with 0 credits",
+                "the applicant has no Zaleris account: approve with 0 credits",
             ));
         }
         paid => paid?,

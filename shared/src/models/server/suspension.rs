@@ -401,7 +401,7 @@ pub async fn suspend_owned_for_noprofit(
                 )
                 .await
             {
-                tracing::warn!(server = %server_uuid, "failed to suspend a server of a deleted noprofit.space account: {err:#}");
+                tracing::warn!(server = %server_uuid, "failed to suspend a server of a deleted Zaleris account: {err:#}");
             }
         }
 
@@ -439,7 +439,7 @@ pub async fn unsuspend_owned_for_noprofit(
         };
 
         if let Err(err) = server.update(state, options).await {
-            tracing::warn!(server = %server_uuid, "failed to lift the noprofit.space suspension of a server: {err:#?}");
+            tracing::warn!(server = %server_uuid, "failed to lift the Zaleris suspension of a server: {err:#?}");
             continue;
         }
         if let Err(err) = server.sync(state).await {

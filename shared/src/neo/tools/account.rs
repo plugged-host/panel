@@ -140,7 +140,7 @@ impl Tool for AccountOverviewTool {
         let elsewhere = |amount: i64, unit: &str| {
             if amount > 0 {
                 format!(
-                    " (of which {amount}{unit} by the account's other noprofit.space services, e.g. switched.cloud VPSes)"
+                    " (of which {amount}{unit} by the account's other Zaleris services, e.g. switched.cloud VPSes)"
                 )
             } else {
                 String::new()
@@ -993,7 +993,7 @@ impl Tool for UnsuspendServerTool {
     }
 
     fn description(&self) -> Cow<'static, str> {
-        "Lift a suspension on one of the user's own servers. An abuse suspension is checked first: the server must pass the abuse scan. A suspension an admin made needs a staff member to explicitly allow the unsuspension in this ticket. A noprofit.space suspension cannot be lifted here. Give the server's full UUID (the ticket's server context has it).".into()
+        "Lift a suspension on one of the user's own servers. An abuse suspension is checked first: the server must pass the abuse scan. A suspension an admin made needs a staff member to explicitly allow the unsuspension in this ticket. A Zaleris suspension cannot be lifted here. Give the server's full UUID (the ticket's server context has it).".into()
     }
 
     fn parameters(&self) -> Value {
@@ -1105,12 +1105,12 @@ impl Tool for UnsuspendServerTool {
             }
             crate::models::server::suspension::SuspensionKind::Noprofit => {
                 return Ok(ToolResult::error(
-                    "This server is suspended because the owner's noprofit.space account is suspended or deleted. That has to be resolved at noprofit.space; I can't lift it here.",
+                    "This server is suspended because the owner's Zaleris account is suspended or deleted. That has to be resolved at Zaleris; I can't lift it here.",
                 ));
             }
             crate::models::server::suspension::SuspensionKind::Unpaid => {
                 return Ok(ToolResult::error(
-                    "This paid server is suspended because its month was not paid. It comes back by itself once the owner adds Funds on noprofit.space and pays from the server's Settings page.",
+                    "This paid server is suspended because its month was not paid. It comes back by itself once the owner adds Funds on Zaleris and pays from the server's Settings page.",
                 ));
             }
         }

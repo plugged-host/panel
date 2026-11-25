@@ -900,7 +900,7 @@ mod put {
                     Some(Some(secret)) if secret == shared::censor::CENSORED_PLACEHOLDER => {}
                     Some(Some(secret)) if secret.trim().len() < 32 => {
                         return ApiResponse::error(
-                            "the noprofit.space secrets must be at least 32 characters",
+                            "the Zaleris secrets must be at least 32 characters",
                         )
                         .with_status(StatusCode::BAD_REQUEST)
                         .ok();
@@ -912,7 +912,7 @@ mod put {
 
             if settings.noprofit.enabled && !settings.noprofit.connected() {
                 return ApiResponse::error(
-                    "noprofit.space needs its accounts URL, the sign-in client and the sign-in secret",
+                    "Zaleris needs its accounts URL, the sign-in client and the sign-in secret",
                 )
                 .with_status(StatusCode::BAD_REQUEST)
                 .ok();
@@ -921,7 +921,7 @@ mod put {
             // the one saving this included.
             if was_connected && !settings.noprofit.connected() && !user.has_password {
                 return ApiResponse::error(
-                    "noprofit.space sign-in can only be turned off by an admin with a panel password",
+                    "Zaleris sign-in can only be turned off by an admin with a panel password",
                 )
                 .with_status(StatusCode::BAD_REQUEST)
                 .ok();

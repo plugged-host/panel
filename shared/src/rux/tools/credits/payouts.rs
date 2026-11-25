@@ -33,7 +33,7 @@ pub async fn payer(state: &crate::State) -> Result<Payer, ToolError> {
         return match Client::load(state).await? {
             Some(client) if client.configured() => Ok(Payer::Noprofit(client)),
             _ => Err(ToolError::Unavailable(Unavailable(
-                "noprofit.space is connected but its rux routes are not set up (no rux or API secret), so no credits can be paid. Tell an admin."
+                "Zaleris is connected but its rux routes are not set up (no rux or API secret), so no credits can be paid. Tell an admin."
                     .into(),
             ))),
         };

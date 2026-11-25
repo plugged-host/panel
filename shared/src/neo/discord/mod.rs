@@ -83,7 +83,7 @@ impl Setup {
     /// panel's name.
     pub fn portal(&self) -> &str {
         if self.discord.accounts_url.is_some() {
-            "noprofit.space"
+            "Zaleris"
         } else {
             &self.app_name
         }

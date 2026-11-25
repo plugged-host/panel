@@ -261,7 +261,7 @@ pub async fn check(state: &crate::State, user_uuid: uuid::Uuid) -> Result<(), an
     if context.connected
         && let Err(err) = crate::noprofit::refresh_user(state, user_uuid).await
     {
-        tracing::warn!(user = %user_uuid, "failed to refresh the noprofit.space snapshot: {err:#}");
+        tracing::warn!(user = %user_uuid, "failed to refresh the Zaleris snapshot: {err:#}");
     }
     super::members::check_user(state, &context, user_uuid).await?;
 

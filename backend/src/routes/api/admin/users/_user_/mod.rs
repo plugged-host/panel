@@ -351,7 +351,7 @@ mod patch {
                 .is_some_and(|email| *email != user.email))
             && shared::user_links::identity_locked(&state, user.uuid).await?
         {
-            return ApiResponse::error("username and email are managed on noprofit.space")
+            return ApiResponse::error("username and email are managed on Zaleris")
                 .with_status(StatusCode::CONFLICT)
                 .ok();
         }

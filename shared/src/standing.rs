@@ -221,7 +221,7 @@ async fn of_account(
         Err(err) => {
             tracing::warn!(
                 account_id,
-                "noprofit.space did not say the account's standing, not limiting it: {err:#}"
+                "Zaleris did not say the account's standing, not limiting it: {err:#}"
             );
             None
         }
@@ -285,7 +285,7 @@ pub async fn of_user(state: &crate::State, user_uuid: uuid::Uuid) -> Option<Stan
             Err(err) => {
                 tracing::warn!(
                     user = %user_uuid,
-                    "failed to read the user's noprofit.space account: {err:#}"
+                    "failed to read the user's Zaleris account: {err:#}"
                 );
                 return None;
             }
@@ -341,7 +341,7 @@ pub fn report_server_strike(
         if let Err(err) = report(&state, server_uuid, owner_uuid, &reason).await {
             tracing::warn!(
                 server = %server_uuid,
-                "failed to report an abuse suspension to noprofit.space, the account sync tries again: {err:#}"
+                "failed to report an abuse suspension to Zaleris, the account sync tries again: {err:#}"
             );
         }
     });
@@ -387,7 +387,7 @@ async fn report(
     {
         tracing::warn!(
             server = %server_uuid,
-            "failed to keep a strike for noprofit.space: {err:#}"
+            "failed to keep a strike for Zaleris: {err:#}"
         );
     }
 
@@ -451,7 +451,7 @@ async fn send(
                 account_id = pending.account_id,
                 reference,
                 level = %standing.level,
-                "reported a suspension to noprofit.space"
+                "reported a suspension to Zaleris"
             );
             let cached = Cached {
                 standing: Some(standing),
@@ -466,7 +466,7 @@ async fn send(
             tracing::warn!(
                 account_id = pending.account_id,
                 reference,
-                "noprofit.space refused a strike ({status}), not sending it again"
+                "Zaleris refused a strike ({status}), not sending it again"
             );
         }
     }

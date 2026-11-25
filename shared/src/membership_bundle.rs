@@ -505,7 +505,7 @@ mod tests {
 
         economy.bundle_secret = Some("s".repeat(32).into());
         assert!(offered(&economy, true));
-        assert!(!offered(&economy, false), "noprofit.space is needed");
+        assert!(!offered(&economy, false), "Zaleris is needed");
 
         economy.bundle_url = "".into();
         assert!(!offered(&economy, true));

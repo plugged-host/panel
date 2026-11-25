@@ -356,7 +356,7 @@ pub async fn record_leave(
 /// account sync.
 async fn send_credit_changes(state: &crate::State) {
     if let Err(err) = crate::noprofit::push_credit_changes(state).await {
-        tracing::warn!("failed to send invite credits to noprofit.space: {err:#}");
+        tracing::warn!("failed to send invite credits to Zaleris: {err:#}");
     }
 }
 

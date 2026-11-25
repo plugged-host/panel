@@ -1532,7 +1532,7 @@ pub async fn store(state: &crate::State, user: &User) -> Result<ApiStore, Econom
                 {
                     Ok(store) => Some(store),
                     Err(err) => {
-                        tracing::warn!(user = %user.uuid, "noprofit.space's store did not answer: {err:#}");
+                        tracing::warn!(user = %user.uuid, "Zaleris's store did not answer: {err:#}");
 
                         None
                     }
@@ -1604,7 +1604,7 @@ pub async fn purchase(
             )
             .await
             .map_err(|err| {
-                tracing::warn!(user = %user.uuid, "noprofit.space's store did not answer a purchase: {err:#}");
+                tracing::warn!(user = %user.uuid, "Zaleris's store did not answer a purchase: {err:#}");
                 EconomyError::Unavailable
             })?;
 
@@ -1903,7 +1903,7 @@ async fn buy_membership(
                     )
                     .await
                     .map_err(|err| {
-                        tracing::warn!(user = %payer.uuid, "noprofit.space did not take the credits for a membership: {err:#}");
+                        tracing::warn!(user = %payer.uuid, "Zaleris did not take the credits for a membership: {err:#}");
                         EconomyError::Unavailable
                     })?;
                 if spent.is_none() {
@@ -2356,7 +2356,7 @@ pub async fn admin_change(
         Some(true) => credits_change,
         Some(false) if credits_change => {
             return Err(EconomyError::BadRequest(
-                "credits are noprofit.space's and its account sync is off: change them there",
+                "credits are Zaleris's and its account sync is off: change them there",
             ));
         }
         _ => false,
@@ -2382,9 +2382,7 @@ pub async fn admin_change(
             let Some((account_id, balance)) =
                 crate::noprofit::pending_balance(&mut transaction, user.uuid).await?
             else {
-                return Err(EconomyError::BadRequest(
-                    "the user has no noprofit.space account",
-                ));
+                return Err(EconomyError::BadRequest("the user has no Zaleris account"));
             };
             if balance + amount < 0 {
                 return Err(EconomyError::BadRequest("the balance would go below zero"));
@@ -2457,7 +2455,7 @@ pub async fn admin_change(
 
     // sent now, so the admin sees the balance noprofit.space answers; the account sync retries
     if credits_to_noprofit && let Err(err) = crate::noprofit::push_credit_changes(state).await {
-        tracing::warn!(user = %user.uuid, "failed to send an admin's credit change to noprofit.space: {err:#}");
+        tracing::warn!(user = %user.uuid, "failed to send an admin's credit change to Zaleris: {err:#}");
     }
 
     Ok(())

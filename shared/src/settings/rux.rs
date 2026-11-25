@@ -337,7 +337,7 @@ impl PayloadError {
             }
             Self::Granter => "the credit granters must be Discord user ids".into(),
             Self::Secret => format!(
-                "the noprofit.space secret must be at least {MIN_SECRET_CHARS} characters, like noprofit.space's own"
+                "the Zaleris secret must be at least {MIN_SECRET_CHARS} characters, like Zaleris's own"
             ),
         }
     }

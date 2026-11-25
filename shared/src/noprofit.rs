@@ -250,7 +250,7 @@ impl Config {
         let body = serde_json::to_vec(body)?;
         let headers = self
             .sign_request("POST", path, &body)
-            .ok_or_else(|| anyhow::anyhow!("the noprofit.space API secret is not set"))?;
+            .ok_or_else(|| anyhow::anyhow!("the Zaleris API secret is not set"))?;
 
         let mut request = client
             .post(format!("{}{path}", self.accounts_url))
@@ -290,7 +290,7 @@ impl Config {
         let status = response.status();
 
         if !status.is_success() {
-            anyhow::bail!("noprofit.space answered {status} to the account sync");
+            anyhow::bail!("Zaleris answered {status} to the account sync");
         }
 
         #[derive(Deserialize)]
@@ -327,7 +327,7 @@ impl Config {
         {
             Ok(response) => response,
             Err(err) => {
-                tracing::warn!("noprofit.space could not check an SFTP password: {err:#}");
+                tracing::warn!("Zaleris could not check an SFTP password: {err:#}");
                 return None;
             }
         };
@@ -337,7 +337,7 @@ impl Config {
             reqwest::StatusCode::UNPROCESSABLE_ENTITY => return Some(false),
             reqwest::StatusCode::TOO_MANY_REQUESTS => return None,
             status => {
-                tracing::warn!("noprofit.space answered {status} to an SFTP password check");
+                tracing::warn!("Zaleris answered {status} to an SFTP password check");
                 return None;
             }
         }
@@ -352,7 +352,7 @@ impl Config {
             Ok(answer) => Some(answer.valid),
             Err(err) => {
                 tracing::warn!(
-                    "noprofit.space answered an SFTP password check with something else: {err:#}"
+                    "Zaleris answered an SFTP password check with something else: {err:#}"
                 );
                 None
             }
@@ -379,7 +379,7 @@ impl Config {
         let status = response.status();
 
         if !status.is_success() {
-            anyhow::bail!("noprofit.space answered {status} to the store");
+            anyhow::bail!("Zaleris answered {status} to the store");
         }
 
         Ok(response.json().await?)
@@ -429,7 +429,7 @@ impl Config {
                         .to_string(),
                 ))
             }
-            status => anyhow::bail!("noprofit.space answered {status} to a store purchase"),
+            status => anyhow::bail!("Zaleris answered {status} to a store purchase"),
         }
     }
 
@@ -469,7 +469,7 @@ impl Config {
         match status {
             status if status.is_success() => Ok(Some(response.json::<Spent>().await?.credits)),
             reqwest::StatusCode::UNPROCESSABLE_ENTITY => Ok(None),
-            status => anyhow::bail!("noprofit.space answered {status} to a credit spend"),
+            status => anyhow::bail!("Zaleris answered {status} to a credit spend"),
         }
     }
 
@@ -500,7 +500,7 @@ impl Config {
     ) -> Result<i64, anyhow::Error> {
         self.change_funds(client, "refund", account_id, amount, description, key)
             .await?
-            .ok_or_else(|| anyhow::anyhow!("noprofit.space refused a Funds refund"))
+            .ok_or_else(|| anyhow::anyhow!("Zaleris refused a Funds refund"))
     }
 
     async fn change_funds(
@@ -536,7 +536,7 @@ impl Config {
         match status {
             status if status.is_success() => Ok(Some(response.json::<Changed>().await?.funds)),
             reqwest::StatusCode::UNPROCESSABLE_ENTITY => Ok(None),
-            status => anyhow::bail!("noprofit.space answered {status} to a Funds {change}"),
+            status => anyhow::bail!("Zaleris answered {status} to a Funds {change}"),
         }
     }
 
@@ -560,7 +560,7 @@ impl Config {
         let status = response.status();
 
         if !status.is_success() {
-            anyhow::bail!("noprofit.space answered {status} to an alt check");
+            anyhow::bail!("Zaleris answered {status} to an alt check");
         }
 
         Ok(response.json::<AltVerdict>().await?)
@@ -588,7 +588,7 @@ impl Config {
         let status = response.status();
 
         if !status.is_success() {
-            anyhow::bail!("noprofit.space answered {status} to an alt signal");
+            anyhow::bail!("Zaleris answered {status} to an alt signal");
         }
 
         Ok(())
@@ -614,14 +614,14 @@ impl Config {
         let status = response.status();
 
         if !status.is_success() {
-            anyhow::bail!("noprofit.space answered {status} to a standing request");
+            anyhow::bail!("Zaleris answered {status} to a standing request");
         }
 
         let answer: serde_json::Value = response.json().await?;
 
         match crate::standing::Standing::from_answer(&answer) {
             Some(standing) => Ok(standing),
-            None => anyhow::bail!("noprofit.space's answer has no standing"),
+            None => anyhow::bail!("Zaleris's answer has no standing"),
         }
     }
 
@@ -657,13 +657,13 @@ impl Config {
 
                 match crate::standing::Standing::from_answer(&answer) {
                     Some(standing) => Ok(StrikeAnswer::Recorded(standing)),
-                    None => anyhow::bail!("noprofit.space's answer to a strike has no standing"),
+                    None => anyhow::bail!("Zaleris's answer to a strike has no standing"),
                 }
             }
             reqwest::StatusCode::NOT_FOUND | reqwest::StatusCode::UNPROCESSABLE_ENTITY => {
                 Ok(StrikeAnswer::Refused(status))
             }
-            status => anyhow::bail!("noprofit.space answered {status} to a strike"),
+            status => anyhow::bail!("Zaleris answered {status} to a strike"),
         }
     }
 
@@ -729,7 +729,7 @@ impl Config {
             | reqwest::StatusCode::CONFLICT
             | reqwest::StatusCode::UNPROCESSABLE_ENTITY => Ok(CreditAnswer::Refused(status)),
             reqwest::StatusCode::UNAUTHORIZED | reqwest::StatusCode::TOO_MANY_REQUESTS => {
-                anyhow::bail!("noprofit.space answered {status} to a credit change")
+                anyhow::bail!("Zaleris answered {status} to a credit change")
             }
             status => Ok(CreditAnswer::Failed(status)),
         }
@@ -935,10 +935,10 @@ pub enum TokenError {
 impl std::fmt::Display for TokenError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(match self {
-            Self::Malformed => "malformed noprofit.space token",
-            Self::BadSignature => "noprofit.space token signature mismatch",
-            Self::WrongAudience => "noprofit.space token for another client",
-            Self::Expired => "expired noprofit.space token",
+            Self::Malformed => "malformed Zaleris token",
+            Self::BadSignature => "Zaleris token signature mismatch",
+            Self::WrongAudience => "Zaleris token for another client",
+            Self::Expired => "expired Zaleris token",
         })
     }
 }
@@ -1363,7 +1363,7 @@ pub async fn apply_snapshot(
     }
 
     if changed && let Err(err) = user.update(state, options).await {
-        tracing::warn!(user = %user.uuid, "failed to bring a user in step with noprofit.space: {err:#?}");
+        tracing::warn!(user = %user.uuid, "failed to bring a user in step with Zaleris: {err:#?}");
     }
 
     let avatar_changed = previous.as_ref().map(|link| &link.avatar) != Some(&snapshot.avatar);
@@ -1385,7 +1385,7 @@ pub async fn apply_snapshot(
             )
             .await
             {
-                tracing::warn!(user = %user_uuid, "failed to import the noprofit.space avatar: {err:#?}");
+                tracing::warn!(user = %user_uuid, "failed to import the Zaleris avatar: {err:#?}");
             }
         });
     }
@@ -1419,11 +1419,11 @@ pub async fn sync_all(state: &crate::State) -> Result<(), anyhow::Error> {
 
     // first, so the snapshots below already count them
     if let Err(err) = push_credit_changes(state).await {
-        tracing::warn!("failed to send credit changes to noprofit.space: {err:#}");
+        tracing::warn!("failed to send credit changes to Zaleris: {err:#}");
     }
     // abuse suspensions noprofit.space has not confirmed as strikes yet (docs/features/standing.md)
     if let Err(err) = crate::standing::send_pending(state, &noprofit).await {
-        tracing::warn!("failed to send strikes to noprofit.space: {err:#}");
+        tracing::warn!("failed to send strikes to Zaleris: {err:#}");
     }
 
     let account_ids = Link::live_account_ids(&state.database).await?;
@@ -1450,7 +1450,7 @@ pub async fn sync_all(state: &crate::State) -> Result<(), anyhow::Error> {
             };
 
             if let Err(err) = apply_snapshot(state, &mut user, snapshot).await {
-                tracing::warn!(user = %user.uuid, "failed to apply a noprofit.space snapshot: {err:#?}");
+                tracing::warn!(user = %user.uuid, "failed to apply a Zaleris snapshot: {err:#?}");
             }
         }
 
@@ -1491,20 +1491,20 @@ pub async fn sync_all(state: &crate::State) -> Result<(), anyhow::Error> {
                     tracing::info!(
                         account_id,
                         servers,
-                        "deleted the user of a noprofit.space account that is gone"
+                        "deleted the user of a Zaleris account that is gone"
                     );
                 }
                 Ok(AccountDeletion::Refused(reason)) => {
                     tracing::warn!(
                         account_id,
-                        "the user of a noprofit.space account that is gone was not deleted: {reason}"
+                        "the user of a Zaleris account that is gone was not deleted: {reason}"
                     );
                     retry_later(state, account_id).await;
                 }
                 Err(err) => {
                     tracing::warn!(
                         account_id,
-                        "failed to delete the user of a noprofit.space account that is gone: {err:#}"
+                        "failed to delete the user of a Zaleris account that is gone: {err:#}"
                     );
                     retry_later(state, account_id).await;
                 }
@@ -1529,7 +1529,7 @@ async fn retry_later(state: &crate::State, account_id: i64) {
     {
         tracing::warn!(
             account_id,
-            "failed to put a noprofit.space deletion back in line: {err:#}"
+            "failed to put a Zaleris deletion back in line: {err:#}"
         );
     }
 }
@@ -1557,12 +1557,12 @@ async fn suspend_vanished(
         Ok(Some(user)) => user,
         Ok(None) => return,
         Err(err) => {
-            tracing::warn!(user = %user_uuid, "failed to load the user of a deleted noprofit.space account: {err:#}");
+            tracing::warn!(user = %user_uuid, "failed to load the user of a deleted Zaleris account: {err:#}");
             return;
         }
     };
 
-    tracing::info!(user = %user.uuid, "noprofit.space no longer has this account, suspending its user");
+    tracing::info!(user = %user.uuid, "Zaleris no longer has this account, suspending its user");
 
     // a user suspended already (by an admin) stays so if the account comes back
     if !user.suspended {
@@ -1580,11 +1580,11 @@ async fn suspend_vanished(
                 .execute(state.database.write())
                 .await
                 {
-                    tracing::warn!(user = %user.uuid, "failed to note the suspension of a deleted noprofit.space account: {err:#}");
+                    tracing::warn!(user = %user.uuid, "failed to note the suspension of a deleted Zaleris account: {err:#}");
                 }
             }
             Err(err) => {
-                tracing::warn!(user = %user.uuid, "failed to suspend the user of a deleted noprofit.space account: {err:#?}");
+                tracing::warn!(user = %user.uuid, "failed to suspend the user of a deleted Zaleris account: {err:#?}");
             }
         }
     }
@@ -1594,7 +1594,7 @@ async fn suspend_vanished(
         crate::models::server::suspension::suspend_owned_for_noprofit(state, user.uuid, delete_at)
             .await
     {
-        tracing::warn!(user = %user.uuid, "failed to suspend the servers of a deleted noprofit.space account: {err:#?}");
+        tracing::warn!(user = %user.uuid, "failed to suspend the servers of a deleted Zaleris account: {err:#?}");
     }
 }
 
@@ -1609,7 +1609,7 @@ async fn restore_vanished(state: &crate::State, snapshot: &Snapshot) {
         Err(err) => {
             tracing::warn!(
                 account_id = snapshot.account_id,
-                "failed to load a noprofit.space link: {err:#}"
+                "failed to load a Zaleris link: {err:#}"
             );
             return;
         }
@@ -1623,16 +1623,16 @@ async fn restore_vanished(state: &crate::State, snapshot: &Snapshot) {
         Ok(Some(user)) => user,
         Ok(None) => return,
         Err(err) => {
-            tracing::warn!(user = %link.user_uuid, "failed to load the user of a noprofit.space account: {err:#}");
+            tracing::warn!(user = %link.user_uuid, "failed to load the user of a Zaleris account: {err:#}");
             return;
         }
     };
 
-    tracing::info!(user = %user.uuid, "noprofit.space has this account again, lifting its suspension");
+    tracing::info!(user = %user.uuid, "Zaleris has this account again, lifting its suspension");
 
     // the link is live again (Link::store)
     if let Err(err) = apply_snapshot(state, &mut user, snapshot).await {
-        tracing::warn!(user = %user.uuid, "failed to apply a noprofit.space snapshot: {err:#?}");
+        tracing::warn!(user = %user.uuid, "failed to apply a Zaleris snapshot: {err:#?}");
         return;
     }
 
@@ -1649,7 +1649,7 @@ async fn restore_vanished(state: &crate::State, snapshot: &Snapshot) {
     {
         Ok(suspended) => suspended.unwrap_or(false),
         Err(err) => {
-            tracing::warn!(user = %user.uuid, "failed to read the suspension of a noprofit.space account: {err:#}");
+            tracing::warn!(user = %user.uuid, "failed to read the suspension of a Zaleris account: {err:#}");
             return;
         }
     };
@@ -1661,14 +1661,14 @@ async fn restore_vanished(state: &crate::State, snapshot: &Snapshot) {
         };
 
         if let Err(err) = user.update(state, options).await {
-            tracing::warn!(user = %user.uuid, "failed to lift the suspension of a noprofit.space account: {err:#?}");
+            tracing::warn!(user = %user.uuid, "failed to lift the suspension of a Zaleris account: {err:#?}");
         }
     }
 
     if let Err(err) =
         crate::models::server::suspension::unsuspend_owned_for_noprofit(state, user.uuid).await
     {
-        tracing::warn!(user = %user.uuid, "failed to lift the suspension of a noprofit.space account's servers: {err:#}");
+        tracing::warn!(user = %user.uuid, "failed to lift the suspension of a Zaleris account's servers: {err:#}");
     }
 }
 
@@ -1768,7 +1768,7 @@ pub async fn delete_account(
 
         for server in servers.data {
             if let Err(err) = delete_server_with_backups(state, &server).await {
-                tracing::warn!(user = %user.uuid, server = %server.uuid, "failed to delete a server of a deleted noprofit.space account: {err:#}");
+                tracing::warn!(user = %user.uuid, server = %server.uuid, "failed to delete a server of a deleted Zaleris account: {err:#}");
 
                 let mut reason = format!(
                     "The server \"{}\" could not be deleted, so the account was left alone.",
@@ -1807,7 +1807,7 @@ pub async fn delete_account(
         .await?
             && let Err(err) = backup.delete(state, Default::default()).await
         {
-            tracing::warn!(user = %user.uuid, backup = %backup_uuid, "failed to delete a kept backup of a deleted noprofit.space account: {err:#}");
+            tracing::warn!(user = %user.uuid, backup = %backup_uuid, "failed to delete a kept backup of a deleted Zaleris account: {err:#}");
         }
     }
 
@@ -1822,7 +1822,7 @@ pub async fn delete_account(
 
     user.delete(state, ()).await?;
 
-    tracing::info!(user = %user.uuid, account_id, servers = deleted, "deleted the panel user of a deleted noprofit.space account");
+    tracing::info!(user = %user.uuid, account_id, servers = deleted, "deleted the panel user of a deleted Zaleris account");
 
     Ok(AccountDeletion::Deleted { servers: deleted })
 }
@@ -1930,7 +1930,7 @@ pub fn spawn_credit_push(state: &crate::State) {
 
     tokio::spawn(async move {
         if let Err(err) = push_credit_changes(&state).await {
-            tracing::warn!("failed to send credit changes to noprofit.space: {err:#}");
+            tracing::warn!("failed to send credit changes to Zaleris: {err:#}");
         }
     });
 }
@@ -2027,11 +2027,11 @@ pub async fn push_credit_changes(state: &crate::State) -> Result<(), anyhow::Err
                 transaction.commit().await?;
 
                 if applied != change.amount {
-                    tracing::info!(change = %change.uuid, user = %change.user_uuid, amount = change.amount, applied, "noprofit.space applied part of a credit change");
+                    tracing::info!(change = %change.uuid, user = %change.user_uuid, amount = change.amount, applied, "Zaleris applied part of a credit change");
                 }
             }
             Ok(CreditAnswer::Refused(status)) => {
-                tracing::warn!(change = %change.uuid, user = %change.user_uuid, amount = change.amount, "noprofit.space refused a credit change ({status})");
+                tracing::warn!(change = %change.uuid, user = %change.user_uuid, amount = change.amount, "Zaleris refused a credit change ({status})");
 
                 sqlx::query(
                     "UPDATE user_noprofit_credit_changes

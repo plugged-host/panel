@@ -66,7 +66,7 @@ async fn post(
     }
 
     request.send().await.map_err(|err| {
-        tracing::warn!("noprofit.space's neo gateway is unreachable: {err:#}");
+        tracing::warn!("Zaleris's neo gateway is unreachable: {err:#}");
         TurnError::Unavailable {
             reason: "unreachable".into(),
         }
@@ -238,11 +238,11 @@ pub async fn turn(
             Ok(Some(Ok(chunk))) => chunk,
             Ok(None) => break,
             Ok(Some(Err(err))) => {
-                tracing::warn!("noprofit.space's neo stream broke: {err:#}");
+                tracing::warn!("Zaleris's neo stream broke: {err:#}");
                 break;
             }
             Err(_) => {
-                tracing::warn!("noprofit.space's neo stream went silent");
+                tracing::warn!("Zaleris's neo stream went silent");
                 break;
             }
         };

@@ -753,7 +753,7 @@ impl PlanExtras {
     /// What will be written, leaving out what the source did not have.
     pub fn counts(&self) -> Vec<(&'static str, usize)> {
         [
-            ("noprofit.space links", self.noprofit_links.len()),
+            ("Zaleris links", self.noprofit_links.len()),
             ("token balances", self.tokens.len()),
             ("credit balances", self.credits.len()),
             ("token transactions", self.token_transactions.len()),
@@ -907,7 +907,7 @@ pub fn plan(
             } else {
                 notes.push((
                     "user_noprofit_accounts",
-                    "a noprofit.space account linked to more than one user was linked to the first only"
+                    "a Zaleris account linked to more than one user was linked to the first only"
                         .into(),
                 ));
             }
@@ -1243,9 +1243,9 @@ pub async fn write(tx: &mut sqlx::PgConnection, plan: &Plan) -> Result<(), anyho
         .bind(&link.username)
         .execute(&mut *tx)
         .await
-        .context("failed to write a noprofit.space link")?;
+        .context("failed to write a Zaleris link")?;
     }
-    tracing::info!("wrote {} noprofit.space links", extras.noprofit_links.len());
+    tracing::info!("wrote {} Zaleris links", extras.noprofit_links.len());
 
     for tokens in &extras.tokens {
         sqlx::query(
