@@ -1,4 +1,4 @@
-// plugged.host: what noprofit.space asks the panel when someone deletes their account there, signed with the API secret (shared/src/noprofit.rs, docs/noprofit.md).
+// plugged.host: what noprofit.space asks the panel (deleting an account there, message counts for its activity requirements), signed with the API secret (shared/src/noprofit.rs, docs/noprofit.md).
 use super::State;
 use axum::http::{HeaderMap, Method, StatusCode, Uri};
 use shared::response::ApiResponse;
@@ -231,6 +231,68 @@ mod account {
     }
 }
 
+mod discord {
+    pub mod activity {
+        pub mod post {
+            use axum::{
+                body::Bytes,
+                extract::OriginalUri,
+                http::{HeaderMap, Method},
+            };
+            use garde::Validate;
+            use serde::{Deserialize, Serialize};
+            use shared::{
+                ApiError, GetIp, GetState,
+                response::{ApiResponse, ApiResponseResult},
+            };
+            use std::collections::HashMap;
+            use utoipa::ToSchema;
+
+            #[derive(ToSchema, Validate, Deserialize)]
+            pub struct Payload {
+                /// The Discord servers to count on (ids).
+                #[garde(length(min = 1, max = 50), inner(length(min = 15, max = 20), pattern("^[0-9]+$")))]
+                guild_ids: Vec<String>,
+                /// The last this many days, today included (1 to 60).
+                #[garde(range(min = 1, max = 60))]
+                days: i32,
+            }
+
+            #[derive(ToSchema, Serialize)]
+            struct Response {
+                /// Server id => Discord id => messages, for members who sent any.
+                counts: HashMap<String, HashMap<String, i64>>,
+            }
+
+            /// How many messages each member sent on these servers lately, as the moderation
+            /// bot counted them (`discord::activity`), for noprofit.space's activity
+            /// requirements on rewards.
+            #[utoipa::path(post, path = "/", responses(
+                (status = OK, body = inline(Response)),
+                (status = UNAUTHORIZED, body = ApiError),
+                (status = TOO_MANY_REQUESTS, body = ApiError),
+            ), request_body = inline(Payload))]
+            pub async fn route(
+                state: GetState,
+                ip: GetIp,
+                method: Method,
+                OriginalUri(uri): OriginalUri,
+                headers: HeaderMap,
+                body: Bytes,
+            ) -> ApiResponseResult {
+                let data: Payload =
+                    super::super::super::signed(&state, ip.0, &method, &uri, &headers, &body)
+                        .await?;
+
+                let counts =
+                    shared::discord::activity::counts(&state, &data.guild_ids, data.days).await?;
+
+                ApiResponse::new_serialized(Response { counts }).ok()
+            }
+        }
+    }
+}
+
 pub fn router(state: &State) -> OpenApiRouter<State> {
     OpenApiRouter::new()
         .nest(
@@ -243,6 +305,12 @@ pub fn router(state: &State) -> OpenApiRouter<State> {
             "/account/delete",
             OpenApiRouter::new()
                 .routes(routes!(account::delete::post::route))
+                .with_state(state.clone()),
+        )
+        .nest(
+            "/discord/activity",
+            OpenApiRouter::new()
+                .routes(routes!(discord::activity::post::route))
                 .with_state(state.clone()),
         )
         .with_state(state.clone())

@@ -13,6 +13,7 @@
 //! boost bot ([`rewards_bot`]) records who joined through whose invite and answers `/invites`,
 //! `/topinvites` and `/setboost`.
 
+pub mod activity;
 pub mod gateway;
 pub mod invites;
 pub mod members;

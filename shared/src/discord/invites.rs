@@ -9,8 +9,9 @@
 //! rewards (`discord_members.invite_debt`). [`reconcile`] looks for departures the bot missed;
 //! only Discord saying "no such member" counts.
 //!
-//! With noprofit.space connected (its account sync on) the rewards, clawbacks and owed credits go
-//! to the account's balance there: queued with the change ([`crate::noprofit::queue_credit_change`])
+//! With noprofit.space connected (its account sync on) the rewards and clawbacks go to the
+//! account's balance there (a clawback whole: noprofit.space covers what the balance cannot with
+//! resources the account bought, then credits owed): queued with the change ([`crate::noprofit::queue_credit_change`])
 //! and sent right after, like Pelican's credit outbox. noprofit.space pays the boosts then.
 
 use super::{Context, TYPE_INVITE, TYPE_INVITE_CLAWBACK, TYPE_INVITE_DEBT, rest};
@@ -295,7 +296,12 @@ pub async fn record_leave(
             && let Some((ledger, balance)) =
                 Ledger::of(&mut transaction, context, user_uuid).await?
         {
-            let (from_balance, owed) = clawback(balance, credits);
+            // with noprofit.space connected it takes back all of it there (the balance, then
+            // resources the account bought, then owed from its next credits): nothing is owed here
+            let (from_balance, owed) = match ledger {
+                Ledger::Noprofit { .. } => (credits.max(0), 0),
+                Ledger::Panel => clawback(balance, credits),
+            };
             taken = from_balance;
 
             ledger

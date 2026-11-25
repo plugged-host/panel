@@ -215,6 +215,8 @@ pub async fn tick(state: &crate::State) -> Result<(), anyhow::Error> {
         if deleted > 0 {
             tracing::info!(deleted, "rux: pruned old messages");
         }
+        // plugged.host: old message counts (discord::activity)
+        crate::discord::activity::prune(state).await?;
     }
 
     Ok(())

@@ -708,6 +708,22 @@ export const discordBoostPayoutsTable = pgTable(
   ],
 );
 
+// plugged.host: how many messages each member sent on each of the moderation bot's servers per
+// day (shared/src/discord/activity.rs), for activity requirements on rewards; kept 60 days
+export const discordMessageCountsTable = pgTable(
+  'discord_message_counts',
+  {
+    guild_id: varchar({ length: 32 }).notNull(),
+    discord_id: varchar({ length: 32 }).notNull(),
+    day: date({ mode: 'string' }).notNull(),
+    messages: integer().default(0).notNull(),
+  },
+  (cols) => [
+    primaryKey({ name: 'discord_message_counts_pk', columns: [cols.guild_id, cols.discord_id, cols.day] }),
+    index('discord_message_counts_day_idx').on(cols.day),
+  ],
+);
+
 // plugged.host: the partner program (shared/src/partners.rs, docs/features/partners.md): Discord
 // communities that applied, what the bot checked (`facts`, `problems`), neo's suggestion
 // (`assessment`), the admin's decision and, once approved, the partnership's monthly credits and

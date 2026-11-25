@@ -161,6 +161,16 @@ pub async fn on_message(
     if spam::screen(state, config, rest, me, &incoming, message) {
         return Ok(());
     }
+    // plugged.host: count the message for activity requirements (discord::activity)
+    {
+        let state = state.clone();
+        let (guild_id, author_id) = (incoming.guild_id.clone(), incoming.author_id.clone());
+        tokio::spawn(async move {
+            if let Err(err) = crate::discord::activity::record(&state, &guild_id, &author_id).await {
+                tracing::debug!("rux: could not count a message: {err:#}");
+            }
+        });
+    }
     if channels::enqueue(state, rest, me, &incoming, message).await {
         return Ok(());
     }

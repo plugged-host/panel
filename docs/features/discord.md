@@ -105,15 +105,27 @@ rewards (`discord_invite_debt`). Coming back counts as a new join: the inviter i
 invite they used now, and a taken-back invite can pay again, a paid one cannot.
 
 With noprofit.space connected the inviter is the panel user whose noprofit.space account has the
-Discord account, and the rewards, clawbacks and owed credits are written to
-`user_noprofit_credit_changes` instead of the panel's balance, then sent to the account on
-noprofit.space ([noprofit.md](../noprofit.md#what-changes-while-it-is-connected)). A clawback takes
-from the balance noprofit.space last said plus the changes not sent yet. "Credits earned on
+Discord account, and the rewards and clawbacks are written to `user_noprofit_credit_changes`
+instead of the panel's balance, then sent to the account on noprofit.space
+([noprofit.md](../noprofit.md#what-changes-while-it-is-connected)). A clawback is sent whole:
+noprofit.space takes it from the balance, then from resources the account bought (at what they
+would cost to buy again), and what is still missing is owed there and taken from the account's
+next credits. Nothing is owed on the panel then. "Credits earned on
 Discord" is then what noprofit.space applied of them (unsent ones counted in full).
 
 The `reconcile_discord_invites` task (hourly, 200 per run) asks Discord about the members still
 counted, the least recently seen first, and records the ones it says are gone: leaves the bot
 missed while it was offline.
+
+## Activity
+
+The moderation bot counts the messages members send on its servers (`discord::activity`, called
+from rux's watch for every member message that is not spam): one row per server, Discord account
+and day (UTC) in `discord_message_counts`, kept 60 days (pruned with rux's daily prune). The
+panel itself does nothing with the counts. noprofit.space asks for them
+(`/api/noprofit/discord/activity`, [noprofit.md](../noprofit.md)) to hold a server's rewards back
+from members who sent fewer messages than that server's minimum. Only servers rux works on are
+counted.
 
 ## The bots
 
@@ -228,6 +240,8 @@ User activity: `account:discord.check`. The user permissions (API key scopes) ar
   `credits`, `departed`, `leave_count`, `rejoin_count`, `revoked` + `revoked_credits`, `last_seen`.
 - `discord_boost_payouts`: `discord_id`, `user_uuid`, `level`, `credits`; unique per Discord account
   and level and per panel account and level.
+- `discord_message_counts`: `guild_id`, `discord_id`, `day`, `messages`; one row per server,
+  Discord account and day, kept 60 days.
 
 Credits go through `economy::change` (with noprofit.space: `noprofit::queue_credit_change`) with
 the transaction types `discord_invite`, `discord_invite_clawback`, `discord_invite_debt` and

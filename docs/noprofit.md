@@ -204,6 +204,10 @@ each nonce once; 401 `unauthorized` otherwise, 60 requests per minute and addres
   (above): `{"deleted": true, "servers": n}` (also when no user has it), or 409 `{"error":
   "refused", "message"}` with the reason to show. A deletion carries on when the request is cut
   off.
+- `POST /api/noprofit/discord/activity` with `{"guild_ids": [ids], "days": 1 to 60}` answers
+  `{"counts": {guild id: {discord id: messages}}}`: the messages each member sent on those servers
+  in the last days, as the moderation bot counted them ([discord.md](features/discord.md#activity)),
+  for noprofit.space's activity requirements.
 
 On noprofit.space's side this panel is a client with its own sign-in secret and API secret, both
 equal to the values entered here.
