@@ -3495,6 +3495,10 @@ const baseTranslations = defineTranslations({
           beta: 'Beta',
           version: 'Version {version}',
           download: 'Download for Windows',
+          downloadLinux: 'Download for Linux',
+          downloadDeb: 'Download .deb',
+          linuxNote:
+            'On Linux the AppImage runs on most distributions: make it executable (chmod +x) and open it. The .deb is for Debian and Ubuntu.',
           intro:
             'The native client for {app}. It talks to the panel directly, keeps the console live and opens in a fraction of the time a browser does.',
           betaNotice: 'This is a public beta. If something does not work, tell us through Support.',

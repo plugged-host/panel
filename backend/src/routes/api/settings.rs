@@ -332,11 +332,8 @@ mod get {
                 open: shared::partners::offered(&settings),
             },
             app_download: ResponseAppDownload {
-                enabled: std::env::var("PLUGGED_APP_INSTALLER")
-                    .ok()
-                    .map(|path| path.trim().to_owned())
-                    .filter(|path| !path.is_empty())
-                    .is_some_and(|path| std::path::Path::new(&path).is_file()),
+                // plugged.host: Windows or Linux (docs/features/app.md)
+                enabled: shared::desktop_app::offered(),
                 version: std::env::var("PLUGGED_APP_VERSION")
                     .ok()
                     .map(|version| version.trim().to_owned())

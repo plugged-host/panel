@@ -302,8 +302,8 @@ impl KnowledgeFacts {
             idle_minutes: settings.devboxes.idle_minutes as i64,
             browser: settings.devboxes.web_ready(),
         };
-        facts.desktop_app = crate::desktop_app::installer().map(|installer| DesktopAppFacts {
-            version: installer.version,
+        facts.desktop_app = crate::desktop_app::offered().then(|| DesktopAppFacts {
+            version: crate::desktop_app::version(),
         });
         facts.neo = NeoFacts::from(&settings.neo);
         facts.neo.extra_tokens = crate::neo::extra_price(settings).unwrap_or(0);

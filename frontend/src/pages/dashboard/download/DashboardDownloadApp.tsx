@@ -1,5 +1,6 @@
-// plugged.host: the Windows app's download page (docs/features/app.md)
-import { faCheck, faDownload } from '@fortawesome/free-solid-svg-icons';
+// plugged.host: the desktop app's download page, Windows and Linux (docs/features/app.md)
+import { faLinux, faWindows } from '@fortawesome/free-brands-svg-icons';
+import { faCheck } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useState } from 'react';
 import { axiosInstance } from '@/api/axios.ts';
@@ -12,29 +13,36 @@ import { useResource } from '@/plugins/resource/useResource.ts';
 import { useTranslations } from '@/providers/TranslationProvider.tsx';
 import { useGlobalStore } from '@/stores/global.ts';
 
+export interface AppDownload {
+  platform: 'windows' | 'linux' | 'linux-deb';
+  filename: string;
+  size: number;
+}
+
 export interface AppInfo {
   enabled: boolean;
   version: string;
-  filename: string;
-  size: number;
+  downloads: AppDownload[];
   releaseNotes: string | null;
 }
+
+const onLinux = () => /linux/i.test(navigator.userAgent) && !/android/i.test(navigator.userAgent);
 
 export default function DashboardDownloadApp() {
   const { t } = useTranslations();
   const appName = useGlobalStore((state) => state.settings.app.name);
   const noprofit = useGlobalStore((state) => state.settings.noprofit.enabled);
-  const [downloading, setDownloading] = useState(false);
+  const [downloading, setDownloading] = useState<string | null>(null);
   const page = 'pages.account.downloadApp';
   const info = useResource({
     queryKey: ['user', 'app-info'],
     queryFn: async (): Promise<AppInfo> => {
       const { data } = await axiosInstance.get('/api/client/app');
+      const downloads: AppDownload[] = data.downloads ?? [];
       return {
-        enabled: data.app.enabled,
+        enabled: downloads.length > 0,
         version: data.app.version,
-        filename: data.app.filename,
-        size: data.app.size,
+        downloads,
         releaseNotes: data.app.release_notes ?? null,
       };
     },
@@ -58,37 +66,71 @@ export default function DashboardDownloadApp() {
                     </h2>
                     <p className='theme-eco-muted'>{t(`${page}.version`, { version: app.version })}</p>
                   </div>
-                  <Button
-                    size='lg'
-                    leftSection={<FontAwesomeIcon icon={faDownload} />}
-                    loading={downloading}
-                    onClick={() => {
-                      setDownloading(true);
-                      window.location.assign('/api/client/app/download');
-                      window.setTimeout(() => setDownloading(false), 4000);
-                    }}
-                  >
-                    {t(`${page}.download`, {})}
-                  </Button>
+                  <div className='flex flex-wrap gap-3'>
+                    {[...app.downloads]
+                      .sort(
+                        (a, b) =>
+                          Number(b.platform.startsWith('linux') === onLinux()) -
+                          Number(a.platform.startsWith('linux') === onLinux()),
+                      )
+                      .map((download, index) => (
+                        <Button
+                          key={download.platform}
+                          size='lg'
+                          variant={index === 0 ? 'filled' : 'default'}
+                          leftSection={<FontAwesomeIcon icon={download.platform === 'windows' ? faWindows : faLinux} />}
+                          loading={downloading === download.platform}
+                          onClick={() => {
+                            setDownloading(download.platform);
+                            window.location.assign(`/api/client/app/download?platform=${download.platform}`);
+                            window.setTimeout(() => setDownloading(null), 4000);
+                          }}
+                        >
+                          {t(
+                            download.platform === 'windows'
+                              ? `${page}.download`
+                              : download.platform === 'linux'
+                                ? `${page}.downloadLinux`
+                                : `${page}.downloadDeb`,
+                            {},
+                          )}
+                        </Button>
+                      ))}
+                  </div>
                 </div>
 
                 <p className='theme-eco-muted max-w-3xl'>{t(`${page}.intro`, { app: appName })}</p>
                 <p className='theme-eco-muted max-w-3xl'>{t(`${page}.betaNotice`, {})}</p>
-                <p className='theme-eco-small max-w-3xl'>{t(`${page}.unsigned`, {})}</p>
+                {app.downloads.some((download) => download.platform === 'windows') && (
+                  <p className='theme-eco-small max-w-3xl'>{t(`${page}.unsigned`, {})}</p>
+                )}
+                {app.downloads.some((download) => download.platform !== 'windows') && (
+                  <p className='theme-eco-small max-w-3xl'>{t(`${page}.linuxNote`, {})}</p>
+                )}
 
-                <div className='flex flex-wrap gap-10'>
-                  <div className='flex flex-col gap-1'>
-                    <span className='theme-eco-small'>{t(`${page}.platform`, {})}</span>
-                    <span className='font-mono text-sm'>Windows 10 / 11</span>
-                  </div>
-                  <div className='flex flex-col gap-1'>
-                    <span className='theme-eco-small'>{t(`${page}.size`, {})}</span>
-                    <span className='font-mono text-sm'>{bytesToString(app.size, 1)}</span>
-                  </div>
-                  <div className='flex flex-col gap-1'>
-                    <span className='theme-eco-small'>{t(`${page}.installer`, {})}</span>
-                    <span className='font-mono text-sm'>{app.filename}</span>
-                  </div>
+                <div className='flex flex-col gap-4'>
+                  {app.downloads.map((download) => (
+                    <div key={download.platform} className='flex flex-wrap gap-10'>
+                      <div className='flex flex-col gap-1'>
+                        <span className='theme-eco-small'>{t(`${page}.platform`, {})}</span>
+                        <span className='font-mono text-sm'>
+                          {download.platform === 'windows'
+                            ? 'Windows 10 / 11'
+                            : download.platform === 'linux'
+                              ? 'Linux x86_64 (AppImage)'
+                              : 'Debian / Ubuntu x86_64 (.deb)'}
+                        </span>
+                      </div>
+                      <div className='flex flex-col gap-1'>
+                        <span className='theme-eco-small'>{t(`${page}.size`, {})}</span>
+                        <span className='font-mono text-sm'>{bytesToString(download.size, 1)}</span>
+                      </div>
+                      <div className='flex flex-col gap-1'>
+                        <span className='theme-eco-small'>{t(`${page}.installer`, {})}</span>
+                        <span className='font-mono text-sm'>{download.filename}</span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </section>
 
