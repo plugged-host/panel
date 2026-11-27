@@ -5,6 +5,7 @@
 use std::time::Duration;
 
 use axum::http::StatusCode;
+use futures_util::StreamExt;
 use serde::Serialize;
 use shared::{
     ApiError, GetState,
@@ -56,6 +57,9 @@ pub async fn route(
     }
 
     // Force-delete every server, one batch at a time: page 1 always holds the next servers.
+    // The node is gone, so Wings is never asked (each call would wait out a connect timeout:
+    // 50 servers on a node that drops packets took longer than the browser waits) and eight
+    // servers go at once.
     let mut servers_deleted = 0i64;
     loop {
         let batch =
@@ -64,13 +68,24 @@ pub async fn route(
             break;
         }
 
-        for server in batch.data {
-            server
-                .delete(
-                    &state,
-                    shared::models::server::DeleteServerOptions { force: true },
-                )
-                .await?;
+        let mut deletes = futures_util::stream::iter(batch.data.into_iter().map(|server| {
+            let state = state.clone();
+            async move {
+                server
+                    .delete(
+                        &state,
+                        shared::models::server::DeleteServerOptions {
+                            force: true,
+                            node_gone: true,
+                        },
+                    )
+                    .await
+            }
+        }))
+        .buffer_unordered(8);
+
+        while let Some(result) = deletes.next().await {
+            result?;
             servers_deleted += 1;
         }
     }

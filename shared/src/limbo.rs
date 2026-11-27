@@ -297,10 +297,7 @@ pub async fn purge_due(state: &crate::State) -> Result<usize, anyhow::Error> {
         };
 
         match server
-            .delete(
-                state,
-                crate::models::server::DeleteServerOptions { force: false },
-            )
+            .delete(state, crate::models::server::DeleteServerOptions::default())
             .await
         {
             Ok(()) => {

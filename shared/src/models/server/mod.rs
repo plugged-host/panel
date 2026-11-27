@@ -3172,6 +3172,10 @@ impl UpdatableModel for Server {
 #[derive(Clone, Default)]
 pub struct DeleteServerOptions {
     pub force: bool,
+    /// plugged.host: the node is known to be gone (Admin > Nodes > Force nuke). Wings is not
+    /// asked to delete the server, and each database drop gets a few seconds at most, so a node
+    /// that drops packets cannot stall the delete for a connect timeout per server.
+    pub node_gone: bool,
 }
 
 #[async_trait::async_trait]
@@ -3223,7 +3227,16 @@ impl DeletableModel for Server {
 
         tokio::spawn(async move {
             for db in databases {
-                match db.delete(&state, super::server_database::DeleteServerDatabaseOptions { force: options.force }).await {
+                let delete = db.delete(&state, super::server_database::DeleteServerDatabaseOptions { force: options.force });
+                // plugged.host: a nuked node's database host may be gone with it
+                let result = if options.node_gone {
+                    tokio::time::timeout(std::time::Duration::from_secs(5), delete)
+                        .await
+                        .unwrap_or_else(|_| Err(anyhow::anyhow!("database host did not answer within 5s")))
+                } else {
+                    delete.await
+                };
+                match result {
                     Ok(_) => {}
                     Err(err) => {
                         tracing::error!(server = %server_uuid, "failed to delete database: {:?}", err);
@@ -3236,7 +3249,16 @@ impl DeletableModel for Server {
             }
 
             for database_instance in database_instances {
-                match database_instance.delete(&state, super::server_database_instance::DeleteServerDatabaseInstanceOptions { force: options.force }).await {
+                let delete = database_instance.delete(&state, super::server_database_instance::DeleteServerDatabaseInstanceOptions { force: options.force });
+                // plugged.host: a nuked node's database agent may be gone with it
+                let result = if options.node_gone {
+                    tokio::time::timeout(std::time::Duration::from_secs(5), delete)
+                        .await
+                        .unwrap_or_else(|_| Err(anyhow::anyhow!("database agent did not answer within 5s")))
+                } else {
+                    delete.await
+                };
+                match result {
                     Ok(_) => {}
                     Err(err) => {
                         tracing::error!(server = %server_uuid, "failed to delete database instance: {:?}", err);
@@ -3257,11 +3279,16 @@ impl DeletableModel for Server {
                 .execute(&mut *transaction)
                 .await?;
 
-            match node
-                .api_client(&state.database)
-                .await?
-                .delete_servers_server(server_uuid)
-                .await
+            // plugged.host: a nuked node is not asked (it would only time out)
+            let wings = if options.node_gone {
+                Ok(wings_api::servers_server::delete::Response200 {})
+            } else {
+                node.api_client(&state.database)
+                    .await?
+                    .delete_servers_server(server_uuid)
+                    .await
+            };
+            match wings
                 // plugged.host: Wings no longer has it (limbo parked it): nothing left to delete there
                 .or_else(|err| match err {
                     wings_api::client::ApiHttpError::Http(status, _)

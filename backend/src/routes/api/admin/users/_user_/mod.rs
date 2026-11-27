@@ -196,6 +196,7 @@ mod delete {
                             &state,
                             shared::models::server::DeleteServerOptions {
                                 force: params.force,
+                                ..Default::default()
                             },
                         )
                         .await

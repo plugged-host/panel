@@ -340,7 +340,7 @@ pub async fn purge_due(state: &crate::State) -> Result<usize, anyhow::Error> {
             crate::noprofit::delete_server_with_backups(state, &server).await
         } else {
             server
-                .delete(state, super::DeleteServerOptions { force: false })
+                .delete(state, super::DeleteServerOptions::default())
                 .await
         };
 

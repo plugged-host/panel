@@ -419,7 +419,13 @@ async fn remove_server(state: &crate::State, devbox: &Devbox) -> Result<(), Devb
         }
 
         server
-            .delete(state, DeleteServerOptions { force: true })
+            .delete(
+                state,
+                DeleteServerOptions {
+                    force: true,
+                    ..Default::default()
+                },
+            )
             .await?;
     }
 

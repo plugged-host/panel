@@ -146,7 +146,10 @@ mod delete {
         if let Err(err) = server
             .delete(
                 &state,
-                shared::models::server::DeleteServerOptions { force: data.force },
+                shared::models::server::DeleteServerOptions {
+                    force: data.force,
+                    ..Default::default()
+                },
             )
             .await
         {

@@ -1843,10 +1843,7 @@ pub async fn delete_server_with_backups(
     .await?;
 
     server
-        .delete(
-            state,
-            crate::models::server::DeleteServerOptions { force: false },
-        )
+        .delete(state, crate::models::server::DeleteServerOptions::default())
         .await?;
 
     for backup in backups {

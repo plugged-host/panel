@@ -13,9 +13,12 @@ not seen the node recently, but the probe is the authority.
 
 ## What it deletes
 
-1. Every server whose `node_uuid` is the node, with `DeleteServerOptions { force: true }`:
-   databases, database instances, subdomains, icons, tunnel membership and the row all go, even
-   when Wings cannot be reached to delete its copy.
+1. Every server whose `node_uuid` is the node, eight at a time, with
+   `DeleteServerOptions { force: true, node_gone: true }`: databases, database instances,
+   subdomains, icons, tunnel membership and the row all go. Wings is not asked to delete its copy
+   (the node is down; on 2026-11-27 asking it once per server made a nuke of nl3's 50 servers run
+   past the browser's patience, since nl3 drops packets and every call waited out a connect
+   timeout), and each database drop gets five seconds before it is skipped.
 2. The node row itself.
 
 The action is logged as `node:force-nuke` with the node's uuid, name and the number of servers

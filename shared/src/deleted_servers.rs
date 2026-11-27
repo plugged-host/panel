@@ -96,7 +96,13 @@ pub async fn delete_server(state: &crate::State, server: &Server) -> Result<(), 
         .collect::<Vec<_>>();
 
     server
-        .delete(state, crate::models::server::DeleteServerOptions { force })
+        .delete(
+            state,
+            crate::models::server::DeleteServerOptions {
+                force,
+                ..Default::default()
+            },
+        )
         .await
         .map_err(DeleteServerError::Delete)?;
 
