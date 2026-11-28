@@ -113,7 +113,8 @@ settings do not give; noprofit.space is named only while it is connected.
 | Backups, automatic failover | `recovery::*` |
 | Subdomains | `subdomains::*` (active = on with a token) |
 | VS Code | `devboxes::*` (offered, members only, browser version) |
-| The desktop app (plugged.host App): what it is, the download page, updates, SmartScreen, what stays on the website, its crash log | `desktop_app::installer()` (offered while `PLUGGED_APP_INSTALLER` names a file; its version) |
+| The desktop app (plugged.host App): the systems it is offered for, the download page and its files, updates (the .deb cannot update itself), SmartScreen on Windows, glibc 2.35 on Linux, what stays on the website, the crash logs | `desktop_app::installer_for()` per platform (`PLUGGED_APP_INSTALLER`, `PLUGGED_APP_LINUX_APPIMAGE`, `PLUGGED_APP_LINUX_DEB`; the section shows while any names a file), `PLUGGED_APP_VERSION` |
+| Paid servers: what they add, ordering and paying monthly with Funds (or through support without Zaleris), renewal, the grace before deletion; neo never orders or cancels one. The start-queue part says paid servers never wait | `dedicated::offer()` (while a public paid plan exists; the lowest price), `games::dedicated_name`, `dedicated::GRACE_DAYS` |
 | Minecraft, FiveM | eggs with the `eula` / `cfx` features, `games::minecraft_*`, `games::fivem_enhanced` |
 | Help, legal and privacy contacts, neo's extra usage | `neo::support_url`, `legal_email`, `privacy_email`, `plus_percent`, `plusplus_percent` |
 | The review page, given only when asked ([reviews.md](reviews.md)) | `reviews::url`, the site's name |

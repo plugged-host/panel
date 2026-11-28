@@ -120,6 +120,17 @@ pub struct EarnFacts {
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct DesktopAppFacts {
     pub version: String,
+    /// Which files the panel offers: the Windows installer, the Linux AppImage, the Linux .deb.
+    pub windows: bool,
+    pub appimage: bool,
+    pub deb: bool,
+}
+
+/// Paid servers (docs/features/dedicated.md), while a public paid plan exists.
+#[derive(Debug, Clone, Default, PartialEq)]
+pub struct PaidFacts {
+    /// The lowest price of the public paid plans, in euro cents a month, when one has a price.
+    pub from: Option<i32>,
 }
 
 /// Devboxes (VS Code on a game server), as neo describes them.
@@ -205,6 +216,8 @@ pub struct KnowledgeFacts {
     pub devboxes: DevboxFacts,
     /// plugged.host: the desktop app, while its installer is offered.
     pub desktop_app: Option<DesktopAppFacts>,
+    /// Paid servers, while a public paid plan exists.
+    pub paid: Option<PaidFacts>,
     pub neo: NeoFacts,
     /// Subdomains are offered (on, with a token).
     pub subdomains_active: bool,
@@ -245,6 +258,7 @@ impl KnowledgeFacts {
             account_limits: None,
             devboxes: DevboxFacts::default(),
             desktop_app: None,
+            paid: None,
             neo: NeoFacts::from(&AppSettingsNeo::default()),
             subdomains_active: false,
             games: AppSettingsGames::default(),
@@ -302,8 +316,14 @@ impl KnowledgeFacts {
             idle_minutes: settings.devboxes.idle_minutes as i64,
             browser: settings.devboxes.web_ready(),
         };
-        facts.desktop_app = crate::desktop_app::offered().then(|| DesktopAppFacts {
-            version: crate::desktop_app::version(),
+        facts.desktop_app = crate::desktop_app::offered().then(|| {
+            use crate::desktop_app::{Platform, installer_for};
+            DesktopAppFacts {
+                version: crate::desktop_app::version(),
+                windows: installer_for(Platform::Windows).is_some(),
+                appimage: installer_for(Platform::LinuxAppImage).is_some(),
+                deb: installer_for(Platform::LinuxDeb).is_some(),
+            }
         });
         facts.neo = NeoFacts::from(&settings.neo);
         facts.neo.extra_tokens = crate::neo::extra_price(settings).unwrap_or(0);
@@ -416,6 +436,11 @@ async fn gather(state: &crate::State, user: Option<&User>) -> KnowledgeFacts {
             facts.fivem = fivem;
         }
         Err(err) => tracing::warn!("neo's prompt could not read the eggs' features: {err:#}"),
+    }
+
+    let offer = crate::dedicated::offer(state).await;
+    if offer.offered {
+        facts.paid = Some(PaidFacts { from: offer.from });
     }
 
     if facts.limbo.enabled {
@@ -700,6 +725,34 @@ fn plural(count: i64, word: &str) -> String {
 }
 
 /// `0 databases`, `1 database`, `3 databases`.
+/// Euro cents as players read prices: €5, €5.50.
+pub fn euros(cents: i32) -> String {
+    if cents % 100 == 0 {
+        format!("€{}", cents / 100)
+    } else {
+        format!("€{}.{:02}", cents / 100, cents % 100)
+    }
+}
+
+/// What paid servers are called: `games::dedicated_name`, or the panel's name and "Paid"
+/// ([`crate::dedicated::product_name`]).
+fn paid_name(facts: &KnowledgeFacts) -> String {
+    let name = facts.games.dedicated_name.trim();
+    if name.is_empty() {
+        format!("{} Paid", facts.app_name.trim())
+    } else {
+        name.to_string()
+    }
+}
+
+/// The accounts service's name, while it is connected.
+fn noprofit_name(facts: &KnowledgeFacts) -> Option<String> {
+    facts
+        .accounts
+        .as_ref()
+        .map(|accounts| accounts.name.clone())
+}
+
 pub fn count(count: i64, word: &str) -> String {
     plural(count.max(0), word)
 }
@@ -1787,6 +1840,15 @@ pub fn knowledge_text(facts: &KnowledgeFacts) -> String {
     // Starting servers
     if facts.queue.enabled || room || facts.limbo.enabled {
         heading(&mut out, "Starting servers and idle servers");
+        if facts.paid.is_some() {
+            item(
+                &mut out,
+                &format!(
+                    "Paid servers ({}) never wait in the start queue or the waiting room and are never parked for being idle; what follows is about free servers.",
+                    paid_name(facts)
+                ),
+            );
+        }
     }
     if facts.queue.enabled {
         let queue = &facts.queue;
@@ -2008,22 +2070,89 @@ pub fn knowledge_text(facts: &KnowledgeFacts) -> String {
 
     if let Some(desktop) = &facts.desktop_app {
         heading(&mut out, &format!("{app} App"));
+        let mut systems = Vec::new();
+        if desktop.windows {
+            systems.push("Windows 10 and 11".to_string());
+        }
+        if desktop.appimage || desktop.deb {
+            systems.push("Linux".to_string());
+        }
         item(
             &mut out,
             &format!(
-                "{app} App is the native desktop app for Windows 10 and 11 (version {}, a public beta): the same account, servers, console, files, settings and neo as the panel, drawn natively instead of in a browser, so it is lighter and faster. The website is just called {app}.",
+                "{app} App is the native desktop app for {} (version {}, a public beta): the same account, servers, console, files, settings and neo as the panel, drawn natively instead of in a browser, so it is lighter and faster. The website is just called {app}.",
+                join_and(&systems),
                 desktop.version
             ),
         );
+        let mut files = Vec::new();
+        if desktop.windows {
+            files.push("the Windows installer".to_string());
+        }
+        if desktop.appimage {
+            files.push(
+                "a Linux AppImage (runs on most distributions and updates itself)".to_string(),
+            );
+        }
+        if desktop.deb {
+            files.push("a .deb for Debian and Ubuntu (installed with the system's package tools; a newer version is a new .deb from the same page, the app cannot update itself from it)".to_string());
+        }
         item(
             &mut out,
             &format!(
-                "Signed-in users download it from More › Download app ({url}/account/download). It signs in with the same account and updates itself (App settings › Check for updates; it also checks after sign-in). The installer is not code-signed yet, so Windows SmartScreen may warn about an unknown publisher: More info, then Run anyway."
+                "Signed-in users download it from More › Download app ({url}/account/download), which offers {}, their own system first. It signs in with the same account and checks for updates itself (App settings › Check for updates; it also checks after sign-in).",
+                join_and(&files)
             ),
         );
+        if desktop.windows {
+            item(
+                &mut out,
+                "On Windows the installer is not code-signed yet, so SmartScreen may warn about an unknown publisher: More info, then Run anyway. If the app crashes, its log is crash.log in %APPDATA%\\noprofit\\plugged.host\\config; if its window does not open, the graphics driver needs OpenGL 2.0 or newer.",
+            );
+        }
+        if desktop.appimage || desktop.deb {
+            item(
+                &mut out,
+                "On Linux it needs glibc 2.35 or newer (Ubuntu 22.04, Debian 12, Fedora 36 and later). The AppImage has to be made executable once (Properties › Allow executing, or chmod +x) before it runs. Its crash log is ~/.config/plugged.host/crash.log.",
+            );
+        }
         item(
             &mut out,
-            "Things that need a browser stay on the website: security keys, linked OAuth accounts, the console pop-out and VS Code in the browser. Links to other sites are copied to the clipboard instead of opening a browser. If the app crashes, its log is crash.log in %APPDATA%\\noprofit\\plugged.host\\config; if its window does not open, the graphics driver needs OpenGL 2.0 or newer.",
+            "Things that need a browser stay on the website: security keys, linked OAuth accounts, the console pop-out and VS Code in the browser. Links to other sites are copied to the clipboard instead of opening a browser.",
+        );
+    }
+
+    if let Some(paid) = &facts.paid {
+        let name = paid_name(facts);
+        heading(&mut out, &name);
+        let from = paid
+            .from
+            .map(|cents| format!(", from {} a month", euros(cents)))
+            .unwrap_or_default();
+        item(
+            &mut out,
+            &format!(
+                "{name} is the paid option next to the free servers: a server whose CPU threads and memory are its own (disk is shared like on every node){from}. Paid servers skip the start queue and the waiting room, are never parked for being idle and do not count against the free allowance. They are badged Paid in the server list."
+            ),
+        );
+        match noprofit_name(facts) {
+            Some(accounts) => item(
+                &mut out,
+                &format!(
+                    "Players order one themselves on the Paid page ({url}/account/dedicated): pick a plan, then the name, game, software and location. The first month is paid at once from their Funds on {accounts} (money added there, separate from credits and tokens, which cannot pay for it); after that each month is taken from Funds when the last one ends. On that page they can switch renewal off (that is how they cancel) or pay the next month early. When a month cannot be paid, the server is suspended and deleted {} days later; a server with renewal on comes back by itself once enough Funds are added in time.",
+                    crate::dedicated::GRACE_DAYS
+                ),
+            ),
+            None => item(
+                &mut out,
+                &format!(
+                    "Paid servers are ordered through support: an admin creates the server with the plan. The Paid page ({url}/account/dedicated) lists the plans."
+                ),
+            ),
+        }
+        item(
+            &mut out,
+            "You cannot order, pay for, renew or cancel a paid server: point to the Paid page. Never push Paid; mention it once when someone wants more power than the free plan gives, waits in the start queue often, or asks about it.",
         );
     }
 
@@ -3010,6 +3139,8 @@ mod tests {
 
         facts.desktop_app = Some(DesktopAppFacts {
             version: "3.1.8".into(),
+            windows: true,
+            ..Default::default()
         });
         let knowledge = knowledge_text(&facts);
         let app = facts.app_name.as_str();
@@ -3017,6 +3148,57 @@ mod tests {
         assert!(knowledge.contains("(version 3.1.8, a public beta)"));
         assert!(knowledge.contains("/account/download"));
         assert!(knowledge.contains(r"%APPDATA%\noprofit\plugged.host\config"));
+    }
+
+    #[test]
+    fn the_desktop_app_names_the_systems_it_is_offered_for() {
+        let mut facts = example();
+        facts.desktop_app = Some(DesktopAppFacts {
+            version: "3.2.1".into(),
+            appimage: true,
+            deb: true,
+            ..Default::default()
+        });
+        let knowledge = knowledge_text(&facts);
+        assert!(knowledge.contains("native desktop app for Linux (version 3.2.1"));
+        assert!(knowledge.contains("a Linux AppImage"));
+        assert!(knowledge.contains("a .deb for Debian and Ubuntu"));
+        assert!(knowledge.contains("glibc 2.35"));
+        assert!(!knowledge.contains("SmartScreen"));
+
+        facts.desktop_app.as_mut().unwrap().windows = true;
+        let knowledge = knowledge_text(&facts);
+        assert!(knowledge.contains("for Windows 10 and 11 and Linux (version"));
+        assert!(knowledge.contains("SmartScreen"));
+    }
+
+    #[test]
+    fn paid_servers_are_described_only_while_offered() {
+        let mut facts = example();
+        facts.queue.enabled = true;
+        let app = facts.app_name.clone();
+        assert!(!knowledge_text(&facts).contains("/account/dedicated"));
+
+        facts.paid = Some(PaidFacts { from: Some(550) });
+        let knowledge = knowledge_text(&facts);
+        assert!(knowledge.contains(&format!("\n{app} Paid\n")));
+        assert!(knowledge.contains(", from €5.50 a month"));
+        assert!(knowledge.contains("ordered through support"));
+        assert!(knowledge.contains(&format!("Paid servers ({app} Paid) never wait")));
+
+        facts.accounts = Some(accounts_facts("https://accounts.example.com"));
+        facts.games.dedicated_name = "Dedicated+".into();
+        let knowledge = knowledge_text(&facts);
+        assert!(knowledge.contains("\nDedicated+\n"));
+        assert!(knowledge.contains("deleted 3 days later"));
+        assert!(!knowledge.contains("ordered through support"));
+    }
+
+    #[test]
+    fn euros_read_like_prices() {
+        assert_eq!(euros(500), "€5");
+        assert_eq!(euros(550), "€5.50");
+        assert_eq!(euros(1205), "€12.05");
     }
 
     #[test]
